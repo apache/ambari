@@ -483,6 +483,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     pass
 
+  def getHostNamesWithComponent(self, serviceName, componentName, services):
+    """
+    Returns the list of hostnames on which service component is installed
+    """
+    if services is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
+      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
+      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
+      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
+        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
+        return componentHostnames
+    return []
+
   def getHostsWithComponent(self, serviceName, componentName, services, hosts):
     if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
       service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
@@ -507,6 +519,27 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                               if componentEntry["StackServiceComponents"]["component_category"] in categories
                               and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
     return components
+
+  def getZKHostPortString(self, services):
+    """
+    Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
+    Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
+    """
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    include_zookeeper = "ZOOKEEPER" in servicesList
+    zookeeper_host_port = ''
+
+    if include_zookeeper:
+      zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
+      zookeeper_port = 2181     #default port
+      if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
+        zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
+
+      zookeeper_host_port_arr = []
+      for i in range(len(zookeeper_hosts)):
+        zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
+      zookeeper_host_port = ",".join(zookeeper_host_port_arr)
+    return zookeeper_host_port
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 

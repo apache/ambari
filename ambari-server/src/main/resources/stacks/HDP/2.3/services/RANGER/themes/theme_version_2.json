@@ -272,35 +272,9 @@
               "tab-rows": "2",
               "sections": [
                 {
-                  "name": "section-ranger-audit-db",
-                  "display-name": "Audit to DB",
-                  "row-index": "0",
-                  "column-index": "0",
-                  "row-span": "1",
-                  "column-span": "2",
-                  "section-columns": "2",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                      "name": "subsection-ranger-audit-db-row1-col1",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    },
-                    {
-                      "name": "subsection-ranger-audit-db-row1-col2",
-                      "row-index": "0",
-                      "column-index": "1",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
-                },
-                {
                   "name": "section-ranger-audit-solr",
                   "display-name": "Audit to Solr",
-                  "row-index": "1",
+                  "row-index": "0",
                   "column-index": "0",
                   "row-span": "1",
                   "column-span": "1",
@@ -308,7 +282,7 @@
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-ranger-solr-row2-col1",
+                      "name": "subsection-ranger-solr-row1-col1",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -319,7 +293,7 @@
                 {
                   "name": "section-ranger-audit-hdfs",
                   "display-name": "Audit to HDFS",
-                  "row-index": "1",
+                  "row-index": "0",
                   "column-index": "1",
                   "row-span": "1",
                   "column-span": "1",
@@ -327,9 +301,35 @@
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-ranger-hdfs-row2-col2",
+                      "name": "subsection-ranger-hdfs-row1-col2",
                       "row-index": "0",
                       "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-ranger-audit-db",
+                  "display-name": "Audit to DB",
+                  "row-index": "1",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-ranger-audit-db-row2-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-ranger-audit-db-row2-col2",
+                      "row-index": "0",
+                      "column-index": "1",
                       "row-span": "1",
                       "column-span": "1"
                     }
@@ -1006,27 +1006,27 @@
         },
         {
           "config": "ranger-env/xasecure.audit.destination.db",
-          "subsection-name": "subsection-ranger-audit-db-row1-col1"
+          "subsection-name": "subsection-ranger-audit-db-row2-col1"
         },
         {
           "config": "admin-properties/audit_db_user",
-          "subsection-name": "subsection-ranger-audit-db-row1-col1"
+          "subsection-name": "subsection-ranger-audit-db-row2-col1"
         },
         {
           "config": "admin-properties/audit_db_name",
-          "subsection-name": "subsection-ranger-audit-db-row1-col2"
+          "subsection-name": "subsection-ranger-audit-db-row2-col2"
         },
         {
           "config": "admin-properties/audit_db_password",
-          "subsection-name": "subsection-ranger-audit-db-row1-col2"
+          "subsection-name": "subsection-ranger-audit-db-row2-col2"
         },
         {
           "config": "ranger-env/xasecure.audit.destination.solr",
-          "subsection-name": "subsection-ranger-solr-row2-col1"
+          "subsection-name": "subsection-ranger-solr-row1-col1"
         },
         {
           "config": "ranger-env/is_solrCloud_enabled",
-          "subsection-name": "subsection-ranger-solr-row2-col1",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
           "depends-on": [
             {
               "configs":[
@@ -1048,7 +1048,7 @@
         },
         {
           "config": "ranger-admin-site/ranger.audit.solr.urls",
-          "subsection-name": "subsection-ranger-solr-row2-col1",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
           "depends-on": [
             {
               "configs":[
@@ -1071,7 +1071,7 @@
         },
         {
           "config": "ranger-admin-site/ranger.audit.solr.zookeepers",
-          "subsection-name": "subsection-ranger-solr-row2-col1",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
           "depends-on": [
             {
               "configs":[
@@ -1094,7 +1094,7 @@
         },
         {
           "config": "ranger-admin-site/ranger.audit.solr.username",
-          "subsection-name": "subsection-ranger-solr-row2-col1",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
           "depends-on": [
             {
               "configs":[
@@ -1116,7 +1116,7 @@
         },
         {
           "config": "ranger-admin-site/ranger.audit.solr.password",
-          "subsection-name": "subsection-ranger-solr-row2-col1",
+          "subsection-name": "subsection-ranger-solr-row1-col1",
           "depends-on": [
             {
               "configs":[
@@ -1138,11 +1138,11 @@
         },
         {
           "config": "ranger-env/xasecure.audit.destination.hdfs",
-          "subsection-name": "subsection-ranger-hdfs-row2-col2"
+          "subsection-name": "subsection-ranger-hdfs-row1-col2"
         },
         {
           "config": "ranger-env/xasecure.audit.destination.hdfs.dir",
-          "subsection-name": "subsection-ranger-hdfs-row2-col2",
+          "subsection-name": "subsection-ranger-hdfs-row1-col2",
           "depends-on": [
             {
               "configs":[
@@ -1516,7 +1516,7 @@
       {
         "config": "ranger-admin-site/ranger.audit.solr.password",
         "widget": {
-          "type": "password"
+          "type": "text-field"
         }
       },
       {

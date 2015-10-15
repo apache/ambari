@@ -261,6 +261,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
 
@@ -296,6 +297,52 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
         for key in rangerPrivelegeDbProperties:
           putRangerEnvProperty(key, rangerPrivelegeDbProperties.get(key))
+
+    # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
+    include_hdfs = "HDFS" in servicesList
+    zookeeper_host_port = self.getZKHostPortString(services)
+    if zookeeper_host_port:
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', zookeeper_host_port)
+
+    if include_hdfs:
+      if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
+        default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
+        putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', default_fs)
+
+    # Recommend Ranger supported service's audit properties
+    ranger_services = [
+      {'service_name': 'HDFS', 'audit_file': 'ranger-hdfs-audit'},
+      {'service_name': 'YARN', 'audit_file': 'ranger-yarn-audit'},
+      {'service_name': 'HBASE', 'audit_file': 'ranger-hbase-audit'},
+      {'service_name': 'HIVE', 'audit_file': 'ranger-hive-audit'},
+      {'service_name': 'KNOX', 'audit_file': 'ranger-knox-audit'},
+      {'service_name': 'KAFKA', 'audit_file': 'ranger-kafka-audit'},
+      {'service_name': 'STORM', 'audit_file': 'ranger-storm-audit'}
+    ]
+
+    for item in range(len(ranger_services)):
+      if ranger_services[item]['service_name'] in servicesList:
+        component_audit_file =  ranger_services[item]['audit_file']
+        if component_audit_file in services["configurations"]:
+          ranger_audit_dict = [
+            {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.db', 'target_configname': 'xasecure.audit.destination.db'},
+            {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.hdfs', 'target_configname': 'xasecure.audit.destination.hdfs'},
+            {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.hdfs.dir', 'target_configname': 'xasecure.audit.destination.hdfs.dir'},
+            {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.solr', 'target_configname': 'xasecure.audit.destination.solr'},
+            {'filename': 'ranger-admin-site', 'configname': 'ranger.audit.solr.urls', 'target_configname': 'xasecure.audit.destination.solr.urls'},
+            {'filename': 'ranger-admin-site', 'configname': 'ranger.audit.solr.zookeepers', 'target_configname': 'xasecure.audit.destination.solr.zookeepers'}
+          ]
+          putRangerAuditProperty = self.putProperty(configurations, component_audit_file, services)
+
+          for item in ranger_audit_dict:
+            if item['filename'] in services["configurations"] and item['configname'] in  services["configurations"][item['filename']]["properties"]:
+              if item['filename'] in configurations and item['configname'] in  configurations[item['filename']]["properties"]:
+                rangerAuditProperty = configurations[item['filename']]["properties"][item['configname']]
+              else:
+                rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
+              putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
+
+
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
