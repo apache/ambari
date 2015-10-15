@@ -1289,6 +1289,48 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                 rootJson.toString(), UUID.randomUUID().toString());
           }
 
+          // update ranger admin alerts from type port(2.2) to web(2.3)
+          AlertDefinitionEntity rangerAdminDefinitionEntity = alertDefinitionDAO.findByName(
+            cluster.getClusterId(), "ranger_admin_process");
+
+          if (rangerAdminDefinitionEntity != null) {
+            String source = rangerAdminDefinitionEntity.getSource();
+            JsonObject rootJson = new JsonParser().parse(source).getAsJsonObject();
+            JsonObject uriJson = new JsonObject();
+            JsonObject reporting = rootJson.getAsJsonObject("reporting");
+            JsonObject ok = reporting.getAsJsonObject("ok");
+            JsonObject warning = reporting.getAsJsonObject("warning");
+            JsonObject critical = reporting.getAsJsonObject("critical");            
+
+            rootJson.remove("type");
+            rootJson.remove("default_port");
+            rootJson.addProperty("type", "WEB");
+
+            uriJson.addProperty("http", "{{admin-properties/policymgr_external_url}}");
+            uriJson.addProperty("https", "{{admin-properties/policymgr_external_url}}");
+            uriJson.addProperty("https_property", "{{ranger-site/http.enabled}}");
+            uriJson.addProperty("https_property_value", "false");
+            uriJson.addProperty("connection_timeout", 5.0f);
+
+            rootJson.remove("uri");
+            rootJson.add("uri", uriJson);
+
+            ok.remove("text");
+            ok.addProperty("text", "HTTP {0} response in {2:.3f}s");
+
+            warning.remove("text");
+            warning.remove("value");
+            warning.addProperty("text", "HTTP {0} response from {1} in {2:.3f}s ({3})");
+
+            critical.remove("text");
+            critical.remove("value");
+            critical.addProperty("text", "Connection failed to {1} ({3})");
+
+            // save the changes
+            updateAlertDefinitionEntitySource("ranger_admin_process",
+              rootJson.toString(), UUID.randomUUID().toString());
+          }
+
           // update oozie web ui alert
           AlertDefinitionEntity oozieWebUIAlertDefinitionEntity = alertDefinitionDAO.findByName(
               cluster.getClusterId(), "oozie_server_webui");

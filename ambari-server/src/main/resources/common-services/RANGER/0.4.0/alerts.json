@@ -5,24 +5,27 @@
       {
         "name": "ranger_admin_process",
         "label": "Ranger Admin Process",
-        "description": "This host-level alert is triggered if the Ranger Admin cannot be determined to be up.",
+        "description": "This host-level alert is triggered if the Ranger Admin Web UI is unreachable.",
         "interval": 1,
-        "scope": "HOST",
+        "scope": "ANY",
         "source": {
-          "type": "PORT",
-          "uri": "{{ranger-site/HTTP_SERVICE_PORT}}",
-          "default_port": 6080,
+          "type": "WEB",
+          "uri": {
+              "http": "{{admin-properties/policymgr_external_url}}",
+              "https": "{{admin-properties/policymgr_external_url}}",
+              "https_property": "{{ranger-site/http.enabled}}",
+              "https_property_value": "false",
+              "connection_timeout": 5.0
+            },
           "reporting": {
             "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
+              "text": "HTTP {0} response in {2:.3f}s"
             },
             "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
+              "text": "Connection failed to {1} ({3})"
             }
           }
         }
