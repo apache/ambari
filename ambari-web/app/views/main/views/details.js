@@ -49,6 +49,7 @@ App.MainViewsDetailsView = Em.View.extend({
     }, 5000);
     self.set('interval', interval);
     this.resizeFunction();
+    App.router.get('mainController').monitorInactivity();
   },
 
   resizeFunction : function() {
