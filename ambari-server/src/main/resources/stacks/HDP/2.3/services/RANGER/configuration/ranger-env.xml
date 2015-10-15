@@ -106,11 +106,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -128,11 +128,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -150,11 +150,11 @@
       <entries>
         <entry>
           <value>true</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>false</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -172,11 +172,11 @@
       <entries>
         <entry>
           <value>true</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>false</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -194,11 +194,11 @@
       <entries>
         <entry>
           <value>true</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>false</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -217,11 +217,11 @@
       <entries>
         <entry>
           <value>true</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>false</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -230,9 +230,15 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
-    <value>hdfs://localhost:8020/ranger/audit</value>
+    <value>hdfs://localhost:8020</value>
     <display-name>Destination HDFS Directory</display-name>
     <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
+    <depends-on>
+      <property>
+        <type>core-site</type>
+        <name>fs.defaultFS</name>
+      </property>
+    </depends-on>
   </property>
 
 </configuration>

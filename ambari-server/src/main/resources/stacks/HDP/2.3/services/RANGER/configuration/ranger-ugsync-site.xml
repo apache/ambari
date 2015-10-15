@@ -65,7 +65,7 @@
   <property>
     <name>ranger.usersync.enabled</name>
     <display-name>Enable User Sync</display-name>
-    <value>true</value>
+    <value>false</value>
     <description>Usersync enabled?</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -185,8 +185,8 @@
   <property>
     <name>ranger.usersync.ldap.binddn</name>
     <display-name>​Bind User</display-name>
-    <value>cn=admin,dc=xasecure,dc=net</value>
-    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
+    <value></value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. Example: cn=admin,dc=xasecure,dc=net</description>
   </property>
 
   <property>
@@ -263,7 +263,7 @@
   <property>
     <name>ranger.usersync.ldap.user.nameattribute</name>
     <display-name>Username Attribute</display-name>
-    <value>cn</value>
+    <value></value>
     <description>LDAP user name attribute</description>
   </property>
 

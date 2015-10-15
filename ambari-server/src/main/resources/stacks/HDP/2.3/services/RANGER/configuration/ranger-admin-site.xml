@@ -419,8 +419,14 @@
 
   <property>
     <name>ranger.audit.solr.zookeepers</name>
-    <value></value>
+    <value>localhost:2181</value>
     <description>Solr Zookeeper string</description>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+    </depends-on>
   </property> 
 
   <property>
@@ -431,7 +437,7 @@
 
   <property>
     <name>ranger.audit.solr.password</name>
-    <value></value>
+    <value>NONE</value>
     <property-type>PASSWORD</property-type>
     <description>Solr password</description>
   </property> 

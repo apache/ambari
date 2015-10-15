@@ -966,6 +966,71 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+
+
+  def test_getHostNamesWithComponent(self):
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "SERVICE"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "COMPONENT",
+                "hostnames": ["host1","host2","host3"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": {}
+    }
+
+    result = self.stackAdvisor.getHostNamesWithComponent("SERVICE","COMPONENT", services)
+    expected = ["host1","host2","host3"]
+    self.assertEquals(result, expected)
+
+
+  def test_getZKHostPortString(self):
+    configurations = {
+      "zoo.cfg": {
+        "properties": {
+          'clientPort': "2183"
+        }
+      }
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "ZOOKEEPER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "ZOOKEEPER_SERVER",
+                "hostnames": ["zk.host1","zk.host2","zk.host3"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "ZOOKEEPER_CLIENT",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+
+    result = self.stackAdvisor.getZKHostPortString(services)
+    expected = "zk.host1:2183,zk.host2:2183,zk.host3:2183"
+    self.assertEquals(result, expected)
+
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}
 

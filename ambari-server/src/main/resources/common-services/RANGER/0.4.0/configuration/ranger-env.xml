@@ -116,11 +116,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -138,11 +138,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -160,11 +160,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -182,11 +182,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -204,11 +204,11 @@
       <entries>
         <entry>
           <value>Yes</value>
-          <label>Enabled</label>
+          <label>ON</label>
         </entry>
         <entry>
           <value>No</value>
-          <label>Disabled</label>
+          <label>OFF</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>

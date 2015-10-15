@@ -34,6 +34,12 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.db</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -81,12 +87,24 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>xasecure.audit.destination.hdfs.dir</name>
     <value>hdfs://NAMENODE_HOSTNAME:8020/ranger/audit</value>
     <description>HDFS folder to write audit to, make sure the service user has requried permissions</description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs.dir</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -97,24 +115,45 @@
 
   <property>
     <name>xasecure.audit.destination.solr</name>
-    <value>true</value>
+    <value>false</value>
     <display-name>Audit to SOLR</display-name>
     <description>Is Solr audit enabled?</description>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.solr</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.urls</name>
-    <value>{{ranger_audit_solr_urls}}</value>
+    <value></value>
     <description>Solr URL</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.audit.solr.urls</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
-    <value>none</value>
+    <value>localhost:2181</value>
     <description>Solr Zookeeper string</description>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.audit.solr.zookeepers</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
