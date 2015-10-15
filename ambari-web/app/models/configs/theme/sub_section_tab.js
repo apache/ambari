@@ -61,9 +61,9 @@ App.SubSectionTab = DS.Model.extend({
    */
   errorsCount: function () {
     return this.get('configs').filter(function(config) {
-      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+      return config.get('isVisible') && (!config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false));
     }).length;
-  }.property('configs.@each.isValid', 'configs.@each.overrideErrorTrigger'),
+  }.property('configs.@each.isVisible', 'configs.@each.isValid', 'configs.@each.overrideErrorTrigger'),
 
   /**
    * Determines if subsection is filtered by checking it own configs
