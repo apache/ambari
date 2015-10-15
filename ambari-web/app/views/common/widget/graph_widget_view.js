@@ -281,16 +281,15 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
     },
 
     loadData: function () {
-      var self = this;
-      Em.run.next(function () {
-        self._refreshGraph(self.get('parentView.data'))
+      Em.run.next(this, function () {
+        this._refreshGraph(this.get('parentView.data'), this.get('parentView'));
       });
     },
 
     didInsertElement: function () {
       var self = this;
       this.$().closest('.graph-widget').on('mouseleave', function () {
-        self.set('parentView.isMenuHidden', true);
+        self.set('parentView.isExportMenuHidden', true);
       });
       this.setYAxisFormatter();
       this.loadData();
@@ -315,7 +314,14 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       fileType = isCSV ? 'csv' : 'json',
       fileName = 'data.' + fileType,
       metrics = this.get('content.metrics'),
+      hasData = Em.isArray(metrics) && metrics.some(function (item) {
+        return Em.isArray(item.data);
+      });
+    if (hasData) {
       data = isCSV ? this.prepareCSV(metrics) : this.prepareJSON(metrics);
-    fileUtils.downloadTextFile(data, fileType, fileName);
+      fileUtils.downloadTextFile(data, fileType, fileName);
+    } else {
+      App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
+    }
   }
 });

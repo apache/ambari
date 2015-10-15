@@ -266,6 +266,26 @@ describe('App.ChartLinearTimeView', function () {
 
   });
 
+  describe('#loadDataSuccessCallback', function () {
+
+    beforeEach(function () {
+      sinon.stub(chartLinearTimeView, '_refreshGraph', Em.K);
+    });
+
+    afterEach(function () {
+      chartLinearTimeView._refreshGraph.restore();
+    });
+
+    it('should refresh graph', function () {
+      var response = {
+        key: 'value'
+      };
+      chartLinearTimeView.loadDataSuccessCallback(response);
+      expect(chartLinearTimeView._refreshGraph.calledOnce).to.be.true;
+      expect(chartLinearTimeView._refreshGraph.calledWith(response)).to.be.true;
+    });
+  });
+
 });
 
 

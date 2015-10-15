@@ -19,12 +19,10 @@
 <div {{bindAttr class="view.isReady:hide:show :screensaver :no-borders :chart-container"}}></div>
 <div {{bindAttr class="view.isReady::hidden :time-label"}}>
   {{view.parentView.currentTimeState.name}}
-  {{#if view.parentView.graph.hasData}}
-    <a class="corner-icon pull-right" href="#" {{action toggleFormatsList target="view"}}>
-      <i class="icon-save"></i>
-    </a>
-    {{view view.exportMetricsMenuView}}
-  {{/if}}
+  <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
+    <i class="icon-save"></i>
+  </a>
+  {{view view.exportMetricsMenuView}}
 </div>
 {{#if view.isTimePagingEnable}}
   <div {{bindAttr class="view.leftArrowVisible:visibleArrow :arrow-left"}} {{action "switchTimeBack" target="view.parentView"}}></div>
@@ -34,7 +32,7 @@
   <div {{bindAttr id="view.xAxisId"}} {{bindAttr class="view.xAxisClass :chart-x-axis"}}></div>
   <div {{bindAttr id="view.legendId"}} {{bindAttr class="view.legendClass :chart-legend"}}></div>
   <div {{bindAttr id="view.chartId"}} {{bindAttr class="view.chartClass :chart"}}></div>
-  <div {{bindAttr id="view.titleId"}} {{bindAttr class="view.titleClass :chart-title"}}>{{view.title}}</div>
+  <div {{bindAttr id="view.titleId"}} {{bindAttr class="view.titleClass view.isExportButtonHidden::has-data :chart-title"}}>{{view.title}}</div>
 </div>
 {{#if view.isTimePagingEnable}}
   <div {{bindAttr class="view.rightArrowVisible:visibleArrow :arrow-right"}} {{action "switchTimeForward" "forward" target="view.parentView"}}></div>

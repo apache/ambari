@@ -29,16 +29,24 @@ App.ExportMetricsMixin = Em.Mixin.create({
    */
   exportToCSVArgument: true,
 
-  isMenuHidden: true,
+  isExportMenuHidden: true,
+
+  isExportButtonHidden: false,
 
   exportMetricsMenuView: App.ExportMetricsMenuView.extend(),
 
+  hideMenuForNoData: function () {
+    if (this.get('isExportButtonHidden')) {
+      this.set('isExportMenuHidden', true);
+    }
+  }.observes('isExportButtonHidden'),
+
   toggleFormatsList: function () {
-    this.toggleProperty('isMenuHidden');
+    this.toggleProperty('isExportMenuHidden');
   },
 
   exportGraphData: function () {
-    this.set('isMenuHidden', true);
+    this.set('isExportMenuHidden', true);
   },
 
   exportGraphDataSuccessCallback: function (response, request, params) {
