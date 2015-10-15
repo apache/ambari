@@ -443,6 +443,10 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> typeProps = new HashMap<String, String>();
     typeProps.put("storm.zookeeper.servers", "['testhost:5050','testhost2:9090','testhost2a:9090','testhost2b:9090']");
+    typeProps.put("drpc_server_host", "['testhost:5050']");
+    typeProps.put("storm_ui_server_host", "['testhost:5050']");
+    typeProps.put("supervisor_hosts", "['testhost:5050','testhost2:9090']");
+
     properties.put("storm-site", typeProps);
 
     Configuration clusterConfig = new Configuration(properties,
@@ -452,12 +456,16 @@ public class BlueprintConfigurationProcessorTest {
     hgComponents.add("NAMENODE");
     hgComponents.add("SECONDARY_NAMENODE");
     hgComponents.add("ZOOKEEPER_SERVER");
+    hgComponents.add("DRPC_SERVER");
+    hgComponents.add("STORM_UI_SERVER");
+    hgComponents.add("SUPERVISOR");
     TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
 
     Collection<String> hgComponents2 = new HashSet<String>();
     hgComponents2.add("DATANODE");
     hgComponents2.add("HDFS_CLIENT");
     hgComponents2.add("ZOOKEEPER_SERVER");
+    hgComponents2.add("SUPERVISOR");
     Set<String> hosts2 = new HashSet<String>();
     hosts2.add("testhost2");
     hosts2.add("testhost2a");
@@ -483,6 +491,15 @@ public class BlueprintConfigurationProcessorTest {
 
     String updatedVal = properties.get("storm-site").get("storm.zookeeper.servers");
     assertEquals("['%HOSTGROUP::group1%:5050','%HOSTGROUP::group2%:9090']", updatedVal);
+
+    String updatedVa2 = properties.get("storm-site").get("drpc_server_host");
+    assertEquals("['%HOSTGROUP::group1%:5050']", updatedVa2);
+
+    String updatedVa3 = properties.get("storm-site").get("storm_ui_server_host");
+    assertEquals("['%HOSTGROUP::group1%:5050']", updatedVa3);
+
+    String updatedVa4 = properties.get("storm-site").get("supervisor_hosts");
+    assertEquals("['%HOSTGROUP::group1%:5050','%HOSTGROUP::group2%:9090']", updatedVa4);
   }
 
   @Test
