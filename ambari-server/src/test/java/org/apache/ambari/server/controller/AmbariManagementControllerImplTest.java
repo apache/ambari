@@ -596,6 +596,54 @@ public class AmbariManagementControllerImplTest {
   }
 
   /**
+   * Ensure that when the cluster security type updated from KERBEROS to KERBEROS,
+   * KerberosHandler.toggleKerberos IS NOT invoked
+   */
+
+  @Test
+  public void testUpdateClustersToggleKerberosReenable() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
+    expect(clusterRequest.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getClusterName()).andReturn("cluster").times(2);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
+    expect(kerberosHelper.shouldExecuteCustomOperations(SecurityType.KERBEROS, null))
+        .andReturn(false)
+        .once();
+    // Note: kerberosHelper.toggleKerberos is not called
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager, kerberosHelper);
+  }
+  /**
    * Ensure that when the cluster security type updated from NONE to KERBEROS, KerberosHandler.toggleKerberos
    * IS invoked
    */
