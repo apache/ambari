@@ -2275,7 +2275,9 @@ public class KerberosHelperImpl implements KerberosHelper {
   private class EnableKerberosHandler extends Handler {
     @Override
     public boolean shouldProcess(SecurityState desiredSecurityState, ServiceComponentHost sch) throws AmbariException {
-      return (desiredSecurityState == SecurityState.SECURED_KERBEROS);
+      return (desiredSecurityState == SecurityState.SECURED_KERBEROS) &&
+          (sch.getSecurityState() != SecurityState.SECURED_KERBEROS) &&
+          (sch.getSecurityState() != SecurityState.SECURING);
     }
 
     @Override
