@@ -455,5 +455,11 @@
         "StackConfigurationDependency/dependency_type",
         "StackConfigurationDependency/dependency_name",
         "_"
-    ]
+    ],
+  "KerberosDescriptor":[
+    "KerberosDescriptors/kerberos_descriptor_name",
+    "KerberosDescriptors/kerberos_descriptor_text",
+    "_"
+  ]
+
 }

@@ -830,6 +830,14 @@ CREATE TABLE ambari.kerberos_principal_host (
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_principal_host TO :username;
 
+CREATE TABLE ambari.kerberos_descriptor
+(
+   kerberos_descriptor_name   VARCHAR(255) NOT NULL,
+   kerberos_descriptor        TEXT NOT NULL,
+   PRIMARY KEY (kerberos_descriptor_name)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_descriptor TO :username;
+
 ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
 ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES ambari.kerberos_principal (principal_name);
 -- Kerberos (end)
