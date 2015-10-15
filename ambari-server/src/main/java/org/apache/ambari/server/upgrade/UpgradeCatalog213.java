@@ -58,7 +58,15 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String CONTENT_PROPERTY = "content";
+  private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
+                                    "# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. \n" +
+                                    "# Makes sense to fix only when runing DN as root \n" +
+                                    "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
+                                    "  ulimit -l {{datanode_max_locked_memory}}\n" +
+                                    "fi\n" +
+                                    "{% endif %};\n";
 
   private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
   private static final String KERBEROS_DESCRIPTOR_NAME_COLUMN = "kerberos_descriptor_name";
@@ -141,6 +149,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateHDFSConfigs();
     updateHbaseEnvConfig();
+    updateHadoopEnv();
     updateKafkaConfigs();
   }
 
@@ -211,6 +220,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("value");
 
     return rootJson.toString();
+  }
+  
+  protected void updateHadoopEnv() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config hadoopEnvConfig = cluster.getDesiredConfigByType(HADOOP_ENV_CONFIG);
+      if (hadoopEnvConfig != null) {
+        String content = hadoopEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          content += HADOOP_ENV_CONTENT_TO_APPEND;
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, HADOOP_ENV_CONFIG, updates, true, false);
+        }
+      }
+    }
   }
 
   protected void updateHDFSConfigs() throws AmbariException {
