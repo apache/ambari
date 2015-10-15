@@ -449,10 +449,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
           for (var prop in config.properties) {
             var fileName = App.config.getOriginalFileName(config.type);
             var serviceConfig = allConfigs.filterProperty('name', prop).findProperty('filename', fileName);
-            var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
-            var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-
             if (serviceConfig) {
+              var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
+              var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
               if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') == self.get('selectedConfigGroup.name')) {
                 var overridePlainObject = {
                   "value": value,
