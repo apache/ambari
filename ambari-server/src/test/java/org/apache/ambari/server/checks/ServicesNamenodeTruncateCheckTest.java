@@ -43,7 +43,7 @@ import com.google.inject.Provider;
 import org.mockito.Mockito;
 
 /**
- * Unit tests for ServicesUpCheck
+ * Unit tests for ServicesNamenodeTruncateCheck
  *
  */
 public class ServicesNamenodeTruncateCheckTest {

@@ -50,12 +50,12 @@ import com.google.inject.Provider;
 
 
 /**
- * Unit tests for ServicesUpCheck
+ * Unit tests for ComponentsInstallationCheck
  *
  */
 @RunWith(PowerMockRunner.class)               // Allow mocking static methods
 @PrepareForTest(HostComponentSummary.class)   // This class has a static method that will be mocked
-public class ServicesUpCheckTest {
+public class ComponentsInstallationCheckTest {
   private final Clusters clusters = Mockito.mock(Clusters.class);
   private AmbariMetaInfo ambariMetaInfo = Mockito.mock(AmbariMetaInfo.class);
 
@@ -65,21 +65,21 @@ public class ServicesUpCheckTest {
     checkRequest.setRepositoryVersion("HDP-2.2.0.0");
     checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
-    ServicesUpCheck suc = new ServicesUpCheck();
+    ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
     Configuration config = Mockito.mock(Configuration.class);
     Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
     Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
-    suc.config = config;
+    cic.config = config;
 
-    Assert.assertTrue(suc.isApplicable(checkRequest));
+    Assert.assertTrue(cic.isApplicable(checkRequest));
   }
 
   @Test
   public void testPerform() throws Exception {
     PowerMockito.mockStatic(HostComponentSummary.class);
 
-    final ServicesUpCheck servicesUpCheck = new ServicesUpCheck();
-    servicesUpCheck.clustersProvider = new Provider<Clusters>() {
+    final ComponentsInstallationCheck componentsInstallationCheck = new ComponentsInstallationCheck();
+    componentsInstallationCheck.clustersProvider = new Provider<Clusters>() {
 
       @Override
       public Clusters get() {
@@ -87,13 +87,12 @@ public class ServicesUpCheckTest {
       }
     };
 
-    servicesUpCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+    componentsInstallationCheck.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
       @Override
       public AmbariMetaInfo get() {
         return ambariMetaInfo;
       }
     };
-
 
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
@@ -224,49 +223,23 @@ public class ServicesUpCheckTest {
       Mockito.when(hcs.getDesiredState()).thenReturn(State.INSTALLED);
       Mockito.when(hcs.getCurrentState()).thenReturn(State.STARTED);
     }
+    Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALLED);
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    // Case 2. Change some desired states to STARTED, should still pass
-    Mockito.when(hcsNameNode.getDesiredState()).thenReturn(State.STARTED);
-    Mockito.when(hcsDataNode1.getDesiredState()).thenReturn(State.STARTED);
-
+    // Case 2. Ensure that AMS is ignored even if their current state is not INSTALLED
+    Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALL_FAILED);
+    Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
-    // Case 3. Ensure that ZKFC and AMS are ignored even if their current state is not STARTED
-    Mockito.when(hcsZKFC.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsMetricsCollector.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsMetricsMonitor.getCurrentState()).thenReturn(State.INSTALLED);
-
+    // Case 3: Change TEZ client state to INSTALL_FAILED, should fail
+    Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
     check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-
-    // Case 4. Change HDFS current states to INSTALLED, should fail.
-    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
-
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-
-    // Case 5. Change HDFS master to STARTED, but one slave to INSTALLED, should pass (2/3 are up).
-    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
-    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
-
-    // Case 6. Change HDFS master to STARTED, but 2 slaves to INSTALLED, should fail (2/3 are down)
-    Mockito.when(hcsNameNode.getCurrentState()).thenReturn(State.STARTED);
-    Mockito.when(hcsDataNode1.getCurrentState()).thenReturn(State.INSTALLED);
-    Mockito.when(hcsDataNode2.getCurrentState()).thenReturn(State.INSTALLED);
-    check = new PrerequisiteCheck(null, null);
-    servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
-    Assert.assertTrue(check.getFailReason().indexOf("50%") > -1);
+    Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
   }
 }

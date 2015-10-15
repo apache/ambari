@@ -48,7 +48,7 @@ import org.junit.Test;
 import com.google.inject.Provider;
 //
 /**
- * Unit tests for ServicesUpCheck
+ * Unit tests for ConfigurationMergeCheck
  */
 public class ConfigurationMergeCheckTest {
 
