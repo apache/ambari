@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
@@ -62,9 +63,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -87,11 +90,15 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   public static final String UPGRADE_TABLE = "upgrade";
   public static final String REPO_VERSION_TABLE = "repo_version";
 
+  private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
+  private static final String KERBEROS_DESCRIPTOR_NAME_COLUMN = "kerberos_descriptor_name";
+  private static final String KERBEROS_DESCRIPTOR_COLUMN = "kerberos_descriptor";
 
   /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog213.class);
+
 
   @Inject
   DaoUtils daoUtils;
@@ -140,6 +147,17 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    addKerberosDescriptorTable();
+  }
+
+  private void addKerberosDescriptorTable() throws SQLException {
+
+    List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
+    columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_NAME_COLUMN, String.class, 255, null, false));
+    columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_COLUMN, char[].class, null, null, false));
+
+    LOG.debug("Creating table [ {} ] with columns [ {} ] and primary key: [ {} ]", KERBEROS_DESCRIPTOR_TABLE, columns, KERBEROS_DESCRIPTOR_NAME_COLUMN);
+    dbAccessor.createTable(KERBEROS_DESCRIPTOR_TABLE, columns, KERBEROS_DESCRIPTOR_NAME_COLUMN);
   }
 
   /**
