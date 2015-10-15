@@ -64,6 +64,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -74,6 +75,7 @@ import java.util.UUID;
 public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   private static final String STORM_SITE = "storm-site";
+  private static final String HDFS_SITE_CONFIG = "hdfs-site";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
@@ -156,6 +158,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateStormConfigs();
     updateAMSConfigs();
+    updateHDFSConfigs();
     updateHbaseEnvConfig();
     updateAlertDefinitions();
     updateKafkaConfigs();
@@ -553,6 +556,21 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("value");
 
     return rootJson.toString();
+  }
+
+  protected void updateHDFSConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
+
+    for (final Cluster cluster : clusterMap.values()) {
+      // Remove dfs.namenode.rpc-address property when NN HA is enabled
+      if (cluster.getDesiredConfigByType(HDFS_SITE_CONFIG) != null && isNNHAEnabled(cluster)) {
+        Set<String> removePropertiesSet = new HashSet<>();
+        removePropertiesSet.add("dfs.namenode.rpc-address");
+        removeConfigurationPropertiesFromCluster(cluster, HDFS_SITE_CONFIG, removePropertiesSet);
+      }
+    }
   }
 
   protected void updateStormConfigs() throws AmbariException {

@@ -173,6 +173,7 @@ public class UpgradeCatalog213Test {
     Method bootstrapRepoVersionForHDP21 = UpgradeCatalog213.class.getDeclaredMethod("bootstrapRepoVersionForHDP21");
     Method updateStormConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateStormConfigs");
     Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
+    Method updateHDFSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateHDFSConfigs");
     Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
@@ -181,6 +182,7 @@ public class UpgradeCatalog213Test {
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(updateAMSConfigs)
+        .addMockedMethod(updateHDFSConfigs)
         .addMockedMethod(updateAlertDefinitions)
         .addMockedMethod(executeStackUpgradeDDLUpdates)
         .addMockedMethod(bootstrapRepoVersionForHDP21)
@@ -204,6 +206,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateAlertDefinitions();
     expectLastCall().once();
     upgradeCatalog213.updateKafkaConfigs();
+    expectLastCall().once();
+    upgradeCatalog213.updateHDFSConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -388,6 +392,49 @@ public class UpgradeCatalog213Test {
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateStormConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateHDFSConfiguration() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
+
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config mockHdfsSite = easyMockSupport.createNiceMock(Config.class);
+
+    final Map<String, String> propertiesExpectedHdfs = new HashMap<String, String>();
+    propertiesExpectedHdfs.put("dfs.namenode.rpc-address", "nn.rpc.address");
+    propertiesExpectedHdfs.put("dfs.nameservices", "nn1");
+    propertiesExpectedHdfs.put("dfs.ha.namenodes.nn1", "value");
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(ConfigHelper.class).toInstance(mockConfigHelper);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    // Expected operation
+    expect(mockClusterExpected.getDesiredConfigByType("hdfs-site")).andReturn(mockHdfsSite).atLeastOnce();
+    expect(mockHdfsSite.getProperties()).andReturn(propertiesExpectedHdfs).anyTimes();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateHDFSConfigs();
     easyMockSupport.verifyAll();
   }
 
