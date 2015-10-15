@@ -100,6 +100,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -7998,6 +7999,7 @@ public class AmbariManagementControllerTest {
   public void testGetTasksByRequestId() throws AmbariException {
     final long requestId1 = 1;
     final long requestId2 = 2;
+    final long requestId3 = 3;
     final String clusterName = "c1";
     final String hostName1 = "h1";
     final String context = "Test invocation";
@@ -8012,6 +8014,9 @@ public class AmbariManagementControllerTest {
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost(hostName1).persist();
+    clusters.addHost(StageUtils.getHostName());
+    setOsFamily(clusters.getHost(StageUtils.getHostName()), "redhat", "5.9");
+    clusters.getHost(StageUtils.getHostName()).persist();
 
     clusters.mapHostsToCluster(new HashSet<String>(){
       {add(hostName1);}}, clusterName);
@@ -8066,6 +8071,21 @@ public class AmbariManagementControllerTest {
     request = new Request(stages, clusters);
     actionDB.persistActions(request);
 
+    // Add a stage to execute a task as server-side action on the Ambari server
+    ServiceComponentHostServerActionEvent serviceComponentHostServerActionEvent =
+        new ServiceComponentHostServerActionEvent(Role.AMBARI_SERVER_ACTION.toString(), null, System.currentTimeMillis());
+    stages.clear();
+    stages.add(stageFactory.createNew(requestId3, "/a6", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
+    stages.get(0).setStageId(6);
+    stages.get(0).addServerActionCommand("some.action.class.name", Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, clusterName, serviceComponentHostServerActionEvent, null, null,
+        null, null,false, false);
+    assertEquals(StageUtils.getHostName(), stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
+
+    request = new Request(stages, clusters);
+    actionDB.persistActions(request);
+
 
     Set<TaskStatusRequest> taskStatusRequests;
     Set<TaskStatusResponse> taskStatusResponses;
@@ -8106,6 +8126,16 @@ public class AmbariManagementControllerTest {
     };
     taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
     assertEquals(5L, taskStatusResponses.iterator().next().getTaskId());
+
+    //check that a sever-side action is reported back properly (namely the hostname value of the repsonse)
+    taskStatusResponses = controller.getTaskStatus(Collections.singleton(new TaskStatusRequest(requestId3, null)));
+    assertEquals(1, taskStatusResponses.size());
+    TaskStatusResponse response = taskStatusResponses.iterator().next();
+    assertNotNull(response);
+    assertEquals(6L, response.getTaskId());
+    // The host name for the task should be the same as what StageUtils#getHostName returns since
+    // the host was specifed as null when
+    assertEquals(StageUtils.getHostName(), response.getHostName());
 
     //verify that task from second request (requestId2) does not present in first request (requestId1)
     taskStatusRequests = new HashSet<TaskStatusRequest>(){
