@@ -165,7 +165,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     this.loadData();
     this.registerGraph();
     this.$().parent().on('mouseleave', function () {
-      self.set('isMenuHidden', true);
+      self.set('isExportMenuHidden', true);
     });
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {
       placement: 'left',
@@ -209,7 +209,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         name: this.get('ajaxIndex'),
         sender: this,
         data: this.getDataForAjaxRequest(),
-        success: '_refreshGraph',
+        success: 'loadDataSuccessCallback',
         error: 'loadDataErrorCallback'
       });
     }
@@ -237,13 +237,20 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     };
   },
 
+  loadDataSuccessCallback: function (response) {
+    this._refreshGraph(response);
+  },
+
   loadDataErrorCallback: function (xhr, textStatus, errorThrown) {
     this.set('isReady', true);
     if (xhr.readyState == 4 && xhr.status) {
       textStatus = xhr.status + " " + textStatus;
     }
     this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-    this.set('hasData', false);
+    this.setProperties({
+      hasData: false,
+      isExportButtonHidden: true
+    });
   },
 
   /**
@@ -390,7 +397,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    *
    * @type Function
    */
-  _refreshGraph: function (jsonData) {
+  _refreshGraph: function (jsonData, graphView) {
     if (this.get('isDestroyed')) {
       return;
     }
@@ -414,7 +421,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         }
       });
     }
-    if (this.checkSeries(seriesData)) {
+    var hasData = this.checkSeries(seriesData);
+    var view = graphView || this;
+    view.set('isExportButtonHidden', !hasData);
+    if (hasData) {
       // Check container exists (may be not, if we go to another page and wait while graphs loading)
       if (graph_container.length) {
         container = $(this.get('_containerSelector'));
@@ -760,7 +770,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           });
           this.$().closest('.modal').on('click', function (event) {
             if (!($(event.target).is('.corner-icon, .icon-save, .export-graph-list-container, .export-graph-list-container *'))) {
-              popupBody.set('isMenuHidden', true);
+              popupBody.set('isExportMenuHidden', true);
             }
           });
           $('#modal').addClass('modal-graph-line');

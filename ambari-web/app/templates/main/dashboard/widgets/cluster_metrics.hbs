@@ -25,7 +25,7 @@
       <div class="caption span10">{{view.title}}</div>
       {{#if view.isDataLoaded}}
         {{#if view.childViews.lastObject.hasData}}
-          <a class="corner-icon span1" href="#" {{action toggleFormatsList target="view"}}>
+          <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :span1"}} href="#" {{action toggleFormatsList target="view"}}>
             <i class="icon-save"></i>
           </a>
           {{view view.exportMetricsMenuView}}

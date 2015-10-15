@@ -33,20 +33,20 @@ describe('App.ExportMetricsMixin', function () {
 
     var cases = [
       {
-        isMenuHidden: true,
+        isExportMenuHidden: true,
         title: 'menu should be visible'
       },
       {
-        isMenuHidden: false,
+        isExportMenuHidden: false,
         title: 'menu should be hidden'
       }
     ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        obj.set('isMenuHidden', !item.isMenuHidden);
+        obj.set('isExportMenuHidden', !item.isExportMenuHidden);
         obj.toggleFormatsList();
-        expect(obj.get('isMenuHidden')).to.equal(item.isMenuHidden);
+        expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
       });
     });
 
@@ -56,20 +56,20 @@ describe('App.ExportMetricsMixin', function () {
 
     var cases = [
       {
-        isMenuHidden: true,
+        isExportMenuHidden: true,
         title: 'menu should remain hidden'
       },
       {
-        isMenuHidden: false,
+        isExportMenuHidden: false,
         title: 'menu should become hidden'
       }
     ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        obj.set('isMenuHidden', item.isMenuHidden);
+        obj.set('isExportMenuHidden', item.isExportMenuHidden);
         obj.exportGraphData();
-        expect(obj.get('isMenuHidden')).to.be.true;
+        expect(obj.get('isExportMenuHidden')).to.be.true;
       });
     });
 
@@ -284,6 +284,33 @@ describe('App.ExportMetricsMixin', function () {
     cases.forEach(function (item) {
       it(item.title, function () {
         expect(obj.prepareJSON(item.data).replace(/\s/g, '')).to.equal(item.result);
+      });
+    });
+
+  });
+
+  describe('#hideMenuForNoData', function () {
+
+    var cases = [
+      {
+        isExportButtonHidden: true,
+        isExportMenuHidden: true,
+        title: 'menu should be hidden'
+      },
+      {
+        isExportButtonHidden: false,
+        isExportMenuHidden: false,
+        title: 'menu should be visible'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.setProperties({
+          isExportButtonHidden: item.isExportButtonHidden,
+          isExportMenuHidden: false
+        });
+        expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
       });
     });
 

@@ -23,16 +23,18 @@
     </a>
     <div class="caption title span11">{{view.content.widgetName}}</div>
     {{#isAccessible ADMIN}}
-      <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-        <i class="icon-copy"></i>
-      </a>
-      <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-        <i class="icon-edit"></i>
-      </a>
-      <a class="corner-icon pull-right" href="#" {{action toggleFormatsList target="view"}}>
-        <i class="icon-save"></i>
-      </a>
-      {{view view.exportMetricsMenuView}}
+      <div class="widget-icons">
+        <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
+          <i class="icon-save"></i>
+        </a>
+        <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
+          <i class="icon-edit"></i>
+        </a>
+        <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
+          <i class="icon-copy"></i>
+        </a>
+        {{view view.exportMetricsMenuView}}
+      </div>
     {{/isAccessible}}
     <div class="content"> {{view view.graphView}}</div>
 

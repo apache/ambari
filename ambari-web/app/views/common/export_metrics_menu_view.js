@@ -20,7 +20,7 @@ var App = require('app');
 
 App.ExportMetricsMenuView = Em.View.extend({
 
-  classNameBindings: ['parentView.isMenuHidden::open', ':export-graph-list-container'],
+  classNameBindings: ['parentView.isExportMenuHidden::open', ':export-graph-list-container'],
 
   templateName: require('templates/common/export_metrics_menu')
 
