@@ -182,6 +182,7 @@ class TestController(unittest.TestCase):
 
 
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")
@@ -221,6 +222,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(aq.start.called)
 
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("urllib2.build_opener")
   @patch("urllib2.install_opener")

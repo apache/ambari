@@ -77,6 +77,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(not heartbeat.reports, True, "Heartbeat should not contain task in progress")
 
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(ActionQueue, "result")
   @patch.object(HostInfoLinux, "register")
@@ -202,6 +203,7 @@ class TestHeartbeat(TestCase):
     self.assertEquals(hb, expected)
 
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
@@ -229,6 +231,7 @@ class TestHeartbeat(TestCase):
     self.assertFalse(args[1])
 
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock):

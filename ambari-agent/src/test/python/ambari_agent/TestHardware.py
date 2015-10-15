@@ -36,6 +36,7 @@ from ambari_commons import OSCheck
 @patch.object(socket, "gethostbyname", new = MagicMock(return_value = "192.168.1.1"))
 class TestHardware(TestCase):
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")

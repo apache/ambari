@@ -32,6 +32,7 @@ from ambari_agent.Hardware import Hardware
 @not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
 
+  @patch.object(Hardware, "osdisks", new = MagicMock(return_value=[]))
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_type")

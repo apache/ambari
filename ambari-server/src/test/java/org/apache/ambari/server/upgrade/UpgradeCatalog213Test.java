@@ -396,7 +396,6 @@ public class UpgradeCatalog213Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", mockClusterExpected);
     }}).once();
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2"));
 
     expect(mockClusterExpected.getDesiredConfigByType("storm-site")).andReturn(mockStormSite).atLeastOnce();
     expect(mockStormSite.getProperties()).andReturn(propertiesExpectedHiveSite).atLeastOnce();
