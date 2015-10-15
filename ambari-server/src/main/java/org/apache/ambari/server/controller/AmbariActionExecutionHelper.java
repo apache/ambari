@@ -71,6 +71,10 @@ public class AmbariActionExecutionHelper {
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariActionExecutionHelper.class);
   private static final String TYPE_PYTHON = "PYTHON";
+  private static final String ACTION_UPDATE_REPO = "update_repo";
+  private static final String SUCCESS_FACTOR_PARAMETER = "success_factor";
+
+  private static final float UPDATE_REPO_SUCCESS_FACTOR_DEFAULT = 0f;
 
   @Inject
   private Clusters clusters;
@@ -224,8 +228,6 @@ public class AmbariActionExecutionHelper {
    *
    * @param actionContext  the context associated with the action
    * @param stage          stage into which tasks must be inserted
-   * @param retryAllowed   indicates whether retry is allowed on failure
-   *
    * @throws AmbariException if the task can not be added
    */
   public void addExecutionCommandsToStage(final ActionExecutionContext actionContext, Stage stage)
@@ -346,6 +348,8 @@ public class AmbariActionExecutionHelper {
       }
     }
 
+    setAdditionalParametersForStageAccordingToAction(stage, actionContext);
+
     // create tasks for each host
     for (String hostName : targetHosts) {
       stage.addHostRoleExecutionCommand(hostName, Role.valueOf(actionContext.getActionName()),
@@ -428,6 +432,33 @@ public class AmbariActionExecutionHelper {
       }
     }
   }
+
+  /*
+  * This method adds additional properties
+  * to action params. For example: success factor.
+  *
+  * */
+
+  private void setAdditionalParametersForStageAccordingToAction(Stage stage, ActionExecutionContext actionExecutionContext) throws AmbariException {
+    if (actionExecutionContext.getActionName().equals(ACTION_UPDATE_REPO)) {
+      Map<String, String> params = actionExecutionContext.getParameters();
+      float successFactor = UPDATE_REPO_SUCCESS_FACTOR_DEFAULT;
+      if (params != null && params.containsKey(SUCCESS_FACTOR_PARAMETER)) {
+        try{
+          successFactor = Float.valueOf(params.get(SUCCESS_FACTOR_PARAMETER));
+        } catch (Exception ex) {
+          throw new AmbariException("Failed to cast success_factor value to float!", ex.getCause());
+        }
+      }
+      stage.getSuccessFactors().put(Role.UPDATE_REPO, successFactor);
+    }
+  }
+
+  /*
+  * This method builds and adds repo info
+  * to hostLevelParams of action
+  *
+  * */
 
   private void addRepoInfoToHostLevelParams(Cluster cluster, Map<String, String> hostLevelParams, String hostName) throws AmbariException {
     if (cluster != null) {

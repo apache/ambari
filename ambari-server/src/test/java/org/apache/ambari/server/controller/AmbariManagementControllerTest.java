@@ -4515,6 +4515,10 @@ public class AmbariManagementControllerTest {
         TargetHostType.ANY, Short.valueOf("100")));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+            "update_repo", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
+            TargetHostType.ANY, Short.valueOf("100")));
+
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         "a3", ActionType.SYSTEM, "", "MAPREDUCE", "MAPREDUCE_CLIENT", "Does file exist",
         TargetHostType.ANY, Short.valueOf("100")));
 
@@ -4593,6 +4597,16 @@ public class AmbariManagementControllerTest {
     actionRequest = new ExecuteActionRequest("c1", null, "a2", resourceFilters, null, params, false);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
         "Request specifies host h6 but its not a valid host based on the target service=HDFS and component=DATANODE");
+
+    hosts.clear();
+    hosts.add("h1");
+    resourceFilters.clear();
+    resourceFilter = new RequestResourceFilter("", "", hosts);
+    resourceFilters.add(resourceFilter);
+    params.put("success_factor", "1r");
+    actionRequest = new ExecuteActionRequest("c1", null, "update_repo", resourceFilters, null, params, false);
+    expectActionCreationErrorWithMessage(actionRequest, requestProperties,
+            "Failed to cast success_factor value to float!");
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("HIVE", "", null);
