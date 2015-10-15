@@ -101,10 +101,12 @@ App.SubSection = DS.Model.extend({
    * @type {number}
    */
   errorsCount: function () {
-    return this.get('configs').filter(function(config) {
-      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
-    }).filterProperty('isVisible').length;
-  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configs.@each.overrideErrorTrigger'),
+    var visibleTabs = this.get('subSectionTabs').filterProperty('isVisible');
+    var subSectionTabsErrors = visibleTabs.length ? visibleTabs.mapProperty('errorsCount').reduce(function(p, c) { return p + c; }) : 0;
+    return subSectionTabsErrors + this.get('configs').filter(function(config) {
+      return config.get('isVisible') && (!config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false));
+    }).length;
+  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configs.@each.overrideErrorTrigger', 'subSectionTabs.@each.isVisible', 'subSectionTabs.@each.errorsCount'),
 
   /**
    * @type {boolean}
