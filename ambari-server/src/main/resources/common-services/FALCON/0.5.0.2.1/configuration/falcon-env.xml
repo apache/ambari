@@ -21,6 +21,7 @@
 <configuration>
   <property>
     <name>falcon_user</name>
+    <display-name>Falcon User</display-name>
     <value>falcon</value>
     <property-type>USER</property-type>
     <description>Falcon user.</description>

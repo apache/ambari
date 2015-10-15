@@ -33,6 +33,7 @@
   </property>
   <property>
     <name>mapred_user</name>
+    <display-name>Mapreduce User</display-name>
     <value>mapred</value>
     <property-type>USER</property-type>
     <description>Mapreduce User</description>

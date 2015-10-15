@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>oozie_user</name>
+    <display-name>Oozie User</display-name>
     <value>oozie</value>
     <property-type>USER</property-type>
     <description>Oozie User.</description>

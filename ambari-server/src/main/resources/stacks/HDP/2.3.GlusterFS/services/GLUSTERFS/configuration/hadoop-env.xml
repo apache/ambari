@@ -84,11 +84,13 @@
   </property>
   <property>
     <name>proxyuser_group</name>
+    <display-name>Proxy User Group</display-name>
     <value>users</value>
     <description>Proxy user group.</description>
   </property>
   <property>
     <name>hdfs_user</name>
+    <display-name>HDFS User</display-name>
     <value>hdfs</value>
     <description>User to run HDFS as</description>
   </property>

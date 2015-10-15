@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>zk_user</name>
+    <display-name>ZooKeeper User</display-name>
     <value>zookeeper</value>
     <property-type>USER</property-type>
     <description>ZooKeeper User.</description>

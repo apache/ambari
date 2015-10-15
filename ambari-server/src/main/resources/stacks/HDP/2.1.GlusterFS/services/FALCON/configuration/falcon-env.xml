@@ -21,6 +21,7 @@
 <configuration supports_final="false">
   <property>
     <name>falcon_user</name>
+    <display-name>Falcon User</display-name>
     <value>falcon</value>
     <description>Falcon user.</description>
   </property>

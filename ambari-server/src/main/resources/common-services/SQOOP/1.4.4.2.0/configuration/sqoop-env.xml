@@ -47,6 +47,7 @@ export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:
   </property>
   <property>
     <name>sqoop_user</name>
+    <display-name>Sqoop User</display-name>
     <description>User to run Sqoop as</description>
     <property-type>USER</property-type>
     <value>sqoop</value>

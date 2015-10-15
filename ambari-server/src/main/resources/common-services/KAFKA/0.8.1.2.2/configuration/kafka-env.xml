@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>kafka_user</name>
+    <display-name>Kafka User</display-name>
     <value>kafka</value>
     <property-type>USER</property-type>
     <description></description>
