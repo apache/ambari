@@ -133,6 +133,13 @@ public enum CheckDescription {
           "The following Services must be started: {{fails}}. Try to do a Stop & Start in case they were started outside of Ambari.");
       }}),
 
+  COMPONENTS_INSTALLATION(PrereqCheckType.SERVICE,
+      "All service components must be installed",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.");
+      }}),
+
   SERVICES_YARN_WP(PrereqCheckType.SERVICE,
       "YARN work preserving restart should be enabled",
       new HashMap<String, String>() {{
