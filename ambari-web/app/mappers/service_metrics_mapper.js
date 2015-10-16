@@ -18,7 +18,7 @@
 var App = require('app');
 var misc = require('utils/misc');
 var stringUtils = require('utils/string_utils');
-var dateUtils = require('utils/date');
+var dateUtils = require('utils/date/date');
 var previousMasterComponentIds = [];
 
 App.serviceMetricsMapper = App.QuickDataMapper.create({

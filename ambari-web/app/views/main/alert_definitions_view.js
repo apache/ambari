@@ -19,7 +19,7 @@
 var App = require('app');
 var filters = require('views/common/filter_view'),
   sort = require('views/common/sort_view'),
-  date = require('utils/date');
+  date = require('utils/date/date');
 
 App.MainAlertDefinitionsView = App.TableView.extend({
 

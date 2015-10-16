@@ -210,33 +210,6 @@ module.exports = {
       duration = endTime - startTime;
     }
     return duration;
-  },
-
-  /**
-   * Load list of timezones from moment.tz
-   * Zones "Etc/*" are excluded
-   * @returns {object[]}
-   */
-  getAllTimezoneNames: function () {
-    return moment.tz.names().filter(function (timeZoneName) {
-      return !timeZoneName.startsWith('Etc/');
-    });
-  },
-
-  /**
-   * Try detect user's timezone using timezoneOffset and moment.tz
-   * @returns {string}
-   */
-  detectUserTimezone: function () {
-    var timezoneOffset = new Date().getTimezoneOffset();
-    var timezoneNames = this.getAllTimezoneNames();
-    for (var i = 0; i < timezoneNames.length; i++) {
-      var zone = moment.tz.zone(timezoneNames[i]);
-      if (zone.offsets.contains(timezoneOffset)) {
-        return timezoneNames[i];
-      }
-    }
-    return '';
   }
 
 };

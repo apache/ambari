@@ -16,7 +16,7 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
+var date = require('utils/date/date');
 var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({

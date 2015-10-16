@@ -20,7 +20,7 @@ var Ember = require('ember');
 var App = require('app');
 
 var validator = require('utils/validator');
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 describe('date', function () {
 

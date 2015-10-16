@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-var dateUtils = require('utils/date');
+var timezoneUtils = require('utils/date/timezone');
 
 /**
  * Controller for user settings
@@ -49,46 +49,10 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
       },
       timezone: {
         name: prefix + 'timezone-' + loginName,
-        defaultValue: dateUtils.detectUserTimezone()
+        defaultValue: timezoneUtils.detectUserTimezone()
       }
     };
   }.property('App.router.loginName'),
-
-  init: function () {
-    this.set('timezonesFormatted', this._parseTimezones());
-    this._super();
-  },
-
-  /**
-   *
-   * @private
-   * @method _parseTimezones
-   * @return {{utcOffset: number, label: string, value: string}[]}
-   */
-  _parseTimezones: function () {
-    return dateUtils.getAllTimezoneNames().map(function (timeZoneName) {
-      var zone = moment(new Date()).tz(timeZoneName);
-      var offset = zone.format('Z');
-      return {
-        utcOffset: zone.utcOffset(),
-        label: '(UTC' + offset + ') ' + timeZoneName,
-        value: timeZoneName
-      };
-    }).sort(function (zoneA, zoneB) {
-      if (zoneA.utcOffset === zoneB.utcOffset) {
-        if (zoneA.value === zoneB.value) {
-          return 0;
-        }
-        return zoneA.value < zoneB.value ? -1 : 1;
-      }
-      else {
-        if(zoneA.utcOffset === zoneB.utcOffset) {
-          return 0;
-        }
-        return zoneA.utcOffset < zoneB.utcOffset ? -1 : 1;
-      }
-    });
-  },
 
   /**
    * Load some user's setting from the persist
@@ -167,7 +131,8 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @returns {*}
    */
   postUserPref: function (key, value) {
-    return this._super(this.get('userSettingsKeys.' + key + '.name'), value);
+    var k = key.startsWith('userSettingsKeys.') ? key : 'userSettingsKeys.' + key + '.name';
+    return this._super(this.get(k), value);
   },
 
   /**
@@ -179,7 +144,9 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   },
 
   /**
-   * Open popup with user settings
+   * Check if popup may be opened (based on <code>upgrade_ADMIN</code>)
+   * Open popup with user settings after settings-request is complete
+   *
    * @method showSettingsPopup
    */
   showSettingsPopup: function() {
@@ -187,66 +154,73 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     if (!App.isAccessible('upgrade_ADMIN')) {
       return;
     }
-    var self = this;
+    this.dataLoading().done(this._showSettingsPopup.bind(this));
+  },
+
+  /**
+   * Show popup with settings for user
+   * Don't call this method directly! Use <code>showSettingsPopup</code>
+   *
+   * @param {object} response
+   * @returns {App.ModalPopup}
+   * @method _showSettingsPopup
+   * @private
+   */
+  _showSettingsPopup: function (response) {
     var curValue = null;
+    var self = this;
     var keys = this.get('userSettingsKeys');
-    var timezonesFormatted = this.get('timezonesFormatted');
+    var timezonesFormatted = timezoneUtils.get('timezones');
+    var initValue = JSON.parse(response[keys.show_bg.name]);
+    var initTimezone = timezonesFormatted.findProperty('value', JSON.parse(response[keys.timezone.name]));
+    return App.ModalPopup.show({
 
-    this.dataLoading().done(function (response) {
-      var initValue = JSON.parse(response[keys.show_bg.name]);
-      var initTimezone = timezonesFormatted.findProperty('value', JSON.parse(response[keys.timezone.name]));
-      return App.ModalPopup.show({
+      header: Em.I18n.t('common.userSettings'),
 
-        header: Em.I18n.t('common.userSettings'),
+      bodyClass: Em.View.extend({
 
-        bodyClass: Em.View.extend({
+        templateName: require('templates/common/settings'),
 
-          templateName: require('templates/common/settings'),
+        isNotShowBgChecked: !initValue,
 
-          isNotShowBgChecked: !initValue,
+        updateValue: function () {
+          curValue = !this.get('isNotShowBgChecked');
+        }.observes('isNotShowBgChecked'),
 
-          updateValue: function () {
-            curValue = !this.get('isNotShowBgChecked');
-          }.observes('isNotShowBgChecked'),
+        timezonesList: timezonesFormatted
 
-          /**
-           * @type {{label: string, value: string}}
-           */
-          timezonesList: timezonesFormatted
+      }),
 
-        }),
+      /**
+       * @type {string}
+       */
+      selectedTimezone: initTimezone,
 
-        /**
-         * @type {string}
-         */
-        selectedTimezone: initTimezone,
+      primary: Em.I18n.t('common.save'),
 
-        primary: Em.I18n.t('common.save'),
-
-        onPrimary: function() {
-          if (Em.isNone(curValue)) {
-            curValue = initValue;
-          }
-          if (!App.get('testMode')) {
-            self.postUserPref('show_bg', curValue);
-            self.postUserPref('timezone', this.get('selectedTimezone.value'));
-          }
-          if (this.needsPageRefresh()) {
-            location.reload();
-          }
-          this._super();
-        },
-
-        /**
-         * Determines if page should be refreshed after user click "Save"
-         * @returns {boolean}
-         */
-        needsPageRefresh: function () {
-          return initTimezone !== this.get('selectedTimezone');
+      onPrimary: function() {
+        if (Em.isNone(curValue)) {
+          curValue = initValue;
         }
+        if (!App.get('testMode')) {
+          self.postUserPref('show_bg', curValue);
+          self.postUserPref('timezone', this.get('selectedTimezone.value'));
+        }
+        if (this.needsPageRefresh()) {
+          location.reload();
+        }
+        this._super();
+      },
 
-      })
-    });
+      /**
+       * Determines if page should be refreshed after user click "Save"
+       * @returns {boolean}
+       */
+      needsPageRefresh: function () {
+        return initTimezone !== this.get('selectedTimezone');
+      }
+
+    })
   }
 
 });

@@ -16,7 +16,7 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 var heatmap = require('utils/heatmap');
 

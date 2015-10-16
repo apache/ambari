@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 App.MainHostConfigsView = Em.View.extend({
   templateName: require('templates/main/host/configs'),
