@@ -173,3 +173,8 @@ if xml_configurations_supported:
 
 ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts']
 is_ranger_ha_enabled = True if len(ranger_admin_hosts) > 1 else False
+ranger_ug_ldap_url = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.url"]
+ranger_ug_ldap_bind_dn = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.binddn"]
+ranger_ug_ldap_user_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.user.searchfilter"]
+ranger_ug_ldap_group_searchbase = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchbase"]
+ranger_ug_ldap_group_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchfilter"]

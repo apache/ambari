@@ -179,7 +179,7 @@
   <property>
     <name>ranger.ldap.url</name>
     <display-name>​LDAP URL</display-name>
-    <value>ldap://71.127.43.33:389</value>
+    <value>{{ranger_ug_ldap_url}}</value>
     <description>LDAP Server URL, only used if Authentication method is LDAP</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -198,21 +198,21 @@
   <property>
     <name>ranger.ldap.group.searchbase</name>
     <display-name>Group Search Base</display-name>
-    <value>ou=groups,dc=xasecure,dc=net</value>
+    <value>{{ranger_ug_ldap_group_searchbase}}</value>
     <description>LDAP group searchbase, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
     <name>ranger.ldap.group.searchfilter</name>
     <display-name>Group Search Filter</display-name>
-    <value>(member=uid={0},ou=users,dc=xasecure,dc=net)</value>
+    <value>{{ranger_ug_ldap_group_searchfilter}}</value>
     <description>LDAP group search filter, only used if Authentication method is LDAP</description>
   </property>
 
   <property>
     <name>ranger.ldap.user.searchfilter</name>
     <display-name>User Search Filter</display-name>
-    <value>(uid={0})</value>
+    <value>{{ranger_ug_ldap_user_searchfilter}}</value>
     <description>Search filter used for Bind Authentication</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -240,7 +240,7 @@
   <property>
     <name>ranger.ldap.bind.dn</name>
     <display-name>Bind User</display-name>
-    <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
+    <value>{{ranger_ug_ldap_bind_dn}}</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. </description>
     <value-attributes>
       <overridable>false</overridable>
@@ -250,7 +250,7 @@
   <property>
     <name>ranger.ldap.bind.password</name>
     <display-name>​Bind User Password</display-name>
-    <value></value>
+    <value>{{ranger_usersync_ldap_ldapbindpassword}}</value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
     <value-attributes>
@@ -279,7 +279,7 @@
 
   <property>
     <name>ranger.ldap.ad.url</name>
-    <value>ldap://ad.xasecure.net:389</value>
+    <value>{{ranger_ug_ldap_url}}</value>
     <description>AD URL, only used if Authentication method is AD</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -297,7 +297,7 @@
 
   <property>
     <name>ranger.ldap.ad.bind.dn</name>
-    <value>cn=adadmin,cn=Users,dc=example,dc=com</value>
+    <value>{{ranger_ug_ldap_bind_dn}}</value>
     <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users.</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -306,7 +306,7 @@
 
   <property>
     <name>ranger.ldap.ad.bind.password</name>
-    <value></value>
+    <value>{{ranger_usersync_ldap_ldapbindpassword}}</value>
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
     <value-attributes>
@@ -316,7 +316,7 @@
 
   <property>
     <name>ranger.ldap.ad.user.searchfilter</name>
-    <value>(sAMAccountName={0})</value>
+    <value>{{ranger_ug_ldap_user_searchfilter}}</value>
     <description>Search filter used for Bind Authentication</description>
     <value-attributes>
       <overridable>false</overridable>
