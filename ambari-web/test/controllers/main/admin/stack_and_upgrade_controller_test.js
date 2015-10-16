@@ -311,8 +311,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           value: '2.2',
           label: 'HDP-2.2',
           type: 'ROLLING',
-          skipComponentFailures: false,
-          skipSCFailures: false
+          skipComponentFailures: 'false',
+          skipSCFailures: 'false'
         },
         success: "runPreUpgradeCheckSuccess",
         error: "runPreUpgradeCheckError"
