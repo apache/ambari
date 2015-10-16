@@ -263,22 +263,6 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
             }, this);
           }
         }
-      },
-      {
-        type: 'async',
-        callback: function() {
-          var self = this;
-          var dfd = $.Deferred();
-          if (App.get('supports.storeKDCCredentials')) {
-            credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
-              self.set('content.secureStoragePersisted', isPersisted);
-              dfd.resolve();
-            });
-          } else {
-            dfd.resolve();
-          }
-          return dfd.promise();
-        }
       }
     ],
     '3': [
