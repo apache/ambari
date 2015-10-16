@@ -363,7 +363,7 @@
 
   <property>
     <name>ranger.usersync.group.searchscope</name>
-    <value> </value>
+    <value></value>
     <description>"# search scope for the groups, only base, one and sub are supported values
 # please customize the value to suit your deployment
 # default value: sub"</description>
