@@ -42,7 +42,7 @@ class TestAlertSchedulerHandler(TestCase):
     self.assertEquals(len(definitions), 1)
 
   def test_json_to_callable_metric(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     json_definition = {
       'source': {
         'type': 'METRIC'
@@ -63,7 +63,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
@@ -79,7 +79,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is not None)
@@ -94,7 +94,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     }
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     callable_result = scheduler._AlertSchedulerHandler__json_to_callable('cluster', 'host', copy.deepcopy(json_definition))
 
     self.assertTrue(callable_result is None)
@@ -102,7 +102,7 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_noneScheduler(self):
     execution_commands = []
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     scheduler._AlertSchedulerHandler__scheduler = None
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
@@ -114,7 +114,7 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_noneCommands(self):
     execution_commands = None
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
 
@@ -125,7 +125,7 @@ class TestAlertSchedulerHandler(TestCase):
   def test_execute_alert_emptyCommands(self):
     execution_commands = []
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     alert_mock = Mock()
     scheduler._AlertSchedulerHandler__json_to_callable = Mock(return_value=alert_mock)
 
@@ -144,7 +144,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     ]
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     alert_mock = MagicMock()
     alert_mock.collect = Mock()
     alert_mock.set_helpers = Mock()
@@ -159,7 +159,7 @@ class TestAlertSchedulerHandler(TestCase):
     self.assertTrue(alert_mock.collect.called)
 
   def test_load_definitions(self):
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     scheduler._AlertSchedulerHandler__config_maps = {
       'cluster': {}
     }
@@ -170,7 +170,7 @@ class TestAlertSchedulerHandler(TestCase):
     self.assertTrue(isinstance(alert_def, PortAlert))
 
   def test_load_definitions_noFile(self):
-    scheduler = AlertSchedulerHandler('wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', None, None)
+    scheduler = AlertSchedulerHandler('wrong_path', 'wrong_path', 'wrong_path', 'wrong_path', 5, None, None)
     scheduler._AlertSchedulerHandler__config_maps = {
       'cluster': {}
     }
@@ -190,7 +190,7 @@ class TestAlertSchedulerHandler(TestCase):
       }
     ]
 
-    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, None, None)
+    scheduler = AlertSchedulerHandler(TEST_PATH, TEST_PATH, TEST_PATH, TEST_PATH, 5, None, None)
     alert_mock = MagicMock()
     alert_mock.interval = Mock(return_value=5)
     alert_mock.collect = Mock()

@@ -43,14 +43,8 @@ class AlertSchedulerHandler():
   TYPE_SCRIPT = 'SCRIPT'
   TYPE_WEB = 'WEB'
 
-  APS_CONFIG = { 
-    'threadpool.core_threads': 3,
-    'coalesce': True,
-    'standalone': False
-  }
-
   def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir,
-      cluster_configuration, config, in_minutes=True):
+      alert_grace_period, cluster_configuration, config, in_minutes=True):
 
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
@@ -65,8 +59,15 @@ class AlertSchedulerHandler():
       except:
         logger.critical("[AlertScheduler] Could not create the cache directory {0}".format(cachedir))
 
+    self.APS_CONFIG = {
+      'apscheduler.threadpool.core_threads': 3,
+      'apscheduler.coalesce': True,
+      'apscheduler.standalone': False,
+      'apscheduler.misfire_grace_time': alert_grace_period
+    }
+
     self._collector = AlertCollector()
-    self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
+    self.__scheduler = Scheduler(self.APS_CONFIG)
     self.__in_minutes = in_minutes
     self.config = config
 
@@ -122,7 +123,7 @@ class AlertSchedulerHandler():
 
     if self.__scheduler.running:
       self.__scheduler.shutdown(wait=False)
-      self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
+      self.__scheduler = Scheduler(self.APS_CONFIG)
 
     alert_callables = self.__load_definitions()
 
@@ -139,7 +140,7 @@ class AlertSchedulerHandler():
   def stop(self):
     if not self.__scheduler is None:
       self.__scheduler.shutdown(wait=False)
-      self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
+      self.__scheduler = Scheduler(self.APS_CONFIG)
 
     logger.info("[AlertScheduler] Stopped the alert scheduler.")
 

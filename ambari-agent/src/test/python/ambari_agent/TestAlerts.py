@@ -59,7 +59,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
       None)
 
     ash.start()
@@ -474,7 +474,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
       None)
 
     ash.start()
@@ -521,7 +521,7 @@ class TestAlerts(TestCase):
     cluster_configuration = self.__get_cluster_configuration()
 
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
       None)
 
     ash.start()
@@ -557,7 +557,7 @@ class TestAlerts(TestCase):
 
     cluster_configuration = self.__get_cluster_configuration()
     ash = AlertSchedulerHandler(test_file_path, test_stack_path,
-      test_common_services_path, test_host_scripts_path, cluster_configuration,
+      test_common_services_path, test_host_scripts_path, 5, cluster_configuration,
       None)
 
     ash.start()
