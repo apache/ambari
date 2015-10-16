@@ -40,8 +40,7 @@ def post_regionserver(env):
   check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
 
   exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
-  call_and_match(exec_cmd, params.hbase_user, params.hostname.lower() + ":")
-
+  call_and_match(exec_cmd, params.hbase_user, params.hostname + ":")
 
 @retry(times=15, sleep_time=2, err_class=Fail)
 def call_and_match(cmd, user, regex):
