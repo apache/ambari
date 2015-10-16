@@ -81,14 +81,11 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    * @returns {$.Deferred} promise object
    */
   createKDCCredentials: function(configs) {
-    var self = this;
     var resource = credentialsUtils.createCredentialResource(
       configs.findProperty('name', 'admin_principal').get('value'),
       configs.findProperty('name', 'admin_password').get('value'),
       this._getStorageTypeValue(configs));
-    return credentialsUtils.createCredentials(App.get('clusterName'), this.get('credentialAlias'), resource).fail(function() {
-      return self.updateKDCCredentials(resource);
-    });
+    return credentialsUtils.createOrUpdateCredentials(App.get('clusterName'), this.get('credentialAlias'), resource);
   },
 
   /**

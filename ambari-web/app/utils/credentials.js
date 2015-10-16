@@ -69,8 +69,34 @@ module.exports = {
     });
   },
 
+  credentialsSuccessCallback: function(data, opt, params) {
+    params.callback(data.items.length ? data.items.mapProperty('Credential') : []);
+  },
+
   createCredentialsErrorCallback: function(req, ajaxOpts, error) {
     console.error('createCredentials ERROR:', error);
+  },
+
+  /**
+   * @see createCredentials
+   * @param {string} clusterName
+   * @param {string} alias
+   * @param {object} resource
+   * @returns {$.Deferred} promise object
+   */
+  createOrUpdateCredentials: function(clusterName, alias, resource) {
+    var self = this;
+    var dfd = $.Deferred();
+    this.createCredentials(clusterName, alias, resource).then(function() {
+      dfd.resolve();
+    }, function() {
+      self.updateCredentials(clusterName, alias, resource).always(function() {
+        var status = arguments[1];
+        var result = arguments[2];
+        dfd.resolve(status === "success", result);
+      });
+    });
+    return dfd.promise();
   },
 
   /**
@@ -131,14 +157,11 @@ module.exports = {
       sender: this,
       name: 'credentials.list',
       data: {
-        clusterName: clusterName
+        clusterName: clusterName,
+        callback: callback
       },
       success: 'credentialsSuccessCallback'
     });
-  },
-
-  credentialsSuccessCallback: function(data, opt, params) {
-    params.callback(data.items.length ? data.items.mapProperty('Credential') : []);
   },
 
   /**
@@ -241,5 +264,19 @@ module.exports = {
       key: key,
       type: type
     };
+  },
+
+  /**
+   * Check that KDC credentials stored as <b>persisted</b> and not <b>temporary</b> from specified credentials list.
+   *
+   * @param {object[]} credentials credentials list retrieved from API @see credentials
+   * @returns {boolean} <code>true</code> if credentials are persisted
+   */
+  isKDCCredentialsPersisted: function(credentials) {
+    var kdcCredentials = credentials.findProperty('alias', this.ALIAS.KDC_CREDENTIALS);
+    if (kdcCredentials) {
+      return Em.getWithDefault(kdcCredentials, 'type', this.STORE_TYPES.TEMPORARY) === this.STORE_TYPES.PERSISTENT;
+    }
+    return false;
   }
 };

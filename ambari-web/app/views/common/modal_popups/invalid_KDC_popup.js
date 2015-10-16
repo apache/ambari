@@ -110,7 +110,7 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
       this.hide();
       if (App.get('supports.storeKDCCredentials')) {
         var resource = credentialsUtils.createCredentialResource(this.get('principal'), this.get('password'), this.get('storageType'));
-        credentialsUtils.updateCredentials(App.get('clusterName'), credentialsUtils.ALIAS.KDC_CREDENTIALS, resource);
+        credentialsUtils.createOrUpdateCredentials(App.get('clusterName'), credentialsUtils.ALIAS.KDC_CREDENTIALS, resource);
       }
       App.get('router.clusterController').createKerberosAdminSession(this.get('principal'), this.get('password'), ajaxOpt);
     }

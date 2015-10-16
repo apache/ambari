@@ -273,6 +273,7 @@ var files = [
   'test/views/common/controls_view_test',
   'test/views/common/configs/widgets/time_interval_spinner_view_test',
   'test/views/common/form/spinner_input_view_test',
+  'test/views/common/form/manage_kdc_credentials_form_test',
   'test/views/wizard/step3/hostLogPopupBody_view_test',
   'test/views/wizard/step3/hostWarningPopupBody_view_test',
   'test/views/wizard/step3/hostWarningPopupFooter_view_test',
