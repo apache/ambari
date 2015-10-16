@@ -227,7 +227,7 @@ App.MainController = Em.Controller.extend({
   checkActiveness: function() {
     var scope = App.router.get('mainController');
     //console.error("checkActiveness " + scope.get('lastUserActiveTime') + " : " + Date.now());
-    if (Date.now() - scope.get('lastUserActiveTime') > scope.get('userTimeOut')) {
+    if (Date.now() - scope.get('lastUserActiveTime') > scope.get('userTimeOut') && !scope.isOnWizard()) {
       scope.set('isUserActive', false);
       //console.error("LOGOUT!");
       scope.unbindActivityEventMonitors();
@@ -239,6 +239,12 @@ App.MainController = Em.Controller.extend({
   rebindActivityEventMonitors: function() {
     this.unbindActivityEventMonitors();
     this.bindActivityEventMonitors();
+  },
+
+  isOnWizard: function() {
+    var isWizard = window.location.href.indexOf('/step') != -1;
+    var isUpgrade = window.location.href.indexOf('/stack/upgrade') != -1;
+    return isWizard || isUpgrade;
   },
 
   bindActivityEventMonitors: function() {
