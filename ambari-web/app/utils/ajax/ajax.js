@@ -797,7 +797,7 @@ var urls = {
   },
 
   'credentials.list': {
-    'real': '/clusters/{clusterName}/credentials',
+    'real': '/clusters/{clusterName}/credentials?fields=Credential/*',
     'mock': ''
   },
 

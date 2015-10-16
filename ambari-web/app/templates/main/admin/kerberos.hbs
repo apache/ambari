@@ -24,6 +24,9 @@
           {{#unless isManualKerberos}}
             <button class="btn btn-success" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
               <i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
+            {{#if App.supports.storeKDCCredentials}}
+              <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
+            {{/if}}
           {{/unless}}
           <br/>
           {{#unless isEditMode}}

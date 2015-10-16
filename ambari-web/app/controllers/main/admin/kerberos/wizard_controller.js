@@ -258,10 +258,14 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
         callback: function() {
           var self = this;
           var dfd = $.Deferred();
-          credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
-            self.set('content.secureStoragePersisted', isPersisted);
+          if (App.get('supports.storeKDCCredentials')) {
+            credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
+              self.set('content.secureStoragePersisted', isPersisted);
+              dfd.resolve();
+            });
+          } else {
             dfd.resolve();
-          });
+          }
           return dfd.promise();
         }
       }
