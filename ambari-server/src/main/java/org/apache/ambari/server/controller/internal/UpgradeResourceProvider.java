@@ -139,6 +139,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   protected static final String UPGRADE_SKIP_SC_FAILURES = "Upgrade/skip_service_check_failures";
 
+  /**
+   * Skip manual verification tasks for hands-free upgrade/downgrade experience.
+   */
+  protected static final String UPGRADE_SKIP_MANUAL_VERIFICATION = "Upgrade/skip_manual_verification";
+
   /*
    * Lifted from RequestResourceProvider
    */
@@ -235,6 +240,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
     PROPERTY_IDS.add(UPGRADE_SKIP_FAILURES);
     PROPERTY_IDS.add(UPGRADE_SKIP_SC_FAILURES);
+    PROPERTY_IDS.add(UPGRADE_SKIP_MANUAL_VERIFICATION);
     PROPERTY_IDS.add(UPGRADE_SKIP_PREREQUISITE_CHECKS);
     PROPERTY_IDS.add(UPGRADE_FAIL_ON_CHECK_WARNINGS);
 
@@ -473,8 +479,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
     String version = (String) requestMap.get(UPGRADE_VERSION);
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
-    boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
-    boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
 
     /**
      * For the unit tests tests, there are multiple upgrade packs for the same type, so
@@ -683,8 +687,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           (String) requestMap.get(UPGRADE_SKIP_SC_FAILURES));
     }
 
+    boolean skipManualVerification = false;
+    if(requestMap.containsKey(UPGRADE_SKIP_MANUAL_VERIFICATION)) {
+      skipManualVerification = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_MANUAL_VERIFICATION));
+    }
+
     ctx.setAutoSkipComponentFailures(skipComponentFailures);
     ctx.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
+    ctx.setAutoSkipManualVerification(skipManualVerification);
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
@@ -730,14 +740,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     for (UpgradeGroupHolder group : groups) {
-      UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
-      groupEntity.setName(group.name);
-      groupEntity.setTitle(group.title);
       boolean skippable = group.skippable;
       boolean allowRetry = group.allowRetry;
 
       List<UpgradeItemEntity> itemEntities = new ArrayList<UpgradeItemEntity>();
-
       for (StageWrapper wrapper : group.items) {
         if (wrapper.getType() == StageWrapper.Type.SERVER_SIDE_ACTION) {
           // !!! each stage is guaranteed to be of one type. but because there
@@ -745,6 +751,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           // the same host, break them out into individual stages.
           for (TaskWrapper taskWrapper : wrapper.getTasks()) {
             for (Task task : taskWrapper.getTasks()) {
+              if(ctx.isManualVerificationAutoSkipped() && task.getType() == Task.Type.MANUAL) {
+                continue;
+              }
               UpgradeItemEntity itemEntity = new UpgradeItemEntity();
               itemEntity.setText(wrapper.getText());
               itemEntity.setTasks(wrapper.getTasksJson());
@@ -777,8 +786,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         }
       }
 
-      groupEntity.setItems(itemEntities);
-      groupEntities.add(groupEntity);
+      if(!itemEntities.isEmpty()) {
+        UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
+        groupEntity.setName(group.name);
+        groupEntity.setTitle(group.title);
+        groupEntity.setItems(itemEntities);
+        groupEntities.add(groupEntity);
+      }
     }
 
     UpgradeEntity entity = new UpgradeEntity();

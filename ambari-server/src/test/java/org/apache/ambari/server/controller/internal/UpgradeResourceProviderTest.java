@@ -235,7 +235,6 @@ public class UpgradeResourceProviderTest {
   }
 
   @Test
-  @Ignore
   public void testCreateResourcesWithAutoSkipFailures() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
@@ -246,6 +245,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.FALSE.toString());
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
@@ -261,15 +261,130 @@ public class UpgradeResourceProviderTest {
     List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
     assertEquals(3, upgradeGroups.size());
 
+    UpgradeGroupEntity preClusterGroup = upgradeGroups.get(0);
+    assertEquals("PRE_CLUSTER", preClusterGroup.getName());
+
+    List<UpgradeItemEntity> preClusterUpgradeItems = preClusterGroup.getItems();
+    assertEquals(2, preClusterUpgradeItems.size());
+    assertEquals("Foo", preClusterUpgradeItems.get(0).getText());
+    assertEquals("Foo", preClusterUpgradeItems.get(1).getText());
+
     UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", zookeeperGroup.getName());
 
-    List<UpgradeItemEntity> upgradeItems = zookeeperGroup.getItems();
-    assertEquals(5, upgradeItems.size());
+    List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
+    assertEquals(5, zookeeperUpgradeItems.size());
+
+    assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
+        zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(2).getText());
+    assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
+    assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(4).getText());
 
     // the last upgrade item is the skipped failure check
-    UpgradeItemEntity skippedFailureCheck = upgradeItems.get(upgradeItems.size() - 1);
+    UpgradeItemEntity skippedFailureCheck = zookeeperUpgradeItems.get(zookeeperUpgradeItems.size() - 1);
     skippedFailureCheck.getTasks().contains(AutoSkipFailedSummaryAction.class.getName());
+
+    UpgradeGroupEntity postClusterGroup = upgradeGroups.get(2);
+    assertEquals("POST_CLUSTER", postClusterGroup.getName());
+
+    List<UpgradeItemEntity> postClusterUpgradeItems = postClusterGroup.getItems();
+    assertEquals(2, postClusterUpgradeItems.size());
+    assertEquals("Please confirm you are ready to finalize", postClusterUpgradeItems.get(0).getText());
+    assertEquals("Save Cluster State", postClusterUpgradeItems.get(1).getText());
+  }
+
+  @Test
+  public void testCreateResourcesWithAutoSkipManualVerification() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+
+    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    assertEquals(2, upgradeGroups.size());
+
+    UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(0);
+    assertEquals("ZOOKEEPER", zookeeperGroup.getName());
+
+    List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
+    assertEquals(3, zookeeperUpgradeItems.size());
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
+
+    UpgradeGroupEntity postClusterGroup = upgradeGroups.get(1);
+    assertEquals("POST_CLUSTER", postClusterGroup.getName());
+
+    List<UpgradeItemEntity> postClusterUpgradeItems = postClusterGroup.getItems();
+    assertEquals(1, postClusterUpgradeItems.size());
+    assertEquals("Save Cluster State", postClusterUpgradeItems.get(0).getText());
+  }
+
+  @Test
+  public void testCreateResourcesWithAutoSkipAll() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, UpgradeType.ROLLING.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_MANUAL_VERIFICATION, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, Boolean.TRUE.toString());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+    assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+
+    List<UpgradeGroupEntity> upgradeGroups = entity.getUpgradeGroups();
+    assertEquals(2, upgradeGroups.size());
+
+    UpgradeGroupEntity zookeeperGroup = upgradeGroups.get(0);
+    assertEquals("ZOOKEEPER", zookeeperGroup.getName());
+
+    List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
+    assertEquals(4, zookeeperUpgradeItems.size());
+
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
+    assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(3).getText());
+
+    // the last upgrade item is the skipped failure check
+    UpgradeItemEntity skippedFailureCheck = zookeeperUpgradeItems.get(zookeeperUpgradeItems.size() - 1);
+    skippedFailureCheck.getTasks().contains(AutoSkipFailedSummaryAction.class.getName());
+
+    UpgradeGroupEntity postClusterGroup = upgradeGroups.get(1);
+    assertEquals("POST_CLUSTER", postClusterGroup.getName());
+
+    List<UpgradeItemEntity> postClusterUpgradeItems = postClusterGroup.getItems();
+    assertEquals(1, postClusterUpgradeItems.size());
+    assertEquals("Save Cluster State", postClusterUpgradeItems.get(0).getText());
   }
 
   @Ignore
