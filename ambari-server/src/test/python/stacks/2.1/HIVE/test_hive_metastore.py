@@ -539,7 +539,7 @@ class TestHiveMetastore(RMFTestCase):
     get_hdp_version_mock.return_value = '2.3.0.0-1234'
 
     def side_effect(path):
-      if path == "/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar":
+      if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
         return True
       return False
 
@@ -554,6 +554,8 @@ class TestHiveMetastore(RMFTestCase):
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
     json_content['hostLevelParams']['stack_version'] = "2.3"
+    json_content['hostLevelParams']['current_version'] = "2.2.7.0-1234"
+
 
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
@@ -570,7 +572,7 @@ class TestHiveMetastore(RMFTestCase):
       mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
-      ('cp', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar', '/usr/hdp/2.3.0.0-1234/hive/lib'),
+      ('cp', '/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar', '/usr/hdp/2.3.0.0-1234/hive/lib'),
       path = ['/bin', '/usr/bin/'], sudo = True)
 
     self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
@@ -578,7 +580,7 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema",
-     logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
+     logoutput = True, environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
       tries = 1, user = 'hive')
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-metastore', version), sudo=True,)
