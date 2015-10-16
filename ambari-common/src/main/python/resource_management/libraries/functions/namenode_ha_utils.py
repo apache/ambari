@@ -23,6 +23,8 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 from resource_management.core.base import Fail
 from resource_management.core import shell
+from resource_management.core.logger import Logger
+from resource_management.libraries.functions.decorator import retry
 
 __all__ = ["get_namenode_states", "get_active_namenode", "get_property_for_active_namenode"]
 
@@ -32,8 +34,29 @@ HDFS_NN_STATE_STANDBY = 'standby'
 NAMENODE_HTTP_FRAGMENT = 'dfs.namenode.http-address.{0}.{1}'
 NAMENODE_HTTPS_FRAGMENT = 'dfs.namenode.https-address.{0}.{1}'
 JMX_URI_FRAGMENT = "{0}://{1}/jmx?qry=Hadoop:service=NameNode,name=FSNamesystem"
-  
-def get_namenode_states(hdfs_site, security_enabled, run_user):
+
+def get_namenode_states(hdfs_site, security_enabled, run_user, times=10, sleep_time=1, backoff_factor=2):
+  """
+  return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
+  """
+  @retry(times=times, sleep_time=sleep_time, backoff_factor=backoff_factor, err_class=Fail)
+  def doRetries(hdfs_site, security_enabled, run_user):
+    doRetries.attempt += 1
+    active_namenodes, standby_namenodes, unknown_namenodes = get_namenode_states_noretries(hdfs_site, security_enabled, run_user)
+    Logger.info(
+      "NameNode HA states: active_namenodes = {0}, standby_namenodes = {1}, unknown_namenodes = {2}".format(
+        active_namenodes, standby_namenodes, unknown_namenodes))
+    if active_namenodes:
+      return active_namenodes, standby_namenodes, unknown_namenodes
+    elif doRetries.attempt == times:
+      Logger.warning("No active NameNode was found after {0} retries. Will return current NameNode HA states".format(times))
+      return active_namenodes, standby_namenodes, unknown_namenodes
+    raise Fail('No active NameNode was found.')
+
+  doRetries.attempt = 0
+  return doRetries(hdfs_site, security_enabled, run_user)
+
+def get_namenode_states_noretries(hdfs_site, security_enabled, run_user):
   """
   return format [('nn1', 'hdfs://hostname1:port1'), ('nn2', 'hdfs://hostname2:port2')] , [....], [....]
   """
