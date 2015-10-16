@@ -160,7 +160,7 @@ public class UpgradeHelperTest {
 
     makeCluster();
     try {
-      String preferredUpgradePackName = null;
+      String preferredUpgradePackName = "upgrade_test";
       UpgradePack up = m_upgradeHelper.suggestUpgradePack(clusterName, upgradeFromVersion, upgradeToVersion, upgradeDirection, upgradeType, preferredUpgradePackName);
       assertEquals(upgradeType, up.getType());
     } catch (AmbariException e){
