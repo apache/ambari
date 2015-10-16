@@ -37,7 +37,7 @@ class TestHcatClient(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
     )
-    self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
+    self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',
       recursive = True,
@@ -54,7 +54,7 @@ class TestHcatClient(RMFTestCase):
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )
-    self.assertResourceCalled('File', '/etc/hcatalog/conf/hcat-env.sh',
+    self.assertResourceCalled('File', '/etc/hive-hcatalog/conf/hcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hcat-env']['content']),
                               owner = 'hcat',
                               group = 'hadoop',
@@ -76,7 +76,7 @@ class TestHcatClient(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
     )
-    self.assertResourceCalled('Directory', '/etc/hcatalog/conf',
+    self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
       recursive = True,
       owner = 'hcat',
       group = 'hadoop',
@@ -93,7 +93,7 @@ class TestHcatClient(RMFTestCase):
       configurations = self.getConfig()['configurations']['hive-site'],
       configuration_attributes = self.getConfig()['configuration_attributes']['hive-site']
     )
-    self.assertResourceCalled('File', '/etc/hcatalog/conf/hcat-env.sh',
+    self.assertResourceCalled('File', '/etc/hive-hcatalog/conf/hcat-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['hcat-env']['content']),
                               owner = 'hcat',
                               group = 'hadoop',
