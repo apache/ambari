@@ -18,7 +18,9 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -29,6 +31,7 @@ public class TaskWrapper {
   private String service;
   private String component;
   private Set<String> hosts; // all the hosts that all the tasks must run
+  private Map<String, String> params;
   private List<Task> tasks; // all the tasks defined for the hostcomponent
 
   /**
@@ -38,8 +41,20 @@ public class TaskWrapper {
    * @param tasks an array of tasks as a convenience
    */
   public TaskWrapper(String s, String c, Set<String> hosts, Task... tasks) {
-    this(s, c, hosts, Arrays.asList(tasks));
+    this(s, c, hosts, null, Arrays.asList(tasks));
   }
+  
+  /**
+   * @param s the service name for the tasks
+   * @param c the component name for the tasks
+   * @param hosts the set of hosts that the tasks are for
+   * @param params additional command parameters
+   * @param tasks an array of tasks as a convenience
+   */
+  public TaskWrapper(String s, String c, Set<String> hosts, Map<String, String> params, Task... tasks) {
+    this(s, c, hosts, params, Arrays.asList(tasks));
+  }
+
 
   /**
    * @param s the service name for the tasks
@@ -47,12 +62,20 @@ public class TaskWrapper {
    * @param hosts the set of hosts for the
    * @param tasks the list of tasks
    */
-  public TaskWrapper(String s, String c, Set<String> hosts, List<Task> tasks) {
+  public TaskWrapper(String s, String c, Set<String> hosts, Map<String, String> params, List<Task> tasks) {
     service = s;
     component = c;
 
     this.hosts = hosts;
+    this.params = (params == null) ? new HashMap<String, String>() : params;
     this.tasks = tasks;
+  }
+
+  /**
+   * @return the additional command parameters.
+   */
+  public Map<String, String> getParams() {
+    return params;
   }
 
   /**

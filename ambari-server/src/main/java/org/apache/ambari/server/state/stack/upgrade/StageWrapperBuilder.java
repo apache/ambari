@@ -20,6 +20,7 @@ package org.apache.ambari.server.state.stack.upgrade;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.serveraction.upgrades.AutoSkipFailedSummaryAction;
@@ -65,9 +66,11 @@ public abstract class StageWrapperBuilder {
    *          whether the service is client only, no service checks
    * @param pc
    *          the AffectedComponent derived from the upgrade pack
+   * @param params
+   *          additional parameters
    */
   public abstract void add(UpgradeContext ctx, HostsType hostsType, String service,
-      boolean clientOnly, ProcessingComponent pc);
+      boolean clientOnly, ProcessingComponent pc, Map<String, String> params);
 
   /**
    * Builds the stage wrappers, including any pre- and post-procesing that needs

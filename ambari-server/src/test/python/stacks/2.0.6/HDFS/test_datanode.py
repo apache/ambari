@@ -450,7 +450,7 @@ class TestDatanode(RMFTestCase):
                               )
 
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -458,7 +458,7 @@ class TestDatanode(RMFTestCase):
     json_content['commandParams']['version'] = version
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -468,7 +468,7 @@ class TestDatanode(RMFTestCase):
 
 
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -478,7 +478,7 @@ class TestDatanode(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -499,7 +499,7 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  def test_post_rolling_restart(self, time_mock):
+  def test_post_upgrade_restart(self, time_mock):
     shell_call_output = """
       Live datanodes (2):
 
@@ -523,7 +523,7 @@ class TestDatanode(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
-                       command = "post_rolling_restart",
+                       command = "post_upgrade_restart",
                        config_file = "default.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -537,12 +537,12 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  def test_post_rolling_restart_datanode_not_ready(self, time_mock):
+  def test_post_upgrade_restart_datanode_not_ready(self, time_mock):
     mocks_dict = {}
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
-                         command = "post_rolling_restart",
+                         command = "post_upgrade_restart",
                          config_file = "default.json",
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -556,12 +556,12 @@ class TestDatanode(RMFTestCase):
 
 
   @patch('time.sleep')
-  def test_post_rolling_restart_bad_returncode(self, time_mock):
+  def test_post_upgrade_restart_bad_returncode(self, time_mock):
     try:
       mocks_dict = {}
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
-                         command = "post_rolling_restart",
+                         command = "post_upgrade_restart",
                          config_file = "default.json",
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -594,7 +594,7 @@ class TestDatanode(RMFTestCase):
         hdp_stack_version = self.STACK_VERSION,
         target = RMFTestCase.TARGET_COMMON_SERVICES,
         call_mocks = call_mock_side_effects,
-        command_args=[True])
+        command_args=["rolling"])
 
       raise Fail("Expected a fail since datanode didn't report a shutdown")
     except Exception, err:

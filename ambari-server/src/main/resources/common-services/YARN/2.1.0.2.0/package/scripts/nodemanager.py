@@ -39,12 +39,12 @@ class Nodemanager(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     service('nodemanager',action='stop')
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
@@ -67,8 +67,8 @@ class NodemanagerDefault(Nodemanager):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-yarn-nodemanager"}
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing NodeManager Rolling Upgrade pre-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing NodeManager Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
@@ -76,8 +76,8 @@ class NodemanagerDefault(Nodemanager):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-yarn-nodemanager", params.version)
 
-  def post_rolling_restart(self, env):
-    Logger.info("Executing NodeManager Rolling Upgrade post-restart")
+  def post_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing NodeManager Stack Upgrade post-restart")
     import params
     env.set_params(params)
 

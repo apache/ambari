@@ -41,7 +41,7 @@ class NFSGateway(Script):
 
     self.install_packages(env, params.exclude_packages)
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -49,14 +49,14 @@ class NFSGateway(Script):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-hdfs-nfs3", params.version)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     self.configure(env)
     nfsgateway(action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

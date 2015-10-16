@@ -42,11 +42,13 @@ from resource_management.core.logger import Logger
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 
+
 import namenode_upgrade
 from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
-from utils import initiate_safe_zkfc_failover
+from utils import initiate_safe_zkfc_failover, get_hdfs_binary
+
 
 
 # hashlib is supplied as of Python 2.5 as the replacement interface for md5
@@ -62,6 +64,19 @@ except ImportError:
 
 class NameNode(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-namenode"}
+
+  def get_hdfs_binary(self):
+    """
+    Get the name or path to the hdfs binary depending on the stack and version.
+    """
+    import params
+    stack_to_comp = self.get_stack_to_component()
+    if params.stack_name in stack_to_comp:
+      return get_hdfs_binary(stack_to_comp[params.stack_name])
+    return "hdfs"
+
   def install(self, env):
     import params
     self.install_packages(env, params.exclude_packages)
@@ -73,39 +88,40 @@ class NameNode(Script):
     import params
     env.set_params(params)
     hdfs("namenode")
-    namenode(action="configure", env=env)
+    hdfs_binary = self.get_hdfs_binary()
+    namenode(action="configure", hdfs_binary=hdfs_binary, env=env)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
-    namenode(action="start", rolling_restart=rolling_restart, env=env)
+    hdfs_binary = self.get_hdfs_binary()
+    namenode(action="start", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type, env=env)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    if rolling_restart and params.dfs_ha_enabled:
+    hdfs_binary = self.get_hdfs_binary()
+    if upgrade_type == "rolling" and params.dfs_ha_enabled:
       if params.dfs_ha_automatic_failover_enabled:
         initiate_safe_zkfc_failover()
       else:
         raise Fail("Rolling Upgrade - dfs.ha.automatic-failover.enabled must be enabled to perform a rolling restart")
-    namenode(action="stop", rolling_restart=rolling_restart, env=env)
+    namenode(action="stop", hdfs_binary=hdfs_binary, upgrade_type=upgrade_type, env=env)
 
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    namenode(action="status", rolling_restart=False, env=env)
+    namenode(action="status", env=env)
 
   def decommission(self, env):
     import params
     env.set_params(params)
-    namenode(action="decommission")
+    hdfs_binary = self.get_hdfs_binary()
+    namenode(action="decommission", hdfs_binary=hdfs_binary)
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class NameNodeDefault(NameNode):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-namenode"}
 
   def restore_snapshot(self, env):
     """
@@ -115,21 +131,73 @@ class NameNodeDefault(NameNode):
     pass
 
   def prepare_non_rolling_upgrade(self, env):
-    print "TODO AMBARI-12698"
-    pass
+    """
+    If in HA, on the Active NameNode only, examine the directory dfs.namenode.name.dir and
+    make sure that there is no "/previous" directory.
+
+    Create a list of all the DataNodes in the cluster.
+    hdfs dfsadmin -report > dfs-old-report-1.log
+
+    hdfs dfsadmin -safemode enter
+    hdfs dfsadmin -saveNamespace
+
+    Copy the checkpoint files located in ${dfs.namenode.name.dir}/current into a backup directory.
+
+    Store the layoutVersion for the NameNode located at ${dfs.namenode.name.dir}/current/VERSION, into a backup directory
+
+    Finalize any prior HDFS upgrade,
+    hdfs dfsadmin -finalizeUpgrade
+    """
+    import params
+    Logger.info("Preparing the NameNodes for a NonRolling (aka Express) Upgrade.")
+
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+              user=params.hdfs_user)
+
+    hdfs_binary = self.get_hdfs_binary()
+    namenode_upgrade.prepare_upgrade_check_for_previous_dir()
+    namenode_upgrade.prepare_upgrade_enter_safe_mode(hdfs_binary)
+    namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
+    namenode_upgrade.prepare_upgrade_backup_namenode_dir()
+    namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
 
   def prepare_rolling_upgrade(self, env):
-    namenode_upgrade.prepare_rolling_upgrade()
+    hfds_binary = self.get_hdfs_binary()
+    namenode_upgrade.prepare_rolling_upgrade(hfds_binary)
+
+  def wait_for_safemode_off(self, env):
+    """
+    During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
+    all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
+    """
+    import params
+
+    Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+    try:
+      hdfs_binary = self.get_hdfs_binary()
+      # Note, this fails if namenode_address isn't prefixed with "params."
+      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+      # Wait up to 30 mins
+      Execute(is_namenode_safe_mode_off,
+              tries=180,
+              try_sleep=10,
+              user=params.hdfs_user,
+              logoutput=True
+      )
+    except Fail:
+      Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
 
   def finalize_non_rolling_upgrade(self, env):
-    print "TODO AMBARI-12698"
-    pass
+    hfds_binary = self.get_hdfs_binary()
+    namenode_upgrade.finalize_upgrade("nonrolling", hfds_binary)
 
   def finalize_rolling_upgrade(self, env):
-    namenode_upgrade.finalize_rolling_upgrade()
+    hfds_binary = self.get_hdfs_binary()
+    namenode_upgrade.finalize_upgrade("rolling", hfds_binary)
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
@@ -137,12 +205,13 @@ class NameNodeDefault(NameNode):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-hdfs-namenode", params.version)
 
-  def post_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade post-restart")
+  def post_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade post-restart")
     import params
     env.set_params(params)
 
-    Execute("hdfs dfsadmin -report -live",
+    hdfs_binary = self.get_hdfs_binary()
+    Execute(format("{hdfs_binary} dfsadmin -report -live"),
             user=params.hdfs_user
     )
 

@@ -27,11 +27,11 @@ from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def zookeeper_service(action='start', rolling_restart=False):
+def zookeeper_service(action='start', upgrade_type=None):
   import params
 
   # This path may be missing after Ambari upgrade. We need to create it.
-  if not rolling_restart and not os.path.exists("/usr/hdp/current/zookeeper-server") and params.current_version:
+  if upgrade_type is None and not os.path.exists("/usr/hdp/current/zookeeper-server") and params.current_version:
     conf_select.select(params.stack_name, "zookeeper", params.current_version)
     hdp_select.select("zookeeper-server", params.version)
 

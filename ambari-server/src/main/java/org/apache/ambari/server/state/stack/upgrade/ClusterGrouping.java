@@ -108,7 +108,7 @@ public class ClusterGrouping extends Grouping {
 
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-        boolean clientOnly, ProcessingComponent pc) {
+        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
       // !!! no-op in this case
     }
 
@@ -261,7 +261,8 @@ public class ClusterGrouping extends Grouping {
       }
 
       return new StageWrapper(
-          StageWrapper.Type.RU_TASKS, execution.title,
+          StageWrapper.Type.RU_TASKS,
+          execution.title,
           new TaskWrapper(service, component, hostNames, et));
     }
     return null;

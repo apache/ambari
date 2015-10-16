@@ -36,18 +36,27 @@ from resource_management.core.shell import as_user
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
-from utils import service, safe_zkfc_op
+from utils import service, safe_zkfc_op, is_previous_fs_image
 from setup_ranger_hdfs import setup_ranger_hdfs
+from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def namenode(action=None, do_format=True, rolling_restart=False, env=None):
+def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, env=None):
+  if action is None:
+    raise Fail('"action" parameter is required for function namenode().')
+
+  if action in ["start", "stop"] and hdfs_binary is None:
+    raise Fail('"hdfs_binary" parameter is required for function namenode().')
+
   if action == "configure":
     import params
     #we need this directory to be present before any action(HA manual steps for
     #additional namenode)
     create_name_dirs(params.dfs_name_dir)
   elif action == "start":
-    setup_ranger_hdfs(rolling_upgrade = rolling_restart)
+    Logger.info("Called service {0} with upgrade_type: {1}".format(action, str(upgrade_type)))
+    setup_ranger_hdfs(upgrade_type=upgrade_type)
     import params
     if do_format:
       format_namenode()
@@ -70,12 +79,32 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
         if not success:
           raise Fail("Could not bootstrap standby namenode")
 
-    options = "-rollingUpgrade started" if rolling_restart else ""
-
-    if rolling_restart:
+    if upgrade_type == "rolling" and params.dfs_ha_enabled:
       # Most likely, ZKFC is up since RU will initiate the failover command. However, if that failed, it would have tried
       # to kill ZKFC manually, so we need to start it if not already running.
       safe_zkfc_op(action, env)
+
+    options = ""
+    if upgrade_type == "rolling":
+      options = "-rollingUpgrade started"
+    elif upgrade_type == "nonrolling":
+      is_previous_image_dir = is_previous_fs_image()
+      Logger.info(format("Previous file system image dir present is {is_previous_image_dir}"))
+
+      if params.dfs_ha_enabled:
+        if params.desired_namenode_role is None:
+          raise Fail("Did not receive parameter \"desired_namenode_role\" to indicate the role that this NameNode should have.")
+
+        if params.desired_namenode_role == "active":
+          # The "-upgrade" command can only be used exactly once. If used more than once during a retry, it will cause problems.
+          options = "" if is_previous_image_dir else "-upgrade"
+
+        if params.desired_namenode_role == "standby":
+          options = "-bootstrapStandby -force"
+      else:
+        # Both Primary and Secondary NameNode can use the same command.
+        options = "" if is_previous_image_dir else "-upgrade"
+    Logger.info(format("Option for start command: {options}"))
 
     service(
       action="start",
@@ -90,53 +119,66 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
-    is_namenode_safe_mode_off = format("hdfs dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
+    is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
     if params.dfs_ha_enabled:
-      is_active_namenode_cmd = as_user(format("hdfs --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+      is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
       is_active_namenode_cmd = None
+    
+    # During NonRolling Upgrade, both NameNodes are initially down,
+    # so no point in checking if this is the active or standby.
+    if upgrade_type == "nonrolling":
+      is_active_namenode_cmd = None
 
-    # During normal operations, if HA is enabled and it is in standby, then no need to check safemode staus.
-    # During Rolling Upgrade, both namenodes must eventually leave safemode, and Ambari can wait for this.
+    # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
+    # no-HA                 | ON -> OFF                | Yes                      |
+    # HA and active         | ON -> OFF                | Yes                      |
+    # HA and standby        | no change                | no check                 |
+    # RU with HA on active  | ON -> OFF                | Yes                      |
+    # RU with HA on standby | ON -> OFF                | Yes                      |
+    # EU with HA on active  | no change                | no check                 |
+    # EU with HA on standby | no change                | no check                 |
+    # EU non-HA             | no change                | no check                 |
 
-    # ___Scenario_________|_Expected safemode state___|_Wait for safemode OFF____|
-    # 1 (HA and active)   | ON -> OFF                 | Yes                      |
-    # 2 (HA and standby)  | no change (yes during RU) | no check (yes during RU) |
-    # 3 (no-HA)           | ON -> OFF                 | Yes                      |
     check_for_safemode_off = False
     msg = ""
     if params.dfs_ha_enabled:
-      code, out = shell.call(is_active_namenode_cmd, logoutput=True) # If active NN, code will be 0
-      if code == 0: # active
+      if upgrade_type is not None:
         check_for_safemode_off = True
-        msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
-      elif rolling_restart:
-        check_for_safemode_off = True
-        msg = "Must wait to leave safemode since High Availability is enabled during a Rolling Upgrade"
+        msg = "Must wait to leave safemode since High Availability is enabled during a Stack Upgrade"
+      else:
+        # During normal operations, the NameNode is expected to be up.
+        code, out = shell.call(is_active_namenode_cmd, logoutput=True) # If active NN, code will be 0
+        if code == 0: # active
+          check_for_safemode_off = True
+          msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
+        else:
+          msg = "Will remain in the current safemode state."
     else:
       msg = "Must wait to leave safemode since High Availability is not enabled."
       check_for_safemode_off = True
 
-    if not msg:
-      msg = "Will remain in the current safemode state."
     Logger.info(msg)
 
-    if check_for_safemode_off:
-      # First check if Namenode is not in 'safemode OFF' (equivalent to safemode ON). If safemode is OFF, no change.
-      # If safemode is ON, first wait for NameNode to leave safemode on its own (if that doesn't happen within 30 seconds, then
-      # force NameNode to leave safemode).
-      Logger.info("Checking the NameNode safemode status since may need to transition from ON to OFF.")
+    # During a NonRolling (aka Express Upgrade), stay in safemode since the DataNodes are down.
+    stay_in_safe_mode = False
+    if upgrade_type == "nonrolling":
+      stay_in_safe_mode = True
 
-      try:
-        # Wait up to 30 mins
-        Execute(is_namenode_safe_mode_off,
-                tries=180,
-                try_sleep=10,
-                user=params.hdfs_user,
-                logoutput=True
-        )
-      except Fail:
-        Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+    if check_for_safemode_off:
+      Logger.info("Stay in safe mode: {0}".format(stay_in_safe_mode))
+      if not stay_in_safe_mode:
+        Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+        try:
+          # Wait up to 30 mins
+          Execute(is_namenode_safe_mode_off,
+                  tries=180,
+                  try_sleep=10,
+                  user=params.hdfs_user,
+                  logoutput=True
+          )
+        except Fail:
+          Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
 
     # Always run this on non-HA, or active NameNode during HA.
     create_hdfs_directories(is_active_namenode_cmd)
@@ -154,7 +196,13 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
     decommission()
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def namenode(action=None, do_format=True, rolling_restart=False, env=None):
+def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, env=None):
+  if action is None:
+    raise Fail('"action" parameter is required for function namenode().')
+
+  if action in ["start", "stop"] and hdfs_binary is None:
+    raise Fail('"hdfs_binary" parameter is required for function namenode().')
+
   if action == "configure":
     pass
   elif action == "start":

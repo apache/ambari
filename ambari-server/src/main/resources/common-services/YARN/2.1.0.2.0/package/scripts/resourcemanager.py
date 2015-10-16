@@ -47,7 +47,7 @@ class Resourcemanager(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     service('resourcemanager', action='stop')
@@ -97,8 +97,8 @@ class ResourcemanagerDefault(Resourcemanager):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-yarn-resourcemanager"}
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade post-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade post-restart")
     import params
     env.set_params(params)
 
@@ -106,7 +106,7 @@ class ResourcemanagerDefault(Resourcemanager):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-yarn-resourcemanager", params.version)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)

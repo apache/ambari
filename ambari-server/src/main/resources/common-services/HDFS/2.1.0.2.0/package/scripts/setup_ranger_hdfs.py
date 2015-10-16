@@ -19,7 +19,7 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 
-def setup_ranger_hdfs(rolling_upgrade = False):
+def setup_ranger_hdfs(upgrade_type=None):
   import params
 
   if params.has_ranger_admin:
@@ -31,7 +31,7 @@ def setup_ranger_hdfs(rolling_upgrade = False):
 
     hdp_version = None
 
-    if rolling_upgrade:
+    if upgrade_type is not None:
       hdp_version = params.version
 
     setup_ranger_plugin('hadoop-client', 'hdfs',

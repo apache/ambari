@@ -19,6 +19,17 @@
 <upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
   <services>
+    <service name="YARN">
+      <component name="HISTORY_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath" summary="YARN Application Classpath">
+            <type>yarn-site</type>
+            <set key="yarn.application.classpath" value="$HADOOP_CONF_DIR,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>

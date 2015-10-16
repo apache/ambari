@@ -44,7 +44,7 @@ class HistoryServer(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     service('historyserver', action='stop', serviceName='mapreduce')
@@ -72,8 +72,8 @@ class HistoryServerDefault(HistoryServer):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-mapreduce-historyserver"}
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
@@ -86,7 +86,7 @@ class HistoryServerDefault(HistoryServer):
       copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       params.HdfsResource(None, action="execute")
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY

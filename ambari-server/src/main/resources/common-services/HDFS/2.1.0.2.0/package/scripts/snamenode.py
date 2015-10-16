@@ -38,13 +38,13 @@ class SNameNode(Script):
     hdfs("secondarynamenode")
     snamenode(action="configure")
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
     snamenode(action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     snamenode(action="stop")
@@ -60,9 +60,7 @@ class SNameNodeDefault(SNameNode):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-hdfs-secondarynamenode"}
 
-  def pre_rolling_restart(self, env):
-    # Secondary namenode is actually removed in an HA cluster, which is a pre-requisite for Rolling Upgrade,
-    # so it does not need any Rolling Restart logic.
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     pass
 
   def security_status(self, env):
