@@ -144,11 +144,7 @@ else:
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and not OSCheck.is_suse_family():
-  # deprecated rhel jsvc_path
-  jsvc_path = "/usr/libexec/bigtop-utils"
-else:
-  jsvc_path = "/usr/lib/bigtop-utils"
+jsvc_path = "/usr/lib/bigtop-utils"
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']

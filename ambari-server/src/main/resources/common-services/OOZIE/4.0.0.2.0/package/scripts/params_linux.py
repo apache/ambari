@@ -183,7 +183,7 @@ if https_port is not None:
 hdfs_site = config['configurations']['hdfs-site']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
-if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2"):
+if Script.is_hdp_stack_less_than("2.2"):
   put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 # for newer
 else:

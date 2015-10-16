@@ -62,11 +62,7 @@ hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefi
 hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
 hadoop_root_logger = config['configurations']['hadoop-env']['hadoop_root_logger']
 
-if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():
-  # deprecated rhel jsvc_path
-  jsvc_path = "/usr/libexec/bigtop-utils"
-else:
-  jsvc_path = "/usr/lib/bigtop-utils"
+jsvc_path = "/usr/lib/bigtop-utils"
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
