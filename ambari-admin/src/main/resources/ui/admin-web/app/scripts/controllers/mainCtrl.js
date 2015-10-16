@@ -118,11 +118,19 @@ angular.module('ambariAdminConsole')
     $rootScope.userActivityTimeoutInterval = window.setInterval(checkActiveness, 1000);
   };
 
+  // Send noop requests every 10 seconds just to keep backend session alive
+  $scope.startNoopPolling = function() {
+    $rootScope.noopPollingInterval = setInterval(Cluster.getAmbariTimeout, 10000);
+  };
+
   if (!$rootScope.userActivityTimeoutInterval) {
     Cluster.getAmbariTimeout().then(function(timeout) {
       if (Number(timeout) > 0)
         $scope.startInactiveTimeoutMonitoring(timeout * 1000);
     });
+  }
+  if (!$rootScope.noopPollingInterval) {
+    $scope.startNoopPolling();
   }
   $scope.updateInstances();
 }]);
