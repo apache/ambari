@@ -17,7 +17,7 @@
 
 var App = require('app');
 var string_utils = require('utils/string_utils');
-var dateUtils = require('utils/date');
+var dateUtils = require('utils/date/date');
 
 /**
  * @class

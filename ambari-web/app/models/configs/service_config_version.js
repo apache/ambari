@@ -18,7 +18,7 @@
 
 
 var App = require('app');
-var dateUtil = require('utils/date');
+var dateUtil = require('utils/date/date');
 
 
 App.ServiceConfigVersion = DS.Model.extend({

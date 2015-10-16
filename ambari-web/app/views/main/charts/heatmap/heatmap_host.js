@@ -15,7 +15,7 @@
  * the License.
  */
 
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 var App = require('app');
 

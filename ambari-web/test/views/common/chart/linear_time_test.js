@@ -30,7 +30,7 @@ describe('App.ChartLinearTimeView', function () {
     beforeEach(function () {
       var data = [[1, 1200000000], [2, 1200000000], [3, 1200000000]];
       var name = 'abc';
-      sinon.stub(App.router, 'get').withArgs('userSettingsController.userSettings.timezone').returns('Canada/Atlantic');
+      sinon.stub(App.router, 'get').withArgs('userSettingsController.userSettings.timezone').returns('(UTC+00:00) Greenwich');
       result = chartLinearTimeView.transformData(data, name);
     });
 

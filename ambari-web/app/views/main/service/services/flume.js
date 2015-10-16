@@ -16,7 +16,7 @@
  */
 
 var App = require('app');
-var date = require('utils/date');
+var date = require('utils/date/date');
 var sort = require('views/common/sort_view');
 
 App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServiceViewWrapper, {
