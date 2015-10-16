@@ -80,6 +80,11 @@ public class UpgradeContext {
   private boolean m_autoSkipServiceCheckFailures = false;
 
   /**
+   * {@code true} if manual verification tasks should be automatically skipped.
+   */
+  private boolean m_autoSkipManualVerification = false;
+
+  /**
    * Constructor.
    *
    * @param resolver
@@ -313,7 +318,7 @@ public class UpgradeContext {
   /**
    * Sets whether skippable components that failed are automatically skipped.
    *
-   * @param skipComponentFailures
+   * @param autoSkipComponentFailures
    *          {@code true} to automatically skip component failures which are
    *          marked as skippable.
    */
@@ -343,4 +348,22 @@ public class UpgradeContext {
     m_autoSkipServiceCheckFailures = autoSkipServiceCheckFailures;
   }
 
+  /**
+   * Gets whether manual verification tasks can be automatically skipped.
+   *
+   * @return the skipManualVerification
+   */
+  public boolean isManualVerificationAutoSkipped() {
+    return m_autoSkipManualVerification;
+  }
+
+  /**
+   * Sets whether manual verification checks are automatically skipped.
+   *
+   * @param autoSkipManualVerification
+   *          {@code true} to automatically skip manual verification tasks.
+   */
+  public void setAutoSkipManualVerification(boolean autoSkipManualVerification) {
+    m_autoSkipManualVerification = autoSkipManualVerification;
+  }
 }
