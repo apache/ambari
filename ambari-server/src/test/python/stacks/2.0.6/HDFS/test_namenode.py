@@ -1275,10 +1275,16 @@ class TestNamenode(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
 
-  def test_upgrade_restart(self):
+  @patch("utils.get_namenode_states")
+  def test_upgrade_restart(self, get_namenode_states_mock):
     #   Execution of nn_ru_lzo invokes a code path that invokes lzo installation, which
     #   was failing in RU case.  See hdfs.py and the lzo_enabled check that is in it.
     #   Just executing the script is enough to test the fix
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "restart",
@@ -1286,6 +1292,15 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    unknown_namenodes = active_namenodes
+    active_namenodes = []
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                     classname = "NameNode",
+                     command = "restart",
+                     config_file = "nn_ru_lzo.json",
+                     hdp_stack_version = self.STACK_VERSION,
+                     target = RMFTestCase.TARGET_COMMON_SERVICES)
 
   def test_pre_rolling_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"

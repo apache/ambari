@@ -26,7 +26,7 @@ __all__ = ['retry', ]
 from resource_management.core.logger import Logger
 
 
-def retry(times=3, sleep_time=1, backoff_factor=1, err_class=Exception):
+def retry(times=3, sleep_time=1, max_sleep_time=8, backoff_factor=1, err_class=Exception):
   """
   Retry decorator for improved robustness of functions.
   :param times: Number of times to attempt to call the function.
@@ -44,12 +44,13 @@ def retry(times=3, sleep_time=1, backoff_factor=1, err_class=Exception):
 
       while _times > 1:
         _times -= 1
-        _sleep_time *= _backoff_factor
         try:
           return function(*args, **kwargs)
         except _err_class, err:
           Logger.info("Will retry %d time(s), caught exception: %s. Sleeping for %d sec(s)" % (_times, str(err), _sleep_time))
           time.sleep(_sleep_time)
+        if(_sleep_time * _backoff_factor <= max_sleep_time):
+          _sleep_time *= _backoff_factor
 
       return function(*args, **kwargs)
     return wrapper
