@@ -313,57 +313,81 @@ App.Router = Em.Router.extend({
 
   },
 
+  /**
+   * success callback of login request
+   * @param {object} clustersData
+   * @param {object} opt
+   * @param {object} params
+   */
   loginGetClustersSuccessCallback: function (clustersData, opt, params) {
-    var loginController = this.get('loginController');
-    var loginData = params.loginData;
-    var privileges = loginData.privileges || [];
+    var privileges = params.loginData.privileges || [];
     var router = this;
-    var permissionList = privileges.mapProperty('PrivilegeInfo.permission_name');
-      var isAdmin = permissionList.contains('AMBARI.ADMIN');
-      var transitionToApp = false;
+    var isAdmin = privileges.mapProperty('PrivilegeInfo.permission_name').contains('AMBARI.ADMIN');
+
+    App.set('isAdmin', isAdmin);
+
+    if (clustersData.items.length) {
+      var clusterPermissions = privileges.
+        filterProperty('PrivilegeInfo.cluster_name', clustersData.items[0].Clusters.cluster_name).
+        mapProperty('PrivilegeInfo.permission_name');
+
+      //cluster installed
+      router.setClusterInstalled(clustersData);
+      if (clusterPermissions.contains('CLUSTER.OPERATE')) {
+        App.setProperties({
+          isAdmin: true,
+          isOperator: true
+        });
+      }
+      if (isAdmin || clusterPermissions.contains('CLUSTER.READ') || clusterPermissions.contains('CLUSTER.OPERATE')) {
+        router.transitionToApp();
+      } else {
+        router.transitionToViews();
+      }
+    } else {
       if (isAdmin) {
-        App.set('isAdmin', true);
-        if (clustersData.items.length) {
-          router.setClusterInstalled(clustersData);
-          transitionToApp = true;
-        } else {
-          App.ajax.send({
-            name: 'ambari.service.load_server_version',
-            sender: this,
-            success: 'adminViewInfoSuccessCallback'
-          });
-        }
+        router.transitionToAdminView();
       } else {
-        if (clustersData.items.length) {
-          router.setClusterInstalled(clustersData);
-          //TODO: Iterate over clusters
-          var clusterName = clustersData.items[0].Clusters.cluster_name;
-          var clusterPermissions = privileges.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
-          if (clusterPermissions.contains('CLUSTER.OPERATE')) {
-            App.setProperties({
-              isAdmin: true,
-              isOperator: true
-            });
-            transitionToApp = true;
-          } else if (clusterPermissions.contains('CLUSTER.READ')) {
-            transitionToApp = true;
-          }
-        }
+        router.transitionToViews();
       }
-      App.set('isPermissionDataLoaded', true);
-      if (transitionToApp) {
-        if (!router.restorePreferedPath()) {
-          router.getSection(function (route) {
-            router.transitionTo(route);
-            loginController.postLogin(true, true);
-          });
-        }
-      } else {
-        App.router.get('mainViewsController').loadAmbariViews();
-        router.transitionTo('main.views.index');
-        loginController.postLogin(true,true);
-      }
+    }
+    App.set('isPermissionDataLoaded', true);
+    App.router.get('userSettingsController').dataLoading();
   },
+
+  /**
+   * redirect user to Admin View
+   * @returns {$.ajax}
+   */
+  transitionToAdminView: function() {
+    return App.ajax.send({
+      name: 'ambari.service.load_server_version',
+      sender: this,
+      success: 'adminViewInfoSuccessCallback',
+      error: 'adminViewInfoErrorCallback'
+    });
+  },
+
+  /**
+   * redirect user to application Dashboard
+   */
+  transitionToApp: function () {
+    var router = this;
+    if (!router.restorePreferedPath()) {
+      router.getSection(function (route) {
+        router.transitionTo(route);
+      });
+    }
+  },
+
+  /**
+   * redirect user to application Views
+   */
+  transitionToViews: function() {
+    App.router.get('mainViewsController').loadAmbariViews();
+    this.transitionTo('main.views.index');
+  },
+
   adminViewInfoSuccessCallback: function(data) {
     var components = Em.get(data,'components');
     if (Em.isArray(components)) {
@@ -376,6 +400,10 @@ App.Router = Em.Router.extend({
         latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
       window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
     }
+  },
+
+  adminViewInfoErrorCallback: function() {
+    this.transitionToViews();
   },
 
   getSection: function (callback) {
