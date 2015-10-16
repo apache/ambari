@@ -313,7 +313,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       isCSV = !!event.context,
       fileType = isCSV ? 'csv' : 'json',
       fileName = 'data.' + fileType,
-      metrics = this.get('content.metrics'),
+      metrics = this.get('data'),
       hasData = Em.isArray(metrics) && metrics.some(function (item) {
         return Em.isArray(item.data);
       });
