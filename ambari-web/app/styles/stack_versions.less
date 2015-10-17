@@ -293,8 +293,8 @@
     }
     .thumbnail {
       height: 140px;
-      border: solid 2px white;
       cursor: pointer;
+      border: none;
       width: 99%;
       .method-icon {
         font-size: 40px;
@@ -310,41 +310,36 @@
         text-align: center;
       }
     }
+
+    .ROLLING, .NON_ROLLING {
+      background-color: #e4e4e4;
+      .method-name,.method-icon,.method-description {
+        color: #333333;
+      }
+    }
     .ROLLING {
-      background-color: #d3e7ca;
       .method-icon {
         margin-left: 88px;
       }
     }
-    .selected.ROLLING {
-      border: solid 2px #a3c197;
-      box-shadow: 0 8px 6px -6px #91ac86;
-    }
-    .ROLLING:hover {
-      background-color: #c4dfb9;
-    }
     .NON_ROLLING {
-      background-color: #d8e7fb;
       .method-icon {
         margin-left: 94px;
       }
     }
-    .selected.NON_ROLLING {
-      border: solid 2px #7fb2f4;
-      box-shadow: 0 8px 6px -6px #72a0db;
+    .selected.ROLLING, .selected.NON_ROLLING {
+      background-color: #cbe3c2;
+      box-shadow: 0 8px 6px -6px #b3b3b3;
     }
-    .NON_ROLLING:hover {
-      background-color: #c9defa;
+    .ROLLING:hover, .NON_ROLLING:hover {
+      background-color: #d3e7ca;
     }
-    .ROLLING.not-allowed:hover, .NON_ROLLING.not-allowed:hover {
-      background-color: #f3f3f3;
+
+    .thumbnail.not-allowed:hover {
+      background-color: #e4e4e4;
     }
     .thumbnail.not-allowed {
       cursor: not-allowed;
-      background-color: #f3f3f3;
-      .method-name,.method-icon,.method-description {
-        color: #a9a9a9;
-      }
     }
   }
 
@@ -367,32 +362,26 @@
   }
 
   .method-precheck-message {
-    cursor: pointer;
+    a {
+      cursor: pointer;
+    }
     text-align: center;
     padding-top: 10px;
+    font-size: 13px;
   }
   .method-precheck-message.GREEN {
-    a {
-      font-size: 13px;
-    }
     .icon-ok {
       color: @health-status-green;
       font-size: 16px;
     }
   }
   .method-precheck-message.RED {
-    a {
-      font-size: 13px;
-    }
     .icon-remove {
       color: #cf2a27;
       font-size: 16px;
     }
   }
   .method-precheck-message.ORANGE {
-    a {
-      font-size: 13px;
-    }
     .icon-warning-sign {
       color: @health-status-orange;
       font-size: 16px;
@@ -403,6 +392,9 @@
   }
   .text {
     margin-left: 10px;
+  }
+  .icon-question-sign {
+    color: @blue;
   }
 }
 
