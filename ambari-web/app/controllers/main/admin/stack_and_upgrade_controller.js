@@ -573,37 +573,32 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
                 type: method.get('type')
               });
             }
-            if (method.get('selected')) {
-              view.set('parentView.selectedMethod', method);
-            }
           });
-          App.tooltip($(".not-allowed.thumbnail"), {
+
+          App.tooltip($(".failure-tolerance-tooltip"), {
+            placement: "top",
+            title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip')
+          });
+          App.tooltip($(".not-allowed-by-version"), {
             placement: "bottom",
             title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.notAllowed')
           });
+          Em.run.later(this, function () {
+            App.tooltip($(".thumbnail.check-failed"), {
+              placement: "bottom",
+              title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
+            });
+          }, 1000);
         },
         parentView: this.get('parentView'),
         isInUpgradeWizard: isInUpgradeWizard,
         versionText: isInUpgradeWizard? '' : Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version').format(version.get('displayName')),
         upgradeMethods: function () {
-          if (isInUpgradeWizard) {
-            self.get('upgradeMethods').forEach(function(method){
-              if (method.get('displayName') == self.get('upgradeTypeDisplayName')) {
-                method.set('selected', true);
-              } else {
-                method.set('selected', false);
-              }
-            });
-          } else {
-            var ruMethod = self.get('upgradeMethods').findProperty('type', 'ROLLING');
-            var ssuMethod = self.get('upgradeMethods').findProperty('type', 'NON_ROLLING');
-            ruMethod.set('selected', ruMethod.get('allowed'));
-            ssuMethod.set('selected', !ruMethod.get('allowed') && ssuMethod.get('allowed'));
-          }
+          self.updateSelectedMethod(isInUpgradeWizard);
           return self.get('upgradeMethods');
-        }.property('self.upgradeMethods', 'upgradeTypeDisplayName'),
+        }.property('self.upgradeMethods'),
         selectMethod: function(event) {
-          if (isInUpgradeWizard || !event.context.get('allowed')) return;
+          if (isInUpgradeWizard || !event.context.get('allowed') || event.context.get('isPrecheckFailed')) return;
           var selectedMethod = event.context;
           this.get('upgradeMethods').forEach(function(method){
             method.set('selected', false);
@@ -655,8 +650,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       disablePrimary: function() {
         if (isInUpgradeWizard) return false;
         var selectedMethod = self.get('upgradeMethods').findProperty('selected', true);
-        return selectedMethod ? selectedMethod.get('precheckResultsMessageClass') == 'RED' : true;
-      }.property('selectedMethod', 'selectedMethod.precheckResultsMessageClass'),
+        return selectedMethod ? selectedMethod.get('isPrecheckFailed') : true;
+      }.property('selectedMethod', 'selectedMethod.isPrecheckFailed'),
       onPrimary: function () {
         this.hide();
         if (isInUpgradeWizard) {
@@ -749,8 +744,40 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var method = self.get('upgradeMethods').findProperty('type', params.type);
     method.set('precheckResultsMessage', message);
     method.set('precheckResultsMessageClass', messageClass);
+    method.set('isPrecheckFailed', messageClass == 'RED');
     method.set('precheckResultsMessageIconClass', messageIconClass);
     method.set('precheckResultsData', data);
+    this.updateSelectedMethod(false);
+    Em.run.later(this, function () {
+      App.tooltip($(".thumbnail.check-failed"), {
+        placement: "bottom",
+        title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
+      });
+      $(".thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
+    }, 1000);
+  },
+
+  /**
+   * In Upgrade Wizard: update which method already been selected on open
+   * Not in upgrade wizard: de-select the method with pre-check errors
+   * @param isInUpgradeWizard {boolean}
+   */
+  updateSelectedMethod: function(isInUpgradeWizard) {
+    var self = this;
+    if (isInUpgradeWizard) {
+      this.get('upgradeMethods').forEach(function(method){
+        if (method.get('displayName') == self.get('upgradeTypeDisplayName')) {
+          method.set('selected', true);
+        } else {
+          method.set('selected', false);
+        }
+      });
+    } else {
+      var ruMethod = this.get('upgradeMethods').findProperty('type', 'ROLLING');
+      var euMethod = this.get('upgradeMethods').findProperty('type', 'NON_ROLLING');
+      if (ruMethod.get('isPrecheckFailed')) ruMethod.set('selected', false);
+      if (euMethod.get('isPrecheckFailed')) euMethod.set('selected', false);
+    }
   },
 
   /**
