@@ -31,6 +31,11 @@ App.Tab = DS.Model.extend({
   isRendered: DS.attr('boolean', {defaultValue: false}),
 
   /**
+   * Determines if all <code>configs</code> were attached to tab.
+   */
+  isConfigsPrepared: DS.attr('boolean', {defaultValue: false}),
+
+  /**
    * Number of the errors in all sections in the current tab
    * @type {number}
    */
