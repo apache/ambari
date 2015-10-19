@@ -816,12 +816,25 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     });
     services.forEach(function (service) {
       var configsByService = [];
-      var serviceConfigs = configs.filterProperty('serviceName', service.get('serviceName'));
+      var dependencies = {};
+      var serviceConfigs = [];
+
+      configs.forEach(function (config) {
+        if (config.serviceName === service.get('serviceName')) {
+          serviceConfigs.push(config);
+        }
+        if (config.filename === 'hive-site.xml' && config.name === 'hive.metastore.uris') {
+          dependencies['hive.metastore.uris'] = config.recommendedValue;
+        }
+        if (config.filename === 'zoo.cfg.xml' && config.name === 'clientPort') {
+          dependencies['clientPort'] = config.recommendedValue;
+        }
+      }, this);
       serviceConfigs.forEach(function (_config) {
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          configPropertyHelper.initialValue(serviceConfigProperty, localDB, configs);
+          configPropertyHelper.initialValue(serviceConfigProperty, localDB, dependencies);
         }
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);

@@ -71,6 +71,7 @@ App.themesMapper = App.QuickDataMapper.create({
   },
 
   map: function (json) {
+    console.time('App.themesMapper execution time');
     var tabs = [];
     json.items.forEach(function(item) {
       this.mapThemeLayouts(item, tabs);
@@ -80,6 +81,7 @@ App.themesMapper = App.QuickDataMapper.create({
 
     App.store.loadMany(this.get("tabModel"), tabs);
     App.store.commit();
+    console.timeEnd('App.themesMapper execution time');
   },
 
   /**
