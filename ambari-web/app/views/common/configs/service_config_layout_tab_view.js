@@ -172,11 +172,13 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
 
   didInsertElement: function () {
     this.set('dataIsReady', false);
+    this.set('content.isConfigsPrepared', false);
     this._super();
     this.prepareConfigProperties();
     if (this.get('controller.isCompareMode')) {
       this.get('parentView').filterEnhancedConfigs();
     }
+    this.set('content.isConfigsPrepared', true);
     this.set('dataIsReady', true);
   }
 
