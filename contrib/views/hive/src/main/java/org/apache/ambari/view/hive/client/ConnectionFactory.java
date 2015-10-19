@@ -75,7 +75,14 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
   }
 
   private String getHivePort() {
-    return context.getProperties().get("hive.port");
+    Boolean isHttpMode = context.getProperties().get("hive.transport.mode").equalsIgnoreCase("http");
+    String port;
+    if(isHttpMode){
+      port = context.getProperties().get("hive.http.port");
+    }else{
+      port = context.getProperties().get("hive.port");
+    }
+    return  port;
   }
 
   private Map<String, String> getHiveAuthParams() {
@@ -92,6 +99,8 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
       }
       params.put(keyvalue[0], keyvalue[1]);
     }
+    params.put(Utils.HiveAuthenticationParams.TRANSPORT_MODE,context.getProperties().get("hive.transport.mode"));
+    params.put(Utils.HiveAuthenticationParams.HTTP_PATH,context.getProperties().get("hive.http.path"));
     return params;
   }
 
