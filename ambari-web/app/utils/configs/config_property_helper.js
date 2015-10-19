@@ -20,14 +20,7 @@ var App = require('app');
 
 module.exports = {
 
-  initialValue: function (configProperty, localDB, configs) {
-    var hiveMetastoreUrisConfig = configs.filterProperty('filename', 'hive-site.xml').findProperty('name', 'hive.metastore.uris');
-    var clientPortConfig = configs.filterProperty('filename', 'zoo.cfg.xml').findProperty('name', 'clientPort');
-    var dependencies = {
-      'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.recommendedValue,
-      'clientPort': clientPortConfig && clientPortConfig.recommendedValue
-    };
-
+  initialValue: function (configProperty, localDB, dependencies) {
     var masterComponentHostsInDB = localDB.masterComponentHosts;
     var isOnlyFirstOneNeeded = true;
     var hostWithPort = "([\\w|\\.]*)(?=:)";

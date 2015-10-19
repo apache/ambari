@@ -280,7 +280,7 @@ describe('configPropertyHelper', function () {
         dependencies: {
           'hive.metastore.uris': 'thrift://localhost:9083'
         },
-        recommendedValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false',
+        recommendedValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9083,hive.metastore.sasl.enabled=false',
         value: 'hive.metastore.local=false,hive.metastore.uris=thrift://h0:9083\\,thrift://h1:9083,hive.metastore.sasl.enabled=false,hive.metastore.execute.setugi=true',
         title: 'should add relevant hive.metastore.uris value'
       },
@@ -402,7 +402,7 @@ describe('configPropertyHelper', function () {
         name: 'hive.metastore.uris',
         recommendedValue: cases['hive.metastore.uris'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, [{name:'hive.metastore.uris', recommendedValue:cases['hive.metastore.uris'].dependencies['hive.metastore.uris'],  filename: 'hive-site.xml'}]);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, {'hive.metastore.uris': cases['hive.metastore.uris'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['hive.metastore.uris'].value);
     });
@@ -413,7 +413,7 @@ describe('configPropertyHelper', function () {
         recommendedValue: cases['templeton.hive.properties'].recommendedValue,
         value: cases['templeton.hive.properties'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  [{name:'hive.metastore.uris', recommendedValue:cases['templeton.hive.properties'].dependencies['hive.metastore.uris'],  filename: 'hive-site.xml'}]);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -423,7 +423,7 @@ describe('configPropertyHelper', function () {
         name: 'yarn.resourcemanager.zk-address',
         recommendedValue: cases['yarn.resourcemanager.zk-address'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  [{name:'clientPort', recommendedValue:cases['yarn.resourcemanager.zk-address'].dependencies['clientPort'],  filename: 'zoo.cfg.xml'}]);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
