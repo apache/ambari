@@ -62,6 +62,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
+  private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
   private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String CONTENT_PROPERTY = "content";
   private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
@@ -174,6 +176,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateHbaseEnvConfig();
     updateHadoopEnv();
     updateKafkaConfigs();
+    updateZookeeperLog4j();
   }
 
   /**
@@ -276,26 +279,31 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateZookeeperLog4j() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config zookeeperLog4jConfig = cluster.getDesiredConfigByType(ZOOKEEPER_LOG4J_CONFIG);
+      if (zookeeperLog4jConfig != null) {
+        String content = zookeeperLog4jConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          content = content.replaceAll("[\n^]\\s*log4j\\.rootLogger\\s*=\\s*INFO\\s*,\\s*CONSOLE", "\nlog4j.rootLogger=INFO, ROLLINGFILE");
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, ZOOKEEPER_LOG4J_CONFIG, updates, true, false);
+        }
+      }
+    }
+  }
+
   protected void updateStormConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    Clusters clusters = ambariManagementController.getClusters();
-
-    if (clusters != null) {
-      Map<String, Cluster> clusterMap = clusters.getClusters();
-
-      if ((clusterMap != null) && !clusterMap.isEmpty()) {
-        // Iterate through the clusters and perform any configuration updates
-        for (final Cluster cluster : clusterMap.values()) {
-          Config stormSiteProps = cluster.getDesiredConfigByType(STORM_SITE);
-
-          if (stormSiteProps != null) {
-            String value = stormSiteProps.getProperties().get("nimbus.monitor.freq.secs");
-            if (value != null && value.equals("10")) {
-              Map<String, String> updates = new HashMap<String, String>();
-              updates.put("nimbus.monitor.freq.secs", "120");
-              updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
-            }
-          }
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config stormSiteProps = cluster.getDesiredConfigByType(STORM_SITE);
+      if (stormSiteProps != null) {
+        String nimbusMonitorFreqSecs = stormSiteProps.getProperties().get(NIMBS_MONITOR_FREQ_SECS_PROPERTY);
+        if (nimbusMonitorFreqSecs != null && nimbusMonitorFreqSecs.equals("10")) {
+          Map<String, String> updates = Collections.singletonMap(NIMBS_MONITOR_FREQ_SECS_PROPERTY, "120");
+          updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
         }
       }
     }
