@@ -64,8 +64,9 @@ public class JobLDAPServiceTest extends BaseHiveTest {
   @Override
   protected void setupProperties(Map<String, String> properties, File baseDir) throws Exception {
     super.setupProperties(properties, baseDir);
-    properties.put("hive.host", "nonexistent.host.com");
-    properties.put("hive.port", "10000");
+    properties.put("hive.transport.mode", "binary");
+    properties.put("hive.host", "127.0.0.1");
+    properties.put("hive.port", "42420");
 
     properties.put("scripts.dir", "/tmp/.hiveQueries");
     properties.put("jobs.dir", "/tmp/.hiveJobs");
