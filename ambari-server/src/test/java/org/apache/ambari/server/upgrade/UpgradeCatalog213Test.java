@@ -183,6 +183,7 @@ public class UpgradeCatalog213Test {
     Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
     Method updateHadoopEnv = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
+    Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
 
@@ -197,6 +198,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateHbaseEnvConfig)
         .addMockedMethod(updateKafkaConfigs)
         .addMockedMethod(updateHadoopEnv)
+        .addMockedMethod(updateZookeeperLog4j)
         .createMock();
 
     upgradeCatalog213.addNewConfigurationsFromXml();
@@ -218,6 +220,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateKafkaConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateHDFSConfigs();
+    expectLastCall().once();
+    upgradeCatalog213.updateZookeeperLog4j();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -375,10 +379,6 @@ public class UpgradeCatalog213Test {
     final Config mockStormSite = easyMockSupport.createNiceMock(Config.class);
     expect(mockStormSite.getProperties()).andReturn(propertiesStormSite).once();
 
-    final Map<String, String> propertiesExpectedHiveSite = new HashMap<String, String>() {{
-      put("nimbus.monitor.freq.secs", "210");
-    }};
-
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -398,11 +398,52 @@ public class UpgradeCatalog213Test {
     }}).once();
 
     expect(mockClusterExpected.getDesiredConfigByType("storm-site")).andReturn(mockStormSite).atLeastOnce();
-    expect(mockStormSite.getProperties()).andReturn(propertiesExpectedHiveSite).atLeastOnce();
+    expect(mockStormSite.getProperties()).andReturn(propertiesStormSite).atLeastOnce();
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateStormConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateZookeeperLog4jConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesZookeeperLog4j = new HashMap<String, String>() {
+      {
+        put("content", "log4j.rootLogger=INFO, CONSOLE");
+      }
+    };
+
+    final Config mockZookeeperLog4j = easyMockSupport.createNiceMock(Config.class);
+    expect(mockZookeeperLog4j.getProperties()).andReturn(propertiesZookeeperLog4j).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getDesiredConfigByType("zookeeper-log4j")).andReturn(mockZookeeperLog4j).atLeastOnce();
+    expect(mockZookeeperLog4j.getProperties()).andReturn(propertiesZookeeperLog4j).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateZookeeperLog4j();
+    easyMockSupport.verifyAll();
+
   }
 
   @Test

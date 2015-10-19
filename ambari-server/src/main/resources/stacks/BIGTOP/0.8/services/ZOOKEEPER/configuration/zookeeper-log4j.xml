@@ -52,8 +52,8 @@
 # ZooKeeper Logging Configuration
 #
 
-# DEFAULT: console appender only
-log4j.rootLogger=INFO, CONSOLE
+# DEFAULT: rollingfile appender only
+log4j.rootLogger=INFO, ROLLINGFILE
 
 # Example with rolling log file
 #log4j.rootLogger=DEBUG, CONSOLE, ROLLINGFILE
