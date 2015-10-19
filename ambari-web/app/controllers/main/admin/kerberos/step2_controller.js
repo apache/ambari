@@ -36,10 +36,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
 
   addMiscTabToPage: false,
 
-  isStorePersisted: function() {
-    return this.get('wizardController.content.secureStoragePersisted');
-  }.property('wizardController.content.secureStoragePersisted'),
-
   /**
    * @type {boolean} true if test connection to hosts is in progress
    */

@@ -36,7 +36,9 @@ App.ManageCredentialsFormView = Em.View.extend({
    * Status of persistent storage. Returns <code>true</code> if persistent storage is available.
    * @type {boolean}
    */
-  storePersisted: false,
+  storePersisted: function() {
+    return App.get('isCredentialStorePersistent');
+  }.property('App.isCredentialStorePersistent'),
 
   /**
    * Disable checkbox if persistent storage not available
@@ -120,11 +122,6 @@ App.ManageCredentialsFormView = Em.View.extend({
 
   prepareContent: function() {
     var self = this;
-    credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
-      Em.run.next(function() {
-        self.set('storePersisted', isPersisted);
-      });
-    });
     credentialsUtils.credentials(App.get('clusterName'), function(credentials) {
       Em.run.next(function() {
         self.set('isRemovable', credentialsUtils.isKDCCredentialsPersisted(credentials));

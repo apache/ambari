@@ -197,6 +197,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
       complete: function (jqXHR, textStatus) {
+        App.set('isCredentialStorePersistent', Em.getWithDefault(App.Cluster.find().findProperty('clusterName', App.get('clusterName')), 'isCredentialStorePersistent', false));
       }
     }, function (jqXHR, textStatus) {
     });

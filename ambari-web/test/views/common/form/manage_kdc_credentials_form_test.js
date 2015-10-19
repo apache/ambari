@@ -69,16 +69,14 @@ describe('#App.ManageCredentialsFormView', function() {
         sinon.stub(credentialUtils, 'credentials', function(clusterName, callback) {
           callback(test.credentials);
         });
-        sinon.stub(credentialUtils, 'isStorePersisted', function() {
-          return $.Deferred().resolve(test.isStorePersistent).promise();
-        });
+        sinon.stub(App, 'get').withArgs('isCredentialStorePersistent').returns(test.e.storePersisted);
         view.prepareContent();
         Em.run.next(function() {
           assert.equal(view.get('isRemovable'), test.e.isRemovable, '#isRemovable property validation');
           assert.equal(view.get('isRemoveDisabled'), test.e.isRemoveDisabled, '#isRemoveDisabled property validation');
           assert.equal(view.get('storePersisted'), test.e.storePersisted, '#storePersisted property validation');
           credentialUtils.credentials.restore();
-          credentialUtils.isStorePersisted.restore();
+          App.get.restore();
           done();
         });
       });

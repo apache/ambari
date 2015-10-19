@@ -33,34 +33,6 @@ describe('App.KDCCredentialsControllerMixin', function() {
     mixedObject.destroy();
   });
 
-  describe('#isStorePersisted', function() {
-    it('should throw error if not overrided in mixed object', function() {
-      var errorThrown = false;
-      try {
-        mixedObject.get('isStorePersisted');
-      } catch (e) {
-        errorThrown = true;
-      } finally {
-        expect(errorThrown).to.be.true;
-      }
-    });
-    it('should not throw error if overrided in mixed object', function() {
-      var errorThrown = false;
-      mixedObject.reopen({
-        isStorePersisted: function() {
-          return true;
-        }.property()
-      });
-      try {
-        mixedObject.get('isStorePersisted');
-      } catch (e) {
-        errorThrown = true;
-      } finally {
-        expect(errorThrown).to.be.false;
-      }
-    });
-  });
-
   describe('#initilizeKDCStoreProperties', function() {
     [
       {
