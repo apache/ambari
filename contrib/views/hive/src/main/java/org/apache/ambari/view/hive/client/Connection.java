@@ -27,16 +27,38 @@ import org.apache.hive.service.auth.KerberosSaslHelper;
 import org.apache.hive.service.auth.PlainSaslHelper;
 import org.apache.hive.service.auth.SaslQOP;
 import org.apache.hive.service.cli.thrift.*;
+import org.apache.http.HttpRequestInterceptor;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.CookieStore;
+import org.apache.http.client.ServiceUnavailableRetryStrategy;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.protocol.HttpContext;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.transport.THttpClient;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -81,12 +103,14 @@ public class Connection {
 
   public synchronized void openConnection() throws HiveClientException, HiveAuthRequiredException {
     try {
-      transport = getTransport();
+      transport = isHttpTransportMode() ? createHttpTransport() : createBinaryTransport();
       transport.open();
       client = new TCLIService.Client(new TBinaryProtocol(transport));
     } catch (TTransportException e) {
       throw new HiveClientException("H020 Could not establish connecton to "
           + host + ":" + port + ": " + e.toString(), e);
+    } catch (SQLException e) {
+      throw new HiveClientException(e.getMessage(), e);
     }
     LOG.info("Hive connection opened");
   }
@@ -97,7 +121,7 @@ public class Connection {
    * @return transport
    * @throws HiveClientException
    */
-  protected TTransport getTransport() throws HiveClientException, TTransportException, HiveAuthRequiredException {
+  protected TTransport createBinaryTransport() throws HiveClientException, TTransportException, HiveAuthRequiredException {
     TTransport transport;
     boolean assumeSubject =
         Utils.HiveAuthenticationParams.AUTH_KERBEROS_AUTH_TYPE_FROM_SUBJECT.equals(authParams
@@ -171,6 +195,195 @@ public class Connection {
     return transport;
   }
 
+  private String getServerHttpUrl(boolean useSsl) {
+    // Create the http/https url
+    // JDBC driver will set up an https url if ssl is enabled, otherwise http
+    String schemeName = useSsl ? "https" : "http";
+    // http path should begin with "/"
+    String httpPath;
+    httpPath = authParams.get(Utils.HiveAuthenticationParams.HTTP_PATH);
+    if (httpPath == null) {
+      httpPath = "/";
+    } else if (!httpPath.startsWith("/")) {
+      httpPath = "/" + httpPath;
+    }
+    return schemeName + "://" + host + ":" + port + httpPath;
+  }
+
+  private TTransport createHttpTransport() throws SQLException, TTransportException {
+    CloseableHttpClient httpClient;
+    boolean useSsl = isSslConnection();
+    // Create an http client from the configs
+    httpClient = getHttpClient(useSsl);
+    try {
+      transport = new THttpClient(getServerHttpUrl(useSsl), httpClient);
+      // We'll call an open/close here to send a test HTTP message to the server. Any
+      // TTransportException caused by trying to connect to a non-available peer are thrown here.
+      // Bubbling them up the call hierarchy so that a retry can happen in openTransport,
+      // if dynamic service discovery is configured.
+      TCLIService.Iface client = new TCLIService.Client(new TBinaryProtocol(transport));
+      TOpenSessionResp openResp = client.OpenSession(new TOpenSessionReq());
+      if (openResp != null) {
+        client.CloseSession(new TCloseSessionReq(openResp.getSessionHandle()));
+      }
+    } catch (TException e) {
+      LOG.info("JDBC Connection Parameters used : useSSL = " + useSsl + " , httpPath  = " +
+          authParams.get(Utils.HiveAuthenticationParams.HTTP_PATH) + " Authentication type = " +
+          authParams.get(Utils.HiveAuthenticationParams.AUTH_TYPE));
+      String msg = "Could not create http connection to " +
+          getServerHttpUrl(useSsl) + ". " + e.getMessage();
+      throw new TTransportException(msg, e);
+    }
+    return transport;
+  }
+
+  private CloseableHttpClient getHttpClient(Boolean useSsl) throws SQLException {
+    boolean isCookieEnabled = authParams.get(Utils.HiveAuthenticationParams.COOKIE_AUTH) == null ||
+        (!Utils.HiveAuthenticationParams.COOKIE_AUTH_FALSE.equalsIgnoreCase(
+            authParams.get(Utils.HiveAuthenticationParams.COOKIE_AUTH)));
+    String cookieName = authParams.get(Utils.HiveAuthenticationParams.COOKIE_NAME) == null ?
+        Utils.HiveAuthenticationParams.DEFAULT_COOKIE_NAMES_HS2 :
+        authParams.get(Utils.HiveAuthenticationParams.COOKIE_NAME);
+    CookieStore cookieStore = isCookieEnabled ? new BasicCookieStore() : null;
+    HttpClientBuilder httpClientBuilder;
+    // Request interceptor for any request pre-processing logic
+    HttpRequestInterceptor requestInterceptor;
+    Map<String, String> additionalHttpHeaders = new HashMap<String, String>();
+
+    // Retrieve the additional HttpHeaders
+    for (Map.Entry<String, String> entry : authParams.entrySet()) {
+      String key = entry.getKey();
+
+      if (key.startsWith(Utils.HiveAuthenticationParams.HTTP_HEADER_PREFIX)) {
+        additionalHttpHeaders.put(key.substring(Utils.HiveAuthenticationParams.HTTP_HEADER_PREFIX.length()),
+            entry.getValue());
+      }
+    }
+    // Configure http client for kerberos/password based authentication
+    if (isKerberosAuthMode()) {
+      /**
+       * Add an interceptor which sets the appropriate header in the request.
+       * It does the kerberos authentication and get the final service ticket,
+       * for sending to the server before every request.
+       * In https mode, the entire information is encrypted
+       */
+
+      Boolean assumeSubject =
+          Utils.HiveAuthenticationParams.AUTH_KERBEROS_AUTH_TYPE_FROM_SUBJECT.equals(authParams
+              .get(Utils.HiveAuthenticationParams.AUTH_KERBEROS_AUTH_TYPE));
+      requestInterceptor =
+          new HttpKerberosRequestInterceptor(authParams.get(Utils.HiveAuthenticationParams.AUTH_PRINCIPAL),
+              host, getServerHttpUrl(useSsl), assumeSubject, cookieStore, cookieName, useSsl,
+              additionalHttpHeaders);
+    } else {
+      /**
+       * Add an interceptor to pass username/password in the header.
+       * In https mode, the entire information is encrypted
+       */
+      requestInterceptor = new HttpBasicAuthInterceptor(
+          getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_USER, getUsername())
+          , getPassword(),cookieStore, cookieName, useSsl,
+          additionalHttpHeaders);
+    }
+    // Configure http client for cookie based authentication
+    if (isCookieEnabled) {
+      // Create a http client with a retry mechanism when the server returns a status code of 401.
+      httpClientBuilder =
+          HttpClients.custom().setServiceUnavailableRetryStrategy(
+              new ServiceUnavailableRetryStrategy() {
+
+                @Override
+                public boolean retryRequest(
+                    final HttpResponse response,
+                    final int executionCount,
+                    final HttpContext context) {
+                  int statusCode = response.getStatusLine().getStatusCode();
+                  boolean ret = statusCode == 401 && executionCount <= 1;
+
+                  // Set the context attribute to true which will be interpreted by the request interceptor
+                  if (ret) {
+                    context.setAttribute(Utils.HIVE_SERVER2_RETRY_KEY, Utils.HIVE_SERVER2_RETRY_TRUE);
+                  }
+                  return ret;
+                }
+
+                @Override
+                public long getRetryInterval() {
+                  // Immediate retry
+                  return 0;
+                }
+              });
+    } else {
+      httpClientBuilder = HttpClientBuilder.create();
+    }
+    // Add the request interceptor to the client builder
+    httpClientBuilder.addInterceptorFirst(requestInterceptor);
+    // Configure http client for SSL
+    if (useSsl) {
+      String useTwoWaySSL = authParams.get(Utils.HiveAuthenticationParams.USE_TWO_WAY_SSL);
+      String sslTrustStorePath = authParams.get(Utils.HiveAuthenticationParams.SSL_TRUST_STORE);
+      String sslTrustStorePassword = authParams.get(
+          Utils.HiveAuthenticationParams.SSL_TRUST_STORE_PASSWORD);
+      KeyStore sslTrustStore;
+      SSLSocketFactory socketFactory;
+
+      /**
+       * The code within the try block throws:
+       * 1. SSLInitializationException
+       * 2. KeyStoreException
+       * 3. IOException
+       * 4. NoSuchAlgorithmException
+       * 5. CertificateException
+       * 6. KeyManagementException
+       * 7. UnrecoverableKeyException
+       * We don't want the client to retry on any of these, hence we catch all
+       * and throw a SQLException.
+       */
+      try {
+        if (useTwoWaySSL != null &&
+            useTwoWaySSL.equalsIgnoreCase(Utils.HiveAuthenticationParams.TRUE)) {
+          socketFactory = getTwoWaySSLSocketFactory();
+        } else if (sslTrustStorePath == null || sslTrustStorePath.isEmpty()) {
+          // Create a default socket factory based on standard JSSE trust material
+          socketFactory = SSLSocketFactory.getSocketFactory();
+        } else {
+          // Pick trust store config from the given path
+          sslTrustStore = KeyStore.getInstance(Utils.HiveAuthenticationParams.SSL_TRUST_STORE_TYPE);
+          try (FileInputStream fis = new FileInputStream(sslTrustStorePath)) {
+            sslTrustStore.load(fis, sslTrustStorePassword.toCharArray());
+          }
+          socketFactory = new SSLSocketFactory(sslTrustStore);
+        }
+        socketFactory.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+
+        final Registry<ConnectionSocketFactory> registry =
+            RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("https", socketFactory)
+                .build();
+
+        httpClientBuilder.setConnectionManager(new BasicHttpClientConnectionManager(registry));
+      } catch (Exception e) {
+        String msg = "Could not create an https connection to " +
+            getServerHttpUrl(useSsl) + ". " + e.getMessage();
+        throw new SQLException(msg, " 08S01", e);
+      }
+    }
+    return httpClientBuilder.build();
+  }
+
+  private boolean isKerberosAuthMode() {
+    return !Utils.HiveAuthenticationParams.AUTH_SIMPLE.equals(authParams.get(Utils.HiveAuthenticationParams.AUTH_TYPE))
+        && authParams.containsKey(Utils.HiveAuthenticationParams.AUTH_PRINCIPAL);
+  }
+
+  private boolean isHttpTransportMode() {
+    String transportMode = authParams.get(Utils.HiveAuthenticationParams.TRANSPORT_MODE);
+    if (transportMode != null && (transportMode.equalsIgnoreCase("http"))) {
+      return true;
+    }
+    return false;
+  }
+
   private String getPassword() throws HiveAuthRequiredException {
     String password = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_PASSWD, Utils.HiveAuthenticationParams.ANONYMOUS_USER);
     if (password.equals("${ask_password}")) {
@@ -181,6 +394,51 @@ public class Connection {
       }
     }
     return password;
+  }
+
+  SSLSocketFactory getTwoWaySSLSocketFactory() throws SQLException {
+    SSLSocketFactory socketFactory = null;
+
+    try {
+      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
+          Utils.HiveAuthenticationParams.SUNX509_ALGORITHM_STRING,
+          Utils.HiveAuthenticationParams.SUNJSSE_ALGORITHM_STRING);
+      String keyStorePath = authParams.get(Utils.HiveAuthenticationParams.SSL_KEY_STORE);
+      String keyStorePassword = authParams.get(Utils.HiveAuthenticationParams.SSL_KEY_STORE_PASSWORD);
+      KeyStore sslKeyStore = KeyStore.getInstance(Utils.HiveAuthenticationParams.SSL_KEY_STORE_TYPE);
+
+      if (keyStorePath == null || keyStorePath.isEmpty()) {
+        throw new IllegalArgumentException(Utils.HiveAuthenticationParams.SSL_KEY_STORE
+            + " Not configured for 2 way SSL connection, keyStorePath param is empty");
+      }
+      try (FileInputStream fis = new FileInputStream(keyStorePath)) {
+        sslKeyStore.load(fis, keyStorePassword.toCharArray());
+      }
+      keyManagerFactory.init(sslKeyStore, keyStorePassword.toCharArray());
+
+      TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
+          Utils.HiveAuthenticationParams.SUNX509_ALGORITHM_STRING);
+      String trustStorePath = authParams.get(Utils.HiveAuthenticationParams.SSL_TRUST_STORE);
+      String trustStorePassword = authParams.get(
+          Utils.HiveAuthenticationParams.SSL_TRUST_STORE_PASSWORD);
+      KeyStore sslTrustStore = KeyStore.getInstance(Utils.HiveAuthenticationParams.SSL_TRUST_STORE_TYPE);
+
+      if (trustStorePath == null || trustStorePath.isEmpty()) {
+        throw new IllegalArgumentException(Utils.HiveAuthenticationParams.SSL_TRUST_STORE
+            + " Not configured for 2 way SSL connection");
+      }
+      try (FileInputStream fis = new FileInputStream(trustStorePath)) {
+        sslTrustStore.load(fis, trustStorePassword.toCharArray());
+      }
+      trustManagerFactory.init(sslTrustStore);
+      SSLContext context = SSLContext.getInstance("TLS");
+      context.init(keyManagerFactory.getKeyManagers(),
+          trustManagerFactory.getTrustManagers(), new SecureRandom());
+      socketFactory = new SSLSocketFactory(context);
+    } catch (Exception e) {
+      throw new SQLException("Error while initializing 2 way ssl socket factory ", e);
+    }
+    return socketFactory;
   }
 
   private boolean isSslConnection() {
