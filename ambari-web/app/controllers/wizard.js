@@ -210,6 +210,13 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     return this.get('currentStep') == 10;
   }.property('currentStep'),
 
+  /**
+   * Move user to the selected step
+   *
+   * @param {number} step number of the step, where user is moved
+   * @param {boolean} disableNaviWarning true - don't show warning about moving more than 1 step back
+   * @returns {boolean}
+   */
   gotoStep: function (step, disableNaviWarning) {
     if (this.get('isStepDisabled').findProperty('step', step).get('value') !== false) {
       return false;
