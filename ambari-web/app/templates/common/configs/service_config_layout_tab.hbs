@@ -53,6 +53,9 @@
                                   <li rel='tooltip' {{bindAttr class="subSectionTab.isActive:active subSectionTab.isVisible::disabled" data-original-title="tab.tooltipMsg"}}>
                                     <a href="#" {{action setActiveSubTab subSectionTab target="view"}}{{bindAttr data-target="subSectionTab.id"}} data-toggle="tab">
                                       {{subSectionTab.displayName}}
+                                      {{#if subSectionTab.errorsCount}}
+                                        <span class="badge badge-important">{{subSectionTab.errorsCount}}</span>
+                                      {{/if}}
                                     </a>
                                   </li>
                                 {{/each}}

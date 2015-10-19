@@ -60,6 +60,19 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getAmbariTimeout: function() {
+      var deferred = $q.defer();
+      var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default'
+      $http.get(Settings.baseUrl + url)
+      .then(function(data) {
+        deferred.resolve(data.data.RootServiceComponents.properties['user.inactivity.timeout.default']);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     getPermissions: function() {
       var deferred = $q.defer();
 

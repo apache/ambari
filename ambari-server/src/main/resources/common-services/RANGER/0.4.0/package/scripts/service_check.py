@@ -17,7 +17,11 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.libraries.script import Script
+from resource_management.core.resources.system import Execute
+from resource_management.core.exceptions import ComponentIsNotRunning
+from resource_management.libraries.functions.format import format
+from resource_management.core.logger import Logger
 import os
 
 
@@ -30,8 +34,6 @@ class RangerServiceCheck(Script):
 
     env.set_params(params)
     self.check_ranger_admin_service(params.ranger_external_url)
-    if not params.is_ranger_ha_enabled:
-      self.check_ranger_usersync_service()
 
   def check_ranger_admin_service(self, ranger_external_url):
     if (self.is_ru_rangeradmin_in_progress()):
@@ -40,16 +42,7 @@ class RangerServiceCheck(Script):
       Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {ranger_external_url}/login.jsp | grep 200"),
         tries = 10,
         try_sleep=3,
-        logoutput=True)              
-
-  def check_ranger_usersync_service(self):
-    cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
-    code, output = shell.call(cmd, timeout=20)
-    if code == 0:
-      Logger.info('Ranger usersync process up and running')
-    else:
-      Logger.debug('Ranger usersync process not running')
-      raise ComponentIsNotRunning()
+        logoutput=True)
 
   def is_ru_rangeradmin_in_progress(self):
     return os.path.isfile(RangerServiceCheck.upgrade_marker_file)

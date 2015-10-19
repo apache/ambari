@@ -28,14 +28,26 @@ import javax.xml.bind.annotation.XmlType;
  */
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name="restart")
+@XmlType(name="restart-task")
 public class RestartTask extends Task {
 
   @XmlTransient
   private Task.Type type = Task.Type.RESTART;
 
+  public static final String actionVerb = "Restarting";
+
   @Override
   public Task.Type getType() {
     return type;
+  }
+
+  @Override
+  public StageWrapper.Type getStageWrapperType() {
+    return StageWrapper.Type.RESTART;
+  }
+
+  @Override
+  public String getActionVerb() {
+    return actionVerb;
   }
 }

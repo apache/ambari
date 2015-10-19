@@ -61,11 +61,10 @@ public class HostsRepositoryVersionCheckTest {
     Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     hrvc.config = config;
     Assert.assertTrue(hrvc.isApplicable(request));
-
-    request.setRepositoryVersion(null);
+    Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));
     HostsRepositoryVersionCheck hrvc2 = new HostsRepositoryVersionCheck();
     hrvc2.config = config;
-    Assert.assertFalse(hrvc2.isApplicable(request));
+    Assert.assertTrue(hrvc2.isApplicable(request));
   }
 
   @Test

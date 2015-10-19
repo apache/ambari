@@ -29,19 +29,48 @@ describe('App.ExportMetricsMixin', function () {
     obj = Em.Object.create(App.ExportMetricsMixin);
   });
 
+  describe('#toggleFormatsList', function () {
+
+    var cases = [
+      {
+        isExportMenuHidden: true,
+        title: 'menu should be visible'
+      },
+      {
+        isExportMenuHidden: false,
+        title: 'menu should be hidden'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.set('isExportMenuHidden', !item.isExportMenuHidden);
+        obj.toggleFormatsList();
+        expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
+      });
+    });
+
+  });
+
   describe('#exportGraphData', function () {
 
-    beforeEach(function () {
-      sinon.stub(obj, 'toggleFormatsList', Em.K);
-    });
+    var cases = [
+      {
+        isExportMenuHidden: true,
+        title: 'menu should remain hidden'
+      },
+      {
+        isExportMenuHidden: false,
+        title: 'menu should become hidden'
+      }
+    ];
 
-    afterEach(function () {
-      obj.toggleFormatsList.restore();
-    });
-
-    it('should toggle formats menu', function () {
-      obj.exportGraphData();
-      expect(obj.toggleFormatsList.calledOnce).to.be.true;
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.set('isExportMenuHidden', item.isExportMenuHidden);
+        obj.exportGraphData();
+        expect(obj.get('isExportMenuHidden')).to.be.true;
+      });
     });
 
   });
@@ -255,6 +284,33 @@ describe('App.ExportMetricsMixin', function () {
     cases.forEach(function (item) {
       it(item.title, function () {
         expect(obj.prepareJSON(item.data).replace(/\s/g, '')).to.equal(item.result);
+      });
+    });
+
+  });
+
+  describe('#hideMenuForNoData', function () {
+
+    var cases = [
+      {
+        isExportButtonHidden: true,
+        isExportMenuHidden: true,
+        title: 'menu should be hidden'
+      },
+      {
+        isExportButtonHidden: false,
+        isExportMenuHidden: false,
+        title: 'menu should be visible'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.setProperties({
+          isExportButtonHidden: item.isExportButtonHidden,
+          isExportMenuHidden: false
+        });
+        expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
       });
     });
 

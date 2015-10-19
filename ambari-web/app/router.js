@@ -122,7 +122,10 @@ App.Router = Em.Router.extend({
     return currentStep;
   },
 
-  loggedIn: !!App.db.getAuthenticated(),
+  /**
+   * @type {boolean}
+   */
+  loggedIn: App.db.getAuthenticated(),
 
   loginName: function() {
     return this.getLoginName();
@@ -140,7 +143,7 @@ App.Router = Em.Router.extend({
     }).complete(function (xhr) {
       if (xhr.isResolved()) {
         // if server knows the user and user authenticated by UI
-        if (auth && auth === true) {
+        if (auth) {
           dfd.resolve(self.get('loggedIn'));
           // if server knows the user but UI don't, check the response header
           // and try to authorize
@@ -160,6 +163,10 @@ App.Router = Em.Router.extend({
           self.setAuthenticated(false);
           dfd.resolve(false);
         }
+      } else {
+        //if provisioning state unreachable then consider user as unauthenticated
+        self.setAuthenticated(false);
+        dfd.resolve(false);
       }
     });
     return dfd.promise();
@@ -306,76 +313,81 @@ App.Router = Em.Router.extend({
 
   },
 
+  /**
+   * success callback of login request
+   * @param {object} clustersData
+   * @param {object} opt
+   * @param {object} params
+   */
   loginGetClustersSuccessCallback: function (clustersData, opt, params) {
-    var loginController = this.get('loginController');
-    var loginData = params.loginData;
-    var privileges = loginData.privileges || [];
+    var privileges = params.loginData.privileges || [];
     var router = this;
-    var permissionList = privileges.mapProperty('PrivilegeInfo.permission_name');
-      var isAdmin = permissionList.contains('AMBARI.ADMIN');
-      var transitionToApp = false;
+    var isAdmin = privileges.mapProperty('PrivilegeInfo.permission_name').contains('AMBARI.ADMIN');
+
+    App.set('isAdmin', isAdmin);
+
+    if (clustersData.items.length) {
+      var clusterPermissions = privileges.
+        filterProperty('PrivilegeInfo.cluster_name', clustersData.items[0].Clusters.cluster_name).
+        mapProperty('PrivilegeInfo.permission_name');
+
+      //cluster installed
+      router.setClusterInstalled(clustersData);
+      if (clusterPermissions.contains('CLUSTER.OPERATE')) {
+        App.setProperties({
+          isAdmin: true,
+          isOperator: true
+        });
+      }
+      if (isAdmin || clusterPermissions.contains('CLUSTER.READ') || clusterPermissions.contains('CLUSTER.OPERATE')) {
+        router.transitionToApp();
+      } else {
+        router.transitionToViews();
+      }
+    } else {
       if (isAdmin) {
-        App.set('isAdmin', true);
-        if (clustersData.items.length) {
-          router.setClusterInstalled(clustersData);
-          transitionToApp = true;
-        } else {
-          App.ajax.send({
-            name: 'ambari.service.load_server_version',
-            sender: this,
-            success: 'adminViewInfoSuccessCallback'
-          });
-        }
+        router.transitionToAdminView();
       } else {
-        if (clustersData.items.length) {
-          router.setClusterInstalled(clustersData);
-          //TODO: Iterate over clusters
-          var clusterName = clustersData.items[0].Clusters.cluster_name;
-          var clusterPermissions = privileges.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
-          if (clusterPermissions.contains('CLUSTER.OPERATE')) {
-            App.setProperties({
-              isAdmin: true,
-              isOperator: true
-            });
-            transitionToApp = true;
-          } else if (clusterPermissions.contains('CLUSTER.READ')) {
-            transitionToApp = true;
-          }
-        }
+        router.transitionToViews();
       }
-      App.set('isPermissionDataLoaded', true);
-      if (transitionToApp) {
-        var preferredPath = router.get('preferedPath');
-        // If the preferred path is relative, allow a redirect to it.
-        // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
-        // may be routed to a different server where the [possibility exists for a phishing attack.
-        if (!Em.isNone(preferredPath)) {
-          if (preferredPath.startsWith('/') || preferredPath.startsWith('#')) {
-            console.log("INFO: Routing to preferred path: " + preferredPath);
-          }
-          else {
-            console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
-            preferredPath = null;
-          }
-
-          // Unset preferedPath
-          router.set('preferedPath', null);
-        }
-
-        if (!Em.isNone(preferredPath)) {
-          window.location = preferredPath;
-        } else {
-          router.getSection(function (route) {
-            router.transitionTo(route);
-            loginController.postLogin(true, true);
-          });
-        }
-      } else {
-        App.router.get('mainViewsController').loadAmbariViews();
-        router.transitionTo('main.views.index');
-        loginController.postLogin(true,true);
-      }
+    }
+    App.set('isPermissionDataLoaded', true);
+    App.router.get('userSettingsController').dataLoading();
   },
+
+  /**
+   * redirect user to Admin View
+   * @returns {$.ajax}
+   */
+  transitionToAdminView: function() {
+    return App.ajax.send({
+      name: 'ambari.service.load_server_version',
+      sender: this,
+      success: 'adminViewInfoSuccessCallback',
+      error: 'adminViewInfoErrorCallback'
+    });
+  },
+
+  /**
+   * redirect user to application Dashboard
+   */
+  transitionToApp: function () {
+    var router = this;
+    if (!router.restorePreferedPath()) {
+      router.getSection(function (route) {
+        router.transitionTo(route);
+      });
+    }
+  },
+
+  /**
+   * redirect user to application Views
+   */
+  transitionToViews: function() {
+    App.router.get('mainViewsController').loadAmbariViews();
+    this.transitionTo('main.views.index');
+  },
+
   adminViewInfoSuccessCallback: function(data) {
     var components = Em.get(data,'components');
     if (Em.isArray(components)) {
@@ -388,6 +400,10 @@ App.Router = Em.Router.extend({
         latestVersion = sortedMappedVersions[sortedMappedVersions.length-1];
       window.location.replace('/views/ADMIN_VIEW/' + latestVersion + '/INSTANCE/#/');
     }
+  },
+
+  adminViewInfoErrorCallback: function() {
+    this.transitionToViews();
   },
 
   getSection: function (callback) {
@@ -486,6 +502,47 @@ App.Router = Em.Router.extend({
   },
 
   /**
+   * save prefered path
+   * @param {string} path
+   * @param {string} key
+   */
+  savePreferedPath: function(path, key) {
+    if (key) {
+      if (path.contains(key)) {
+        this.set('preferedPath', path.slice(path.indexOf(key) + key.length));
+      }
+    } else {
+      this.set('preferedPath', path);
+    }
+  },
+
+  /**
+   * If path exist route to it, otherwise return false
+   * @returns {boolean}
+   */
+  restorePreferedPath: function() {
+    var preferredPath = this.get('preferedPath');
+    var isRestored = false;
+
+    if (preferredPath) {
+      // If the preferred path is relative, allow a redirect to it.
+      // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
+      // may be routed to a different server where the possibility exists for a phishing attack.
+      if ((preferredPath.startsWith('/') || preferredPath.startsWith('#')) && !preferredPath.contains('#/login')) {
+        console.log("INFO: Routing to preferred path: " + preferredPath);
+        window.location = preferredPath;
+        isRestored = true;
+      } else {
+        console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
+      }
+      // Unset preferedPath
+      this.set('preferedPath', null);
+    }
+
+    return isRestored;
+  },
+
+  /**
    * initialize isAdmin if user is administrator
    */
   initAdmin: function(){
@@ -521,11 +578,8 @@ App.Router = Em.Router.extend({
        *  If the user is already logged in, redirect to where the user was previously
        */
       enter: function (router, context) {
+        var location = router.location.location.hash;
         router.getAuthenticated().done(function (loggedIn) {
-          var location = router.location.location.hash;
-          //key to parse URI for prefered path to route
-          var key = '?targetURI=';
-
           if (loggedIn) {
             Ember.run.next(function () {
               console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
@@ -534,9 +588,8 @@ App.Router = Em.Router.extend({
               });
             });
           } else {
-            if (location.contains(key)) {
-              router.set('preferedPath', location.slice(location.indexOf(key) + key.length));
-            }
+            //key to parse URI for prefered path to route
+            router.savePreferedPath(location, '?targetURI=');
           }
         });
       },

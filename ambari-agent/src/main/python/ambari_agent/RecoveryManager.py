@@ -85,6 +85,8 @@ class RecoveryManager:
     self.id = int(time.time())
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED]
+    self.enabled_components = []
+    self.disabled_components = []
     self.actions = {}
     self.statuses = {}
     self.__status_lock = threading.RLock()
@@ -93,7 +95,7 @@ class RecoveryManager:
     self.active_command_count = 0
     self.paused = False
 
-    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only)
+    self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "", "")
 
     pass
 
@@ -186,6 +188,21 @@ class RecoveryManager:
       self.remove_command(component)
     pass
 
+  """
+  Whether specific components are enabled/disabled for recovery. Being enabled takes
+  precedence over being disabled. When specific components are enabled then only
+  those components are enabled. When specific components are disabled then all of
+  the other components are enabled.
+  """
+  def configured_for_recovery(self, component):
+    if len(self.disabled_components) == 0 and len(self.enabled_components) == 0:
+      return True
+    if len(self.disabled_components) > 0 and component not in self.disabled_components \
+        and len(self.enabled_components) == 0:
+      return True
+    if len(self.enabled_components) > 0 and component in self.enabled_components:
+      return True
+    return False
 
   def requires_recovery(self, component):
     """
@@ -195,6 +212,9 @@ class RecoveryManager:
     RE-INSTALLED (if configs do not match)
     """
     if not self.enabled():
+      return False
+
+    if not self.configured_for_recovery(component):
       return False
 
     if component not in self.statuses:
@@ -433,7 +453,9 @@ class RecoveryManager:
       "type" : "DEFAULT|AUTO_START|FULL",
       "maxCount" : 10,
       "windowInMinutes" : 60,
-      "retryGap" : 0 }
+      "retryGap" : 0,
+      "disabledComponents" : "a,b",
+      "enabledComponents" : "c,d"}
     """
 
     recovery_enabled = False
@@ -442,8 +464,12 @@ class RecoveryManager:
     window_in_min = 60
     retry_gap = 5
     max_lifetime_count = 12
+    enabled_components = ""
+    disabled_components = ""
+
 
     if reg_resp and "recoveryConfig" in reg_resp:
+      logger.info("RecoverConfig = " + pprint.pformat(reg_resp["recoveryConfig"]))
       config = reg_resp["recoveryConfig"]
       if "type" in config:
         if config["type"] in ["AUTO_START", "FULL"]:
@@ -458,11 +484,18 @@ class RecoveryManager:
         retry_gap = self._read_int_(config["retryGap"], retry_gap)
       if 'maxLifetimeCount' in config:
         max_lifetime_count = self._read_int_(config['maxLifetimeCount'], max_lifetime_count)
-    self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only)
+
+      if 'enabledComponents' in config:
+        enabled_components = config['enabledComponents']
+      if 'disabledComponents' in config:
+        disabled_components = config['disabledComponents']
+    self.update_config(max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only,
+                       enabled_components, disabled_components)
     pass
 
 
-  def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled, auto_start_only):
+  def update_config(self, max_count, window_in_min, retry_gap, max_lifetime_count, recovery_enabled,
+                    auto_start_only, enabled_components, disabled_components):
     """
     Update recovery configuration, recovery is disabled if configuration values
     are not correct
@@ -493,6 +526,8 @@ class RecoveryManager:
     self.retry_gap_in_sec = retry_gap * 60
     self.auto_start_only = auto_start_only
     self.max_lifetime_count = max_lifetime_count
+    self.disabled_components = []
+    self.enabled_components = []
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
     self.allowed_current_states = [self.INIT, self.INSTALLED, self.STARTED]
@@ -501,11 +536,25 @@ class RecoveryManager:
       self.allowed_desired_states = [self.STARTED]
       self.allowed_current_states = [self.INSTALLED]
 
+    if enabled_components is not None and len(enabled_components) > 0:
+      components = enabled_components.split(",")
+      for component in components:
+        if len(component.strip()) > 0:
+          self.enabled_components.append(component.strip())
+
+    if disabled_components is not None and len(disabled_components) > 0:
+      components = disabled_components.split(",")
+      for component in components:
+        if len(component.strip()) > 0:
+          self.disabled_components.append(component.strip())
+
     self.recovery_enabled = recovery_enabled
     if self.recovery_enabled:
       logger.info(
-        "==> Auto recovery is enabled with maximum %s in %s minutes with gap of %s minutes between and lifetime max being %s.",
-        self.max_count, self.window_in_min, self.retry_gap, self.max_lifetime_count)
+        "==> Auto recovery is enabled with maximum %s in %s minutes with gap of %s minutes between and"
+        " lifetime max being %s. Enabled components - %s and Disabled components - %s",
+        self.max_count, self.window_in_min, self.retry_gap, self.max_lifetime_count,
+        ', '.join(self.enabled_components), ', '.join(self.disabled_components))
     pass
 
 
@@ -536,16 +585,19 @@ class RecoveryManager:
       for command in commands:
         if self.COMMAND_TYPE in command and command[self.COMMAND_TYPE] == ActionQueue.EXECUTION_COMMAND:
           if self.ROLE in command:
-            if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP):
+            if command[self.ROLE_COMMAND] in (ActionQueue.ROLE_COMMAND_INSTALL, ActionQueue.ROLE_COMMAND_STOP) \
+                and self.configured_for_recovery(command[self.ROLE]):
               self.update_desired_status(command[self.ROLE], LiveStatus.DEAD_STATUS)
               logger.info("Received EXECUTION_COMMAND (STOP/INSTALL), desired state of " + command[self.ROLE] + " to " +
                            self.get_desired_status(command[self.ROLE]) )
-            elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START:
+            elif command[self.ROLE_COMMAND] == ActionQueue.ROLE_COMMAND_START \
+                and self.configured_for_recovery(command[self.ROLE]):
               self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
               logger.info("Received EXECUTION_COMMAND (START), desired state of " + command[self.ROLE] + " to " +
                            self.get_desired_status(command[self.ROLE]) )
             elif command[self.HOST_LEVEL_PARAMS].has_key('custom_command') and \
-                    command[self.HOST_LEVEL_PARAMS]['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART:
+                    command[self.HOST_LEVEL_PARAMS]['custom_command'] == ActionQueue.CUSTOM_COMMAND_RESTART \
+                    and self.configured_for_recovery(command[self.ROLE]):
               self.update_desired_status(command[self.ROLE], LiveStatus.LIVE_STATUS)
               logger.info("Received EXECUTION_COMMAND (RESTART), desired state of " + command[self.ROLE] + " to " +
                            self.get_desired_status(command[self.ROLE]) )

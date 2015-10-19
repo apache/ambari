@@ -65,7 +65,7 @@ class TestNetUtil(unittest.TestCase):
     netutil.checkURL = checkURL
 
     # one successful get
-    self.assertEqual((0, True), netutil.try_to_connect("url", 10))
+    self.assertEqual((0, True, False), netutil.try_to_connect("url", 10))
 
     # got successful after N retries
     gets = [[True, ""], [False, ""], [False, ""]]
@@ -73,9 +73,9 @@ class TestNetUtil(unittest.TestCase):
     def side_effect(*args):
       return gets.pop()
     checkURL.side_effect = side_effect
-    self.assertEqual((2, True), netutil.try_to_connect("url", 10))
+    self.assertEqual((2, True, False), netutil.try_to_connect("url", 10))
 
     # max retries
     checkURL.side_effect = None
     checkURL.return_value = False, "test"
-    self.assertEqual((5,False), netutil.try_to_connect("url", 5))
+    self.assertEqual((5, False, False), netutil.try_to_connect("url", 5))

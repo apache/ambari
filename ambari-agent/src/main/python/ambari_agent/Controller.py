@@ -54,7 +54,7 @@ AGENT_AUTO_RESTART_EXIT_CODE = 77
 
 class Controller(threading.Thread):
 
-  def __init__(self, config, heartbeat_stop_callback = None, range=30):
+  def __init__(self, config, server_hostname, heartbeat_stop_callback = None, range=30):
     threading.Thread.__init__(self)
     logger.debug('Initializing Controller RPC thread.')
     if heartbeat_stop_callback is None:
@@ -66,7 +66,7 @@ class Controller(threading.Thread):
     self.credential = None
     self.config = config
     self.hostname = hostname.hostname(config)
-    self.serverHostname = hostname.server_hostname(config)
+    self.serverHostname = server_hostname
     server_secured_url = 'https://' + self.serverHostname + \
                          ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname
@@ -101,9 +101,11 @@ class Controller(threading.Thread):
 
     self.move_data_dir_mount_file()
 
+    self.alert_grace_period = int(config.get('agent', 'alert_grace_period', 5))
+
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.cluster_configuration, config)
+      self.alert_grace_period, self.cluster_configuration, config)
 
     self.alert_scheduler_handler.start()
 
@@ -408,7 +410,7 @@ class Controller(threading.Thread):
 
     try:
       if self.cachedconnect is None: # Lazy initialization
-        self.cachedconnect = security.CachedHTTPSConnection(self.config)
+        self.cachedconnect = security.CachedHTTPSConnection(self.config, self.serverHostname)
       req = urllib2.Request(url, data, {'Content-Type': 'application/json',
                                         'Accept-encoding': 'gzip'})
       response = self.cachedconnect.request(req)

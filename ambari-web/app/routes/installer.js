@@ -99,35 +99,42 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step0: Em.Route.extend({
     route: '/step0',
     connectOutlets: function (router) {
+      console.time('step0 connectOutlets');
       console.log('in installer.step0:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('0');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep0', controller.get('content'));
+        console.timeEnd('step0 connectOutlets');
       });
     },
 
     next: function (router) {
+      console.time('step0 next');
       var installerController = router.get('installerController');
       installerController.save('cluster');
       App.db.setStacks(undefined);
       installerController.set('content.stacks',undefined);
       router.transitionTo('step1');
+      console.timeEnd('step0 next');
     }
   }),
 
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
+      console.time('step1 connectOutlets');
       console.log('in installer.step1:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('1');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep1', controller.get('content'));
+        console.timeEnd('step1 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step0'),
     next: function (router) {
+      console.time('step1 next');
       var wizardStep1Controller = router.get('wizardStep1Controller');
       var installerController = router.get('installerController');
       installerController.validateJDKVersion(function() {
@@ -136,6 +143,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           installerController.setStacks();
           installerController.clearInstallOptions();
           router.transitionTo('step2');
+          console.timeEnd('step1 next');
         });
       }, function() {});
     }
@@ -144,27 +152,32 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step2: Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router, context) {
+      console.time('step2 connectOutlets');
       router.setNavigationFlow('step2');
 
       var controller = router.get('installerController');
       controller.setCurrentStep('2');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep2', controller.get('content'));
+        console.timeEnd('step2 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step1'),
     next: function (router) {
+      console.time('step2 next');
       var controller = router.get('installerController');
       controller.save('installOptions');
       //hosts was saved to content.hosts inside wizardStep2Controller
       controller.save('hosts');
       router.transitionTo('step3');
+      console.timeEnd('step2 next');
     }
   }),
 
   step3: Em.Route.extend({
     route: '/step3',
     connectOutlets: function (router) {
+      console.time('step3 connectOutlets');
       console.log('in installer.step3:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('3');
@@ -172,12 +185,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var wizardStep3Controller = router.get('wizardStep3Controller');
         wizardStep3Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep3', controller.get('content'));
+        console.timeEnd('step3 connectOutlets');
       });
     },
     back: function (router) {
       router.transitionTo('step2');
     },
     next: function (router, context) {
+      console.time('step3 next');
       if (!router.transitionInProgress) {
         router.set('transitionInProgress', true);
         var installerController = router.get('installerController');
@@ -189,6 +204,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           installedServiceNames: undefined
         });
         router.transitionTo('step4');
+        console.timeEnd('step3 next');
       }
     },
     exit: function (router) {
@@ -210,6 +226,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
+      console.time('step4 connectOutlets');
       router.setNavigationFlow('step4');
       var controller = router.get('installerController');
       controller.setCurrentStep('4');
@@ -217,11 +234,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var wizardStep4Controller = router.get('wizardStep4Controller');
         wizardStep4Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep4', App.StackService.find().filterProperty('isInstallable', true));
+        console.timeEnd('step4 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step3'),
 
     next: function (router) {
+      console.time('step4 next');
       var controller = router.get('installerController');
       var wizardStep4Controller = router.get('wizardStep4Controller');
       controller.saveServices(wizardStep4Controller);
@@ -232,12 +251,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         masterComponentHosts: undefined
       });
       router.transitionTo('step5');
+      console.timeEnd('step4 next');
     }
   }),
 
   step5: Em.Route.extend({
     route: '/step5',
     connectOutlets: function (router, context) {
+      console.time('step5 connectOutlets');
       router.setNavigationFlow('step5');
 
       var controller = router.get('installerController');
@@ -250,10 +271,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep5', controller.get('content'));
+        console.timeEnd('step5 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step4'),
     next: function (router) {
+      console.time('step5 next');
       var controller = router.get('installerController');
       var wizardStep5Controller = router.get('wizardStep5Controller');
       var wizardStep6Controller = router.get('wizardStep6Controller');
@@ -264,12 +287,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       });
       wizardStep6Controller.set('isClientsSet', false);
       router.transitionTo('step6');
+      console.timeEnd('step5 next');
     }
   }),
 
   step6: Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
+      console.time('step6 connectOutlets');
       router.setNavigationFlow('step6');
 
       var controller = router.get('installerController');
@@ -277,11 +302,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       controller.setCurrentStep('6');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep6', controller.get('content'));
+        console.timeEnd('step6 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step5'),
 
     next: function (router) {
+      console.time('step6 next');
       var controller = router.get('installerController');
       var wizardStep6Controller = router.get('wizardStep6Controller');
       var wizardStep7Controller = router.get('wizardStep7Controller');
@@ -298,6 +325,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               recommendationsConfigs: null
             });
             router.transitionTo('step7');
+            console.timeEnd('step6 next');
           }
         });
       }
@@ -307,19 +335,25 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step7: Em.Route.extend({
     route: '/step7',
     enter: function (router) {
+      console.time('step7 enter');
       console.log('in /wizardStep7Controller:enter');
       var controller = router.get('installerController');
       controller.setCurrentStep('7');
+      console.timeEnd('step7 enter');
     },
     connectOutlets: function (router, context) {
+      console.time('step7 connectOutlets');
       var controller = router.get('installerController');
+      router.get('preInstallChecksController').loadStep();
       var wizardStep7Controller = router.get('wizardStep7Controller');
       controller.loadAllPriorSteps().done(function () {
         wizardStep7Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep7', controller.get('content'));
+        console.timeEnd('step7 connectOutlets');
       });
     },
     back: function (router) {
+      console.time('step7 back');
       var step = router.get('installerController.content.skipSlavesStep') ? 'step5' : 'step6';
       var wizardStep7Controller = router.get('wizardStep7Controller');
 
@@ -332,8 +366,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       } else {
         goToNextStep();
       }
+      console.timeEnd('step7 back');
     },
     next: function (router) {
+      console.time('step7 next');
       if(!router.transitionInProgress) {
         router.set('transitionInProgress', true);
         var controller = router.get('installerController');
@@ -346,6 +382,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         }, {
           alwaysCallback: function() {
             router.transitionTo('step8');
+            console.timeEnd('step7 next');
           }
         });
       }
@@ -355,6 +392,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step8: Em.Route.extend({
     route: '/step8',
     connectOutlets: function (router, context) {
+      console.time('step8 connectOutlets');
       console.log('in installer.step8:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('8');
@@ -362,10 +400,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         var wizardStep8Controller = router.get('wizardStep8Controller');
         wizardStep8Controller.set('wizardController', controller);
         controller.connectOutlet('wizardStep8', controller.get('content'));
+        console.timeEnd('step8 connectOutlets');
       });
     },
     back: Em.Router.transitionTo('step7'),
     next: function (router) {
+      console.time('step8 next');
       if (!router.transitionInProgress) {
         router.set('transitionInProgress', true);
         var installerController = router.get('installerController');
@@ -377,6 +417,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           installerController.saveClusterState('CLUSTER_INSTALLING_3');
           wizardStep8Controller.set('servicesInstalled', true);
           router.transitionTo('step9');
+          console.timeEnd('step8 next');
         });
       }
     }
@@ -385,6 +426,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step9: Em.Route.extend({
     route: '/step9',
     connectOutlets: function (router, context) {
+      console.time('step9 connectOutlets');
       console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController'),
           wizardStep9Controller = router.get('wizardStep9Controller');
@@ -396,11 +438,13 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           }
           wizardStep9Controller.set('wizardController', controller);
           controller.connectOutlet('wizardStep9', controller.get('content'));
+          console.timeEnd('step9 connectOutlets');
         });
       });
     },
     back: Em.Router.transitionTo('step8'),
     retry: function (router) {
+      console.time('step9 retry');
       var installerController = router.get('installerController');
       var wizardStep9Controller = router.get('wizardStep9Controller');
       if (wizardStep9Controller.get('showRetry')) {
@@ -416,6 +460,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         } else {
           wizardStep9Controller.navigateStep();
         }
+        console.timeEnd('step9 retry');
       }
     },
     unroutePath: function (router, context) {
@@ -428,6 +473,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     },
     next: function (router) {
+      console.time('step9 next');
       if(!router.transitionInProgress) {
         router.set('transitionInProgress', true);
         var installerController = router.get('installerController');
@@ -435,6 +481,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         installerController.saveInstalledHosts(wizardStep9Controller);
         installerController.saveClusterState('CLUSTER_INSTALLED_4');
         router.transitionTo('step10');
+        console.timeEnd('step9 next');
       }
     }
   }),

@@ -1577,7 +1577,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
         stackEntity,
         version,
         stackId.getStackName() + "-" + version,
-        repositoryVersionHelper.getUpgradePackageNameSafe(stackId.getStackName(), stackId.getStackVersion(), version),
         repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories()));
   }
 

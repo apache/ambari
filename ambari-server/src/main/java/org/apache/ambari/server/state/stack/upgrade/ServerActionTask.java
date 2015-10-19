@@ -39,4 +39,8 @@ public class ServerActionTask extends ServerSideActionTask {
     return type;
   }
 
+  @Override
+  public StageWrapper.Type getStageWrapperType() {
+    return StageWrapper.Type.SERVER_SIDE_ACTION;
+  }
 }

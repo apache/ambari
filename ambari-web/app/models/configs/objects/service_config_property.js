@@ -77,6 +77,21 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   supportsFinal: false,
 
+  /**
+   * Hint message to display in tooltip. Tooltip will be wrapped on question mark icon.
+   * If value is <code>false</code> no tooltip and question mark icon.
+   *
+   * @type {boolean|string}
+   */
+  hintMessage: false,
+
+  /**
+   * Display label on the right side from input. In general used for checkbox only.
+   *
+   * @type {boolean}
+   */
+  rightSideLabel: false,
+
   retypedPassword: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom

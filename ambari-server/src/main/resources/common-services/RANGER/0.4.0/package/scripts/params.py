@@ -22,6 +22,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.is_empty import is_empty
 
 # a map of the Ambari role to the component name
 # for use with /usr/hdp/current/<component>
@@ -85,6 +86,10 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 db_flavor =  (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
 ranger_host = config['clusterHostInfo']['ranger_admin_hosts'][0]
+ugsync_host = 'localhost'
+usersync_host_info = config['clusterHostInfo']['ranger_usersync_hosts']
+if not is_empty(usersync_host_info) and len(usersync_host_info) > 0:
+  ugsync_host = config['clusterHostInfo']['ranger_usersync_hosts'][0]
 ranger_external_url = config['configurations']['admin-properties']['policymgr_external_url']
 ranger_db_name = config['configurations']['admin-properties']['db_name']
 ranger_auditdb_name = config['configurations']['admin-properties']['audit_db_name']
@@ -168,3 +173,8 @@ if xml_configurations_supported:
 
 ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts']
 is_ranger_ha_enabled = True if len(ranger_admin_hosts) > 1 else False
+ranger_ug_ldap_url = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.url"]
+ranger_ug_ldap_bind_dn = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.binddn"]
+ranger_ug_ldap_user_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.user.searchfilter"]
+ranger_ug_ldap_group_searchbase = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchbase"]
+ranger_ug_ldap_group_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchfilter"]

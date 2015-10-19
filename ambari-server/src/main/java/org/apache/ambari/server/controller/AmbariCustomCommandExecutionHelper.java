@@ -912,7 +912,7 @@ public class AmbariCustomCommandExecutionHelper {
 
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
 
-        Map<String, String> extraParams = new HashMap<String, String>();;
+        Map<String, String> extraParams = new HashMap<String, String>();
         String componentName = (null == resourceFilter.getComponentName()) ? null :
             resourceFilter.getComponentName().toLowerCase();
 
@@ -1036,11 +1036,12 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecContext  the context
    * @param cluster            the cluster for the command
+   * @param stackId            the effective stack id to use.
    *
    * @return a wrapper of the imporant JSON structures to add to a stage
    */
   public ExecuteCommandJson getCommandJson(ActionExecutionContext actionExecContext,
-      Cluster cluster) throws AmbariException {
+      Cluster cluster, StackId stackId) throws AmbariException {
 
     Map<String, String> commandParamsStage = StageUtils.getCommandParamsStage(actionExecContext);
     Map<String, String> hostParamsStage = new HashMap<String, String>();
@@ -1050,8 +1051,8 @@ public class AmbariCustomCommandExecutionHelper {
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(
           cluster);
-      hostParamsStage = createDefaultHostParams(cluster);
-      StackId stackId = cluster.getDesiredStackVersion();
+      // Important, because this runs during Stack Uprade, it needs to use the effective Stack Id.
+      hostParamsStage = createDefaultHostParams(cluster, stackId);
       String componentName = null;
       String serviceName = null;
       if (actionExecContext.getOperationLevel() != null) {
@@ -1095,6 +1096,10 @@ public class AmbariCustomCommandExecutionHelper {
 
   Map<String, String> createDefaultHostParams(Cluster cluster) {
     StackId stackId = cluster.getDesiredStackVersion();
+    return createDefaultHostParams(cluster, stackId);
+  }
+
+  Map<String, String> createDefaultHostParams(Cluster cluster, StackId stackId) {
     TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
     hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());

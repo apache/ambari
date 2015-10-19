@@ -26,18 +26,15 @@
   <div id="{{unbound view.id}}-chart" class="chart"  {{action showGraphInPopup target="view"}}></div>
   <div id="{{unbound view.id}}-timeline" class="timeline" {{action showGraphInPopup target="view"}}></div>
   {{#unless view.noTitleUnderGraph}}
-    <div id="{{unbound view.id}}-title" class="chart-title">
+    <div id="{{unbound view.id}}-title" {{bindAttr class="view.isExportButtonHidden::has-data :chart-title"}}>
       {{view.title}}
     </div>
     {{#if view.isReady}}
-      <a class="corner-icon span1" href="#" {{action toggleFormatsList target="view"}}>
+      <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :span1"}} href="#" {{action toggleFormatsList target="view"}}>
         <i class="icon-save"></i>
       </a>
       <div class="export-graph-list-top"></div>
-      <ul class="export-graph-list pull-right dropdown-menu">
-        <li><a {{action exportGraphData view.exportToCSVArgument target="view"}}>{{t common.csv}}</a></li>
-        <li><a {{action exportGraphData target="view"}}>{{t common.json}}</a></li>
-      </ul>
+      {{view view.exportMetricsMenuView}}
     {{/if}}
   {{/unless}}
 </div>

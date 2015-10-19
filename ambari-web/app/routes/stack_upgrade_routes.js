@@ -39,7 +39,7 @@ module.exports = App.WizardRoute.extend({
           if (controller.get('isDowngrade')) {
             return Em.I18n.t('admin.stackUpgrade.dialog.downgrade.header').format(controller.get('upgradeVersion'));
           } else {
-            return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeVersion'));
+            return Em.I18n.t('admin.stackUpgrade.dialog.header').format(controller.get('upgradeTypeDisplayName'), controller.get('upgradeVersion'));
           }
         }.property('App.router.mainAdminStackAndUpgradeController.upgradeVersion', 'App.router.mainAdminStackAndUpgradeController.isDowngrade'),
         bodyClass: App.upgradeWizardView,

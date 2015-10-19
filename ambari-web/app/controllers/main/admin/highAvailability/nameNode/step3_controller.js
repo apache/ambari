@@ -34,7 +34,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
    * @type Object
    */
   configsToRemove: {
-    'hdfs-site': ['dfs.namenode.secondary.http-address']
+    'hdfs-site': ['dfs.namenode.secondary.http-address', 'dfs.namenode.rpc-address']
   },
 
   clearStep: function () {
@@ -61,10 +61,13 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     var urlParams = [];
     var hdfsSiteTag = data.Clusters.desired_configs['hdfs-site'].tag;
     var coreSiteTag = data.Clusters.desired_configs['core-site'].tag;
+    var zkSiteTag = data.Clusters.desired_configs['zoo.cfg'].tag;
     urlParams.push('(type=hdfs-site&tag=' + hdfsSiteTag + ')');
     urlParams.push('(type=core-site&tag=' + coreSiteTag + ')');
+    urlParams.push('(type=zoo.cfg&tag=' + zkSiteTag  + ')');
     this.set("hdfsSiteTag", {name : "hdfsSiteTag", value : hdfsSiteTag});
     this.set("coreSiteTag", {name : "coreSiteTag", value : coreSiteTag});
+    this.set("zkSiteTag", {name : "zkSiteTag", value : zkSiteTag});
 
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
       var hbaseSiteTag = data.Clusters.desired_configs['hbase-site'].tag;
@@ -121,22 +124,36 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     var newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     var journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     var zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+    
+    var nnHttpPort = 50070;
+    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.http-address'])
+      nnHttpPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.http-address'].split(':')[1];
+    var nnHttpsPort = 50470;
+    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.https-address'])
+      nnHttpsPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.https-address'].split(':')[1];
+    var nnRpcPort = 8020;
+    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.rpc-address'])
+      nnRpcPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.rpc-address'].split(':')[1];
+    var zkClientPort = 2181;
+    if (this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'])
+      zkClientPort = this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'];
+
     var config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':8020');
+    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnRpcPort);
     config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn2');
     this.setConfigInitialValue(config,newNameNodeHost + ':8020');
     config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':50070');
+    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpPort);
     config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn2');
     this.setConfigInitialValue(config,newNameNodeHost + ':50070');
     config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':50470');
+    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpsPort);
     config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn2');
     this.setConfigInitialValue(config,newNameNodeHost + ':50470');
     config = configs.findProperty('name','dfs.namenode.shared.edits.dir');
     this.setConfigInitialValue(config,'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/' + nameServiceId);
     config = configs.findProperty('name','ha.zookeeper.quorum');
-    this.setConfigInitialValue(config,zooKeeperHosts[0] + ':2181,' + zooKeeperHosts[1] + ':2181,' + zooKeeperHosts[2] + ':2181');
+    this.setConfigInitialValue(config,zooKeeperHosts[0] + ':' + zkClientPort + ',' + zooKeeperHosts[1] + ':' + zkClientPort + ',' + zooKeeperHosts[2] + ':'+ zkClientPort  );
     config = configs.findProperty('name','hbase.rootdir');
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
      var value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);

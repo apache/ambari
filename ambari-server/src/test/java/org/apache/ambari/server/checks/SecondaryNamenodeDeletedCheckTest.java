@@ -18,6 +18,8 @@
 package org.apache.ambari.server.checks;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -74,25 +76,25 @@ public class SecondaryNamenodeDeletedCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
+    final Map<String, Service> services = new HashMap<>();
+    final Service service = Mockito.mock(Service.class);
+
+    services.put("HDFS", service);
+
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
+    Mockito.when(cluster.getServices()).thenReturn(services);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
-    final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Assert.assertTrue(secondaryNamenodeDeletedCheck.isApplicable(new PrereqCheckRequest("cluster")));
 
     PrereqCheckRequest req = new PrereqCheckRequest("cluster");
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
-    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Assert.assertFalse(secondaryNamenodeDeletedCheck.isApplicable(req));
 
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
-    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Assert.assertTrue(secondaryNamenodeDeletedCheck.isApplicable(req));
 
-
-
-    Mockito.when(cluster.getService("HDFS")).thenThrow(new ServiceNotFoundException("no", "service"));
+    services.remove("HDFS");
     Assert.assertFalse(secondaryNamenodeDeletedCheck.isApplicable(new PrereqCheckRequest("cluster")));
   }
 

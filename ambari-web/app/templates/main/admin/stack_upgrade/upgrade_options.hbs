@@ -1,0 +1,55 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div id="upgrade-options-popup-content">
+  <div class="text version-text">{{{view.versionText}}}</div>
+  <div class="text method-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method}}</div>
+  <div {{bindAttr class=":row-fluid :method-options view.isInUpgradeWizard:disabled"}}>
+    {{#each method in view.upgradeMethods}}
+      <div class="method-option span5">
+        <div {{bindAttr class="method.allowed::not-allowed method.allowed::not-allowed-by-version
+        method.isPrecheckFailed:not-allowed method.isPrecheckFailed:check-failed
+        method.selected:selected method.type :thumbnail"}}
+          {{action selectMethod method target="view"}}>
+            <div {{bindAttr class="method.icon :method-icon"}}></div>
+            <div class="method-name">{{method.displayName}}</div>
+            <div class="method-description">{{{method.description}}}</div>
+        </div>
+        {{#unless view.isInUpgradeWizard}}
+          {{#if method.precheckResultsMessage}}
+            <div {{bindAttr class=":method-precheck-message method.precheckResultsMessageClass"}}>
+              <i {{bindAttr class="method.precheckResultsMessageIconClass"}}></i>
+              <b>{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title}}</b>&nbsp;
+              <a {{action openMessage method target="view"}}>
+                {{method.precheckResultsMessage}}
+              </a>
+            </div>
+          {{/if}}
+        {{/unless}}
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="text tolerance-text">{{t admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance}}
+    <i class="icon-question-sign failure-tolerance-tooltip" data-toggle="tooltip"></i>
+    <div class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipSCFailures"}}
+      {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2}}</div>
+    <div class="tolerance-option">{{view Ember.Checkbox checkedBinding="view.parentView.skipComponentFailures"}}
+      {{t admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1}}</div>
+  </div>
+</div>

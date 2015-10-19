@@ -23,6 +23,7 @@
 <configuration>
     <property>
         <name>mahout_user</name>
+        <display-name>Mahout User</display-name>
         <value>mahout</value>
         <property-type>USER</property-type>
         <description>Mahout user</description>

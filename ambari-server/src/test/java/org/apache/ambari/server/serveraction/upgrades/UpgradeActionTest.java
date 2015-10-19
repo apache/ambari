@@ -214,8 +214,7 @@ public class UpgradeActionTest {
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetStack.getStackId() + "'}"
         + "], 'OperatingSystems/os_type':'redhat6'}]";
-    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()),
-        "pack", urlInfo);
+    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
 
     // Start upgrading the newer repo
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
@@ -275,8 +274,7 @@ public class UpgradeActionTest {
     String urlInfo = "[{'repositories':["
         + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'" + targetRepo + "'}"
         + "], 'OperatingSystems/os_type':'redhat6'}]";
-    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()),
-        "pack", urlInfo);
+    repoVersionDAO.create(stackEntityTarget, targetRepo, String.valueOf(System.currentTimeMillis()), urlInfo);
 
     // Start upgrading the newer repo
     c.createClusterVersion(targetStack, targetRepo, "admin", RepositoryVersionState.INSTALLING);
@@ -534,6 +532,94 @@ public class UpgradeActionTest {
     for (HostVersionEntity hve : hosts) {
       assertTrue(hve.getState() == RepositoryVersionState.INSTALLED);
     }
+  }
+
+  /**
+   * Tests that finalization can occur when the cluster state is
+   * {@link RepositoryVersionState#UPGRADING} if all of the hosts and components
+   * are reporting correct versions and states.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFinalizeUpgradeWithClusterStateInconsistencies() throws Exception {
+    StackId sourceStack = HDP_21_STACK;
+    StackId targetStack = HDP_22_STACK;
+    String sourceRepo = HDP_2_1_1_0;
+    String targetRepo = HDP_2_2_1_0;
+
+    makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
+
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    Cluster cluster = clusters.getCluster("c1");
+
+    Service service = installService(cluster, "HDFS");
+    addServiceComponent(cluster, service, "NAMENODE");
+    addServiceComponent(cluster, service, "DATANODE");
+    createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
+    createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
+
+    // create some configs
+    createConfigs(cluster);
+
+    // setup the cluster for the upgrade across stacks
+    cluster.setCurrentStackVersion(sourceStack);
+    cluster.setDesiredStackVersion(targetStack);
+
+    // set the SCH versions to the new stack so that the finalize action is
+    // happy
+    cluster.getServiceComponentHosts("HDFS", "NAMENODE").get(0).setVersion(targetRepo);
+    cluster.getServiceComponentHosts("HDFS", "DATANODE").get(0).setVersion(targetRepo);
+
+    // inject an unhappy path where the cluster repo version is still UPGRADING
+    // even though all of the hosts are UPGRADED
+    ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
+        "c1", HDP_22_STACK, targetRepo);
+
+    upgradingClusterVersion.setState(RepositoryVersionState.UPGRADING);
+    upgradingClusterVersion = clusterVersionDAO.merge(upgradingClusterVersion);
+
+    // verify the conditions for the test are met properly
+    upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion("c1", HDP_22_STACK, targetRepo);
+    List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion("c1", HDP_22_STACK, targetRepo);
+
+    assertEquals(RepositoryVersionState.UPGRADING, upgradingClusterVersion.getState());
+    assertTrue(hostVersions.size() > 0);
+    for (HostVersionEntity hostVersion : hostVersions) {
+      assertEquals(RepositoryVersionState.UPGRADED, hostVersion.getState());
+    }
+
+    // now finalize and ensure we can transition from UPGRADING to UPGRADED
+    // automatically before CURRENT
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
+    commandParams.put(FinalizeUpgradeAction.VERSION_KEY, targetRepo);
+    commandParams.put(FinalizeUpgradeAction.ORIGINAL_STACK_KEY, sourceStack.getStackId());
+    commandParams.put(FinalizeUpgradeAction.TARGET_STACK_KEY, targetStack.getStackId());
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+
+    StackId currentStackId = cluster.getCurrentStackVersion();
+    StackId desiredStackId = cluster.getDesiredStackVersion();
+
+    // verify current/desired stacks are updated to the new stack
+    assertEquals(desiredStackId, currentStackId);
+    assertEquals(targetStack, currentStackId);
+    assertEquals(targetStack, desiredStackId);
   }
 
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,

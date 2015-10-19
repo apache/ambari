@@ -33,6 +33,7 @@
   </property>
   <property>
     <name>yarn_user</name>
+    <display-name>Yarn User</display-name>
     <value>yarn</value>
     <description>YARN User</description>
   </property>

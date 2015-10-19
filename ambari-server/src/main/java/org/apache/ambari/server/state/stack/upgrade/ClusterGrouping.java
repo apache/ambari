@@ -53,7 +53,7 @@ import com.google.gson.JsonPrimitive;
 public class ClusterGrouping extends Grouping {
 
   /**
-   * Stages against a Service and Component, or the Server
+   * Stages against a Service and Component, or the Server, that doesn't need a Processing Component.
    */
   @XmlElement(name="execute-stage")
   public List<ExecuteStage> executionStages;
@@ -166,6 +166,12 @@ public class ClusterGrouping extends Grouping {
     }
   }
 
+  /**
+   * Return a Stage Wrapper for a manual task that runs on the server.
+   * @param ctx Upgrade Context
+   * @param execution Execution Stage
+   * @return Returns a Stage Wrapper
+   */
   private StageWrapper getManualStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
 
     String service   = execution.service;
@@ -204,6 +210,12 @@ public class ClusterGrouping extends Grouping {
         new TaskWrapper(service, component, realHosts, task));
   }
 
+  /**
+   * Return a Stage Wrapper for a task meant to execute code, typically on Ambari Server.
+   * @param ctx Upgrade Context
+   * @param execution Execution Stage
+   * @return Returns a Stage Wrapper, or null if a valid one could not be created.
+   */
   private StageWrapper getExecuteStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
     String service   = execution.service;
     String component = execution.component;
@@ -251,15 +263,18 @@ public class ClusterGrouping extends Grouping {
       return new StageWrapper(
           StageWrapper.Type.RU_TASKS, execution.title,
           new TaskWrapper(service, component, hostNames, et));
-
     }
     return null;
   }
 
-  private void fillHostDetails(ManualTask mt, Map<String, List<String>> unhealthy) {
-
+  /**
+   * Populates the manual task, mt, with information about the list of hosts.
+   * @param mt Manual Task
+   * @param hostToComponents Map from host name to list of components
+   */
+  private void fillHostDetails(ManualTask mt, Map<String, List<String>> hostToComponents) {
     JsonArray arr = new JsonArray();
-    for (Entry<String, List<String>> entry : unhealthy.entrySet()) {
+    for (Entry<String, List<String>> entry : hostToComponents.entrySet()) {
       JsonObject hostObj = new JsonObject();
       hostObj.addProperty("host", entry.getKey());
 
@@ -276,7 +291,5 @@ public class ClusterGrouping extends Grouping {
     obj.add("unhealthy", arr);
 
     mt.structuredOut = obj.toString();
-
   }
-
 }

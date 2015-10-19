@@ -23,12 +23,14 @@
     </a>
     <div class="caption title span11">{{view.content.widgetName}}</div>
     {{#isAccessible ADMIN}}
-      <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-        <i class="icon-copy"></i>
-      </a>
-      <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-        <i class="icon-edit"></i>
-      </a>
+      <div class="widget-icons">
+        <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
+          <i class="icon-edit"></i>
+        </a>
+        <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
+          <i class="icon-copy"></i>
+        </a>
+      </div>
     {{/isAccessible}}
     <div {{bindAttr class="view.contentColor :content"}}>{{{view.displayValue}}}</div>
     {{#if view.content.description}}

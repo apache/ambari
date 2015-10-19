@@ -49,7 +49,7 @@ hostname = config["hostname"]
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp21 = Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2")
+stack_is_hdp21 = Script.is_hdp_stack_less_than("2.2")
 
 # this is not available on INSTALL action because hdp-select is not available
 hdp_stack_version = functions.get_hdp_version('hive-server2')
@@ -83,10 +83,6 @@ sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
 hive_specific_configs_supported = False
 hive_etc_dir_prefix = "/etc/hive"
 limits_conf_dir = "/etc/security/limits.d"
-hcat_conf_dir = '/etc/hcatalog/conf'
-config_dir = '/etc/hcatalog/conf'
-hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
-webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
 
 hive_user_nofile_limit = default("/configurations/hive-env/hive_user_nofile_limit", "32000")
 hive_user_nproc_limit = default("/configurations/hive-env/hive_user_nproc_limit", "16000")
@@ -101,11 +97,10 @@ hive_config_dir = status_params.hive_config_dir
 hive_client_conf_dir = status_params.hive_client_conf_dir
 hive_server_conf_dir = status_params.hive_server_conf_dir
 
-if Script.is_hdp_stack_greater_or_equal("2.1"):
-  hcat_conf_dir = '/etc/hive-hcatalog/conf'
-  config_dir = '/etc/hive-webhcat/conf'
-  hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+hcat_conf_dir = '/etc/hive-hcatalog/conf'
+config_dir = '/etc/hive-webhcat/conf'
+hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
+webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
 
 # Starting from HDP2.3 drop should be executed with purge suffix
 purge_tables = "false"
@@ -315,10 +310,7 @@ mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
 
 ######## Metastore Schema
-init_metastore_schema = False
-if Script.is_hdp_stack_greater_or_equal("2.1"):
-  init_metastore_schema = True
-
+init_metastore_schema = True
 
 ########## HCAT
 hcat_dbroot = hcat_lib

@@ -328,6 +328,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
    * and what value is negative (unchecked) proeprty
    */
   didInsertElement: function() {
+    var self = this;
     this._super();
     this.addObserver('serviceConfig.value', this, 'toggleChecker');
     Object.keys(this.get('allowedPairs')).forEach(function(key) {
@@ -336,7 +337,17 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
         this.set('falseValue', this.get('allowedPairs')[key][1]);
       }
     }, this);
-    this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'))
+    this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'));
+    this.propertyDidChange('checked');
+    Em.run.next(function () {
+      if (self.$())
+        self.$().checkbox({
+          defaultState: self.get('serviceConfig.value'),
+          buttonStyle: 'btn-link btn-large',
+          checkedClass: 'icon-check',
+          uncheckedClass: 'icon-check-empty'
+        });
+    });
   },
 
   willDestroyElement: function() {
@@ -366,8 +377,11 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
    * change checkbox value if click on undo
    */
   toggleChecker: function() {
-    if (this.isNotAppropriateValue())
+    if (this.isNotAppropriateValue()) {
       this.set('checked', !this.get('checked'));
+      // change bootstrap-checkbox state
+      this.$().change();
+    }
   },
 
   disabled: function () {

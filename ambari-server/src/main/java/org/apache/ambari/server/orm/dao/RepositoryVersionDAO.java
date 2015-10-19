@@ -127,15 +127,14 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @param stackEntity Stack entity.
    * @param version Stack version, e.g., 2.2 or 2.2.0.1-885
    * @param displayName Unique display name
-   * @param upgradePack Optional upgrade pack, e.g, upgrade-2.2
    * @param operatingSystems JSON structure of repository URLs for each OS
    * @return Returns the object created if successful, and throws an exception otherwise.
    * @throws AmbariException
    */
   public RepositoryVersionEntity create(StackEntity stackEntity,
-      String version, String displayName, String upgradePack,
+      String version, String displayName, 
       String operatingSystems) throws AmbariException {
-      return create(stackEntity, version, displayName, upgradePack, operatingSystems,
+      return create(stackEntity, version, displayName, operatingSystems,
           RepositoryType.STANDARD);
   }
 
@@ -181,7 +180,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     }
 
     RepositoryVersionEntity newEntity = new RepositoryVersionEntity(
-        stackEntity, version, displayName, upgradePack, operatingSystems);
+        stackEntity, version, displayName, operatingSystems);
     newEntity.setType(type);
     this.create(newEntity);
     return newEntity;

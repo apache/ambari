@@ -266,19 +266,19 @@ def enable_kms_plugin():
   if params.has_ranger_admin:
 
     ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
-    response_code, response_recieved = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url + '/login.jsp', 'test:test')
+    ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
+    response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
     if response_code is not None and response_code == 200:
-      ambari_ranger_admin, ambari_ranger_password = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
-      ambari_username_password_for_ranger = ambari_ranger_admin + ':' + ambari_ranger_password
+      user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
     else:
       raise Fail('Ranger service is not started on given host')   
 
-    if ambari_ranger_admin != '' and ambari_ranger_password != '':
+    if user_resp_code is not None and user_resp_code == 200:
       get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
       if not get_repo_flag:
         create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
     else:
-      raise Fail('Ambari admin username and password not available')
+      raise Fail('Ambari admin user creation failed')
 
     current_datetime = datetime.now()
 
@@ -361,7 +361,10 @@ def create_repo(url, data, usernamepassword):
     else:
       Logger.info('Repository not created')
   except urllib2.URLError, e:
-    raise Fail('Repository creation failed, {0}'.format(str(e)))  
+    if isinstance(e, urllib2.HTTPError):
+      raise Fail("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
+    else:
+      raise Fail("Error creating service. Reason - {0}.".format(e.reason))
 
 def get_repo(url, name, usernamepassword):
   try:
@@ -376,7 +379,7 @@ def get_repo(url, name, usernamepassword):
     response = json.loads(result.read())
     if response_code == 200 and len(response) > 0:
       for repo in response:
-        if repo.get('name') == name and repo.has_key('name'):
+        if repo.get('name').lower() == name.lower() and repo.has_key('name'):
           Logger.info('KMS repository exist')
           return True
         else:
@@ -386,4 +389,7 @@ def get_repo(url, name, usernamepassword):
       Logger.info('KMS repository doesnot exist')
       return False
   except urllib2.URLError, e:
-    raise Fail('Get repository failed, {0}'.format(str(e))) 
+    if isinstance(e, urllib2.HTTPError):
+      raise Fail("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
+    else:
+      raise Fail("Error getting {0} service. Reason - {1}.".format(name, e.reason))

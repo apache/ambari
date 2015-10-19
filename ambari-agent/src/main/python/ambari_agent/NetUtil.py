@@ -110,4 +110,4 @@ class NetUtil:
         if logger is not None:
           logger.info("Stop event received")
         self.DEBUG_STOP_RETRIES_FLAG = True
-    return retries, connected
+    return retries, connected, self.DEBUG_STOP_RETRIES_FLAG

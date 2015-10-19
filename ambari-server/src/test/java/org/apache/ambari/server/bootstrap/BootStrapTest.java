@@ -74,7 +74,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, prepareEchoCommand(bootdir));
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, "target" + File.separator + "classes");
-    properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+    properties.setProperty(Configuration.METADATA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
 
@@ -149,7 +149,7 @@ public class BootStrapTest extends TestCase {
     properties.setProperty(Configuration.BOOTSTRAP_DIR, bootdir);
     properties.setProperty(Configuration.BOOTSTRAP_SCRIPT, prepareEchoCommand(bootdir));
     properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, serverKSTRDir);
-    properties.setProperty(Configuration.METADETA_DIR_PATH, metadetadir);
+    properties.setProperty(Configuration.METADATA_DIR_PATH, metadetadir);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, serverVersionFilePath);
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);
     Configuration conf = new Configuration(properties);

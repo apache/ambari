@@ -265,7 +265,7 @@
   </property>
   <property>
     <name>zookeeper.session.timeout.localHBaseCluster</name>
-    <value>20000</value>
+    <value>120000</value>
     <description>
       ZooKeeper session timeout in milliseconds for
       pseudo distributed mode.

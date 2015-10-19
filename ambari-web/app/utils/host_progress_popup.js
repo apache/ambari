@@ -18,7 +18,7 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 /**
  * App.HostPopup is for the popup that shows up upon clicking already-performed or currently-in-progress operations

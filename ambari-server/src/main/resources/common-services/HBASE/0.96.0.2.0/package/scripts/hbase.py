@@ -182,6 +182,9 @@ def hbase(name=None):
     )
     params.HdfsResource(None, action="execute")
 
+  if params.phoenix_enabled:
+    Package(params.phoenix_package)
+
 def hbase_TemplateConfig(name, tag=None):
   import params
 

@@ -676,6 +676,110 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+
+  def test_recommendRangerConfigurations(self):
+    clusterData = {}
+    # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+      ],
+      "configurations": {
+        "admin-properties": {
+          "properties": {
+            "DB_FLAVOR": "NOT_EXISTING",
+            }
+        },
+        "ranger-admin-site": {
+          "properties": {
+            "ranger.service.http.port": "7777",
+            "ranger.service.http.enabled": "true",
+            }
+        }
+      }
+    }
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
+          "policymgr_external_url": "http://host1:7777",
+        }
+      },
+    }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    # Recommend for DB_FLAVOR POSTGRES and https enabled, HDP-2.3
+    configurations = {
+      "admin-properties": {
+        "properties": {
+          "DB_FLAVOR": "POSTGRES",
+          }
+      },
+      "ranger-admin-site": {
+        "properties": {
+          "ranger.service.https.port": "7777",
+          "ranger.service.http.enabled": "false",
+          }
+      }
+    }
+    services['configurations'] = configurations
+
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
+          "policymgr_external_url": "https://host1:7777",
+          }
+      },
+      }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+    # Recommend for DB_FLAVOR ORACLE and https enabled, HDP-2.2
+    configurations = {
+      "admin-properties": {
+        "properties": {
+          "DB_FLAVOR": "ORACLE",
+          }
+      },
+      "ranger-site": {
+        "properties": {
+          "http.enabled": "false",
+          "https.service.port": "8888",
+          }
+      }
+    }
+    services['configurations'] = configurations
+    expected = {
+      "admin-properties": {
+        "properties": {
+          "SQL_CONNECTOR_JAR": "/usr/share/java/ojdbc6.jar",
+          "policymgr_external_url": "https://host1:8888",
+          }
+      },
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+
+
   def test_recommendHDFSConfigurations(self):
     configurations = {
       "hadoop-env": {
@@ -861,6 +965,71 @@ class TestHDP206StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+
+
+  def test_getHostNamesWithComponent(self):
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "SERVICE"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "COMPONENT",
+                "hostnames": ["host1","host2","host3"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": {}
+    }
+
+    result = self.stackAdvisor.getHostNamesWithComponent("SERVICE","COMPONENT", services)
+    expected = ["host1","host2","host3"]
+    self.assertEquals(result, expected)
+
+
+  def test_getZKHostPortString(self):
+    configurations = {
+      "zoo.cfg": {
+        "properties": {
+          'clientPort': "2183"
+        }
+      }
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "ZOOKEEPER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "ZOOKEEPER_SERVER",
+                "hostnames": ["zk.host1","zk.host2","zk.host3"]
+              }
+            }, {
+              "StackServiceComponents": {
+                "component_name": "ZOOKEEPER_CLIENT",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": configurations
+    }
+
+    result = self.stackAdvisor.getZKHostPortString(services)
+    expected = "zk.host1:2183,zk.host2:2183,zk.host3:2183"
+    self.assertEquals(result, expected)
 
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}

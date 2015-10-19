@@ -29,7 +29,7 @@
     <hr />
 
     {{#if selectedDatabase}}
-      {{extended-input class="form-control input-sm"
+      {{extended-input class="form-control input-sm mozBoxSizeFix"
                        placeholderTranslation="placeholders.search.tables"
                        valueSearched="searchTables"
                        value=tableSearchTerm}}
@@ -39,7 +39,7 @@
 
 
     {{#if tableSearchResults.tables}}
-      {{extended-input class="form-control input-sm"
+      {{extended-input class="form-control input-sm mozBoxSizeFix"
                        placeholderTranslation="placeholders.search.columns"
                        valueSearched="searchColumns"
                        value=columnSearchTerm}}

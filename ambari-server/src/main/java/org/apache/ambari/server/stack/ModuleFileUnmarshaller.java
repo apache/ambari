@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.stack;
 
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
 import org.apache.ambari.server.state.stack.ConfigurationXml;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
@@ -63,12 +64,13 @@ class ModuleFileUnmarshaller {
     try {
       // three classes define the top-level element "metainfo", so we need 3 contexts.
       JAXBContext ctx = JAXBContext.newInstance(StackMetainfoXml.class, RepositoryXml.class,
-          ConfigurationXml.class, UpgradePack.class);
+          ConfigurationXml.class, UpgradePack.class, ConfigUpgradePack.class);
 
       jaxbContexts.put(StackMetainfoXml.class, ctx);
       jaxbContexts.put(RepositoryXml.class, ctx);
       jaxbContexts.put(ConfigurationXml.class, ctx);
       jaxbContexts.put(UpgradePack.class, ctx);
+      jaxbContexts.put(ConfigUpgradePack.class, ctx);
       jaxbContexts.put(ServiceMetainfoXml.class, JAXBContext.newInstance(ServiceMetainfoXml.class));
     } catch (JAXBException e) {
       throw new RuntimeException (e);

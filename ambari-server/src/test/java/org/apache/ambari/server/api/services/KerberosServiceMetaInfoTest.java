@@ -198,7 +198,7 @@ public class KerberosServiceMetaInfoTest {
 
   private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File commonServicesRoot, File versionFile, boolean replayMocks) throws Exception {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADETA_DIR_PATH, stackRoot.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH, stackRoot.getPath());
     properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH, commonServicesRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
     Configuration configuration = new Configuration(properties);

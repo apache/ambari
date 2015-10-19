@@ -226,6 +226,7 @@ public class ServicesUpCheckTest {
     }
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesUpCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     // Case 2. Change some desired states to STARTED, should still pass
     Mockito.when(hcsNameNode.getDesiredState()).thenReturn(State.STARTED);

@@ -736,7 +736,7 @@ class TestHBaseMaster(RMFTestCase):
   def test_upgrade_backup(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_upgrade.py",
                    classname = "HbaseMasterUpgrade",
-                   command = "snapshot",
+                   command = "take_snapshot",
                    config_file="hbase-preupgrade.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES)

@@ -32,7 +32,12 @@
 
   <div class="btn-area">
     <a class="btn installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}}
-      {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+    <div class="pull-right">
+      {{#if App.supports.preInstallChecks}}
+        <a class="btn" {{action runPreInstallChecks target="App.router.preInstallChecksController"}} {{bindAttr disabled="isSubmitDisabled"}}><i class="icon-exclamation"></i> {{t installer.step7.preInstallChecks}}</a>
+      {{/if}}
+      <a class="btn btn-success" {{bindAttr disabled="isSubmitDisabled"}}
+        {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
+    </div>
   </div>
 </div>

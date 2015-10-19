@@ -18,41 +18,13 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.StringReader;
-import java.lang.reflect.Type;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -128,6 +100,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostOpSucceededEvent;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartedEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -146,14 +119,39 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.io.StringReader;
+import java.lang.reflect.Type;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
-import junit.framework.Assert;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AmbariManagementControllerTest {
 
@@ -4518,6 +4516,10 @@ public class AmbariManagementControllerTest {
         TargetHostType.ANY, Short.valueOf("100")));
 
     controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
+            "update_repo", ActionType.SYSTEM, "", "HDFS", "DATANODE", "Does file exist",
+            TargetHostType.ANY, Short.valueOf("100")));
+
+    controller.getAmbariMetaInfo().addActionDefinition(new ActionDefinition(
         "a3", ActionType.SYSTEM, "", "MAPREDUCE", "MAPREDUCE_CLIENT", "Does file exist",
         TargetHostType.ANY, Short.valueOf("100")));
 
@@ -4596,6 +4598,16 @@ public class AmbariManagementControllerTest {
     actionRequest = new ExecuteActionRequest("c1", null, "a2", resourceFilters, null, params, false);
     expectActionCreationErrorWithMessage(actionRequest, requestProperties,
         "Request specifies host h6 but its not a valid host based on the target service=HDFS and component=DATANODE");
+
+    hosts.clear();
+    hosts.add("h1");
+    resourceFilters.clear();
+    resourceFilter = new RequestResourceFilter("", "", hosts);
+    resourceFilters.add(resourceFilter);
+    params.put("success_factor", "1r");
+    actionRequest = new ExecuteActionRequest("c1", null, "update_repo", resourceFilters, null, params, false);
+    expectActionCreationErrorWithMessage(actionRequest, requestProperties,
+            "Failed to cast success_factor value to float!");
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("HIVE", "", null);
@@ -7192,7 +7204,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(1, responsesWithParams.size());
     StackVersionResponse resp = responsesWithParams.iterator().next();
     assertNotNull(resp.getUpgradePacks());
-    assertEquals(5, resp.getUpgradePacks().size());
+    assertEquals(6, resp.getUpgradePacks().size());
     assertTrue(resp.getUpgradePacks().contains("upgrade_test"));
   }
 
@@ -7987,6 +7999,7 @@ public class AmbariManagementControllerTest {
   public void testGetTasksByRequestId() throws AmbariException {
     final long requestId1 = 1;
     final long requestId2 = 2;
+    final long requestId3 = 3;
     final String clusterName = "c1";
     final String hostName1 = "h1";
     final String context = "Test invocation";
@@ -8055,6 +8068,19 @@ public class AmbariManagementControllerTest {
     request = new Request(stages, clusters);
     actionDB.persistActions(request);
 
+    // Add a stage to execute a task as server-side action on the Ambari server
+    ServiceComponentHostServerActionEvent serviceComponentHostServerActionEvent =
+        new ServiceComponentHostServerActionEvent(Role.AMBARI_SERVER_ACTION.toString(), null, System.currentTimeMillis());
+    stages.clear();
+    stages.add(stageFactory.createNew(requestId3, "/a6", clusterName, 1L, context,
+      CLUSTER_HOST_INFO, "", ""));
+    stages.get(0).setStageId(6);
+    stages.get(0).addServerActionCommand("some.action.class.name", null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, clusterName, serviceComponentHostServerActionEvent, null, null, null, null, false, false);
+    assertEquals("_internal_ambari", stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
+    request = new Request(stages, clusters);
+    actionDB.persistActions(request);
+
 
     Set<TaskStatusRequest> taskStatusRequests;
     Set<TaskStatusResponse> taskStatusResponses;
@@ -8095,6 +8121,16 @@ public class AmbariManagementControllerTest {
     };
     taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
     assertEquals(5L, taskStatusResponses.iterator().next().getTaskId());
+
+    //check that a sever-side action is reported back properly (namely the hostname value of the repsonse)
+    taskStatusResponses = controller.getTaskStatus(Collections.singleton(new TaskStatusRequest(requestId3, null)));
+    assertEquals(1, taskStatusResponses.size());
+    TaskStatusResponse response = taskStatusResponses.iterator().next();
+    assertNotNull(response);
+    assertEquals(6L, response.getTaskId());
+    // The host name for the task should be the same as what StageUtils#getHostName returns since
+    // the host was specified as null when
+    assertEquals(StageUtils.getHostName(), response.getHostName());
 
     //verify that task from second request (requestId2) does not present in first request (requestId1)
     taskStatusRequests = new HashSet<TaskStatusRequest>(){
@@ -8326,7 +8362,7 @@ public class AmbariManagementControllerTest {
     // verify change with new meta info
     Configuration configuration = injector.getInstance(Configuration.class);
     Properties properties = configuration.getProperties();
-    properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
+    properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
     properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
     Configuration newConfiguration = new Configuration(properties);
 
@@ -8867,7 +8903,7 @@ public class AmbariManagementControllerTest {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-        properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+        properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,"centos6");
         properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
@@ -8940,7 +8976,7 @@ public class AmbariManagementControllerTest {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
-        properties.setProperty(Configuration.METADETA_DIR_PATH,
+        properties.setProperty(Configuration.METADATA_DIR_PATH,
             "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");
@@ -9050,7 +9086,7 @@ public class AmbariManagementControllerTest {
       protected void configure() {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY,"in-memory");
-        properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
+        properties.setProperty(Configuration.METADATA_DIR_PATH,"src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
         properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
         properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
@@ -9389,7 +9425,7 @@ public class AmbariManagementControllerTest {
         Properties properties = new Properties();
         properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
 
-        properties.setProperty(Configuration.METADETA_DIR_PATH,
+        properties.setProperty(Configuration.METADATA_DIR_PATH,
             "src/test/resources/stacks");
         properties.setProperty(Configuration.SERVER_VERSION_FILE,
             "../version");

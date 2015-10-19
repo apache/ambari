@@ -70,7 +70,7 @@ public class InMemoryDefaultTestModule extends AbstractModule {
     }
 
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "in-memory");
-    properties.setProperty(Configuration.METADETA_DIR_PATH, stacks);
+    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks);
     properties.setProperty(Configuration.SERVER_VERSION_FILE, version);
     properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, sharedResourcesDir);

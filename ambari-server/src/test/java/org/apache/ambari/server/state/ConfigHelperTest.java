@@ -69,17 +69,14 @@ import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 
 
-
 @RunWith(Enclosed.class)
 public class ConfigHelperTest {
   public static class RunWithInMemoryDefaultTestModule {
     private Clusters clusters;
-    private AmbariMetaInfo metaInfo;
     private Injector injector;
     private String clusterName;
     private Cluster cluster;
     private ConfigGroupFactory configGroupFactory;
-    private ConfigFactory configFactory;
     private ConfigHelper configHelper;
     private AmbariManagementController managementController;
 
@@ -88,8 +85,6 @@ public class ConfigHelperTest {
       injector = Guice.createInjector(new InMemoryDefaultTestModule());
       injector.getInstance(GuiceJpaInitializer.class);
       clusters = injector.getInstance(Clusters.class);
-      metaInfo = injector.getInstance(AmbariMetaInfo.class);
-      configFactory = injector.getInstance(ConfigFactory.class);
       configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
       configHelper = injector.getInstance(ConfigHelper.class);
       managementController = injector.getInstance(AmbariManagementController.class);

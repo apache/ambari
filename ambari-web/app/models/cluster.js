@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var credentialUtils = require('utils/credentials');
 
 App.Cluster = DS.Model.extend({
   clusterName: DS.attr('string'),
@@ -25,6 +26,7 @@ App.Cluster = DS.Model.extend({
   version: DS.attr('string'),
   totalHosts:DS.attr('number'),
   securityType: DS.attr('string'),
+  credentialStoreProperties: DS.attr('object', {defaultValue: {}}),
   /**
    * Array containing desired configs. New array
    * should be set by instances of class.
@@ -33,7 +35,11 @@ App.Cluster = DS.Model.extend({
 
   isKerberosEnabled: function() {
     return this.get('securityType') === 'KERBEROS';
-  }.property('securityType')
+  }.property('securityType'),
+
+  isCredentialStorePersistent: function() {
+    return this.get('credentialStoreProperties')[credentialUtils.STORE_TYPES.PERSISTENT_PATH] === "true";
+  }.property('credentialStoreProperties')
 });
 
 App.Cluster.FIXTURES = [];

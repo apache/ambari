@@ -240,13 +240,13 @@ class AmbariConfig:
         pass
     return default
 
-  def get_api_url(self):
+  def get_api_url(self, server_hostname):
     return "%s://%s:%s" % (self.CONNECTION_PROTOCOL,
-                           hostname.server_hostname(self),
+                           server_hostname,
                            self.get('server', 'url_port'))
 
-  def isTwoWaySSLConnection(self):
-    req_url = self.get_api_url()
+  def isTwoWaySSLConnection(self, server_hostname):
+    req_url = self.get_api_url(server_hostname)
     response = self.getServerOption(self.SERVER_CONNECTION_INFO.format(req_url), self.TWO_WAY_SSL_PROPERTY, 'false')
     if response is None:
       return False
@@ -267,17 +267,39 @@ class AmbariConfig:
         logger.info("Updating config property (%s) with value (%s)", k, v)
     pass
 
-def updateConfigServerHostname(configFile, new_host):
+def isSameHostList(hostlist1, hostlist2):
+  is_same = True
+
+  if (hostlist1 is not None and hostlist2 is not None):
+    if (len(hostlist1) != len(hostlist2)):
+      is_same = False
+    else:
+      host_lookup = {}
+      for item1 in hostlist1:
+        host_lookup[item1.lower()] = True
+      for item2 in hostlist2:
+        if item2.lower() in host_lookup:
+          del host_lookup[item2.lower()]
+        else:
+          is_same = False
+          break
+    pass
+  elif (hostlist1 is not None or hostlist2 is not None):
+    is_same = False
+  return is_same
+
+def updateConfigServerHostname(configFile, new_hosts):
   # update agent config file
   agent_config = ConfigParser.ConfigParser()
   agent_config.read(configFile)
-  server_host = agent_config.get('server', 'hostname')
-  if new_host is not None and server_host != new_host:
-    print "Updating server host from " + server_host + " to " + new_host
-    agent_config.set('server', 'hostname', new_host)
-    with (open(configFile, "wb")) as new_agent_config:
-      agent_config.write(new_agent_config)
-
+  server_hosts = agent_config.get('server', 'hostname')
+  if new_hosts is not None:
+      new_host_names = hostname.arrayFromCsvString(new_hosts)
+      if not isSameHostList(server_hosts, new_host_names):
+        print "Updating server hostname from " + server_hosts + " to " + new_hosts
+        agent_config.set('server', 'hostname', new_hosts)
+        with (open(configFile, "wb")) as new_agent_config:
+          agent_config.write(new_agent_config)
 
 def main():
   print AmbariConfig().config

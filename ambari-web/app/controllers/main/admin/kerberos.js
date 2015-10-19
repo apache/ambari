@@ -582,5 +582,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         dfd.reject();
       }, Em.I18n.t('common.warning'), Em.I18n.t('common.proceedAnyway'));
     }
+  },
+
+  showManageKDCCredentialsPopup: function() {
+    return App.showManageCredentialsPopup();
   }
+
 });

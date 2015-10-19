@@ -76,7 +76,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 java64_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
-metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512m")
+metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512")
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sink.report.interval", 60)
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)

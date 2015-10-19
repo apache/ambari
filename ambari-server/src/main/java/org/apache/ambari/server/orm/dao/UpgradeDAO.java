@@ -48,6 +48,18 @@ public class UpgradeDAO {
   private DaoUtils daoUtils;
 
   /**
+   * Get all items.
+   * @return List of all of the UpgradeEntity items.
+   */
+  @RequiresSession
+  public List<UpgradeEntity> findAll() {
+    TypedQuery<UpgradeEntity> query = entityManagerProvider.get().createNamedQuery(
+        "UpgradeEntity.findAll", UpgradeEntity.class);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * @param clusterId the cluster id
    * @return the list of upgrades initiated for the cluster
    */
@@ -157,8 +169,7 @@ public class UpgradeDAO {
   }
 
   /**
-   * @param requestId the request id
-   * @param stageId the stage id
+   * @param clusterId the cluster id
    * @return the upgrade entity, or {@code null} if not found
    */
   @RequiresSession
@@ -174,4 +185,8 @@ public class UpgradeDAO {
     return daoUtils.selectSingle(query);
   }
 
+  @Transactional
+  public UpgradeEntity merge(UpgradeEntity upgradeEntity) {
+    return entityManagerProvider.get().merge(upgradeEntity);
+  }
 }

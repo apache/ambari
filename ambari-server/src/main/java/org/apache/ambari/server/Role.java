@@ -114,6 +114,7 @@ public class Role {
   public static final Role AMS_SERVICE_CHECK = valueOf("AMBARI_METRICS_SERVICE_CHECK");
   public static final Role ACCUMULO_CLIENT = valueOf("ACCUMULO_CLIENT");
   public static final Role INSTALL_PACKAGES = valueOf("install_packages");
+  public static final Role UPDATE_REPO = valueOf("update_repo");
 
   private String name = null;
 

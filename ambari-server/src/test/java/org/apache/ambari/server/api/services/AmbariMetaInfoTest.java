@@ -27,6 +27,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
@@ -62,13 +63,14 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -80,8 +82,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -106,9 +110,9 @@ public class AmbariMetaInfoTest {
   private static final String EXT_STACK_NAME = "2.0.6";
   private static final String STACK_VERSION_HDP_02 = "0.2";
   private static final String STACK_MINIMAL_VERSION_HDP = "0.0";
-  private static String SERVICE_NAME_HDFS = "HDFS";
-  private static String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
-  private static String SERVICE_COMPONENT_NAME = "NAMENODE";
+  private static final String SERVICE_NAME_HDFS = "HDFS";
+  private static final String SERVICE_NAME_MAPRED2 = "MAPREDUCE2";
+  private static final String SERVICE_COMPONENT_NAME = "NAMENODE";
   private static final String OS_TYPE = "centos5";
   private static final String HDP_REPO_NAME = "HDP";
   private static final String HDP_REPO_ID = "HDP-2.1.1";
@@ -123,7 +127,7 @@ public class AmbariMetaInfoTest {
   private static final int PROPERTIES_CNT = 62;
   private static final int OS_CNT = 4;
 
-  private AmbariMetaInfo metaInfo = null;
+  private static AmbariMetaInfo metaInfo = null;
   private final static Logger LOG =
       LoggerFactory.getLogger(AmbariMetaInfoTest.class);
   private static final String FILE_NAME = "hbase-site.xml";
@@ -138,15 +142,15 @@ public class AmbariMetaInfoTest {
   @Rule
   public TemporaryFolder tmpFolder = new TemporaryFolder();
 
-  @Before
-  public void before() throws Exception {
+  @BeforeClass
+  public static void beforeClass() throws Exception {
     File stacks = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
     if (System.getProperty("os.name").contains("Windows")) {
       stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
       version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
     }
-    metaInfo = createAmbariMetaInfo(stacks, version, true);
+    metaInfo = createAmbariMetaInfo(stacks, version);
   }
 
   public class MockModule extends AbstractModule {
@@ -192,7 +196,7 @@ public class AmbariMetaInfoTest {
     // Scenario: user has internet and does nothing to repos via api
     // use the latest
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6) with valid latest
     // url
     ambariMetaInfo.init();
@@ -215,7 +219,7 @@ public class AmbariMetaInfoTest {
     // Scenario: user has no internet and does nothing to repos via api
     // use the default
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+    AmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6).
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
@@ -247,7 +251,7 @@ public class AmbariMetaInfoTest {
     // Scenario: user has internet and but calls to set repos via api
     // use whatever they set
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6)
 
     // Updating the baseUrl
@@ -308,7 +312,7 @@ public class AmbariMetaInfoTest {
     // use whatever they set
     String stackVersion = "0.2";
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
 
     // Updating the baseUrl
     String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP-Utils/centos6/2.x/updates/2.0.6.0";
@@ -351,7 +355,7 @@ public class AmbariMetaInfoTest {
     // use whatever they set
     String newBaseUrl = "http://myprivate-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0";
     String buildDir = tmpFolder.getRoot().getAbsolutePath();
-    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir, true);
+    TestAmbariMetaInfo ambariMetaInfo = setupTempAmbariMetaInfo(buildDir);
     // The current stack already has (HDP, 2.1.1, redhat6).
 
     // Deleting the json file referenced by the latestBaseUrl to simulate No
@@ -425,7 +429,7 @@ public class AmbariMetaInfoTest {
   @Test
   public void testServiceNameUsingComponentName() throws AmbariException {
     String serviceName = metaInfo.getComponentToService(STACK_NAME_HDP,
-        STACK_VERSION_HDP, "NAMENODE");
+        STACK_VERSION_HDP, SERVICE_COMPONENT_NAME);
     assertEquals("HDFS", serviceName);
   }
 
@@ -552,7 +556,7 @@ public class AmbariMetaInfoTest {
     }
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo"); stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, true);
+    AmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
     //todo
     //ambariMetaInfo.injector = injector;
     File f1, f2, f3;
@@ -850,7 +854,7 @@ public class AmbariMetaInfoTest {
     LOG.info("Stacks file " + stackRoot.getAbsolutePath());
 
 
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version, true);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRoot, version);
     Assert.assertEquals(1, ambariMetaInfo.getStackManager().getStacks().size());
     Assert.assertEquals(false, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").isValid());
     Assert.assertEquals(2, ambariMetaInfo.getStackManager().getStack("HDP", "0.1").getErrors().size());
@@ -867,20 +871,105 @@ public class AmbariMetaInfoTest {
     Assert.assertNotNull(svc);
     Assert.assertNotNull(svc.getMetricsFile());
 
-    List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "NAMENODE", "Component");
+    List<MetricDefinition> list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", SERVICE_COMPONENT_NAME, Resource.Type.Component.name());
     Assert.assertNotNull(list);
 
-    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
+    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", Resource.Type.Component.name());
     Assert.assertNull(list);
 
-    List<MetricDefinition> list0 = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", "Component");
+    List<MetricDefinition> list0 = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.5", "HDFS", "DATANODE", Resource.Type.Component.name());
     Assert.assertNull(list0);
     Assert.assertTrue("Expecting subsequent calls to use a cached value for the definition", list == list0);
 
-
     // not explicitly defined, uses 2.0.5
-    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", "Component");
+    list = metaInfo.getMetrics(STACK_NAME_HDP, "2.0.6", "HDFS", "DATANODE", Resource.Type.Component.name());
     Assert.assertNull(list);
+  }
+
+  @Test
+  public void testCrossCheckJmxToGangliaMetrics() throws Exception {
+
+    File stacks = new File("src/main/resources/stacks");
+    File version = new File("src/test/resources/version");
+    File commonServicesRoot = new File("src/main/resources/common-services");
+    if (System.getProperty("os.name").contains("Windows")) {
+      stacks = new File(ClassLoader.getSystemClassLoader().getResource("stacks").getPath());
+      version = new File(new File(ClassLoader.getSystemClassLoader().getResource("").getPath()).getParent(), "version");
+      commonServicesRoot = new File(ClassLoader.getSystemClassLoader().getResource("common-services").getPath());
+    }
+
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.METADATA_DIR_PATH, stacks.getPath());
+    properties.setProperty(Configuration.COMMON_SERVICES_DIR_PATH, commonServicesRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, version.getPath());
+    Configuration configuration = new Configuration(properties);
+
+    TestAmbariMetaInfo ambariMetaInfo = new TestAmbariMetaInfo(configuration);
+    ambariMetaInfo.replayAllMocks();
+
+    try {
+      ambariMetaInfo.init();
+    } catch(Exception e) {
+      LOG.info("Error in metainfo initializing ", e);
+      throw e;
+    }
+    waitForAllReposToBeResolved(ambariMetaInfo);
+    String[] metricsTypes = {
+      Resource.Type.Component.name(),
+      Resource.Type.HostComponent.name()
+    };
+
+    for (StackInfo stackInfo: ambariMetaInfo.getStacks(STACK_NAME_HDP)) {
+      for (ServiceInfo serviceInfo: stackInfo.getServices()) {
+        for (ComponentInfo componentInfo: serviceInfo.getComponents()) {
+          for (String metricType: metricsTypes) {
+            List<MetricDefinition> list =
+              ambariMetaInfo.getMetrics(stackInfo.getName(), stackInfo.getVersion(),
+                serviceInfo.getName(), componentInfo.getName(), metricType);
+            String currentComponentInfo =  stackInfo.getName() + "-" +
+              stackInfo.getVersion() + ", " + serviceInfo.getName() + ", " +
+              componentInfo.getName()+ ", " + metricType;
+            if (list == null) {
+              LOG.info("No metrics found for " + currentComponentInfo);
+              continue;
+            }
+            LOG.info("Cross-checking JMX-to-Ganglia metrics for " + currentComponentInfo);
+
+            Map<String, Metric> jmxMetrics = Collections.emptyMap();
+            for (MetricDefinition metricDefinition : list) {
+
+              if ("jmx".equals(metricDefinition.getType())) {
+                // all jmx should be point-in-time and not temporal
+                jmxMetrics = metricDefinition.getMetrics();
+                for (Metric metric : jmxMetrics.values()) {
+                  Assert.assertTrue(metric.isPointInTime());
+                  Assert.assertFalse(metric.isTemporal());
+                }
+              }
+            }
+            LinkedList<String> failedMetrics = new LinkedList<String>();
+            for (MetricDefinition metricDefinition : list) {
+              if ("ganglia".equals(metricDefinition.getType())) {
+                //all ams metrics should be temporal
+                for (Map.Entry<String, Metric> metricEntry : metricDefinition.getMetrics().entrySet()) {
+                  Assert.assertTrue(metricEntry.getValue().isTemporal());
+                  // some ams metrics may be point-in-time
+                  // if they aren't provided by JMX
+                  if (metricEntry.getValue().isPointInTime() &&
+                    jmxMetrics.containsKey(metricEntry.getKey())) {
+                    failedMetrics.add(metricEntry.getKey());
+                  }
+                }
+
+              }
+            }
+            Assert.assertEquals(failedMetrics.toString() +
+                " metrics defined with pointInTime=true for both jmx and ganglia types.",
+              0, failedMetrics.size());
+          }
+        }
+      }
+    }
   }
 
   @Test
@@ -1864,7 +1953,7 @@ public class AmbariMetaInfoTest {
   }
 
 
-  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir, boolean replayMocks) throws Exception {
+  private TestAmbariMetaInfo setupTempAmbariMetaInfo(String buildDir) throws Exception {
     File stackRootTmp = new File(buildDir + "/ambari-metaInfo");
     File stackRoot = new File("src/test/resources/stacks");
     File version = new File("src/test/resources/version");
@@ -1876,34 +1965,35 @@ public class AmbariMetaInfoTest {
 
     stackRootTmp.mkdir();
     FileUtils.copyDirectory(stackRoot, stackRootTmp);
-    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version, replayMocks);
+    TestAmbariMetaInfo ambariMetaInfo = createAmbariMetaInfo(stackRootTmp, version);
 
     return ambariMetaInfo;
   }
 
-  private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File versionFile, boolean replayMocks) throws Exception {
+  private static TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot,
+    File versionFile) throws Exception {
+
     Properties properties = new Properties();
-    properties.setProperty(Configuration.METADETA_DIR_PATH, stackRoot.getPath());
+    properties.setProperty(Configuration.METADATA_DIR_PATH, stackRoot.getPath());
     properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
     Configuration configuration = new Configuration(properties);
 
     TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
-    if (replayMocks) {
-      metaInfo.replayAllMocks();
 
-      try {
-        metaInfo.init();
-      } catch(Exception e) {
-        LOG.info("Error in initializing ", e);
-        throw e;
-      }
-      waitForAllReposToBeResolved(metaInfo);
+    metaInfo.replayAllMocks();
+
+    try {
+      metaInfo.init();
+    } catch(Exception e) {
+      LOG.info("Error in initializing ", e);
+      throw e;
     }
+    waitForAllReposToBeResolved(metaInfo);
 
     return metaInfo;
   }
 
-  private void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {
+  private static void waitForAllReposToBeResolved(AmbariMetaInfo metaInfo) throws Exception {
     int maxWait = 45000;
     int waitTime = 0;
     StackManager sm = metaInfo.getStackManager();

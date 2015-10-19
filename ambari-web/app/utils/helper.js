@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 var stringUtils = require('utils/string_utils');
+var timezoneUtils = require('utils/date/timezone');
 
 /**
  * Remove spaces at beginning and ending of line.
@@ -634,7 +635,8 @@ App.dateTime = function() {
 App.dateTimeWithTimeZone = function (x) {
   var timezone = App.router.get('userSettingsController.userSettings.timezone');
   if (timezone) {
-    return moment(moment.tz(x ? new Date(x) : new Date(), timezone).toArray()).toDate().getTime();
+    var tz = Em.getWithDefault(timezoneUtils.get('timezonesMappedByLabel')[timezone], 'zones.0.value', '');
+    return moment(moment.tz(x ? new Date(x) : new Date(), tz).toArray()).toDate().getTime();
   }
   return x || new Date().getTime();
 };
@@ -841,6 +843,16 @@ App.registerBoundHelper('statusIcon', Em.View.extend({
   },
 
   classNameBindings: ['iconClass'],
+  attributeBindings: ['data-original-title'],
+
+  didInsertElement: function () {
+    App.tooltip($(this.get('element')));
+  },
+
+  'data-original-title': function() {
+    return this.get('content').toCapital();
+  }.property('content'),
+
   /**
    * @type {string}
    */

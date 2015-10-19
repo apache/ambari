@@ -162,7 +162,8 @@ describe('App.themeMapper', function () {
         is_advanced: false,
         service_name: 'HDFS',
         is_advanced_hidden: false,
-        is_rendered: false
+        is_rendered: false,
+        is_configs_prepared: false
       });
 
       //checking section
@@ -224,7 +225,8 @@ describe('App.themeMapper', function () {
         "is_advanced": true,
         "service_name": "HDFS",
         "is_advanced_hidden": false,
-        is_rendered: false
+        is_rendered: false,
+        is_configs_prepared: false
       });
     });
   });

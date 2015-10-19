@@ -197,6 +197,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
     App.HttpClient.get(clusterUrl, App.clusterMapper, {
       complete: function (jqXHR, textStatus) {
+        App.set('isCredentialStorePersistent', Em.getWithDefault(App.Cluster.find().findProperty('clusterName', App.get('clusterName')), 'isCredentialStorePersistent', false));
       }
     }, function (jqXHR, textStatus) {
     });
@@ -370,6 +371,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     this.set('ambariProperties', data.RootServiceComponents.properties);
     // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
     this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
+    App.router.get('mainController').monitorInactivity();
   },
 
   loadAmbariPropertiesError: function () {

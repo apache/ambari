@@ -28,6 +28,9 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
     }
 
     this.selectize.on('dropdown_close', Ember.$.proxy(this.onClose, this));
+
+    if($('.selectize-input')) {$('.selectize-input').addClass( "mozBoxSizeFix" );}
+
   },
 
   removeExcludedObserver: function () {

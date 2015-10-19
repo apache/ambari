@@ -40,13 +40,12 @@ def post_regionserver(env):
   check_cmd = "echo 'status \"simple\"' | {0} shell".format(params.hbase_cmd)
 
   exec_cmd = "{0} {1}".format(params.kinit_cmd, check_cmd)
-  call_and_match(exec_cmd, params.hbase_user, params.hostname.lower() + ":")
-
+  call_and_match(exec_cmd, params.hbase_user, params.hostname + ":", re.IGNORECASE)
 
 @retry(times=15, sleep_time=2, err_class=Fail)
-def call_and_match(cmd, user, regex):
+def call_and_match(cmd, user, regex, regex_search_flags):
 
   code, out = shell.call(cmd, user=user)
 
-  if not (out and re.search(regex, out)):
+  if not (out and re.search(regex, out, regex_search_flags)):
     raise Fail("Could not verify RS available")

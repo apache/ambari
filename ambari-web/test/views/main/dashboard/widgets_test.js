@@ -454,19 +454,6 @@ describe('App.MainDashboardWidgetsView', function () {
     });
   });
 
-  describe("#gangliaUrl", function () {
-    before(function () {
-      sinon.stub(App.router, 'get').withArgs('clusterController.gangliaUrl').returns('url');
-    });
-    after(function () {
-      App.router.get.restore();
-    });
-    it("", function () {
-      view.propertyDidChange('gangliaUrl');
-      expect(view.get('gangliaUrl')).to.equal('url/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=');
-    });
-  });
-
   describe('#checkServicesChange', function () {
 
     var emptyCurrentPref = {

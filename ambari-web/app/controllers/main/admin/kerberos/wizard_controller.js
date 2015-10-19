@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var credentialsUtils = require('utils/credentials');
 
 App.KerberosWizardController = App.WizardController.extend(App.InstallComponent, {
 

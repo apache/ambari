@@ -64,24 +64,26 @@ public class ServicesMapReduceDistributedCacheCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
-    Mockito.when(cluster.getClusterId()).thenReturn(1L);
-    Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
-
+    final Map<String, Service> services = new HashMap<>();
     final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getService("YARN")).thenReturn(service);
+
+    services.put("YARN", service);
+
+    Mockito.when(cluster.getServices()).thenReturn(services);
+    Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
+    Mockito.when(cluster.getClusterId()).thenReturn(1L);
+
     Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
 
     PrereqCheckRequest req = new PrereqCheckRequest("cluster");
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.FAIL);
-    Mockito.when(cluster.getService("YARN")).thenReturn(service);
     Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(req));
 
     req.addResult(CheckDescription.SERVICES_NAMENODE_HA, PrereqCheckStatus.PASS);
-    Mockito.when(cluster.getService("YARN")).thenReturn(service);
     Assert.assertTrue(servicesMapReduceDistributedCacheCheck.isApplicable(req));
 
 
-    Mockito.when(cluster.getService("YARN")).thenThrow(new ServiceNotFoundException("no", "service"));
+    services.remove("YARN");
     Assert.assertFalse(servicesMapReduceDistributedCacheCheck.isApplicable(new PrereqCheckRequest("cluster")));
   }
 

@@ -64,8 +64,9 @@ class TestController(unittest.TestCase):
     config = MagicMock()
     #config.get.return_value = "something"
     config.get.return_value = "5"
+    server_hostname = "test_server"
 
-    self.controller = Controller.Controller(config)
+    self.controller = Controller.Controller(config, server_hostname)
     self.controller.netutil.MINIMUM_INTERVAL_BETWEEN_HEARTBEATS = 0.1
     self.controller.netutil.HEARTBEAT_NOT_IDDLE_INTERVAL_SEC = 0.1
 
@@ -384,7 +385,7 @@ class TestController(unittest.TestCase):
     self.assertEqual(actual, expected)
     
     security_mock.CachedHTTPSConnection.assert_called_once_with(
-      self.controller.config)
+      self.controller.config, self.controller.serverHostname)
     requestMock.called_once_with(url, data,
       {'Content-Type': 'application/ambari_simplejson'})
 

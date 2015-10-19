@@ -25,6 +25,7 @@ import java.util.Map;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Used to hold various helper objects required to process an upgrade pack.
@@ -41,6 +42,14 @@ public class UpgradeContext {
   private StackId m_originalStackId;
 
   /**
+   * The stack currently used to start/restart services during an upgrade.This is the same
+   * During a {@link UpgradeType#ROLLING} upgrade, this is always the {@link this.m_targetStackId},
+   * During a {@link UpgradeType#NON_ROLLING} upgrade, this is initially the {@link this.m_sourceStackId} while
+   * stopping services, and then changes to the {@link this.m_targetStackId} when starting services.
+   */
+  private StackId m_effectiveStackId;
+
+  /**
    * The target upgrade stack before the upgrade started. This is the same
    * regardless of whether the current direction is {@link Direction#UPGRADE} or
    * {@link Direction#DOWNGRADE}.
@@ -54,6 +63,7 @@ public class UpgradeContext {
   private Map<String, String> m_serviceNames = new HashMap<String, String>();
   private Map<String, String> m_componentNames = new HashMap<String, String>();
   private String m_downgradeFromVersion = null;
+  private UpgradeType m_type = null;
 
   /**
    * {@code true} if slave/client component failures should be automatically
@@ -68,6 +78,11 @@ public class UpgradeContext {
    * begin with.
    */
   private boolean m_autoSkipServiceCheckFailures = false;
+
+  /**
+   * {@code true} if manual verification tasks should be automatically skipped.
+   */
+  private boolean m_autoSkipManualVerification = false;
 
   /**
    * Constructor.
@@ -88,15 +103,31 @@ public class UpgradeContext {
    *          the target version to upgrade to
    * @param direction
    *          the direction for the upgrade
+   * @param type
+   *          the type of upgrade, either rolling or non_rolling
    */
   public UpgradeContext(MasterHostResolver resolver, StackId sourceStackId,
       StackId targetStackId, String version,
-      Direction direction) {
+      Direction direction, UpgradeType type) {
     m_version = version;
     m_originalStackId = sourceStackId;
+
+    switch (type) {
+      case ROLLING:
+        m_effectiveStackId = targetStackId;
+        break;
+      case NON_ROLLING:
+        m_effectiveStackId = sourceStackId;
+        break;
+      default:
+        m_effectiveStackId = targetStackId;
+        break;
+    }
+
     m_targetStackId = targetStackId;
     m_direction = direction;
     m_resolver = resolver;
+    m_type = type;
   }
 
   /**
@@ -118,6 +149,13 @@ public class UpgradeContext {
    */
   public Direction getDirection() {
     return m_direction;
+  }
+
+  /**
+   * @return the type of upgrade.
+   */
+  public UpgradeType getType() {
+    return m_type;
   }
 
   /**
@@ -162,6 +200,21 @@ public class UpgradeContext {
   public void setOriginalStackId(StackId originalStackId) {
     m_originalStackId = originalStackId;
   }
+
+  /**
+   * @return the effectiveStackId that is currently in use.
+   */
+  public StackId getEffectiveStackId() {
+    return m_effectiveStackId;
+  }
+
+  /**
+   * @param effectiveStackId the effectiveStackId to set
+   */
+  public void setEffectiveStackId(StackId effectiveStackId) {
+    m_effectiveStackId = effectiveStackId;
+  }
+
 
   /**
    * @return the targetStackId
@@ -265,7 +318,7 @@ public class UpgradeContext {
   /**
    * Sets whether skippable components that failed are automatically skipped.
    *
-   * @param skipComponentFailures
+   * @param autoSkipComponentFailures
    *          {@code true} to automatically skip component failures which are
    *          marked as skippable.
    */
@@ -295,4 +348,22 @@ public class UpgradeContext {
     m_autoSkipServiceCheckFailures = autoSkipServiceCheckFailures;
   }
 
+  /**
+   * Gets whether manual verification tasks can be automatically skipped.
+   *
+   * @return the skipManualVerification
+   */
+  public boolean isManualVerificationAutoSkipped() {
+    return m_autoSkipManualVerification;
+  }
+
+  /**
+   * Sets whether manual verification checks are automatically skipped.
+   *
+   * @param autoSkipManualVerification
+   *          {@code true} to automatically skip manual verification tasks.
+   */
+  public void setAutoSkipManualVerification(boolean autoSkipManualVerification) {
+    m_autoSkipManualVerification = autoSkipManualVerification;
+  }
 }

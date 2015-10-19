@@ -17,7 +17,7 @@
 
 var App = require('app');
 require('controllers/main/charts/heatmap_metrics/heatmap_metric');
-var date = require('utils/date');
+var date = require('utils/date/date');
 
 describe('MainChartHeatmapMetric', function () {
   var mainChartHeatmapMetric = App.MainChartHeatmapMetric.create({});

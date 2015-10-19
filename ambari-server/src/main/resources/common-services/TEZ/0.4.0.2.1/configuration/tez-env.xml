@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>tez_user</name>
+    <display-name>Tez User</display-name>
     <value>tez</value>
     <property-type>USER</property-type>
     <description></description>

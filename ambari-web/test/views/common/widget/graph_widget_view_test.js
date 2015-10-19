@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/common/widget/graph_widget_view');
+var fileUtils = require('utils/file_utils');
 
 describe('App.GraphWidgetView', function () {
   var view = App.GraphWidgetView.create();
@@ -124,6 +125,117 @@ describe('App.GraphWidgetView', function () {
         expect(test.data.dataLinks).to.eql(test.result);
       });
     });
+  });
+
+  describe('#exportGraphData', function () {
+
+    var cases = [
+      {
+        data: null,
+        prepareCSVCallCount: 0,
+        prepareJSONCallCount: 0,
+        downloadTextFileCallCount: 0,
+        showAlertPopupCallCount: 1,
+        title: 'no data'
+      },
+      {
+        data: {},
+        prepareCSVCallCount: 0,
+        prepareJSONCallCount: 0,
+        downloadTextFileCallCount: 0,
+        showAlertPopupCallCount: 1,
+        title: 'invalid data'
+      },
+      {
+        data: [
+          {
+            data: null
+          }
+        ],
+        prepareCSVCallCount: 0,
+        prepareJSONCallCount: 0,
+        downloadTextFileCallCount: 0,
+        showAlertPopupCallCount: 1,
+        title: 'empty data'
+      },
+      {
+        data: [
+          {
+            data: {}
+          }
+        ],
+        prepareCSVCallCount: 0,
+        prepareJSONCallCount: 0,
+        downloadTextFileCallCount: 0,
+        showAlertPopupCallCount: 1,
+        title: 'malformed data'
+      },
+      {
+        data: [
+          {
+            data: [
+              {
+                key: 'value'
+              }
+            ]
+          }
+        ],
+        prepareCSVCallCount: 0,
+        prepareJSONCallCount: 1,
+        downloadTextFileCallCount: 1,
+        showAlertPopupCallCount: 0,
+        title: 'JSON export'
+      },
+      {
+        data: [
+          {
+            data: [
+              {
+                key: 'value'
+              }
+            ]
+          }
+        ],
+        event: {
+          context: true
+        },
+        prepareCSVCallCount: 1,
+        prepareJSONCallCount: 0,
+        downloadTextFileCallCount: 1,
+        showAlertPopupCallCount: 0,
+        title: 'CSV export'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(view, 'prepareCSV').returns([]);
+      sinon.stub(view, 'prepareJSON').returns([]);
+      sinon.stub(fileUtils, 'downloadTextFile', Em.K);
+      sinon.stub(App, 'showAlertPopup', Em.K);
+    });
+
+    afterEach(function () {
+      view.prepareCSV.restore();
+      view.prepareJSON.restore();
+      fileUtils.downloadTextFile.restore();
+      App.showAlertPopup.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.set('data', item.data);
+        view.exportGraphData(item.event || {});
+        expect(view.prepareCSV.callCount).to.equal(item.prepareCSVCallCount);
+        expect(view.prepareJSON.callCount).to.equal(item.prepareJSONCallCount);
+        expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
+        expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
+        if (item.downloadTextFileCallCount) {
+          var fileType = item.event && item.event.context ? 'csv' : 'json';
+          expect(fileUtils.downloadTextFile.calledWith([], fileType, 'data.' + fileType)).to.be.true;
+        }
+      });
+    });
+
   });
 
 });

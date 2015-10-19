@@ -593,7 +593,7 @@ App.db.getLoginName = function () {
 App.db.getAuthenticated = function () {
   console.log('Trace: Entering db:getAuthenticated function');
   App.db.data = localStorage.getObject('ambari');
-  return App.db.data.app.authenticated;
+  return Boolean(App.db.data.app.authenticated);
 };
 
 App.db.getFilterConditions = function(name) {

@@ -112,7 +112,7 @@ public class Configuration {
   public static final String SRVR_DISABLED_CIPHERS = "security.server.disabled.ciphers";
   public static final String SRVR_DISABLED_PROTOCOLS = "security.server.disabled.protocols";
   public static final String RESOURCES_DIR_KEY = "resources.dir";
-  public static final String METADETA_DIR_PATH = "metadata.path";
+  public static final String METADATA_DIR_PATH = "metadata.path";
   public static final String COMMON_SERVICES_DIR_PATH = "common.services.path";
   public static final String SERVER_VERSION_FILE = "server.version.file";
   public static final String SERVER_VERSION_KEY = "version";
@@ -300,6 +300,8 @@ public class Configuration {
   public static final String RECOVERY_WINDOW_IN_MIN_DEFAULT = "60";
   public static final String RECOVERY_RETRY_GAP_KEY = "recovery.retry_interval";
   public static final String RECOVERY_RETRY_GAP_DEFAULT = "5";
+  public static final String RECOVERY_DISABLED_COMPONENTS_KEY = "recovery.disabled_components";
+  public static final String RECOVERY_ENABLED_COMPONENTS_KEY = "recovery.enabled_components";
 
   /**
    * Allow proxy calls to these hosts and ports only
@@ -458,7 +460,7 @@ public class Configuration {
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
   /**
-   *   For HTTP Response header configuration
+   *   For HTTP Response header configuration for Ambari Server UI
    */
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "http.strict-transport-security";
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
@@ -466,6 +468,16 @@ public class Configuration {
   public static final String HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "DENY";
   public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "http.x-xss-protection";
   public static final String HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
+
+  /**
+   *   For HTTP Response header configuration for Ambari Views
+   */
+  public static final String VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "views.http.strict-transport-security";
+  public static final String VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
+  public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY = "views.http.x-frame-options";
+  public static final String VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT = "SAMEORIGIN";
+  public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY = "views.http.x-xss-protection";
+  public static final String VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT = "1; mode=block";
 
   private static final Logger LOG = LoggerFactory.getLogger(
       Configuration.class);
@@ -981,7 +993,7 @@ public class Configuration {
    * @return String
    */
   public String getMetadataPath() {
-    return properties.getProperty(METADETA_DIR_PATH);
+    return properties.getProperty(METADATA_DIR_PATH);
   }
 
   /**
@@ -1035,7 +1047,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header.
+   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
    * <p/>
@@ -1052,7 +1064,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header.
+   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>DENY</code>. For example:
    * <p/>
@@ -1067,7 +1079,7 @@ public class Configuration {
   }
 
   /**
-   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header.
+   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header for Ambari Server UI.
    * <p/>
    * By default this will be <code>1; mode=block</code>. For example:
    * <p/>
@@ -1079,6 +1091,53 @@ public class Configuration {
    */
   public String getXXSSProtectionHTTPResponseHeader() {
     return properties.getProperty(HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>Strict-Transport-Security</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>max-age=31536000; includeSubDomains</code>. For example:
+   * <p/>
+   * <code>
+   * Strict-Transport-Security: max-age=31536000; includeSubDomains
+   * </code>
+   * <p/>
+   * This value may be ignored when {@link #getApiSSLAuthentication()} is <code>false</code>.
+   *
+   * @return the Strict-Transport-Security value - null or "" indicates that the value is not set
+   */
+  public String getViewsStrictTransportSecurityHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY, VIEWS_HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-Frame-Options</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>DENY</code>. For example:
+   * <p/>
+   * <code>
+   * X-Frame-Options: DENY
+   * </code>
+   *
+   * @return the X-Frame-Options value - null or "" indicates that the value is not set
+   */
+  public String getViewsXFrameOptionsHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_KEY, VIEWS_HTTP_X_FRAME_OPTIONS_HEADER_VALUE_DEFAULT);
+  }
+
+  /**
+   * Get the value that should be set for the <code>X-XSS-Protection</code> HTTP response header for Ambari Views.
+   * <p/>
+   * By default this will be <code>1; mode=block</code>. For example:
+   * <p/>
+   * <code>
+   * X-XSS-Protection: 1; mode=block
+   * </code>
+   *
+   * @return the X-XSS-Protection value - null or "" indicates that the value is not set
+   */
+  public String getViewsXXSSProtectionHTTPResponseHeader() {
+    return properties.getProperty(VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_KEY, VIEWS_HTTP_X_XSS_PROTECTION_HEADER_VALUE_DEFAULT);
   }
 
   /**
@@ -1615,17 +1674,17 @@ public class Configuration {
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-      REQUEST_READ_TIMEOUT_DEFAULT));
+                                                   REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_CONNECT_TIMEOUT,
-        REQUEST_CONNECT_TIMEOUT_DEFAULT));
+                                                   REQUEST_CONNECT_TIMEOUT_DEFAULT));
   }
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1651,7 +1710,7 @@ public class Configuration {
 
   public String getCustomActionDefinitionPath() {
     return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
-      CUSTOM_ACTION_DEFINITION_DEF_VALUE);
+                                  CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   public int getAgentPackageParallelCommandsLimit() {
@@ -1700,7 +1759,7 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
-      CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
+        CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
   }
 
   /**
@@ -1738,7 +1797,7 @@ public class Configuration {
    */
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
-      VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+        VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**
@@ -1805,6 +1864,22 @@ public class Configuration {
    */
   public String getNodeRecoveryWindowInMin() {
     return properties.getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
+  }
+
+  /**
+   * Get the components for which recovery is disabled
+   * @return
+   */
+  public String getDisabledComponents() {
+    return properties.getProperty(RECOVERY_DISABLED_COMPONENTS_KEY, "");
+  }
+
+  /**
+   * Get the components for which recovery is enabled
+   * @return
+   */
+  public String getEnabledComponents() {
+    return properties.getProperty(RECOVERY_ENABLED_COMPONENTS_KEY, "");
   }
 
   /**

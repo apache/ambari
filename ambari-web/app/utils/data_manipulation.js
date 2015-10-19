@@ -78,7 +78,7 @@ module.exports = {
    * </code>
    * @param {Object[]} collection array of objects
    * @param {String} key property name of each object to be grouped
-   * @returns {*}
+   * @returns {object}
    */
   groupPropertyValues: function(collection, key) {
     var group = {};

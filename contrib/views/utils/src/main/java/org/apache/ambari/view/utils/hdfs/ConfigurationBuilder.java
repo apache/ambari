@@ -23,6 +23,8 @@ import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.NoClusterAssociatedException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.LocalFileSystem;
+import org.apache.hadoop.fs.azure.NativeAzureFileSystem;
+import org.apache.hadoop.fs.azure.Wasb;
 import org.apache.hadoop.hdfs.DistributedFileSystem;
 import org.apache.hadoop.hdfs.web.WebHdfsFileSystem;
 import org.slf4j.Logger;
@@ -66,7 +68,7 @@ public class ConfigurationBuilder {
   private AmbariApi ambariApi = null;
   private AuthConfigurationBuilder authParamsBuilder;
   private Map<String, String> authParams;
-
+  private URI defaultFsUri;
   /**
    * Constructor of ConfigurationBuilder based on ViewContext
    * @param context ViewContext
@@ -87,12 +89,14 @@ public class ConfigurationBuilder {
 
         LOG.info("HA HDFS cluster found.");
       } else {
-        if (!hasPort(defaultFS)) {
+        if (defaultFS.startsWith("hdfs://") && !hasPort(defaultFS)) {
           defaultFS = addPortIfMissing(defaultFS);
         }
       }
 
-      } catch (URISyntaxException e) {
+      defaultFsUri = new URI(defaultFS);
+
+    } catch (URISyntaxException e) {
       throw new HdfsApiException("HDFS060 Invalid " + DEFAULT_FS_INSTANCE_PROPERTY +
           "='" + defaultFS + "' URI", e);
     }
@@ -119,6 +123,21 @@ public class ConfigurationBuilder {
       value = context.getProperties().get(instanceProperty);
     }
     return value;
+  }
+
+  private void copyPropertyIfExists(String type, String key) {
+    String value;
+    try {
+      value = ambariApi.getCluster().getConfigurationValue(type, key);
+      if (value != null) {
+        conf.set(key, value);
+        LOG.debug("set " + key + " = " + value);
+      } else {
+        LOG.debug("No such property " + type + "/" + key);
+      }
+    } catch (NoClusterAssociatedException e) {
+      LOG.debug("No such property " + type + "/" + key);
+    }
   }
 
   private void copyHAProperties(String defaultFS) throws URISyntaxException, HdfsApiException {
@@ -152,6 +171,7 @@ public class ConfigurationBuilder {
   private String copyClusterProperty(String propertyName, String instancePropertyName) {
     String value = getProperty(HDFS_SITE, propertyName, instancePropertyName);
     conf.set(propertyName, value);
+    LOG.debug("set " + propertyName + " = " + value);
     return value;
   }
 
@@ -208,7 +228,26 @@ public class ConfigurationBuilder {
     conf.set("fs.webhdfs.impl", WebHdfsFileSystem.class.getName());
     conf.set("fs.file.impl", LocalFileSystem.class.getName());
 
+    configureWASB();
+
     return conf;
+  }
+
+  /**
+   * Fill Azure Blob Storage properties if wasb:// scheme configured
+   */
+  public void configureWASB() {
+    LOG.debug("defaultFsUri.getScheme() == " + defaultFsUri.getScheme());
+    if (defaultFsUri.getScheme().equals("wasb")) {
+      conf.set("fs.AbstractFileSystem.wasb.impl", Wasb.class.getName());
+      conf.set("fs.wasb.impl", NativeAzureFileSystem.class.getName());
+
+      String account = defaultFsUri.getHost();
+      LOG.debug("WASB account == " + account);
+      copyPropertyIfExists(CORE_SITE, "fs.azure.account.key." + account);
+      copyPropertyIfExists(CORE_SITE, "fs.azure.account.keyprovider." + account);
+      copyPropertyIfExists(CORE_SITE, "fs.azure.shellkeyprovider.script");
+    }
   }
 
   /**

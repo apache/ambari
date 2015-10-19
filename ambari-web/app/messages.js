@@ -270,6 +270,7 @@ Em.I18n.translations = {
   'common.dataSet': 'Data Set',
   'common.label': 'Label',
   'common.preview': 'Preview',
+  'common.options': 'Options',
   'common.scope': 'Scope',
   'common.clone': 'Clone',
   'common.removed': 'Removed',
@@ -804,6 +805,13 @@ Em.I18n.translations = {
   'installer.step7.misc.notification.use_tls':'Use TLS',
   'installer.step7.misc.notification.use_ssl':'Use SSL',
 
+  'installer.step7.preInstallChecks':'Pre Install Checks',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.header':'Skipping Pre Install Checks',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.body':'Skipping Pre Install Checks is not recommended.',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.primary':'Ignore and Proceed',
+  'installer.step7.preInstallChecks.notRunChecksWarnPopup.secondary':'Run Pre Install Checks',
+  'installer.step7.preInstallChecks.checksPopup.header':'Pre Install Checks',
+
 
   'installer.step8.header': 'Review',
   'installer.step8.body': 'Please review the configuration before installation',
@@ -1021,6 +1029,13 @@ Em.I18n.translations = {
   'admin.authentication.form.test.success':'The configuration passes the test',
   'admin.authentication.form.test.fail':'The configuration fails the test',
 
+
+  'admin.kerberos.credentials.store.hint.supported': 'When checked, Ambari will store the KDC Admin credentials so they are not required to be re-entered during future changes of services, hosts, and components.',
+  'admin.kerberos.credentials.store.hint.not.supported': 'Ambari is not configured for storing credentials',
+  'admin.kerberos.credentials.store.label': 'Save Admin Credentials',
+  'admin.kerberos.credentials.store.menu.label': 'Manage KDC Credentials',
+  'admin.kerberos.credentials.remove.confirmation.header': 'Remove KDC Credentials Confirmation',
+  'admin.kerberos.credentials.remove.confirmation.body': 'You are about to remove the KDC Credentials from Ambari. Are you sure?',
   'admin.kerberos.wizard.configuration.note': 'This is the initial configuration created by Enable Kerberos wizard.',
   'admin.kerberos.wizard.header':'Enable Kerberos Wizard',
   'admin.kerberos.button.enable': 'Enable Kerberos',
@@ -1430,6 +1445,23 @@ Em.I18n.translations = {
   'admin.stackVersions.version.downgrade.running': "Downgrade: In Process",
   'admin.stackVersions.version.downgrade.aborted': "Downgrade: Aborted",
 
+  'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
+  'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
+  'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.method': "Choose the upgrade method:",
+  'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.tolerance': "Select optional upgrade failure tolerance:",
+  'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option1': "Skip all Slave Component failures",
+  'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.option2': "Skip all Service Check failures",
+  'admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip': "These upgrade failure tolerance options are useful when performing an upgrade on a large cluster and you want to minimize user intervention.",
+  'admin.stackVersions.version.upgrade.upgradeOptions.RU.title': "Rolling Upgrade",
+  'admin.stackVersions.version.upgrade.upgradeOptions.RU.description': "Services remain running while the upgrade is performed. Minimized disruption but slower upgrade.",
+  'admin.stackVersions.version.upgrade.upgradeOptions.EU.title': "Express Upgrade",
+  'admin.stackVersions.version.upgrade.upgradeOptions.EU.description': "Services are stopped while the upgrade is performed. Incurs downtime, but faster upgrade.",
+  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun':'Rerun Checks',
+  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title':'Checks:',
+  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed':'Passed',
+  'admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip':'Option not available',
+  'admin.stackVersions.version.upgrade.upgradeOptions.notAllowed':'Not allowed by the current version',
+
   'admin.stackVersions.hosts.popup.header.current': "Current",
   'admin.stackVersions.hosts.popup.header.installed': "Installed",
   'admin.stackVersions.hosts.popup.header.not_installed': "Not installed",
@@ -1467,7 +1499,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.state.paused.downgrade': "Downgrade Paused",
   'admin.stackUpgrade.state.aborted.downgrade': "Downgrade Aborted",
   'admin.stackUpgrade.state.completed.downgrade': "Downgrade Finished",
-  'admin.stackUpgrade.dialog.header': "Rolling Upgrade to {0}",
+  'admin.stackUpgrade.dialog.header': "{0} to {1}",
   'admin.stackUpgrade.dialog.downgrade.header': "Downgrade to {0}",
   'admin.stackUpgrade.dialog.operationFailed': "This operation failed.",
   'admin.stackUpgrade.dialog.stop': "Stop Upgrade",
@@ -1974,10 +2006,10 @@ Em.I18n.translations = {
     '</div>',
   'services.reassign.step5.body.app_timeline_server': '<div class="alert alert-info">' +
   '<ol>' +
-  '<li>Copy <b>/hadoop/yarn/timeline/leveldb-timeline-store.ldb</b> from the source host <b>{1}</b> to <b>/hadoop/yarn/timeline/leveldb-timeline-store.ldb</b> on the target host <b>{2}</b>.</li>' +
+  '<li>Copy <b>{7}/leveldb-timeline-store.ldb</b> from the source host <b>{1}</b> to <b>{7}/leveldb-timeline-store.ldb</b> on the target host <b>{2}</b>.</li>' +
   '<li>Login to the target host <b>{2}</b> and change permissions by running:' +
-  '<div class="code-snippet">chown -R {3}:{5} /hadoop/yarn/timeline/leveldb-timeline-store.ldb</div></li>' +
-  '<div class="code-snippet">chmod -R 700 /hadoop/yarn/timeline/leveldb-timeline-store.ldb</div></li>' +
+  '<div class="code-snippet">chown -R {3}:{5} {7}/leveldb-timeline-store.ldb</div></li>' +
+  '<div class="code-snippet">chmod -R 700 {7}/leveldb-timeline-store.ldb</div></li>' +
   '</ol>' +
   '</div>',
   'services.reassign.step5.body.securityNotice': '<div class="alert alert-info"> <div class="alert alert-warn"> <strong>Note: </strong> Secure cluster' +
@@ -2344,7 +2376,6 @@ Em.I18n.translations = {
   'dashboard.button.switch': 'Switch to classic dashboard',
   'dashboard.button.switchShort': 'Switch',
   'dashboard.button.reset': 'Reset all widgets to default ',
-  'dashboard.button.gangliaLink': 'View metrics in Ganglia',
   'dashboard.widgets.actions.title': 'Metric Actions',
   'dashboard.widgets.create': 'Create Widget',
   'dashboard.widgets.actions.browse': 'Browse Widgets',

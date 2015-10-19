@@ -33,7 +33,6 @@ from resource_management.libraries.functions.security_commons import get_params_
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
 from resource_management.core.resources.system import File
-from resource_management.core.shell import as_sudo
 
 from hive import hive
 from hive import jdbc_connector
@@ -155,7 +154,7 @@ class HiveMetastoreDefault(HiveMetastore):
     """
     Executes the schema upgrade binary.  This is its own function because it could
     be called as a standalone task from the upgrade pack, but is safe to run it for each
-    metastore instance.
+    metastore instance. The schema upgrade on an already upgraded metastore is a NOOP.
 
     The metastore schema upgrade requires a database driver library for most
     databases. During an upgrade, it's possible that the library is not present,
@@ -173,28 +172,36 @@ class HiveMetastoreDefault(HiveMetastore):
     # present, then download it first
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
       target_directory = format("/usr/hdp/{version}/hive/lib")
-      if not os.path.exists(params.target):
-        # download it
+
+      # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
+      # but if hdp-select is called and the restart fails, then this means that current pointer
+      # is now pointing to the upgraded version location; that's bad for the cp command
+      source_jdbc_file = format(params.target.replace("/usr/hdp/current", "/usr/hdp/{current_version}"))
+
+      # download it if it does not exist
+      if not os.path.exists(source_jdbc_file):
         jdbc_connector()
+
+      target_directory_and_filename = os.path.join(target_directory, os.path.basename(source_jdbc_file))
 
       if params.sqla_db_used:
         target_native_libs_directory = format("{target_directory}/native/lib64")
 
         Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
 
-        Directory(target_native_libs_directory,
-                  recursive=True)
+        Directory(target_native_libs_directory, recursive=True)
 
         Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
 
         Execute(format("{sudo} chown -R {hive_user}:{user_group} {hive_lib}/*"))
       else:
-        Execute(('cp', params.target, target_directory),
-                path=["/bin", "/usr/bin/"], sudo = True)
+        # copy the JDBC driver from the older metastore location to the new location only
+        # if it does not already exist
+        if not os.path.exists(target_directory_and_filename):
+          Execute(('cp', source_jdbc_file, target_directory),
+            path=["/bin", "/usr/bin/"], sudo = True)
 
-      File(os.path.join(target_directory, os.path.basename(params.target)),
-        mode = 0644,
-      )
+      File(target_directory_and_filename, mode = 0644)
 
     # build the schema tool command
     binary = format("/usr/hdp/{version}/hive/bin/schematool")
@@ -214,6 +221,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
     command = format("{binary} -dbType {hive_metastore_db_type} -upgradeSchema")
     Execute(command, user=params.hive_user, tries=1, environment=env_dict, logoutput=True)
+
 
 if __name__ == "__main__":
   HiveMetastore().execute()

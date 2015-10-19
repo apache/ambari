@@ -44,6 +44,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

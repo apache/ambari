@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.utils.ShellCommandUtil;
+import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -73,7 +75,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * <p/>
    * The kerberosConfiguration Map is not being used.
    *
-   * @param administratorCredentials a KerberosCredential containing the administrative credentials
+   * @param administratorCredentials a PrincipalKeyCredential containing the administrative credential
    *                                 for the relevant KDC
    * @param realm                    a String declaring the default Kerberos realm (or domain)
    * @param kerberosConfiguration    a Map of key/value pairs containing data from the kerberos-env configuration set
@@ -83,11 +85,11 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    * @throws KerberosOperationException           if an unexpected error occurred
    */
   @Override
-  public void open(KerberosCredential administratorCredentials, String realm,
+  public void open(PrincipalKeyCredential administratorCredentials, String realm,
                    Map<String, String> kerberosConfiguration)
       throws KerberosOperationException {
 
-    setAdministratorCredentials(administratorCredentials);
+    setAdministratorCredential(administratorCredentials);
     setDefaultRealm(realm);
 
     if (kerberosConfiguration != null) {
@@ -176,9 +178,9 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
 
-    if ((principal == null) || principal.isEmpty()) {
+    if (StringUtils.isEmpty(principal)) {
       throw new KerberosOperationException("Failed to create new principal - no principal specified");
-    } else if ((password == null) || password.isEmpty()) {
+    } else if (StringUtils.isEmpty(password)) {
       throw new KerberosOperationException("Failed to create new principal - no password specified");
     } else {
       String createAttributes = getCreateAttributes();
@@ -220,9 +222,9 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
 
-    if ((principal == null) || principal.isEmpty()) {
+    if (StringUtils.isEmpty(principal)) {
       throw new KerberosOperationException("Failed to set password - no principal specified");
-    } else if ((password == null) || password.isEmpty()) {
+    } else if (StringUtils.isEmpty(password)) {
       throw new KerberosOperationException("Failed to set password - no password specified");
     } else {
       // Create the kdamin query:  change_password <-randkey|-pw <password>> <principal>
@@ -250,7 +252,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
 
-    if ((principal == null) || principal.isEmpty()) {
+    if (StringUtils.isEmpty(principal)) {
       throw new KerberosOperationException("Failed to remove new principal - no principal specified");
     } else {
       ShellCommandUtil.Result result = invokeKAdmin(String.format("delete_principal -force %s", principal));
@@ -313,7 +315,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("This operation handler has not been opened");
     }
 
-    if ((principal == null) || principal.isEmpty()) {
+    if (StringUtils.isEmpty(principal)) {
       throw new KerberosOperationException("Failed to get key number for principal  - no principal specified");
     } else {
       // Create the kdamin query:  get_principal <principal>
@@ -363,115 +365,95 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
    */
   protected ShellCommandUtil.Result invokeKAdmin(String query)
       throws KerberosOperationException {
-    ShellCommandUtil.Result result = null;
-
-    if ((query == null) || query.isEmpty()) {
+    if (StringUtils.isEmpty(query)) {
       throw new KerberosOperationException("Missing kadmin query");
     }
-    KerberosCredential administratorCredentials = getAdministratorCredentials();
+
+    ShellCommandUtil.Result result;
+    PrincipalKeyCredential administratorCredential = getAdministratorCredential();
     String defaultRealm = getDefaultRealm();
 
     List<String> command = new ArrayList<String>();
-    File tempKeytabFile = null;
 
-    try {
-      String adminPrincipal = (administratorCredentials == null)
-          ? null
-          : administratorCredentials.getPrincipal();
+    String adminPrincipal = (administratorCredential == null)
+        ? null
+        : administratorCredential.getPrincipal();
 
-      if ((adminPrincipal == null) || adminPrincipal.isEmpty()) {
-        // Set the kdamin interface to be kadmin.local
-        if((executableKadminLocal == null) || executableKadminLocal.isEmpty()) {
-          throw new KerberosOperationException("No path for kadmin.local is available - this KerberosOperationHandler may not have been opened.");
-        }
+    if (StringUtils.isEmpty(adminPrincipal)) {
+      // Set the kdamin interface to be kadmin.local
+      if (StringUtils.isEmpty(executableKadminLocal)) {
+        throw new KerberosOperationException("No path for kadmin.local is available - this KerberosOperationHandler may not have been opened.");
+      }
 
-        command.add(executableKadminLocal);
+      command.add(executableKadminLocal);
+    } else {
+      if (StringUtils.isEmpty(executableKadmin)) {
+        throw new KerberosOperationException("No path for kadmin is available - this KerberosOperationHandler may not have been opened.");
+      }
+      char[] adminPassword = administratorCredential.getKey();
+
+      // Set the kdamin interface to be kadmin
+      command.add(executableKadmin);
+
+      // Add explicit KDC admin host, if available
+      if (getAdminServerHost() != null) {
+        command.add("-s");
+        command.add(getAdminServerHost());
+      }
+
+      // Add the administrative principal
+      command.add("-p");
+      command.add(adminPrincipal);
+
+      if (!ArrayUtils.isEmpty(adminPassword)) {
+        // Add password for administrative principal
+        command.add("-w");
+        command.add(String.valueOf(adminPassword));
+      }
+    }
+
+    if (!StringUtils.isEmpty(defaultRealm)) {
+      // Add default realm clause
+      command.add("-r");
+      command.add(defaultRealm);
+    }
+
+    // Add kadmin query
+    command.add("-q");
+    command.add(query);
+
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(String.format("Executing: %s", createCleanCommand(command)));
+    }
+
+    result = executeCommand(command.toArray(new String[command.size()]));
+
+    if (!result.isSuccessful()) {
+      String message = String.format("Failed to execute kadmin:\n\tCommand: %s\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",
+          createCleanCommand(command), result.getExitCode(), result.getStdout(), result.getStderr());
+      LOG.warn(message);
+
+      // Test STDERR to see of any "expected" error conditions were encountered...
+      String stdErr = result.getStderr();
+      // Did admin credentials fail?
+      if (stdErr.contains("Client not found in Kerberos database")) {
+        throw new KerberosAdminAuthenticationException(stdErr);
+      } else if (stdErr.contains("Incorrect password while initializing")) {
+        throw new KerberosAdminAuthenticationException(stdErr);
+      }
+      // Did we fail to connect to the KDC?
+      else if (stdErr.contains("Cannot contact any KDC")) {
+        throw new KerberosKDCConnectionException(stdErr);
+      } else if (stdErr.contains("Cannot resolve network address for admin server in requested realm while initializing kadmin interface")) {
+        throw new KerberosKDCConnectionException(stdErr);
+      }
+      // Was the realm invalid?
+      else if (stdErr.contains("Missing parameters in krb5.conf required for kadmin client")) {
+        throw new KerberosRealmException(stdErr);
+      } else if (stdErr.contains("Cannot find KDC for requested realm while initializing kadmin interface")) {
+        throw new KerberosRealmException(stdErr);
       } else {
-        if((executableKadmin == null) || executableKadmin.isEmpty()) {
-          throw new KerberosOperationException("No path for kadmin is available - this KerberosOperationHandler may not have been opened.");
-        }
-        char[] adminPassword = administratorCredentials.getPassword();
-        String adminKeyTab = administratorCredentials.getKeytab();
-
-        // Set the kdamin interface to be kadmin
-        command.add(executableKadmin);
-
-        // Add explicit KDC admin host, if available
-        if (getAdminServerHost() != null) {
-          command.add("-s");
-          command.add(getAdminServerHost());
-        }
-
-        // Add the administrative principal
-        command.add("-p");
-        command.add(adminPrincipal);
-
-        if ((adminKeyTab != null) && !adminKeyTab.isEmpty()) {
-          tempKeytabFile = createKeytabFile(adminKeyTab);
-
-          if (tempKeytabFile != null) {
-            // Add keytab file administrative principal
-            command.add("-k");
-            command.add("-t");
-            command.add(tempKeytabFile.getAbsolutePath());
-          }
-        } else if (adminPassword != null) {
-          // Add password for administrative principal
-          command.add("-w");
-          command.add(String.valueOf(adminPassword));
-        }
-      }
-
-      if ((defaultRealm != null) && !defaultRealm.isEmpty()) {
-        // Add default realm clause
-        command.add("-r");
-        command.add(defaultRealm);
-      }
-
-      // Add kadmin query
-      command.add("-q");
-      command.add(query);
-
-      if(LOG.isDebugEnabled()) {
-        LOG.debug(String.format("Executing: %s", createCleanCommand(command)));
-      }
-
-      result = executeCommand(command.toArray(new String[command.size()]));
-
-      if (!result.isSuccessful()) {
-        String message = String.format("Failed to execute kadmin:\n\tCommand: %s\n\tExitCode: %s\n\tSTDOUT: %s\n\tSTDERR: %s",
-            createCleanCommand(command), result.getExitCode(), result.getStdout(), result.getStderr());
-        LOG.warn(message);
-
-        // Test STDERR to see of any "expected" error conditions were encountered...
-        String stdErr = result.getStderr();
-        // Did admin credentials fail?
-        if (stdErr.contains("Client not found in Kerberos database")) {
-          throw new KerberosAdminAuthenticationException(stdErr);
-        } else if (stdErr.contains("Incorrect password while initializing")) {
-          throw new KerberosAdminAuthenticationException(stdErr);
-        }
-        // Did we fail to connect to the KDC?
-        else if (stdErr.contains("Cannot contact any KDC")) {
-          throw new KerberosKDCConnectionException(stdErr);
-        } else if (stdErr.contains("Cannot resolve network address for admin server in requested realm while initializing kadmin interface")) {
-          throw new KerberosKDCConnectionException(stdErr);
-        }
-        // Was the realm invalid?
-        else if (stdErr.contains("Missing parameters in krb5.conf required for kadmin client")) {
-          throw new KerberosRealmException(stdErr);
-        } else if (stdErr.contains("Cannot find KDC for requested realm while initializing kadmin interface")) {
-          throw new KerberosRealmException(stdErr);
-        } else {
-          throw new KerberosOperationException("Unexpected error condition executing the kadmin command");
-        }
-      }
-    } finally {
-      // If a temporary keytab file was created, clean it up.
-      if (tempKeytabFile != null) {
-        if (!tempKeytabFile.delete()) {
-          tempKeytabFile.deleteOnExit();
-        }
+        throw new KerberosOperationException("Unexpected error condition executing the kadmin command");
       }
     }
 

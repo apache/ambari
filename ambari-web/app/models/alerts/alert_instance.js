@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var dateUtils = require('utils/date');
+var dateUtils = require('utils/date/date');
 
 App.AlertInstance = DS.Model.extend({
   id: DS.attr('number'),

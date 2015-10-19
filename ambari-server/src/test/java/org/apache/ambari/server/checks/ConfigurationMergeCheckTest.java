@@ -48,7 +48,7 @@ import org.junit.Test;
 import com.google.inject.Provider;
 //
 /**
- * Unit tests for ServicesUpCheck
+ * Unit tests for ConfigurationMergeCheck
  */
 public class ConfigurationMergeCheckTest {
 
@@ -95,37 +95,7 @@ public class ConfigurationMergeCheckTest {
     replay(config);
     cmc.config = config;
 
-    Assert.assertFalse(cmc.isApplicable(request));
-
-    final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.0")).andReturn(createFor("1.0")).anyTimes();
-    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.1")).andReturn(createFor("1.1")).anyTimes();
-    expect(repositoryVersionDAO.findByStackNameAndVersion("HDP", "1.2")).andReturn(null).anyTimes();
-
-    replay(repositoryVersionDAO);
-
-    cmc.repositoryVersionDaoProvider = new Provider<RepositoryVersionDAO>() {
-      @Override
-      public RepositoryVersionDAO get() {
-        return repositoryVersionDAO;
-      }
-    };
-
-    cmc.clustersProvider = new Provider<Clusters>() {
-      @Override
-      public Clusters get() {
-        return clusters;
-      }
-    };
-
-    request.setRepositoryVersion("1.0");
-    Assert.assertFalse(cmc.isApplicable(request));
-
-    request.setRepositoryVersion("1.1");
     Assert.assertTrue(cmc.isApplicable(request));
-
-    request.setRepositoryVersion("1.2");
-    Assert.assertFalse(cmc.isApplicable(request));
   }
 
   @Test

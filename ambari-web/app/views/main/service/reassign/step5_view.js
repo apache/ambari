@@ -32,18 +32,20 @@ App.ReassignMasterWizardStep5View = Em.View.extend({
     var sourceHost = this.get('controller.content.reassignHosts.source');
     var targetHost = this.get('controller.content.reassignHosts.target');
     var ha = '';
+    var user = this.get('controller.content.hdfsUser'), path;
+
     if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       ha = '_ha';
       var nnStartedHost = this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').mapProperty('hostName').without(sourceHost);
     }
 
-    var user = this.get('controller.content.hdfsUser');
-
-    if(this.get('controller.content.reassign.component_name') === 'APP_TIMELINE_SERVER') {
+    if (this.get('controller.content.reassign.component_name') === 'APP_TIMELINE_SERVER') {
       user = this.get('controller.content.serviceProperties.yarn-env.yarn_user');
+      path = this.get('controller.content.serviceProperties.yarn-site')['yarn.timeline-service.leveldb-timeline-store.path'];
     }
 
-    return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd);
+    return Em.I18n.t('services.reassign.step5.body.' + this.get('controller.content.reassign.component_name').toLowerCase() + ha).
+      format(componentDir, sourceHost, targetHost, user, nnStartedHost,this.get('controller.content.group'), componentDirCmd, path);
   }.property('controller.content.reassign.component_name', 'controller.content.componentDir', 'controller.content.masterComponentHosts', 'controller.content.reassign.host_id', 'controller.content.hdfsUser'),
 
   /**

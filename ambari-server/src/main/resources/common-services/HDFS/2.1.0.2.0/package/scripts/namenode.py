@@ -107,8 +107,23 @@ class NameNodeDefault(NameNode):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-hdfs-namenode"}
 
+  def restore_snapshot(self, env):
+    """
+    Restore the snapshot during a Downgrade.
+    """
+    print "TODO AMBARI-12698"
+    pass
+
+  def prepare_non_rolling_upgrade(self, env):
+    print "TODO AMBARI-12698"
+    pass
+
   def prepare_rolling_upgrade(self, env):
     namenode_upgrade.prepare_rolling_upgrade()
+
+  def finalize_non_rolling_upgrade(self, env):
+    print "TODO AMBARI-12698"
+    pass
 
   def finalize_rolling_upgrade(self, env):
     namenode_upgrade.finalize_rolling_upgrade()

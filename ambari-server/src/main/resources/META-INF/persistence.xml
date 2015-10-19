@@ -87,6 +87,7 @@
     <class>org.apache.ambari.server.orm.entities.TopologyHostInfoEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyHostTaskEntity</class>
     <class>org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity</class>
+    <class>org.apache.ambari.server.orm.entities.KerberosDescriptorEntity</class>
 
     <properties>      
       <property name="eclipselink.cache.size.default" value="10000" />

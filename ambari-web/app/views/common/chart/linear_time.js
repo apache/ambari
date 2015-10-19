@@ -17,7 +17,7 @@
 
 var App = require('app');
 var string_utils = require('utils/string_utils');
-var dateUtils = require('utils/date');
+var dateUtils = require('utils/date/date');
 
 /**
  * @class
@@ -161,10 +161,11 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   }.property('_containerSelector', 'popupSuffix'),
 
   didInsertElement: function () {
+    var self = this;
     this.loadData();
     this.registerGraph();
     this.$().parent().on('mouseleave', function () {
-      $(this).find('.export-graph-list').hide();
+      self.set('isExportMenuHidden', true);
     });
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {
       placement: 'left',
@@ -208,7 +209,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         name: this.get('ajaxIndex'),
         sender: this,
         data: this.getDataForAjaxRequest(),
-        success: '_refreshGraph',
+        success: 'loadDataSuccessCallback',
         error: 'loadDataErrorCallback'
       });
     }
@@ -236,13 +237,20 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     };
   },
 
+  loadDataSuccessCallback: function (response) {
+    this._refreshGraph(response);
+  },
+
   loadDataErrorCallback: function (xhr, textStatus, errorThrown) {
     this.set('isReady', true);
     if (xhr.readyState == 4 && xhr.status) {
       textStatus = xhr.status + " " + textStatus;
     }
     this._showMessage('warn', this.t('graphs.error.title'), this.t('graphs.error.message').format(textStatus, errorThrown));
-    this.set('hasData', false);
+    this.setProperties({
+      hasData: false,
+      isExportButtonHidden: true
+    });
   },
 
   /**
@@ -324,10 +332,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       var series = {};
       series.name = displayName;
       series.data = [];
+      var timeDiff = App.dateTimeWithTimeZone(seriesData[0][1] * 1000) / 1000 - seriesData[0][1];
       for (var index = 0; index < seriesData.length; index++) {
-        var x = App.dateTimeWithTimeZone(seriesData[index][1] * 1000) / 1000;
         series.data.push({
-          x: x,
+          x: seriesData[index][1] + timeDiff,
           y: seriesData[index][0]
         });
       }
@@ -389,10 +397,11 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    *
    * @type Function
    */
-  _refreshGraph: function (jsonData) {
+  _refreshGraph: function (jsonData, graphView) {
     if (this.get('isDestroyed')) {
       return;
     }
+    console.time('_refreshGraph');
     var seriesData = this.transformToSeries(jsonData);
 
     //if graph opened as modal popup
@@ -407,12 +416,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     }
     else {
       graph_container.children().each(function () {
-        if (!($(this).is('.export-graph-list, .corner-icon'))) {
+        if (!($(this).is('.export-graph-list-container, .corner-icon'))) {
           $(this).children().remove();
         }
       });
     }
-    if (this.checkSeries(seriesData)) {
+    var hasData = this.checkSeries(seriesData);
+    var view = graphView || this;
+    view.set('isExportButtonHidden', !hasData);
+    if (hasData) {
       // Check container exists (may be not, if we go to another page and wait while graphs loading)
       if (graph_container.length) {
         container = $(this.get('_containerSelector'));
@@ -437,6 +449,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     graph_container = null;
     container = null;
     popup_path = null;
+    console.timeEnd('_refreshGraph');
   },
 
   /**
@@ -498,8 +511,12 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         var avg = 0;
         var min = Number.MAX_VALUE;
         var max = Number.MIN_VALUE;
+        var numberOfNotNullValues = 0;
         for (var i = 0; i < series.data.length; i++) {
           avg += series.data[i]['y'];
+          if (series.data[i]['y'] !== null) {
+            numberOfNotNullValues++;
+          }
           if (!Em.isNone(series.data[i]['y'])) {
             if (series.data[i]['y'] < min) {
               min = series.data[i]['y'];
@@ -509,13 +526,11 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
             max = series.data[i]['y'];
           }
         }
-
-
         series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
           string_utils.pad('min', 5, '&nbsp;', 3) +
           string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
           string_utils.pad('avg', 5, '&nbsp;', 3) +
-          string_utils.pad(self.get('yAxisFormatter')(avg / series.data.compact().length), 12, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(avg / numberOfNotNullValues), 12, '&nbsp;', 3) +
           string_utils.pad('max', 12, '&nbsp;', 3) +
           string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
       }
@@ -751,12 +766,13 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         }.property('parentView.graph.isPopupReady'),
 
         didInsertElement: function () {
+          var popupBody = this;
           App.tooltip(this.$('.corner-icon > .icon-save'), {
             title: Em.I18n.t('common.export')
           });
           this.$().closest('.modal').on('click', function (event) {
-            if (!($(event.target).is('.corner-icon, .icon-save, .export-graph-list, .export-graph-list *'))) {
-              $(this).find('.export-graph-list').hide();
+            if (!($(event.target).is('.corner-icon, .icon-save, .export-graph-list-container, .export-graph-list-container *'))) {
+              popupBody.set('isExportMenuHidden', true);
             }
           });
           $('#modal').addClass('modal-graph-line');
@@ -1224,9 +1240,11 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
             hostName: hostName
           }
         }).done(function (response) {
+          console.time('==== runRequestsDone');
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context._refreshGraph.call(subRequest.context, response);
           }, this);
+          console.timeEnd('==== runRequestsDone');
         }).fail(function (jqXHR, textStatus, errorThrown) {
           _request.subRequests.forEach(function (subRequest) {
             subRequest.context.loadDataErrorCallback.call(subRequest.context, jqXHR, textStatus, errorThrown);

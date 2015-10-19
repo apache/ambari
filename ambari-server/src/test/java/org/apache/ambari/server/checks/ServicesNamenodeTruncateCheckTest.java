@@ -40,9 +40,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.Provider;
+import org.mockito.Mockito;
 
 /**
- * Unit tests for ServicesUpCheck
+ * Unit tests for ServicesNamenodeTruncateCheck
  *
  */
 public class ServicesNamenodeTruncateCheckTest {
@@ -56,9 +57,14 @@ public class ServicesNamenodeTruncateCheckTest {
     Cluster cluster = EasyMock.createMock(Cluster.class);
 
     Config config = EasyMock.createMock(Config.class);
+    final Map<String, Service> services = new HashMap<>();
+    final Service service = Mockito.mock(Service.class);
 
+    services.put("HDFS", service);
+
+    expect(cluster.getServices()).andReturn(services).anyTimes();
     expect(config.getProperties()).andReturn(m_configMap).anyTimes();
-    expect(cluster.getService("HDFS")).andReturn(EasyMock.createMock(Service.class));
+    expect(cluster.getService("HDFS")).andReturn(service);
     expect(cluster.getDesiredConfigByType("hdfs-site")).andReturn(config).anyTimes();
     expect(m_clusters.getCluster((String) anyObject())).andReturn(cluster).anyTimes();
 

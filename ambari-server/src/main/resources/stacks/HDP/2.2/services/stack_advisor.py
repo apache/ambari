@@ -35,7 +35,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "TEZ": self.recommendTezConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
-      "YARN": self.recommendYARNConfigurations
+      "YARN": self.recommendYARNConfigurations,
+      "STORM": self.recommendStormConfigurations,
+      "KNOX": self.recommendKnoxConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -236,6 +238,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putCoreSiteProperty("hadoop.security.key.provider.path", kmsPath)
       putHdfsSiteProperty("dfs.encryption.key.provider.uri", kmsPath)
 
+    if "ranger-env" in services["configurations"] and "ranger-hdfs-plugin-properties" in services["configurations"] and \
+      "ranger-hdfs-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHdfsRangerPluginProperty = self.putProperty(configurations, "ranger-hdfs-plugin-properties", services)
+      rangerEnvHdfsPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hdfs-plugin-enabled"]
+      putHdfsRangerPluginProperty("ranger-hdfs-plugin-enabled", rangerEnvHdfsPluginProperty)
+
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 
@@ -365,7 +373,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     toProcessQueues = yarn_queues.split(",")
     leafQueues = []
     while len(toProcessQueues) > 0:
-      queue = toProcessQueues.pop();
+      queue = toProcessQueues.pop()
       queueKey = "yarn.scheduler.capacity.root." + queue + ".queues"
       if queueKey in capacitySchedulerProperties:
         # This is a parent queue - need to add children
@@ -379,6 +387,14 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSitePropertyAttribute("hive.server2.tez.default.queues", "entries", leafQueues)
     putHiveSiteProperty("hive.server2.tez.default.queues", ",".join([leafQueue['value'] for leafQueue in leafQueues]))
 
+
+    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
+    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
+        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
+      if (rangerEnvHivePluginProperty.lower() == "yes"):
+        putHiveEnvProperty("hive_security_authorization", "RANGER")
+
     # Security
     if ("configurations" not in services) or ("hive-env" not in services["configurations"]) or \
               ("properties" not in services["configurations"]["hive-env"]) or \
@@ -387,6 +403,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveEnvProperty("hive_security_authorization", "None")
     else:
       putHiveEnvProperty("hive_security_authorization", services["configurations"]["hive-env"]["properties"]["hive_security_authorization"])
+
+
+    # Recommend Ranger Hive authorization as per Ranger Hive plugin property
+    if "ranger-env" in services["configurations"] and "hive-env" in services["configurations"] and \
+        "ranger-hive-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      rangerEnvHivePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hive-plugin-enabled"]
+      rangerEnvHiveAuthProperty = services["configurations"]["hive-env"]["properties"]["hive_security_authorization"]
+      if (rangerEnvHivePluginProperty.lower() == "yes"):
+        putHiveEnvProperty("hive_security_authorization", "Ranger")
+      elif (rangerEnvHiveAuthProperty.lower() == "ranger"):
+        putHiveEnvProperty("hive_security_authorization", "None")
+
     # hive_security_authorization == 'none'
     # this property is unrelated to Kerberos
     if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
@@ -642,6 +670,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
 
+    if "ranger-env" in services["configurations"] and "ranger-hbase-plugin-properties" in services["configurations"] and \
+        "ranger-hbase-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHbaseRangerPluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
+      rangerEnvHbasePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hbase-plugin-enabled"]
+      putHbaseRangerPluginProperty("ranger-hbase-plugin-enabled", rangerEnvHbasePluginProperty)
+
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     if not "yarn-site" in configurations:
@@ -695,6 +729,23 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       tez_url = '{0}://{1}:{2}/#/main/views/TEZ/{3}/TEZ_CLUSTER_INSTANCE'.format(server_protocol, server_host, server_port, latest_tez_jar_version)
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
+
+
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
+        "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
+      rangerEnvStormPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-storm-plugin-enabled"]
+      putStormRangerPluginProperty("ranger-storm-plugin-enabled", rangerEnvStormPluginProperty)
+
+  def recommendKnoxConfigurations(self, configurations, clusterData, services, hosts):
+    if "ranger-env" in services["configurations"] and "ranger-knox-plugin-properties" in services["configurations"] and \
+        "ranger-knox-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putKnoxRangerPluginProperty = self.putProperty(configurations, "ranger-knox-plugin-properties", services)
+      rangerEnvKnoxPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-knox-plugin-enabled"]
+      putKnoxRangerPluginProperty("ranger-knox-plugin-enabled", rangerEnvKnoxPluginProperty)
+
+
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
@@ -967,14 +1018,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
-                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name,prop_val))})
         prop_name = 'hive.security.authenticator.manager'
         prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
         if prop_name not in hive_server2 or hive_server2[prop_name] != prop_val:
           validationItems.append({"config-name": prop_name,
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
-                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name,prop_val))})
+        prop_name = 'hive.security.authorization.enabled'
+        prop_val = 'true'
+        if prop_name in hive_server2 and hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled."\
+                                  " {0} under hiveserver2-site needs to be set to {1}".format(prop_name, prop_val))})
       ##Add stack validations for  Ranger plugin disabled.
       elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
@@ -1010,44 +1068,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     parentValidationProblems = super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     validationItems = []
-    #Adding Ranger Plugin logic here
-    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    hive_env_properties = getSiteProperties(configurations, "hive-env")
-    ranger_plugin_enabled = hive_env_properties \
-                            and 'hive_security_authorization' in hive_env_properties \
-                            and hive_env_properties['hive_security_authorization'].lower() == 'ranger'
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    ##Add stack validations only if Ranger is enabled.
-    if ("RANGER" in servicesList):
-      ##Add stack validations for  Ranger plugin enabled.
-      if ranger_plugin_enabled:
-        prop_name = 'hive.security.authorization.enabled'
-        prop_val = 'true'
-        if hive_site and \
-            prop_name in hive_site and \
-          hive_site[prop_name] != prop_val:
-          validationItems.append({"config-name": prop_name,
-                                  "item": self.getWarnItem(
-                                    "If Ranger Hive Plugin is enabled." \
-                                    " {0} needs to be set to {1}".format(prop_name,prop_val))})
-
-        prop_name = 'hive.conf.restricted.list'
-        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
-        current_vals = []
-        if hive_site and prop_name in hive_site:
-          current_vals = hive_site[prop_name].split(',')
-
-        missing_vals = []
-
-        for val in prop_vals:
-          if not val in current_vals:
-            missing_vals.append(val)
-
-        if missing_vals:
-          validationItems.append({"config-name": prop_name,
-                                  "item": self.getWarnItem(
-                                  "If Ranger Hive Plugin is enabled." \
-                                  " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
     stripe_size_values = [8388608, 16777216, 33554432, 67108864, 134217728, 268435456]
     stripe_size_property = "hive.exec.orc.default.stripe.size"
     if stripe_size_property in properties and \

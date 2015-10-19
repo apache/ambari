@@ -19,6 +19,7 @@
 package org.apache.ambari.server.serveraction.kerberos;
 
 import junit.framework.Assert;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.apache.directory.server.kerberos.shared.keytab.KeytabEntry;
@@ -267,40 +268,32 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
   public void testAdminCredentialsNullPrincipal() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential(null, "password".toCharArray(), null);
-    handler.setAdministratorCredentials(credentials);
+    PrincipalKeyCredential credentials = new PrincipalKeyCredential(null, "password");
+    handler.setAdministratorCredential(credentials);
   }
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testAdminCredentialsEmptyPrincipal() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential("", "password".toCharArray(), null);
-    handler.setAdministratorCredentials(credentials);
+    PrincipalKeyCredential credentials = new PrincipalKeyCredential("", "password");
+    handler.setAdministratorCredential(credentials);
   }
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testAdminCredentialsNullCredential() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential("principal", null, null);
-    handler.setAdministratorCredentials(credentials);
+    PrincipalKeyCredential credentials = new PrincipalKeyCredential("principal", (char[])null);
+    handler.setAdministratorCredential(credentials);
   }
 
   @Test(expected = KerberosAdminAuthenticationException.class)
   public void testAdminCredentialsEmptyCredential1() throws KerberosOperationException {
     KerberosOperationHandler handler = createHandler();
 
-    KerberosCredential credentials = new KerberosCredential("principal", "".toCharArray(), null);
-    handler.setAdministratorCredentials(credentials);
-  }
-
-  @Test(expected = KerberosAdminAuthenticationException.class)
-  public void testAdminCredentialsEmptyCredential2() throws KerberosOperationException {
-    KerberosOperationHandler handler = createHandler();
-
-    KerberosCredential credentials = new KerberosCredential("principal", null, "");
-    handler.setAdministratorCredentials(credentials);
+    PrincipalKeyCredential credentials = new PrincipalKeyCredential("principal", "");
+    handler.setAdministratorCredential(credentials);
   }
 
   @Test
@@ -351,8 +344,8 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     KerberosOperationHandler handler = new KerberosOperationHandler() {
 
       @Override
-      public void open(KerberosCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
-        setAdministratorCredentials(administratorCredentials);
+      public void open(PrincipalKeyCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
+        setAdministratorCredential(administratorCredentials);
         setDefaultRealm(defaultRealm);
         setExecutableSearchPaths("/usr/bin, /usr/kerberos/bin, /usr/sbin");
       }
@@ -383,7 +376,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
       }
     };
 
-    handler.open(new KerberosCredential("admin/admin", "hadoop".toCharArray(), null), "EXAMPLE.COM", null);
+    handler.open(new PrincipalKeyCredential("admin/admin", "hadoop"), "EXAMPLE.COM", null);
     return handler;
   }
 }

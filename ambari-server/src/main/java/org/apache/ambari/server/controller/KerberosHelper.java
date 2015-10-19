@@ -20,8 +20,8 @@ package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
+import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
@@ -52,6 +52,10 @@ public interface KerberosHelper {
    * name of property which states whether kerberos is enabled
    */
   String SECURITY_ENABLED_PROPERTY_NAME = "security_enabled";
+  /**
+   * The alias to assign to the KDC administrator credential Keystore item
+   */
+  String KDC_ADMINISTRATOR_CREDENTIAL_ALIAS = "kdc.admin.credential";
 
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
@@ -417,33 +421,14 @@ public interface KerberosHelper {
       throws AmbariException;
 
   /**
-   * Sets the KDC administrator credentials.
-   * <p/>
-   * It is up to the implementation to determine how to store
-   * these credentials and for how long.
+   * Sets the previously stored KDC administrator credentials.
    *
-   * @param credentials the KDC administrator credentials
-   * @throws AmbariException if an error occurs while storing the credentials
-   */
-  void setKDCCredentials(KerberosCredential credentials) throws AmbariException;
-
-  /**
-   * Removes the previously set KDC administrator credentials.
-   *
-   * @throws AmbariException if an error occurs while removing the credentials
-   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
-   */
-  void removeKDCCredentials() throws AmbariException;
-
-  /**
-   * Gets the previously stored KDC administrator credentials.
-   *
-   * @return a KerberosCredential or null, if the KDC administrator credentials have not be set or
+   * @return a PrincipalKeyCredential or null, if the KDC administrator credentials have not be set or
    * have been removed
    * @throws AmbariException if an error occurs while retrieving the credentials
-   * @see KerberosHelper#setKDCCredentials(KerberosCredential)
+   * @param clusterName
    */
-  KerberosCredential getKDCCredentials() throws AmbariException;
+  PrincipalKeyCredential getKDCAdministratorCredentials(String clusterName) throws AmbariException;
 
   /**
    * Command to invoke against the Ambari backend.

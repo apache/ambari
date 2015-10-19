@@ -273,7 +273,7 @@ public class StackManager {
     }
 
     if (!stackRoot.isDirectory() && !stackRoot.exists()) {
-      throw new AmbariException("" + Configuration.METADETA_DIR_PATH
+      throw new AmbariException("" + Configuration.METADATA_DIR_PATH
           + " should be a directory with stack"
           + ", stackRoot = " + stackRootAbsPath);
     }

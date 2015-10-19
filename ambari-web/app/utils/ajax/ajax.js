@@ -791,6 +791,53 @@ var urls = {
     'mock': '/data/configuration/cluster_env_site.json'
   },
 
+  'credentials.store.info': {
+    'real': '/clusters/{clusterName}?fields=Clusters/credential_store_properties',
+    'mock': ''
+  },
+
+  'credentials.list': {
+    'real': '/clusters/{clusterName}/credentials?fields=Credential/*',
+    'mock': ''
+  },
+
+  'credentials.get': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': ''
+  },
+
+  'credentials.create': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    type: 'POST',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          Credential: data.resource
+        })
+      };
+    }
+  },
+
+  'credentials.update': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    'type': 'PUT',
+    'format': function(data) {
+      return {
+        data: JSON.stringify({
+          Credential: data.resource
+        })
+      };
+    }
+  },
+
+  'credentials.delete': {
+    'real': '/clusters/{clusterName}/credentials/{alias}',
+    'mock': '',
+    'type':'DELETE'
+  },
+
   'host.host_component.add_new_component': {
     'real': '/clusters/{clusterName}/hosts?Hosts/host_name={hostName}',
     'mock': '/data/wizard/deploy/poll_1.json',
@@ -1526,6 +1573,21 @@ var urls = {
   'admin.upgrade.service_checks': {
     'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
   },
+  'admin.upgrade.update.options': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}',
+    'mock': '/data/stack_versions/start_upgrade.json',
+    'type': 'PUT',
+    'format': function (data) {
+      return {
+        data: JSON.stringify({
+          "Upgrade": {
+            "skip_failures": data.skipComponentFailures,
+            "skip_service_check_failures": data.skipSCFailures
+          }
+        })
+      }
+    }
+  },
   'admin.upgrade.start': {
     'real': '/clusters/{clusterName}/upgrades',
     'mock': '/data/stack_versions/start_upgrade.json',
@@ -1534,7 +1596,10 @@ var urls = {
       return {
         data: JSON.stringify({
           "Upgrade": {
-            "repository_version": data.value
+            "repository_version": data.value,
+            "type": data.type,
+            "skip_failures": data.skipComponentFailures,
+            "skip_service_check_failures": data.skipSCFailures
           }
         })
       }
@@ -1642,8 +1707,8 @@ var urls = {
     }
   },
 
-  'admin.rolling_upgrade.pre_upgrade_check': {
-    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}',
+  'admin.upgrade.pre_upgrade_check': {
+    'real': '/clusters/{clusterName}/rolling_upgrades_check?fields=*&UpgradeChecks/repository_version={value}&UpgradeChecks/upgrade_type={type}',
     'mock': '/data/stack_versions/pre_upgrade_check.json'
   },
 
@@ -2642,7 +2707,8 @@ var formatRequest = function (data) {
     type: this.type || 'GET',
     timeout: App.timeout,
     dataType: 'json',
-    statusCode: require('data/statusCodes')
+    statusCode: require('data/statusCodes'),
+    headers: {}
   };
   if (App.get('testMode')) {
     opt.url = formatUrl(this.mock ? this.mock : '', data);
@@ -2660,11 +2726,38 @@ var formatRequest = function (data) {
 };
 
 /**
+ * transform GET to POST call
+ * @param {object} opt
+ * @returns {object} opt
+ */
+var doGetAsPost = function(opt) {
+  var delimiterPos = opt.url.indexOf('?');
+
+  opt.type = "POST";
+  opt.headers["X-Http-Method-Override"] = "GET";
+  if (delimiterPos !== -1) {
+    opt.data = JSON.stringify({
+      "RequestInfo": {"query" : opt.url.substr(delimiterPos + 1, opt.url.length)}
+    });
+    opt.url = opt.url.substr(0, delimiterPos);
+  }
+  opt.url += '?_=' + App.dateTime();
+  return opt;
+};
+
+/**
  * Wrapper for all ajax requests
  *
  * @type {Object}
  */
 var ajax = Em.Object.extend({
+  /**
+   * max number of symbols in URL of GET call
+   * @const
+   * @type {number}
+   */
+  MAX_GET_URL_LENGTH: 2048,
+
   /**
    * Send ajax request
    *
@@ -2703,6 +2796,10 @@ var ajax = Em.Object.extend({
       return null;
     }
     opt = formatRequest.call(urls[config.name], params);
+
+    if (opt.url && opt.url.length > this.get('MAX_GET_URL_LENGTH')) {
+      opt = doGetAsPost(opt);
+    }
 
     opt.context = this;
 
@@ -2858,6 +2955,16 @@ if ($.mocho) {
      */
     fakeFormatRequest: function (urlObj, data) {
       return formatRequest.call(urlObj, data);
+    },
+
+    /**
+     * Don't use it anywhere except tests!
+     * @param urlObj
+     * @param data
+     * @returns {Object}
+     */
+    fakeDoGetAsPost: function (urlObj, data) {
+      return doGetAsPost.call(urlObj, data);
     }
   });
 }

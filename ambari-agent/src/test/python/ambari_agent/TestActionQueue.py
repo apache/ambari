@@ -341,7 +341,7 @@ class TestActionQueue(TestCase):
     config.set('agent', 'tolerate_download_failures', "true")
     dummy_controller = MagicMock()
     dummy_controller.recovery_manager = RecoveryManager()
-    dummy_controller.recovery_manager.update_config(5, 5, 1, 11, True, False)
+    dummy_controller.recovery_manager.update_config(5, 5, 1, 11, True, False, "", "")
 
     actionQueue = ActionQueue(config, dummy_controller)
     unfreeze_flag = threading.Event()

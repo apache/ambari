@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Represents a prerequisite check request.
@@ -33,15 +34,32 @@ public class PrereqCheckRequest {
   private StackId m_sourceStackId;
   private StackId m_targetStackId;
 
+  private UpgradeType m_upgradeType;
+
   private Map<CheckDescription, PrereqCheckStatus> m_results =
       new HashMap<CheckDescription, PrereqCheckStatus>();
 
-  public PrereqCheckRequest(String clusterName) {
+
+  public PrereqCheckRequest(String clusterName, UpgradeType upgradeType) {
     m_clusterName = clusterName;
+    m_upgradeType = upgradeType;
+  }
+
+  /**
+   * Construct a request to performs checks before an Upgrade.
+   * The default type is Rolling.
+   * @param clusterName
+   */
+  public PrereqCheckRequest(String clusterName) {
+    this(clusterName, UpgradeType.ROLLING);
   }
 
   public String getClusterName() {
     return m_clusterName;
+  }
+
+  public UpgradeType getUpgradeType() {
+    return m_upgradeType;
   }
 
   public String getRepositoryVersion() {

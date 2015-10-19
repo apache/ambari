@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var credentialsUtils = require('utils/credentials');
 
 /**
  * @param {Object} ajaxOpt - callbek funciton when clicking save
@@ -29,24 +30,79 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
     header: Em.I18n.t('popup.invalid.KDC.header'),
     principal: "",
     password: "",
+
+    /**
+     * Store Admin credentials checkbox value
+     *
+     * @type {boolean}
+     */
+    storeCredentials: false,
+
+    /**
+     * Status of persistent storage. Returns <code>true</code> if persistent storage is available.
+     * @type {boolean}
+     */
+    storePersisted: function() {
+      return App.get('isCredentialStorePersistent');
+    }.property('App.isCredentialStorePersistent'),
+
+    /**
+     * Disable checkbox if persistent storage not available
+     *
+     * @type {boolean}
+     */
+    checkboxDisabled: Ember.computed.not('storePersisted'),
+
+    /**
+     * Returns storage type used to save credentials e.g. <b>persistent</b>, <b>temporary</b> (default)
+     *
+     * @type {string}
+     */
+    storageType: function() {
+      return this.get('storeCredentials') ? credentialsUtils.STORE_TYPES.PERSISTENT : credentialsUtils.STORE_TYPES.TEMPORARY;
+    }.property('storeCredentials'),
+
+    /**
+     * Message to display in tooltip regarding persistent storage state.
+     *
+     * @type {string}
+     */
+    hintMessage: function() {
+      return this.get('storePersisted') ?
+        Em.I18n.t('admin.kerberos.credentials.store.hint.supported') :
+        Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported');
+    }.property('storePersisted'),
+
     bodyClass: Em.View.extend({
       warningMsg: message + Em.I18n.t('popup.invalid.KDC.msg'),
       templateName: require('templates/common/modal_popups/invalid_KDC_popup')
     }),
+
+    didInsertElement: function() {
+      this._super();
+      App.tooltip(this.$('[rel="tooltip"]'));
+    },
+
     onClose: function() {
       this.hide();
       if (ajaxOpt.kdcCancelHandler) {
         ajaxOpt.kdcCancelHandler();
       }
     },
+
     onSecondary: function() {
       this.hide();
       if (ajaxOpt.kdcCancelHandler) {
         ajaxOpt.kdcCancelHandler();
       }
     },
+
     onPrimary: function () {
       this.hide();
+      if (App.get('supports.storeKDCCredentials')) {
+        var resource = credentialsUtils.createCredentialResource(this.get('principal'), this.get('password'), this.get('storageType'));
+        credentialsUtils.createOrUpdateCredentials(App.get('clusterName'), credentialsUtils.ALIAS.KDC_CREDENTIALS, resource);
+      }
       App.get('router.clusterController').createKerberosAdminSession(this.get('principal'), this.get('password'), ajaxOpt);
     }
   });

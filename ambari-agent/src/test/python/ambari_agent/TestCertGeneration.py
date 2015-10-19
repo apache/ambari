@@ -39,7 +39,8 @@ class TestCertGeneration(TestCase):
     #config.add_section('security')
     config.set('security', 'keysdir', self.tmpdir)
     config.set('security', 'server_crt', 'ca.crt')
-    self.certMan = CertificateManager(config)
+    server_hostname = config.get('server', 'hostname')
+    self.certMan = CertificateManager(config, server_hostname)
 
   @patch.object(os, "chmod")
   def test_generation(self, chmod_mock):

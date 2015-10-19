@@ -163,12 +163,14 @@
   </property>
   <property>
     <name>proxyuser_group</name>
+    <display-name>Proxy User Group</display-name>
     <value>users</value>
     <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
   </property>
   <property>
     <name>hdfs_user</name>
+    <display-name>HDFS User</display-name>
     <value>hdfs</value>
     <property-type>USER</property-type>
     <description>User to run HDFS as</description>
@@ -316,6 +318,14 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 
 #Mostly required for hadoop 2.0
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
+
+{% if is_datanode_max_locked_memory_set %}
+# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. 
+# Makes sense to fix only when runing DN as root 
+if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n "$HADOOP_SECURE_DN_USER" ]; then
+  ulimit -l {{datanode_max_locked_memory}}
+fi
+{% endif %}
     </value>
   </property>
   

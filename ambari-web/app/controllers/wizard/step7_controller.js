@@ -119,6 +119,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   /**
+   * PreInstall Checks allowed only for Install
+   * @type {boolean}
+   */
+  supportsPreInstallChecks: function () {
+    return App.get('supports.preInstallChecks') && 'installerController' === this.get('content.controllerName');
+  }.property('App.supports.preInstallChecks', 'wizardController.name'),
+
+  /**
    * Number of errors in the configs in the selected service
    * @type {number}
    */
@@ -814,7 +822,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Add host name properties to appropriate categories (for installer only)
+   * Add host name properties to appropriate categories (for installer and add service)
    * @param serviceConfig
    * @param masterComponents
    * @param slaveComponents
@@ -835,7 +843,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         }
         var stackComponent = App.StackServiceComponent.find(componentName);
         var hProperty = App.config.createHostNameProperty(serviceConfig.get('serviceName'), componentName, value, stackComponent);
-        serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
+        var newConfigName = Em.get(hProperty, 'name');
+        if (!serviceConfig.get('configs').someProperty('name', newConfigName)) {
+          serviceConfig.get('configs').push(App.ServiceConfigProperty.create(hProperty));
+        }
       }
     }, this);
   },
@@ -1231,9 +1242,9 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   getAmbariDatabaseSuccess: function (data) {
     var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_hostname').value;
     var ambariServiceHostComponents = data.hostComponents;
-    if (!!ambariServiceHostComponents.length) {
+    if (ambariServiceHostComponents.length) {
       var ambariDBInfo = JSON.stringify(ambariServiceHostComponents[0].RootServiceHostComponents.properties);
-      this.set('mySQLServerConflict', ambariDBInfo.indexOf('mysql') > 0 && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+      this.set('mySQLServerConflict', ambariDBInfo.contains('mysql') && ambariDBInfo.indexOf(hiveDBHostname) > 0);
     } else {
       this.set('mySQLServerConflict', false);
     }
@@ -1255,34 +1266,63 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var hiveDBType = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_database').value;
     if (hiveDBType == 'New MySQL Database') {
       var self = this;
-      this.checkMySQLHost().done(function () {
-        if (self.get('mySQLServerConflict')) {
-          // error popup before you can proceed
+      return this.checkMySQLHost().done(function () {
+        self.mySQLWarningHandler();
+      });
+    }
+    else {
+      this.moveNext();
+    }
+  },
+
+  /**
+   * Show warning popup about MySQL-DB issues (on post-submit)
+   *
+   * @returns {*}
+   * @method mySQLWarningHandler
+   */
+  mySQLWarningHandler: function () {
+    var self = this;
+    if (this.get('mySQLServerConflict')) {
+      // error popup before you can proceed
+      return App.ModalPopup.show({
+        header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
+        body:Em.I18n.t('installer.step7.popup.mySQLWarning.body'),
+        secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
+        primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
+        encodeBody: false,
+        onPrimary: function () {
+          this._super();
+          self.set('submitButtonClicked', false);
+        },
+        onSecondary: function () {
+          var parent = this;
           return App.ModalPopup.show({
-            header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
-            body:Em.I18n.t('installer.step7.popup.mySQLWarning.body'),
-            secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
-            primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
-            onSecondary: function () {
-              var parent = this;
-              return App.ModalPopup.show({
-                header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
-                body: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'),
-                onPrimary: function () {
-                  this.hide();
-                  parent.hide();
-                  // go back to step 5: assign masters and disable default navigation warning
-                  App.router.get('installerController').gotoStep(5, true);
+            header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
+            body: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'),
+            onPrimary: function () {
+              this.hide();
+              parent.hide();
+              // go back to step 5: assign masters and disable default navigation warning
+              if ('installerController' === self.get('content.controllerName')) {
+                App.router.get('installerController').gotoStep(5, true);
+              }
+              else {
+                if ('addServiceController' === self.get('content.controllerName')) {
+                  App.router.get('addServiceController').gotoStep(2, true);
                 }
-              });
+              }
+            },
+            onSecondary: function () {
+              this._super();
+              self.set('submitButtonClicked', false);
             }
           });
-        } else {
-          self.moveNext();
         }
       });
-    } else {
-      this.moveNext();
+    }
+    else {
+      return this.moveNext();
     }
   },
 
@@ -1405,6 +1445,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    **/
   moveNext: function () {
     App.router.send('next');
+    this.set('submitButtonClicked', false);
   },
 
   /**
@@ -1414,22 +1455,33 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   submit: function () {
     if (this.get('isSubmitDisabled')) {
-      return;
+      return false;
     }
+    var preInstallChecksController = App.router.get('preInstallChecksController');
+    if (this.get('supportsPreInstallChecks')) {
+      if (preInstallChecksController.get('preInstallChecksWhereRun')) {
+        return this.postSubmit();
+      }
+      return preInstallChecksController.notRunChecksWarnPopup(this.postSubmit.bind(this));
+    }
+    return this.postSubmit();
+  },
+
+  postSubmit: function () {
     var self = this;
     this.set('submitButtonClicked', true);
     this.serverSideValidation().done(function() {
       self.serverSideValidationCallback();
     })
-    .fail(function (value) {
-      if ("invalid_configs" == value) {
-        self.set('submitButtonClicked', false);
-      } else {
-        // Failed due to validation mechanism failure.
-        // Should proceed with other checks
-        self.serverSideValidationCallback();
-      }
-    });
+      .fail(function (value) {
+        if ("invalid_configs" == value) {
+          self.set('submitButtonClicked', false);
+        } else {
+          // Failed due to validation mechanism failure.
+          // Should proceed with other checks
+          self.serverSideValidationCallback();
+        }
+      });
   },
 
   /**
@@ -1440,7 +1492,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.showOozieDerbyWarningPopup(function() {
       self.checkDatabaseConnectionTest().done(function () {
         self.resolveHiveMysqlDatabase();
-        self.set('submitButtonClicked', false);
       });
     });
   },
@@ -1461,4 +1512,5 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }
   }
+
 });

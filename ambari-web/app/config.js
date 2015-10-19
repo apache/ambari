@@ -75,7 +75,9 @@ App.supports = {
   customizedWidgetLayout: false,
   enhancedConfigs: true,
   showPageLoadTime: false,
-  skipComponentStartAfterInstall: false
+  skipComponentStartAfterInstall: false,
+  storeKDCCredentials: false,
+  preInstallChecks: false
 };
 
 if (App.enableExperimental) {

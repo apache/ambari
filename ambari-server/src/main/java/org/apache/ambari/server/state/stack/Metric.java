@@ -58,4 +58,15 @@ public class Metric {
   public String getUnit() {
     return unit;
   }
+
+  @Override
+  public String toString() {
+    return "Metric{" +
+      "metric='" + metric + '\'' +
+      ", pointInTime=" + pointInTime +
+      ", temporal=" + temporal +
+      ", amsHostMetric=" + amsHostMetric +
+      ", unit='" + unit + '\'' +
+      '}';
+  }
 }

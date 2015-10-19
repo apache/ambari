@@ -65,14 +65,18 @@ public class ServicesNamenodeHighAvailabilityCheckTest {
   @Test
   public void testIsApplicable() throws Exception {
     final Cluster cluster = Mockito.mock(Cluster.class);
+    final Map<String, Service> services = new HashMap<>();
+    final Service service = Mockito.mock(Service.class);
+
+    services.put("HDFS", service);
+
+    Mockito.when(cluster.getServices()).thenReturn(services);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
 
-    final Service service = Mockito.mock(Service.class);
-    Mockito.when(cluster.getService("HDFS")).thenReturn(service);
     Assert.assertTrue(servicesNamenodeHighAvailabilityCheck.isApplicable(new PrereqCheckRequest("cluster")));
 
-    Mockito.when(cluster.getService("HDFS")).thenThrow(new ServiceNotFoundException("no", "service"));
+    services.remove("HDFS");
     Assert.assertFalse(servicesNamenodeHighAvailabilityCheck.isApplicable(new PrereqCheckRequest("cluster")));
   }
 

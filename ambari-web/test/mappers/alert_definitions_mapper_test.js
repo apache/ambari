@@ -21,8 +21,7 @@ require('mappers/alert_definitions_mapper');
 var testHelpers = require('test/helpers');
 
 describe('App.alertDefinitionsMapper', function () {
-
-  describe('#map', function () {
+  describe.skip('#map', function () {
 
     var json = {
       items: [

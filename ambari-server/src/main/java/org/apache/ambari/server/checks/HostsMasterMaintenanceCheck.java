@@ -40,7 +40,7 @@ import com.google.inject.Singleton;
  * Checks that all hosts in maintenance state do not have master components.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 1.0f, required = true)
 public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
   static final String KEY_NO_UPGRADE_NAME = "no_upgrade_name";
@@ -54,21 +54,14 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
   }
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
-    if (!super.isApplicable(request)) {
-      return false;
-    }
-
-    return request.getRepositoryVersion() != null;
-  }
-
-  @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final StackId stackId = cluster.getDesiredStackVersion();
     final Set<String> hostsWithMasterComponent = new HashSet<String>();
-    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion());
+
+    // TODO AMBARI-12698, need to pass the upgrade pack to use in the request, or at least the type.
+    final String upgradePackName = repositoryVersionHelper.get().getUpgradePackageName(stackId.getStackName(), stackId.getStackVersion(), request.getRepositoryVersion(), null);
     if (upgradePackName == null) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       String fail = getFailReason(KEY_NO_UPGRADE_NAME, prerequisiteCheck, request);

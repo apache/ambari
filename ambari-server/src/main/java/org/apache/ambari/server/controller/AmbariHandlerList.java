@@ -20,7 +20,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.security.SecurityHeaderFilter;
+import org.apache.ambari.server.security.AmbariViewsSecurityHeaderFilter;
 import org.apache.ambari.server.view.ViewContextImpl;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
@@ -95,10 +95,10 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   DelegatingFilterProxy springSecurityFilter;
 
   /**
-   * The security header filter - conditionlly adds security-related headers to the HTTP response.
+   * The security header filter - conditionally adds security-related headers to the HTTP response for Ambari Views requests.
    */
   @Inject
-  SecurityHeaderFilter securityHeaderFilter;
+  AmbariViewsSecurityHeaderFilter ambariViewsSecurityHeaderFilter;
 
   /**
    * Mapping of view instance entities to handlers.
@@ -241,7 +241,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
     webAppContext.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
     webAppContext.setSessionHandler(new SharedSessionHandler(sessionManager));
-    webAppContext.addFilter(new FilterHolder(securityHeaderFilter), "/*", AmbariServer.DISPATCHER_TYPES);
+    webAppContext.addFilter(new FilterHolder(ambariViewsSecurityHeaderFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(persistFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.setAllowNullPathInfo(true);

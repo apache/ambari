@@ -266,6 +266,45 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       rangerSqlConnectorProperty = ranger_sql_connector_dict.get(rangerDbFlavor, ranger_sql_connector_dict['MYSQL'])
       putRangerAdminProperty('SQL_CONNECTOR_JAR', rangerSqlConnectorProperty)
 
+    # Build policymgr_external_url
+    protocol = 'http'
+    ranger_admin_host = 'localhost'
+    port = '6080'
+
+    # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
+    # For HDP-2.2 this can be checked in ranger-site/http.enabled
+    if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
+      and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
+      ('ranger-admin-site' in services['configurations'] and 'ranger.service.http.enabled' in services['configurations']['ranger-admin-site']['properties'] \
+      and services['configurations']['ranger-admin-site']['properties']['ranger.service.http.enabled'].lower() == 'false'):
+      # HTTPS protocol is used
+      protocol = 'https'
+      # In HDP-2.3 port stored in ranger-admin-site ranger.service.https.port
+      if 'ranger-admin-site' in services['configurations'] and \
+          'ranger.service.https.port' in services['configurations']['ranger-admin-site']['properties']:
+        port = services['configurations']['ranger-admin-site']['properties']['ranger.service.https.port']
+      # In HDP-2.2 port stored in ranger-site https.service.port
+      elif 'ranger-site' in services['configurations'] and \
+          'https.service.port' in services['configurations']['ranger-site']['properties']:
+        port = services['configurations']['ranger-site']['properties']['https.service.port']
+    else:
+      # HTTP protocol is used
+      # In HDP-2.3 port stored in ranger-admin-site ranger.service.http.port
+      if 'ranger-admin-site' in services['configurations'] and \
+          'ranger.service.http.port' in services['configurations']['ranger-admin-site']['properties']:
+        port = services['configurations']['ranger-admin-site']['properties']['ranger.service.http.port']
+      # In HDP-2.2 port stored in ranger-site http.service.port
+      elif 'ranger-site' in services['configurations'] and \
+          'http.service.port' in services['configurations']['ranger-site']['properties']:
+        port = services['configurations']['ranger-site']['properties']['http.service.port']
+
+    ranger_admin_hosts = self.getComponentHostNames(services, "RANGER", "RANGER_ADMIN")
+    if ranger_admin_hosts:
+      ranger_admin_host = ranger_admin_hosts[0]
+
+    policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
+    putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
+
 
   def getAmsMemoryRecommendation(self, services, hosts):
     # MB per sink in hbase heapsize
@@ -444,6 +483,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     pass
 
+  def getHostNamesWithComponent(self, serviceName, componentName, services):
+    """
+    Returns the list of hostnames on which service component is installed
+    """
+    if services is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
+      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
+      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
+      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
+        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
+        return componentHostnames
+    return []
+
   def getHostsWithComponent(self, serviceName, componentName, services, hosts):
     if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
       service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
@@ -468,6 +519,27 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                               if componentEntry["StackServiceComponents"]["component_category"] in categories
                               and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
     return components
+
+  def getZKHostPortString(self, services):
+    """
+    Returns the comma delimited string of zookeeper server host with the configure port installed in a cluster
+    Example: zk.host1.org:2181,zk.host2.org:2181,zk.host3.org:2181
+    """
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    include_zookeeper = "ZOOKEEPER" in servicesList
+    zookeeper_host_port = ''
+
+    if include_zookeeper:
+      zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
+      zookeeper_port = 2181     #default port
+      if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
+        zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
+
+      zookeeper_host_port_arr = []
+      for i in range(len(zookeeper_hosts)):
+        zookeeper_host_port_arr.append(zookeeper_hosts[i] + ':' + zookeeper_port)
+      zookeeper_host_port = ",".join(zookeeper_host_port_arr)
+    return zookeeper_host_port
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 

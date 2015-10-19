@@ -18,28 +18,13 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
-import javax.persistence.criteria.Root;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -60,7 +45,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
@@ -76,13 +60,26 @@ import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.persistence.EntityManager;
+import javax.persistence.Query;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaDelete;
+import javax.persistence.criteria.Root;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
 
 
 /**
@@ -125,6 +122,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String TOPOLOGY_HOST_REQUEST_TABLE = "topology_host_request";
   private static final String TOPOLOGY_HOST_TASK_TABLE = "topology_host_task";
   private static final String TOPOLOGY_LOGICAL_TASK_TABLE = "topology_logical_task";
+  private static final String HDFS_SITE_CONFIG = "hdfs-site";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -1461,7 +1459,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           /***
            * Update dfs.namenode.rpc-address set hostname instead of localhost
            */
-          if (cluster.getDesiredConfigByType("hdfs-site") != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {
+          if (cluster.getDesiredConfigByType(HDFS_SITE_CONFIG) != null && !cluster.getHosts("HDFS","NAMENODE").isEmpty()) {
 
             URI nameNodeRpc = null;
             String hostName = cluster.getHosts("HDFS","NAMENODE").iterator().next();
@@ -1470,33 +1468,19 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
                       cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS") != null) {
               try {
                 if (isNNHAEnabled(cluster)) {
-                  String nn1RpcAddress = null;
-                  Config hdfsSiteConfig = cluster.getDesiredConfigByType("hdfs-site");
-                  Map<String, String> properties = hdfsSiteConfig.getProperties();
-                  String nameServices = properties.get("dfs.nameservices");
-                  if (!StringUtils.isEmpty(nameServices)) {
-                    String namenodes = properties.get(String.format("dfs.ha.namenodes.%s",nameServices));
-                    if (!StringUtils.isEmpty(namenodes) && namenodes.split(",").length > 1) {
-                      nn1RpcAddress = properties.get(String.format("dfs.namenode.rpc-address.%s.%s", nameServices,
-                              namenodes.split(",")[0]));
-                    }
-                  }
-                  if (!StringUtils.isEmpty(nn1RpcAddress)) {
-                    if (!nn1RpcAddress.startsWith("http")) {
-                      nn1RpcAddress = "http://" + nn1RpcAddress;
-                    }
-                    nameNodeRpc= new URI(nn1RpcAddress);
-                  } else {
-                    // set default value
-                    nameNodeRpc= new URI("http://localhost:8020");
-                  }
+                  // NN HA enabled
+                  // Remove dfs.namenode.rpc-address property
+                  Set<String> removePropertiesSet = new HashSet<>();
+                  removePropertiesSet.add("dfs.namenode.rpc-address");
+                  removeConfigurationPropertiesFromCluster(cluster, HDFS_SITE_CONFIG, removePropertiesSet);
                 } else {
+                  // NN HA disabled
                   nameNodeRpc = new URI(cluster.getDesiredConfigByType("core-site").getProperties().get("fs.defaultFS"));
+                  Map<String, String> hdfsProp = new HashMap<String, String>();
+                  hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
+                  updateConfigurationPropertiesForCluster(cluster, HDFS_SITE_CONFIG,
+                          hdfsProp, false, false);
                 }
-                Map<String, String> hdfsProp = new HashMap<String, String>();
-                hdfsProp.put("dfs.namenode.rpc-address", hostName + ":" + nameNodeRpc.getPort());
-                updateConfigurationPropertiesForCluster(cluster, "hdfs-site",
-                        hdfsProp, true, false);
               } catch (URISyntaxException e) {
                 e.printStackTrace();
               }
@@ -1505,43 +1489,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         }
       }
     }
-  }
-
-  private int getHbaseRamRecomendations(int totalMem) {
-    if (totalMem <= 4) {
-      return 1;
-    }
-    if (4 < totalMem && totalMem <= 8) {
-      return 1;
-    }
-    if (8 < totalMem && totalMem <= 16) {
-      return 2;
-    }
-    if (16 < totalMem && totalMem <= 24) {
-      return 4;
-    }
-    if (24 < totalMem && totalMem <= 48) {
-      return 8;
-    }
-    if (48 < totalMem && totalMem <= 64) {
-      return 8;
-    }
-    if (64 < totalMem && totalMem <= 72) {
-      return 8;
-    }
-    if (72 < totalMem && totalMem <= 96) {
-      return 16;
-    }
-    if (96 < totalMem && totalMem <= 128) {
-      return 24;
-    }
-    if (128 < totalMem && totalMem <= 256) {
-      return 32;
-    }
-    if (256 < totalMem) {
-      return 64;
-    }
-    return -1;
   }
 
   protected void updateHiveConfigs() throws AmbariException {
@@ -1652,43 +1599,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             }
             else {
               hbaseSiteRemoveProps.add("hbase.coprocessor.regionserver.classes");
-            }
-
-            int threshold = 23;
-            int totalMem = 0;
-            String hostName = null;
-            if (cluster.getHosts("HBASE", "HBASE_MASTER").iterator().hasNext()) {
-              hostName = cluster.getHosts("HBASE", "HBASE_MASTER").iterator().next();
-            }
-            for (Host host : cluster.getHosts()) {
-              if(host.getHostName().equalsIgnoreCase(hostName)) {
-                totalMem = (int)(host.getTotalMemBytes() / (1024 * 1024));
-                break;
-              }
-            }
-
-            if (totalMem == 0) {
-              LOG.error("UpgradeCatalog210 could not retrieve total memory size from the hosts.");
-            }
-            else {
-              if (getHbaseRamRecomendations(totalMem) > threshold) {
-                final int mb = 1024;
-                final int block_cache_heap = 8192;
-                final int regionserver_heap_size = 20480;
-                final int reserved_offheap_memory = 2048;
-                final int regionserver_total_ram = getHbaseRamRecomendations(totalMem) * mb;
-                final int regionserver_max_direct_memory_size = regionserver_total_ram - regionserver_heap_size;
-                final int bucketcache_offheap_memory = regionserver_max_direct_memory_size - reserved_offheap_memory;
-
-                hbaseSiteProps.put("hbase.bucketcache.size", String.valueOf(block_cache_heap + bucketcache_offheap_memory));
-                hbaseSiteProps.put("hbase.bucketcache.ioengine", "offheap");
-                hbaseEnvProps.put("hbase_max_direct_memory_size", String.valueOf(regionserver_max_direct_memory_size));
-              } else {
-                hbaseSiteRemoveProps.add("hbase.bucketcache.ioengine");
-                hbaseSiteRemoveProps.add("hbase.bucketcache.size");
-                hbaseSiteRemoveProps.add("hbase.bucketcache.percentage.in.combinedcache");
-                hbaseEnvRemoveProps.add("hbase_max_direct_memory_size");
-              }
             }
 
             updateConfigurationPropertiesForCluster(cluster, "hbase-site", hbaseSiteProps, true, false);

@@ -21,6 +21,7 @@
 <configuration>
   <property>
     <name>ambari_metrics_user</name>
+    <display-name>Ambari Metrics User</display-name>
     <value>ams</value>
     <property-type>USER</property-type>
     <description>Ambari Metrics User Name.</description>

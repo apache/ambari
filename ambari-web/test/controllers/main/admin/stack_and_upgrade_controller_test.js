@@ -299,14 +299,20 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     it("make ajax call", function() {
       controller.runPreUpgradeCheck(Em.Object.create({
         repositoryVersion: '2.2',
-        displayName: 'HDP-2.2'
+        displayName: 'HDP-2.2',
+        upgradeType: 'ROLLING',
+        skipComponentFailures: false,
+        skipSCFailures: false
       }));
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: "admin.rolling_upgrade.pre_upgrade_check",
+        name: "admin.upgrade.pre_upgrade_check",
         sender: controller,
         data: {
           value: '2.2',
-          label: 'HDP-2.2'
+          label: 'HDP-2.2',
+          type: 'ROLLING',
+          skipComponentFailures: 'false',
+          skipSCFailures: 'false'
         },
         success: "runPreUpgradeCheckSuccess",
         error: "runPreUpgradeCheckError"
@@ -520,6 +526,16 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       };
+      controller.upgradeMethods = [
+        Em.Object.create({
+          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
+          type: 'ROLLING'
+        }),
+        Em.Object.create({
+          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
+          type: 'NON-ROLLING'
+        })
+      ];
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
       expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
@@ -748,21 +764,53 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#confirmUpgrade()", function() {
+  describe("#upgradeOptions()", function() {
     before(function () {
-      sinon.spy(App, 'showConfirmationPopup');
+      sinon.spy(App, 'ModalPopup');
       sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
     });
     after(function () {
-      App.showConfirmationPopup.restore();
+      App.ModalPopup.restore();
       controller.runPreUpgradeCheck.restore();
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
-      var popup = controller.confirmUpgrade(version);
-      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      controller.upgradeMethods = [
+        Em.Object.create({
+          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
+          type: 'ROLLING',
+          icon: "icon-dashboard",
+          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
+          selected: true,
+          allowed: true
+        }),
+        Em.Object.create({
+          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
+          type: 'NON-ROLLING',
+          icon: "icon-bolt",
+          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
+          selected: false,
+          allowed: true
+        })
+      ];
+      var popup = controller.upgradeOptions(false, version);
+      expect(App.ModalPopup.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.runPreUpgradeCheck.calledWith(version)).to.be.true;
+    });
+  });
+
+  describe("#confirmUpgrade()", function() {
+    before(function () {
+      sinon.stub(controller, 'upgradeOptions', Em.K);
+    });
+    after(function () {
+      controller.upgradeOptions.restore();
+    });
+    it("show show upgrade options popup window", function() {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      controller.confirmUpgrade(version);
+      expect(controller.upgradeOptions.calledWith(false, version)).to.be.true;
     });
   });
 

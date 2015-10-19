@@ -38,7 +38,7 @@ from ambari_commons.os_utils import is_root, set_file_permissions, \
   run_os_command, search_file, is_valid_filepath, change_owner, get_ambari_repo_file_full_name, get_file_owner
 from ambari_server.serverConfiguration import configDefaults, \
   encrypt_password, find_jdk, find_properties_file, get_alias_string, get_ambari_properties, get_conf_dir, \
-  get_credential_store_location, get_full_ambari_classpath, get_is_persisted, get_is_secure, get_master_key_location, \
+  get_credential_store_location, get_is_persisted, get_is_secure, get_master_key_location, \
   get_original_master_key, get_value_from_properties, get_java_exe_path, is_alias_string, read_ambari_user, \
   read_passwd_for_alias, remove_password_file, save_passwd_for_alias, store_password_file, update_properties_2, \
   BLIND_PASSWORD, BOOTSTRAP_DIR_PROPERTY, IS_LDAP_CONFIGURED, JDBC_PASSWORD_FILENAME, JDBC_PASSWORD_PROPERTY, \
@@ -52,6 +52,7 @@ from ambari_server.serverConfiguration import configDefaults, \
 from ambari_server.serverUtils import is_server_runing, get_ambari_server_api_base
 from ambari_server.setupActions import SETUP_ACTION, LDAP_SETUP_ACTION
 from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
+from ambari_server.serverClassPath import ServerClassPath
 
 
 REGEX_IP_ADDRESS = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
@@ -95,7 +96,7 @@ def read_master_key(isReset=False):
 
   return masterKey
 
-def save_master_key(master_key, key_location, persist=True):
+def save_master_key(options, master_key, key_location, persist=True):
   if master_key:
     jdk_path = find_jdk()
     if jdk_path is None:
@@ -103,8 +104,9 @@ def save_master_key(master_key, key_location, persist=True):
                       "command to install a JDK automatically or install any "
                       "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
       return 1
+    serverClassPath = ServerClassPath(get_ambari_properties(), options)
     command = SECURITY_PROVIDER_KEY_CMD.format(get_java_exe_path(),
-      get_full_ambari_classpath(), master_key, key_location, persist)
+      serverClassPath.get_full_ambari_classpath_escaped_for_shell(), master_key, key_location, persist)
     (retcode, stdout, stderr) = run_os_command(command)
     print_info_msg("Return code from credential provider save KEY: " +
                    str(retcode))
@@ -375,7 +377,7 @@ def sync_ldap(options):
   sys.stdout.write('\n')
   sys.stdout.flush()
 
-def setup_master_key():
+def setup_master_key(options):
   if not is_root():
     err = 'Ambari-server setup should be run with ' \
           'root-level privileges'
@@ -465,7 +467,7 @@ def setup_master_key():
                            " or the start will prompt for the master key."
                            " Persist [y/n] (y)? ", True)
     if persist:
-      save_master_key(masterKey, get_master_key_location(properties) + os.sep +
+      save_master_key(options, masterKey, get_master_key_location(properties) + os.sep +
                       SECURITY_MASTER_KEY_FILENAME, persist)
     elif not persist and masterKeyFile:
       try:
@@ -719,7 +721,7 @@ def setup_ldap():
   return 0
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def generate_env(ambari_user, current_user):
+def generate_env(options, ambari_user, current_user):
   properties = get_ambari_properties()
   isSecure = get_is_secure(properties)
   (isPersisted, masterKeyFile) = get_is_persisted(properties)
@@ -753,7 +755,7 @@ def generate_env(ambari_user, current_user):
       masterKey = get_original_master_key(properties)
       tempDir = tempfile.gettempdir()
       tempFilePath = tempDir + os.sep + "masterkey"
-      save_master_key(masterKey, tempFilePath, True)
+      save_master_key(options, masterKey, tempFilePath, True)
       if ambari_user != current_user:
         uid = pwd.getpwnam(ambari_user).pw_uid
         gid = pwd.getpwnam(ambari_user).pw_gid
@@ -767,7 +769,7 @@ def generate_env(ambari_user, current_user):
   return environ
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def generate_env(ambari_user, current_user):
+def generate_env(options, ambari_user, current_user):
   return os.environ.copy()
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)

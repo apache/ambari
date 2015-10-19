@@ -17,27 +17,12 @@
 }}
 
 {{#each tab in tabs}}
-  {{#if tab.type}}
-    {{#if showVisulization}}
-        <span {{action tab.action tab}} {{bind-attr class=":query-menu-tab tabClassNames tab.iconClass tab.active:active tab.flash:flash" title="tab.tooltip" id="tab.id"}}>
-          {{#if tab.badge}}
-            <span class="badge">{{tab.badge}}</span>
-          {{/if}}
-
-          {{#if tab.text}}
-            {{tab.text}}
-          {{/if}}
-        </span>
-    {{/if}}
-    {{else}}
-      <span {{action tab.action tab}} {{bind-attr class=":query-menu-tab tabClassNames tab.iconClass tab.active:active tab.flash:flash" title="tab.tooltip" id="tab.id"}}>
-        {{#if tab.badge}}
-          <span class="badge">{{tab.badge}}</span>
-        {{/if}}
-
-        {{#if tab.text}}
-          {{tab.text}}
-        {{/if}}
-      </span>
-  {{/if}}
+    <span {{action tab.action tab}} {{bind-attr class=":query-menu-tab tabClassNames tab.iconClass tab.active:active tab.flash:flash" title="tab.tooltip" id="tab.id"}}>
+      {{#if tab.badge}}
+        <span class="badge">{{tab.badge}}</span>
+      {{/if}}
+      {{#if tab.text}}
+        {{tab.text}}
+      {{/if}}
+    </span>
 {{/each}}

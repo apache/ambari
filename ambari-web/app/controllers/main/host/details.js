@@ -186,7 +186,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     miscController.loadUsers();
     var interval = setInterval(function () {
       if (miscController.get('dataIsLoaded') && miscController.get('users')) {
-        self.set('content.hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
+        self.set('hdfsUser', miscController.get('users').findProperty('name', 'hdfs_user').get('value'));
         dfd.resolve();
         clearInterval(interval);
       }
@@ -209,7 +209,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         self.getHdfsUser().done(function() {
           var msg = Em.Object.create({
             confirmMsg: Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld').format(App.nnCheckpointAgeAlertThreshold) +
-              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('content.hdfsUser')),
+              Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointTooOld.instructions').format(isNNCheckpointTooOld, self.get('hdfsUser')),
             confirmButton: Em.I18n.t('common.next')
           });
           return App.showConfirmationFeedBackPopup(callback, msg);
@@ -1272,7 +1272,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   setZKConfigs: function (configs, zksWithPort, zks) {
     if (typeof configs !== 'object' || !Array.isArray(zks)) return false;
-    if (App.get('isHaEnabled')) {
+    if (App.get('isHaEnabled') && configs['core-site']) {
       App.config.updateHostsListValue(configs['core-site'], 'ha.zookeeper.quorum', zksWithPort);
     }
     if (configs['hbase-site']) {
@@ -1290,7 +1290,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (configs['storm-site']) {
       configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
     }
-    if (App.get('isRMHaEnabled')) {
+    if (App.get('isRMHaEnabled') && configs['yarn-site']) {
       App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
     }
     if (App.get('isHadoop22Stack')) {
@@ -2228,10 +2228,20 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   restartAllStaleConfigComponents: function () {
     var self = this;
-    return App.showConfirmationPopup(function () {
-      var staleComponents = self.get('content.componentsWithStaleConfigs');
-      batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
-    });
+    var staleComponents = self.get('content.componentsWithStaleConfigs');
+    if (staleComponents.someProperty('componentName', 'NAMENODE') &&
+      this.get('content.hostComponents').filterProperty('componentName', 'NAMENODE').someProperty('workStatus', App.HostComponentStatus.started)) {
+      this.checkNnLastCheckpointTime(function () {
+        App.showConfirmationPopup(function () {
+          batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
+        });
+      });
+    } else {
+      return App.showConfirmationPopup(function () {
+        batchUtils.restartHostComponents(staleComponents, Em.I18n.t('rollingrestart.context.allWithStaleConfigsOnSelectedHost').format(self.get('content.hostName')), "HOST");
+      });
+    }
+
   },
 
   /**

@@ -514,13 +514,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
     });
   },
 
-  /**
-   * @type {string}
-   */
-  gangliaUrl: function () {
-    return App.router.get('clusterController.gangliaUrl') + "/?r=hour&cs=&ce=&m=&s=by+name&c=HDPSlaves&tab=m&vn=";
-  }.property('App.router.clusterController.gangliaUrl'),
-
   showAlertsPopup: Em.K
 
 });

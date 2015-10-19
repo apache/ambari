@@ -147,5 +147,8 @@
     "Stack": "StackLevelConfigurations/stack_name",
     "StackVersion": "StackLevelConfigurations/stack_version",
     "StackLevelConfiguration": "StackLevelConfigurations/property_name"  
+  },
+  "KerberosDescriptor": {
+    "KerberosDescriptor": "KerberosDescriptors/kerberos_descriptor_name"
   }
 }

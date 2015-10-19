@@ -530,7 +530,6 @@ CREATE TABLE repo_version (
   stack_id NUMBER(19) NOT NULL,
   version VARCHAR2(255) NOT NULL,
   display_name VARCHAR2(128) NOT NULL,
-  upgrade_package VARCHAR2(255) NOT NULL,
   repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
   PRIMARY KEY(repo_version_id)
@@ -758,6 +757,13 @@ CREATE TABLE kerberos_principal_host (
   PRIMARY KEY(principal_name, host_id)
 );
 
+CREATE TABLE kerberos_descriptor
+(
+   kerberos_descriptor_name   VARCHAR2(255) NOT NULL,
+   kerberos_descriptor        CLOB NOT NULL,
+   PRIMARY KEY (kerberos_descriptor_name)
+);
+
 ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name);
 -- Kerberos (end)
@@ -882,6 +888,9 @@ CREATE TABLE upgrade (
   from_version VARCHAR2(255) DEFAULT '' NOT NULL,
   to_version VARCHAR2(255) DEFAULT '' NOT NULL,
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
+  upgrade_package VARCHAR2(255) NOT NULL,
+  upgrade_type VARCHAR2(32) NOT NULL,
+  downgrade_allowed NUMBER(1) DEFAULT 1 NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)

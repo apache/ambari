@@ -267,6 +267,12 @@
   .task-list-main-warp i {
     font-size: 16px;
   }
+  .upgrade-options-button {
+    position: absolute;
+    right: 10%;
+    top: 10px;
+    width: 100px;
+  }
 }
 
 .repository-list {
@@ -276,6 +282,119 @@
   }
   input[type="text"] {
     width: 80%;
+  }
+}
+
+#upgrade-options-popup-content {
+  .method-options {
+    margin: 10px;
+    .method-option {
+      width: 43.5%;
+    }
+    .thumbnail {
+      height: 140px;
+      cursor: pointer;
+      border: none;
+      width: 99%;
+      .method-icon {
+        font-size: 40px;
+      }
+      .method-name {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 2px;
+      }
+      .method-description {
+        margin-top: 5px;
+        text-align: center;
+      }
+    }
+
+    .ROLLING, .NON_ROLLING {
+      background-color: #e4e4e4;
+      .method-name,.method-icon,.method-description {
+        color: #333333;
+      }
+    }
+    .ROLLING {
+      .method-icon {
+        margin-left: 88px;
+      }
+    }
+    .NON_ROLLING {
+      .method-icon {
+        margin-left: 94px;
+      }
+    }
+    .selected.ROLLING, .selected.NON_ROLLING {
+      background-color: #cbe3c2;
+      box-shadow: 0 8px 6px -6px #b3b3b3;
+    }
+    .ROLLING:hover, .NON_ROLLING:hover {
+      background-color: #d3e7ca;
+    }
+
+    .thumbnail.not-allowed:hover {
+      background-color: #e4e4e4;
+    }
+    .thumbnail.not-allowed {
+      cursor: not-allowed;
+    }
+  }
+
+  .method-options.disabled {
+    .thumbnail {
+      cursor: not-allowed;
+      .method-name,.method-icon,.method-description {
+        color: #a9a9a9;
+      }
+    }
+    .ROLLING,.NON_ROLLING,
+    .ROLLING:hover,.NON_ROLLING:hover {
+      background-color: #f3f3f3;
+    }
+    .selected.ROLLING,.selected.NON_ROLLING,
+    .selected.ROLLING:hover,.selected.NON_ROLLING:hover {
+      border: solid 2px #a9a9a9;
+      box-shadow: 0 8px 6px -6px #a9a9a9;
+    }
+  }
+
+  .method-precheck-message {
+    a {
+      cursor: pointer;
+    }
+    text-align: center;
+    padding-top: 10px;
+    font-size: 13px;
+  }
+  .method-precheck-message.GREEN {
+    .icon-ok {
+      color: @health-status-green;
+      font-size: 16px;
+    }
+  }
+  .method-precheck-message.RED {
+    .icon-remove {
+      color: #cf2a27;
+      font-size: 16px;
+    }
+  }
+  .method-precheck-message.ORANGE {
+    .icon-warning-sign {
+      color: @health-status-orange;
+      font-size: 16px;
+    }
+  }
+  .tolerance-text .tolerance-option {
+    margin: 5px 15px;
+  }
+  .text {
+    margin-left: 10px;
+  }
+  .icon-question-sign {
+    color: @blue;
   }
 }
 

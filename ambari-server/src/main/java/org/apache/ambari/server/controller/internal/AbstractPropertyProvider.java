@@ -181,6 +181,8 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     // find the argument in the property id
     int argStart = propertyId.indexOf(argName);
 
+    String value = val == null ? "" : val;
+
     if (argStart > -1) {
       // get the string segment starting with the given argument
       String argSegment = propertyId.substring(argStart);
@@ -212,15 +214,18 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
           }
 
           try {
-            val = invokeArgumentMethod(val, methodName, argList, paramTypes);
+            value = invokeArgumentMethod(value, methodName, argList, paramTypes);
           } catch (Exception e) {
             throw new IllegalArgumentException("Can't apply method " + methodName + " for argument " +
                 argName + " in " + propertyId, e);
           }
         }
+        if (value.equals(val)) {
+          return propertyId;
+        }
       }
       // Do the substitution
-      return propertyId.replace(argName, val);
+      return propertyId.replace(argName, value);
     }
     throw new IllegalArgumentException("Can't substitute " + val + "  for argument " + argName + " in " + propertyId);
   }
@@ -368,7 +373,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * Get value from the given metric.
    *
    * @param metric      the metric
-   * @param isTemporal  indicates whether or not this a temporal metric
+   * @param temporalInfo  indicates whether or not this a temporal metric
    *
    * @return a range of temporal data or a point in time value if not temporal
    */

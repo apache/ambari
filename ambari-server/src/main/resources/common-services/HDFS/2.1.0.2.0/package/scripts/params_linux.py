@@ -55,6 +55,8 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
 root_user = "root"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
+namenode_pid_file = status_params.namenode_pid_file
+zkfc_pid_file = status_params.zkfc_pid_file
 
 # Some datanode settings
 dfs_dn_addr = default('/configurations/hdfs-site/dfs.datanode.address', None)
@@ -104,12 +106,7 @@ hdfs_user_nofile_limit = default("/configurations/hadoop-env/hdfs_user_nofile_li
 hdfs_user_nproc_limit = default("/configurations/hadoop-env/hdfs_user_nproc_limit", "65536")
 
 create_lib_snappy_symlinks = not Script.is_hdp_stack_greater_or_equal("2.2")
-
-if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():
-  # deprecated rhel jsvc_path
-  jsvc_path = "/usr/libexec/bigtop-utils"
-else:
-  jsvc_path = "/usr/lib/bigtop-utils"
+jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited ; "

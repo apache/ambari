@@ -23,6 +23,7 @@
 <configuration>
   <property>
     <name>storm_user</name>
+    <display-name>Storm User</display-name>
     <value>storm</value>
     <property-type>USER</property-type>
     <description></description>
