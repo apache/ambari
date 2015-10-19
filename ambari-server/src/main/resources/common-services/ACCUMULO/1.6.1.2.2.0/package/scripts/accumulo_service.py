@@ -37,7 +37,7 @@ def accumulo_service( name,
               ignore_failures=True)
       if name != 'tserver':
         Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState NORMAL"),
-                not_if=pid_exists,
+                not_if=as_user(pid_exists, params.accumulo_user),
                 user=params.accumulo_user
         )
       address = params.hostname
@@ -45,7 +45,7 @@ def accumulo_service( name,
         address = '0.0.0.0'
       daemon_cmd = format("{daemon_script} {role} --address {address} > {log_dir}/accumulo-{role}.out 2>{log_dir}/accumulo-{role}.err & echo $! > {pid_file}")
       Execute ( daemon_cmd,
-        not_if=pid_exists,
+        not_if=as_user(pid_exists, params.accumulo_user),
         user=params.accumulo_user
       )
 
@@ -54,11 +54,11 @@ def accumulo_service( name,
 
       pid = format("`cat {pid_file}` >/dev/null 2>&1")
       Execute(format("kill {pid}"),
-        not_if=no_pid_exists,
+        not_if=as_user(no_pid_exists, params.accumulo_user),
         user=params.accumulo_user
       )
       Execute(format("kill -9 {pid}"),
-        not_if=format("sleep 2; {no_pid_exists} || sleep 20; {no_pid_exists}"),
+        not_if=as_user(format("sleep 2; {no_pid_exists} || sleep 20; {no_pid_exists}"), params.accumulo_user),
         ignore_failures=True,
         user=params.accumulo_user
       )
