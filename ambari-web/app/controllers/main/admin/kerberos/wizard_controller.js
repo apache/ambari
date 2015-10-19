@@ -59,8 +59,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     services: [],
     advancedServiceConfig: null,
     serviceConfigProperties: [],
-    failedTask: null,
-    secureStoragePersisted: null
+    failedTask: null
   }),
 
   /**
@@ -236,13 +235,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
       {
         type: 'sync',
         callback: function () {
-          var self = this;
           this.loadKerberosOption();
-          if (App.get('supports.storeKDCCredentials')) {
-            credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
-              self.set('content.secureStoragePersisted', isPersisted);
-            });
-          }
         }
       }
     ],

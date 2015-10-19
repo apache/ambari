@@ -25,7 +25,6 @@ App.clusterMapper = App.QuickDataMapper.create({
         var result = json;
         result = this.parseIt(result, this.config);
         App.store.load(this.get('model'), result);
-        
         var cluster = App.Cluster.find(result.id);
         var clusterDesiredConfigs = [];
         // Create desired_configs_array
@@ -57,6 +56,7 @@ App.clusterMapper = App.QuickDataMapper.create({
       stack_name: 'Clusters.stack_name',
       version: 'Clusters.version',
       security_type: 'Clusters.security_type',
-      total_hosts: 'Clusters.total_hosts'
+      total_hosts: 'Clusters.total_hosts',
+      credential_store_properties: 'Clusters.credential_store_properties'
     }
 });

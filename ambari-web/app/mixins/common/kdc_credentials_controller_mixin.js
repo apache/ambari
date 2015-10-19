@@ -30,13 +30,12 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
 
   /**
    * Returns <code>true</code> if persisted secure storage available.
-   * Should be implemented as computed property.
    *
    * @type {boolean}
    */
   isStorePersisted: function() {
-    Em.assert("Should be implemented", false);
-  }.property(),
+    return App.get('isCredentialStorePersistent');
+  }.property('App.isCredentialStorePersistent'),
 
   /**
    * List of required UI-only properties needed for storing KDC credentials

@@ -42,7 +42,9 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
      * Status of persistent storage. Returns <code>true</code> if persistent storage is available.
      * @type {boolean}
      */
-    storePersisted: false,
+    storePersisted: function() {
+      return App.get('isCredentialStorePersistent');
+    }.property('App.isCredentialStorePersistent'),
 
     /**
      * Disable checkbox if persistent storage not available
@@ -75,17 +77,6 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
       warningMsg: message + Em.I18n.t('popup.invalid.KDC.msg'),
       templateName: require('templates/common/modal_popups/invalid_KDC_popup')
     }),
-
-    willInsertElement: function() {
-      if (App.get('supports.storeKDCCredentials')) {
-        var self = this;
-        credentialsUtils.isStorePersisted(App.get('clusterName')).then(function(isPersisted) {
-          Em.run.next(function() {
-            self.set('storePersisted', isPersisted);
-          });
-        });
-      }
-    },
 
     didInsertElement: function() {
       this._super();
