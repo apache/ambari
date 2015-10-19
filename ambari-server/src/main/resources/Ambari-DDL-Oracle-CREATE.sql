@@ -880,6 +880,7 @@ CREATE TABLE upgrade (
   direction VARCHAR2(255) DEFAULT 'UPGRADE' NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
   upgrade_type VARCHAR2(32) NOT NULL,
+  downgrade_allowed NUMBER(1) DEFAULT 1 NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)

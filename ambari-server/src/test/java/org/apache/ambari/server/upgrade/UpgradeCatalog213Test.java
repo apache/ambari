@@ -63,6 +63,7 @@ import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -100,6 +101,27 @@ public class UpgradeCatalog213Test {
   @After
   public void tearDown() {
     injector.getInstance(PersistService.class).stop();
+  }
+
+  @Test
+  public void testExecuteUpgradeDDLUpdates() throws Exception{
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+
+    dbAccessor.addColumn(eq("upgrade"), anyObject(DBAccessor.DBColumnInfo.class));
+
+    replay(dbAccessor);
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog213 upgradeCatalog213 = injector.getInstance(UpgradeCatalog213.class);
+    upgradeCatalog213.executeUpgradeDDLUpdates();
+    verify(dbAccessor);
   }
 
   @Test
@@ -144,6 +166,31 @@ public class UpgradeCatalog213Test {
     replay(upgradeCatalog213);
 
     upgradeCatalog213.executeDMLUpdates();
+
+    verify(upgradeCatalog213);
+  }
+
+  @Test
+  public void testPopulateDowngradeAllowed() throws Exception {
+    Method executeStackPreDMLUpdates = UpgradeCatalog213.class.getDeclaredMethod("populateDowngradeAllowed");
+
+    final UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+      .addMockedMethod(executeStackPreDMLUpdates).createMock();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(UpgradeCatalog213.class).toInstance(upgradeCatalog213);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    upgradeCatalog213.populateDowngradeAllowed();
+    expectLastCall().once();
+
+    replay(upgradeCatalog213);
+    mockInjector.getInstance(UpgradeCatalog213.class).executePreDMLUpdates();
 
     verify(upgradeCatalog213);
   }
@@ -486,15 +533,22 @@ public class UpgradeCatalog213Test {
     Capture<String> capturedTableName = EasyMock.newCapture();
     Capture<String> capturedPKColumn = EasyMock.newCapture();
     Capture<List<DBAccessor.DBColumnInfo>> capturedColumns = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedColumn = EasyMock.newCapture();
 
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
-    EasyMock.expect(mockedConfiguration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).times(2);
+    EasyMock.expect(mockedConfiguration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
     EasyMock.expect(mockedConfiguration.getDatabaseUser()).andReturn("ambari");
     EasyMock.expect(mockedConfiguration.getServerJDBCPostgresSchemaName()).andReturn("fo");
 
+
     mockedDbAccessor.executeQuery("ALTER SCHEMA fo OWNER TO \"ambari\";");
     mockedDbAccessor.executeQuery("ALTER ROLE \"ambari\" SET search_path to 'fo';");
+
+    // executeUpgradeDDLUpdates
+    mockedDbAccessor.addColumn(eq("upgrade"), capture(capturedColumn));
+
+    // addKerberosDescriptorTable
     mockedDbAccessor.createTable(capture(capturedTableName), capture(capturedColumns), capture(capturedPKColumn));
 
     mocksControl.replay();

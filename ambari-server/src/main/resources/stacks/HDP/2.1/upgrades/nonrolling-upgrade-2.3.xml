@@ -21,6 +21,7 @@
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
   <type>NON_ROLLING</type>
+  <downgrade-allowed>false</downgrade-allowed>
   <prerequisite-checks>
   </prerequisite-checks>
   <upgrade-path>

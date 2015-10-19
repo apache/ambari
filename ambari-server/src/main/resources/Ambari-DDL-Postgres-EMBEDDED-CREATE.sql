@@ -974,6 +974,7 @@ CREATE TABLE ambari.upgrade (
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   upgrade_type VARCHAR(32) NOT NULL,
+  downgrade_allowed SMALLINT DEFAULT 1 NOT NULL,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES ambari.clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES ambari.request(request_id)

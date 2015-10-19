@@ -124,6 +124,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
   protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
+  protected static final String UPGRADE_DOWNGRADE_ALLOWED = "Upgrade/downgrade_allowed";
   protected static final String UPGRADE_REQUEST_STATUS = "Upgrade/request_status";
   protected static final String UPGRADE_ABORT_REASON = "Upgrade/abort_reason";
   protected static final String UPGRADE_SKIP_PREREQUISITE_CHECKS = "Upgrade/skip_prerequisite_checks";
@@ -238,6 +239,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
+    PROPERTY_IDS.add(UPGRADE_DOWNGRADE_ALLOWED);
     PROPERTY_IDS.add(UPGRADE_SKIP_FAILURES);
     PROPERTY_IDS.add(UPGRADE_SKIP_SC_FAILURES);
     PROPERTY_IDS.add(UPGRADE_SKIP_MANUAL_VERIFICATION);
@@ -462,6 +464,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
+    setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
 
     return resource;
   }
@@ -803,6 +806,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setDirection(direction);
     entity.setUpgradePackage(pack.getName());
     entity.setUpgradeType(pack.getType());
+    entity.setDowngradeAllowed(pack.isDowngradeAllowed());
 
     req.getRequestStatusResponse();
 
