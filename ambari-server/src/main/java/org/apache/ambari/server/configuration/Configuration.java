@@ -300,6 +300,8 @@ public class Configuration {
   public static final String RECOVERY_WINDOW_IN_MIN_DEFAULT = "60";
   public static final String RECOVERY_RETRY_GAP_KEY = "recovery.retry_interval";
   public static final String RECOVERY_RETRY_GAP_DEFAULT = "5";
+  public static final String RECOVERY_DISABLED_COMPONENTS_KEY = "recovery.disabled_components";
+  public static final String RECOVERY_ENABLED_COMPONENTS_KEY = "recovery.enabled_components";
 
   /**
    * Allow proxy calls to these hosts and ports only
@@ -1672,17 +1674,17 @@ public class Configuration {
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-      REQUEST_READ_TIMEOUT_DEFAULT));
+                                                   REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_CONNECT_TIMEOUT,
-        REQUEST_CONNECT_TIMEOUT_DEFAULT));
+                                                   REQUEST_CONNECT_TIMEOUT_DEFAULT));
   }
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1708,7 +1710,7 @@ public class Configuration {
 
   public String getCustomActionDefinitionPath() {
     return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
-      CUSTOM_ACTION_DEFINITION_DEF_VALUE);
+                                  CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   public int getAgentPackageParallelCommandsLimit() {
@@ -1757,7 +1759,7 @@ public class Configuration {
    */
   public int getClientThreadPoolSize() {
     return Integer.parseInt(properties.getProperty(
-      CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
+        CLIENT_THREADPOOL_SIZE_KEY, String.valueOf(CLIENT_THREADPOOL_SIZE_DEFAULT)));
   }
 
   /**
@@ -1795,7 +1797,7 @@ public class Configuration {
    */
   public long getViewExtractionThreadPoolTimeout() {
     return Long.parseLong(properties.getProperty(
-      VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
+        VIEW_EXTRACTION_THREADPOOL_TIMEOUT_KEY, String.valueOf(VIEW_EXTRACTION_THREADPOOL_TIMEOUT_DEFAULT)));
   }
 
   /**
@@ -1862,6 +1864,22 @@ public class Configuration {
    */
   public String getNodeRecoveryWindowInMin() {
     return properties.getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
+  }
+
+  /**
+   * Get the components for which recovery is disabled
+   * @return
+   */
+  public String getDisabledComponents() {
+    return properties.getProperty(RECOVERY_DISABLED_COMPONENTS_KEY, "");
+  }
+
+  /**
+   * Get the components for which recovery is enabled
+   * @return
+   */
+  public String getEnabledComponents() {
+    return properties.getProperty(RECOVERY_ENABLED_COMPONENTS_KEY, "");
   }
 
   /**

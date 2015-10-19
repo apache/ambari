@@ -965,7 +965,7 @@ public class HeartBeatHandler {
     }
     response.setRecoveryConfig(RecoveryConfig.getRecoveryConfig(config));
     if(response.getRecoveryConfig() != null) {
-      LOG.debug("Recovery configuration set to " + response.getRecoveryConfig().toString());
+      LOG.info("Recovery configuration set to " + response.getRecoveryConfig().toString());
     }
 
     Long requestId = 0L;
