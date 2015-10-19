@@ -1762,6 +1762,14 @@ var hdp2properties = [
     "index": 0
   },
   {
+    "name": "kdc_host",
+    "displayType": "supportTextConnection",
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "KDC",
+    "index": 1
+  },
+  {
     "name": "realm",
     "displayType": "host",
     "serviceName": "KERBEROS",
@@ -1783,6 +1791,13 @@ var hdp2properties = [
     "filename": "kerberos-env.xml",
     "category": "KDC",
     "index": 4
+  },
+  {
+    "name": "domains",
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "KDC",
+    "index": 5
   },
   {
     "name": "manage_identities",
@@ -1893,13 +1908,6 @@ var hdp2properties = [
     "filename": "kerberos-env.xml",
     "category": "Advanced kerberos-env",
     "index" : 13
-  },
-  {
-    "name": "domains",
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "KDC",
-    "index": 5
   },
   {
     "name": "admin_server_host",
