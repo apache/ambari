@@ -429,6 +429,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
               ("hiveserver2-site" not in services["configurations"]) or \
               ("hiveserver2-site" in services["configurations"] and "hive.security.authenticator.manager" in services["configurations"]["hiveserver2-site"]["properties"]):
         putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
+      if ("hive.conf.restricted.list" in configurations["hiveserver2-site"]["properties"]) or \
+              ("hiveserver2-site" not in services["configurations"]) or \
+              ("hiveserver2-site" in services["configurations"] and "hive.conf.restricted.list" in services["configurations"]["hiveserver2-site"]["properties"]):
+        putHiveServerPropertyAttribute("hive.conf.restricted.list", "delete", "true")
       if "KERBEROS" not in servicesList: # Kerberos security depends on this property
         putHiveSiteProperty("hive.security.authorization.enabled", "false")
     else:
@@ -450,6 +454,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role")
       putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
       if sqlstdauth_class not in auth_manager_values:
         auth_manager_values.append(sqlstdauth_class)
@@ -465,6 +470,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager")
 
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
@@ -1154,6 +1160,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} under hiveserver2-site needs to be set to {1}".format(prop_name, prop_val))})
+        prop_name = 'hive.conf.restricted.list'
+        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
+        current_vals = []
+        missing_vals = []
+        if hive_server2 and prop_name in hive_server2:
+          current_vals = hive_server2[prop_name].split(',')
+          current_vals = [x.strip() for x in current_vals]
+
+        for val in prop_vals:
+          if not val in current_vals:
+            missing_vals.append(val)
+
+        if missing_vals:
+          validationItems.append({"config-name": prop_name,
+            "item": self.getWarnItem("If Ranger Hive Plugin is enabled."\
+            " {0} under hiveserver2-site needs to contain missing value {1}".format(prop_name, ','.join(missing_vals)))})
       ##Add stack validations for  Ranger plugin disabled.
       elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'

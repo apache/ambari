@@ -1049,7 +1049,8 @@ class TestHDP22StackAdvisor(TestCase):
         },
         'property_attributes': {
          'hive.security.authorization.manager': {'delete': 'true'},
-         'hive.security.authenticator.manager': {'delete': 'true'}
+         'hive.security.authenticator.manager': {'delete': 'true'},
+         'hive.conf.restricted.list': {'delete': 'true'}
         }
       }
     }
@@ -1146,7 +1147,8 @@ class TestHDP22StackAdvisor(TestCase):
         "hiveserver2-site": {
           "properties": {
             "hive.security.authorization.manager": "",
-            "hive.security.authenticator.manager": ""
+            "hive.security.authenticator.manager": "",
+            "hive.conf.restricted.list": ""
           }
         }
       },
@@ -1220,7 +1222,8 @@ class TestHDP22StackAdvisor(TestCase):
         "hiveserver2-site": {
           "properties": {
             "hive.security.authorization.manager": "",
-            "hive.security.authenticator.manager": ""
+            "hive.security.authenticator.manager": "",
+            "hive.conf.restricted.list": ""
           }
         }
       },
@@ -1290,6 +1293,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"]="true"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"]="org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"]="org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role"
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -1382,6 +1386,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected["hiveserver2-site"]["properties"]["hive.security.authenticator.manager"] = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.manager"] = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
     expected["hiveserver2-site"]["properties"]["hive.security.authorization.enabled"] = "true"
+    expected["hiveserver2-site"]["properties"]["hive.conf.restricted.list"]="hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager"
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hiveserver2-site'], expected["hiveserver2-site"])
 
@@ -3142,7 +3147,7 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Test with ranger plugin enabled, validation fails
-    res_expected = [{'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authorization.manager under hiveserver2-site needs to be set to com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory', 'type': 'configuration', 'config-name': 'hive.security.authorization.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authenticator.manager under hiveserver2-site needs to be set to org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator', 'type': 'configuration', 'config-name': 'hive.security.authenticator.manager', 'level': 'WARN'}]
+    res_expected = [{'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authorization.manager under hiveserver2-site needs to be set to com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory', 'type': 'configuration', 'config-name': 'hive.security.authorization.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.security.authenticator.manager under hiveserver2-site needs to be set to org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator', 'type': 'configuration', 'config-name': 'hive.security.authenticator.manager', 'level': 'WARN'}, {'config-type': 'hiveserver2-site', 'message': 'If Ranger Hive Plugin is enabled. hive.conf.restricted.list under hiveserver2-site needs to contain missing value hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager', 'type': 'configuration', 'config-name': 'hive.conf.restricted.list', 'level': 'WARN'}]
     res = self.stackAdvisor.validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
