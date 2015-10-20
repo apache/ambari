@@ -60,7 +60,7 @@ require('models/master_component');
 require('models/host_stack_version');
 require('models/root_service');
 require('models/upgrade_entity');
-require('models/configs/config_condition');
+require('models/configs/theme/theme_condition');
 require('models/configs/service_config_version');
 require('models/configs/stack_config_property');
 require('models/configs/config_group');

@@ -172,6 +172,11 @@ App.SubSection = DS.Model.extend({
   }.property('columnIndex', 'columnSpan', 'section.sectionColumns'),
 
   /**
+   * If the visibility of subsection is dependent on a value of some config
+   */
+  isHiddenByConfig: false,
+
+  /**
    * Determines if subsection is filtered by checking it own configs
    * If there is no configs, subsection can't be hidden
    * @type {boolean}
@@ -186,8 +191,8 @@ App.SubSection = DS.Model.extend({
    * @type {boolean}
    */
   isSectionVisible: function () {
-    return !this.get('isHiddenByFilter') && this.get('configs').someProperty('isVisible', true);
-  }.property('isHiddenByFilter', 'configs.@each.isVisible')
+    return !this.get('isHiddenByFilter') && !this.get('isHiddenByConfig') && this.get('configs').someProperty('isVisible', true);
+  }.property('isHiddenByFilter', 'configs.@each.isVisible', 'isHiddenByConfig')
 });
 
 
