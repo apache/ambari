@@ -89,6 +89,13 @@ public class UpgradePack {
   private boolean skipFailures = false;
 
   /**
+   * {@code true} to allow downgrade, {@code false} to disable downgrade.
+   * Tag is optional and can be {@code null}, use {@code isDowngradeAllowed} getter instead.
+   */
+  @XmlElement(name = "downgrade-allowed", required = false)
+  private Boolean downgradeAllowed = null;
+
+  /**
    * {@code true} to automatically skip service check failures. The default is
    * {@code false}.
    */
@@ -191,6 +198,17 @@ public class UpgradePack {
     }
 
     return checked;
+  }
+
+  /**
+   * @return {@code true} if upgrade pack supports downgrade or {@code false} if not.
+   * Default {@code true}
+   */
+  public boolean isDowngradeAllowed(){
+    if (downgradeAllowed != null) {
+      return downgradeAllowed;  // if tag is present, just return exact value
+    }
+    return true;
   }
 
   public boolean canBeApplied(String targetVersion){

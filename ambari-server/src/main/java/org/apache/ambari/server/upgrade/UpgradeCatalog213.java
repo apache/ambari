@@ -29,14 +29,17 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -77,6 +80,7 @@ import java.util.UUID;
  */
 public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
+  private static final String UPGRADE_TABLE = "upgrade";
   private static final String STORM_SITE = "storm-site";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
   private static final String KAFKA_BROKER = "kafka-broker";
@@ -94,10 +98,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
                                     "  ulimit -l {{datanode_max_locked_memory}}\n" +
                                     "fi\n" +
                                     "{% endif %};\n";
-
+  private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
   public static final String UPGRADE_PACKAGE_COL = "upgrade_package";
   public static final String UPGRADE_TYPE_COL = "upgrade_type";
-  public static final String UPGRADE_TABLE = "upgrade";
   public static final String REPO_VERSION_TABLE = "repo_version";
 
   private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
@@ -108,7 +111,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog213.class);
-
 
   @Inject
   DaoUtils daoUtils;
@@ -157,7 +159,12 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    executeUpgradeDDLUpdates();
     addKerberosDescriptorTable();
+  }
+
+  protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(DOWNGRADE_ALLOWED_COLUMN, Short.class, 1, null, true));
   }
 
   private void addKerberosDescriptorTable() throws SQLException {
@@ -175,6 +182,21 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    populateDowngradeAllowed();
+  }
+
+  protected void populateDowngradeAllowed() throws AmbariException, SQLException {
+    UpgradeDAO upgradeDAO = injector.getInstance(UpgradeDAO.class);
+    List<UpgradeEntity> upgrades = upgradeDAO.findAll();
+    for (UpgradeEntity upgrade: upgrades){
+      if (upgrade.isDowngradeAllowed() == null) {
+        upgrade.setDowngradeAllowed(true);
+        upgradeDAO.merge(upgrade);
+        LOG.info(String.format("Update upgrade id %s, upgrade pack %s from version %s to %s",
+          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(), upgrade.getToVersion()));
+      }
+    }
+    dbAccessor.setColumnNullable(UPGRADE_TABLE, DOWNGRADE_ALLOWED_COLUMN, false);
   }
 
   @Override

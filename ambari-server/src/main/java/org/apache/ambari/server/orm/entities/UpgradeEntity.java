@@ -84,6 +84,9 @@ public class UpgradeEntity {
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
 
+  @Column(name="downgrade_allowed", nullable = false)
+  private Integer downgrade_allowed = 1;
+
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
   private List<UpgradeGroupEntity> upgradeGroupEntities;
 
@@ -190,11 +193,21 @@ public class UpgradeEntity {
   }
 
   /**
-   * @return the upgrade type, such as rolling or non_rolling
+   * @return the upgrade type, such as rolling oNr non_rolling
    */
   public UpgradeType getUpgradeType() {
     return upgradeType;
   }
+
+  /**
+   * @return possibility to process downgrade
+   */
+  public Boolean isDowngradeAllowed() { return downgrade_allowed != 0; }
+
+  /**
+   * @param canDowngrade {@code true} to allow downgrade, {@code false} to disallow downgrade
+   */
+  public void setDowngradeAllowed(boolean canDowngrade){ this.downgrade_allowed = (!canDowngrade ? 0 : 1); }
 
   /**
    * @param upgradeType the upgrade type to set
