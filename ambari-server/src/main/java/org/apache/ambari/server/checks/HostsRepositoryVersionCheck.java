@@ -54,6 +54,11 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
   }
 
   @Override
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request) && request.getRepositoryVersion() != null;
+  }
+
+  @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
     final String clusterName = request.getClusterName();
