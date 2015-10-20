@@ -1201,6 +1201,7 @@ Em.I18n.translations = {
   'admin.highAvailability.step4.save.configuration.note':'This configuration is created by Enable {0} HA wizard',
   'admin.highAvailability.wizard.step6.jsNoInit':'JournalNodes not initialized yet',
   'admin.highAvailability.wizard.step6.jsInit':'JournalNodes initialized',
+  'admin.highAvailability.wizard.step6.jnStopped':'All JournalNodes should be started before initializing',
   'admin.highAvailability.wizard.step8.metaNoInit':'Metadata not initialized yet',
   'admin.highAvailability.wizard.step8.confirmPopup.body':'Please confirm that you have run the manual steps before continuing.',
 
