@@ -260,7 +260,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
           name: 'n0',
           displayName: 'd0',
           value: 'v0',
-          displayType: 'advanced',
+          displayType: 'string',
           isSecureConfig: true,
           category: 'c0',
           serviceName: 's0',

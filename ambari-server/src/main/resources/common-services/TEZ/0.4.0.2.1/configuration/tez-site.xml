@@ -41,6 +41,9 @@
     <name>tez.am.resource.memory.mb</name>
     <value>1536</value>
     <description>The amount of memory to be used by the AppMaster</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <!-- tez picks the java opts from yarn.app.mapreduce.am.command-opts for MR tasks. Likewise for the AM memory MB -->
@@ -80,6 +83,9 @@
       a Vertex. 1.4 with 100% queue available implies generating a number of tasks roughly equal
       to 140% of the available containers on the queue
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -88,6 +94,9 @@
     <description>Lower bound on the size (in bytes) of a grouped split, to avoid generating
       too many splits
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -96,6 +105,9 @@
     <description>Upper bound on the size (in bytes) of a grouped split, to avoid generating
       excessively large split
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -188,6 +200,9 @@
     <name>tez.runtime.intermediate-output.should-compress</name>
     <value>false</value>
     <description>Whether intermediate output should be compressed or not</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -202,6 +217,9 @@
     <name>tez.runtime.intermediate-input.is-compressed</name>
     <value>false</value>
     <description>Whether intermediate input is compressed</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

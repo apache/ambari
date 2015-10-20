@@ -400,6 +400,7 @@
     <value>5151</value>
     <description>Port for unix authentication service - only used if Authentication method is UNIX</description>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>    

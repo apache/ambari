@@ -118,6 +118,9 @@ limitations under the License.
     <name>templeton.zookeeper.hosts</name>
     <value>localhost:2181</value>
     <description>ZooKeeper servers, as comma separated host:port pairs</description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
 
   <property>

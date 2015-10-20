@@ -167,6 +167,7 @@ fi
     <value>1024</value>
     <description>Maximum Java heap size for NFSGateway (Java option -Xmx)</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
     </value-attributes>
   </property>

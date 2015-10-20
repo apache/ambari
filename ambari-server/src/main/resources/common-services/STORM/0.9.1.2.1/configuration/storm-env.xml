@@ -32,11 +32,17 @@
     <name>storm_log_dir</name>
     <value>/var/log/storm</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm_pid_dir</name>
     <value>/var/run/storm</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>jmxremote_port</name>

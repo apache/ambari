@@ -27,6 +27,7 @@
     <description>The port the HBase Master should bind to.</description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>int</type>
     </value-attributes>
   </property>
   <property>

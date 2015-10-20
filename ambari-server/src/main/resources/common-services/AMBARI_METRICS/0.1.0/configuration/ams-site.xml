@@ -53,6 +53,9 @@
       Directory to store aggregator checkpoints. Change to a permanent
       location so that checkpoint ar not lost.
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.interval</name>
@@ -62,6 +65,9 @@
       Time in seconds to sleep for the minute resolution host based
       aggregator. Default resolution is 2 minutes.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.hourly.interval</name>
@@ -71,6 +77,9 @@
       Time in seconds to sleep for the hourly resolution host based
       aggregator. Default resolution is 1 hour.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.daily.aggregator.minute.interval</name>
@@ -88,6 +97,9 @@
       Time in seconds to sleep for the hourly resolution cluster wide
       aggregator. Default is 1 hour.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.interval</name>
@@ -105,6 +117,9 @@
       Time in seconds to sleep for the minute resolution cluster wide
       aggregator. Default resolution is 2 minutes.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
@@ -124,6 +139,9 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.checkpointCutOffMultiplier</name>
@@ -134,6 +152,9 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
@@ -144,6 +165,9 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier</name>
@@ -154,6 +178,9 @@
       if aggregator checkpoint is greater than max allowed checkpoint delay,
       the checkpoint will be discarded by the aggregator.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
@@ -217,6 +244,9 @@
     <description>
       Lowest resolution of desired data for cluster level minute aggregates.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.daily.ttl</name>
@@ -293,6 +323,9 @@
       Max result limit on number of rows returned. Calculated as follows:
       4 aggregate metrics/min * 60 * 24: Retrieve aggregate data for 1 day.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.service.checkpointDelay</name>
@@ -302,6 +335,9 @@
       Time in seconds to sleep on the first run or when the checkpoint is
       too old.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.service.resultset.fetchSize</name>
@@ -310,6 +346,9 @@
     <description>
       JDBC resultset prefect size for aggregator queries.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <!-- Phoenix properties that would manifest in the hbase-site.xml on the client side -->
   <property>

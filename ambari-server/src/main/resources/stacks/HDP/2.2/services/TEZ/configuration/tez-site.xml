@@ -58,6 +58,9 @@
     <description>The amount of memory to be used by the AppMaster.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>

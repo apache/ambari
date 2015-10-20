@@ -65,6 +65,9 @@
       org.apache.falcon.service.LogCleanupService
     </value>
     <description></description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.configstore.listeners</name>
@@ -74,6 +77,9 @@
       org.apache.falcon.service.SharedLibraryHostingService
     </value>
     <description></description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.broker.impl.class</name>
@@ -120,6 +126,9 @@
     <name>*.broker.ttlInMins</name>
     <value>4320</value>
     <description></description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.hive.shared.libs</name>
@@ -136,16 +145,25 @@ hive-hcatalog-core,hive-jdbc,hive-webhcat-java-client</value>
     <name>*.max.retry.failure.count</name>
     <value>1</value>
     <description></description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.internal.queue.size</name>
     <value>1000</value>
     <description></description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.falcon.graph.preserve.history</name>
     <value>false</value>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <!--properties without default values-->
   <property>
@@ -176,6 +194,9 @@ hive-hcatalog-core,hive-jdbc,hive-webhcat-java-client</value>
     <name>*.falcon.http.authentication.token.validity</name>
     <value>36000</value>
     <description></description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.falcon.http.authentication.signature.secret</name>
@@ -191,5 +212,8 @@ hive-hcatalog-core,hive-jdbc,hive-webhcat-java-client</value>
     <name>*.falcon.http.authentication.kerberos.name.rules</name>
     <value>DEFAULT</value>
     <description>The kerberos names rules is to resolve kerberos principal names, refer to Hadoop's KerberosName for more details.</description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
 </configuration>

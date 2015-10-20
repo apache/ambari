@@ -538,8 +538,8 @@ describe("App.MainServiceInfoConfigsController", function () {
         Em.Object.create({ name: "p4", value: " d1 d2 d3 ", displayType: "directories" }),
         Em.Object.create({ name: "p5", value: " v1 ", displayType: "password" }),
         Em.Object.create({ name: "p6", value: " v ", displayType: "host" }),
-        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1 ", displayType: "advanced" }),
-        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1 ", displayType: "advanced" })
+        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1 ", displayType: "string" }),
+        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1 ", displayType: "string" })
       ],
       result: [
         Em.Object.create({ name: "p1", value: " v1 v1", displayType: "" }),
@@ -548,8 +548,8 @@ describe("App.MainServiceInfoConfigsController", function () {
         Em.Object.create({ name: "p4", value: "d1,d2,d3", displayType: "directories" }),
         Em.Object.create({ name: "p5", value: " v1 ", displayType: "password" }),
         Em.Object.create({ name: "p6", value: "v", displayType: "host" }),
-        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1", displayType: "advanced" }),
-        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1", displayType: "advanced" })
+        Em.Object.create({ name: "javax.jdo.option.ConnectionURL", value: " v1", displayType: "string" }),
+        Em.Object.create({ name: "oozie.service.JPAService.jdbc.url", value: " v1", displayType: "string" })
       ]
     };
 

@@ -53,6 +53,7 @@
     <display-name>Oozie Data Dir</display-name>
     <description>Data directory in which the Oozie DB exists</description>
     <value-attributes>
+      <type>directory</type>
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>
@@ -63,6 +64,7 @@
     <display-name>Oozie Log Dir</display-name>
     <description>Directory for oozie logs</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -73,6 +75,7 @@
     <display-name>Oozie PID Dir</display-name>
     <description>Directory in which the pid files for oozie reside.</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -84,6 +87,7 @@
     <description>The admin port Oozie server runs.</description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>int</type>
     </value-attributes>
   </property>
   <property>

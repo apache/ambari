@@ -37,12 +37,13 @@ describe('App.KerberosWizardStep2Controller', function() {
       controller.tweakManualKdcProperties.restore();
     });
 
-    var _createProperty = function(name, value) {
+    var _createProperty = function(name, value, displayType) {
       var preDefProp = App.config.get('preDefinedSiteProperties').findProperty('name', name);
       if (preDefProp) {
         return App.ServiceConfigProperty.create(
           $.extend(true, {}, preDefProp, {
             value: value, filename: 'some-site.xml',
+            'displayType': displayType,
             isRequiredByAgent: preDefProp.isRequiredByAgent == undefined ? true : preDefProp.isRequiredByAgent
           }));
       } else {
@@ -53,10 +54,10 @@ describe('App.KerberosWizardStep2Controller', function() {
     var tests = [
       {
         stepConfigs: [
-          ['realm', ' SPACES '],
-          ['admin_server_host', ' space_left'],
-          ['kdc_host', ' space_left_and_right '],
-          ['ldap_url', 'space_right ']
+          ['realm', ' SPACES ', 'host'],
+          ['admin_server_host', ' space_left', 'host'],
+          ['kdc_host', ' space_left_and_right ', 'host'],
+          ['ldap_url', 'space_right ', 'host']
         ],
         e: {
           realm: 'SPACES',
@@ -72,7 +73,7 @@ describe('App.KerberosWizardStep2Controller', function() {
         sinon.stub(App.StackService, 'find').returns([Em.Object.create({serviceName: 'KERBEROS'})]);
         controller.set('stepConfigs', [
           App.ServiceConfig.create({
-            configs: test.stepConfigs.map(function(item) { return _createProperty(item[0], item[1]); })
+            configs: test.stepConfigs.map(function(item) { return _createProperty(item[0], item[1], item[2]); })
           })
         ]);
         var result = controller.createKerberosSiteObj('some-site', 'random-tag');

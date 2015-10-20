@@ -302,7 +302,6 @@ App.ServiceConfigProperty = Em.Object.extend({
     var supportsFinal = this.get('supportsFinal');
     var isFinal = this.get('isFinal');
     var valueRange = this.get('valueRange');
-    var values = [];//value split by "," to check UNIX users, groups list
 
     var isError = false;
     var isWarn = false;
@@ -344,21 +343,6 @@ App.ServiceConfigProperty = Em.Object.extend({
           } else if (!validator.isValidFloat(value)) {
             this.set('errorMessage', 'Must be a valid number');
             isError = true;
-          }
-          break;
-        case 'UNIXList':
-          if(value != '*'){
-            values = value.split(',');
-            for(var i = 0, l = values.length; i < l; i++){
-              if(!validator.isValidUNIXUser(values[i])){
-                if(this.get('type') == 'USERS'){
-                  this.set('errorMessage', 'Must be a valid list of user names');
-                } else {
-                  this.set('errorMessage', 'Must be a valid list of group names');
-                }
-                isError = true;
-              }
-            }
           }
           break;
         case 'checkbox':
@@ -413,9 +397,16 @@ App.ServiceConfigProperty = Em.Object.extend({
             }
           }
           break;
+        case 'password':
+          // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
+          if (value !== this.get('retypedPassword')) {
+            this.set('errorMessage', 'Passwords do not match');
+            isError = true;
+          }
+          break;
         case 'multiLine':
         case 'content':
-        case 'advanced':
+        default:
           if(this.get('name')=='javax.jdo.option.ConnectionURL' || this.get('name')=='oozie.service.JPAService.jdbc.url') {
             if (validator.isConfigValueLink(value)) {
               isError = false;
@@ -432,12 +423,6 @@ App.ServiceConfigProperty = Em.Object.extend({
             }
           }
           break;
-        case 'password':
-          // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
-          if (value !== this.get('retypedPassword')) {
-            this.set('errorMessage', 'Passwords do not match');
-            isError = true;
-          }
       }
     }
 

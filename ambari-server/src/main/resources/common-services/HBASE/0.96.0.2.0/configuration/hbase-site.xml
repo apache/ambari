@@ -48,6 +48,7 @@
     <display-name>HBase Master Port</display-name>
     <description>The port the HBase Master should bind to.</description>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -60,6 +61,9 @@
     than '/tmp' (The '/tmp' directory is often cleared on
     machine restart).
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.local.dir</name>
@@ -140,6 +144,9 @@
       the minimum possible flushing to occur when updates are blocked due to
       memstore limiting.
     </description>
+    <value-attributes>
+      <type>float</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
@@ -190,6 +197,9 @@
       heavy write loads. This can reduce the frequency of stop-the-world
       GC pauses on large heaps.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
@@ -313,6 +323,9 @@
     blocked for this HRegion until a compaction is completed, or
     until hbase.hstore.blockingWaitTime has been exceeded.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>hfile.block.cache.size</name>
@@ -454,6 +467,9 @@
     list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
     this is the list of servers which we will start/stop ZooKeeper on.
     </description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
   <!-- End of properties used to generate ZooKeeper host:port quorum list. -->
 

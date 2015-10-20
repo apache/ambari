@@ -72,21 +72,18 @@ hdp23properties.push({
   /**************************************** RANGER - HDFS Plugin ***************************************/
 
     "name": "ranger-yarn-plugin-enabled",
-    "displayType": "checkbox",
     "filename": "ranger-yarn-plugin-properties.xml",
     "serviceName": "YARN",
     "index": 1
   },
   {
     "name": "ranger-kafka-plugin-enabled",
-    "displayType": "checkbox",
     "filename": "ranger-kafka-plugin-properties.xml",
     "serviceName": "KAFKA",
     "index": 1
   },
   {
     "name": "nimbus.seeds",
-    "displayType": "componentHosts",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
     "category": "NIMBUS"
@@ -136,7 +133,6 @@ hdp23properties.push({
   },
   {
     "name": "ranger.unixauth.remote.login.enabled",
-    "displayType": "checkbox",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "UnixAuthenticationSettings"
@@ -149,7 +145,6 @@ hdp23properties.push({
   },
   {
     "name": "ranger.unixauth.service.port",
-    "displayType": "int",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
     "category": "UnixAuthenticationSettings"
@@ -247,7 +242,7 @@ hdp23properties.push({
   /*********************************************** HAWQ **********************************************/
   {
     "name": "hawq_master_address_host",
-    "displayType": "masterHost",
+    "displayType": "componentHost",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -255,7 +250,7 @@ hdp23properties.push({
   },
   {
     "name": "hawq_standby_address_host",
-    "displayType": "masterHost",
+    "displayType": "componentHost",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",

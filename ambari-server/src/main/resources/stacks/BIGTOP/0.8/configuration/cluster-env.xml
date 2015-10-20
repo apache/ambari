@@ -35,6 +35,9 @@
         <name>ignore_groupsusers_create</name>
         <value>false</value>
         <description>Whether to ignore failures on users and group creation</description>
+        <value-attributes>
+            <type>boolean</type>
+        </value-attributes>
     </property>
     <property>
         <name>smokeuser</name>
