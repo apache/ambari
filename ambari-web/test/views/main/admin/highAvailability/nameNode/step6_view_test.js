@@ -24,20 +24,20 @@ describe('App.HighAvailabilityWizardStep6View', function () {
   var view = App.HighAvailabilityWizardStep6View.create({
     controller: Em.Object.create({
       content: {},
-      pullCheckPointStatus: Em.K
+      loadStep: Em.K
     })
   });
 
   describe("#didInsertElement()", function () {
     before(function () {
-      sinon.spy(view.get('controller'), 'pullCheckPointStatus');
+      sinon.spy(view.get('controller'), 'loadStep');
     });
     after(function () {
-      view.get('controller').pullCheckPointStatus.restore();
+      view.get('controller').loadStep.restore();
     });
-    it("call pullCheckPointStatus", function () {
+    it("call loadStep", function () {
       view.didInsertElement();
-      expect(view.get('controller').pullCheckPointStatus.calledOnce).to.be.true;
+      expect(view.get('controller').loadStep.calledOnce).to.be.true;
     });
   });
 
@@ -55,15 +55,20 @@ describe('App.HighAvailabilityWizardStep6View', function () {
   });
 
   describe("#jnCheckPointText", function() {
-    it("isNextEnabled true", function() {
-      view.set('controller.isNextEnabled', true);
+    it("status is done", function() {
+      view.set('controller.status', 'done');
       view.propertyDidChange('jnCheckPointText');
       expect(view.get('jnCheckPointText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step6.jsInit'));
     });
-    it("isNextEnabled false", function() {
-      view.set('controller.isNextEnabled', false);
+    it("status is waiting", function() {
+      view.set('controller.status', 'waiting');
       view.propertyDidChange('jnCheckPointText');
       expect(view.get('jnCheckPointText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit'));
+    });
+    it("status is journalnode_stopped", function() {
+      view.set('controller.status', 'journalnode_stopped');
+      view.propertyDidChange('jnCheckPointText');
+      expect(view.get('jnCheckPointText')).to.equal(Em.I18n.t('admin.highAvailability.wizard.step6.jnStopped'));
     });
   });
 });
