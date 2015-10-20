@@ -42,6 +42,7 @@
     <display-name>Enable Ranger for HBASE</display-name>
     <description>Enable ranger hbase plugin ?</description>
     <value-attributes>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
     <depends-on>
@@ -71,6 +72,9 @@
     <value>true</value>
     <display-name>Audit to DB</display-name>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property> 
 
   <property>
@@ -78,6 +82,10 @@
     <value>false</value>
     <display-name>Audit to HDFS</display-name>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+
   </property>
 
   <property>
@@ -177,6 +185,9 @@
     <value>true</value>
     <display-name>Should HBase GRANT/REVOKE update XA policies</display-name>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   
   <property>

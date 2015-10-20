@@ -317,7 +317,7 @@ App.config = Em.Object.create({
       supportsFinal: this.shouldSupportFinal(serviceName, fileName),
       serviceName: serviceName,
       displayName: this.getDefaultDisplayName(name, fileName),
-      displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : ''),
+      displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : '', serviceName),
       description: null,
       category: this.getDefaultCategory(definedInStack, fileName),
       isSecureConfig: this.getIsSecure(name),
@@ -420,13 +420,20 @@ App.config = Em.Object.create({
    * @param name
    * @param type
    * @param value
+   * @param serviceName
    * @returns {string}
    */
-  getDefaultDisplayType: function(name, type, value) {
+  getDefaultDisplayType: function(name, type, value, serviceName) {
     if (this.isContentProperty(name, type)) {
       return 'content';
+    } else if (serviceName && serviceName == 'FALCON' && this.getConfigTagFromFileName(type) == 'oozie-site') {
+      /**
+       * This specific type for 'oozie-site' configs of FALCON service.
+       * After this type will be moved to stack definition this hard-code should be removed
+       */
+      return 'custom';
     }
-    return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'advanced';
+    return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'string';
   },
 
   /**
@@ -491,7 +498,7 @@ App.config = Em.Object.create({
         category = Em.get(serviceConfigProperty, 'category');
     switch (displayType) {
       case 'content':
-      case 'advanced':
+      case 'string':
       case 'multiLine':
         return this.trimProperty({ displayType: displayType, value: value });
         break;
@@ -710,7 +717,7 @@ App.config = Em.Object.create({
         propertyData.category = 'Users and Groups';
         propertyData.isVisible = !App.get('isHadoopWindowsStack');
         propertyData.serviceName = 'MISC';
-        propertyData.displayType = checkboxProperties.contains(config.property_name) ? 'checkbox' : 'user';
+        propertyData.displayType = checkboxProperties.contains(config.property_name) ? 'boolean' : 'user';
         if (config.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
           propertyData.index = 999;//it means these configs should be shown last (if somehow we will have more that 1000 configs in tab - it wouldn't work)
         } else if (config.service_name) {
@@ -976,11 +983,10 @@ App.config = Em.Object.create({
         break;
       case 'password':
         break;
-      case 'advanced':
+      default:
         if (name == 'javax.jdo.option.ConnectionURL' || name == 'oozie.service.JPAService.jdbc.url') {
           rez = value.trim();
         }
-      default:
         rez = (typeof value == 'string') ? value.replace(/(\s+$)/g, '') : value;
     }
     return ((rez == '') || (rez == undefined)) ? value : rez;

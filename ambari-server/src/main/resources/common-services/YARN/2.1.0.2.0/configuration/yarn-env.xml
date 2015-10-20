@@ -27,6 +27,7 @@
     <display-name>YARN Log Dir Prefix</display-name>
     <description>YARN Log Dir Prefix</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -37,6 +38,7 @@
     <display-name>YARN PID Dir Prefix</display-name>
     <description>YARN PID Dir Prefix</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -54,6 +56,7 @@
     <display-name>YARN Java heap size</display-name>
     <description>Max heapsize for all YARN components using a numerical value in the scale of MB</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
     </value-attributes>
   </property>
@@ -63,6 +66,7 @@
     <display-name>ResourceManager Java heap size</display-name>
     <description>Max heapsize for ResourceManager using a numerical value in the scale of MB</description>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
       <unit>MB</unit>
     </value-attributes>
@@ -73,6 +77,7 @@
     <display-name>NodeManager Java heap size</display-name>
     <description>Max heapsize for NodeManager using a numerical value in the scale of MB</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
     </value-attributes>
   </property>
@@ -81,6 +86,9 @@
     <value>1000</value>
     <display-name>Minimum user ID for submitting job</display-name>
     <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>  
   <property>
     <name>is_supported_yarn_ranger</name>

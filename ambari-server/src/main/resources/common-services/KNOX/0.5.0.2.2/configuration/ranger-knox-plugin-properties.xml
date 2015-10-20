@@ -48,6 +48,7 @@
       </property>
     </depends-on>
     <value-attributes>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -77,6 +78,9 @@
     <value>true</value>
     <display-name>Audit to DB</display-name>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -84,6 +88,9 @@
     <value>false</value>
     <display-name>Audit to HDFS</display-name>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

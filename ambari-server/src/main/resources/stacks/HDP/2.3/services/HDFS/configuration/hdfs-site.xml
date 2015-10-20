@@ -32,6 +32,9 @@
       they are accumulated to exceed certain threshold (e.g., 1MB) in memory.
       One needs to make sure the directory has enough space.
     </description>
+    <value-attributes>
+        <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>

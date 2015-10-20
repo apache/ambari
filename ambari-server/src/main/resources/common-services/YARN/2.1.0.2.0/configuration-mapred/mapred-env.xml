@@ -27,6 +27,7 @@
     <display-name>Mapreduce Log Dir Prefix</display-name>
     <description>Mapreduce Log Dir Prefix</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -37,6 +38,7 @@
     <display-name>Mapreduce PID Dir Prefix</display-name>
     <description>Mapreduce PID Dir Prefix</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -55,6 +57,7 @@
     <description>Value for JobHistoryServer heap_size variable in hadoop-env.sh</description>
     <value-attributes>
       <unit>MB</unit>
+      <type>int</type>
     </value-attributes>
   </property>
 

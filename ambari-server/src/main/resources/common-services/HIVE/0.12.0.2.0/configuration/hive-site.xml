@@ -27,6 +27,7 @@ limitations under the License.
     <value-attributes>
       <unit>MB</unit>
       <overridable>false</overridable>
+      <type>int</type>
     </value-attributes>
   </property>
 
@@ -36,6 +37,7 @@ limitations under the License.
     <display-name>Database Name</display-name>
     <description>Database name used as the Hive Metastore</description>
     <value-attributes>
+      <type>host</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -146,6 +148,9 @@ limitations under the License.
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
     <description>enable or disable the hive client authorization</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -351,6 +356,7 @@ limitations under the License.
     </description>
     <value-attributes>
       <overridable>false</overridable>
+      <type>int</type>
     </value-attributes>
   </property>
 
@@ -363,6 +369,9 @@ limitations under the License.
       should use the ZooKeeper ensemble: hive.zookeeper.quorum in their
       connection string.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

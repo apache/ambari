@@ -64,6 +64,7 @@
     <display-name>Accumulo Log Dir</display-name>
     <description>Log Directories for Accumulo.</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -74,6 +75,7 @@
     <display-name>Accumulo PID Dir</display-name>
     <description>Pid Directory for Accumulo.</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -101,6 +103,7 @@
     <display-name>Accumulo Master Maximum Java heap size</display-name>
     <description>Accumulo Master Heap Size.</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
@@ -111,6 +114,7 @@
     <display-name>Accumulo TServer Maximum Java heap size</display-name>
     <description>Accumulo Tablet Server Heap Size.</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
     </value-attributes>
   </property>
@@ -120,6 +124,7 @@
     <display-name>Accumulo Monitor Maximum Java heap size</display-name>
     <description>Accumulo Monitor Heap Size.</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
@@ -130,6 +135,7 @@
     <display-name>Accumulo GC Maximum Java heap size</display-name>
     <description>Accumulo Garbage Collector Heap Size.</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>
@@ -140,6 +146,7 @@
     <display-name>Accumulo Other Maximum Java heap size</display-name>
     <description>Heap size for other Accumulo processes.</description>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
     </value-attributes>
   </property>
@@ -148,6 +155,9 @@
     <value>false</value>
     <display-name>Monitor Bind All Interfaces</display-name>
     <description>Controls whether the monitor binds to all interfaces.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>content</name>
@@ -169,6 +179,9 @@ export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_othe
 # what do when the JVM runs out of heap memory
 export ACCUMULO_KILL_CMD='kill -9 %p'
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   <property>
     <name>server_content</name>
@@ -193,5 +206,8 @@ export ACCUMULO_MONITOR_BIND_ALL={{monitor_bind_str}}
 # what do when the JVM runs out of heap memory
 export ACCUMULO_KILL_CMD='kill -9 %p'
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

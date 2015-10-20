@@ -29,6 +29,7 @@
     <value>mit-kdc</value>
     <display-name>KDC type</display-name>
     <value-attributes>
+      <type>componentHost</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -44,6 +45,7 @@
     <value-attributes>
       <visible>false</visible>
       <overridable>false</overridable>
+      <type>boolean</type>
     </value-attributes>
   </property>
 
@@ -57,6 +59,7 @@
     </description>
     <value>true</value>
     <value-attributes>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -69,6 +72,7 @@
     </description>
     <value/>
     <value-attributes>
+      <type>host</type>
       <visible>false</visible>
       <overridable>false</overridable>
     </value-attributes>
@@ -95,6 +99,7 @@
     </description>
     <value>aes des3-cbc-sha1 rc4 des-cbc-md5</value>
     <value-attributes>
+      <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -107,6 +112,7 @@
     <display-name>Realm name</display-name>
     <value/>
     <value-attributes>
+      <type>host</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -132,6 +138,7 @@
     </description>
     <value/>
     <value-attributes>
+      <type>host</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -145,6 +152,7 @@
     <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
     <value-attributes>
       <overridable>false</overridable>
+      <type>multiLine</type>
     </value-attributes>
   </property>
 
@@ -168,6 +176,7 @@
     </description>
     <value>1</value>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -180,6 +189,7 @@
     </description>
     <value>1</value>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -192,6 +202,7 @@
     </description>
     <value>1</value>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -204,6 +215,7 @@
     </description>
     <value>1</value>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -216,6 +228,7 @@
     </description>
     <value>0</value>
     <value-attributes>
+      <type>int</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -241,6 +254,7 @@
     <value>false</value>
     <value-attributes>
       <overridable>false</overridable>
+      <type>boolean</type>
     </value-attributes>
   </property>
 
@@ -269,6 +283,7 @@
 }
     </value>
     <value-attributes>
+      <type>content</type>
       <empty-value-valid>true</empty-value-valid>
       <overridable>false</overridable>
     </value-attributes>

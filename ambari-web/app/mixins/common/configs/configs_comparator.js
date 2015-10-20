@@ -270,8 +270,8 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
-    var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'advanced' });
-    var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'advanced' });
+    var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'string' });
+    var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'string' });
 
     if (originalValue.toArray) {
       originalValue = originalValue.toArray();

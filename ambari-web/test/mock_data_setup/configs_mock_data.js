@@ -248,7 +248,7 @@ module.exports = {
         "isOverridable":true,
         "showLabel":true,
         "serviceName":"STORM",
-        "displayType":"advanced",
+        "displayType":"string",
         "displayName":"single_line_property",
         "category":"AdvancedStormSite"
       },

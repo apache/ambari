@@ -39,6 +39,7 @@
         <description>Whether to ignore failures on users and group creation</description>
         <value-attributes>
             <overridable>false</overridable>
+            <type>boolean</type>
         </value-attributes>
     </property>
     <property>
@@ -85,6 +86,7 @@ gpgcheck=0</value>
         <description>Have Ambari manage UIDs</description>
         <value-attributes>
             <overridable>false</overridable>
+            <type>boolean</type>
         </value-attributes>
     </property>
 

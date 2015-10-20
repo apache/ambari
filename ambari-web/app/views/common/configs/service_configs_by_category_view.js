@@ -347,7 +347,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       name: propertyObj.name,
       displayName: propertyObj.displayName || propertyObj.name,
       value: propertyObj.value,
-      displayType: stringUtils.isSingleLine(propertyObj.value) ? 'advanced' : 'multiLine',
+      displayType: stringUtils.isSingleLine(propertyObj.value) ? 'string' : 'multiLine',
       isSecureConfig: isSecureConfig,
       category: propertyObj.categoryName,
       serviceName: propertyObj.serviceName,

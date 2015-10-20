@@ -97,6 +97,9 @@
     <name>*.falcon.graph.storage.directory</name>
     <value>/hadoop/falcon/data/lineage/graphdb</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.falcon.graph.storage.backend</name>
@@ -107,11 +110,17 @@
     <name>*.falcon.graph.serialize.path</name>
     <value>/hadoop/falcon/data/lineage</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>*.falcon.graph.preserve.history</name>
     <value>false</value>
     <description></description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
 </configuration>
