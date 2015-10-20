@@ -66,6 +66,14 @@ class TestSliderClient(RMFTestCase):
                               mode=0644,
                               content='log4jproperties\nline2'
     )
+    self.assertResourceCalled('Execute', ('tar',
+     '-czvf',
+     '/usr/hdp/current/slider-client/slider.tar.gz',
+     '--exclude=slider-core*.jar',
+     '/usr/hdp/current/slider-client/lib'),
+        not_if = 'test -f /usr/hdp/current/slider-client/slider.tar.gz',
+        sudo = True,
+    )
 
     self.assertNoMoreResources()
 

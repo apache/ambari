@@ -83,6 +83,7 @@ class HistoryServerDefault(HistoryServer):
       # MC Hammer said, "Can't touch this"
       copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       copy_to_hdfs("tez", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      copy_to_hdfs("slider", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
       params.HdfsResource(None, action="execute")
 
   def start(self, env, rolling_restart=False):
@@ -99,6 +100,11 @@ class HistoryServerDefault(HistoryServer):
         host_sys_prepped=params.host_sys_prepped)
       resource_created = copy_to_hdfs(
         "tez",
+        params.user_group,
+        params.hdfs_user,
+        host_sys_prepped=params.host_sys_prepped) or resource_created
+      resource_created = copy_to_hdfs(
+        "slider",
         params.user_group,
         params.hdfs_user,
         host_sys_prepped=params.host_sys_prepped) or resource_created

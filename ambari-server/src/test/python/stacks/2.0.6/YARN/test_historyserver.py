@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
-from mock.mock import MagicMock, patch
+from mock.mock import MagicMock, patch, call
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import version
 from stacks.utils.RMFTestCase import *
@@ -773,7 +773,8 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-mapreduce-historyserver', version), sudo=True)
-    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    self.assertTrue(call("tez", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
+    self.assertTrue(call("slider", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
 
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,

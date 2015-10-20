@@ -440,6 +440,14 @@
         </upgrade>
       </component>
     </service>
+    
+    <service name="SLIDER">
+      <component name="SLIDER">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
 
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
@@ -583,14 +591,6 @@
       </component>
 
       <component name="HCAT">
-        <upgrade>
-          <task xsi:type="restart-task" />
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="SLIDER">
-      <component name="SLIDER">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
