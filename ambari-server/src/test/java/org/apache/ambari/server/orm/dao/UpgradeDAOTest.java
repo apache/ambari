@@ -177,4 +177,35 @@ public class UpgradeDAOTest {
     assertNotNull(lastUpgradeForCluster);
     assertEquals(33L, (long)lastUpgradeForCluster.getId());
   }
+
+  /**
+   * Tests that certain columns in an {@link UpgradeEntity} are updatable.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testUpdatableColumns() throws Exception {
+    UpgradeEntity upgradeEntity = new UpgradeEntity();
+    upgradeEntity.setId(11L);
+    upgradeEntity.setClusterId(Long.valueOf(1));
+    upgradeEntity.setDirection(Direction.UPGRADE);
+    upgradeEntity.setRequestId(Long.valueOf(1));
+    upgradeEntity.setFromVersion("2.2.0.0-1234");
+    upgradeEntity.setToVersion("2.3.0.0-4567");
+    upgradeEntity.setUpgradeType(UpgradeType.ROLLING);
+    upgradeEntity.setUpgradePackage("test-upgrade");
+    dao.create(upgradeEntity);
+
+    UpgradeEntity lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
+    Assert.assertFalse(lastUpgradeForCluster.isComponentFailureAutoSkipped());
+    Assert.assertFalse(lastUpgradeForCluster.isServiceCheckFailureAutoSkipped());
+
+    lastUpgradeForCluster.setAutoSkipComponentFailures(true);
+    lastUpgradeForCluster.setAutoSkipServiceCheckFailures(true);
+    dao.merge(lastUpgradeForCluster);
+
+    lastUpgradeForCluster = dao.findLastUpgradeForCluster(1);
+    Assert.assertTrue(lastUpgradeForCluster.isComponentFailureAutoSkipped());
+    Assert.assertTrue(lastUpgradeForCluster.isServiceCheckFailureAutoSkipped());
+  }
 }

@@ -285,7 +285,7 @@ public class UpgradeResourceProviderTest {
 
     assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
         zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(1).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(4).getText());
@@ -333,7 +333,7 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(3, zookeeperUpgradeItems.size());
-    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(0).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
 
@@ -378,7 +378,7 @@ public class UpgradeResourceProviderTest {
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(4, zookeeperUpgradeItems.size());
 
-    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(0).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(3).getText());
@@ -423,8 +423,10 @@ public class UpgradeResourceProviderTest {
     assertEquals(1, resources.size());
     res = resources.iterator().next();
     assertNotNull(res.getPropertyValue("Upgrade/progress_percent"));
-    assertNotNull(res.getPropertyValue("Upgrade/direction"));
-    assertEquals(Direction.UPGRADE, res.getPropertyValue("Upgrade/direction"));
+    assertNotNull(res.getPropertyValue(UpgradeResourceProvider.UPGRADE_DIRECTION));
+    assertEquals(Direction.UPGRADE, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_DIRECTION));
+    assertEquals(false, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES));
+    assertEquals(false, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES));
 
     // upgrade groups
     propertyIds.clear();
@@ -484,6 +486,52 @@ public class UpgradeResourceProviderTest {
 
     assertEquals("Confirm Finalize", res.getPropertyValue("UpgradeItem/context"));
     assertTrue(res.getPropertyValue("UpgradeItem/text").toString().startsWith("Please confirm"));
+  }
+
+  /**
+   * Tests that retrieving an upgrade correctly populates less common upgrade
+   * options correctly.
+   */
+  @Test
+  public void testGetResourcesWithSpecialOptions() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(0, upgrades.size());
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    // tests skipping SC failure options
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, "true");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    assertNotNull(status);
+
+    // upgrade
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add("Upgrade");
+
+    Predicate predicate = new PredicateBuilder()
+      .property(UpgradeResourceProvider.UPGRADE_REQUEST_ID).equals("1").and()
+      .property(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME).equals("c1")
+      .toPredicate();
+
+    request = PropertyHelper.getReadRequest(propertyIds);
+    Set<Resource> resources = upgradeResourceProvider.getResources(request, predicate);
+
+    assertEquals(1, resources.size());
+    Resource resource = resources.iterator().next();
+
+    assertEquals(true, resource.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES));
+    assertEquals(true, resource.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES));
   }
 
   @Ignore

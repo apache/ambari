@@ -18,13 +18,31 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -49,8 +67,8 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -64,29 +82,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import static org.easymock.EasyMock.anyLong;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -141,6 +143,7 @@ public class UpgradeCatalog213Test {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
 
     dbAccessor.addColumn(eq("upgrade"), anyObject(DBAccessor.DBColumnInfo.class));
+    expectLastCall().times(3);
 
     replay(dbAccessor);
     Module module = new Module() {
@@ -148,6 +151,7 @@ public class UpgradeCatalog213Test {
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
         binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(EntityManager.class).toInstance(entityManager);
       }
     };
 
@@ -250,7 +254,7 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.executeDMLUpdates();
 
     verify(upgradeCatalog213);
-    
+
     //verify(dbAccessor, configuration, resultSet, connection, statement);
 
     // Verify sections
@@ -382,10 +386,9 @@ public class UpgradeCatalog213Test {
     replay(clusterEntity, clusterDAO, hostVersionDAO, hostEntity1, hostEntity2);
   }
 
-
   @Test
-  public void testPopulateDowngradeAllowed() throws Exception {
-    Method executeStackPreDMLUpdates = UpgradeCatalog213.class.getDeclaredMethod("populateDowngradeAllowed");
+  public void testExecuteUpgradePreDMLUpdates() throws Exception {
+    Method executeStackPreDMLUpdates = UpgradeCatalog213.class.getDeclaredMethod("executeUpgradePreDMLUpdates");
 
     final UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
       .addMockedMethod(executeStackPreDMLUpdates).createMock();
@@ -396,10 +399,11 @@ public class UpgradeCatalog213Test {
         bind(UpgradeCatalog213.class).toInstance(upgradeCatalog213);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(EntityManager.class).toInstance(entityManager);
       }
     });
 
-    upgradeCatalog213.populateDowngradeAllowed();
+    upgradeCatalog213.executeUpgradePreDMLUpdates();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -806,6 +810,8 @@ public class UpgradeCatalog213Test {
     mockedDbAccessor.executeQuery("ALTER ROLE \"ambari\" SET search_path to 'fo';");
 
     // executeUpgradeDDLUpdates
+    mockedDbAccessor.addColumn(eq("upgrade"), capture(capturedColumn));
+    mockedDbAccessor.addColumn(eq("upgrade"), capture(capturedColumn));
     mockedDbAccessor.addColumn(eq("upgrade"), capture(capturedColumn));
 
     // addKerberosDescriptorTable

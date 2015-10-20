@@ -18,34 +18,42 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -61,19 +69,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.Collection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -98,7 +98,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
                                     "  ulimit -l {{datanode_max_locked_memory}}\n" +
                                     "fi\n" +
                                     "{% endif %};\n";
+
   private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
+  private static final String UPGRADE_SKIP_FAILURE_COLUMN = "skip_failures";
+  private static final String UPGRADE_SKIP_SC_FAILURE_COLUMN = "skip_sc_failures";
   public static final String UPGRADE_PACKAGE_COL = "upgrade_package";
   public static final String UPGRADE_TYPE_COL = "upgrade_type";
   public static final String REPO_VERSION_TABLE = "repo_version";
@@ -164,11 +167,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   }
 
   protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
-    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(DOWNGRADE_ALLOWED_COLUMN, Short.class, 1, null, true));
+    updateUpgradesDDL();
   }
 
   private void addKerberosDescriptorTable() throws SQLException {
-
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_NAME_COLUMN, String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_COLUMN, char[].class, null, null, false));
@@ -182,21 +184,43 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    populateDowngradeAllowed();
+    executeUpgradePreDMLUpdates();
   }
 
-  protected void populateDowngradeAllowed() throws AmbariException, SQLException {
+  /**
+   * Updates the following columns on the {@value #UPGRADE_TABLE} table to
+   * default values:
+   * <ul>
+   * <li>{value {@link #DOWNGRADE_ALLOWED_COLUMN}}</li>
+   * <li>{value {@link #UPGRADE_SKIP_FAILURE_COLUMN}}</li>
+   * <li>{value {@link #UPGRADE_SKIP_SC_FAILURE_COLUMN}}</li>
+   * </ul>
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  protected void executeUpgradePreDMLUpdates() throws AmbariException, SQLException {
     UpgradeDAO upgradeDAO = injector.getInstance(UpgradeDAO.class);
     List<UpgradeEntity> upgrades = upgradeDAO.findAll();
     for (UpgradeEntity upgrade: upgrades){
       if (upgrade.isDowngradeAllowed() == null) {
         upgrade.setDowngradeAllowed(true);
         upgradeDAO.merge(upgrade);
-        LOG.info(String.format("Update upgrade id %s, upgrade pack %s from version %s to %s",
-          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(), upgrade.getToVersion()));
       }
+
+      // ensure that these are set to false for existing upgrades
+      upgrade.setAutoSkipComponentFailures(false);
+      upgrade.setAutoSkipServiceCheckFailures(false);
+
+      LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
+          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
+          upgrade.getToVersion()));
     }
+
+    // make the columns nullable now that they have defaults
     dbAccessor.setColumnNullable(UPGRADE_TABLE, DOWNGRADE_ALLOWED_COLUMN, false);
+    dbAccessor.setColumnNullable(UPGRADE_TABLE, UPGRADE_SKIP_FAILURE_COLUMN, false);
+    dbAccessor.setColumnNullable(UPGRADE_TABLE, UPGRADE_SKIP_SC_FAILURE_COLUMN, false);
   }
 
   @Override
@@ -241,7 +265,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     }
 
     // Populate values in upgrade table.
-    boolean success = this.populateUpgradeTable();
+    boolean success = populateUpgradeTable();
 
     if (!success) {
       throw new AmbariException("Errors found while populating the upgrade table with values for columns upgrade_type and upgrade_package.");
@@ -333,7 +357,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
                 if (null != cluster) {
                   stack = cluster.getDesiredStack();
-                  upgradePackage = this.calculateUpgradePackage(stack, version);
+                  upgradePackage = calculateUpgradePackage(stack, version);
                 } else {
                   LOG.error("Could not find a cluster with cluster_id " + clusterId);
                 }
@@ -540,7 +564,23 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       }
     }
   }
-  
+
+  /**
+   * Adds the following columns to the {@value #UPGRADE_TABLE} table:
+   * <ul>
+   * <li>{@value #DOWNGRADE_ALLOWED_COLUMN}</li>
+   * <li>{@value #UPGRADE_SKIP_FAILURE_COLUMN}</li>
+   * <li>{@value #UPGRADE_SKIP_SC_FAILURE_COLUMN}</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void updateUpgradesDDL() throws SQLException{
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(DOWNGRADE_ALLOWED_COLUMN, Short.class, 1, null, true));
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(UPGRADE_SKIP_FAILURE_COLUMN, Short.class, 1, null, true));
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(UPGRADE_SKIP_SC_FAILURE_COLUMN, Short.class, 1, null, true));
+  }
+
   /**
    * Modifies the JSON of some of the alert definitions which have changed
    * between Ambari versions.
