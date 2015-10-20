@@ -33,14 +33,15 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
  * Models the data representation of an upgrade
  */
-@Table(name = "upgrade")
 @Entity
+@Table(name = "upgrade")
 @TableGenerator(name = "upgrade_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
     pkColumnValue = "upgrade_id_seq", initialValue = 0)
@@ -83,6 +84,12 @@ public class UpgradeEntity {
   @Column(name="upgrade_type", nullable = false)
   @Enumerated(value = EnumType.STRING)
   private UpgradeType upgradeType;
+
+  @Column(name = "skip_failures", nullable = false)
+  private Integer skipFailures = 0;
+
+  @Column(name = "skip_sc_failures", nullable = false)
+  private Integer skipServiceCheckFailures = 0;
 
   @Column(name="downgrade_allowed", nullable = false)
   private Integer downgrade_allowed = 1;
@@ -207,7 +214,7 @@ public class UpgradeEntity {
   /**
    * @param canDowngrade {@code true} to allow downgrade, {@code false} to disallow downgrade
    */
-  public void setDowngradeAllowed(boolean canDowngrade){ this.downgrade_allowed = (!canDowngrade ? 0 : 1); }
+  public void setDowngradeAllowed(boolean canDowngrade){ downgrade_allowed = (!canDowngrade ? 0 : 1); }
 
   /**
    * @param upgradeType the upgrade type to set
@@ -228,6 +235,52 @@ public class UpgradeEntity {
    */
   public void setUpgradePackage(String upgradePackage) {
     this.upgradePackage = upgradePackage;
+  }
+
+  /**
+   * Gets whether skippable components that failed are automatically skipped.
+   * They will be placed into the {@link HostRoleStatus#SKIPPED_FAILED} state.
+   *
+   * @return {@code true} if skippable failed components are automatically
+   *         skipped when they fail.
+   */
+  public boolean isComponentFailureAutoSkipped() {
+    return skipFailures != 0;
+  }
+
+  /**
+   * Sets whether skippable components that failed are automatically skipped.
+   *
+   * @param autoSkipComponentFailures
+   *          {@code true} to automatically skip component failures which are
+   *          marked as skippable.
+   */
+  public void setAutoSkipComponentFailures(boolean autoSkipComponentFailures) {
+    skipFailures = autoSkipComponentFailures ? 1 : 0;
+  }
+
+  /**
+   * Gets whether skippable service checks that failed are automatically
+   * skipped. They will be placed into the {@link HostRoleStatus#SKIPPED_FAILED}
+   * state.
+   *
+   * @return {@code true} if service checks are automatically skipped when they
+   *         fail.
+   */
+  public boolean isServiceCheckFailureAutoSkipped() {
+    return skipServiceCheckFailures != 0;
+  }
+
+  /**
+   * Sets whether skippable service checks that failed are automatically
+   * skipped.
+   *
+   * @param autoSkipServiceCheckFailures
+   *          {@code true} to automatically skip service check failures which
+   *          are marked as being skippable.
+   */
+  public void setAutoSkipServiceCheckFailures(boolean autoSkipServiceCheckFailures) {
+    skipServiceCheckFailures = autoSkipServiceCheckFailures ? 1 : 0;
   }
 
   @Override

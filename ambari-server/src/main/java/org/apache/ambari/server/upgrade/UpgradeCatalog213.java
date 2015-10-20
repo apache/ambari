@@ -18,10 +18,16 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -40,15 +46,10 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -73,7 +74,11 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
                                     "  ulimit -l {{datanode_max_locked_memory}}\n" +
                                     "fi\n" +
                                     "{% endif %};\n";
+
   private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
+  private static final String UPGRADE_SKIP_FAILURE_COLUMN = "skip_failures";
+  private static final String UPGRADE_SKIP_SC_FAILURE_COLUMN = "skip_sc_failures";
+
   private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
   private static final String KERBEROS_DESCRIPTOR_NAME_COLUMN = "kerberos_descriptor_name";
   private static final String KERBEROS_DESCRIPTOR_COLUMN = "kerberos_descriptor";
@@ -131,11 +136,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   }
 
   protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
-    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(DOWNGRADE_ALLOWED_COLUMN, Short.class, 1, null, true));
+    updateUpgradesDDL();
   }
 
   private void addKerberosDescriptorTable() throws SQLException {
-
     List<DBAccessor.DBColumnInfo> columns = new ArrayList<DBAccessor.DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_NAME_COLUMN, String.class, 255, null, false));
     columns.add(new DBAccessor.DBColumnInfo(KERBEROS_DESCRIPTOR_COLUMN, char[].class, null, null, false));
@@ -149,21 +153,43 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    populateDowngradeAllowed();
+    executeUpgradePreDMLUpdates();
   }
 
-  protected void populateDowngradeAllowed() throws AmbariException, SQLException {
+  /**
+   * Updates the following columns on the {@value #UPGRADE_TABLE} table to
+   * default values:
+   * <ul>
+   * <li>{value {@link #DOWNGRADE_ALLOWED_COLUMN}}</li>
+   * <li>{value {@link #UPGRADE_SKIP_FAILURE_COLUMN}}</li>
+   * <li>{value {@link #UPGRADE_SKIP_SC_FAILURE_COLUMN}}</li>
+   * </ul>
+   *
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  protected void executeUpgradePreDMLUpdates() throws AmbariException, SQLException {
     UpgradeDAO upgradeDAO = injector.getInstance(UpgradeDAO.class);
     List<UpgradeEntity> upgrades = upgradeDAO.findAll();
     for (UpgradeEntity upgrade: upgrades){
       if (upgrade.isDowngradeAllowed() == null) {
         upgrade.setDowngradeAllowed(true);
         upgradeDAO.merge(upgrade);
-        LOG.info(String.format("Update upgrade id %s, upgrade pack %s from version %s to %s",
-          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(), upgrade.getToVersion()));
       }
+
+      // ensure that these are set to false for existing upgrades
+      upgrade.setAutoSkipComponentFailures(false);
+      upgrade.setAutoSkipServiceCheckFailures(false);
+
+      LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
+          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
+          upgrade.getToVersion()));
     }
+
+    // make the columns nullable now that they have defaults
     dbAccessor.setColumnNullable(UPGRADE_TABLE, DOWNGRADE_ALLOWED_COLUMN, false);
+    dbAccessor.setColumnNullable(UPGRADE_TABLE, UPGRADE_SKIP_FAILURE_COLUMN, false);
+    dbAccessor.setColumnNullable(UPGRADE_TABLE, UPGRADE_SKIP_SC_FAILURE_COLUMN, false);
   }
 
   @Override
@@ -177,6 +203,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateHadoopEnv();
     updateKafkaConfigs();
     updateZookeeperLog4j();
+  }
+
+  /**
+   * Adds the following columns to the {@value #UPGRADE_TABLE} table:
+   * <ul>
+   * <li>{@value #DOWNGRADE_ALLOWED_COLUMN}</li>
+   * <li>{@value #UPGRADE_SKIP_FAILURE_COLUMN}</li>
+   * <li>{@value #UPGRADE_SKIP_SC_FAILURE_COLUMN}</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void updateUpgradesDDL() throws SQLException{
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(DOWNGRADE_ALLOWED_COLUMN, Short.class, 1, null, true));
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(UPGRADE_SKIP_FAILURE_COLUMN, Short.class, 1, null, true));
+    dbAccessor.addColumn(UPGRADE_TABLE, new DBColumnInfo(UPGRADE_SKIP_SC_FAILURE_COLUMN, Short.class, 1, null, true));
   }
 
   /**
@@ -247,7 +289,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     return rootJson.toString();
   }
-  
+
   protected void updateHadoopEnv() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
 

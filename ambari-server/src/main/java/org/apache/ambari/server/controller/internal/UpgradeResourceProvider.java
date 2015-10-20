@@ -465,6 +465,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
     setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
 
     return resource;
   }
@@ -762,7 +764,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
               itemEntities.add(itemEntity);
-              
+
               // At this point, need to change the effective Stack Id so that subsequent tasks run on the newer value.
               // TODO AMBARI-12698, check if this works during a Stop-the-World Downgrade.
               if (UpdateStackGrouping.class.equals(group.groupClass)) {
@@ -806,6 +808,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setDirection(direction);
     entity.setUpgradePackage(pack.getName());
     entity.setUpgradeType(pack.getType());
+    entity.setAutoSkipComponentFailures(skipComponentFailures);
+    entity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
     entity.setDowngradeAllowed(pack.isDowngradeAllowed());
 
     req.getRequestStatusResponse();
