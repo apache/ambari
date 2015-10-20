@@ -66,6 +66,11 @@ App.SubSectionTab = DS.Model.extend({
   }.property('configs.@each.isVisible', 'configs.@each.isValid', 'configs.@each.overrideErrorTrigger'),
 
   /**
+   * If the visibility of subsection is dependent on a value of some config
+   */
+  isHiddenByConfig: false,
+
+  /**
    * Determines if subsection is filtered by checking it own configs
    * If there is no configs, subsection can't be hidden
    * @type {boolean}
@@ -80,8 +85,8 @@ App.SubSectionTab = DS.Model.extend({
    * @type {boolean}
    */
   isVisible: function () {
-    return !this.get('isHiddenByFilter') && this.get('configs').someProperty('isVisible', true);
-  }.property('isHiddenByFilter', 'configs.@each.isVisible')
+    return !this.get('isHiddenByFilter') && !this.get('isHiddenByConfig') && this.get('configs').someProperty('isVisible', true);
+  }.property('isHiddenByFilter', 'isHiddenByConfig', 'configs.@each.isVisible')
 });
 
 
