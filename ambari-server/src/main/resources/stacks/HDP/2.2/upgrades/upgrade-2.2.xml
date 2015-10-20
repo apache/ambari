@@ -48,7 +48,7 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>snapshot</function>
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
