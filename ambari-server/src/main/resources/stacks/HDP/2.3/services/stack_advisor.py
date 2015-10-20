@@ -628,6 +628,22 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} under hiveserver2-site needs to be set to {1}".format(prop_name, prop_val))})
+        prop_name = 'hive.conf.restricted.list'
+        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
+        current_vals = []
+        missing_vals = []
+        if hive_server2 and prop_name in hive_server2:
+          current_vals = hive_server2[prop_name].split(',')
+          current_vals = [x.strip() for x in current_vals]
+
+        for val in prop_vals:
+          if not val in current_vals:
+            missing_vals.append(val)
+
+        if missing_vals:
+          validationItems.append({"config-name": prop_name,
+            "item": self.getWarnItem("If Ranger Hive Plugin is enabled."\
+            " {0} under hiveserver2-site needs to contain missing value {1}".format(prop_name, ','.join(missing_vals)))})
       ##Add stack validations for  Ranger plugin disabled.
       elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'

@@ -71,4 +71,16 @@ limitations under the License.
     </depends-on>
   </property>
 
+  <property>
+    <name>hive.conf.restricted.list</name>
+    <value>hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role</value>
+    <description></description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>
