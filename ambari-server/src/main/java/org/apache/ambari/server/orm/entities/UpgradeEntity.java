@@ -92,7 +92,7 @@ public class UpgradeEntity {
   private Integer skipServiceCheckFailures = 0;
 
   @Column(name="downgrade_allowed", nullable = false)
-  private Integer downgrade_allowed = 1;
+  private Short downgrade_allowed = 1;
 
   @OneToMany(mappedBy = "upgradeEntity", cascade = { CascadeType.ALL })
   private List<UpgradeGroupEntity> upgradeGroupEntities;
@@ -209,12 +209,16 @@ public class UpgradeEntity {
   /**
    * @return possibility to process downgrade
    */
-  public Boolean isDowngradeAllowed() { return downgrade_allowed != 0; }
+  public Boolean isDowngradeAllowed() {
+    return downgrade_allowed != 0;
+  }
 
   /**
    * @param canDowngrade {@code true} to allow downgrade, {@code false} to disallow downgrade
    */
-  public void setDowngradeAllowed(boolean canDowngrade){ downgrade_allowed = (!canDowngrade ? 0 : 1); }
+  public void setDowngradeAllowed(boolean canDowngrade) {
+    this.downgrade_allowed = (!canDowngrade ? (short)0 : (short)1);
+  }
 
   /**
    * @param upgradeType the upgrade type to set
