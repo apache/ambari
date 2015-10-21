@@ -462,8 +462,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             initialValue = override ? override.get('savedValue') : cp && cp.get('savedValue');
           }
 
-
-          initialValue = Em.isNone(initialValue) ? value : initialValue;
           var recommendedValue = configObject[key].properties[propertyName];
 
           var isNewProperty = (!notDefaultGroup && Em.isNone(cp)) || (notDefaultGroup && group && Em.isNone(override));
