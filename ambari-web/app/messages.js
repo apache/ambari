@@ -284,6 +284,11 @@ Em.I18n.translations = {
   'common.loading.eclipses': 'Loading...',
   'common.running': 'Running',
   'common.stopped': 'Stopped',
+  'common.timeout.warning.popup.header': 'Automatic Logout',
+  'common.timeout.warning.popup.body.before': 'You will be automatically logged out in ',
+  'common.timeout.warning.popup.body.after': ' seconds due to inactivity',
+  'common.timeout.warning.popup.primary': 'Remain Logged In',
+  'common.timeout.warning.popup.secondary': 'Log Out Now',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
