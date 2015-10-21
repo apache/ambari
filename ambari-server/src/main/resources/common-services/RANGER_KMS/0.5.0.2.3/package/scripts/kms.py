@@ -352,7 +352,7 @@ def create_repo(url, data, usernamepassword):
     }
     request = urllib2.Request(base_url, data, headers)
     request.add_header("Authorization", "Basic {0}".format(base64string))
-    result = urllib2.urlopen(request)
+    result = urllib2.urlopen(request, timeout=20)
     response_code = result.getcode()
     response = json.loads(json.JSONEncoder().encode(result.read()))
     if response_code == 200:
@@ -373,7 +373,7 @@ def get_repo(url, name, usernamepassword):
     request.add_header("Content-Type", "application/json")
     request.add_header("Accept", "application/json")
     request.add_header("Authorization", "Basic {0}".format(base64string))
-    result = urllib2.urlopen(request)
+    result = urllib2.urlopen(request, timeout=20)
     response_code = result.getcode()
     response = json.loads(result.read())
     if response_code == 200 and len(response) > 0:

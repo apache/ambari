@@ -61,7 +61,7 @@ class Rangeradmin:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXRepositories']) > 0:
@@ -144,7 +144,7 @@ class Rangeradmin:
       }
       request = urllib2.Request(searchRepoURL, data, headers)
       request.add_header("Authorization", "Basic {0}".format(base64string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
       if response_code == 200:
@@ -195,7 +195,7 @@ class Rangeradmin:
     return: Returns login check response 
     """
     try:
-      response = urllib2.urlopen(url)
+      response = urllib2.urlopen(url, timeout=20)
       response_code = response.getcode()
       return response_code
     except urllib2.URLError, e:
@@ -223,7 +223,7 @@ class Rangeradmin:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXPolicies']) > 0:
@@ -257,7 +257,7 @@ class Rangeradmin:
       request = urllib2.Request(searchRepoURL, data, headers)
       request.add_header("Authorization", "Basic {0}".format(base64string))
       request.get_method = lambda: 'PUT'
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
       if response_code == 200:
@@ -320,7 +320,7 @@ class Rangeradmin:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base64string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXUsers']) >= 0:
@@ -352,7 +352,7 @@ class Rangeradmin:
           }
           request = urllib2.Request(url, data, headers)
           request.add_header("Authorization", "Basic {0}".format(base64string))
-          result = urllib2.urlopen(request)
+          result = urllib2.urlopen(request, timeout=20)
           response_code =  result.getcode()
           response = json.loads(json.JSONEncoder().encode(result.read()))
           if response_code == 200 and response is not None:
