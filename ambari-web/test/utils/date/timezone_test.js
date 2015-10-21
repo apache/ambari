@@ -23,16 +23,16 @@ describe('timezoneUtils', function () {
   describe('#_groupTimezones', function () {
 
     var formattedTimezones = [
-      {utcOffset: 1, groupByKey: 1, formattedOffset: '+01:00', value: 'a/Aa', region: 'a', city: 'Aa'},
-      {utcOffset: 1, groupByKey: 1, formattedOffset: '+01:00', value: 'a/Bb', region: 'a', city: 'Bb'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'a/Cc', region: 'a', city: 'Cc'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'a/Dd', region: 'a', city: 'Dd'},
-      {utcOffset: 1, groupByKey: 1, formattedOffset: '+01:00', value: 'b/Ee', region: 'b', city: 'Ee'},
-      {utcOffset: 1, groupByKey: 1, formattedOffset: '+01:00', value: 'b/Ff', region: 'b', city: 'Ff'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'b/Gg', region: 'b', city: 'Gg'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'b/Hh', region: 'b', city: 'Hh'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'b/II', region: 'b', city: 'II'},
-      {utcOffset: 2, groupByKey: 2, formattedOffset: '+02:00', value: 'b', region: 'b', city: ''}
+      {utcOffset: 1, groupByKey: '1', formattedOffset: '+01:00', value: 'a/Aa', region: 'a', city: 'Aa'},
+      {utcOffset: 1, groupByKey: '1', formattedOffset: '+01:00', value: 'a/Bb', region: 'a', city: 'Bb'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'a/Cc', region: 'a', city: 'Cc'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'a/Dd', region: 'a', city: 'Dd'},
+      {utcOffset: 1, groupByKey: '1', formattedOffset: '+01:00', value: 'b/Ee', region: 'b', city: 'Ee'},
+      {utcOffset: 1, groupByKey: '1', formattedOffset: '+01:00', value: 'b/Ff', region: 'b', city: 'Ff'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'b/Gg', region: 'b', city: 'Gg'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'b/Hh', region: 'b', city: 'Hh'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'b/II', region: 'b', city: 'II'},
+      {utcOffset: 2, groupByKey: '2', formattedOffset: '+02:00', value: 'b', region: 'b', city: ''}
     ];
 
     before(function () {
@@ -52,7 +52,7 @@ describe('timezoneUtils', function () {
       '(UTC+01:00) b / Ee, Ff',
       '(UTC+02:00) a / Cc, Dd',
       '(UTC+02:00) b / Gg, Hh'];
-      var values = this.result.mapProperty('value');
+      var values = this.result.mapProperty('label');
       expect(values).to.eql(expected);
       expect(values.join('')).to.not.contain('II');
       expect(values.join('')).to.not.contain(', ,');
@@ -139,35 +139,31 @@ describe('timezoneUtils', function () {
     it('Detect UTC+1', function () {
       mockTimezoneOffset(0, 60);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('(UTC+01:00) Atlantic');
+      expect(tz).to.contain('0-60|Atlantic');
     });
 
     it('Detect UTC+1 for Europe', function () {
       mockTimezoneOffset(0, 60);
       var tz = timezoneUtils.detectUserTimezone('Europe');
-      expect(tz).to.contain('(UTC+01:00) Europe');
-      expect(tz).to.contain('London');
+      expect(tz).to.contain('0-60|Europe');
     });
 
     it('Detect UTC-4', function () {
       mockTimezoneOffset(-300, -240);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('(UTC-04:00) America');
-      expect(tz).to.contain('New York');
+      expect(tz).to.contain('300240|America');
     });
 
     it('Detect UTC+3 for Asia', function () {
       mockTimezoneOffset(120, 180);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('(UTC+03:00) Asia');
-      expect(tz).to.contain('Damascus');
+      expect(tz).to.contain('-120-180|Asia');
     });
 
     it('Detect UTC-7', function () {
       mockTimezoneOffset(-480, -420);
       var tz = timezoneUtils.detectUserTimezone();
-      expect(tz).to.contain('(UTC-07:00) America');
-      expect(tz).to.contain('Los Angeles');
+      expect(tz).to.contain('480420|America');
     });
 
   });

@@ -34,10 +34,11 @@ var dataUtils = require('utils/data_manipulation');
  * List of timezones used in the user's settings popup
  *
  * <code>utcOffset</code> - offset-value (0, 180, 240 etc)
- * <code>value</code> - string like '(UTC+02:00) Europe / Athens, Kiev, Minsk'
+ * <code>value</code> - string like '120180|Europe'
+ * <code>label</code> - string like '(UTC+02:00) Europe / Athens, Kiev, Minsk'
  * <code>zones</code> - list of zone-objects from <code>moment.tz</code> included to the <code>value</code>
  *
- * @typedef {{utcOffset: number, label: string, value: string, zones: object[]}} shownTimezone
+ * @typedef {{utcOffset: number, label: string, value: string, label: string, zones: object[]}} shownTimezone
  */
 
 module.exports = Em.Object.create({
@@ -56,7 +57,7 @@ module.exports = Em.Object.create({
    * @type {object}
    * @readOnly
    */
-  timezonesMappedByLabel: function () {
+  timezonesMappedByValue: function () {
     var ret = {};
     this.get('timezones').forEach(function (tz) {
       ret[tz.value] = tz;
@@ -176,24 +177,24 @@ module.exports = Em.Object.create({
    * Example:
    * <pre>
    *   var zones = [
-   *    {groupByKey: 1, formattedOffset: '+01:00', value: 'a/Aa', region: 'a', city: 'Aa'},
-   *    {groupByKey: 1, formattedOffset: '+01:00', value: 'a/Bb', region: 'a', city: 'Bb'},
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'a/Cc', region: 'a', city: 'Cc'},
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'a/Dd', region: 'a', city: 'Dd'},
-   *    {groupByKey: 1, formattedOffset: '+01:00', value: 'b/Ee', region: 'b', city: 'Ee'},
-   *    {groupByKey: 1, formattedOffset: '+01:00', value: 'b/Ff', region: 'b', city: 'Ff'},
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'b/Gg', region: 'b', city: 'Gg'},
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'b/Hh', region: 'b', city: 'Hh'},
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'b/II', region: 'b', city: 'II'}, // will be ignored, because city is abbreviation
-   *    {groupByKey: 2, formattedOffset: '+02:00', value: 'b',    region: 'b', city: ''  }  // will be ignored, because city is empty
+   *    {groupByKey: '1', formattedOffset: '+01:00', value: 'a/Aa', region: 'a', city: 'Aa'},
+   *    {groupByKey: '1', formattedOffset: '+01:00', value: 'a/Bb', region: 'a', city: 'Bb'},
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'a/Cc', region: 'a', city: 'Cc'},
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'a/Dd', region: 'a', city: 'Dd'},
+   *    {groupByKey: '1', formattedOffset: '+01:00', value: 'b/Ee', region: 'b', city: 'Ee'},
+   *    {groupByKey: '1', formattedOffset: '+01:00', value: 'b/Ff', region: 'b', city: 'Ff'},
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'b/Gg', region: 'b', city: 'Gg'},
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'b/Hh', region: 'b', city: 'Hh'},
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'b/II', region: 'b', city: 'II'}, // will be ignored, because city is abbreviation
+   *    {groupByKey: '2', formattedOffset: '+02:00', value: 'b',    region: 'b', city: ''  }  // will be ignored, because city is empty
    *   ];
    *   var groupedZones = _groupTimezones(zones);
    *   // groupedZones is:
    *   [
-   *    {utcOffset: 1, value: '(UTC+01:00) a / Aa, Bb'},
-   *    {utcOffset: 1, value: '(UTC+01:00) b / Ee, Ff'},
-   *    {utcOffset: 2, value: '(UTC+02:00) a / Cc, Dd'},
-   *    {utcOffset: 2, value: '(UTC+02:00) b / Gg, Hh'}
+   *    {utcOffset: 1, label: '(UTC+01:00) a / Aa, Bb', value: '1|a'},
+   *    {utcOffset: 1, label: '(UTC+01:00) b / Ee, Ff', value: '1|b'},
+   *    {utcOffset: 2, label: '(UTC+02:00) a / Cc, Dd', value: '2|a'},
+   *    {utcOffset: 2, label: '(UTC+02:00) b / Gg, Hh', value: '2|b'}
    *   ]
    * </pre>
    *
@@ -213,9 +214,11 @@ module.exports = Em.Object.create({
         }).uniq().join(', ');
         var formattedOffset = Em.get(groupedByRegionZones[region], 'firstObject.formattedOffset');
         var utcOffset = Em.get(groupedByRegionZones[region], 'firstObject.utcOffset');
+        var value = Em.get(groupedByRegionZones[region], 'firstObject.groupByKey') + '|' + region;
         newZones.pushObject({
           utcOffset: utcOffset,
-          value: '(UTC' + formattedOffset + ') ' + region + (cities ? ' / ' + cities : ''),
+          label: '(UTC' + formattedOffset + ') ' + region + (cities ? ' / ' + cities : ''),
+          value: value,
           zones: groupedByRegionZones[region]
         });
       });

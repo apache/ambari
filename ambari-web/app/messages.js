@@ -280,6 +280,7 @@ Em.I18n.translations = {
   'common.csv': 'CSV',
   'common.json': 'JSON',
   'common.timestamp': 'Timestamp',
+  'common.timezone': 'Timezone',
   'common.loading.eclipses': 'Loading...',
   'common.running': 'Running',
   'common.stopped': 'Stopped',

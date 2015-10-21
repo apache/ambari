@@ -635,7 +635,7 @@ App.dateTime = function() {
 App.dateTimeWithTimeZone = function (x) {
   var timezone = App.router.get('userSettingsController.userSettings.timezone');
   if (timezone) {
-    var tz = Em.getWithDefault(timezoneUtils.get('timezonesMappedByLabel')[timezone], 'zones.0.value', '');
+    var tz = Em.getWithDefault(timezone, 'zones.0.value', '');
     return moment(moment.tz(x ? new Date(x) : new Date(), tz).toArray()).toDate().getTime();
   }
   return x || new Date().getTime();

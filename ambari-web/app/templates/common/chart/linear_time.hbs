@@ -20,7 +20,7 @@
 <div {{bindAttr class="view.isReady::hidden :time-label"}}>
   {{view.parentView.currentTimeState.name}}
   <a {{bindAttr class="view.isExportButtonHidden:hidden :corner-icon :pull-right"}} href="#" {{action toggleFormatsList target="view"}}>
-    <i class="icon-save"></i>
+   {{t common.export}} <i class="icon-save"></i>
   </a>
   {{view view.exportMetricsMenuView}}
 </div>
@@ -37,3 +37,6 @@
 {{#if view.isTimePagingEnable}}
   <div {{bindAttr class="view.rightArrowVisible:visibleArrow :arrow-right"}} {{action "switchTimeForward" "forward" target="view.parentView"}}></div>
 {{/if}}
+<div class="timezone mtl15 mll">
+  {{t common.timezone}}: <strong>{{App.router.userSettingsController.userSettings.timezone.label}}</strong>
+</div>
