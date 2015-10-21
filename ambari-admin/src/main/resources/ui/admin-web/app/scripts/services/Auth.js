@@ -29,6 +29,11 @@ angular.module('ambariAdminConsole')
   }
   return {
     signout: function() {
+      var data = JSON.parse(localStorage.ambari);
+      delete data.app.authenticated;
+      delete data.app.loginName;
+      delete data.app.user;
+      localStorage.ambari = JSON.stringify(data);
       // Workaround for sign off within Basic Authorization
       var origin = $window.location.protocol + '//' + Date.now() + ':' + Date.now() + '@' +
             $window.location.hostname + ($window.location.port ? ':' + $window.location.port : '');
