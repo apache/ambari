@@ -18,10 +18,10 @@
 <tr class="hidden"><td></td></tr>
 
 {{#each slaveComponent in view.slavesObj}}
-  <tr>
+  <tr {{bindAttr class=":component slaveComponent.componentName"}}>
     <td class="summary-label"><a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
     </td>
-    <td>
+    <td class="summary-value">
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount"}}
           {{view.liveComponents}}/{{view.totalComponents}}

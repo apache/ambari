@@ -76,19 +76,19 @@
 <div class="hosts-section">
   <div class="hosts-bar">{{t common.hosts}}</div>
   <div class="row-fluid host-link">
-    <div class="span4 align-center">
+    <div class="span4 align-center not-installed-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInitHostsTooltip" }}
         {{action showHosts view.versionStateMap.not_installed target="view"}}>
         {{view.content.notInstalledHosts.length}}</a></div>
       <div>{{t admin.stackVersions.version.notInstalled}}</div>
     </div>
-    <div class="span4 align-center">
+    <div class="span4 align-center installed-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noInstalledHostsTooltip" }}
         {{action showHosts view.versionStateMap.installed target="view"}}>
         {{view.content.installedHosts.length}}</a></div>
       <div>{{t common.installed}}</div>
     </div>
-    <div class="span4 align-center">
+    <div class="span4 align-center current-hosts">
       <div><a href="#" class="hosts-tooltip not-active" {{bindAttr data-original-title="view.content.noCurrentHostsTooltip" }}
         {{action showHosts view.versionStateMap.current target="view"}}>
         {{view.content.currentHosts.length}}</a></div>

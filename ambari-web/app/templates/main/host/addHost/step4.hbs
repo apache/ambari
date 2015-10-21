@@ -21,7 +21,7 @@
     {{t addHost.step4.title}}
   </div>
   <div class="pre-scrollable">
-      <table class="table">
+      <table class="table" id="host-configurations-table">
         <thead>
           <tr>
             <th>{{t common.service}}</th>
@@ -30,7 +30,7 @@
         </thead>
         <tbody>
           {{#each service in controller.content.configGroups}}
-            <tr>
+            <tr {{bindAttr id="service.serviceId"}}>
               <td>{{service.displayName}}</td>
               <td>
                 {{

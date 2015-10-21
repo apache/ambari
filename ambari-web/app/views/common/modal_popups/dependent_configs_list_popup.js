@@ -32,6 +32,7 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['sixty-percent-width-modal','modal-full-width'],
     configs: configs,
+    secondaryClass: 'cancel-button',
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/dependent_configs_list'),
 

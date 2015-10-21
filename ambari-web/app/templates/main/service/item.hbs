@@ -21,7 +21,7 @@
     {{#if view.service.quickLinks.length}}
       {{#view App.QuickViewLinks contentBinding="view.service"}}
         <ul class="nav nav-pills move">
-          <li class="dropdown">
+          <li class="dropdown quick-links-dropdown">
             <a class="dropdown-toggle" id="quick-links-dropdown-btn" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
             <ul class="dropdown-menu">
               {{#if view.isLoaded}}

@@ -90,7 +90,7 @@
                 </div>
                 <div class="progress-percentage pull-left">{{host.progress}}%</div>
               </td>
-              <td>
+              <td class="host-message">
                 <a {{bindAttr class="view.isFailed:text-error view.isSuccess:text-success view.isWarning:text-warning"}}
                     href="javascript:void(null)"
                     data-toggle="modal" {{action hostLogPopup target="view"}}>{{host.message}}</a>

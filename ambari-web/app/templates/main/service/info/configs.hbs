@@ -33,11 +33,11 @@
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li>
+                <li class="restart-all-components">
                   <a href="#" {{action restartAllStaleConfigComponents target="controller"}}>{{t restart.service.all.affected}}</a>
                 </li>
                 {{#if view.rollingRestartSlaveComponentName}}
-                  <li>
+                  <li class="restart-slave-components">
                     <a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="controller"}}>{{view.rollingRestartActionName}}</a>
                   </li>
                 {{/if}}

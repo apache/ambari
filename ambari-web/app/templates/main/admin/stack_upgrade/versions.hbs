@@ -37,7 +37,9 @@
     </ul>
   </div>
   {{#isAccessible upgrade_ONLY_ADMIN}}
-    <button class="btn btn-primary pull-right" {{action goToVersions target="view"}}><i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}</button>
+    <button class="btn btn-primary pull-right" {{action goToVersions target="view"}} id="manage-versions-link">
+      <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
+    </button>
   {{/isAccessible}}
 </div>
 <div class="row-fluid">
