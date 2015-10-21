@@ -25,13 +25,13 @@
           <div class="well">
             <ul class="nav nav-pills nav-stacked">
               <li class="nav-header">{{t services.reassign.header}}</li>
-              <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t services.reassign.step1.header}}</a></li>
-              <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t services.reassign.step2.header}}</a></li>
-              <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t services.reassign.step3.header}}</a></li>
-              <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t services.reassign.step4.header}}</a></li>
+              <li {{bindAttr class="isStep1:active view.isStep1Disabled:disabled :step1-link"}}><a href="javascript:void(null);"  {{action gotoStep1 target="controller"}}>{{t services.reassign.step1.header}}</a></li>
+              <li {{bindAttr class="isStep2:active view.isStep2Disabled:disabled :step2-link"}}><a href="javascript:void(null);"  {{action gotoStep2 target="controller"}}>{{t services.reassign.step2.header}}</a></li>
+              <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled :step3-link"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t services.reassign.step3.header}}</a></li>
+              <li {{bindAttr class="isStep4:active view.isStep4Disabled:disabled :step4-link"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t services.reassign.step4.header}}</a></li>
               {{#if controller.content.hasManualSteps}}
-              <li {{bindAttr class="isStep5:active view.isStep5Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t services.reassign.step5.header}}</a></li>
-              <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t services.reassign.step6.header}}</a></li>
+              <li {{bindAttr class="isStep5:active view.isStep5Disabled:disabled :step5-link"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t services.reassign.step5.header}}</a></li>
+              <li {{bindAttr class="isStep6:active view.isStep6Disabled:disabled :step6-link"}}><a href="javascript:void(null);"  {{action gotoStep4 target="controller"}}>{{t services.reassign.step6.header}}</a></li>
               {{/if}}
             </ul>
           </div>

@@ -19,11 +19,11 @@
 <!-- HBase Master Server -->
 {{view view.dashboardMasterComponentView}}
 <!-- RegionServers -->
-<tr>
+<tr {{bindAttr class=":component view.regionServerComponent.componentName"}}>
   <td class="summary-label"><a
           href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
   </td>
-  <td>
+  <td class="summary-value">
     {{#if App.router.clusterController.isServiceContentFullyLoaded}}
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.regionServersStarted" totalComponentsBinding="view.service.regionServersTotal"}}
@@ -38,11 +38,11 @@
 </tr>
 <!-- PhoenixServers -->
 {{#if view.showPhoenixInfo}}
-  <tr>
+  <tr {{bindAttr class=":component view.phoenixServerComponent.componentName"}}>
     <td class="summary-label"><a
             href="#" {{action filterHosts view.phoenixServerComponent}}>{{t dashboard.services.hbase.phoenixServers}}</a>
     </td>
-    <td>
+    <td class="summary-value">
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.phoenixServersStarted" totalComponentsBinding="view.service.phoenixServersTotal"}}
           {{#if App.router.clusterController.isServiceContentFullyLoaded}}
@@ -55,9 +55,9 @@
   </tr>
 {{/if}}
 <!-- Regions in Transition -->
-<tr>
+<tr class="regions-in-trnasition">
   <td class="summary-label">{{t dashboard.services.hbase.regions.transition}}</td>
-  <td>{{view.service.regionsInTransition}}</td>
+  <td class="summary-value">{{view.service.regionsInTransition}}</td>
 </tr>
 
 <!-- Divider-- make the remaining summary info on 2nd table-->
@@ -69,23 +69,23 @@
     <tbody>
 
     <!-- HBase Master Started Time -->
-    <tr>
+    <tr class="started-time">
       <td class="summary-label">{{t dashboard.services.hbase.masterStarted}}</td>
-      <td>{{view.masterStartedTime}}</td>
+      <td class="summary-value">{{view.masterStartedTime}}</td>
     </tr>
     <!-- HBase Master Activated Time -->
-    <tr>
+    <tr class="activated-time">
       <td class="summary-label">{{t dashboard.services.hbase.masterActivated}}</td>
-      <td>{{view.masterStartedTime}}</td>
+      <td class="summary-value">{{view.masterStartedTime}}</td>
     </tr>
     <!-- Average Load -->
-    <tr>
+    <tr class="average-load">
       <td class="summary-label">{{t dashboard.services.hbase.averageLoad}}</td>
-      <td>{{view.averageLoad}}</td>
+      <td class="summary-value">{{view.averageLoad}}</td>
     </tr>
     <!-- Master Server Heap -->
-    <tr>
+    <tr class="server-heap">
       <td class="summary-label">{{t dashboard.services.hbase.masterServerHeap}}</td>
-      <td>{{view.masterServerHeapSummary}}</td>
+      <td class="summary-value">{{view.masterServerHeapSummary}}</td>
     </tr>
 

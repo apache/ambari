@@ -150,6 +150,14 @@ App.SelectHostView = Em.Select.extend(App.SelectHost, {
 App.AddControlView = Em.View.extend({
 
   /**
+   * DOM node class attribute
+   * @type {string}
+   */
+  uniqueId: function() {
+    return this.get('componentName') + '-add';
+  }.property('componentName'),
+
+  /**
    * Current component name
    * @type {string}
    */
@@ -158,6 +166,8 @@ App.AddControlView = Em.View.extend({
   tagName: "span",
 
   classNames: ["badge", "badge-important"],
+
+  classNameBindings: ['uniqueId'],
 
   template: Em.Handlebars.compile('+'),
 
@@ -172,6 +182,15 @@ App.AddControlView = Em.View.extend({
 });
 
 App.RemoveControlView = Em.View.extend({
+  /**
+   * DOM node class attribute
+   * @type {string}
+   */
+  uniqueId: function() {
+    return this.get('componentName') + '-' + this.get('serviceComponentId') + '-remove';
+  }.property('componentName', 'serviceComponentId'),
+
+  classNameBindings: ['uniqueId'],
 
   /**
    * Index for multiple component

@@ -2872,6 +2872,7 @@ var ajax = Em.Object.extend({
 
     if (showStatus.contains(jqXHR.status) && !this.get('modalPopup')) {
       this.set('modalPopup', App.ModalPopup.show({
+        elementId: 'default-error-modal',
         header: Em.I18n.t('common.error'),
         secondary: false,
         onPrimary: function () {

@@ -38,9 +38,9 @@
               <div class="label-wrapper span8"
                    data-toggle="tooltip" {{bindAttr data-original-title="view.compareServiceVersion.fullNotes"}}>
                   {{t services.service.config.configHistory.comparing}}
-                  <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
+                  <span class="label label-info current-version-label">{{view.displayedServiceVersion.versionText}}</span>
                   ...
-                  <span class="label label-info">{{view.compareServiceVersion.versionText}}</span>
+                  <span class="label label-info compare-version-label">{{view.compareServiceVersion.versionText}}</span>
                 {{#if view.compareServiceVersion.isCurrent}}
                     <span class="label label-success">{{t common.current}}</span>
                 {{/if}}
@@ -99,7 +99,7 @@
             </div>
             <div class="label-wrapper span8" data-toggle="tooltip" {{bindAttr data-original-title="view.displayedServiceVersion.fullNotes"}}>
               {{#if view.displayedServiceVersion.versionText}}
-                <span class="label label-info">{{view.displayedServiceVersion.versionText}}</span>
+                <span class="label label-info current-version-label">{{view.displayedServiceVersion.versionText}}</span>
               {{/if}}
               {{#if view.displayedServiceVersion.isCurrent}}
                   <span class="label-current label label-success icon-ok" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>

@@ -33,6 +33,7 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    * @type {Ember.Select}
    */
   hostSelectView: Em.Select.extend({
+    elementId: 'hosts-check-select',
 
     selectionBinding: "parentView.category",
 

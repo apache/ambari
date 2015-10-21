@@ -27,7 +27,7 @@
         <div class="widget-content">
           <table>
             <!--hbase master server-->
-            <tr>
+            <tr class="hbase-master-link">
               <td>
                 {{#if view.activeMaster}}
                   <a href="#" {{action showDetails view.activeMaster.host}}>{{t dashboard.services.hbase.masterServer}}</a>
@@ -37,13 +37,13 @@
               </td>
             </tr>
             <!--region servers-->
-            <tr>
+            <tr class="hbase-regionserver-link">
               <td>
                 <a href="#" {{action filterHosts view.component}}>{{view.model.regionServersTotal}} {{t dashboard.services.hbase.regionServers}}</a>
               </td>
             </tr>
             <!--hbase master Web UI-->
-            <tr>
+            <tr class="hbase-web-ui-link">
               <td>
                 {{#if view.activeMaster}}
                   <a {{bindAttr href="view.hbaseMasterWebUrl"}}

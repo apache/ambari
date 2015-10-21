@@ -319,7 +319,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
             allChecked: false,
             isRequired: serviceComponent.get('isRequired'),
             noChecked: true,
-            isDisabled: installedServices.someProperty('serviceName', stackService.get('serviceName')) && this.get('isAddServiceWizard')
+            isDisabled: installedServices.someProperty('serviceName', stackService.get('serviceName')) && this.get('isAddServiceWizard'),
+            allId: 'all-' + serviceComponent.get('componentName'),
+            noneId: 'none-' + serviceComponent.get('componentName')
           }));
         }
       }, this);
@@ -330,7 +332,9 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
         label: App.format.role('CLIENT'),
         allChecked: false,
         noChecked: true,
-        isDisabled: false
+        isDisabled: false,
+        allId: 'all-CLIENT',
+        noneId: 'none-CLIENT'
       }));
     }
     this.get('headers').pushObjects(headers);

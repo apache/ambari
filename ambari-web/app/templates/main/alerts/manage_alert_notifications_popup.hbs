@@ -63,13 +63,13 @@
             <div class="span12 pull-right">
               {{#if alertNotifications.length}}
                 {{#if selectedAlertNotification}}
-                  <div class="row-fluid">
+                  <div class="row-fluid notification-name">
                     <div class="span3 input-label">{{t common.name}}</div>
-                    <div class="span9">{{selectedAlertNotification.name}}</div>
+                    <div class="span9 input-value">{{selectedAlertNotification.name}}</div>
                   </div>
-                  <div class="row-fluid">
+                  <div class="row-fluid notification-groups">
                     <div class="span3 input-label">{{t common.groups}}</div>
-                    <div class="span9">
+                    <div class="span9 input-value">
                       {{#if selectedAlertNotification.global}}
                         {{t common.all}}
                       {{else}}
@@ -81,28 +81,28 @@
                       {{/if}}
                     </div>
                   </div>
-                  <div class="row-fluid">
+                  <div class="row-fluid notification-severity">
                     <div class="span3 input-label">{{t common.severity}}</div>
-                    <div class="span9">{{view.severities}}</div>
+                    <div class="span9 input-value">{{view.severities}}</div>
                   </div>
-                  <div class="row-fluid">
+                  <div class="row-fluid notification-method">
                     <div class="span3 input-label">{{t alerts.actions.manage_alert_notifications_popup.method}}</div>
-                    <div class="span9">{{selectedAlertNotification.type}}</div>
+                    <div class="span9 input-value">{{selectedAlertNotification.type}}</div>
                   </div>
                   {{#if view.showEmailDetails}}
-                    <div class="row-fluid">
+                    <div class="row-fluid notification-email">
                       <div class="span3 input-label">{{t alerts.actions.manage_alert_notifications_popup.email}}</div>
-                      <div class="span9">{{view.email}}</div>
+                      <div class="span9 input-value">{{view.email}}</div>
                     </div>
                   {{/if}}
                   {{#if view.showSNMPDetails}}
                   {{/if}}
-                  <div class="row-fluid">
+                  <div class="row-fluid notification-description">
                     <div class="span3 input-label">{{t common.description}}</div>
                     {{#if selectedAlertNotification.description}}
-                      <div class="span9 notification-description">{{selectedAlertNotification.description}}</div>
+                      <div class="span9 input-value">{{selectedAlertNotification.description}}</div>
                     {{else}}
-                      <div class="span9 notification-description">{{t alerts.actions.manage_alert_notifications_popup.noDescription}}</div>
+                      <div class="span9 input-value">{{t alerts.actions.manage_alert_notifications_popup.noDescription}}</div>
                     {{/if}}
                   </div>
                 {{/if}}

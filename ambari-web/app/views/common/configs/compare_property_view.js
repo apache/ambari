@@ -19,6 +19,7 @@
 var App = require('app');
 
 App.ServiceConfigView.SCPComparisonRowsView = Ember.View.extend({
+  classNames: ['compare-value'],
   templateName: require('templates/common/configs/compare_property'),
   serviceConfigProperty: null
 });

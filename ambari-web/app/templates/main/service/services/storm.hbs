@@ -17,13 +17,13 @@
 }}
 
 {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
-<tr>
+<tr class="component SUPERVISOR">
   <td class="summary-label">
     <a href="#" {{action filterHosts view.filterComponent}}>
       {{t dashboard.services.storm.supervisors}}
     </a>
   </td>
-  <td>
+  <td class="summary-value">
     {{#if App.router.clusterController.isServiceContentFullyLoaded}}
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="view.superVisorsLive" totalComponentsBinding="view.superVisorsTotal"}}
@@ -44,44 +44,44 @@
   <table class="summary-info table no-borders table-condensed">
     <tbody>
 
-    <tr>
+    <tr class="storm-slots">
       <td class="summary-label">
         {{t services.service.summary.storm.freeslots}}
       </td>
-      <td>
+      <td class="summary-value">
         {{formatNull view.service.freeSlots}} / {{formatNull view.service.totalSlots}}
         ({{formatNull view.freeSlotsPercentage empty="0"}}% {{t common.free}})
       </td>
     </tr>
-    <tr>
+    <tr class="storm-tasks">
       <td class="summary-label">
         {{t services.service.summary.storm.tasks}}
       </td>
-      <td>
+      <td class="summary-value">
         {{formatNull view.service.totalTasks}}
       </td>
     </tr>
-    <tr>
+    <tr class="storm-executors">
       <td class="summary-label">
         {{t services.service.summary.storm.executors}}
       </td>
-      <td>
+      <td class="summary-value">
         {{formatNull view.service.totalExecutors}}
       </td>
     </tr>
-    <tr>
+    <tr class="storm-topologies">
       <td class="summary-label">
         {{t services.service.summary.storm.topologies}}
       </td>
-      <td>
+      <td class="summary-value">
         {{formatNull view.service.topologies}}
       </td>
     </tr>
-    <tr>
+    <tr class="nimbus-uptime">
       <td class="summary-label">
         {{t services.service.summary.storm.nimbus.uptime}}
       </td>
-      <td>
+      <td class="summary-value">
         {{view.nimbusUptimeFormatted}}
       </td>
     </tr>

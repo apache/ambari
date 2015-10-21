@@ -44,22 +44,22 @@
                   </td>
                   <td class="agent-status">
                     <div class="wrapp-flume-status">
-                      <div class="pull-left"><span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
-                      <div class="btn-wrapper">
-                        <div class="btn-group display-inline-block flume-agents-actions">
+                      <div class="pull-left flume-agents-status"><span {{bindAttr class="host.firtstAgent.healthClass"}}></span> {{host.firtstAgent.name}}</div>
+                      <div class="btn-wrapper flume-agents-actions">
+                        <div class="btn-group display-inline-block">
                             <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(null)">{{host.firtstAgent.displayStatus}}
                                 <span class="caret"></span>
                             </a>
                             <ul class="pull-left dropdown-menu">
                                 <li {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}>
                                     <a href="javascript:void(null)"
-                                      {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled"}}
+                                      {{bindAttr class="host.firtstAgent.isStartAgentDisabled:disabled :start-agent"}}
                                       {{action startFlumeAgent host.firtstAgent target="controller"}}>
                                       {{t services.service.summary.flume.startAgent}}</a>
                                 </li>
                                 <li {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}>
                                     <a href="javascript:void(null)"
-                                      {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled"}}
+                                      {{bindAttr class="host.firtstAgent.isStopAgentDisabled:disabled :stop-agent"}}
                                       {{action stopFlumeAgent host.firtstAgent target="controller"}}>
                                       {{t services.service.summary.flume.stopAgent}}</a>
                                 </li>
@@ -82,14 +82,14 @@
                   {{#view view.agentView contentBinding="host"}}
                     <td class="agent-status">
                         <div class="wrapp-flume-status">
-                          <div class="pull-left"><span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}</div>
-                          <div class="btn-wrapper">
-                            <div class="btn-group display-inline-block flume-agents-actions">
+                          <div class="pull-left flume-agents-status"><span {{bindAttr class="agent.healthClass"}}></span> {{agent.name}}</div>
+                          <div class="btn-wrapper flume-agents-actions">
+                            <div class="btn-group display-inline-block">
                                 <a {{bindAttr class=":btn :dropdown-toggle"}} data-toggle="dropdown" href="javascript:void(null)">{{agent.displayStatus}}
                                     <span class="caret"></span>
                                 </a>
                                 <ul class="pull-left dropdown-menu">
-                                    <li {{bindAttr class="agent.isStartAgentDisabled:disabled"}}>
+                                    <li {{bindAttr class="agent.isStartAgentDisabled:disabled :start-agent"}}>
                                         <a href="javascript:void(null)"
                                           {{bindAttr class="agent.isStartAgentDisabled:disabled"}}
                                           {{action startFlumeAgent agent target="controller"}}>
@@ -97,7 +97,7 @@
                                     </li>
                                     <li {{bindAttr class="agent.isStopAgentDisabled:disabled"}}>
                                         <a href="javascript:void(null)"
-                                          {{bindAttr class="agent.isStopAgentDisabled:disabled"}}
+                                          {{bindAttr class="agent.isStopAgentDisabled:disabled :stop-agent"}}
                                           {{action stopFlumeAgent agent target="controller"}}>
                                           {{t services.service.summary.flume.stopAgent}}</a>
                                     </li>
