@@ -79,7 +79,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
               }
             });
           }
-          if (Em.get(config, 'config.StackConfigurations.property_depends_on.length') > 0) {
+          if (Em.get(config, 'StackConfigurations.property_depends_on.length') > 0) {
             config.StackConfigurations.property_depends_on.forEach(function(dep) {
               var service = App.StackService.find(config.StackConfigurations.service_name);
               var dependentService = App.config.getServiceByConfigType(dep.type);
