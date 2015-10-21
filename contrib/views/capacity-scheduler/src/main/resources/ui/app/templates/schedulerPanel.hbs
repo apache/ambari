@@ -126,7 +126,7 @@
         }}
         {{#if isOperator}}
           <div class="col-xs-7 control-value">
-            {{expandable-input value=scheduler.queue_mappings class="input-sm form-control input-expand"}}
+            {{expandable-input value=scheduler.queue_mappings classNameBindings="hasInvalidQueueMappings:list-group-item-danger" class="input-sm form-control input-expand"}}
             {{#if schedulerDirtyFilelds.queue_mappings}}
               <div class="btn-group btn-group-xs" >
                   <a {{action 'rollbackProp' 'queue_mappings' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
