@@ -53,7 +53,7 @@
     </property>
     <property>
         <name>user_group</name>
-        <display-name>User Group</display-name>
+        <display-name>Hadoop Group</display-name>
         <value>hadoop</value>
         <property-type>GROUP</property-type>
         <description>Hadoop user group.</description>
