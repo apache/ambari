@@ -100,7 +100,7 @@
   </property>
   <property>
     <name>user_group</name>
-    <display-name>User Group</display-name>
+    <display-name>Hadoop Group</display-name>
     <value>hadoop</value>
     <description>Proxy user group.</description>
   </property>
