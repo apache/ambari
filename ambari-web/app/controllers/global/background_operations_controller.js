@@ -222,11 +222,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
       currentRequestIds.push(request.Requests.id);
 
       if (rq) {
-        rq.set('progress', Math.floor(request.Requests.progress_percent));
-        rq.set('status', request.Requests.request_status);
-        rq.set('isRunning', isRunning);
-        rq.set('startTime', request.Requests.start_time);
-        rq.set('endTime', request.Requests.end_time);
+        rq.setProperties({
+          progress: Math.floor(request.Requests.progress_percent),
+          status: request.Requests.request_status,
+          isRunning: isRunning,
+          startTime: App.dateTimeWithTimeZone(request.Requests.start_time),
+          endTime: App.dateTimeWithTimeZone(request.Requests.end_time)
+        });
       } else {
         rq = Em.Object.create({
           id: request.Requests.id,
@@ -246,7 +248,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         });
         this.get("services").unshift(rq);
         //To sort DESC by request id
-        this.set("services", this.get("services").sort( function(a,b) { return b.get('id') - a.get('id'); }));
+        this.set("services", this.get("services").sortProperty('id').reverse());
       }
       runningServices += ~~isRunning;
     }, this);
@@ -294,7 +296,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     return false
   },
   /**
-   * assign schedule_id of request to null if it's Recommision operation
+   * assign schedule_id of request to null if it's Recommission operation
    * @param request
    * @param requestParams
    */
@@ -361,7 +363,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
         $(self.get('popupView.element')).appendTo('#wrapper');
       } else {
         self.set('popupView', App.HostPopup.initPopup("", self, true));
-        self.set ('popupView.isNotShowBgChecked', !initValue);
+        self.set('popupView.isNotShowBgChecked', !initValue);
       }
     });
   },

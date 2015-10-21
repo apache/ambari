@@ -24,7 +24,13 @@ describe('App.UserSettingsController', function () {
   beforeEach(function () {
     userSettingsController = App.UserSettingsController.create();
   });
-  
+
+  describe('#userSettingsKeys', function () {
+    it('should not be empty', function () {
+      expect(Object.keys(userSettingsController.get('userSettingsKeys'))).to.have.length.gt(0);
+    });
+  });
+
   describe('#showSettingsPopup', function() {
     var dataToShowRes = {};
 
@@ -69,6 +75,28 @@ describe('App.UserSettingsController', function () {
       applicationController.getUserPrefSuccessCallback({status: 200}, {}, {});
       expect(applicationController.get('currentPrefObject')).to.be.eql({status: 200});
     });
+  });
+
+  describe('#updateUserPrefWithDefaultValues', function () {
+
+    beforeEach(function () {
+      sinon.stub(userSettingsController, 'postUserPref', Em.K);
+    });
+
+    afterEach(function () {
+      userSettingsController.postUserPref.restore();
+    });
+
+    it('should update user pref with default values', function () {
+      userSettingsController.updateUserPrefWithDefaultValues(null, true);
+      expect(userSettingsController.postUserPref.called).to.be.false;
+    });
+
+    it('should not update user pref with default values', function () {
+      userSettingsController.updateUserPrefWithDefaultValues(null, false);
+      expect(userSettingsController.postUserPref.called).to.be.true;
+    });
+
   });
 
 });

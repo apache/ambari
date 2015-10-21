@@ -36,7 +36,8 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   userSettings: {},
 
   /**
-   * Each property type is {name: string, defaultValue: *}
+   * Each property's type is {name: string, defaultValue: *, formatter: function}
+   *
    * @type {object}
    */
   userSettingsKeys: function () {
@@ -49,7 +50,10 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
       },
       timezone: {
         name: prefix + 'timezone-' + loginName,
-        defaultValue: timezoneUtils.detectUserTimezone()
+        defaultValue: timezoneUtils.detectUserTimezone(),
+        formatter: function (v) {
+          return timezoneUtils.get('timezonesMappedByValue')[v];
+        }
       }
     };
   }.property('App.router.loginName'),
@@ -57,6 +61,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   /**
    * Load some user's setting from the persist
    * If <code>persistKey</code> is not provided, all settings are loaded
+   *
    * @param {string} [persistKey]
    * @method dataLoading
    * @returns {$.Deferred.promise}
@@ -73,14 +78,30 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     return dfd.promise();
   },
 
-  getUserPrefSuccessCallback: function (response) {
-    if (!Em.isNone(response)) {
-      this.updateUserPrefWithDefaultValues(response);
+  /**
+   * Success-callback for user pref
+   *
+   * @param {*} response
+   * @param {object} opt
+   * @returns {*}
+   * @method getUserPrefSuccessCallback
+   */
+  getUserPrefSuccessCallback: function (response, opt) {
+    var getAllRequest = opt.url.contains('persist/?_');
+    if (Em.isNone(response)) {
+      this.updateUserPrefWithDefaultValues(response, getAllRequest);
     }
     this.set('currentPrefObject', response);
     return response;
   },
 
+  /**
+   * Error-callback for user-pref request
+   * Update user pref with default values if user firstly login
+   *
+   * @param {object} request
+   * @method getUserPrefErrorCallback
+   */
   getUserPrefErrorCallback: function (request) {
     // this user is first time login
     if (404 == request.status) {
@@ -90,14 +111,26 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
 
   /**
    * Load all current user's settings to the <code>userSettings</code>
+   *
    * @method getAllUserSettings
    */
   getAllUserSettings: function () {
     var userSettingsKeys = this.get('userSettingsKeys');
     var userSettings = {};
+    var self = this;
     this.dataLoading().done(function (json) {
       Object.keys(userSettingsKeys).forEach(function (k) {
-        userSettings[k] = JSON.parse(json[userSettingsKeys[k].name]);
+        var value = userSettingsKeys[k].defaultValue;
+        if (undefined === json[userSettingsKeys[k].name]) {
+          self.postUserPref(k, userSettingsKeys[k].defaultValue);
+        }
+        else {
+          value = JSON.parse(json[userSettingsKeys[k].name]);
+        }
+        if ('function' === Em.typeOf(userSettingsKeys[k].formatter)) {
+          value = userSettingsKeys[k].formatter(value);
+        }
+        userSettings[k] = value;
       });
     });
     this.set('userSettings', userSettings);
@@ -106,18 +139,22 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   /**
    * If user doesn't have any settings stored in the persist,
    * default values should be populated there
+   *
    * @param {object} [response]
+   * @param {boolean} [getAllRequest] determines, if user tried to get one field or all fields
    * @method updateUserPrefWithDefaultValues
    */
-  updateUserPrefWithDefaultValues: function (response) {
+  updateUserPrefWithDefaultValues: function (response, getAllRequest) {
     response = response || {};
     var keys = this.get('userSettingsKeys');
     var self = this;
-    Object.keys(keys).forEach(function (key) {
-      if (Em.isNone(response[keys[key].name])) {
-        self.postUserPref(key, keys[key].defaultValue);
-      }
-    });
+    if (getAllRequest) {
+      Object.keys(keys).forEach(function (key) {
+        if (Em.isNone(response[keys[key].name])) {
+          self.postUserPref(key, keys[key].defaultValue);
+        }
+      });
+    }
   },
 
   /**
@@ -125,6 +162,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * Example:
    *  real key is something like 'userSettingsKeys.timezone.name'
    *  but user should call this method with 'timezone'
+   *
    * @method postUserPref
    * @param {string} key
    * @param {*} value
@@ -132,19 +170,12 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    */
   postUserPref: function (key, value) {
     var k = key.startsWith('userSettingsKeys.') ? key : 'userSettingsKeys.' + key + '.name';
+    var kk = k.replace('userSettingsKeys.', '').replace('.name', '');
+    this.set('userSettings.' + kk, value);
     return this._super(this.get(k), value);
   },
 
   /**
-   * Sync <code>userSettingsKeys</code> after each POST-update
-   * @returns {*}
-   */
-  postUserPrefSuccessCallback: function () {
-    return this.getAllUserSettings();
-  },
-
-  /**
-   * Check if popup may be opened (based on <code>upgrade_ADMIN</code>)
    * Open popup with user settings after settings-request is complete
    *
    * @method showSettingsPopup
@@ -214,6 +245,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
 
       /**
        * Determines if page should be refreshed after user click "Save"
+       *
        * @returns {boolean}
        */
       needsPageRefresh: function () {
