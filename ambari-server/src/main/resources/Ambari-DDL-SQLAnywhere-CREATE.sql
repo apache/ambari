@@ -215,7 +215,7 @@ CREATE TABLE host_role_command (
   retry_allowed SMALLINT DEFAULT 0 NOT NULL,
   event TEXT NOT NULL,
   exitcode INTEGER NOT NULL,
-  host_id NUMERIC(19) NOT NULL,
+  host_id NUMERIC(19),
   last_attempt_time NUMERIC(19) NOT NULL,
   request_id NUMERIC(19) NOT NULL,
   role VARCHAR(255),

@@ -67,11 +67,11 @@ public class StageTest {
     stage.addServerActionCommand(ConfigureAction.class.getName(),
         "user1", Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
-        "cluster1", SERVER_HOST_NAME,
+        "cluster1",
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
         Collections.<String, String> emptyMap(), null, null, 1200, false, false);
 
-    List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(SERVER_HOST_NAME);
+    List<ExecutionCommandWrapper> executionCommands = stage.getExecutionCommands(null);
     assertEquals(1, executionCommands.size());
 
     String actionUserName = executionCommands.get(0).getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);

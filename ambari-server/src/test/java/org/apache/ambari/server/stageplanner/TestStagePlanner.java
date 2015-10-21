@@ -126,11 +126,11 @@ public class TestStagePlanner {
     Stage stage = stageFactory.createNew(1, "/tmp", "cluster1", 1L,  "execution command wrapper test",
             "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     stage.setStageId(1);
-    stage.addServerActionCommand("RESTART", Role.HIVE_METASTORE,
+    stage.addServerActionCommand("RESTART", null, Role.HIVE_METASTORE,
             RoleCommand.CUSTOM_COMMAND, "cluster1",
             new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
             null, "command detail", null, null, false, false);
-    stage.addServerActionCommand("RESTART", Role.MYSQL_SERVER,
+    stage.addServerActionCommand("RESTART", null, Role.MYSQL_SERVER,
             RoleCommand.CUSTOM_COMMAND, "cluster1",
             new ServiceComponentHostServerActionEvent("host2", System.currentTimeMillis()),
             null, "command detail", null, null, false, false);

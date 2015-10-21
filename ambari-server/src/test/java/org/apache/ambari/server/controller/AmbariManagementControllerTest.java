@@ -8078,11 +8078,9 @@ public class AmbariManagementControllerTest {
     stages.add(stageFactory.createNew(requestId3, "/a6", clusterName, 1L, context,
       CLUSTER_HOST_INFO, "", ""));
     stages.get(0).setStageId(6);
-    stages.get(0).addServerActionCommand("some.action.class.name", Role.AMBARI_SERVER_ACTION,
-        RoleCommand.EXECUTE, clusterName, serviceComponentHostServerActionEvent, null, null,
-        null, null,false, false);
-    assertEquals(StageUtils.getHostName(), stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
-
+    stages.get(0).addServerActionCommand("some.action.class.name", null, Role.AMBARI_SERVER_ACTION,
+        RoleCommand.EXECUTE, clusterName, serviceComponentHostServerActionEvent, null, null, null, null, false, false);
+    assertEquals("_internal_ambari", stages.get(0).getOrderedHostRoleCommands().get(0).getHostName());
     request = new Request(stages, clusters);
     actionDB.persistActions(request);
 
@@ -8134,7 +8132,7 @@ public class AmbariManagementControllerTest {
     assertNotNull(response);
     assertEquals(6L, response.getTaskId());
     // The host name for the task should be the same as what StageUtils#getHostName returns since
-    // the host was specifed as null when
+    // the host was specified as null when
     assertEquals(StageUtils.getHostName(), response.getHostName());
 
     //verify that task from second request (requestId2) does not present in first request (requestId1)

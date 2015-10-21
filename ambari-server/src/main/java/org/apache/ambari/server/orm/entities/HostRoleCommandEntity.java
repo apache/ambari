@@ -77,7 +77,7 @@ public class HostRoleCommandEntity {
   @Basic
   private Long stageId;
 
-  @Column(name = "host_id", insertable = false, updatable = false, nullable = false)
+  @Column(name = "host_id", insertable = false, updatable = false, nullable = true)
   @Basic
   private Long hostId;
 
@@ -170,7 +170,7 @@ public class HostRoleCommandEntity {
   private StageEntity stage;
 
   @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = true)
   private HostEntity hostEntity;
 
   @OneToOne(mappedBy = "hostRoleCommandEntity", cascade = CascadeType.REMOVE)

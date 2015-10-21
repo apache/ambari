@@ -106,6 +106,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   public static final String UPGRADE_TYPE_COL = "upgrade_type";
   public static final String REPO_VERSION_TABLE = "repo_version";
 
+  private static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  private static final String HOST_ID_COL = "host_id";
+
   private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
   private static final String KERBEROS_DESCRIPTOR_NAME_COLUMN = "kerberos_descriptor_name";
   private static final String KERBEROS_DESCRIPTOR_COLUMN = "kerberos_descriptor";
@@ -163,6 +166,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     executeUpgradeDDLUpdates();
+
+    // Alter the host_role_command table to allow host_id to be nullable
+    dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
+
     addKerberosDescriptorTable();
   }
 

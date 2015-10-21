@@ -89,7 +89,7 @@ class ActionScheduler implements Runnable {
   private final ActionDBAccessor db;
   private final short maxAttempts;
   private final ActionQueue actionQueue;
-  private final Clusters fsmObject;
+  private final Clusters clusters;
   private final AmbariEventPublisher ambariEventPublisher;
   private boolean taskTimeoutAdjustment = true;
   private final HostsMap hostsMap;
@@ -126,7 +126,7 @@ class ActionScheduler implements Runnable {
   private Cache<String, Map<String, String>> hostParamsStageCache;
 
   public ActionScheduler(long sleepTimeMilliSec, long actionTimeoutMilliSec,
-                         ActionDBAccessor db, ActionQueue actionQueue, Clusters fsmObject,
+                         ActionDBAccessor db, ActionQueue actionQueue, Clusters clusters,
                          int maxAttempts, HostsMap hostsMap,
                          UnitOfWork unitOfWork, AmbariEventPublisher ambariEventPublisher,
                          Configuration configuration) {
@@ -135,7 +135,7 @@ class ActionScheduler implements Runnable {
     actionTimeout = actionTimeoutMilliSec;
     this.db = db;
     this.actionQueue = actionQueue;
-    this.fsmObject = fsmObject;
+    this.clusters = clusters;
     this.ambariEventPublisher = ambariEventPublisher;
     this.maxAttempts = (short) maxAttempts;
     serverActionExecutor = new ServerActionExecutor(db, sleepTimeMilliSec);
@@ -343,7 +343,7 @@ class ActionScheduler implements Runnable {
         Map<ExecutionCommand, String> commandsToAbort = new HashMap<ExecutionCommand, String>();
         if (!eventMap.isEmpty()) {
           LOG.debug("==> processing {} serviceComponentHostEvents...", eventMap.size());
-          Cluster cluster = fsmObject.getCluster(stage.getClusterName());
+          Cluster cluster = clusters.getCluster(stage.getClusterName());
           if (cluster != null) {
             Map<ServiceComponentHostEvent, String> failedEvents = cluster.processServiceComponentHostEvents(eventMap);
 
@@ -523,14 +523,22 @@ class ActionScheduler implements Runnable {
 
     Cluster cluster = null;
     if (null != s.getClusterName()) {
-      cluster = fsmObject.getCluster(s.getClusterName());
+      cluster = clusters.getCluster(s.getClusterName());
     }
 
     for (String host : s.getHosts()) {
+
       List<ExecutionCommandWrapper> commandWrappers = s.getExecutionCommands(host);
-      Host hostObj = fsmObject.getHost(host);
+      Host hostObj = null;
+      try {
+        hostObj = clusters.getHost(host);
+      } catch (AmbariException e) {
+        LOG.debug("Host {} not found, stage is likely a server side action", host);
+      }
+
       int i_my = 0;
       LOG.trace("===>host=" + host);
+
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         String roleStr = c.getRole();
@@ -682,7 +690,7 @@ class ActionScheduler implements Runnable {
                                        boolean ignoreTransitionException) {
 
     try {
-      Cluster cluster = fsmObject.getCluster(clusterName);
+      Cluster cluster = clusters.getCluster(clusterName);
 
       ServiceComponentHostOpFailedEvent failedEvent =
         new ServiceComponentHostOpFailedEvent(componentName,
@@ -748,6 +756,17 @@ class ActionScheduler implements Runnable {
     return roleStats;
   }
 
+  /**
+   * Checks if timeout is required.
+   * @param status      the status of the current role
+   * @param stage       the stage
+   * @param host        the host object; can be {@code null} for server-side tasks
+   * @param role        the role
+   * @param currentTime the current
+   * @param taskTimeout the amount of time to determine timeout
+   * @return {@code true} if timeout is needed
+   * @throws AmbariException
+   */
   private boolean timeOutActionNeeded(HostRoleStatus status, Stage stage,
       Host host, String role, long currentTime, long taskTimeout) throws
     AmbariException {
@@ -755,29 +774,47 @@ class ActionScheduler implements Runnable {
         ( ! status.equals(HostRoleStatus.IN_PROGRESS) )) {
       return false;
     }
+
     // Fast fail task if host state is unknown
-    if (host.getState().equals(HostState.HEARTBEAT_LOST)) {
+    if (null != host && host.getState().equals(HostState.HEARTBEAT_LOST)) {
       LOG.debug("Timing out action since agent is not heartbeating.");
       return true;
     }
+
+    // tasks are held in a variety of in-memory maps that require a hostname key
+    // host being null is ok - that means it's a server-side task
+    String hostName = (null == host) ? null : host.getHostName();
+
     // If we have other command in progress for this stage do not timeout this one
-    if (hasCommandInProgress(stage, host.getHostName())
+    if (hasCommandInProgress(stage, hostName)
             && !status.equals(HostRoleStatus.IN_PROGRESS)) {
       return false;
     }
-    if (currentTime > stage.getLastAttemptTime(host.getHostName(), role)
+    if (currentTime > stage.getLastAttemptTime(hostName, role)
         + taskTimeout) {
       return true;
     }
     return false;
   }
 
-  private boolean hasCommandInProgress(Stage stage, String host) {
-    List<ExecutionCommandWrapper> commandWrappers = stage.getExecutionCommands(host);
+  /**
+   * Determines if at least one task for a given hostname in the specified stage is in progress.
+   * <p/>
+   * If the specified hostname is <code>null</code>, the Ambari Server host is assumed.
+   * See {@link Stage#getSafeHost(String)}.
+   *
+   * @param stage    a stage
+   * @param hostname a host name, if null the Ambari Server host is assumed
+   * @return true if at least one task for the given hostname in the specified stage is in progress; otherwize false
+   * @see Stage#getExecutionCommands(String)
+   * @see Stage#getHostRoleStatus(String, String)
+   */
+  private boolean hasCommandInProgress(Stage stage, String hostname) {
+    List<ExecutionCommandWrapper> commandWrappers = stage.getExecutionCommands(hostname);
     for (ExecutionCommandWrapper wrapper : commandWrappers) {
       ExecutionCommand c = wrapper.getExecutionCommand();
       String roleStr = c.getRole();
-      HostRoleStatus status = stage.getHostRoleStatus(host, roleStr);
+      HostRoleStatus status = stage.getHostRoleStatus(hostname, roleStr);
       if (status == HostRoleStatus.IN_PROGRESS) {
         return true;
       }
@@ -944,7 +981,7 @@ class ActionScheduler implements Runnable {
       // "Distribute repositories/install packages" action has been issued
       // against a concrete host without binding to a cluster)
       Long clusterId = clusterName != null ?
-              fsmObject.getCluster(clusterName).getClusterId() : null;
+              clusters.getCluster(clusterName).getClusterId() : null;
       ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
               clusterId, hostname, null,
               role);

@@ -1655,7 +1655,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                                         Integer timeout) throws AmbariException {
 
     Stage stage = createNewStage(id, cluster, requestId, requestContext, clusterHostInfo, commandParams, hostParams);
-    stage.addServerActionCommand(actionClass.getName(), Role.AMBARI_SERVER_ACTION,
+    stage.addServerActionCommand(actionClass.getName(), null, Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE, cluster.getClusterName(), event, commandParameters, commandDetail,
         ambariManagementController.findConfigurationTagsWithOverrides(cluster, null), timeout,
         false, false);

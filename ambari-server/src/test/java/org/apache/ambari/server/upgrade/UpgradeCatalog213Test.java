@@ -89,6 +89,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+import java.lang.reflect.Field;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -135,7 +136,23 @@ public class UpgradeCatalog213Test {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog213 upgradeCatalog = (UpgradeCatalog213) getUpgradeCatalog(dbAccessor);
 
+    Configuration configuration = createNiceMock(Configuration.class);
+    expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
+
+    Capture<DBAccessor.DBColumnInfo> columnCapture = EasyMock.newCapture();
+    dbAccessor.alterColumn(eq("host_role_command"), capture(columnCapture));
+    expectLastCall();
+
+    replay(dbAccessor, configuration);
+    Class<?> c = AbstractUpgradeCatalog.class;
+    Field f = c.getDeclaredField("configuration");
+    f.setAccessible(true);
+    f.set(upgradeCatalog, configuration);
+
     upgradeCatalog.executeDDLUpdates();
+    verify(dbAccessor, configuration);
+
+    Assert.assertTrue(columnCapture.getValue().isNullable());
   }
 
   @Test
@@ -798,6 +815,7 @@ public class UpgradeCatalog213Test {
     Capture<String> capturedPKColumn = EasyMock.newCapture();
     Capture<List<DBAccessor.DBColumnInfo>> capturedColumns = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedColumn = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedHostRoleCommandColumn = EasyMock.newCapture();
 
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
@@ -816,6 +834,7 @@ public class UpgradeCatalog213Test {
 
     // addKerberosDescriptorTable
     mockedDbAccessor.createTable(capture(capturedTableName), capture(capturedColumns), capture(capturedPKColumn));
+    mockedDbAccessor.alterColumn(eq("host_role_command"), capture(capturedHostRoleCommandColumn));
 
     mocksControl.replay();
 
