@@ -161,7 +161,7 @@ App.Helpers.ambari = (function () {
         context: this,
         url: getURL(),
         success: this.getInstanceParametersSuccessCallback,
-        error: this.getInstanceParametersErrorCallback,
+        error: this.getInstanceParametersErrorCallback
       });
     },
 
@@ -180,7 +180,9 @@ App.Helpers.ambari = (function () {
      * @method getInstanceParametersErrorCallback
      */
     getInstanceParametersErrorCallback: function (request, ajaxOptions, error) {
-      Ember.assert('Ambari instance parameter fetch failed: ' + error);
+      var message = 'Ambari instance parameter fetch failed: ' + error;
+      App.Helpers.ErrorBar.getInstance().show(message);
+      Ember.assert(message);
     }
   };
 
