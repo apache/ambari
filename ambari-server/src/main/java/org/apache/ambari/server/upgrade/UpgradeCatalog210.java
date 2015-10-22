@@ -485,6 +485,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.dropFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hstcmpnntdesiredstatecmpnntnme");
     dbAccessor.dropFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_scv");
 
+    //These FK's hasn't been deleted previously due to MySQL case sensitivity
+    if (databaseType == Configuration.DatabaseType.MYSQL) {
+      dbAccessor.dropFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_configgrouphostmapping_config_group_id");
+      dbAccessor.dropFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_ClusterHostMapping_cluster_id");
+      dbAccessor.dropFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_kerberos_principal_host_principal_name");
+      dbAccessor.dropFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_serviceconfighosts_service_config_id");
+    }
+
     if (databaseType == Configuration.DatabaseType.DERBY) {
       for (String tableName : tablesWithHostNameInPK) {
         String constraintName = getDerbyTableConstraintName("p", tableName);
@@ -1345,7 +1353,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       public void run() {
         EntityManager em = getEntityManagerProvider().get();
         Query nativeQuery = em.createNativeQuery("UPDATE alert_definition SET alert_source=?1, hash=?2 WHERE " +
-                "definition_name=?3");
+          "definition_name=?3");
         nativeQuery.setParameter(1, source);
         nativeQuery.setParameter(2, newHash);
         nativeQuery.setParameter(3, alertName);
