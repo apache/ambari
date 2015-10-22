@@ -21,14 +21,9 @@
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
   <type>NON_ROLLING</type>
-  <downgrade-allowed>false</downgrade-allowed>
-  <prerequisite-checks>
-  </prerequisite-checks>
-  <upgrade-path>
-    <intermediate-stack version="2.2"/>
-    <intermediate-stack version="2.3"/>
-  </upgrade-path>
-
+  <prechecks>
+    <!--TODO: do we have any?-->
+  </prechecks>
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <skippable>true</skippable>
@@ -36,6 +31,12 @@
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
         <task xsi:type="manual">
           <message>Before continuing, please stop all YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="SLIDER" component="SLIDER" title="Stop Long Running Applications on Slider">
+        <task xsi:type="manual">
+          <message>Before continuing, please stop all long-running applications deployed using Slider. E.g., su - yarn "/usr/hdp/current/slider-client/bin/slider stop &lt;app_name&gt;"</message>
         </task>
       </execute-stage>
 
@@ -62,12 +63,24 @@
         <component>NIMBUS</component>
       </service>
 
+      <service name="KNOX">
+        <component>KNOX_GATEWAY</component>
+      </service>
+
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+
       <service name="FALCON">
         <component>FALCON_SERVER</component>
       </service>
 
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
+      </service>
+
+      <service name="SPARK">
+        <component>SPARK_JOBHISTORYSERVER</component>
       </service>
 
       <service name="HIVE">
@@ -77,7 +90,7 @@
       </service>
 
       <service name="YARN">
-        <component>NODEMANAGER</component>
+        <component>NODEMANAGER</component>        
         <component>RESOURCEMANAGER</component>
         <component>APP_TIMELINE_SERVER</component>
       </service>
@@ -102,17 +115,36 @@
         </task>
       </execute-stage>
 
+      <!--TODO(dlysnichenko): This step is missing in 2.3->2.3+ RU pack -->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /etc/knox/data/security ~/knox_backup" on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>take_snapshot</function>
+          <function>take_snapshot</function>        <!-- TODO (Alejandro), this function used to be called just "snapshot" -->
         </task>
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
-        <task xsi:type="execute" hosts="master">
+        <task xsi:type="execute" hosts="master">  <!-- TODO (Alejandro), this can be any NameNode, not just the active. -->
           <script>scripts/namenode.py</script>
           <function>prepare_non_rolling_upgrade</function>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Pre Upgrade Ranger KMS">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Ranger KMS database</message>
         </task>
       </execute-stage>
     </group>
@@ -124,14 +156,22 @@
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="HDFS">
         <component>DATANODE</component>
         <component>NAMENODE</component>
-        <component>SECONDARY_NAMENODE</component>
-        <component>ZKFC</component>
-        <component>JOURNALNODE</component>
+        <component>SECONDARY_NAMENODE</component>   <!-- TODO (Alejandro), may not be present. -->
+        <component>ZKFC</component>                 <!-- TODO (Alejandro), may not be present. -->
+        <component>JOURNALNODE</component>          <!-- TODO (Alejandro), may not be present. -->
+        <component>NFS_GATEWAY</component>
+      </service>
+
+      <service name="RANGER">
+        <component>RANGER_USERSYNC</component>
+        <component>RANGER_ADMIN</component>
+        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -141,7 +181,7 @@
 
     <group name="Marker for Downgrade" title="Marker for Downgrade">
       <direction>UPGRADE</direction>
-      <!-- TODO, if the user attempts a downgrade before this step, they can simply abort. -->
+      <!-- TODO (Alejandro), if the user attempts a downgrade before this step, they can simply abort. -->
     </group>
 
     <group xsi:type="cluster" name="Restore Backups" title="Restore Backups">
@@ -163,118 +203,31 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
+        <task xsi:type="manual">
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /etc/knox/data/security/" on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>restore_snapshot</function>
+          <function>restore_snapshot</function>   <!-- TODO (Alejandro), this function name is new. -->
         </task>
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
-        <task xsi:type="execute" hosts="master">
+        <task xsi:type="execute" hosts="master">  <!-- TODO (Alejandro), this can be any NameNode, not just the active. -->
           <script>scripts/namenode.py</script>
-          <function>restore_snapshot</function>
+          <function>restore_snapshot</function>    <!-- TODO (Alejandro), this function doesn't exist yet. -->
         </task>
       </execute-stage>
-    </group>
 
-    <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
-      <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
-      <skippable>false</skippable>
-
-      <!--Changes for stack 2.2-->
-      <!--YARN-->
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER">
-        <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath"/>
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger">
+        <task xsi:type="manual">
+          <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
+        </task>
       </execute-stage>
-
-
-      <!--Changes for stack 2.3-->
-      <!--HDFS-->
-      <execute-stage service="HDFS" component="NAMENODE">
-        <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
-      </execute-stage>
-
-
-      <!--YARN-->
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="APP_TIMELINE_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_clear_default_node_label_expression"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_def_capacity"/>
-      </execute-stage>
-
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
-      </execute-stage>
-
-
-      <!--HBASE-->
-      <execute-stage service="HBASE" component="HBASE_MASTER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_set_global_memstore_size"/>
-      </execute-stage>
-
-      <execute-stage service="HBASE" component="HBASE_MASTER">
-        <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
-      </execute-stage>
-
-      <execute-stage service="HBASE" component="HBASE_MASTER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"/>
-      </execute-stage>
-
-
-      <!--TEZ-->
-      <execute-stage service="TEZ" component="TEZ_CLIENT">
-        <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
-      </execute-stage>
-
-
-      <!--HIVE-->
-      <execute-stage service="HIVE" component="HIVE_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="HIVE_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentification"/>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="WEBHCAT_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_env"/>
-      </execute-stage>
-
-      <execute-stage service="HIVE" component="WEBHCAT_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_configuration_paths"/>
-      </execute-stage>
-
-
-      <!--OOZIE-->
-      <execute-stage service="OOZIE" component="OOZIE_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
-      </execute-stage>
-
-
-      <!--STORM-->
-      <execute-stage service="STORM" component="NIMBUS">
-        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
-      </execute-stage>
-
-      <execute-stage service="STORM" component="NIMBUS">
-        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
-      </execute-stage>
-
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
@@ -290,7 +243,7 @@
       <execute-stage title="Update stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
+          <function>actionexecute</function>      
         </task>
       </execute-stage>
     </group>
@@ -301,9 +254,19 @@
       <service-check>false</service-check>
       <skippable>true</skippable>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>
+        <service-check>false</service-check>        <!-- TODO (Alejandro), enable service-check once done testing -->
         <component>ZOOKEEPER_SERVER</component>
-        <component>ZOOKEEPER_CLIENT</component>
+        <component>ZOOKEEPER_CLIENT</component>     
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="RANGER" title="Ranger">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="RANGER">
+        <component>RANGER_ADMIN</component>
+        <component>RANGER_USERSYNC</component>
+        <component>RANGER_KMS_SERVER</component>
       </service>
     </group>
 
@@ -317,6 +280,7 @@
         <component>SECONDARY_NAMENODE</component>
         <component>DATANODE</component>
         <component>HDFS_CLIENT</component>
+        <component>NFS_GATEWAY</component>
       </service>
     </group>
 
@@ -338,13 +302,13 @@
       <skippable>true</skippable>
       <service name="MAPREDUCE2">
         <component>HISTORYSERVER</component>
-        <component>MAPREDUCE2_CLIENT</component>
+        <component>MAPREDUCE2_CLIENT</component>    
       </service>
       <service name="YARN">
         <component>APP_TIMELINE_SERVER</component>
         <component>RESOURCEMANAGER</component>
-        <component>NODEMANAGER</component>
-        <component>YARN_CLIENT</component>
+        <component>NODEMANAGER</component>          
+        <component>YARN_CLIENT</component>          
       </service>
     </group>
 
@@ -353,16 +317,22 @@
       <skippable>true</skippable>
       <service name="HBASE">
         <component>HBASE_MASTER</component>
-        <component>HBASE_REGIONSERVER</component>
-        <component>HBASE_CLIENT</component>
+        <component>HBASE_REGIONSERVER</component>   
+        <component>HBASE_CLIENT</component>         
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
-    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">
+    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">  
       <service-check>false</service-check>
       <skippable>true</skippable>
+
       <service name="TEZ">
         <component>TEZ_CLIENT</component>
+      </service>
+
+      <service name="MAHOUT">
+        <component>MAHOUT</component>
       </service>
 
       <service name="PIG">
@@ -392,8 +362,17 @@
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
         <component>WEBHCAT_SERVER</component>
-        <component>HIVE_CLIENT</component>
-        <component>HCAT</component>
+        <component>HIVE_CLIENT</component>          
+        <component>HCAT</component>                 
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="SPARK" title="Spark">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="SPARK">
+        <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_CLIENT</component>         
       </service>
     </group>
 
@@ -426,7 +405,7 @@
       <skippable>true</skippable>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
-        <component>OOZIE_CLIENT</component>
+        <component>OOZIE_CLIENT</component>         
       </service>
     </group>
 
@@ -435,7 +414,23 @@
       <skippable>true</skippable>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
-        <component>FALCON_CLIENT</component>
+        <component>FALCON_CLIENT</component>        
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="KAFKA" title="Kafka">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="KAFKA">
+        <component>KAFKA_BROKER</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="KNOX" title="Knox">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="KNOX">
+        <component>KNOX_GATEWAY</component>
       </service>
     </group>
 
@@ -450,11 +445,39 @@
         <component>DRPC_SERVER</component>
       </service>
 
+      <!-- TODO (Alejandro), does this work? -->
       <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
         <task xsi:type="manual">
           <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
+      <skippable>true</skippable>
+      <service name="ACCUMULO">
+        <component>ACCUMULO_MASTER</component>
+        <component>ACCUMULO_TSERVER</component>
+        <component>ACCUMULO_MONITOR</component>
+        <component>ACCUMULO_GC</component>
+        <component>ACCUMULO_TRACER</component>
+        <component>ACCUMULO_CLIENT</component>
+      </service>
+
+      <!-- TODO (Alejandro), does this work? -->
+      <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
+        <task xsi:type="manual">
+          <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+        </task>
+      </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="SLIDER" title="Slider">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="FLUME" title="Flume">
@@ -481,7 +504,7 @@
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
-        <task xsi:type="execute" hosts="master">
+        <task xsi:type="execute" hosts="master">      <!-- TODO (Alejandro), what happens if there's no HA. -->
           <script>scripts/namenode.py</script>
           <function>finalize_non_rolling_upgrade</function>
         </task>
