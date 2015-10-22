@@ -2465,7 +2465,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.capacity':'HDFS Disk Usage',
   'dashboard.services.hdfs.capacity.dfsUsed':'Disk Usage (DFS Used)',
   'dashboard.services.hdfs.capacity.nonDfsUsed':'Disk Usage (Non DFS Used)',
-  'dashboard.services.hdfs.capacity.remaining':'Disk Usage (Remaining)',
+  'dashboard.services.hdfs.capacity.remaining':'Disk Remaining',
   'dashboard.services.hdfs.capacityUsed':'{0} / {1} ({2}%)',
   'dashboard.services.hdfs.totalFilesAndDirs':'Total Files + Directories',
   'dashboard.services.hdfs.datanodes':'DataNodes',
