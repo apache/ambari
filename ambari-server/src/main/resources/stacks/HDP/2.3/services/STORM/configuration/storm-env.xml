@@ -26,4 +26,9 @@
     <value>true</value>
     <description></description>
   </property>
+   <property>
+     <name>storm_logs_supported</name>
+     <value>true</value>
+     <description></description>
+   </property>
 </configuration>

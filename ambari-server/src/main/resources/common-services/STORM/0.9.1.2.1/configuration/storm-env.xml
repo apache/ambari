@@ -75,5 +75,11 @@ export STORM_HOME={{storm_component_home_dir}}
      <value>false</value>
      <description></description>
    </property>
+   <property>
+     <name>storm_logs_supported</name>
+     <value>false</value>
+     <description></description>
+   </property>
+
 
 </configuration>
