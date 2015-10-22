@@ -20,11 +20,15 @@ package org.apache.ambari.server.state;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Represents a single instance of a 'Config Type'
  */
 public interface Config {
+  Map<PropertyInfo.PropertyType, Set<String>> getPropertiesTypes();
+
+  void setPropertiesTypes(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes);
 
   void setStackId(StackId stackId);
 

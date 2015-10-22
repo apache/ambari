@@ -10539,6 +10539,151 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
+  public void testSecretReferences() throws AmbariException {
+
+    final String host1 = "h1";
+    final String host2 = "h2";
+    Long clusterId = 1L;
+    String clusterName = "foo1";
+    Cluster cl = setupClusterWithHosts(clusterName, "HDP-2.0.5", new ArrayList<String>() {
+      {
+        add(host1);
+        add(host2);
+      }
+    }, "centos5");
+    String serviceName = "HDFS";
+    createService(clusterName, serviceName, null);
+    String componentName1 = "NAMENODE";
+    String componentName2 = "DATANODE";
+    String componentName3 = "HDFS_CLIENT";
+
+    createServiceComponent(clusterName, serviceName, componentName1, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
+
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName2, host2, null);
+    createServiceComponentHost(clusterName, serviceName, componentName3, host2, null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+
+    ClusterRequest crReq;
+    ConfigurationRequest cr;
+
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version1",
+        new HashMap<String, String>(){{
+          put("test.password", "first");
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    // update config with secret reference
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version2",
+        new HashMap<String, String>(){{
+          put("test.password", "SECRET:c1:hdfs-site:1");
+          put("new", "new");//need this to mark config as "changed"
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    // change password to new value
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version3",
+        new HashMap<String, String>(){{
+          put("test.password", "brandNewPassword");
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    // wrong secret reference
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version3",
+        new HashMap<String, String>(){{
+          put("test.password", "SECRET:c1:hdfs-site:666");
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    try {
+      controller.updateClusters(Collections.singleton(crReq), null);
+      fail("Request need to be failed with wrong secret reference");
+    } catch (AmbariException e){
+
+    }
+    // reference to config which does not contain requested property
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version4",
+        new HashMap<String, String>(){{
+          put("foo", "bar");
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    cr = new ConfigurationRequest(clusterName,
+        "hdfs-site",
+        "version5",
+        new HashMap<String, String>(){{
+          put("test.password", "SECRET:c1:hdfs-site:4");
+          put("new", "new");
+        }},
+        new HashMap<String, Map<String, String>>()
+    );
+    crReq = new ClusterRequest(clusterId, clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr));
+    try {
+      controller.updateClusters(Collections.singleton(crReq), null);
+      fail("Request need to be failed with wrong secret reference");
+    } catch (AmbariException e) {
+      assertEquals("Cluster: foo1 ConfigType: hdfs-site ConfigVersion: 4 does not contain property 'test.password'",
+          e.getMessage());
+    }
+    cl.getAllConfigs();
+    assertEquals(cl.getAllConfigs().size(), 4);
+
+    Config v1 = cl.getConfigByVersion("hdfs-site", 1l);
+    Config v2 = cl.getConfigByVersion("hdfs-site", 2l);
+    Config v3 = cl.getConfigByVersion("hdfs-site", 3l);
+    Config v4 = cl.getConfigByVersion("hdfs-site", 4l);
+
+    assertEquals(v1.getProperties().get("test.password"), "first");
+    assertEquals(v2.getProperties().get("test.password"), "first");
+    assertEquals(v3.getProperties().get("test.password"), "brandNewPassword");
+    assertFalse(v4.getProperties().containsKey("test.password"));
+
+    // check if we have masked secret in responce
+    final ConfigurationRequest configRequest = new ConfigurationRequest(clusterName, "hdfs-site", null, null, null);
+    configRequest.setIncludeProperties(true);
+    Set<ConfigurationResponse> requestedConfigs = controller.getConfigurations(new HashSet<ConfigurationRequest>() {{
+      add(configRequest);
+    }});
+    for(ConfigurationResponse resp : requestedConfigs) {
+      String secretName = "SECRET:foo1:hdfs-site:"+resp.getVersion().toString();
+      if(resp.getConfigs().containsKey("test.password")) {
+        assertEquals(resp.getConfigs().get("test.password"), secretName);
+      }
+    }
+  }
+
+  @Test
   public void testTargetedProcessCommand() throws Exception {
     final String host1 = "h1";
     String clusterName = "c1";

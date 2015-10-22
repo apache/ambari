@@ -301,14 +301,31 @@ public interface Cluster {
   Map<String, Config> getConfigsByType(String configType);
 
   /**
+   * Gets all properties types that mach the specified type.
+   * @param configType the config type to return
+   * @return properties types for given config type
+   */
+  Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType);
+
+  /**
    * Gets the specific config that matches the specified type and tag.  This not
    * necessarily a DESIRED configuration that applies to a cluster.
    * @param configType  the config type to find
-   * @param versionTag  the config version to find
+   * @param versionTag  the config version tag to find
    * @return  a {@link Config} object, or <code>null</code> if the specific type
    *          and version have not been set.
    */
   Config getConfig(String configType, String versionTag);
+
+  /**
+   * Gets the specific config that matches the specified type and version.  This not
+   * necessarily a DESIRED configuration that applies to a cluster.
+   * @param configType  the config type to find
+   * @param configVersion  the config version to find
+   * @return  a {@link Config} object, or <code>null</code> if the specific type
+   *          and version have not been set.
+   */
+  Config getConfigByVersion(String configType, Long configVersion);
 
   /**
    * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
