@@ -2916,7 +2916,35 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
     self.assertEquals(res, res_expected)
 
-    pass
+    # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
+    properties = {"hive_security_authorization": "Ranger"}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hive-plugin-enabled":"No",
+        }
+      },
+      "hive-env":{
+        "properties":{
+          "hive_security_authorization": "Ranger",
+        }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    services['configurations']['ranger-env']['properties']['ranger-hive-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'hive-env',
+                     'message': 'ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger',
+                     'type': 'configuration',
+                     'config-name': 'hive_security_authorization',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
@@ -3137,3 +3165,220 @@ class TestHDP22StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+  def test_validateHDFSRangerPluginConfigurations(self):
+    configurations = {}
+      # 1) ok: ranger plugin is enabled in ranger-env and ranger-hdfs-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hdfs-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-hdfs-plugin-properties":{
+        "properties":{
+          "ranger-hdfs-plugin-enabled":"Yes",
+        }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-hdfs-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-hdfs-plugin-properties',
+                     'message': 'ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled must correspond ranger-env/ranger-hdfs-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-hdfs-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateYARNRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-yarn-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-yarn-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-yarn-plugin-properties":{
+        "properties":{
+          "ranger-yarn-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-yarn-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-yarn-plugin-properties',
+                     'message': 'ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled must correspond ranger-env/ranger-yarn-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-yarn-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateHBASERangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-hbase-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hbase-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-hbase-plugin-properties":{
+        "properties":{
+          "ranger-hbase-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-hbase-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-hbase-plugin-properties',
+                     'message': 'ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled must correspond ranger-env/ranger-hbase-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-hbase-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateKnoxRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-knox-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-knox-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-knox-plugin-properties":{
+        "properties":{
+          "ranger-knox-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-knox-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-knox-plugin-properties',
+                     'message': 'ranger-knox-plugin-properties/ranger-knox-plugin-enabled must correspond ranger-env/ranger-knox-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-knox-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateKafkaRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-kafka-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-kafka-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-kafka-plugin-properties":{
+        "properties":{
+          "ranger-kafka-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-kafka-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-kafka-plugin-properties',
+                     'message': 'ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled must correspond ranger-env/ranger-kafka-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-kafka-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateStormRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-storm-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-storm-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-storm-plugin-properties":{
+        "properties":{
+          "ranger-storm-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-storm-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-storm-plugin-properties',
+                     'message': 'ranger-storm-plugin-properties/ranger-storm-plugin-enabled must correspond ranger-env/ranger-storm-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-storm-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+

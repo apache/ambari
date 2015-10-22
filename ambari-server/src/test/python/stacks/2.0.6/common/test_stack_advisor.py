@@ -1619,3 +1619,46 @@ class TestHDP206StackAdvisor(TestCase):
     recommendedDefaults = {}
     expected = {'level': 'ERROR', 'message': 'Value should be recommended for property1'}
     self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+
+  def test_getServicesSiteProperties(self):
+    import imp, os
+    testDirectory = os.path.dirname(os.path.abspath(__file__))
+    hdp206StackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
+    stack_advisor = imp.load_source('stack_advisor', hdp206StackAdvisorPath)
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        ],
+      "configurations": {
+        "admin-properties": {
+          "properties": {
+            "DB_FLAVOR": "NOT_EXISTING",
+            }
+        },
+        "ranger-admin-site": {
+          "properties": {
+            "ranger.service.http.port": "7777",
+            "ranger.service.http.enabled": "true",
+            }
+        }
+      }
+    }
+    expected = {
+      "ranger.service.http.port": "7777",
+      "ranger.service.http.enabled": "true",
+    }
+    siteProperties = stack_advisor.getServicesSiteProperties(services, "ranger-admin-site")
+    self.assertEquals(siteProperties, expected)
+

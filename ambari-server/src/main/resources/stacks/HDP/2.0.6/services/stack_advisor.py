@@ -549,7 +549,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     if include_zookeeper:
       zookeeper_hosts = self.getHostNamesWithComponent("ZOOKEEPER", "ZOOKEEPER_SERVER", services)
-      zookeeper_port = 2181     #default port
+      zookeeper_port = '2181'     #default port
       if 'zoo.cfg' in services['configurations'] and ('clientPort' in services['configurations']['zoo.cfg']['properties']):
         zookeeper_port = services['configurations']['zoo.cfg']['properties']['clientPort']
 
@@ -1185,6 +1185,15 @@ def getOldValue(self, services, configType, propertyName):
 
 # Validation helper methods
 def getSiteProperties(configurations, siteName):
+  siteConfig = configurations.get(siteName)
+  if siteConfig is None:
+    return None
+  return siteConfig.get("properties")
+
+def getServicesSiteProperties(services, siteName):
+  configurations = services.get("configurations")
+  if not configurations:
+    return None
   siteConfig = configurations.get(siteName)
   if siteConfig is None:
     return None
