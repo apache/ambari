@@ -37,7 +37,7 @@ import com.google.inject.Singleton;
  * client retry properties for HDFS, HIVE, and OOZIE are set.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.CLIENT_RETRY_PROPERTY, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.CLIENT_RETRY_PROPERTY, required = false)
 public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
 
   static final String HIVE_CLIENT_RETRY_MISSING_KEY = "hive.client.retry.missing.key";
