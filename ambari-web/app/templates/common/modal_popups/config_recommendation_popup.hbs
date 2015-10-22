@@ -28,7 +28,7 @@
     </tr>
     </thead>
     <tbody>
-      {{#each service in stepConfigs}}
+      {{#each service in view.serviceConfigs}}
         {{#each property in service.configs}}
           {{#if property.warn}}
             <tr>
