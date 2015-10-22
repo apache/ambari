@@ -616,6 +616,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     sshKey: "", //string
     bootRequestId: null, //string
     sshUser: "root", //string
+    sshPort: "22",
     agentUser: "root" //string
   },
 
@@ -628,6 +629,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     sshKey: "", //string
     bootRequestId: null, //string
     sshUser: "", //string
+    sshPort: "22",
     agentUser: "" //string
   },
 

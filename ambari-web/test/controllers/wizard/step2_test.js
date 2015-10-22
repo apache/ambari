@@ -29,21 +29,25 @@ describe('App.WizardStep2Controller', function () {
     {
       manualInstall: false,
       user: '',
+      sshPort:'',
       e: ''
     },
     {
       manualInstall: true,
       user: '',
+      sshPort:'',
       e: null
     },
     {
       manualInstall: true,
       user: 'nobody',
+      sshPort:'123',
       e: null
     },
     {
       manualInstall: false,
       user: 'nobody',
+      sshPort:'123',
       e: null
     }
   ]);
@@ -98,6 +102,15 @@ describe('App.WizardStep2Controller', function () {
       controller.set('content.installOptions.sshUser', '321');
       expect(controller.get('sshUser')).to.equal('321');
     });
+  });
+
+  describe('#sshPort', function() {
+      it('should be equal to content.installOptions.sshPort', function() {
+          var controller = App.WizardStep2Controller.create({content: {installOptions: {sshPort: '123'}}});
+          expect(controller.get('sshPort')).to.equal('123');
+          controller.set('content.installOptions.sshPort', '321');
+          expect(controller.get('sshPort')).to.equal('321');
+      });
   });
 
   describe('#agentUser', function() {
@@ -285,6 +298,22 @@ describe('App.WizardStep2Controller', function () {
 
   });
 
+  describe('#sshPortError', function () {
+
+      userErrorTests.forEach(function(test) {
+          it('', function() {
+              var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, sshPort: test.sshPort}}});
+              if(Em.isNone(test.e)) {
+                  expect(controller.get('sshPortError')).to.equal(null);
+              }
+              else {
+                  expect(controller.get('sshPortError').length).to.be.above(2);
+              }
+          });
+      });
+
+  });
+
   describe('#agentUserError', function () {
 
     afterEach(function () {
@@ -377,6 +406,15 @@ describe('App.WizardStep2Controller', function () {
       });
       controller.reopen({sshUserError: 'error'});
       expect(controller.evaluateStep()).to.equal(false);
+    });
+
+    it('should return false if sshPortError is not empty', function () {
+        var controller = App.WizardStep2Controller.create({
+            hostNames: 'apache.ambari',
+            parseHostNamesAsPatternExpression: Em.K
+        });
+        controller.reopen({sshPortError: 'error'});
+        expect(controller.evaluateStep()).to.equal(false);
     });
 
     it('should return false if agentUserError is not empty', function () {
@@ -487,6 +525,7 @@ describe('App.WizardStep2Controller', function () {
       hostsError: '',
       sshKeyError: '',
       sshUserError: '',
+      sshPortError: '',
       agentUserError: ''
     });
 
@@ -511,6 +550,12 @@ describe('App.WizardStep2Controller', function () {
       controller.set('agentUserError', 'error');
       controller.set('sshUserError', '');
       expect(controller.get('isSubmitDisabled').length).to.above(0);
+    });
+
+    it('should return value if sshPortError is not empty', function () {
+        controller.set('sshPortError', 'error');
+        controller.set('agentUserError', '');
+        expect(controller.get('isSubmitDisabled').length).to.above(0);
     });
   });
 

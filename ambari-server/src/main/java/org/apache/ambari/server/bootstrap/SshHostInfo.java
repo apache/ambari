@@ -49,6 +49,9 @@ public class SshHostInfo {
   private String user;
 
   @XmlElement
+  private String sshPort;
+
+  @XmlElement
   private String password;
   
   @XmlElement
@@ -85,6 +88,10 @@ public class SshHostInfo {
   public void setUser(String user) {
     this.user = user;
   }
+
+  public String getSshPort(){ return sshPort; }
+
+  public void setSshPort(String sshPort){ this.sshPort = sshPort; }
 
   public String getPassword() {
     return password;

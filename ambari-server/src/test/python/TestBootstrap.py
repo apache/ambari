@@ -43,7 +43,7 @@ class TestBootstrap(TestCase):
 
 
   def test_getRemoteName(self):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                       "setupAgentFile", "ambariServer", "centos6", None, "8440", "root")
     res = bootstrap_obj = Bootstrap("hostname", shared_state)
     utime1 = 1234
@@ -65,7 +65,7 @@ class TestBootstrap(TestCase):
   # TODO: test_return_error_message_for_missing_sudo_package
 
   def test_getAmbariPort(self):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -82,11 +82,11 @@ class TestBootstrap(TestCase):
   @patch("os.path.dirname")
   @patch("os.path.realpath")
   def test_bootstrap_main(self, dirname_mock, realpath_mock, run_mock, exit_mock, stderr_mock, subprocess_Popen_mock):
-    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshkey_file", "setupAgent.py", "ambariServer", \
+    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", "root", "passwordfile"])
     self.assertTrue(run_mock.called)
     run_mock.reset_mock()
-    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "sshkey_file", "setupAgent.py", "ambariServer", \
+    bootstrap.main(["bootstrap.py", "hostname,hostname2", "/tmp/bootstrap", "root", "123", "sshkey_file", "setupAgent.py", "ambariServer", \
                     "centos6", "1.1.1", "8440", "root", None])
     self.assertTrue(run_mock.called)
     run_mock.reset_mock()
@@ -104,7 +104,7 @@ class TestBootstrap(TestCase):
 
   @patch("os.environ")
   def test_getRunSetupWithPasswordCommand(self, environ_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     environ_mock.__getitem__.return_value = "TEST_PASSPHRASE"
@@ -118,7 +118,7 @@ class TestBootstrap(TestCase):
 
 
   def test_generateRandomFileName(self):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -129,7 +129,7 @@ class TestBootstrap(TestCase):
   @patch.object(OSCheck, "is_redhat_family")
   @patch.object(OSCheck, "is_suse_family")
   def test_getRepoDir(self, is_suse_family, is_redhat_family):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -145,7 +145,7 @@ class TestBootstrap(TestCase):
     self.assertEquals(res, "/etc/yum.repos.d")
 
   def test_getSetupScript(self):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -155,7 +155,7 @@ class TestBootstrap(TestCase):
   def test_run_setup_agent_command_ends_with_project_version(self):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = "1.1.1"
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                version, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -166,7 +166,7 @@ class TestBootstrap(TestCase):
   def test_agent_setup_command_without_project_version(self):
     os.environ[AMBARI_PASSPHRASE_VAR_NAME] = ""
     version = None
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                version, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -207,7 +207,7 @@ class TestBootstrap(TestCase):
 
   @patch("subprocess.Popen")
   def test_SCP(self, popenMock):
-    params = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
                                   "1.2.1", "8440", "root")
     host_log_mock = MagicMock()
@@ -216,7 +216,7 @@ class TestBootstrap(TestCase):
       log['text'] = log['text'] + text
 
     host_log_mock.write.side_effect = write_side_effect
-    scp = SCP(params.user, params.sshkey_file, "dummy-host", "src/file",
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, "dummy-host", "src/file",
               "dst/file", params.bootdir, host_log_mock)
     log_sample = "log_sample"
     error_sample = "error_sample"
@@ -233,7 +233,7 @@ class TestBootstrap(TestCase):
     self.assertTrue(error_sample in log['text'])
     command_str = str(popenMock.call_args[0][0])
     self.assertEquals(command_str, "['scp', '-r', '-o', 'ConnectTimeout=60', '-o', "
-        "'BatchMode=yes', '-o', 'StrictHostKeyChecking=no', '-i', 'sshkey_file',"
+        "'BatchMode=yes', '-o', 'StrictHostKeyChecking=no', '-P', '123', '-i', 'sshkey_file',"
         " 'src/file', 'root@dummy-host:dst/file']")
     self.assertEqual(retcode["exitstatus"], 0)
 
@@ -250,7 +250,7 @@ class TestBootstrap(TestCase):
 
   @patch("subprocess.Popen")
   def test_SSH(self, popenMock):
-    params = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    params = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                   "setupAgentFile", "ambariServer", "centos6",
                                   "1.2.1", "8440", "root")
     host_log_mock = MagicMock()
@@ -259,7 +259,7 @@ class TestBootstrap(TestCase):
       log['text'] = log['text'] + text
 
     host_log_mock.write.side_effect = write_side_effect
-    ssh = SSH(params.user, params.sshkey_file, "dummy-host", "dummy-command",
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, "dummy-host", "dummy-command",
               params.bootdir, host_log_mock)
     log_sample = "log_sample"
     error_sample = "error_sample"
@@ -277,7 +277,7 @@ class TestBootstrap(TestCase):
     command_str = str(popenMock.call_args[0][0])
     self.assertEquals(command_str, "['ssh', '-o', 'ConnectTimeOut=60', '-o', "
             "'StrictHostKeyChecking=no', '-o', 'BatchMode=yes', '-tt', '-i', "
-            "'sshkey_file', 'root@dummy-host', 'dummy-command']")
+            "'sshkey_file', '-p', '123', 'root@dummy-host', 'dummy-command']")
     self.assertEqual(retcode["exitstatus"], 0)
 
     log['text'] = ""
@@ -295,7 +295,7 @@ class TestBootstrap(TestCase):
     process.returncode = 1
 
     dummy_error_message = "dummy_error_message"
-    ssh = SSH(params.user, params.sshkey_file, "dummy-host", "dummy-command",
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, "dummy-host", "dummy-command",
               params.bootdir, host_log_mock, errorMessage= dummy_error_message)
     retcode = ssh.run()
 
@@ -306,7 +306,7 @@ class TestBootstrap(TestCase):
 
 
   def test_getOsCheckScript(self):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -316,7 +316,7 @@ class TestBootstrap(TestCase):
 
   @patch.object(BootstrapDefault, "getRemoteName")
   def test_getOsCheckScriptRemoteLocation(self, getRemoteName_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -328,7 +328,7 @@ class TestBootstrap(TestCase):
 
   @patch.object(BootstrapDefault, "is_suse")
   def test_getRepoFile(self, is_suse_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -342,7 +342,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_createTargetDir(self, write_mock, run_mock,
                             init_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -351,7 +351,7 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.createTargetDir()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command,
                      "sudo mkdir -p /var/lib/ambari-agent/tmp ; "
                      "sudo chown -R root /var/lib/ambari-agent/tmp ; "
@@ -366,7 +366,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_copyOsCheckScript(self, write_mock, run_mock, init_mock,
                     getOsCheckScriptRemoteLocation_mock, getOsCheckScript_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -377,8 +377,8 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.copyOsCheckScript()
     self.assertEquals(res, expected)
-    input_file = str(init_mock.call_args[0][3])
-    remote_file = str(init_mock.call_args[0][4])
+    input_file = str(init_mock.call_args[0][4])
+    remote_file = str(init_mock.call_args[0][5])
     self.assertEqual(input_file, "OsCheckScript")
     self.assertEqual(remote_file, "OsCheckScriptRemoteLocation")
 
@@ -389,7 +389,7 @@ class TestBootstrap(TestCase):
   @patch.object(OSCheck, "is_ubuntu_family")
   @patch.object(OSCheck, "is_redhat_family")
   def test_getRepoFile(self, is_redhat_family, is_ubuntu_family, is_suse_family, hasPassword_mock, getRemoteName_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     is_redhat_family.return_value = True
@@ -437,7 +437,7 @@ class TestBootstrap(TestCase):
     os_path_exists_mock.side_effect = os_path_exists_side_effect
     os_path_exists_mock.return_value = None
 
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     is_redhat_family.return_value = True
@@ -459,11 +459,11 @@ class TestBootstrap(TestCase):
     ssh_run_mock.side_effect = [expected2, expected4]
     res = bootstrap_obj.copyNeededFiles()
     self.assertEquals(res, expected1["exitstatus"])
-    input_file = str(scp_init_mock.call_args[0][3])
-    remote_file = str(scp_init_mock.call_args[0][4])
+    input_file = str(scp_init_mock.call_args[0][4])
+    remote_file = str(scp_init_mock.call_args[0][5])
     self.assertEqual(input_file, "setupAgentFile")
     self.assertEqual(remote_file, "RemoteName")
-    command = str(ssh_init_mock.call_args[0][3])
+    command = str(ssh_init_mock.call_args[0][4])
     self.assertEqual(command, "sudo chmod 644 RepoFile")
     # Another order
     expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
@@ -507,7 +507,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_runOsCheckScript(self, write_mock, run_mock,
                             init_mock, getOsCheckScriptRemoteLocation_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -517,7 +517,7 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.runOsCheckScript()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command,
                      "chmod a+x OsCheckScriptRemoteLocation && "
                      "env PYTHONPATH=$PYTHONPATH:/var/lib/ambari-agent/tmp OsCheckScriptRemoteLocation centos6")
@@ -529,7 +529,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_runSetupAgent(self, write_mock, run_mock,
                          getRunSetupCommand_mock, init_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -539,7 +539,7 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.runSetupAgent()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "RunSetupCommand")
 
 
@@ -549,7 +549,7 @@ class TestBootstrap(TestCase):
   def test_getRunSetupCommand(self, getRunSetupWithoutPasswordCommand_mock,
                               getRunSetupWithPasswordCommand_mock,
                               hasPassword_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -568,7 +568,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_createDoneFile(self, write_mock):
     tmp_dir = tempfile.gettempdir()
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", tmp_dir,
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", tmp_dir,
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -587,7 +587,7 @@ class TestBootstrap(TestCase):
   @patch.object(SSH, "run")
   @patch.object(HostLog, "write")
   def test_checkSudoPackage(self, write_mock, run_mock, init_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -599,7 +599,7 @@ class TestBootstrap(TestCase):
     is_suse_family.return_value = False
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "rpm -qa | grep -e '^sudo\-'")
 
   @patch.object(OSCheck, "is_suse_family")
@@ -610,7 +610,7 @@ class TestBootstrap(TestCase):
   @patch.object(HostLog, "write")
   def test_checkSudoPackageUbuntu(self, write_mock, run_mock, init_mock,
                                   is_redhat_family, is_ubuntu_family, is_suse_family):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "ubuntu12",
                                None, "8440", "root")
     is_redhat_family.return_value = False
@@ -622,7 +622,7 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "dpkg --get-selections|grep -e '^sudo\s*install'")
 
 
@@ -632,7 +632,7 @@ class TestBootstrap(TestCase):
   @patch.object(BootstrapDefault, "getPasswordFile")
   def test_deletePasswordFile(self, getPasswordFile_mock, write_mock, run_mock,
                               init_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -642,7 +642,7 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.deletePasswordFile()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "rm PasswordFile")
 
 
@@ -655,7 +655,7 @@ class TestBootstrap(TestCase):
   def test_copyPasswordFile(self, write_mock, ssh_run_mock,
                             ssh_init_mock, scp_run_mock,
                             scp_init_mock, getPasswordFile_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root", password_file="PasswordFile")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -669,11 +669,11 @@ class TestBootstrap(TestCase):
     ssh_run_mock.return_value = expected2
     res = bootstrap_obj.copyPasswordFile()
     self.assertEquals(res, expected1["exitstatus"])
-    input_file = str(scp_init_mock.call_args[0][3])
+    input_file = str(scp_init_mock.call_args[0][4])
     remote_file = str(scp_init_mock.call_args[0][4])
     self.assertEqual(input_file, "PasswordFile")
     self.assertEqual(remote_file, "PasswordFile")
-    command = str(ssh_init_mock.call_args[0][3])
+    command = str(ssh_init_mock.call_args[0][4])
     self.assertEqual(command, "chmod 600 PasswordFile")
     # Another order
     expected1 = {"exitstatus": 0, "log": "log0", "errormsg": "errorMsg"}
@@ -688,7 +688,7 @@ class TestBootstrap(TestCase):
   @patch.object(BootstrapDefault, "getPasswordFile")
   def test_changePasswordFileModeOnHost(self, getPasswordFile_mock, write_mock,
                                         run_mock, init_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -698,14 +698,14 @@ class TestBootstrap(TestCase):
     run_mock.return_value = expected
     res = bootstrap_obj.changePasswordFileModeOnHost()
     self.assertEquals(res, expected)
-    command = str(init_mock.call_args[0][3])
+    command = str(init_mock.call_args[0][4])
     self.assertEqual(command, "chmod 600 PasswordFile")
 
 
   @patch.object(HostLog, "write")
   def test_try_to_execute(self, write_mock):
     expected = 43
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -738,7 +738,7 @@ class TestBootstrap(TestCase):
   @patch("logging.error")
   def test_run(self, error_mock, warn_mock, write_mock, createDoneFile_mock,
                hasPassword_mock, try_to_execute_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -810,7 +810,7 @@ class TestBootstrap(TestCase):
   @patch.object(BootstrapDefault, "createDoneFile")
   @patch.object(HostLog, "write")
   def test_interruptBootstrap(self, write_mock, createDoneFile_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
@@ -827,7 +827,7 @@ class TestBootstrap(TestCase):
   @patch.object(BootstrapDefault, "getStatus")
   def test_PBootstrap(self, getStatus_mock, interruptBootstrap_mock, start_mock,
                       info_mock, warn_mock, time_mock, sleep_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
+    shared_state = SharedState("root", "123", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     n = 180

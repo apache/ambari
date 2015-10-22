@@ -558,6 +558,7 @@ describe('App.WizardStep3Controller', function () {
             installOptions: {
               sshKey: 'key',
               sshUser: 'root',
+              sshPort: '123',
               agentUser: 'user'
             },
             hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } }
@@ -571,6 +572,7 @@ describe('App.WizardStep3Controller', function () {
           sshKey: 'key',
           hosts: ['host0', 'host1'],
           user: 'root',
+          sshPort: '123',
           userRunAs: item.userRunAs
         }));
       });
@@ -2410,6 +2412,7 @@ describe('App.WizardStep3Controller', function () {
           installOptions: {
             sshKey: 'key',
             sshUser: 'root',
+            sshPort: '123',
             agentUser: 'user'
           },
           hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } },
@@ -2436,6 +2439,7 @@ describe('App.WizardStep3Controller', function () {
           sshKey: 'key',
           hosts: ['host0', 'host1'],
           user: 'root',
+          sshPort: '123',
           userRunAs: item.userRunAs
         }));
       });
