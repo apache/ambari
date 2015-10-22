@@ -437,7 +437,14 @@ App.ServerValidatorMixin = Em.Mixin.create({
         },
         bodyClass: Em.View.extend({
           controller: self,
-          templateName: require('templates/common/modal_popups/config_recommendation_popup')
+          templateName: require('templates/common/modal_popups/config_recommendation_popup'),
+          serviceConfigs: function() {
+            if (this.get('controller.name') === 'mainServiceInfoConfigsController') {
+              return [this.get('controller.selectedService')];
+            } else {
+              return this.get('controller.stepConfigs');
+            }
+          }.property()
         })
       });
     } else {
