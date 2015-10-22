@@ -275,7 +275,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       metric.setHostName(metricList.get(0).getHostName());
       // Assumption that metrics are ordered by start time
       metric.setStartTime(metricList.get(0).getStartTime());
-      TreeMap<Long, Double> metricRecords = new TreeMap<Long, Double>();
+      Map<Long, Double> metricRecords = new TreeMap<Long, Double>();
       for (TimelineMetric timelineMetric : metricList) {
         metricRecords.putAll(timelineMetric.getMetricValues());
       }

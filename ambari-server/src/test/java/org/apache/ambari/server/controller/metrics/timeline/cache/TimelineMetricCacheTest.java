@@ -132,7 +132,7 @@ public class TimelineMetricCacheTest {
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("cpu_user");
     timelineMetric.setAppId("app1");
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    Map<Long, Double> metricValues = new HashMap<Long, Double>();
     metricValues.put(now + 100, 1.0);
     metricValues.put(now + 200, 2.0);
     metricValues.put(now + 300, 3.0);
@@ -297,7 +297,7 @@ public class TimelineMetricCacheTest {
     final TimelineMetric timelineMetric1 = new TimelineMetric();
     timelineMetric1.setMetricName("cpu_user");
     timelineMetric1.setAppId("app1");
-    TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+    Map<Long, Double> metricValues = new TreeMap<Long, Double>();
     metricValues.put(now - 100, 1.0);
     metricValues.put(now - 200, 2.0);
     metricValues.put(now - 300, 3.0);

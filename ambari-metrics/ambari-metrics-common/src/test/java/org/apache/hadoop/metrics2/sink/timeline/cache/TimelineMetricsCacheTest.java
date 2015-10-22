@@ -80,7 +80,7 @@ public class TimelineMetricsCacheTest {
     timelineMetric.setAppId("test serviceName");
     timelineMetric.setStartTime(startTime);
     timelineMetric.setType("Number");
-    timelineMetric.setMetricValues(new TreeMap<Long, Double>(metricValues));
+    timelineMetric.setMetricValues(metricValues);
     return timelineMetric;
   }
 

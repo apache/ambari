@@ -52,7 +52,15 @@ public class MetricsPaddingMethod {
       return;
     }
 
-    TreeMap<Long, Double> values = metric.getMetricValues();
+    TreeMap<Long, Double> values;
+    Map<Long, Double> metricValuesMap = metric.getMetricValues();
+    if (metricValuesMap instanceof TreeMap) {
+      values = (TreeMap<Long, Double>) metricValuesMap;
+    }
+    else {
+      // JSON dser returns LinkedHashMap that is not Navigable
+      values = new TreeMap<Long, Double>(metricValuesMap);
+    }
 
     long dataInterval = getTimelineMetricInterval(values);
 

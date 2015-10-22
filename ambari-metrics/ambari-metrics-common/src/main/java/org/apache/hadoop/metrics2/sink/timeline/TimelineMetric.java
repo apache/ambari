@@ -27,7 +27,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-import org.codehaus.jackson.map.annotate.JsonDeserialize;
 
 @XmlRootElement(name = "metric")
 @XmlAccessorType(XmlAccessType.NONE)
@@ -42,7 +41,7 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   private long timestamp;
   private long startTime;
   private String type;
-  private TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
+  private Map<Long, Double> metricValues = new TreeMap<Long, Double>();
 
   // default
   public TimelineMetric() {
@@ -125,11 +124,11 @@ public class TimelineMetric implements Comparable<TimelineMetric> {
   }
 
   @XmlElement(name = "metrics")
-  public TreeMap<Long, Double> getMetricValues() {
+  public Map<Long, Double> getMetricValues() {
     return metricValues;
   }
 
-  public void setMetricValues(TreeMap<Long, Double> metricValues) {
+  public void setMetricValues(Map<Long, Double> metricValues) {
     this.metricValues = metricValues;
   }
 

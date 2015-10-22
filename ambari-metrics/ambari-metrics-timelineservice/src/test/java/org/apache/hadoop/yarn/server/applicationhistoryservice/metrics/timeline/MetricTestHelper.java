@@ -25,7 +25,6 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class MetricTestHelper {
 
@@ -84,7 +83,7 @@ public class MetricTestHelper {
     m.setInstanceId(instanceId);
     m.setMetricName(metricName);
     m.setStartTime(startTime);
-    TreeMap<Long, Double> vals = new TreeMap<Long, Double>();
+    Map<Long, Double> vals = new HashMap<Long, Double>();
     vals.put(startTime + 15000l, val);
     vals.put(startTime + 30000l, val);
     vals.put(startTime + 45000l, val);

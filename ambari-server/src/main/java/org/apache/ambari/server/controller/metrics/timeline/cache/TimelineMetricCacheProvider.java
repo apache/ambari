@@ -23,8 +23,6 @@ import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.config.CacheConfiguration;
 import net.sf.ehcache.config.PersistenceConfiguration;
-import net.sf.ehcache.config.SizeOfPolicyConfiguration;
-import net.sf.ehcache.config.SizeOfPolicyConfiguration.MaxDepthExceededBehavior;
 import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
@@ -42,7 +40,6 @@ import static net.sf.ehcache.config.PersistenceConfiguration.*;
 public class TimelineMetricCacheProvider {
   private TimelineMetricCache timelineMetricsCache;
   private volatile boolean isCacheInitialized = false;
-  public static final String TIMELINE_METRIC_CACHE_MANAGER_NAME = "timelineMetricCacheManager";
   public static final String TIMELINE_METRIC_CACHE_INSTANCE_NAME = "timelineMetricCache";
 
   Configuration configuration;
@@ -64,13 +61,8 @@ public class TimelineMetricCacheProvider {
     }
 
     System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
-    // Use custom sizing engine to speed cache sizing calculations
-    System.setProperty("net.sf.ehcache.sizeofengine." + TIMELINE_METRIC_CACHE_MANAGER_NAME,
-      "org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricsCacheSizeOfEngine");
-
     net.sf.ehcache.config.Configuration managerConfig =
       new net.sf.ehcache.config.Configuration();
-    managerConfig.setName(TIMELINE_METRIC_CACHE_MANAGER_NAME);
 
     // Set max heap available to the cache manager
     managerConfig.setMaxBytesLocalHeap(configuration.getMetricsCacheManagerHeapPercent());
@@ -82,18 +74,17 @@ public class TimelineMetricCacheProvider {
       configuration.getMetricCacheTTLSeconds() + ", idle = " +
       configuration.getMetricCacheIdleSeconds());
 
-    // Create a Cache specifying its configuration.
+    PersistenceConfiguration persistenceConfiguration = new PersistenceConfiguration();
+    persistenceConfiguration.setStrategy(Strategy.NONE.name());
+
+    //Create a Cache specifying its configuration.
     CacheConfiguration cacheConfiguration = new CacheConfiguration()
-      .name(TIMELINE_METRIC_CACHE_INSTANCE_NAME)
-      .timeToLiveSeconds(configuration.getMetricCacheTTLSeconds()) // 1 hour
-      .timeToIdleSeconds(configuration.getMetricCacheIdleSeconds()) // 5 minutes
-      .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
-      .sizeOfPolicy(new SizeOfPolicyConfiguration() // Set sizeOf policy to continue on max depth reached - avoid OOM
-        .maxDepth(10000)
-        .maxDepthExceededBehavior(MaxDepthExceededBehavior.CONTINUE))
-      .eternal(false)
-      .persistence(new PersistenceConfiguration()
-        .strategy(Strategy.NONE.name()));
+        .name(TIMELINE_METRIC_CACHE_INSTANCE_NAME)
+        .timeToLiveSeconds(configuration.getMetricCacheTTLSeconds()) // 1 hour
+        .timeToIdleSeconds(configuration.getMetricCacheIdleSeconds()) // 5 minutes
+        .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
+        .eternal(false)
+        .persistence(persistenceConfiguration);
 
     Cache cache = new Cache(cacheConfiguration);
 
