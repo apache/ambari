@@ -174,7 +174,7 @@ public class MetricsPaddingMethodTest {
     timelineMetric.setHostName("h1");
     timelineMetric.setAppId("a1");
     timelineMetric.setTimestamp(now);
-    Map<Long, Double> inputValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double> inputValues = new TreeMap<Long, Double>();
     inputValues.put(now - 100, 1.0d);
     inputValues.put(now - 200, 2.0d);
     inputValues.put(now - 300, 3.0d);

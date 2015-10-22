@@ -161,7 +161,7 @@ public class TimelineMetricsCache {
     Double value = counterMetricLastValue.get(metricName);
     double previousValue = value != null ? value : firstValue;
     Map<Long, Double> metricValues = timelineMetric.getMetricValues();
-    Map<Long, Double>   newMetricValues = new TreeMap<Long, Double>();
+    TreeMap<Long, Double>   newMetricValues = new TreeMap<Long, Double>();
     for (Map.Entry<Long, Double> entry : metricValues.entrySet()) {
       newMetricValues.put(entry.getKey(), entry.getValue() - previousValue);
       previousValue = entry.getValue();
