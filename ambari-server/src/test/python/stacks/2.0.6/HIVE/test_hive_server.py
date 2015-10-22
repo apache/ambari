@@ -372,7 +372,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='missing_principal', default_fs=default_fs_default,
-        mode = 0700,
+        mode = 0755,
     )
     if not no_tmp:
       self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
@@ -550,7 +550,7 @@ class TestHiveServer(RMFTestCase):
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
-        mode = 0700,
+        mode = 0755,
     )
     self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
         security_enabled = True,

@@ -353,7 +353,7 @@ process_name = status_params.process_name
 hive_env_sh_template = config['configurations']['hive-env']['content']
 
 hive_hdfs_user_dir = format("/user/{hive_user}")
-hive_hdfs_user_mode = 0700
+hive_hdfs_user_mode = 0755
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
 hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
 #for create_hdfs_directory
