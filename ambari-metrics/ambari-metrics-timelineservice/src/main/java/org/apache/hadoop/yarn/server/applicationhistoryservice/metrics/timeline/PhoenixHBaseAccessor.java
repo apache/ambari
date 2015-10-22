@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -187,19 +188,19 @@ public class PhoenixHBaseAccessor {
     return metric;
   }
 
-  private static Map<Long, Double> readLastMetricValueFromJSON(String json)
-    throws IOException {
-    Map<Long, Double> values = readMetricFromJSON(json);
-    Long lastTimeStamp = Collections.max(values.keySet());
+  private static TreeMap<Long, Double> readLastMetricValueFromJSON(String json)
+      throws IOException {
+    TreeMap<Long, Double> values = readMetricFromJSON(json);
+    Long lastTimeStamp = values.lastKey();
 
-    HashMap<Long, Double> valueMap = new HashMap<Long, Double>(1);
+    TreeMap<Long, Double> valueMap = new TreeMap<Long, Double>();
     valueMap.put(lastTimeStamp, values.get(lastTimeStamp));
     return valueMap;
   }
 
   @SuppressWarnings("unchecked")
-  public static Map<Long, Double>  readMetricFromJSON(String json) throws IOException {
-    return (Map<Long, Double>) mapper.readValue(json, metricValuesTypeRef);
+  public static TreeMap<Long, Double>  readMetricFromJSON(String json) throws IOException {
+    return (TreeMap<Long, Double>) mapper.readValue(json, metricValuesTypeRef);
   }
 
   private Connection getConnectionRetryingOnException()
@@ -467,8 +468,10 @@ public class PhoenixHBaseAccessor {
       // which is thrown in hbase TimeRange.java
       Throwable io = ex.getCause();
       String className = null;
-      for (StackTraceElement ste : io.getStackTrace()) {
-        className = ste.getClassName();
+      if (io != null) {
+        for (StackTraceElement ste : io.getStackTrace()) {
+          className = ste.getClassName();
+        }
       }
       if (className != null && className.equals("TimeRange")) {
         // This is "maxStamp is smaller than minStamp" exception
