@@ -98,6 +98,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
   loadCurrentVersions: function() {
     this.set('isCompareMode', false);
     this.set('versionLoaded', false);
+    this.set('selectedVersion', this.get('currentDefaultVersion'));
     this.trackRequest(App.ajax.send({
       name: 'service.serviceConfigVersions.get.current',
       sender: this,
