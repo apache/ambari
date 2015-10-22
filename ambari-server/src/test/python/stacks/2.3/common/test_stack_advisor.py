@@ -813,3 +813,89 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertTrue(exceptionThrown)
 
     pass
+
+  def test_recommendRangerConfigurations(self):
+    clusterData = {}
+    # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
+    services = {
+      "Versions" : {
+        "stack_version" : "2.3",
+        },
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        ],
+      "configurations": {
+        "admin-properties": {
+          "properties": {
+            "DB_FLAVOR": "NOT_EXISTING",
+            }
+        },
+        "ranger-admin-site": {
+          "properties": {
+            "ranger.service.http.port": "7777",
+            "ranger.service.http.enabled": "true",
+            }
+        }
+      },
+      "ambari-server-properties": {
+        "ambari.ldap.isConfigured" : "true",
+        "authentication.ldap.bindAnonymously" : "false",
+        "authentication.ldap.baseDn" : "dc=apache,dc=org",
+        "authentication.ldap.groupNamingAttr" : "cn",
+        "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:389",
+        "authentication.ldap.userObjectClass" : "posixAccount",
+        "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:389",
+        "authentication.ldap.usernameAttribute" : "uid",
+        "authentication.ldap.dnAttribute" : "dn",
+        "authentication.ldap.useSSL" : "false",
+        "authentication.ldap.managerPassword" : "/etc/ambari-server/conf/ldap-password.dat",
+        "authentication.ldap.groupMembershipAttr" : "memberUid",
+        "authentication.ldap.groupObjectClass" : "posixGroup",
+        "authentication.ldap.managerDn" : "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org"
+      }
+    }
+
+    expected = {
+      'admin-properties': {
+        'properties': {
+          'policymgr_external_url': 'http://host1:7777',
+          'SQL_CONNECTOR_JAR': '/usr/share/java/mysql-connector-java.jar'
+        }
+      },
+      'ranger-ugsync-site': {
+        'properties': {
+          'ranger.usersync.group.objectclass': 'posixGroup',
+          'ranger.usersync.group.nameattribute': 'cn',
+          'ranger.usersync.group.memberattributename': 'memberUid',
+          'ranger.usersync.ldap.binddn': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
+          'ranger.usersync.ldap.user.nameattribute': 'uid',
+          'ranger.usersync.ldap.user.objectclass': 'posixAccount',
+          'ranger.usersync.ldap.url': 'c6403.ambari.apache.org:389',
+          'ranger.usersync.ldap.searchBase': 'dc=apache,dc=org'
+        }
+      },
+      'ranger-admin-site': {
+        'properties': {
+        }
+      },
+      'ranger-env': {
+        'properties': {}
+      }
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+

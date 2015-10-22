@@ -264,6 +264,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
+    putRangerUgsyncSite = self.putProperty(configurations, "ranger-ugsync-site", services)
 
     if 'admin-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['admin-properties']['properties'])\
       and ('db_host' in services['configurations']['admin-properties']['properties']) and ('db_name' in services['configurations']['admin-properties']['properties']):
@@ -297,6 +298,29 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
         for key in rangerPrivelegeDbProperties:
           putRangerEnvProperty(key, rangerPrivelegeDbProperties.get(key))
+
+    # Recommend ldap settings based on ambari.properties configuration
+    if 'ambari-server-properties' in services and \
+        'ambari.ldap.isConfigured' in services['ambari-server-properties'] and \
+        services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
+      serverProperties = services['ambari-server-properties']
+      if 'authentication.ldap.baseDn' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.searchBase', serverProperties['authentication.ldap.baseDn'])
+      if 'authentication.ldap.groupMembershipAttr' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.memberattributename', serverProperties['authentication.ldap.groupMembershipAttr'])
+      if 'authentication.ldap.groupNamingAttr' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.nameattribute', serverProperties['authentication.ldap.groupNamingAttr'])
+      if 'authentication.ldap.groupObjectClass' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.objectclass', serverProperties['authentication.ldap.groupObjectClass'])
+      if 'authentication.ldap.managerDn' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.binddn', serverProperties['authentication.ldap.managerDn'])
+      if 'authentication.ldap.primaryUrl' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.url', serverProperties['authentication.ldap.primaryUrl'])
+      if 'authentication.ldap.userObjectClass' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.user.objectclass', serverProperties['authentication.ldap.userObjectClass'])
+      if 'authentication.ldap.usernameAttribute' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.user.nameattribute', serverProperties['authentication.ldap.usernameAttribute'])
+
 
     # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
     include_hdfs = "HDFS" in servicesList
