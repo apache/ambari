@@ -30,7 +30,7 @@ import re
 class Rangeradmin:
   sInstance = None
 
-  def __init__(self, url='http://localhost:6080'):
+  def __init__(self, url='http://localhost:6080', skip_if_rangeradmin_down = True):
 
     self.baseUrl = url
     self.urlLogin = self.baseUrl + '/login.jsp'
@@ -41,6 +41,10 @@ class Rangeradmin:
     self.urlGroups = self.baseUrl + '/service/xusers/groups'
     self.urlUsers = self.baseUrl + '/service/xusers/users'
     self.urlSecUsers = self.baseUrl + '/service/xusers/secure/users'
+    self.skip_if_rangeradmin_down = skip_if_rangeradmin_down
+
+    if self.skip_if_rangeradmin_down:
+      Logger.info("Rangeradmin: Skip ranger admin if it's down !")
 
   def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
     """
@@ -121,6 +125,8 @@ class Rangeradmin:
                 raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
       else:
         raise Fail('Ambari admin user creation failed')
+    elif not self.skip_if_rangeradmin_down:
+      raise Fail("Connection failed to Ranger Admin !")
           
   def create_repository_urllib2(self, data, usernamepassword, policy_user):
     """

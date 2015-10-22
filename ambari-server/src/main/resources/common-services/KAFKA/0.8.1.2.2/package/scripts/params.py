@@ -32,6 +32,7 @@ import status_params
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
+retryAble = default("/commandParams/command_retry_enabled", False)
 
 version = default("/commandParams/version", None)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)

@@ -41,6 +41,8 @@ import java.util.Map;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -54,6 +56,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.StackRoleCommandOrder;
 import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -666,6 +669,108 @@ public class StackManagerTest {
       }
     }
   }
+
+  @Test
+  public void testServicesWithRangerPluginRoleCommandOrder() throws AmbariException {
+    // Given
+    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
+    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
+
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
+    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
+    Configuration config = createNiceMock(Configuration.class);
+
+    expect(config.getSharedResourcesDirPath()).andReturn(
+      ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+
+    replay(config, metaInfoDao, stackDao, actionMetadata);
+
+    OsFamily osFamily = new OsFamily(config);
+
+    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices), osFamily, metaInfoDao, actionMetadata, stackDao);
+
+    String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
+    String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
+
+    // When
+    StackInfo hdp = stackManager.getStack("HDP", "2.3");
+    Map<String, Object> rco = hdp.getRoleCommandOrder().getContent();
+
+    // Then
+    // verify that services that have ranger plugin are after ranger admin in the role command order sequence
+    // as these services require ranger admin and ranger user sync to up upfront
+    Map<String, Object> generalDeps = (Map<String, Object>)rco.get("general_deps");
+
+    // HDFS
+    String nameNodeRoleCommand  = Role.NAMENODE +  "-" + RoleCommand.START;
+    ArrayList<String> nameNodeBlockers = (ArrayList<String>)generalDeps.get(nameNodeRoleCommand);
+
+    assertTrue(nameNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, nameNodeBlockers.contains(rangerUserSyncRoleCommand));
+
+    String dataNodeRoleCommand = Role.DATANODE +  "-" + RoleCommand.START;
+    ArrayList<String> dataNodeBlockers = (ArrayList<String>)generalDeps.get(dataNodeRoleCommand);
+
+    assertTrue(dataNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, dataNodeBlockers.contains(rangerUserSyncRoleCommand));
+
+    // YARN
+    String resourceManagerCommandRoleCommand = Role.RESOURCEMANAGER +  "-" + RoleCommand.START;
+    ArrayList<String> resourceManagerBlockers = (ArrayList<String>)generalDeps.get(resourceManagerCommandRoleCommand);
+
+    assertTrue(resourceManagerCommandRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, resourceManagerBlockers.contains(rangerUserSyncRoleCommand));
+
+
+    // HBase
+    String hbaseRoleCommand = Role.HBASE_MASTER +  "-" + RoleCommand.START;
+    ArrayList<String> hbaseBlockers = (ArrayList<String>)generalDeps.get(hbaseRoleCommand);
+
+    assertTrue(hbaseRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hbaseBlockers.contains(rangerUserSyncRoleCommand));
+
+    // Knox
+    String knoxRoleCommand = Role.KNOX_GATEWAY +  "-" + RoleCommand.START;
+    ArrayList<String> knoxBlockers = (ArrayList<String>)generalDeps.get(knoxRoleCommand);
+
+    assertTrue(knoxRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, knoxBlockers.contains(rangerUserSyncRoleCommand));
+
+    // Kafka
+    String kafkaRoleCommand = Role.KAFKA_BROKER +  "-" + RoleCommand.START;
+    ArrayList<String> kafkaBlockers = (ArrayList<String>)generalDeps.get(kafkaRoleCommand);
+
+    assertTrue(Role.KAFKA_BROKER + "-" + RoleCommand.START + " should be dependent of " + rangerUserSyncRoleCommand, kafkaBlockers.contains(rangerUserSyncRoleCommand));
+
+    // Hive
+    String hiveRoleCommand = Role.HIVE_SERVER +  "-" + RoleCommand.START;
+    ArrayList<String> hiveBlockers = (ArrayList<String>)generalDeps.get(hiveRoleCommand);
+
+    assertTrue(hiveRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hiveBlockers.contains(rangerUserSyncRoleCommand));
+
+    // Storm
+    String stormRoleCommand = Role.NIMBUS +  "-" + RoleCommand.START;
+    ArrayList<String> stormBlockers = (ArrayList<String>)generalDeps.get(stormRoleCommand);
+
+    assertTrue(stormRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, stormBlockers.contains(rangerUserSyncRoleCommand));
+
+    // Ranger KMS
+    String kmsRoleCommand = Role.RANGER_KMS_SERVER +  "-" + RoleCommand.START;
+    ArrayList<String> rangerKmsBlockers = (ArrayList<String>)generalDeps.get(kmsRoleCommand);
+
+    assertTrue(kmsRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerKmsBlockers.contains(rangerAdminRoleCommand));
+
+    // Ranger User Sync
+    ArrayList<String> rangerUserSyncBlockers = (ArrayList<String>)generalDeps.get(rangerUserSyncRoleCommand);
+
+    assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + rangerAdminRoleCommand, rangerUserSyncBlockers.contains(rangerAdminRoleCommand));
+    assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
+
+    // Zookeeper Server
+    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
+    ArrayList<String> zookeeperBlockers = (ArrayList<String>)generalDeps.get(zookeeperServerRoleCommand);
+
+    assertTrue(zookeeperServerRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, zookeeperBlockers.contains(rangerUserSyncRoleCommand));
+
+
+  }
+
 
   //todo: component override assertions
 }
