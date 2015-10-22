@@ -305,6 +305,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
     putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
+    # Recommend ldap settings based on ambari.properties configuration
+    # If 'ambari.ldap.isConfigured' == true
+    # For stack_version 2.2
+    stackVersion = services["Versions"]["stack_version"]
+    if stackVersion == '2.2' and 'ambari-server-properties' in services and \
+      'ambari.ldap.isConfigured' in services['ambari-server-properties'] and \
+      services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
+      putUserSyncProperty = self.putProperty(configurations, "usersync-properties", services)
+      serverProperties = services['ambari-server-properties']
+      if 'authentication.ldap.managerDn' in serverProperties:
+        putUserSyncProperty('SYNC_LDAP_BIND_DN', serverProperties['authentication.ldap.managerDn'])
+      if 'authentication.ldap.primaryUrl' in serverProperties:
+        putUserSyncProperty('SYNC_LDAP_URL', serverProperties['authentication.ldap.primaryUrl'])
+      if 'authentication.ldap.userObjectClass' in serverProperties:
+        putUserSyncProperty('SYNC_LDAP_USER_OBJECT_CLASS', serverProperties['authentication.ldap.userObjectClass'])
+      if 'authentication.ldap.usernameAttribute' in serverProperties:
+        putUserSyncProperty('SYNC_LDAP_USER_NAME_ATTRIBUTE', serverProperties['authentication.ldap.usernameAttribute'])
+
 
   def getAmsMemoryRecommendation(self, services, hosts):
     # MB per sink in hbase heapsize

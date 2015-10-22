@@ -681,6 +681,9 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {}
     # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
     services = {
+      "Versions" : {
+        "stack_version" : "2.2",
+      },
       "services":  [
         {
           "StackServices": {
@@ -778,6 +781,42 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
 
+    # Test Recommend LDAP values
+    services["ambari-server-properties"] = {
+      "ambari.ldap.isConfigured" : "true",
+      "authentication.ldap.bindAnonymously" : "false",
+      "authentication.ldap.baseDn" : "dc=apache,dc=org",
+      "authentication.ldap.groupNamingAttr" : "cn",
+      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.userObjectClass" : "posixAccount",
+      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.usernameAttribute" : "uid",
+      "authentication.ldap.dnAttribute" : "dn",
+      "authentication.ldap.useSSL" : "false",
+      "authentication.ldap.managerPassword" : "/etc/ambari-server/conf/ldap-password.dat",
+      "authentication.ldap.groupMembershipAttr" : "memberUid",
+      "authentication.ldap.groupObjectClass" : "posixGroup",
+      "authentication.ldap.managerDn" : "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org"
+    }
+    services["configurations"] = {}
+    expected = {
+      'admin-properties': {
+        'properties': {
+          'policymgr_external_url': 'http://host1:6080',
+        }
+      },
+      'usersync-properties': {
+        'properties': {
+          'SYNC_LDAP_URL': 'c6403.ambari.apache.org:389',
+          'SYNC_LDAP_BIND_DN': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
+          'SYNC_LDAP_USER_OBJECT_CLASS': 'posixAccount',
+          'SYNC_LDAP_USER_NAME_ATTRIBUTE': 'uid'
+        }
+      }
+    }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
 
 
   def test_recommendHDFSConfigurations(self):
