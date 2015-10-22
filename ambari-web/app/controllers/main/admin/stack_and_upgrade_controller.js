@@ -196,10 +196,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   requestStatus: function () {
     if (this.get('isSuspended')) {
       return 'SUSPENDED';
+    } else if (this.get('upgradeData.Upgrade')){
+      return this.get('upgradeData.Upgrade.request_status');
     } else {
-      return App.get('upgradeState');
+      return '';
     }
-  }.property('isSuspended', 'App.upgradeState'),
+  }.property('isSuspended', 'upgradeData.Upgrade.request_status'),
 
   init: function () {
     this.initDBProperties();
