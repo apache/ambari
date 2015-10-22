@@ -320,6 +320,27 @@ public class DBAccessorImplTest {
   }
 
   @Test
+  public void testGetCheckedForeignKey() throws Exception {
+    String tableName = getFreeTableName();
+    createMyTable(tableName);
+
+    DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
+
+    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("fid", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("fname", String.class, null, null, false));
+
+    String foreignTableName = getFreeTableName();
+    dbAccessor.createTable(foreignTableName, columns, "fid");
+
+    Statement statement = dbAccessor.getConnection().createStatement();
+    statement.execute("ALTER TABLE " + foreignTableName + " ADD CONSTRAINT FK_test1 FOREIGN KEY (fid) REFERENCES " +
+            tableName + " (id)");
+
+    Assert.assertEquals("FK_TEST1", dbAccessor.getCheckedForeignKey(foreignTableName, "fk_test1"));
+  }
+
+  @Test
   public void testTableExists() throws Exception {
     DBAccessorImpl dbAccessor = injector.getInstance(DBAccessorImpl.class);
 

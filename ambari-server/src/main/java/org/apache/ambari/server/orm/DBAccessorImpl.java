@@ -293,6 +293,27 @@ public class DBAccessorImpl implements DBAccessor {
     return false;
   }
 
+  public String getCheckedForeignKey(String tableName, String fkName) throws SQLException {
+    DatabaseMetaData metaData = getDatabaseMetaData();
+
+    ResultSet rs = metaData.getImportedKeys(null, null, convertObjectName(tableName));
+
+    if (rs != null) {
+      try {
+        while (rs.next()) {
+          if (StringUtils.equalsIgnoreCase(fkName, rs.getString("FK_NAME"))) {
+            return rs.getString("FK_NAME");
+          }
+        }
+      } finally {
+        rs.close();
+      }
+    }
+
+    LOG.warn("FK {} not found for table {}", convertObjectName(fkName), convertObjectName(tableName));
+
+    return null;
+  }
   @Override
   public boolean tableHasForeignKey(String tableName, String refTableName,
           String columnName, String refColumnName) throws SQLException {
@@ -747,8 +768,9 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public void dropFKConstraint(String tableName, String constraintName, boolean ignoreFailure) throws SQLException {
     // ToDo: figure out if name of index and constraint differs
-    if (tableHasForeignKey(convertObjectName(tableName), constraintName)) {
-      String query = dbmsHelper.getDropFKConstraintStatement(tableName, constraintName);
+    String checkedConstraintName = getCheckedForeignKey(convertObjectName(tableName), constraintName);
+    if (checkedConstraintName != null) {
+      String query = dbmsHelper.getDropFKConstraintStatement(tableName, checkedConstraintName);
       executeQuery(query, ignoreFailure);
     } else {
       LOG.warn("Constraint {} from {} table not found, nothing to drop", constraintName, tableName);
