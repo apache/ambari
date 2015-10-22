@@ -520,7 +520,7 @@ class TestNodeManager(RMFTestCase):
 
   @patch('time.sleep')
   @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
-  def test_post_rolling_restart(self, time_mock):
+  def test_post_upgrade_restart(self, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
@@ -528,7 +528,7 @@ class TestNodeManager(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
       classname = "Nodemanager",
-      command = "post_rolling_restart",
+      command = "post_upgrade_restart",
       config_file = "default.json",
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -547,7 +547,7 @@ class TestNodeManager(RMFTestCase):
 
 
   @patch('time.sleep')
-  def test_post_rolling_restart_nodemanager_not_ready(self, time_mock):
+  def test_post_upgrade_restart_nodemanager_not_ready(self, time_mock):
     process_output = """
       c9999.ambari.apache.org:45454  RUNNING  c9999.ambari.apache.org:8042  0
     """
@@ -556,7 +556,7 @@ class TestNodeManager(RMFTestCase):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                          classname="Nodemanager",
-                         command = "post_rolling_restart",
+                         command = "post_upgrade_restart",
                          config_file="default.json",
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -570,7 +570,7 @@ class TestNodeManager(RMFTestCase):
 
 
   @patch('time.sleep')
-  def test_post_rolling_restart_nodemanager_not_ready(self, time_mock):
+  def test_post_upgrade_restart_nodemanager_not_ready(self, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
@@ -579,7 +579,7 @@ class TestNodeManager(RMFTestCase):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                          classname="Nodemanager",
-                         command = "post_rolling_restart",
+                         command = "post_upgrade_restart",
                          config_file="default.json",
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -701,7 +701,7 @@ class TestNodeManager(RMFTestCase):
 
   
   @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
-  def test_pre_rolling_restart_23(self):
+  def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -711,7 +711,7 @@ class TestNodeManager(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname = "Nodemanager",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

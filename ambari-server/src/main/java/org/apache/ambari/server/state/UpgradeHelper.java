@@ -20,6 +20,7 @@ package org.apache.ambari.server.state;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -325,12 +326,15 @@ public class UpgradeHelper {
         }
 
         for (String component : service.components) {
+          // Rolling Upgrade has exactly one task for a Component.
           if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.get(service.serviceName).containsKey(component)) {
             continue;
           }
+
+          // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
+          // other tasks, and then Start on that Component.
           
           HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
-          // TODO AMBARI-12698, how does this impact SECONDARY NAMENODE if there's no NameNode HA?
           if (null == hostsType) {
             continue;
           }
@@ -368,26 +372,66 @@ public class UpgradeHelper {
 
           setDisplayNames(context, service.serviceName, component);
 
-          // Special case for NAMENODE
+          // Special case for NAMENODE when there are multiple
           if (service.serviceName.equalsIgnoreCase("HDFS") && component.equalsIgnoreCase("NAMENODE")) {
-            // !!! revisit if needed
-            if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
-              // The order is important, first do the standby, then the active namenode.
-              LinkedHashSet<String> order = new LinkedHashSet<>();
 
-              order.add(hostsType.secondary);
-              order.add(hostsType.master);
+            // Rolling Upgrade requires first upgrading the Standby, then the Active NameNode.
+            // Whereas NonRolling needs to do the following:
+            //   NameNode HA:  Pick one to the be active, and the other the standby.
+            //   Non-NameNode HA: Upgrade first the SECONDARY, then the primary NAMENODE
+            switch (upgradePack.getType()) {
+              case ROLLING:
+                if (!hostsType.hosts.isEmpty() && hostsType.master != null && hostsType.secondary != null) {
+                  // The order is important, first do the standby, then the active namenode.
+                  LinkedHashSet<String> order = new LinkedHashSet<String>();
 
-              // Override the hosts with the ordered collection
-              hostsType.hosts = order;
+                  order.add(hostsType.secondary);
+                  order.add(hostsType.master);
+
+                  // Override the hosts with the ordered collection
+                  hostsType.hosts = order;
+
+                  builder.add(context, hostsType, service.serviceName,
+                      svc.isClientOnlyService(), pc, null);
+                }
+                break;
+              case NON_ROLLING:
+                boolean isNameNodeHA = mhr.isNameNodeHA();
+                if (isNameNodeHA && hostsType.master != null && hostsType.secondary != null) {
+                  // This could be any order, but the NameNodes have to know what role they are going to take.
+                  // So need to make 2 stages, and add different parameters to each one.
+
+                  HostsType ht1 = new HostsType();
+                  LinkedHashSet<String> h1Hosts = new LinkedHashSet<String>();
+                  h1Hosts.add(hostsType.master);
+                  ht1.hosts = h1Hosts;
+                  Map<String, String> h1Params = new HashMap<String, String>();
+                  h1Params.put("desired_namenode_role", "active");
+
+                  HostsType ht2 = new HostsType();
+                  LinkedHashSet<String> h2Hosts = new LinkedHashSet<String>();
+                  h2Hosts.add(hostsType.secondary);
+                  ht2.hosts = h2Hosts;
+                  Map<String, String> h2Params = new HashMap<String, String>();
+                  h2Params.put("desired_namenode_role", "standby");
+
+
+                  builder.add(context, ht1, service.serviceName,
+                      svc.isClientOnlyService(), pc, h1Params);
+
+                  builder.add(context, ht2, service.serviceName,
+                      svc.isClientOnlyService(), pc, h2Params);
+                } else {
+                  // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
+                  builder.add(context, hostsType, service.serviceName,
+                      svc.isClientOnlyService(), pc, null);
+                }
+
+                break;
             }
-
-            builder.add(context, hostsType, service.serviceName,
-                svc.isClientOnlyService(), pc);
-
           } else {
             builder.add(context, hostsType, service.serviceName,
-                svc.isClientOnlyService(), pc);
+                svc.isClientOnlyService(), pc, null);
           }
         }
       }

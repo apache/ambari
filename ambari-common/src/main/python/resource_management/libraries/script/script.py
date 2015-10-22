@@ -26,6 +26,7 @@ import os
 import sys
 import logging
 import platform
+import inspect
 import tarfile
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -427,18 +428,19 @@ class Script(object):
     sys.exit(1)
 
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     """
     To be overridden by subclasses
     """
     self.fail_with_error("start method isn't implemented")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     """
     To be overridden by subclasses
     """
     self.fail_with_error("stop method isn't implemented")
 
+  # TODO, remove after all services have switched to pre_upgrade_restart
   def pre_rolling_restart(self, env):
     """
     To be overridden by subclasses
@@ -463,45 +465,67 @@ class Script(object):
       command_params = config["commandParams"] if "commandParams" in config else None
       if command_params is not None:
         restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
-        if restart_type:
-          restart_type = restart_type.encode('ascii', 'ignore')
 
-    rolling_restart = restart_type.lower().startswith("rolling")
+    upgrade_type = None
+    if restart_type.lower() == "rolling_upgrade":
+      upgrade_type = "rolling"
+    elif restart_type.lower() == "nonrolling_upgrade":
+      upgrade_type = "nonrolling"
+
+    is_stack_upgrade = upgrade_type is not None
 
     if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
-      if rolling_restart:
-        self.pre_rolling_restart(env)
+      if is_stack_upgrade:
+        # Remain backward compatible with the rest of the services that haven't switched to using
+        # the pre_upgrade_restart method. Once done. remove the else-block.
+        if "pre_upgrade_restart" in dir(self):
+          self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
+        else:
+          self.pre_rolling_restart(env)
 
       self.install(env)
     else:
-      # To remain backward compatible with older stacks, only pass rolling_restart if True.
-      if rolling_restart:
-        self.stop(env, rolling_restart=rolling_restart)
+      # To remain backward compatible with older stacks, only pass upgrade_type if available.
+      # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
+      if is_stack_upgrade and "upgrade_type" in inspect.getargspec(self.stop).args:
+        self.stop(env, upgrade_type=upgrade_type)
       else:
-        self.stop(env)
+        self.stop(env, rolling_restart=(restart_type == "rolling_upgrade"))
 
-      if rolling_restart:
-        self.pre_rolling_restart(env)
+      if is_stack_upgrade:
+        # Remain backward compatible with the rest of the services that haven't switched to using
+        # the pre_upgrade_restart method. Once done. remove the else-block.
+        if "pre_upgrade_restart" in dir(self):
+          self.pre_upgrade_restart(env, upgrade_type=upgrade_type)
+        else:
+          self.pre_rolling_restart(env)
 
-      # To remain backward compatible with older stacks, only pass rolling_restart if True.
-      if rolling_restart:
-        self.start(env, rolling_restart=rolling_restart)
+      # To remain backward compatible with older stacks, only pass upgrade_type if available.
+      # TODO, remove checking the argspec for "upgrade_type" once all of the services support that optional param.
+      if is_stack_upgrade and "upgrade_type" in inspect.getargspec(self.start).args:
+        self.start(env, upgrade_type=upgrade_type)
       else:
-        self.start(env)
+        self.start(env, rolling_restart=(restart_type == "rolling_upgrade"))
 
-      if rolling_restart:
-        self.post_rolling_restart(env)
+      if is_stack_upgrade:
+        # Remain backward compatible with the rest of the services that haven't switched to using
+        # the post_upgrade_restart method. Once done. remove the else-block.
+        if "post_upgrade_restart" in dir(self):
+          self.post_upgrade_restart(env, upgrade_type=upgrade_type)
+        else:
+          self.post_rolling_restart(env)
 
     if self.should_expose_component_version("restart"):
       self.save_component_version_to_structured_out()
 
+  # TODO, remove after all services have switched to post_upgrade_restart
   def post_rolling_restart(self, env):
     """
     To be overridden by subclasses
     """
     pass
 
-  def configure(self, env, rolling_restart=False):
+  def configure(self, env, upgrade_type=None):
     """
     To be overridden by subclasses
     """

@@ -43,21 +43,21 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class ZookeeperServer(Script):
 
-  def configure(self, env, rolling_restart=False):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    zookeeper(type='server', rolling_restart=rolling_restart)
+    zookeeper(type='server', upgrade_type=upgrade_type)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env, rolling_restart=rolling_restart)
-    zookeeper_service(action='start', rolling_restart=rolling_restart)
+    self.configure(env, upgrade_type=upgrade_type)
+    zookeeper_service(action='start', upgrade_type=upgrade_type)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    zookeeper_service(action='stop', rolling_restart=rolling_restart)
+    zookeeper_service(action='stop', upgrade_type=upgrade_type)
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZookeeperServerLinux(ZookeeperServer):
@@ -69,8 +69,8 @@ class ZookeeperServerLinux(ZookeeperServer):
     self.install_packages(env)
     self.configure(env)
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
@@ -78,8 +78,11 @@ class ZookeeperServerLinux(ZookeeperServer):
       conf_select.select(params.stack_name, "zookeeper", params.version)
       hdp_select.select("zookeeper-server", params.version)
 
-  def post_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade post-restart")
+  def post_upgrade_restart(self, env, upgrade_type=None):
+    if upgrade_type == "nonrolling":
+      return
+
+    Logger.info("Executing Stack Upgrade post-restart")
     import params
     env.set_params(params)
     zk_server_host = random.choice(params.zookeeper_hosts)

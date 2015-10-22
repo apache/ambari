@@ -340,7 +340,7 @@ class TestZookeeperServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -348,7 +348,7 @@ class TestZookeeperServer(RMFTestCase):
     json_content['commandParams']['version'] = version
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_server.py",
                        classname = "ZookeeperServer",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -357,7 +357,7 @@ class TestZookeeperServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock):
     call_mock.side_effects = [(0, None), (0, None)]
 
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -369,7 +369,7 @@ class TestZookeeperServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_server.py",
                        classname = "ZookeeperServer",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -391,7 +391,7 @@ class TestZookeeperServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch.object(resource_management.libraries.functions, "get_unique_id_and_date")
-  def test_post_rolling_restart(self, get_unique_id_and_date_mock):
+  def test_post_upgrade_restart(self, get_unique_id_and_date_mock):
     unique_value = "unique1"
     get_unique_id_and_date_mock.return_value = unique_value
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -403,7 +403,7 @@ class TestZookeeperServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_server.py",
                        classname = "ZookeeperServer",
-                       command = "post_rolling_restart",
+                       command = "post_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

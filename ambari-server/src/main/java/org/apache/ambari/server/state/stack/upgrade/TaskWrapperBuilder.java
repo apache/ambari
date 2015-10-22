@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.stack.HostsType;
@@ -43,15 +44,16 @@ public class TaskWrapperBuilder {
    * @param component the component name for the tasks
    * @param hostsType the collection of sets along with their status
    * @param tasks collection of tasks
+   * @param params additional parameters
    */
-  public static List<TaskWrapper> getTaskList(String service, String component, HostsType hostsType, List<Task> tasks) {
+  public static List<TaskWrapper> getTaskList(String service, String component, HostsType hostsType, List<Task> tasks, Map<String, String> params) {
     List<TaskWrapper> collection = new ArrayList<TaskWrapper>();
     for (Task t : tasks) {
       if (t.getType().equals(Task.Type.EXECUTE)) {
         ExecuteTask et = (ExecuteTask) t;
         if (et.hosts == ExecuteHostType.MASTER) {
           if (hostsType.master != null) {
-            collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.master), t));
+            collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.master), params, t));
             continue;
           } else {
             LOG.error(MessageFormat.format("Found an Execute task for {0} and {1} meant to run on a master but could not find any masters to run on. Skipping this task.", service, component));
@@ -61,7 +63,7 @@ public class TaskWrapperBuilder {
         // Pick a random host.
         if (et.hosts == ExecuteHostType.ANY) {
           if (hostsType.hosts != null && !hostsType.hosts.isEmpty()) {
-            collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.hosts.iterator().next()), t));
+            collection.add(new TaskWrapper(service, component, Collections.singleton(hostsType.hosts.iterator().next()), params, t));
             continue;
           } else {
             LOG.error(MessageFormat.format("Found an Execute task for {0} and {1} meant to run on a any host but could not find host to run on. Skipping this task.", service, component));
@@ -70,7 +72,7 @@ public class TaskWrapperBuilder {
         }
       }
 
-      collection.add(new TaskWrapper(service, component, hostsType.hosts, t));
+      collection.add(new TaskWrapper(service, component, hostsType.hosts, params, t));
     }
 
     return collection;

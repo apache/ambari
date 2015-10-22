@@ -180,6 +180,33 @@ class NamenodeHAState:
       return self.get_address_for_host(hostname)
     return None
 
+  def is_active(self, host_name):
+    """
+    :param host_name: Host name
+    :return: Return True if this is the active NameNode, otherwise, False.
+    """
+    return self._is_in_state(host_name, NAMENODE_STATE.ACTIVE)
+
+  def is_standby(self, host_name):
+    """
+    :param host_name: Host name
+    :return: Return True if this is the standby NameNode, otherwise, False.
+    """
+    return self._is_in_state(host_name, NAMENODE_STATE.STANDBY)
+
+  def _is_in_state(self, host_name, state):
+    """
+    :param host_name: Host name
+    :param state: State to check
+    :return: Return True if this NameNode is in the specified state, otherwise, False.
+    """
+    mapping = self.get_namenode_state_to_hostnames()
+    if state in mapping:
+      hosts_in_state = mapping[state]
+      if hosts_in_state is not None and len(hosts_in_state) == 1 and next(iter(hosts_in_state)).lower() == host_name.lower():
+        return True
+    return False
+
   def is_healthy(self):
     """
     :return: Returns a bool indicating if exactly one ACTIVE and one STANDBY host exist.

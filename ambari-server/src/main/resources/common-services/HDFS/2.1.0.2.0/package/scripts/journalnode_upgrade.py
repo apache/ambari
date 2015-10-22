@@ -31,7 +31,7 @@ from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
 
 def post_upgrade_check():
   """
-  Ensure all journal nodes are up and quorum is established
+  Ensure all journal nodes are up and quorum is established during Rolling Upgrade.
   :return:
   """
   import params

@@ -92,7 +92,7 @@
       <skippable>true</skippable>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{oozie-env/oozie_hostname}}.</message>
+          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -178,6 +178,16 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
+      <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
+      <skippable>false</skippable>
+
+      <!--YARN-->
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER">
+        <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath"/>
+      </execute-stage>
+    </group>
+
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Desired Stack Id">
       <execute-stage title="Update Desired Stack Id" service="" component="">
@@ -219,6 +229,19 @@
         <component>DATANODE</component>
         <component>HDFS_CLIENT</component>
       </service>
+    </group>
+
+    <group xsi:type="cluster" name="HDFS_LEAFE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
+        <task xsi:type="execute" hosts="master" summary="Wait for NameNode to leave Safemode">
+          <script>scripts/namenode.py</script>
+          <function>wait_for_safemode_off</function>
+        </task>
+      </execute-stage>
     </group>
 
     <group xsi:type="restart" name="MR and YARN" title="MR and YARN">
@@ -266,10 +289,10 @@
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
       <priority>
-        <service>HBASE</service>
-        <service>MAPREDUCE2</service>
-        <service>YARN</service>
         <service>HDFS</service>
+        <service>YARN</service>
+        <service>MAPREDUCE2</service>
+        <service>HBASE</service>
       </priority>
     </group>
 

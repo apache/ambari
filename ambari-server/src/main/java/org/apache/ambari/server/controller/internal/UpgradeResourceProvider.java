@@ -492,8 +492,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
 
     // Default to ROLLING upgrade, but attempt to read from properties.
-    final UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
-        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+    if (requestMap.containsKey(UPGRADE_TYPE)) {
+      try {
+        upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
+      } catch(Exception e){
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.", UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
+      }
+    }
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -526,8 +532,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
     boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
     String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
-    UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
-        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
+
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+    if (requestMap.containsKey(UPGRADE_TYPE)) {
+      try {
+        upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
+      } catch(Exception e){
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.", UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
+      }
+    }
 
     // Validate there isn't an direction == upgrade/downgrade already in progress.
     List<UpgradeEntity> upgrades = s_upgradeDAO.findUpgrades(cluster.getClusterId());
@@ -1061,6 +1074,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
+  /**
+   * Modify the commandParams by applying additional parameters from the stage.
+   * @param wrapper Stage Wrapper that may contain additional parameters.
+   * @param commandParams Parameters to modify.
+   */
+  private void applyAdditionalParameters(StageWrapper wrapper, Map<String, String> commandParams) {
+    if (wrapper.getParams() != null) {
+      Iterator it = wrapper.getParams().entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        if (!commandParams.containsKey(pair.getKey())) {
+          commandParams.put(pair.getKey(), pair.getValue());
+        }
+      }
+    }
+  }
+
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
       UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
           throws AmbariException {
@@ -1083,6 +1113,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     params.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, params);
 
     // Because custom task may end up calling a script/function inside a
     // service, it is necessary to set the
@@ -1192,6 +1225,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, commandParams);
+
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         function, filters, commandParams);
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
@@ -1243,6 +1279,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, commandParams);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
@@ -1303,6 +1342,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Notice that this does not apply any params because the input does not specify a stage.
+    // All of the other actions do use additional params.
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
