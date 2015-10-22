@@ -57,7 +57,7 @@ if stack_is_hdp22_or_further:
   rest_lib_dir = format("{storm_component_home_dir}/contrib/storm-rest")
   storm_bin_dir = format("{storm_component_home_dir}/bin")
   storm_lib_dir = format("{storm_component_home_dir}/lib")
-
+  log4j_dir = format("{storm_component_home_dir}/log4j2")
 
 storm_user = config['configurations']['storm-env']['storm_user']
 log_dir = config['configurations']['storm-env']['storm_log_dir']
@@ -70,6 +70,7 @@ nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
 storm_zookeeper_root_dir = default('/configurations/storm-site/storm.zookeeper.root', None)
 storm_zookeeper_servers = config['configurations']['storm-site']['storm.zookeeper.servers']
 storm_zookeeper_port = config['configurations']['storm-site']['storm.zookeeper.port']
+storm_logs_supported = config['configurations']['storm-env']['storm_logs_supported']
 
 # nimbus.seeds is supported in HDP 2.3.0.0 and higher
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
@@ -174,6 +175,8 @@ repo_config_username = config['configurations']['ranger-storm-plugin-properties'
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
 policy_user = config['configurations']['ranger-storm-plugin-properties']['policy_user']
+storm_cluster_log4j_content = config['configurations']['storm-cluster-log4j']['content']
+storm_worker_log4j_content = config['configurations']['storm-worker-log4j']['content']
 
 # some commands may need to supply the JAAS location when running as storm
 storm_jaas_file = format("{conf_dir}/storm_jaas.conf")

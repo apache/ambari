@@ -214,7 +214,8 @@
             "storm_log_dir": "/var/log/storm",
             "storm_pid_dir": "/var/run/storm",
             "storm_user": "storm",
-            "nimbus_seeds_supported" : false
+            "nimbus_seeds_supported" : "false",
+            "storm_logs_supported": "false"
         },
 		"ranger-storm-plugin-properties": {
             "POLICY_MGR_URL": "{{policymgr_mgr_url}}", 
