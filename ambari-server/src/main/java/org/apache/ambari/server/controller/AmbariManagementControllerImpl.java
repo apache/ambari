@@ -160,6 +160,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -718,6 +719,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Cluster cluster = clusters.getCluster(request.getClusterName());
 
+    Map<String, String> requestProperties = request.getProperties();
+
+    Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(request.getType());
+    if(propertiesTypes.containsKey(PropertyType.PASSWORD)) {
+      for(String passwordProperty : propertiesTypes.get(PropertyType.PASSWORD)) {
+        if(requestProperties.containsKey(passwordProperty)) {
+          String passwordPropertyValue = requestProperties.get(passwordProperty);
+          if (!SecretReference.isSecret(passwordPropertyValue))
+            continue;
+          SecretReference ref = new SecretReference(passwordPropertyValue, passwordProperty, cluster);
+          if (!ref.getClusterName().equals(request.getClusterName()))
+            throw new AmbariException("Can not reference to different cluster in SECRET");
+          String refValue = ref.getValue();
+          requestProperties.put(passwordProperty, refValue);
+        }
+      }
+    }
+
+
+
+
     Map<String, Config> configs = cluster.getConfigsByType(
         request.getType());
     if (null == configs) {
@@ -738,7 +760,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     handleGlobalsBackwardsCompability(request, propertiesAttributes);
 
-    Config config = createConfig(cluster, request.getType(), request.getProperties(),
+    Config config = createConfig(cluster, request.getType(), requestProperties,
       request.getVersionTag(), propertiesAttributes);
 
     return new ConfigurationResponse(cluster.getClusterName(), config);
@@ -1214,7 +1236,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 request.getType(),
                 config.getTag(), entry.getValue().getVersion(),
                 includeProps ? config.getProperties() : new HashMap<String, String>(),
-                includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
+                includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>(),
+                config.getPropertiesTypes());
             responses.add(response);
           }
         }
@@ -1227,7 +1250,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               cluster.getClusterName(), config.getStackId(), config.getType(),
               config.getTag(), config.getVersion(),
               includeProps ? config.getProperties() : new HashMap<String, String>(),
-              includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
+              includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>(),
+              config.getPropertiesTypes());
 
           responses.add(response);
         }
@@ -1364,6 +1388,24 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (request.getDesiredConfig() != null) {
       for (ConfigurationRequest desiredConfig : request.getDesiredConfig()) {
         Map<String, String> requestConfigProperties = desiredConfig.getProperties();
+
+        // processing password properties
+        if(requestConfigProperties != null && !requestConfigProperties.isEmpty()) {
+          Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(
+              desiredConfig.getType()
+          );
+          for (Entry<String, String> property : requestConfigProperties.entrySet()) {
+            String propertyName = property.getKey();
+            String propertyValue = property.getValue();
+            if (propertiesTypes.containsKey(PropertyType.PASSWORD) &&
+                propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) {
+              if (SecretReference.isSecret(propertyValue)) {
+                SecretReference ref = new SecretReference(propertyValue, propertyName, cluster);
+                requestConfigProperties.put(propertyName, ref.getValue());
+              }
+            }
+          }
+        }
         Map<String,Map<String,String>> requestConfigAttributes = desiredConfig.getPropertiesAttributes();
         Config clusterConfig = cluster.getDesiredConfigByType(desiredConfig.getType());
         Map<String, String> clusterConfigProperties = null;
