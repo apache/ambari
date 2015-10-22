@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,15 +16,19 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 import datetime
 import os.path
 import logging
+import re
 import traceback
 from AmbariConfig import AmbariConfig
-import ConfigParser;
+import ConfigParser
 
+HADOOP_ROOT_DIR = "/usr/hdp"
+HADOOP_PERM_REMOVE_LIST = ["current"]
+HADOOP_ITEMDIR_REGEX = "(\d\.){3}\d-\d{4}"
 logger = logging.getLogger(__name__)
 
 class HostCheckReportFileHandler:
@@ -83,6 +87,37 @@ class HostCheckReportFileHandler:
       logger.error("Can't write host check file at %s :%s " % (self.hostCheckCustomActionsFilePath, err.message))
       traceback.print_exc()
 
+  def _hdp_list_directory(self):
+    """
+    Return filtered list of /usr/hdp directory allowed to be removed
+    :rtype list
+    """
+
+    if not os.path.exists(HADOOP_ROOT_DIR):
+      return []
+
+    matcher = re.compile(HADOOP_ITEMDIR_REGEX)  # pre-compile regexp
+    folder_content = os.listdir(HADOOP_ROOT_DIR)
+    remove_list = []
+
+    remlist_items_count = 0
+
+    for item in folder_content:
+      full_path = "%s%s%s" % (HADOOP_ROOT_DIR, os.path.sep, item)
+      if item in HADOOP_PERM_REMOVE_LIST:
+        remove_list.append(full_path)
+        remlist_items_count += 1
+
+      if matcher.match(item) is not None:
+        remove_list.append(full_path)
+        remlist_items_count += 1
+
+    # if remove list have same length as target folder, assume that they are identical
+    if remlist_items_count == len(folder_content):
+      remove_list.append(HADOOP_ROOT_DIR)
+
+    return remove_list
+
   def writeHostCheckFile(self, hostInfo):
     if self.hostCheckFilePath is None:
       return
@@ -117,8 +152,7 @@ class HostCheckReportFileHandler:
         items = []
         for itemDetail in hostInfo['stackFoldersAndFiles']:
           items.append(itemDetail['name'])
-        if os.path.exists('/usr/hdp'):
-          items.append('/usr/hdp')
+        items += self._hdp_list_directory()
         config.add_section('directories')
         config.set('directories', 'dir_list', ','.join(items))
 

@@ -20,6 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
+from mock.mock import patch
 import os
 import tempfile
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
@@ -38,8 +39,8 @@ class TestHostCheckReportFileHandler(TestCase):
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
     handler = HostCheckReportFileHandler(config)
-    dict = {}
-    handler.writeHostCheckFile(dict)
+    mydict = {}
+    handler.writeHostCheckFile(mydict)
 
     configValidator = ConfigParser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
@@ -56,16 +57,16 @@ class TestHostCheckReportFileHandler(TestCase):
     config.set('agent', 'prefix', os.path.dirname(tmpfile))
 
     handler = HostCheckReportFileHandler(config)
-    dict = {}
-    dict['hostHealth'] = {}
-    dict['existingUsers'] = []
-    dict['alternatives'] = []
-    dict['stackFoldersAndFiles'] = []
-    dict['hostHealth']['activeJavaProcs'] = []
-    dict['installedPackages'] = []
-    dict['existingRepos'] = []
+    mydict = {}
+    mydict['hostHealth'] = {}
+    mydict['existingUsers'] = []
+    mydict['alternatives'] = []
+    mydict['stackFoldersAndFiles'] = []
+    mydict['hostHealth']['activeJavaProcs'] = []
+    mydict['installedPackages'] = []
+    mydict['existingRepos'] = []
 
-    handler.writeHostCheckFile(dict)
+    handler.writeHostCheckFile(mydict)
 
     configValidator = ConfigParser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
@@ -96,19 +97,19 @@ class TestHostCheckReportFileHandler(TestCase):
 
     handler = HostCheckReportFileHandler(config)
 
-    dict = {}
-    dict['hostHealth'] = {}
-    dict['existingUsers'] = [{'name':'user1', 'homeDir':'/var/log', 'status':'Exists'}]
-    dict['alternatives'] = [
+    mydict = {}
+    mydict['hostHealth'] = {}
+    mydict['existingUsers'] = [{'name':'user1', 'homeDir':'/var/log', 'status':'Exists'}]
+    mydict['alternatives'] = [
       {'name':'/etc/alternatives/hadoop-conf', 'target':'/etc/hadoop/conf.dist'},
       {'name':'/etc/alternatives/hbase-conf', 'target':'/etc/hbase/conf.1'}
     ]
-    dict['stackFoldersAndFiles'] = [{'name':'/a/b', 'type':'directory'},{'name':'/a/b.txt', 'type':'file'}]
-    dict['hostHealth']['activeJavaProcs'] = [
+    mydict['stackFoldersAndFiles'] = [{'name':'/a/b', 'type':'directory'},{'name':'/a/b.txt', 'type':'file'}]
+    mydict['hostHealth']['activeJavaProcs'] = [
       {'pid':355,'hadoop':True,'command':'some command','user':'root'},
       {'pid':455,'hadoop':True,'command':'some command','user':'hdfs'}
     ]
-    handler.writeHostCheckFile(dict)
+    handler.writeHostCheckFile(mydict)
 
     configValidator = ConfigParser.RawConfigParser()
     configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
@@ -130,13 +131,13 @@ class TestHostCheckReportFileHandler(TestCase):
     self.chkItemsEqual(procs, ['455', '355'])
 
 
-    dict['installed_packages'] = [
+    mydict['installed_packages'] = [
       {'name':'hadoop','version':'3.2.3','repoName':'HDP'},
       {'name':'hadoop-lib','version':'3.2.3','repoName':'HDP'}
     ]
-    dict['existing_repos'] = ['HDP', 'HDP-epel']
+    mydict['existing_repos'] = ['HDP', 'HDP-epel']
     
-    handler.writeHostChecksCustomActionsFile(dict)
+    handler.writeHostChecksCustomActionsFile(mydict)
     configValidator = ConfigParser.RawConfigParser()
     configPath_ca = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_CUSTOM_ACTIONS_FILE)
     configValidator.read(configPath_ca)
@@ -150,13 +151,40 @@ class TestHostCheckReportFileHandler(TestCase):
     time = configValidator.get('metadata', 'created')
     self.assertTrue(time != None)
 
+  @patch("os.path.exists")
+  @patch("os.listdir")
+  def test_write_host_stack_list(self, list_mock, exists_mock):
+    exists_mock.return_value = True
+    list_mock.return_value = ["1.1.1.1-1234", "current", "test"]
+
+    tmpfile = tempfile.mktemp()
+
+    config = ConfigParser.RawConfigParser()
+    config.add_section('agent')
+    config.set('agent', 'prefix', os.path.dirname(tmpfile))
+
+    handler = HostCheckReportFileHandler(config)
+
+    mydict = {}
+    mydict['hostHealth'] = {}
+    mydict['stackFoldersAndFiles'] = [{'name':'/a/b', 'type':'directory'},{'name':'/a/b.txt', 'type':'file'}]
+
+    handler.writeHostCheckFile(mydict)
+
+    configValidator = ConfigParser.RawConfigParser()
+    configPath = os.path.join(os.path.dirname(tmpfile), HostCheckReportFileHandler.HOST_CHECK_FILE)
+    configValidator.read(configPath)
+
+    paths = configValidator.get('directories', 'dir_list')
+    self.chkItemsEqual(paths, ['/a/b', '/a/b.txt', '/usr/hdp/1.1.1.1-1234', '/usr/hdp/current'])
+
   def chkItemsEqual(self, commaDelimited, items):
     items1 = commaDelimited.split(',')
     items1.sort()
     items.sort()
     items1Str = ','.join(items1)
     items2Str = ','.join(items)
-    self.assertEquals(items1Str, items2Str)
+    self.assertEquals(items2Str, items1Str)
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)
