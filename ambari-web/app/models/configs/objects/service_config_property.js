@@ -356,7 +356,7 @@ App.ServiceConfigProperty = Em.Object.extend({
             }
           } else {
             if (!validator.isValidDir(value)) {
-              this.set('errorMessage', 'Must be a slash or drive at the start');
+              this.set('errorMessage', 'Must be a slash or drive at the start, and must not contain white spaces');
               isError = true;
             }
           }
