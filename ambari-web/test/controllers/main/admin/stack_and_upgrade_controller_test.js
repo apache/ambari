@@ -75,14 +75,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#requestStatus", function() {
     it("isSuspended false", function() {
-      App.set('upgradeState', 'ABORTED');
       controller.set('isSuspended', false);
+      controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('ABORTED');
     });
     it("isSuspended true", function() {
-      App.set('upgradeState', 'ABORTED');
       controller.set('isSuspended', true);
+      controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('SUSPENDED');
     });

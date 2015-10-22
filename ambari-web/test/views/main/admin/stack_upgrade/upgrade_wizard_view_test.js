@@ -448,12 +448,6 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#upgradeStatusLabel", function () {
-    beforeEach(function () {
-      this.mock = sinon.stub(App, 'get');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
     var testCases = [
       {
         data: {
@@ -614,7 +608,7 @@ describe('App.upgradeWizardView', function () {
         it('status = ' + test.data.status + ", isDowngrade = " + test.data.isDowngrade, function () {
           view.set('controller.isDowngrade', test.data.isDowngrade);
           view.set('controller.isSuspended', test.data.isSuspended);
-          this.mock.returns(test.data.status);
+          view.set('controller.upgradeData.Upgrade.request_status', test.data.status);
           view.propertyDidChange('upgradeStatusLabel');
           expect(view.get('upgradeStatusLabel')).to.equal(test.result);
         });
