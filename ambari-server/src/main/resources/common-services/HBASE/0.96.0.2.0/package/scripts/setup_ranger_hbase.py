@@ -34,6 +34,11 @@ def setup_ranger_hbase(rolling_upgrade = False):
     if rolling_upgrade:
       hdp_version = params.version
 
+    if params.retryAble:
+      Logger.info("HBase: Setup ranger: command retry enables thus retrying if ranger admin is down !")
+    else:
+      Logger.info("HBase: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
+
     setup_ranger_plugin('hbase-client', 'hbase', 
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
@@ -48,6 +53,6 @@ def setup_ranger_hbase(rolling_upgrade = False):
                         component_list=['hbase-client', 'hbase-master', 'hbase-regionserver'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
-                        hdp_version_override = hdp_version)                 
+                        hdp_version_override = hdp_version, skip_if_rangeradmin_down= not params.retryAble)
   else:
     Logger.info('Ranger admin not installed')

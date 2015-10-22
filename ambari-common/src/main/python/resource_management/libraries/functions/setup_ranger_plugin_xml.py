@@ -44,7 +44,7 @@ def setup_ranger_plugin(component_select_name, service_name,
                         plugin_policymgr_ssl_properties, plugin_policymgr_ssl_attributes,
                         component_list, audit_db_is_enabled, credential_file, 
                         xa_audit_db_password, ssl_truststore_password,
-                        ssl_keystore_password, api_version=None, hdp_version_override = None):
+                        ssl_keystore_password, api_version=None, hdp_version_override = None, skip_if_rangeradmin_down = True):
 
   if audit_db_is_enabled:
     File(component_downloaded_custom_connector,
@@ -68,9 +68,9 @@ def setup_ranger_plugin(component_select_name, service_name,
   if plugin_enabled:
 
     if api_version == 'v2' and api_version is not None:
-      ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url)
+      ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
     else:
-      ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url)
+      ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url, skip_if_rangeradmin_down=skip_if_rangeradmin_down)
 
     ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
                                             ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'],

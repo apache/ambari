@@ -27,12 +27,10 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 import re
 
-
 class RangeradminV2:
   sInstance = None
 
-  def __init__(self, url='http://localhost:6080'):
-    
+  def __init__(self, url='http://localhost:6080', skip_if_rangeradmin_down = True):
     self.base_url = url
     self.url_login = self.base_url + '/login.jsp'
     self.url_login_post = self.base_url + '/j_spring_security_check'
@@ -42,6 +40,10 @@ class RangeradminV2:
     self.url_groups = self.base_url + '/service/xusers/groups'
     self.url_users = self.base_url + '/service/xusers/users'
     self.url_sec_users = self.base_url + '/service/xusers/secure/users'
+    self.skip_if_rangeradmin_down = skip_if_rangeradmin_down
+
+    if self.skip_if_rangeradmin_down:
+      Logger.info("RangeradminV2: Skip ranger admin if it's down !")
 
   def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
     """
@@ -88,21 +90,36 @@ class RangeradminV2:
     ambari_ranger_password = unicode(ambari_ranger_password)
     admin_password = unicode(admin_password)
     ambari_username_password_for_ranger = format('{ambari_ranger_admin}:{ambari_ranger_password}')
+
     
     if response_code is not None and response_code == 200:
       user_resp_code = self.create_ambari_admin_user(ambari_ranger_admin, ambari_ranger_password, format("{admin_uname}:{admin_password}"))
       if user_resp_code is not None and user_resp_code == 200:
-        repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
-        if repo is not None:
-          Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
-        else:
-          response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger)
-          if response is not None:
-            Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+        retryCount = 0
+        while retryCount <= 5:
+          repo = self.get_repository_by_name_urllib2(repo_name, component, 'true', ambari_username_password_for_ranger)
+          if repo is not None:
+            Logger.info('{0} Repository {1} exist'.format(component.title(), repo['name']))
+            break
           else:
-            Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+            response = self.create_repository_urllib2(repo_data, ambari_username_password_for_ranger)
+            if response is not None:
+              Logger.info('{0} Repository created in Ranger admin'.format(component.title()))
+              break
+            else:
+              if retryCount < 5:
+                Logger.info("Retry Repository Creation is being called")
+                time.sleep(30) # delay for 30 seconds
+                retryCount += 1
+              else:
+                Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
       else:
         Logger.error('Ambari admin user creation failed')
+        raise Fail('Ambari admin user creation failed')
+    elif not self.skip_if_rangeradmin_down:
+      raise Fail("Connection failed to Ranger Admin !")
+
           
   def create_repository_urllib2(self, data, usernamepassword):
     """
