@@ -137,15 +137,11 @@ module.exports = {
    * @returns {object}
    */
   blueprintToObject: function(blueprint, field) {
-    var ret = {};
     var valueToMap = Em.get(blueprint, field);
     if (!Array.isArray(valueToMap)) {
-      return ret;
+      return {};
     }
-    valueToMap.forEach(function(n) {
-      ret[Em.get(n, 'name')] = n;
-    });
-    return ret;
+    return valueToMap.toMapByProperty('name');
   },
 
   matchGroups: function(masterBlueprint, slaveBlueprint) {

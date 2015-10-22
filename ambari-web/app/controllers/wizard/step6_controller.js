@@ -180,11 +180,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
     var err = false;
     var hosts = this.get('hosts');
     var headers = this.get('headers');
-    var headersMap = {};
+    var headersMap = headers.toWickMapByProperty('name');
 
-    headers.forEach(function (header) {
-      headersMap[header.name] = true;
-    });
     hosts.forEach(function (host) {
       host.checkboxes.forEach(function (checkbox) {
         if (headersMap[checkbox.component]) {
@@ -379,10 +376,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       masterHosts = [],
       headers = this.get('headers'),
       masterHostNames = this.get('content.masterComponentHosts').mapProperty('hostName').uniq(),
-      masterHostNamesMap = {};
-    masterHostNames.forEach(function(hostName) {
-      masterHostNamesMap[hostName] = true;
-    });
+      masterHostNamesMap = masterHostNames.toWickMap();
 
     this.getHostNames().forEach(function (_hostName) {
       var hasMaster = masterHostNamesMap[_hostName];
@@ -459,14 +453,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
       });
     } else {
 
-      var slaveComponentsMap = {};
-      slaveComponents.forEach(function(slave) {
-        slaveComponentsMap[Em.get(slave, 'componentName')] = slave;
-      });
-      var hostsObjMap = {};
-      hostsObj.forEach(function(host) {
-        hostsObjMap[Em.get(host, 'hostName')] = host;
-      });
+      var slaveComponentsMap = slaveComponents.toMapByProperty('componentName');
+      var hostsObjMap =  hostsObj.toMapByProperty('hostName');
 
       this.get('headers').forEach(function (header) {
         var nodes = slaveComponentsMap[header.get('name')];

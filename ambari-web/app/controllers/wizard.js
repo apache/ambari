@@ -905,10 +905,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     var serviceConfigProperties = [];
     var fileNamesToUpdate = this.getDBProperty('fileNamesToUpdate') || [];
     var installedServiceNames = stepController.get('installedServiceNames') || [];
-    var installedServiceNamesMap = {};
-    installedServiceNames.forEach(function(name) {
-      installedServiceNamesMap[name] = true;
-    });
+    var installedServiceNamesMap = installedServiceNames.toWickMap();
     stepController.get('stepConfigs').forEach(function (_content) {
 
       if (_content.serviceName === 'YARN') {

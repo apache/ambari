@@ -17,8 +17,10 @@
  */
 var App = require('app');
 require('utils/helper');
+var O = Em.Object;
 
 describe('utils/helper', function() {
+
   describe('String helpers', function() {
     describe('#trim()', function(){
       it('should replace first space', function() {
@@ -94,6 +96,7 @@ describe('utils/helper', function() {
       });
     });
   });
+
   describe('Number helpers', function(){
     describe('#toDaysHoursMinutes()', function(){
       var time = 1000000000;
@@ -113,7 +116,56 @@ describe('utils/helper', function() {
       });
     });
   });
+
   describe('Array helpers', function(){
+
+    var tests = Em.A([
+      {
+        m: 'plain objects, no nesting',
+        array: [{a: 1}, {a: 2}, {a: 3}],
+        property: 'a',
+        callback3: function (item) {
+          return Em.get(item, 'a');
+        },
+        e1: {1: {a: 1}, 2: {a: 2}, 3: {a: 3}},
+        e2: {1: true, 2: true, 3: true},
+        e3: {1: 1, 2: 2, 3: 3}
+      },
+      {
+        m: 'plain objects, nesting',
+        array: [{a: {a: 1}}, {a: {a: 2}}, {a:{a: 3}}],
+        property: 'a.a',
+        callback3: function (item) {
+          return Em.get(item, 'a.a');
+        },
+        e1: {1: {a: {a: 1}}, 2: {a: {a: 2}}, 3: {a: {a: 3}}},
+        e2: {1: true, 2: true, 3: true},
+        e3: {1: 1, 2: 2, 3: 3}
+      },
+      {
+        m: 'Ember objects, no nesting',
+        array: [O.create({a: 1}), O.create({a: 2}), O.create({a: 3})],
+        property: 'a',
+        callback3: function (item) {
+          return Em.get(item, 'a');
+        },
+        e1: {1: O.create({a: 1}), 2: O.create({a: 2}), 3: O.create({a: 3})},
+        e2: {1: true, 2: true, 3: true},
+        e3: {1: 1, 2: 2, 3: 3}
+      },
+      {
+        m: 'Ember objects, nesting',
+        array: [O.create({a: {a: 1}}), O.create({a: {a: 2}}), O.create({a: {a: 3}})],
+        property: 'a.a',
+        callback3: function (item) {
+          return Em.get(item, 'a.a');
+        },
+        e1: {1: O.create({a: {a: 1}}), 2: O.create({a: {a: 2}}), 3: O.create({a: {a: 3}})},
+        e2: {1: true, 2: true, 3: true},
+        e3: {1: 1, 2: 2, 3: 3}
+      }
+    ]);
+
     describe('#sortPropertyLight()', function(){
       var testable = [
         { a: 2 },
@@ -137,7 +189,41 @@ describe('utils/helper', function() {
         expect(testable.sortPropertyLight(['a'])).to.ok;
       });
     });
+
+    describe('#toMapByProperty', function () {
+      tests.forEach(function (test) {
+        it(test.m, function () {
+          expect(test.array.toMapByProperty(test.property)).to.eql(test.e1);
+        });
+      });
+    });
+
+    describe('#toWickMapByProperty', function () {
+      tests.forEach(function (test) {
+        it(test.m, function () {
+          expect(test.array.toWickMapByProperty(test.property)).to.eql(test.e2);
+        });
+      });
+    });
+
+    describe('#toMapByCallback', function () {
+      tests.forEach(function (test) {
+        it(test.m, function () {
+          expect(test.array.toMapByCallback(test.property, test.callback3)).to.eql(test.e3);
+        });
+      });
+    });
+
+    describe('#toWickMap', function () {
+
+      it('should convert to wick map', function () {
+        expect([1,2,3].toWickMap()).to.eql({1: true, 2: true, 3: true});
+      });
+
+    });
+
   });
+
   describe('App helpers', function(){
     var appendDiv = function() {
       $('body').append('<div id="tooltip-test"></div>');
@@ -347,6 +433,7 @@ describe('utils/helper', function() {
       });
     });
   });
+
   describe('#App.permit()', function() {
     var obj = {
       a1: 'v1',
@@ -484,4 +571,5 @@ describe('utils/helper', function() {
       });
     });
   });
+
 });
