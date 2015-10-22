@@ -73,6 +73,10 @@ rm_host = __get_component_host('rm_host')
 
 # Config files
 gpcheck_content = config['configurations']['gpcheck-env']['content']
+# database user limits
+hawq_limits = config['configurations']['hawq-limits-env']
+# sysctl parameters
+hawq_sysctl = config['configurations']['hawq-sysctl-env']
 
 hawq_site = config['configurations']['hawq-site']
 hawq_master_dir = hawq_site.get('hawq_master_directory')

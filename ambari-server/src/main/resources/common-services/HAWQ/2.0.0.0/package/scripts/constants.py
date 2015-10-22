@@ -26,10 +26,9 @@ STOP = "stop"
 
 # Users
 root_user = "root"
-gpadmin_user = "gpadmin"
-hawq_user = gpadmin_user
-hawq_group = gpadmin_user
-hawq_password = gpadmin_user
+hawq_user = "gpadmin"
+hawq_group = hawq_user
+hawq_password = hawq_user
 
 # Directories
 hawq_home_dir = "/usr/local/hawq/"

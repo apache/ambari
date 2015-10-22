@@ -143,13 +143,44 @@ def __update_limits_file():
   """
   Updates /etc/security/limits.d/hawq.conf file with the HAWQ parameters.
   """
+  import params
   # Ensure limits directory exists
-  Directory(constants.limits_conf_dir, recursive=True, owner=constants.root_user, group=constants.root_user
-            )
+  Directory(constants.limits_conf_dir, recursive=True, owner=constants.root_user, group=constants.root_user)
 
   # Generate limits for hawq user
-  File('{0}/{1}.conf'.format(constants.limits_conf_dir, constants.hawq_user), content=Template("hawq.limits.conf.j2"),
+  limits_file_content = "#### HAWQ Limits Parameters  ###########\n"
+  for key, value in params.hawq_limits.iteritems():
+    if not __valid_input(value):
+      raise Exception("Value {0} for parameter {1} contains non-numeric characters which are not allowed (except whitespace), please fix the value and retry".format(value, key))
+    """
+    Content of the file to be written should be of the format
+    gpadmin soft nofile 290000
+    gpadmin hard nofile 290000
+    key used in the configuration is of the format soft_nofile, thus strip '_' and replace with 'space'
+    """
+    limits_file_content += "{0} {1} {2}\n".format(constants.hawq_user, re.sub("_", " ", key), value.strip())
+  File('{0}/{1}.conf'.format(constants.limits_conf_dir, constants.hawq_user), content=limits_file_content,
        owner=constants.hawq_user, group=constants.hawq_group)
+
+
+def __valid_input(value):
+  """
+  Validate if input value contains number (whitespaces allowed), return true if found else false
+  """
+  return re.search("^ *[0-9][0-9 ]*$", value)
+
+
+def __convert_sysctl_dict_to_text():
+  """
+  Convert sysctl configuration dict to text with each property value pair separated on new line
+  """
+  import params
+  sysctl_file_content = "### HAWQ System Parameters ###########\n"
+  for key, value in params.hawq_sysctl.iteritems():
+    if not __valid_input(value):
+      raise Exception("Value {0} for parameter {1} contains non-numeric characters which are not allowed (except whitespace), please fix the value and retry".format(value, key))
+    sysctl_file_content += "{0} = {1}\n".format(key, value)
+  return sysctl_file_content
 
 
 def __update_sysctl_file():
@@ -160,7 +191,7 @@ def __update_sysctl_file():
   Directory(constants.sysctl_conf_dir, recursive=True, owner=constants.root_user, group=constants.root_user)
 
   # Generate temporary file with kernel parameters needed by hawq
-  File(constants.hawq_sysctl_tmp_file, content=Template("hawq.sysctl.conf.j2"), owner=constants.hawq_user,
+  File(constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=constants.hawq_user,
        group=constants.hawq_group)
 
   is_changed = True
@@ -187,8 +218,7 @@ def __update_sysctl_file_suse():
   backup_file_name = constants.sysctl_backup_file.format(str(int(time.time())))
   try:
     # Generate file with kernel parameters needed by hawq to temp file
-
-    File(constants.hawq_sysctl_tmp_file, content=Template("hawq.sysctl.conf.j2"), owner=constants.hawq_user,
+    File(constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=constants.hawq_user,
         group=constants.hawq_group)
 
     sysctl_file_dict = utils.read_file_to_dict(constants.sysctl_suse_file)

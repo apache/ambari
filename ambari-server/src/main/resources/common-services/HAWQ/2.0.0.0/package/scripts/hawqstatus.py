@@ -59,7 +59,6 @@ def get_pid_file():
   if not pid:
     raise Fail("Failed to fetch pid from {0}".format(postmaster_pid_file))
 
-  File(hawq_pid_file, content=pid, owner=constants.gpadmin_user, group=constants.gpadmin_user)
+  File(hawq_pid_file, content=pid, owner=constants.hawq_user, group=constants.hawq_user)
 
   return hawq_pid_file
-

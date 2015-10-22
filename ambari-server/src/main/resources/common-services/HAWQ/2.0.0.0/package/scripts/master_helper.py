@@ -107,7 +107,7 @@ def __init_standby():
   """
   Initializes the HAWQ Standby Master
   """
-    utils.exec_hawq_operation(constants.INIT, "{0} -a -v".format(constants.STANDBY))
+  utils.exec_hawq_operation(constants.INIT, "{0} -a -v".format(constants.STANDBY))
 
 
 def __get_component_name():

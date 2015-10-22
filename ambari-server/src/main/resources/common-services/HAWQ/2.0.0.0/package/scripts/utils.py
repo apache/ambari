@@ -81,9 +81,9 @@ def exec_ssh_cmd(hostname, cmd):
   import params
   # Only gpadmin should be allowed to run command via ssh, thus not exposing user as a parameter
   if params.hostname != hostname:
-    cmd = "su - {0} -c 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {1} \"{2} \" '".format(constants.gpadmin_user, hostname, cmd)
+    cmd = "su - {0} -c 'ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {1} \"{2} \" '".format(constants.hawq_user, hostname, cmd)
   else:
-    cmd = "su - {0} -c \"{1}\"".format(constants.gpadmin_user, cmd)
+    cmd = "su - {0} -c \"{1}\"".format(constants.hawq_user, cmd)
   Logger.info("Command executed: {0}".format(cmd))
   process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
   (stdout, stderr) = process.communicate()
