@@ -21,6 +21,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOL
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,10 +103,12 @@ import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -387,57 +390,68 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // !!! above check ensures only one
     final Map<String, Object> propertyMap = requestMaps.iterator().next();
 
-    String requestId = (String) propertyMap.get(UPGRADE_REQUEST_ID);
-    if (null == requestId) {
+    String requestIdProperty = (String) propertyMap.get(UPGRADE_REQUEST_ID);
+    if (null == requestIdProperty) {
       throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_ID));
     }
 
+    long requestId = Long.parseLong(requestIdProperty);
+    UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
+    if( null == upgradeEntity){
+      String exceptionMessage = MessageFormat.format("The upgrade with request ID {0} was not found", requestIdProperty);
+      throw new NoSuchParentResourceException(exceptionMessage);
+    }
+
+    // the properties which are allowed to be updated; the request must include
+    // at least 1
+    List<String> updatableProperties = Lists.newArrayList(UPGRADE_REQUEST_STATUS,
+        UPGRADE_SKIP_FAILURES, UPGRADE_SKIP_SC_FAILURES);
+
+    boolean isRequiredPropertyInRequest = CollectionUtils.containsAny(updatableProperties,
+        propertyMap.keySet());
+
+    if (!isRequiredPropertyInRequest) {
+      String exceptionMessage = MessageFormat.format(
+          "At least one of the following properties is required in the request: {0}",
+          StringUtils.join(updatableProperties, ", "));
+      throw new IllegalArgumentException(exceptionMessage);
+    }
+
     String requestStatus = (String) propertyMap.get(UPGRADE_REQUEST_STATUS);
-    if (null == requestStatus) {
-      throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_STATUS));
+    String skipFailuresRequestProperty = (String) propertyMap.get(UPGRADE_SKIP_FAILURES);
+    String skipServiceCheckFailuresRequestProperty = (String) propertyMap.get(UPGRADE_SKIP_SC_FAILURES);
+
+    if (null != requestStatus) {
+      HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
+      setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
     }
 
-    HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
-    if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
-      throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
-          status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
-    }
+    // if either of the skip failure settings are in the request, then we need
+    // to iterate over the entire series of tasks anyway, so do them both at the
+    // same time
+    if (StringUtils.isNotEmpty(skipFailuresRequestProperty)
+        || StringUtils.isNotEmpty(skipServiceCheckFailuresRequestProperty)) {
+      // grab the current settings for both
+      boolean skipFailures = upgradeEntity.isComponentFailureAutoSkipped();
+      boolean skipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
 
-    String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
-    if (null == reason) {
-      reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
-    }
-
-    ActionManager actionManager = getManagementController().getActionManager();
-    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(
-        Collections.singletonList(Long.valueOf(requestId)));
-
-    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
-
-    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
-        internalRequest.getStages()).getStatus();
-
-    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
-      throw new IllegalArgumentException(
-          String.format("Can only set status to %s when the upgrade is %s (currently %s)", status,
-              HostRoleStatus.ABORTED, internalStatus));
-    }
-
-    if (HostRoleStatus.ABORTED == status) {
-      if (!internalStatus.isCompletedState()) {
-        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
-      }
-    } else {
-      List<Long> taskIds = new ArrayList<Long>();
-
-      for (HostRoleCommand hrc : internalRequest.getCommands()) {
-        if (HostRoleStatus.ABORTED == hrc.getStatus()
-            || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
-          taskIds.add(hrc.getTaskId());
-        }
+      // update skipping failures on commands which are not SERVICE_CHECKs
+      if (null != skipFailuresRequestProperty) {
+        skipFailures = Boolean.parseBoolean(skipFailuresRequestProperty);
+        s_hostRoleCommandDAO.updateAutomaticSkipOnFailure(requestId, skipFailures);
       }
 
-      actionManager.resubmitTasks(taskIds);
+      // if the service check failure skip is present, then update all role
+      // commands that are SERVICE_CHECKs
+      if (null != skipServiceCheckFailuresRequestProperty) {
+        skipServiceCheckFailures = Boolean.parseBoolean(skipServiceCheckFailuresRequestProperty);
+        s_hostRoleCommandDAO.updateAutomaticSkipServiceCheckFailure(requestId,
+            skipServiceCheckFailures);
+      }
+
+      upgradeEntity.setAutoSkipComponentFailures(skipFailures);
+      upgradeEntity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
+      upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
     }
 
     return getRequestStatus(null);
@@ -1448,5 +1462,66 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> parameters = new HashMap<String, String>();
     parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "*");
     return parameters;
+  }
+
+  /**
+   * Changes the status of the specified request for an upgrade. The valid
+   * values are:
+   * <ul>
+   * <li>{@link HostRoleStatus#ABORTED}</li>
+   * <li>{@link HostRoleStatus#PENDING}</li>
+   * </ul>
+   *
+   * @param requestId
+   *          the request to change the status for.
+   * @param status
+   *          the status to set
+   * @param propertyMap
+   *          the map of request properties (needed for things like abort reason
+   *          if present)
+   */
+  private void setUpgradeRequestStatus(String requestId, HostRoleStatus status,
+      Map<String, Object> propertyMap) {
+    if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
+      throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
+          status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
+    }
+
+    String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
+    if (null == reason) {
+      reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
+    }
+
+    ActionManager actionManager = getManagementController().getActionManager();
+    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(
+        Collections.singletonList(Long.valueOf(requestId)));
+
+    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
+
+    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
+        internalRequest.getStages()).getStatus();
+
+    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
+      throw new IllegalArgumentException(
+          String.format("Can only set status to %s when the upgrade is %s (currently %s)", status,
+              HostRoleStatus.ABORTED, internalStatus));
+    }
+
+    if (HostRoleStatus.ABORTED == status) {
+      if (!internalStatus.isCompletedState()) {
+        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+      }
+    } else {
+      List<Long> taskIds = new ArrayList<Long>();
+
+      for (HostRoleCommand hrc : internalRequest.getCommands()) {
+        if (HostRoleStatus.ABORTED == hrc.getStatus()
+            || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
+          taskIds.add(hrc.getTaskId());
+        }
+      }
+
+      actionManager.resubmitTasks(taskIds);
+    }
   }
 }
