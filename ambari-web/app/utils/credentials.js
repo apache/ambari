@@ -87,10 +87,16 @@ module.exports = {
   createOrUpdateCredentials: function(clusterName, alias, resource) {
     var self = this;
     var dfd = $.Deferred();
-    this.createCredentials(clusterName, alias, resource).then(function() {
-      dfd.resolve();
-    }, function() {
+    this.getCredential(clusterName, alias).then(function() {
+      // update previously stored credentials
       self.updateCredentials(clusterName, alias, resource).always(function() {
+        var status = arguments[1];
+        var result = arguments[2];
+        dfd.resolve(status === "success", result);
+      });
+    }, function() {
+      // create credentials if they not exist
+      self.createCredentials(clusterName, alias, resource).always(function() {
         var status = arguments[1];
         var result = arguments[2];
         dfd.resolve(status === "success", result);
@@ -105,6 +111,7 @@ module.exports = {
    * @member utils.credentials
    * @param {string} clusterName cluster name
    * @param {string} alias credential alias name e.g. "kdc.admin.credentials"
+   * @param {function} [callback] success callback to invoke, credential will be passed to first argument
    * @returns {$.Deferred} promise object
    */
   getCredential: function(clusterName, alias, callback) {
@@ -116,13 +123,18 @@ module.exports = {
         alias: alias,
         callback: callback
       },
-      success: 'getCredentialSuccessCallback'
+      success: 'getCredentialSuccessCallback',
+      error: 'getCredentialErrorCallback'
     });
   },
 
   getCredentialSuccessCallback: function(data, opt, params) {
-    params.callback(Em.getWithDefault(data, 'Credential', null));
+    if (params.callback) {
+      params.callback(Em.getWithDefault(data, 'Credential', null));
+    }
   },
+
+  getCredentialErrorCallback: function() {},
 
   /**
    * Update credential by alias and cluster name

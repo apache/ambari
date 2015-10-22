@@ -76,6 +76,12 @@ describe('App.KDCCredentialsControllerMixin', function() {
         value: value
       });
     };
+    var resolveWith = function(data) {
+      return $.Deferred().resolve(data).promise();
+    };
+    var rejectWith = function(data) {
+      return $.Deferred().reject(data).promise();
+    };
     [
       {
         configs: [
@@ -83,6 +89,9 @@ describe('App.KDCCredentialsControllerMixin', function() {
           createConfig('admin_principal', 'admin/admin'),
           createConfig('persist_credentials', 'true')
         ],
+        credentialsExists: false,
+        createCredentialFnCalled: true,
+        updateCredentialFnCalled: false,
         e: [
           'testName',
           'kdc.admin.credential',
@@ -92,7 +101,27 @@ describe('App.KDCCredentialsControllerMixin', function() {
             principal: 'admin/admin'
           }
         ],
-        message: 'Save Admin credentials checkbox checked, credentials should be saved as `persisted`'
+        message: 'Save Admin credentials checkbox checked, credentials already stored and should be updated as `persisted`'
+      },
+      {
+        configs: [
+          createConfig('admin_password', 'admin'),
+          createConfig('admin_principal', 'admin/admin'),
+          createConfig('persist_credentials', 'true')
+        ],
+        credentialsExists: true,
+        createCredentialFnCalled: false,
+        updateCredentialFnCalled: true,
+        e: [
+          'testName',
+          'kdc.admin.credential',
+          {
+            type: 'persisted',
+            key: 'admin',
+            principal: 'admin/admin'
+          }
+        ],
+        message: 'Save Admin credentials checkbox checked, no stored credentials, should be created as `persisted`'
       },
       {
         configs: [
@@ -100,6 +129,9 @@ describe('App.KDCCredentialsControllerMixin', function() {
           createConfig('admin_principal', 'admin/admin'),
           createConfig('persist_credentials', 'false')
         ],
+        credentialsExists: true,
+        createCredentialFnCalled: false,
+        updateCredentialFnCalled: true,
         e: [
           'testName',
           'kdc.admin.credential',
@@ -109,7 +141,7 @@ describe('App.KDCCredentialsControllerMixin', function() {
             principal: 'admin/admin'
           }
         ],
-        message: 'Save Admin credentials checkbox un-checked, credentials should be saved as `temporary`'
+        message: 'Save Admin credentials checkbox unchecked, credentials already stored and should be updated as `temporary`'
       },
       {
         configs: [
@@ -117,6 +149,9 @@ describe('App.KDCCredentialsControllerMixin', function() {
           createConfig('admin_principal', 'admin/admin'),
           createConfig('persist_credentials', 'false')
         ],
+        credentialsExists: false,
+        createCredentialFnCalled: true,
+        updateCredentialFnCalled: false,
         e: [
           'testName',
           'kdc.admin.credential',
@@ -126,24 +161,20 @@ describe('App.KDCCredentialsControllerMixin', function() {
             principal: 'admin/admin'
           }
         ],
-        credentialWasSaved: true,
-        message: 'Save Admin credentials checkbox checked, credential was saved, credentials should be saved as `temporary`, #updateKDCCredentials should be called'
+        message: 'Save Admin credentials checkbox unchecked, credentials already stored and should be updated as `temporary`'
       }
     ].forEach(function(test) {
       it(test.message, function() {
         sinon.stub(App, 'get').withArgs('clusterName').returns('testName');
-        sinon.stub(credentialsUtils, 'createCredentials', function() {
-          if (test.credentialWasSaved) {
-            return $.Deferred().reject().promise();
-          } else {
-            return $.Deferred().resolve().promise();
-          }
+        sinon.stub(credentialsUtils, 'getCredential', function(clusterName, alias) {
+          return test.credentialsExists ? resolveWith() : rejectWith();
         });
-        if (test.credentialWasSaved) {
-          sinon.stub(credentialsUtils, 'updateCredentials', function() {
-            return $.Deferred().resolve().promise();
-          });
-        }
+        sinon.stub(credentialsUtils, 'createCredentials', function() {
+          return resolveWith();
+        });
+        sinon.stub(credentialsUtils, 'updateCredentials', function() {
+          return resolveWith();
+        });
 
         mixedObject.reopen({
           isStorePersisted: function() {
@@ -151,14 +182,17 @@ describe('App.KDCCredentialsControllerMixin', function() {
           }.property()
         });
         mixedObject.createKDCCredentials(test.configs);
-        assert.isTrue(credentialsUtils.createCredentials.calledOnce, 'credentialsUtils#createCredentials called');
-        assert.deepEqual(credentialsUtils.createCredentials.args[0], test.e, 'credentialsUtils#createCredentials called with correct arguments');
-        credentialsUtils.createCredentials.restore();
-        if (test.credentialWasSaved) {
-          assert.isTrue(credentialsUtils.updateCredentials.calledOnce, 'credentialUtils#updateCredentials called');
-          assert.deepEqual(credentialsUtils.updateCredentials.args[0], test.e, 'credentialUtils#updateCredentials called with correct arguments');
-          credentialsUtils.updateCredentials.restore();
+        assert.equal(credentialsUtils.createCredentials.calledOnce, test.createCredentialFnCalled,  'credentialsUtils#createCredentials called');
+        if (test.createCredentialFnCalled) {
+          assert.deepEqual(credentialsUtils.createCredentials.args[0], test.e, 'credentialsUtils#createCredentials called with correct arguments');
         }
+        credentialsUtils.createCredentials.restore();
+        assert.equal(credentialsUtils.updateCredentials.calledOnce, test.updateCredentialFnCalled, 'credentialUtils#updateCredentials called');
+        if (test.updateCredentialFnCalled) {
+          assert.deepEqual(credentialsUtils.updateCredentials.args[0], test.e, 'credentialUtils#updateCredentials called with correct arguments');
+        }
+        credentialsUtils.updateCredentials.restore();
+        credentialsUtils.getCredential.restore();
         App.get.restore();
       });
     });
