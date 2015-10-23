@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.metrics2.sink.timeline;
 
 /**
  * Is used to determine metrics aggregate table.
@@ -43,6 +43,21 @@ public enum Precision {
     } catch (IllegalArgumentException e) {
       throw new PrecisionFormatException("precision should be seconds, " +
         "minutes, hours or days", e);
+    }
+  }
+
+  public static Precision getPrecision(long startTime, long endTime) {
+    long HOUR = 3600000; // 1 hour
+    long DAY = 86400000; // 1 day
+    long timeRange = endTime - startTime;
+    if (timeRange > 30 * DAY) {
+      return Precision.DAYS;
+    } else if (timeRange > 1 * DAY) {
+      return Precision.HOURS;
+    } else if (timeRange > 2 * HOUR) {
+      return Precision.MINUTES;
+    } else {
+      return Precision.SECONDS;
     }
   }
 }
