@@ -84,6 +84,11 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
     )
+    self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/admin.xml',
+                              group='knox',
+                              owner = 'knox',
+                              content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
+    )
     self.assertResourceCalled('Execute', ('chown',
      '-R',
      'knox:knox',
@@ -524,6 +529,11 @@ class TestKnoxGateway(RMFTestCase):
                               group='knox',
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['topology']['content'])
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/topologies/admin.xml',
+                              group='knox',
+                              owner = 'knox',
+                              content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
     self.assertResourceCalled('Execute', ('chown',
                                           '-R',

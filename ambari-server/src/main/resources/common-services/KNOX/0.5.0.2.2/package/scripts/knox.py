@@ -60,6 +60,18 @@ def knox():
        content=InlineTemplate(params.topology_template)
   )
 
+  File(os.path.join(params.knox_conf_dir, "topologies", "admin.xml"),
+     group=params.knox_group,
+     owner=params.knox_user,
+     content=InlineTemplate(params.admin_topology_template)
+  )
+
+  File(os.path.join(params.knox_conf_dir, "topologies", "knoxsso.xml"),
+     group=params.knox_group,
+     owner=params.knox_user,
+     content=InlineTemplate(params.knoxsso_topology_template)
+  )
+
   if params.security_enabled:
     TemplateConfig( os.path.join(params.knox_conf_dir, "krb5JAASLogin.conf"),
         owner = params.knox_user,
@@ -103,6 +115,11 @@ def knox():
          group=params.knox_group,
          owner=params.knox_user,
          content=InlineTemplate(params.topology_template)
+    )
+    File(format("{params.knox_conf_dir}/topologies/admin.xml"),
+         group=params.knox_group,
+         owner=params.knox_user,
+         content=InlineTemplate(params.admin_topology_template)
     )
     if params.security_enabled:
       TemplateConfig( format("{knox_conf_dir}/krb5JAASLogin.conf"),
