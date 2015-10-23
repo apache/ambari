@@ -87,7 +87,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String GANGLIA_SERVER                            = "GANGLIA_SERVER";
   private static final String METRIC_SERVER                             = "METRICS_COLLECTOR";
   private static final String PROPERTIES_CATEGORY = "properties";
-  private static final Map<Service.Type, String> serviceConfigVersions = new ConcurrentHashMap<Service.Type, String>();
+  private static final Map<String, String> serviceConfigVersions = new ConcurrentHashMap<String, String>();
   private static final Map<Service.Type, String> serviceConfigTypes = new EnumMap<Service.Type, String>(Service.Type.class);
   private static final Map<Service.Type, Map<String, String[]>> serviceDesiredProperties = new EnumMap<Service.Type, Map<String, String[]>>(Service.Type.class);
   private static final Map<String, Service.Type> componentServiceMap = new HashMap<String, Service.Type>();
@@ -99,7 +99,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
   private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
   private volatile Map<String, String> clusterJmxProtocolMap = new HashMap<String, String>();
+  private volatile Set<String> metricServerHosts = new HashSet<String>();
   private volatile String clusterMetricServerPort = null;
+  private volatile String clusterMetricServerVipPort = null;
+  private volatile String clusterMetricserverVipHost = null;
 
   static {
     serviceConfigTypes.put(Service.Type.HDFS, "hdfs-site");
@@ -267,57 +270,96 @@ public abstract class AbstractProviderModule implements ProviderModule,
   // ----- MetricsHostProvider ------------------------------------------------
 
   @Override
-  public String getCollectorHostName(String clusterName, MetricsService service) throws SystemException {
+  public String getCollectorHostName(String clusterName, MetricsService service)
+    throws SystemException {
+
     checkInit();
     if (service.equals(GANGLIA)) {
       return clusterGangliaCollectorMap.get(clusterName);
     } else if (service.equals(TIMELINE_METRICS)) {
-      return clusterMetricCollectorMap.get(clusterName);
+      return getMetricsCollectorHostName(clusterName);
     }
     return null;
   }
 
+  private String getMetricsCollectorHostName(String clusterName)
+    throws SystemException {
+    try {
+      // try to get vip properties from cluster-env
+      String configType = "cluster-env";
+      String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
+      String oldConfigVersion = serviceConfigVersions.get(configType);
+      if (!currentConfigVersion.equals(oldConfigVersion)) {
+        serviceConfigVersions.put(configType, currentConfigVersion);
+        Map<String, String> configProperties = getDesiredConfigMap
+          (clusterName, currentConfigVersion, configType,
+            Collections.singletonMap("METRICS_COLLECTOR",
+              new String[]{"metrics_collector_vip_host"}));
+
+        if (!configProperties.isEmpty()) {
+          clusterMetricserverVipHost = configProperties.get("METRICS_COLLECTOR");
+          if (clusterMetricserverVipHost != null) {
+            clusterMetricCollectorMap.put(clusterName, clusterMetricserverVipHost);
+          }
+        }
+        // updating the port value, because both vip properties are stored in
+        // cluster-env
+        configProperties = getDesiredConfigMap
+          (clusterName, currentConfigVersion, configType,
+            Collections.singletonMap("METRICS_COLLECTOR",
+              new String[]{"metrics_collector_vip_port"}));
+
+        if (!configProperties.isEmpty()) {
+          clusterMetricServerVipPort = configProperties.get("METRICS_COLLECTOR");
+        }
+      }
+    } catch (NoSuchParentResourceException | UnsupportedPropertyException e) {
+      LOG.warn("Failed to retrieve collector hostname.", e);
+    }
+    return clusterMetricCollectorMap.get(clusterName);
+  }
+
   @Override
-  public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
+  public String getCollectorPort(String clusterName, MetricsService service) throws SystemException {
     checkInit();
     if (service.equals(GANGLIA)) {
       return "80"; // Not called by the provider
     } else if (service.equals(TIMELINE_METRICS)) {
       try {
-        String configType = serviceConfigTypes.get(Service.Type.AMBARI_METRICS);
-        String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
-        String oldConfigVersion = serviceConfigVersions.get(Service.Type.AMBARI_METRICS);
+        if (clusterMetricServerVipPort == null) {
+          String configType = serviceConfigTypes.get(Service.Type.AMBARI_METRICS);
+          String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
+          String oldConfigVersion = serviceConfigVersions.get(configType);
+          if (!currentConfigVersion.equals(oldConfigVersion)) {
+            serviceConfigVersions.put(configType, currentConfigVersion);
 
-        if (!currentConfigVersion.equals(oldConfigVersion)) {
-          serviceConfigVersions.put(Service.Type.AMBARI_METRICS, currentConfigVersion);
-
-          Map<String, String> configProperties = getDesiredConfigMap
-            (clusterName, currentConfigVersion, configType,
+            Map<String, String> configProperties = getDesiredConfigMap(clusterName,
+              currentConfigVersion, configType,
               Collections.singletonMap("METRICS_COLLECTOR",
-                new String[] { "timeline.metrics.service.webapp.address" }));
+                new String[]{"timeline.metrics.service.webapp.address"}));
 
-          if (!configProperties.isEmpty()) {
-            clusterMetricServerPort = getPortString(configProperties.get("METRICS_COLLECTOR"));
-          } else {
-            clusterMetricServerPort = COLLECTOR_DEFAULT_PORT;
+            if (!configProperties.isEmpty()) {
+              clusterMetricServerPort = getPortString(configProperties.get("METRICS_COLLECTOR"));
+            } else {
+              clusterMetricServerPort = COLLECTOR_DEFAULT_PORT;
+            }
           }
         }
-
-      } catch (NoSuchParentResourceException e) {
-        LOG.warn("Failed to retrieve collector port.", e);
-      } catch (UnsupportedPropertyException e) {
+      } catch (NoSuchParentResourceException | UnsupportedPropertyException e) {
         LOG.warn("Failed to retrieve collector port.", e);
       }
     }
-    return clusterMetricServerPort;
+    return clusterMetricServerVipPort != null ? clusterMetricServerVipPort : clusterMetricServerPort;
   }
 
   @Override
   public boolean isCollectorHostLive(String clusterName, MetricsService service) throws SystemException {
-
-    final String collectorHostName = getCollectorHostName(clusterName, service);
-
-    return isHostLive(clusterName, collectorHostName);
+    for (String hostname: metricServerHosts) {
+      if (isHostLive(clusterName, hostname)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @Override
@@ -348,8 +390,12 @@ public abstract class AbstractProviderModule implements ProviderModule,
       return isHostComponentLive(clusterName, collectorHostName, "GANGLIA",
         Role.GANGLIA_SERVER.name());
     } else if (service.equals(TIMELINE_METRICS)) {
-      return isHostComponentLive(clusterName, collectorHostName, "AMBARI_METRICS",
-        Role.METRICS_COLLECTOR.name());
+      for (String hostname: metricServerHosts) {
+        if (isHostComponentLive(clusterName, hostname, "AMBARI_METRICS",
+          Role.METRICS_COLLECTOR.name())) {
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -426,8 +472,9 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     if (service != null) {
       try {
-        String currVersion = getDesiredConfigVersion(clusterName, serviceConfigTypes.get(service));
-        String oldVersion = serviceConfigVersions.get(service);
+        String configType = serviceConfigTypes.get(service);
+        String currVersion = getDesiredConfigVersion(clusterName, configType);
+        String oldVersion = serviceConfigVersions.get(configType);
 
         // We only update port map when a config version updates,
         // Since concurrent thread access is expected we err on the side of
@@ -436,7 +483,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
         if (!currVersion.equals(oldVersion) ||
             !clusterJmxPorts.containsKey(componentName)) {
 
-          serviceConfigVersions.put(service, currVersion);
+          serviceConfigVersions.put(configType, currVersion);
 
           Map<String, String[]> componentPorts = new HashMap<String, String[]>();
           String[] componentsHttpsPorts;
@@ -721,6 +768,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           }
           if (componentName.equals(METRIC_SERVER)) {
             clusterMetricCollectorMap.put(clusterName, hostName);
+            metricServerHosts.add(hostName);
           }
         }
       }
@@ -791,7 +839,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     }
     return versionTag;
   }
-
+  // TODO get configs using ConfigHelper
   private Map<String, String> getDesiredConfigMap(String clusterName, String versionTag,
       String configType, Map<String, String[]> keys) throws NoSuchParentResourceException,
       UnsupportedPropertyException, SystemException {

@@ -51,9 +51,9 @@ public interface MetricHostProvider {
    *
    * @return the metrics server
    *
-   * @throws org.apache.ambari.server.controller.spi.SystemException if unable to get the metrics server host name
+   * @throws org.apache.ambari.server.controller.spi.SystemException if unable to get the metrics server port
    */
-  public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException;
+  public String getCollectorPort(String clusterName, MetricsService service) throws SystemException;
 
   /**
    * Get the status of metrics server host for the given cluster name.

@@ -172,7 +172,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     Map<String, MetricReportRequest> reportRequestMap = getPropertyIdMaps(request, ids);
     String host = hostProvider.getCollectorHostName(clusterName, TIMELINE_METRICS);
-    String port = hostProvider.getCollectorPortName(clusterName, TIMELINE_METRICS);
+    String port = hostProvider.getCollectorPort(clusterName, TIMELINE_METRICS);
     URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder(host,
       port != null ? Integer.parseInt(port) : 8188);
 
