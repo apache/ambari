@@ -20,6 +20,8 @@ package org.apache.ambari.server.notifications;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * The {@link Notification} class is a generic way to relay content through an
  * {@link NotificationDispatcher}.
@@ -88,5 +90,17 @@ public class Notification {
    */
   public Type getType() {
     return Type.GENERIC;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder("Notification{ ");
+    buffer.append("type=").append(getType());
+    buffer.append(", subject=").append(StringUtils.strip(Subject));
+    buffer.append("}");
+    return buffer.toString();
   }
 }
