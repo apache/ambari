@@ -492,6 +492,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
           themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
         }
         themeResource.set('isHiddenByConfig', !valueAttributes['visible']);
+        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes['visible']);
       }
     }
   },
