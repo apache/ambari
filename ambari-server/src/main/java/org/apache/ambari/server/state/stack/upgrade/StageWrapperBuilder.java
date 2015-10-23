@@ -70,7 +70,7 @@ public abstract class StageWrapperBuilder {
    *          additional parameters
    */
   public abstract void add(UpgradeContext ctx, HostsType hostsType, String service,
-      boolean clientOnly, ProcessingComponent pc, Map<String, String> params);
+      boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel);
 
   /**
    * Builds the stage wrappers, including any pre- and post-procesing that needs

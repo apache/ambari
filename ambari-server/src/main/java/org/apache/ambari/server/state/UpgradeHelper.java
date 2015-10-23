@@ -286,10 +286,26 @@ public class UpgradeHelper {
         groupHolder.skippable = true;
       }
 
+      // Attempt to get the function of the group, during a NonRolling Upgrade
+      Task.Type functionName = null;
+      boolean scheduleInParallel = false;
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
       if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
         group.performServiceCheck = false;
+
+        if (RestartGrouping.class.isInstance(group)) {
+          functionName = ((RestartGrouping) group).getFunction();
+          scheduleInParallel = true;
+        }
+        if (StartGrouping.class.isInstance(group)) {
+          functionName = ((StartGrouping) group).getFunction();
+          scheduleInParallel = true;
+        }
+        if (StopGrouping.class.isInstance(group)) {
+          functionName = ((StopGrouping) group).getFunction();
+          scheduleInParallel = true;
+        }
       }
 
       StageWrapperBuilder builder = group.getBuilder();
@@ -311,19 +327,7 @@ public class UpgradeHelper {
         if (upgradePack.getType() == UpgradeType.ROLLING && !allTasks.containsKey(service.serviceName)) {
           continue;
         }
-        
-        // Attempt to get the function of the group, during a NonRolling Upgrade
-        Task.Type functionName = null;
 
-        if (RestartGrouping.class.isInstance(group)) {
-          functionName = ((RestartGrouping) group).getFunction();
-        }
-        if (StartGrouping.class.isInstance(group)) {
-          functionName = ((StartGrouping) group).getFunction();
-        }
-        if (StopGrouping.class.isInstance(group)) {
-          functionName = ((StopGrouping) group).getFunction();
-        }
 
         for (String component : service.components) {
           // Rolling Upgrade has exactly one task for a Component.
@@ -392,7 +396,7 @@ public class UpgradeHelper {
                   hostsType.hosts = order;
 
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null);
+                      svc.isClientOnlyService(), pc, null, false);
                 }
                 break;
               case NON_ROLLING:
@@ -417,21 +421,21 @@ public class UpgradeHelper {
 
 
                   builder.add(context, ht1, service.serviceName,
-                      svc.isClientOnlyService(), pc, h1Params);
+                      svc.isClientOnlyService(), pc, h1Params, false);
 
                   builder.add(context, ht2, service.serviceName,
-                      svc.isClientOnlyService(), pc, h2Params);
+                      svc.isClientOnlyService(), pc, h2Params, false);
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null);
+                      svc.isClientOnlyService(), pc, null, false);
                 }
 
                 break;
             }
           } else {
             builder.add(context, hostsType, service.serviceName,
-                svc.isClientOnlyService(), pc, null);
+                svc.isClientOnlyService(), pc, null, scheduleInParallel);
           }
         }
       }
