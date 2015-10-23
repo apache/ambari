@@ -51,6 +51,23 @@ public class MetricsLoadSimulator {
     loadRunner.start();
   }
 
+  /*
+   Another entry point to the test to be called from ./jmetertest/AMSJMeterLoadTest.java
+   */
+  public static void startTest(Map<String,String> mapArgs) {
+
+    LoadRunner loadRunner = new LoadRunner(
+            mapArgs.get("hostName"),
+            Integer.valueOf(mapArgs.get("numberOfHosts")),
+            mapArgs.get("metricsHostName"),
+            Integer.valueOf(mapArgs.get("collectInterval")),
+            Integer.valueOf(mapArgs.get("sendInterval")),
+            Boolean.valueOf(mapArgs.get("master"))
+    );
+
+    loadRunner.start();
+  }
+
   private static Map<String, String> parseArgs(String[] args) {
     Map<String, String> mapProps = new HashMap<String, String>();
     mapProps.put("hostName", "host");
