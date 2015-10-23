@@ -229,18 +229,22 @@ describe('App.ChartLinearTimeView', function () {
     var view,
       cases = [
       {
-        isServiceWithEnhancedWidgets: false,
-        currentTimeIndex: 1,
-        title: 'service with enhanced widgets'
+        parent: 1,
+        child: 2,
+        result: 2,
+        title: 'child and parent have currentTimeRangeIndex'
       },
       {
-        isServiceWithEnhancedWidgets: true,
-        currentTimeIndex: 2,
-        title: 'service without enhanced widgets'
+        parent: undefined,
+        child: 2,
+        result: 2,
+        title: 'only child has currentTimeRangeIndex'
       },
       {
-        currentTimeIndex: 2,
-        title: 'other view'
+        parent: 1,
+        child: undefined,
+        result: 1,
+        title: 'only parent has currentTimeRangeIndex'
       }
     ];
 
@@ -258,9 +262,10 @@ describe('App.ChartLinearTimeView', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        view.set('controller.isServiceWithEnhancedWidgets', item.isServiceWithEnhancedWidgets);
+        view.set('parentView.currentTimeRangeIndex', item.child);
+        view.set('parentView.parentView.currentTimeRangeIndex', item.parent);
         view.propertyDidChange('parentView.currentTimeRangeIndex');
-        expect(view.get('currentTimeIndex')).to.equal(item.currentTimeIndex);
+        expect(view.get('currentTimeIndex')).to.equal(item.result);
       });
     });
 
