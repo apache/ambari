@@ -143,10 +143,15 @@ App.QuickViewLinks = Em.View.extend({
 
       quickLinks = this.get('content.quickLinks').map(function (item) {
         var protocol = self.setProtocol(item.get('service_id'), self.get('configProperties'), self.ambariProperties(), item);
+        var siteConfigs = {};
+
         if (item.get('template')) {
           var port = item.get('http_config') && self.setPort(item, protocol);
           if (['FALCON', 'OOZIE', 'ATLAS'].contains(item.get('service_id'))) {
             item.set('url', item.get('template').fmt(protocol, hosts[0], port, App.router.get('loginName')));
+          } else if (item.get('service_id') === 'MAPREDUCE2') {
+            siteConfigs = self.get('configProperties').findProperty('type', item.get('site')).properties;
+            item.set('url', item.get('template').fmt(protocol, siteConfigs[item.get(protocol + '_config')]));
           } else {
             item.set('url', item.get('template').fmt(protocol, hosts[0], port));
           }
