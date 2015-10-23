@@ -142,17 +142,6 @@ public class ServiceCheckGrouping extends Grouping {
       if (upgradeContext.getType() == UpgradeType.ROLLING) {
         // During Rolling Upgrade, create stages for everything else, as long it is valid
         for (String service : clusterServices) {
-          if (ServiceCheckGrouping.this.excludeServices.contains(service)) {
-            continue;
-          }
-          if (checkServiceValidity(upgradeContext, service, serviceMap)) {
-            StageWrapper wrapper = new StageWrapper(
-              StageWrapper.Type.SERVICE_CHECK,
-              "Service Check " + upgradeContext.getServiceDisplay(service),
-              new TaskWrapper(service, "", Collections.<String>emptySet(),
-                new ServiceCheckTask()));
-            result.add(wrapper);
-          }
           if (excludeServices.contains(service)) {
             continue;
           }
