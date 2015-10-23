@@ -138,10 +138,10 @@ public class SchemaUpgradeHelper {
 
     for (UpgradeCatalog upgradeCatalog : candidateCatalogs) {
       if (sourceVersion == null || VersionUtils.compareVersions(sourceVersion,
-        upgradeCatalog.getTargetVersion(), 3) < 0) {
+        upgradeCatalog.getTargetVersion(), 4) < 0) {
         // catalog version is newer than source
         if (VersionUtils.compareVersions(upgradeCatalog.getTargetVersion(),
-          targetVersion, 3) <= 0) {
+          targetVersion, 4) <= 0) {
           // catalog version is older or equal to target
           upgradeCatalogs.add(upgradeCatalog);
         }
@@ -180,6 +180,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog210.class);
       catalogBinder.addBinding().to(UpgradeCatalog211.class);
       catalogBinder.addBinding().to(UpgradeCatalog212.class);
+      catalogBinder.addBinding().to(UpgradeCatalog2121.class);
       catalogBinder.addBinding().to(UpgradeCatalog213.class);
       catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
 
