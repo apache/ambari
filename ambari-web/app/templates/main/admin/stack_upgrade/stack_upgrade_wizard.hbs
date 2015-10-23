@@ -17,9 +17,10 @@
 }}
 
 <div id="stack-upgrade-dialog">
-  <button class="btn btn-primary upgrade-options-button" {{bindAttr disabled="controller.isDowngrade"}} {{action openUpgradeOptions target="controller"}}>
-    <i class="icon-cogs"></i>&nbsp;{{t common.options}}
-  </button>
+  <div {{bindAttr class=":upgrade-options-link controller.isDowngrade:disabled"}} {{action openUpgradeOptions target="controller"}}>
+    <i class="icon-cogs"></i><a>{{t common.options}}</a>
+  </div>
+
   <div {{bindAttr class="view.isLoaded::hidden :row-fluid"}}>
     <div class="span3 task-list-main-warp">{{statusIcon controller.requestStatus}}
       &nbsp;{{view.upgradeStatusLabel}}</div>

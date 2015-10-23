@@ -767,10 +767,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#upgradeOptions()", function() {
     before(function () {
       sinon.spy(App, 'ModalPopup');
+      sinon.spy(App, 'showConfirmationFeedBackPopup');
       sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
     });
     after(function () {
       App.ModalPopup.restore();
+      App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
     });
     it("show confirmation popup", function() {
@@ -793,10 +795,19 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           allowed: true
         })
       ];
+      controller.set('isDowngrade', false);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.true;
-      popup.onPrimary();
+      var confirmPopup = popup.onPrimary();
+      expect(App.showConfirmationFeedBackPopup.calledOnce).to.be.true;
+      confirmPopup.onPrimary();
       expect(controller.runPreUpgradeCheck.calledWith(version)).to.be.true;
+    });
+    it("NOT show confirmation popup on Downgrade", function() {
+      var version = Em.Object.create({displayName: 'HDP-2.2'});
+      controller.set('isDowngrade', true);
+      var popup = controller.upgradeOptions(false, version);
+      expect(App.ModalPopup.calledOnce).to.be.false;
     });
   });
 
