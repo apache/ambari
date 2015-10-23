@@ -191,6 +191,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    // execute DDL updates
+    executeStackUpgradeDDLUpdates();
+
+    // DDL and DML mixed code, double check here
+    bootstrapRepoVersionForHDP21();
+
+    // execute DML updates, no DDL things after this line
     executeUpgradePreDMLUpdates();
   }
 
@@ -212,12 +219,14 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     for (UpgradeEntity upgrade: upgrades){
       if (upgrade.isDowngradeAllowed() == null) {
         upgrade.setDowngradeAllowed(true);
-        upgradeDAO.merge(upgrade);
       }
 
       // ensure that these are set to false for existing upgrades
       upgrade.setAutoSkipComponentFailures(false);
       upgrade.setAutoSkipServiceCheckFailures(false);
+
+      // apply changes
+      upgradeDAO.merge(upgrade);
 
       LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
           upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
@@ -232,10 +241,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
-    // This one actually performs both DDL and DML, so it needs to be first.
-    executeStackUpgradeDDLUpdates();
-    bootstrapRepoVersionForHDP21();
-
     addNewConfigurationsFromXml();
     updateHadoopEnv();
     updateStormConfigs();

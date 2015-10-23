@@ -217,8 +217,6 @@ public class UpgradeCatalog213Test {
     */
 
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
-    Method executeStackUpgradeDDLUpdates = UpgradeCatalog213.class.getDeclaredMethod("executeStackUpgradeDDLUpdates");
-    Method bootstrapRepoVersionForHDP21 = UpgradeCatalog213.class.getDeclaredMethod("bootstrapRepoVersionForHDP21");
     Method updateStormConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateStormConfigs");
     Method updateAMSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAMSConfigs");
     Method updateHDFSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateHDFSConfigs");
@@ -234,8 +232,6 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateAMSConfigs)
         .addMockedMethod(updateHDFSConfigs)
         .addMockedMethod(updateAlertDefinitions)
-        .addMockedMethod(executeStackUpgradeDDLUpdates)
-        .addMockedMethod(bootstrapRepoVersionForHDP21)
         .addMockedMethod(updateStormConfigs)
         .addMockedMethod(updateHbaseEnvConfig)
         .addMockedMethod(updateKafkaConfigs)
@@ -244,10 +240,6 @@ public class UpgradeCatalog213Test {
         .createMock();
 
     upgradeCatalog213.addNewConfigurationsFromXml();
-    expectLastCall().once();
-    upgradeCatalog213.executeStackUpgradeDDLUpdates();
-    expectLastCall().once();
-    upgradeCatalog213.bootstrapRepoVersionForHDP21();
     expectLastCall().once();
     upgradeCatalog213.updateStormConfigs();
     expectLastCall().once();
@@ -406,8 +398,12 @@ public class UpgradeCatalog213Test {
   @Test
   public void testExecuteUpgradePreDMLUpdates() throws Exception {
     Method executeStackPreDMLUpdates = UpgradeCatalog213.class.getDeclaredMethod("executeUpgradePreDMLUpdates");
+    Method executeStackUpgradeDDLUpdates = UpgradeCatalog213.class.getDeclaredMethod("executeStackUpgradeDDLUpdates");
+    Method bootstrapRepoVersionForHDP21 = UpgradeCatalog213.class.getDeclaredMethod("bootstrapRepoVersionForHDP21");
 
     final UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+      .addMockedMethod(executeStackUpgradeDDLUpdates)
+      .addMockedMethod(bootstrapRepoVersionForHDP21)
       .addMockedMethod(executeStackPreDMLUpdates).createMock();
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
@@ -421,6 +417,12 @@ public class UpgradeCatalog213Test {
     });
 
     upgradeCatalog213.executeUpgradePreDMLUpdates();
+    expectLastCall().once();
+
+    upgradeCatalog213.executeStackUpgradeDDLUpdates();
+    expectLastCall().once();
+
+    upgradeCatalog213.bootstrapRepoVersionForHDP21();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
