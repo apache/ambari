@@ -121,7 +121,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
-  protected static final String UPGRADE_TYPE = "Upgrade/type";
+  protected static final String UPGRADE_TYPE = "Upgrade/upgrade_type";
   protected static final String UPGRADE_PACK = "Upgrade/pack";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
@@ -472,7 +472,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ResourceImpl resource = new ResourceImpl(Resource.Type.Upgrade);
 
     setResourceProperty(resource, UPGRADE_CLUSTER_NAME, clusterName, requestedIds);
-    setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType().toString(), requestedIds);
+    setResourceProperty(resource, UPGRADE_TYPE, entity.getUpgradeType(), requestedIds);
     setResourceProperty(resource, UPGRADE_PACK, entity.getUpgradePackage(), requestedIds);
     setResourceProperty(resource, UPGRADE_REQUEST_ID, entity.getRequestId(), requestedIds);
     setResourceProperty(resource, UPGRADE_FROM_VERSION, entity.getFromVersion(), requestedIds);
