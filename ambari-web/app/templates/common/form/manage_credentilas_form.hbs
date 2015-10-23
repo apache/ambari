@@ -16,8 +16,10 @@
 * limitations under the License.
 }}
 
-
 <form class="form-horizontal">
+  <p class="alert alert-info">
+    {{view.formHeader}}
+  </p>
   <div class="control-group">
     <label class="control-label">{{t popup.invalid.KDC.admin.principal}}</label>
     <div class="controls">
@@ -28,31 +30,6 @@
     <label class="control-label">{{t popup.invalid.KDC.admin.password}}</label>
     <div class="controls">
       {{view Ember.TextField type="password" valueBinding="view.password" class="form-control"}}
-    </div>
-  </div>
-  <div class="control-group">
-    <span class="control-label"></span>
-    <div class="controls">
-      {{#if App.supports.storeKDCCredentials}}
-        <label>
-          {{view Ember.Checkbox checkedBinding="view.storeCredentials" disabledBinding="view.checkboxDisabled" classNames="pull-left"}}
-          <span {{bindAttr class=":mls view.checkboxDisabled:muted"}}>
-            {{t admin.kerberos.credentials.store.label}}
-            <a class="icon-question-sign icon-blue" rel="tooltip" href="javascript:void(null);" data-toggle="tooltip" {{bindAttr data-original-title="view.hintMessage"}}><a/>
-          </span>
-        </label>
-      {{/if}}
-    </div>
-  </div>
-  <div class="control-group">
-    <span class="control-label"></span>
-    <div class="controls">
-      <button {{bindAttr class=":btn :btn-danger :pull-left view.isRemovable::hidden" disabled="view.isRemoveDisabled"}} {{action removeKDCCredentials target="view"}}>
-        <i class="icon-remove-circle"></i> {{t common.remove}}</button>
-      <div {{bindAttr class=":spinner :mll :pull-left view.isActionInProgress::hide"}}></div>
-      {{#if view.actionStatus}}
-        <span class="pull-left lh-btn mll text-success">{{view.actionStatus}}</span>
-      {{/if}}
     </div>
   </div>
 </form>

@@ -1043,6 +1043,8 @@ Em.I18n.translations = {
   'admin.kerberos.credentials.store.hint.not.supported': 'Ambari is not configured for storing credentials',
   'admin.kerberos.credentials.store.label': 'Save Admin Credentials',
   'admin.kerberos.credentials.store.menu.label': 'Manage KDC Credentials',
+  'admin.kerberos.credentials.form.header.stored': 'Update or remove the stored KDC Credentials in the encrypted credential store.',
+  'admin.kerberos.credentials.form.header.not.stored': 'Specify the KDC Admin Credentials to remember in the encrypted credential store.',
   'admin.kerberos.credentials.remove.confirmation.header': 'Remove KDC Credentials Confirmation',
   'admin.kerberos.credentials.remove.confirmation.body': 'You are about to remove the KDC Credentials from Ambari. Are you sure?',
   'admin.kerberos.wizard.configuration.note': 'This is the initial configuration created by Enable Kerberos wizard.',

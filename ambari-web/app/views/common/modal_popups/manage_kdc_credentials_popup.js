@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var credentialsUtils = require('utils/credentials');
 
 /**
  * @return {*}
@@ -27,6 +26,14 @@ App.showManageCredentialsPopup = function () {
     header: Em.I18n.t('admin.kerberos.credentials.store.menu.label'),
     bodyClass: App.ManageCredentialsFormView,
     primary: Em.I18n.t('common.save'),
+
+    thirdClass: 'pull-left btn-danger',
+    third: function() {
+      return this.get('formView.isRemovable') ?
+        Em.I18n.t('common.remove') :
+        null;
+    }.property('formView.isRemovable'),
+
     isCredentialsRemoved: false,
 
     disablePrimary: function() {
@@ -37,12 +44,6 @@ App.showManageCredentialsPopup = function () {
       return this.get('childViews').findProperty('viewName', 'manageCredentialsForm');
     }.property(),
 
-    credentialsRemoveObserver: function() {
-      if (this.get('isCredentialsRemoved')) {
-        this.hide();
-      }
-    }.observes('isCredentialsRemoved'),
-
     onPrimary: function() {
       var self = this;
       var formView = this.get('formView');
@@ -52,6 +53,15 @@ App.showManageCredentialsPopup = function () {
         });
       } else {
         this.hide();
+      }
+    },
+
+    onThird: function() {
+      var self = this;
+      if (this.get('formView')) {
+        this.get('formView').removeKDCCredentials().deferred.always(function() {
+          self.hide();
+        });
       }
     }
   });
