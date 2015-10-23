@@ -1613,7 +1613,7 @@ var urls = {
         data: JSON.stringify({
           "Upgrade": {
             "repository_version": data.value,
-            "type": data.type,
+            "upgrade_type": data.type,
             "skip_failures": data.skipComponentFailures,
             "skip_service_check_failures": data.skipSCFailures
           }
