@@ -36,6 +36,7 @@ App.ModalPopup = Ember.View.extend({
   disableThird: false,
   primaryClass: 'btn-success',
   secondaryClass: '',
+  thirdClass: '',
   onPrimary: function () {
     this.hide();
   },
