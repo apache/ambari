@@ -188,7 +188,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       }
 
       return VersionUtils.compareVersions(upgradeCatalog1.getTargetVersion(),
-        upgradeCatalog2.getTargetVersion(), 3);
+        upgradeCatalog2.getTargetVersion(), 4);
     }
   }
 
