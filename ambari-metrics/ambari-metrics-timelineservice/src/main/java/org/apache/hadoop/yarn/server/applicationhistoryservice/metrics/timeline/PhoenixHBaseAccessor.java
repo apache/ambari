@@ -109,7 +109,7 @@ public class PhoenixHBaseAccessor {
 
   private static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
   private static ObjectMapper mapper = new ObjectMapper();
-  private static TypeReference<Map<Long, Double>> metricValuesTypeRef = new TypeReference<Map<Long, Double>>() {};
+  private static TypeReference<TreeMap<Long, Double>> metricValuesTypeRef = new TypeReference<TreeMap<Long, Double>>() {};
 
   private final Configuration hbaseConf;
   private final Configuration metricsConf;
