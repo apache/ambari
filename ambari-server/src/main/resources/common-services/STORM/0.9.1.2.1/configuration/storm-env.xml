@@ -32,11 +32,17 @@
     <name>storm_log_dir</name>
     <value>/var/log/storm</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm_pid_dir</name>
     <value>/var/run/storm</value>
     <description></description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>jmxremote_port</name>
@@ -69,5 +75,11 @@ export STORM_HOME={{storm_component_home_dir}}
      <value>false</value>
      <description></description>
    </property>
+   <property>
+     <name>storm_logs_supported</name>
+     <value>false</value>
+     <description></description>
+   </property>
+
 
 </configuration>

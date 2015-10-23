@@ -48,7 +48,7 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>snapshot</function>
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
@@ -790,6 +790,12 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
+          
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
+          
+          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_cluster_logs_content"/>
+          
+          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_worker_logs_content"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
 

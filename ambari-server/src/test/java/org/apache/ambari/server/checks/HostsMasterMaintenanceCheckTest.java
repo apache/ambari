@@ -65,6 +65,10 @@ public class HostsMasterMaintenanceCheckTest {
     HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
     hmmc2.config = config;
     Assert.assertTrue(hmmc2.isApplicable(request));
+    request.setRepositoryVersion(null);
+
+    hmmc2.config = config;
+    Assert.assertFalse(hmmc2.isApplicable(request));
   }
 
   @Test

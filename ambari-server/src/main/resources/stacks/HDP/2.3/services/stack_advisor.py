@@ -238,14 +238,27 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
 
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
+
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+      rangerPluginEnabled = ''
+      if 'ranger-hdfs-plugin-properties' in configurations and 'ranger-hdfs-plugin-enabled' in  configurations['ranger-hdfs-plugin-properties']['properties']:
+        rangerPluginEnabled = configurations['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
+      elif 'ranger-hdfs-plugin-properties' in services['configurations'] and 'ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']:
+        rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
+
+      if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putHdfsSiteProperty("dfs.namenode.inode.attributes.provider.class",'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer')
+      else:
+        putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
+    else:
+      putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
 
   def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
+    core_site = services["configurations"]["core-site"]["properties"]
     putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
+    putKafkaLog4jProperty = self.putProperty(configurations, "kafka-log4j", services)
+    putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
     if "ranger-env" in services["configurations"] and "ranger-kafka-plugin-properties" in services["configurations"] and \
         "ranger-kafka-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
@@ -253,17 +266,75 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       rangerEnvKafkaPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-kafka-plugin-enabled"]
       putKafkaRangerPluginProperty("ranger-kafka-plugin-enabled", rangerEnvKafkaPluginProperty)
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-kafka-plugin-properties' in services['configurations'] and ('ranger-kafka-plugin-enabled' in services['configurations']['ranger-kafka-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
+      kafkaLog4jRangerLines = [{
+        "name": "log4j.appender.rangerAppender",
+        "value": "org.apache.log4j.DailyRollingFileAppender"
+        },
+        {
+          "name": "log4j.appender.rangerAppender.DatePattern",
+          "value": "'.'yyyy-MM-dd-HH"
+        },
+        {
+          "name": "log4j.appender.rangerAppender.File",
+          "value": "${kafka.logs.dir}/ranger_kafka.log"
+        },
+        {
+          "name": "log4j.appender.rangerAppender.layout",
+          "value": "org.apache.log4j.PatternLayout"
+        },
+        {
+          "name": "log4j.appender.rangerAppender.layout.ConversionPattern",
+          "value": "%d{ISO8601} %p [%t] %C{6} (%F:%L) - %m%n"
+        },
+        {
+          "name": "log4j.logger.org.apache.ranger",
+          "value": "INFO, rangerAppender"
+        }]
+
+      rangerPluginEnabled=''
+      if 'ranger-kafka-plugin-properties' in configurations and 'ranger-kafka-plugin-enabled' in  configurations['ranger-kafka-plugin-properties']['properties']:
+        rangerPluginEnabled = configurations['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
+      elif 'ranger-kafka-plugin-properties' in services['configurations'] and 'ranger-kafka-plugin-enabled' in services['configurations']['ranger-kafka-plugin-properties']['properties']:
+        rangerPluginEnabled = services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled']
+
+      if  rangerPluginEnabled and rangerPluginEnabled.lower() == "Yes".lower():
+        # recommend authorizer.class.name
         putKafkaBrokerProperty("authorizer.class.name", 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer')
+        # change kafka-log4j when ranger plugin is installed
+
+        if 'kafka-log4j' in services['configurations'] and 'content' in services['configurations']['kafka-log4j']['properties']:
+          kafkaLog4jContent = services['configurations']['kafka-log4j']['properties']['content']
+          for item in range(len(kafkaLog4jRangerLines)):
+            if kafkaLog4jRangerLines[item]["name"] not in kafkaLog4jContent:
+              kafkaLog4jContent+= '\n' + kafkaLog4jRangerLines[item]["name"] + '=' + kafkaLog4jRangerLines[item]["value"]
+          putKafkaLog4jProperty("content",kafkaLog4jContent)
+
+
+      else:
+      # Cluster is kerberized
+        if 'hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos' and \
+          services['configurations']['kafka-broker']['properties']['authorizer.class.name'] == 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer':
+          putKafkaBrokerProperty("authorizer.class.name", 'kafka.security.auth.SimpleAclAuthorizer')
+        else:
+          putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
+      # Cluster with Ranger is not kerberized
+    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
+      putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
+
+
+
+    # Cluster without Ranger is not kerberized
+    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
+      putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
+
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     putRangerAdminProperty = self.putProperty(configurations, "ranger-admin-site", services)
     putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
+    putRangerUgsyncSite = self.putProperty(configurations, "ranger-ugsync-site", services)
 
     if 'admin-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['admin-properties']['properties'])\
       and ('db_host' in services['configurations']['admin-properties']['properties']) and ('db_name' in services['configurations']['admin-properties']['properties']):
@@ -297,6 +368,29 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerPrivelegeDbProperties = ranger_db_privelege_url_dict.get(rangerDbFlavor, ranger_db_privelege_url_dict['MYSQL'])
         for key in rangerPrivelegeDbProperties:
           putRangerEnvProperty(key, rangerPrivelegeDbProperties.get(key))
+
+    # Recommend ldap settings based on ambari.properties configuration
+    if 'ambari-server-properties' in services and \
+        'ambari.ldap.isConfigured' in services['ambari-server-properties'] and \
+        services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
+      serverProperties = services['ambari-server-properties']
+      if 'authentication.ldap.baseDn' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.searchBase', serverProperties['authentication.ldap.baseDn'])
+      if 'authentication.ldap.groupMembershipAttr' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.memberattributename', serverProperties['authentication.ldap.groupMembershipAttr'])
+      if 'authentication.ldap.groupNamingAttr' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.nameattribute', serverProperties['authentication.ldap.groupNamingAttr'])
+      if 'authentication.ldap.groupObjectClass' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.group.objectclass', serverProperties['authentication.ldap.groupObjectClass'])
+      if 'authentication.ldap.managerDn' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.binddn', serverProperties['authentication.ldap.managerDn'])
+      if 'authentication.ldap.primaryUrl' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.url', serverProperties['authentication.ldap.primaryUrl'])
+      if 'authentication.ldap.userObjectClass' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.user.objectclass', serverProperties['authentication.ldap.userObjectClass'])
+      if 'authentication.ldap.usernameAttribute' in serverProperties:
+        putRangerUgsyncSite('ranger.usersync.ldap.user.nameattribute', serverProperties['authentication.ldap.usernameAttribute'])
+
 
     # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
     include_hdfs = "HDFS" in servicesList
@@ -346,11 +440,24 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
     if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
         "ranger-yarn-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putYarnRangerPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
       rangerEnvYarnPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-yarn-plugin-enabled"]
       putYarnRangerPluginProperty("ranger-yarn-plugin-enabled", rangerEnvYarnPluginProperty)
+    rangerPluginEnabled = ''
+    if 'ranger-yarn-plugin-properties' in configurations and 'ranger-yarn-plugin-enabled' in  configurations['ranger-yarn-plugin-properties']['properties']:
+      rangerPluginEnabled = configurations['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled']
+    elif 'ranger-yarn-plugin-properties' in services['configurations'] and 'ranger-yarn-plugin-enabled' in services['configurations']['ranger-yarn-plugin-properties']['properties']:
+      rangerPluginEnabled = services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled']
+
+    if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+      putYarnSiteProperty('yarn.acl.enable','true')
+      putYarnSiteProperty('yarn.authorization-provider','org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer')
+    else:
+      putYarnSitePropertyAttributes('yarn.authorization-provider', 'delete', 'true')
 
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()

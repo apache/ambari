@@ -35,6 +35,7 @@
       directories, for redundancy. </description>
     <final>true</final>
     <value-attributes>
+      <type>directories</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -53,6 +54,7 @@
     <description>Whether to enable WebHDFS feature</description>
     <final>true</final>
     <value-attributes>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -88,6 +90,9 @@
       Directories that do not exist are ignored.
     </description>
     <final>true</final>
+    <value-attributes>
+      <type>directories</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -120,6 +125,7 @@
       replicated in all of the directories for redundancy.
     </description>
     <value-attributes>
+      <type>directories</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -142,6 +148,7 @@
     <display-name>HDFS Maximum Checkpoint Delay</display-name>
     <description>The number of seconds between two periodic checkpoints.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -168,6 +175,9 @@
     <display-name>Block replication</display-name>
     <description>Default block replication.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -264,6 +274,7 @@
     <description>Reserved space in bytes per volume. Always leave this much space free for non dfs use.
     </description>
     <value-attributes>
+      <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
   </property>
@@ -367,6 +378,9 @@
       directories. The datanode will not come up if the permissions are
       different on existing dfs.datanode.data.dir directories. If the directories
       don't exist, they will be created with this permission.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -377,6 +391,9 @@
       The default value is 1 hour. Setting a value of 0 disables
       access times for HDFS.
     </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -445,6 +462,9 @@
     <description>
       This configuration parameter turns on short-circuit local reads.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

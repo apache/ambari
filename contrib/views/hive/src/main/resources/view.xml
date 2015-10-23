@@ -45,6 +45,36 @@
     </parameter>
 
     <parameter>
+        <name>hive.http.port</name>
+        <description>HiveServer2 Http port (example: 10001).</description>
+        <label>HiveServer2 Http port</label>
+        <placeholder>10001</placeholder>
+        <default-value>10001</default-value>
+        <cluster-config>hive-site/hive.server2.thrift.http.port</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.http.path</name>
+        <description>HiveServer2 Http path (example: cliservice).</description>
+        <label>HiveServer2 Http path</label>
+        <placeholder>cliservice</placeholder>
+        <default-value>cliservice</default-value>
+        <cluster-config>hive-site/hive.server2.thrift.http.path</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>hive.transport.mode</name>
+        <description>HiveServer2 Transport Mode (example: http/binary).</description>
+        <label>HiveServer2 Transport Mode</label>
+        <placeholder>binary</placeholder>
+        <default-value>binary</default-value>
+        <cluster-config>hive-site/hive.server2.transport.mode</cluster-config>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
       <name>hive.auth</name>
       <description>Semicolon-separated authentication configs.</description>
       <label>Hive Authentication</label>

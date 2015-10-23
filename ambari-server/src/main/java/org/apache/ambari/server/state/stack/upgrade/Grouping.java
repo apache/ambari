@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.xml.bind.annotation.XmlAttribute;
@@ -84,24 +85,26 @@ public class Grouping {
      * @param hostsType the order collection of hosts, which may have a master and secondary
      * @param service the service name
      * @param pc the ProcessingComponent derived from the upgrade pack.
+     * @param params additional parameters
      */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-       boolean clientOnly, ProcessingComponent pc) {
+       boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
 
       boolean forUpgrade = ctx.getDirection().isUpgrade();
 
       // Construct the pre tasks during Upgrade/Downgrade direction.
       List<TaskBucket> buckets = buckets(resolveTasks(forUpgrade, true, pc));
       for (TaskBucket bucket : buckets) {
-        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
+        List<TaskWrapper> preTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
         Set<String> preTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(preTasks);
         if (!preTasksEffectiveHosts.isEmpty()) {
           StageWrapper stage = new StageWrapper(
               bucket.type,
               getStageText("Preparing", ctx.getComponentDisplay(service, pc.name), preTasksEffectiveHosts),
+              params,
               preTasks
-              );
+          );
           m_stages.add(stage);
         }
       }
@@ -109,25 +112,36 @@ public class Grouping {
       // Add the processing component
       if (null != pc.tasks && 1 == pc.tasks.size()) {
         Task t = pc.tasks.get(0);
-
-        for (String hostName : hostsType.hosts) {
+        if(scheduleInParallel) {
+          // Create single stage for all
           StageWrapper stage = new StageWrapper(
               t.getStageWrapperType(),
-              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
-              new TaskWrapper(service, pc.name, Collections.singleton(hostName), t));
+              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), hostsType.hosts),
+              params,
+              new TaskWrapper(service, pc.name, hostsType.hosts, params, t));
           m_stages.add(stage);
+        } else {
+          for (String hostName : hostsType.hosts) {
+            StageWrapper stage = new StageWrapper(
+                t.getStageWrapperType(),
+                getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
+                params,
+                new TaskWrapper(service, pc.name, Collections.singleton(hostName), params, t));
+            m_stages.add(stage);
+          }
         }
       }
 
       // Construct the post tasks during Upgrade/Downgrade direction.
       buckets = buckets(resolveTasks(forUpgrade, false, pc));
       for (TaskBucket bucket : buckets) {
-        List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks);
+        List<TaskWrapper> postTasks = TaskWrapperBuilder.getTaskList(service, pc.name, hostsType, bucket.tasks, params);
         Set<String> postTasksEffectiveHosts = TaskWrapperBuilder.getEffectiveHosts(postTasks);
         if (!postTasksEffectiveHosts.isEmpty()) {
           StageWrapper stage = new StageWrapper(
               bucket.type,
               getStageText("Completing", ctx.getComponentDisplay(service, pc.name), postTasksEffectiveHosts),
+              params,
               postTasks
               );
           m_stages.add(stage);

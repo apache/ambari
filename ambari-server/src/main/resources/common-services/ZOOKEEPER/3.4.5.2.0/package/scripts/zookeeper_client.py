@@ -37,13 +37,13 @@ class ZookeeperClient(Script):
     zookeeper(type='client')
     pass
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
     pass
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     pass
@@ -60,8 +60,8 @@ class ZookeeperClientLinux(ZookeeperClient):
     self.install_packages(env)
     self.configure(env)
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 

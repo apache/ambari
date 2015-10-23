@@ -56,6 +56,7 @@ App.isStormMetricsSupported = true;
 App.healthStatusRed = '#ff0000';
 App.healthStatusGreen = '#5AB400';
 App.healthStatusOrange = '#FF8E00';
+App.inactivityRemainTime = 60; // in seconds
 
 App.stackVersionsAvailable = true;
 

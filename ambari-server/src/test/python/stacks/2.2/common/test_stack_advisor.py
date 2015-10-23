@@ -2271,6 +2271,9 @@ class TestHDP22StackAdvisor(TestCase):
     services = {
       "services" : [
       ],
+      "Versions": {
+        "stack_version": "2.2"
+      },
       "configurations": {
         "hbase-env": {
           "properties": {
@@ -2285,7 +2288,13 @@ class TestHDP22StackAdvisor(TestCase):
             "hbase.bucketcache.ioengine": "",
             "hbase.bucketcache.size": "",
             "hbase.bucketcache.percentage.in.combinedcache": "",
-            "hbase.coprocessor.regionserver.classes": ""
+            "hbase.coprocessor.regionserver.classes": "",
+            "hbase.coprocessor.region.classes": ""
+          }
+        },
+        "ranger-hbase-plugin-properties": {
+          "properties": {
+            "ranger-hbase-plugin-enabled" : "No"
           }
         }
       }
@@ -2331,7 +2340,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # Test when phoenix_sql_enabled = true
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test when Phoenix sql is enabled")
 
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
@@ -2340,7 +2349,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['property_attributes']['hbase.coprocessor.regionserver.classes'] = {'delete': 'true'}
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test when Phoenix sql is disabled")
 
     # Test hbase_master_heapsize maximum
     hosts['items'][0]['Hosts']['host_name'] = 'host1'
@@ -2375,27 +2384,53 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'] = {'delete': 'true'}
     expected['hbase-env']['property_attributes']['hbase_master_heapsize'] = {'maximum': '49152'}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test with Phoenix disabled")
 
     # Test when hbase.security.authentication = kerberos
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test with Kerberos enabled")
 
     # Test when hbase.security.authentication = simple
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'simple'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test with Kerberos disabled")
+
+    # Test when Ranger plugin HBase is enabled in non-kerberos environment
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.master.classes', None)
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.regionserver.classes', None)
+    services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'simple'
+    services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+
+    expected['hbase-site']['properties']['hbase.security.authorization'] = "true"
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)     #"Test when Ranger plugin HBase is enabled in non-kerberos environment"
 
     # Test when hbase.security.authentication = kerberos AND class already there
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.master.classes', None)
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.regionserver.classes', None)
+    configurations['hbase-site']['properties'].pop('hbase.security.authorization', None)
+    services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'No'
+    services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
+    expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    del expected['hbase-site']['properties']['hbase.security.authorization']
+    del expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes']
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test with Kerberos enabled and hbase.coprocessor.region.classes predefined")
 
     # Test when hbase.security.authentication = kerberos AND authorization = true
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2406,7 +2441,20 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)
+    self.assertEquals(configurations, expected, "Test with Kerberos enabled and authorization is true")
+
+    # Test when Ranger plugin HBase is enabled in kerberos environment
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
+    services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
+    services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
+    expected['hbase-site']['properties']['hbase.security.authorization']  = 'true'
+    expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected, "Test with Kerberos enabled and HBase ranger plugin enabled")
 
     # Test - default recommendations should have certain configs deleted. HAS TO BE LAST TEST.
     services["configurations"] = {"hbase-site": {"properties": {"phoenix.functions.allowUserDefinedFunctions": '', "hbase.rpc.controllerfactory.class": ''}}}
@@ -2415,6 +2463,70 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations['hbase-site']['property_attributes']['phoenix.functions.allowUserDefinedFunctions'], {'delete': 'true'})
     self.assertEquals(configurations['hbase-site']['property_attributes']['hbase.rpc.controllerfactory.class'], {'delete': 'true'})
     self.assertEquals(configurations['hbase-site']['properties']['hbase.regionserver.wal.codec'], "org.apache.hadoop.hbase.regionserver.wal.WALCellCodec")
+
+
+  def test_recommendStormConfigurations(self):
+    configurations = {}
+    clusterData = {}
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "STORM",
+              "service_version" : "2.6.0.2.2"
+            }
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.2"
+      },
+      "configurations": {
+        "core-site": {
+          "properties": { },
+        },
+        "storm-site": {
+          "properties": {
+            "nimbus.authorizer" : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer"
+          },
+          "property_attributes": {}
+        },
+        "ranger-storm-plugin-properties": {
+          "properties": {
+            "ranger-storm-plugin-enabled": "No"
+          }
+        }
+      }
+    }
+
+    # Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin disabled in non-kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['property_attributes']['nimbus.authorizer'], {'delete': 'true'}, "Test nimbus.authorizer with Ranger Storm plugin enabled in non-kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin being enabled in kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['storm-site']['properties']['nimbus.authorizer'] = ''
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
+    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
+
+    # Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment
+    configurations['storm-site']['properties'] = {}
+    configurations['storm-site']['property_attributes'] = {}
+    services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'No'
+    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
+    self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
 
 
   def test_recommendHDFSConfigurations(self):
@@ -2916,7 +3028,35 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
     self.assertEquals(res, res_expected)
 
-    pass
+    # 2) fail: hive_security_authorization=Ranger but ranger plugin is disabled in ranger-env
+    properties = {"hive_security_authorization": "Ranger"}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hive-plugin-enabled":"No",
+        }
+      },
+      "hive-env":{
+        "properties":{
+          "hive_security_authorization": "Ranger",
+        }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    services['configurations']['ranger-env']['properties']['ranger-hive-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'hive-env',
+                     'message': 'ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger',
+                     'type': 'configuration',
+                     'config-name': 'hive_security_authorization',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
@@ -3137,3 +3277,220 @@ class TestHDP22StackAdvisor(TestCase):
     }
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+  def test_validateHDFSRangerPluginConfigurations(self):
+    configurations = {}
+      # 1) ok: ranger plugin is enabled in ranger-env and ranger-hdfs-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hdfs-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-hdfs-plugin-properties":{
+        "properties":{
+          "ranger-hdfs-plugin-enabled":"Yes",
+        }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-hdfs-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-hdfs-plugin-properties',
+                     'message': 'ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled must correspond ranger-env/ranger-hdfs-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-hdfs-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHDFSRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateYARNRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-yarn-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-yarn-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-yarn-plugin-properties":{
+        "properties":{
+          "ranger-yarn-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-yarn-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-yarn-plugin-properties',
+                     'message': 'ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled must correspond ranger-env/ranger-yarn-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-yarn-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateYARNRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateHBASERangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-hbase-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-hbase-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-hbase-plugin-properties":{
+        "properties":{
+          "ranger-hbase-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-hbase-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-hbase-plugin-properties',
+                     'message': 'ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled must correspond ranger-env/ranger-hbase-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-hbase-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateHBASERangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateKnoxRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-knox-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-knox-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-knox-plugin-properties":{
+        "properties":{
+          "ranger-knox-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-knox-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-knox-plugin-properties',
+                     'message': 'ranger-knox-plugin-properties/ranger-knox-plugin-enabled must correspond ranger-env/ranger-knox-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-knox-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateKnoxRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateKafkaRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-kafka-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-kafka-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-kafka-plugin-properties":{
+        "properties":{
+          "ranger-kafka-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-kafka-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-kafka-plugin-properties',
+                     'message': 'ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled must correspond ranger-env/ranger-kafka-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-kafka-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateKafkaRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+  def test_validateStormRangerPluginConfigurations(self):
+    configurations = {}
+    # 1) ok: ranger plugin is enabled in ranger-env and ranger-storm-plugin-properties
+    recommendedDefaults = {}
+    properties = {}
+    configurations = {
+      "ranger-env":{
+        "properties":{
+          "ranger-storm-plugin-enabled":"Yes",
+          }
+      },
+      "ranger-storm-plugin-properties":{
+        "properties":{
+          "ranger-storm-plugin-enabled":"Yes",
+          }
+      }
+    }
+    services = {
+      "configurations": configurations
+    }
+    res_expected = []
+
+    res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    # 2) fail: ranger plugin is disabled in ranger-env
+    services['configurations']['ranger-env']['properties']['ranger-storm-plugin-enabled'] = 'No'
+    res_expected = [{'config-type': 'ranger-storm-plugin-properties',
+                     'message': 'ranger-storm-plugin-properties/ranger-storm-plugin-enabled must correspond ranger-env/ranger-storm-plugin-enabled',
+                     'type': 'configuration',
+                     'config-name': 'ranger-storm-plugin-enabled',
+                     'level': 'WARN'}]
+
+    res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+

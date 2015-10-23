@@ -22,10 +22,12 @@
         {{#isAccessible ADMIN}}
           <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
           {{#unless isManualKerberos}}
-            <button class="btn btn-success" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
+            <button class="btn btn-success" id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
               <i class="icon-repeat"></i> {{t admin.kerberos.button.regenerateKeytabs}}</button>
             {{#if App.supports.storeKDCCredentials}}
-              <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
+              {{#if App.isCredentialStorePersistent}}
+                <button class="btn btn-primary" {{action showManageKDCCredentialsPopup target="controller"}}>{{t admin.kerberos.credentials.store.menu.label}}</button>
+              {{/if}}
             {{/if}}
           {{/unless}}
           <br/>

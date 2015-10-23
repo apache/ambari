@@ -65,6 +65,11 @@ public class HostsRepositoryVersionCheckTest {
     HostsRepositoryVersionCheck hrvc2 = new HostsRepositoryVersionCheck();
     hrvc2.config = config;
     Assert.assertTrue(hrvc2.isApplicable(request));
+    request.setRepositoryVersion(null);
+
+    HostsMasterMaintenanceCheck hmmc2 = new HostsMasterMaintenanceCheck();
+    hmmc2.config = config;
+    Assert.assertFalse(hmmc2.isApplicable(request));
   }
 
   @Test

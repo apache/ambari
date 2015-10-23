@@ -430,7 +430,11 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
           }
         }, this);
         isConditionTrue = window.eval(allConditionResult.join(''));
-        this.changeConfigAttribute(configCondition, isConditionTrue);
+        if (configCondition.get("type") === 'subsection' || configCondition.get("type") === 'subsectionTab') {
+          this.changeSubsectionAttribute(configCondition, isConditionTrue);
+        } else {
+          this.changeConfigAttribute(configCondition, isConditionTrue);
+        }
       } else if (configCondition.get("resource") === 'service') {
         var service = App.Service.find().findProperty('serviceName', ifStatement);
         var serviceName;
@@ -449,7 +453,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
   /**
    *
-   * @param configCondition {App.ConfigCondition}
+   * @param configCondition {App.ThemeCondition}
    * @param isConditionTrue {boolean}
    */
   changeConfigAttribute: function(configCondition, isConditionTrue) {
@@ -466,6 +470,29 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         if (conditionalConfig) {
           conditionalConfig.set(valueAttribute, valueAttributes[key]);
         }
+      }
+    }
+  },
+
+  /**
+   *
+   * @param subsectionCondition {App.ThemeCondition}
+   * @param isConditionTrue {boolean}
+   */
+  changeSubsectionAttribute: function(subsectionCondition, isConditionTrue) {
+    var subsectionConditionName = subsectionCondition.get('name');
+    var action = isConditionTrue ? subsectionCondition.get("then") : subsectionCondition.get("else");
+    if (subsectionCondition.get('id')) {
+      var valueAttributes = action.property_value_attributes;
+      if (valueAttributes && !Em.none(valueAttributes['visible'])) {
+        var themeResource;
+        if (subsectionCondition.get('type') === 'subsection') {
+          themeResource = App.SubSection.find().findProperty('name', subsectionConditionName);
+        } else if (subsectionCondition.get('type') === 'subsectionTab') {
+          themeResource = App.SubSectionTab.find().findProperty('name', subsectionConditionName);
+        }
+        themeResource.set('isHiddenByConfig', !valueAttributes['visible']);
+        themeResource.get('configs').setEach('hiddenBySection', !valueAttributes['visible']);
       }
     }
   },

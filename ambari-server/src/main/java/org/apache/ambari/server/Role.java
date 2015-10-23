@@ -113,6 +113,12 @@ public class Role {
   public static final Role METRICS_MONITOR = valueOf("METRICS_MONITOR");
   public static final Role AMS_SERVICE_CHECK = valueOf("AMBARI_METRICS_SERVICE_CHECK");
   public static final Role ACCUMULO_CLIENT = valueOf("ACCUMULO_CLIENT");
+  public static final Role RANGER_ADMIN  = valueOf("RANGER_ADMIN");
+  public static final Role RANGER_USERSYNC = valueOf("RANGER_USERSYNC");
+  public static final Role KNOX_GATEWAY = valueOf("KNOX_GATEWAY");
+  public static final Role KAFKA_BROKER = valueOf("KAFKA_BROKER");
+  public static final Role NIMBUS = valueOf("NIMBUS");
+  public static final Role RANGER_KMS_SERVER = valueOf("RANGER_KMS_SERVER");
   public static final Role INSTALL_PACKAGES = valueOf("install_packages");
   public static final Role UPDATE_REPO = valueOf("update_repo");
 

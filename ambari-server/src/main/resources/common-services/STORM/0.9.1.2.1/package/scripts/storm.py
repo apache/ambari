@@ -106,7 +106,17 @@ def storm(name=None):
     owner=params.storm_user,
     content=InlineTemplate(params.storm_env_sh_template)
   )
-
+  
+  if params.storm_logs_supported:
+    File(format("{log4j_dir}/cluster.xml"),
+      owner=params.storm_user,
+      content=InlineTemplate(params.storm_cluster_log4j_content)
+    )
+    File(format("{log4j_dir}/worker.xml"),
+      owner=params.storm_user,
+      content=InlineTemplate(params.storm_worker_log4j_content)
+    )
+  
   if params.security_enabled:
     TemplateConfig(format("{conf_dir}/storm_jaas.conf"),
                    owner=params.storm_user

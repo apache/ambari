@@ -31,6 +31,9 @@
     <value>15000</value>
     <display-name>Falcon server port</display-name>
     <description>Port the Falcon Server listens on.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>falcon_log_dir</name>
@@ -38,6 +41,7 @@
     <display-name>Falcon Log Dir</display-name>
     <description>Falcon log directory.</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -48,6 +52,7 @@
     <display-name>Falcon PID Dir</display-name>
     <description>Falcon pid-file directory.</description>
     <value-attributes>
+      <type>directory</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -57,6 +62,9 @@
     <value>/hadoop/falcon</value>
     <display-name>Falcon data directory</display-name>
     <description>Directory where Falcon data, such as activemq data, is stored.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>falcon_store_uri</name>
@@ -70,6 +78,7 @@
     <value>/hadoop/falcon/embeddedmq/data</value>
     <description>Directory in which embeddedmq data is stored.</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

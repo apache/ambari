@@ -94,6 +94,14 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('content.installOptions.sshUser'),
 
   /**
+   * "Shortcut" to <code>content.installOptions.sshPort</code>
+   * @type {string}
+   */
+  sshPort: function () {
+    return this.get('content.installOptions.sshPort');
+  }.property('content.installOptions.sshPort'),
+
+  /**
    * "Shortcut" to <code>content.installOptions.agentUser</code>
    * @type {string}
    */
@@ -148,6 +156,17 @@ App.WizardStep2Controller = Em.Controller.extend({
   }.property('sshUser', 'useSSH', 'hasSubmitted', 'manualInstall'),
 
   /**
+   * Error-message if <code>sshPort</code> is empty, null otherwise
+   * @type {string|null}
+   */
+  sshPortError: function () {
+    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshPort').trim() ))  {
+      return Em.I18n.t('installer.step2.sshPort.required');
+    }
+    return null;
+  }.property('sshPort', 'useSSH', 'hasSubmitted', 'manualInstall'),
+
+  /**
    * Error-message if <code>agentUser</code> is empty, null otherwise
    * @type {string|null}
    */
@@ -163,8 +182,8 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError') || this.get('agentUserError'));
-  }.property('hostsError', 'sshKeyError', 'sshUserError', 'agentUserError'),
+    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError') || this.get('sshPortError') || this.get('agentUserError'));
+  }.property('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError'),
 
   installedHostNames: function () {
     var installedHostsName = [];
@@ -292,7 +311,7 @@ App.WizardStep2Controller = Em.Controller.extend({
       this.set('hostsError', Em.I18n.t('installer.step2.hostName.error.already_installed'));
     }
 
-    if (this.get('hostsError') || this.get('sshUserError') || this.get('agentUserError') || this.get('sshKeyError')) {
+    if (this.get('hostsError') || this.get('sshUserError') || this.get('sshPortError') || this.get('agentUserError') || this.get('sshKeyError')) {
       return false;
     }
 

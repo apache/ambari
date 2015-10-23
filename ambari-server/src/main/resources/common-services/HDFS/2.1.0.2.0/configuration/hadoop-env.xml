@@ -27,6 +27,7 @@
     <description>Hadoop Log Dir Prefix</description>
     <display-name>Hadoop Log Dir Prefix</display-name>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -37,6 +38,7 @@
     <display-name>Hadoop PID Dir Prefix</display-name>
     <description>Hadoop PID Dir Prefix</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -56,6 +58,7 @@
     <description>Hadoop maximum Java heap size</description>
     <display-name>Hadoop maximum Java heap size</display-name>
     <value-attributes>
+      <type>int</type>
       <unit>MB</unit>
       <overridable>false</overridable>
     </value-attributes>

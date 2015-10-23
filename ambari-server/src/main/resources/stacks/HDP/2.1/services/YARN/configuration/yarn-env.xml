@@ -29,6 +29,7 @@
     <value-attributes>
       <overridable>false</overridable>
       <unit>MB</unit>
+      <type>int</type>
     </value-attributes>
   </property>
   

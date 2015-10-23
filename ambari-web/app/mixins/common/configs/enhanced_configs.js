@@ -183,9 +183,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param {App.ServiceConfig[]} stepConfigs
    */
   clearDependenciesForInstalledServices: function(installedServices, stepConfigs) {
-    var allConfigs = stepConfigs.mapProperty('configs').filter(function(item) {
-      return item.length;
-    }).reduce(function(p, c) {
+    var stackConfigsMap = App.StackConfigProperty.find().toArray().toMapByProperty('name');
+    var allConfigs = stepConfigs.mapProperty('configs').filterProperty('length').reduce(function(p, c) {
       if (p) {
         return p.concat(c);
       }
@@ -193,7 +192,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
       if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
-        var stackProperty = App.StackConfigProperty.find().findProperty("name", item.propertyName);
+        var stackProperty = stackConfigsMap[item.propertyName];
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
         if (!parentConfigs || !parentConfigs.length) {
           return true;
@@ -440,7 +439,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     for (var key in configObject) {
 
       /**  defines main info for file name (service name, config group, config that belongs to filename) **/
-      var service = App.config.getServiceByConfigType(key);
+      var service = App.config.get('serviceByConfigTypeMap')[key];
       var serviceName = service.get('serviceName');
       var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);
       if (stepConfig) {
@@ -451,7 +450,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
         for (var propertyName in configObject[key].properties) {
 
-          var dependentProperty = this.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', key).findProperty('configGroup', group && Em.get(group,'name'));
           var cp = configProperties.findProperty('name', propertyName);
           var override = (notDefaultGroup && group && cp && cp.get('overrides')) ? cp.get('overrides').findProperty('group.name', group.get('name')) : null;
 
@@ -463,8 +461,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             initialValue = override ? override.get('savedValue') : cp && cp.get('savedValue');
           }
 
-
-          initialValue = Em.isNone(initialValue) ? value : initialValue;
           var recommendedValue = configObject[key].properties[propertyName];
 
           var isNewProperty = (!notDefaultGroup && Em.isNone(cp)) || (notDefaultGroup && group && Em.isNone(override));
@@ -473,6 +469,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           recommendedValue = validator.isValidFloat(recommendedValue) ? parseFloat(recommendedValue).toString() : recommendedValue;
 
           if (!updateOnlyBoundaries && !parentPropertiesNames.contains(App.config.configId(propertyName, key)) && initialValue != recommendedValue) { //on first initial request we don't need to change values
+            var groupName = group && Em.get(group, 'name');
+            var dependentProperty = this.get('_dependentConfigValues').find(function (dcv) {
+              return dcv.propertyName === propertyName && dcv.fileName === key && dcv.configGroup === groupName;
+            });
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', initialValue);
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
@@ -547,6 +547,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     }
   },
 
+  installedServices: function () {
+    return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
+      return Em.get(item, 'isInstalled');
+    });
+  }.property(),
+
+  stackConfigsMap: function () {
+    return App.StackConfigProperty.find().toArray().toMapByProperty('id');
+  }.property(),
+
   /**
    * Save property attributes received from recommendations. These attributes are minimum, maximum,
    * increment_step. Attributes are stored in <code>App.StackConfigProperty</code> model.
@@ -558,14 +568,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   _saveRecommendedAttributes: function(configs, parentPropertiesNames, updateOnlyBoundaries, selectedConfigGroup) {
     var self = this;
-    var wizardController = self.get('wizardController');
+    var installedServices = this.get('installedServices');
+    var wizardController = this.get('wizardController');
     var fileNamesToUpdate = wizardController ? this.get('_fileNamesToUpdate') : [];
-    var stackConfigsMap = {};
-    App.StackConfigProperty.find().forEach(function (c) {
-      stackConfigsMap[c.get('id')] = c;
-    });
+    var stackConfigsMap = this.get('stackConfigsMap');
     Em.keys(configs).forEach(function (siteName) {
-      var service = App.config.getServiceByConfigType(siteName);
+      var fileName = App.config.getOriginalFileName(siteName);
+      var service = App.config.get('serviceByConfigTypeMap')[siteName];
       var serviceName = service.get('serviceName');
       var group = self.getGroupForService(serviceName);
       var stepConfig = self.get('stepConfigs').findProperty('serviceName', serviceName);
@@ -578,9 +587,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete' && cp) {
             if (!updateOnlyBoundaries) {
-              var fileName = App.config.getOriginalFileName(siteName);
               var modifiedFileNames = self.get('modifiedFileNames');
-              var dependentProperty = self.get('_dependentConfigValues').filterProperty('propertyName', propertyName).filterProperty('fileName', siteName).findProperty('configGroup', group && Em.get(group,'name'));
+              var groupName = group && Em.get(group,'name');
+              var dependentProperty = self.get('_dependentConfigValues').find(function (dcv) {
+                return dcv.propertyName === propertyName && dcv.fileName === siteName && dcv.configGroup === groupName;
+              });
               if (dependentProperty) {
                 Em.set(dependentProperty, 'toDelete', true);
                 Em.set(dependentProperty, 'toAdd', false);
@@ -605,7 +616,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
               if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
                modifiedFileNames.push(fileName);
-              } else if (wizardController && App.StackService.find(service.get('serviceName')).get('isInstalled')) {
+              } else if (wizardController && installedServices[service.get('serviceName')]) {
                 if (!fileNamesToUpdate.contains(fileName)) {
                   fileNamesToUpdate.push(fileName);
                 }

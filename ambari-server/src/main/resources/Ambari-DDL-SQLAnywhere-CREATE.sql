@@ -889,6 +889,8 @@ CREATE TABLE upgrade (
   from_version VARCHAR(255) DEFAULT '' NOT NULL,
   to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
+  skip_failures BIT NOT NULL DEFAULT 0,
+  skip_sc_failures BIT NOT NULL DEFAULT 0,  
   downgrade_allowed BIT NOT NULL DEFAULT 1,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),

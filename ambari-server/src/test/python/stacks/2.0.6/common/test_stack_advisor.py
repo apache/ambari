@@ -681,6 +681,9 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {}
     # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
     services = {
+      "Versions" : {
+        "stack_version" : "2.2",
+      },
       "services":  [
         {
           "StackServices": {
@@ -778,6 +781,42 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
 
+    # Test Recommend LDAP values
+    services["ambari-server-properties"] = {
+      "ambari.ldap.isConfigured" : "true",
+      "authentication.ldap.bindAnonymously" : "false",
+      "authentication.ldap.baseDn" : "dc=apache,dc=org",
+      "authentication.ldap.groupNamingAttr" : "cn",
+      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.userObjectClass" : "posixAccount",
+      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.usernameAttribute" : "uid",
+      "authentication.ldap.dnAttribute" : "dn",
+      "authentication.ldap.useSSL" : "false",
+      "authentication.ldap.managerPassword" : "/etc/ambari-server/conf/ldap-password.dat",
+      "authentication.ldap.groupMembershipAttr" : "memberUid",
+      "authentication.ldap.groupObjectClass" : "posixGroup",
+      "authentication.ldap.managerDn" : "uid=hdfs,ou=people,ou=dev,dc=apache,dc=org"
+    }
+    services["configurations"] = {}
+    expected = {
+      'admin-properties': {
+        'properties': {
+          'policymgr_external_url': 'http://host1:6080',
+        }
+      },
+      'usersync-properties': {
+        'properties': {
+          'SYNC_LDAP_URL': 'c6403.ambari.apache.org:389',
+          'SYNC_LDAP_BIND_DN': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
+          'SYNC_LDAP_USER_OBJECT_CLASS': 'posixAccount',
+          'SYNC_LDAP_USER_NAME_ATTRIBUTE': 'uid'
+        }
+      }
+    }
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
 
 
   def test_recommendHDFSConfigurations(self):
@@ -1580,3 +1619,46 @@ class TestHDP206StackAdvisor(TestCase):
     recommendedDefaults = {}
     expected = {'level': 'ERROR', 'message': 'Value should be recommended for property1'}
     self.assertEquals(self.stackAdvisor.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "property1"), expected)
+
+  def test_getServicesSiteProperties(self):
+    import imp, os
+    testDirectory = os.path.dirname(os.path.abspath(__file__))
+    hdp206StackAdvisorPath = os.path.join(testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
+    stack_advisor = imp.load_source('stack_advisor', hdp206StackAdvisorPath)
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        ],
+      "configurations": {
+        "admin-properties": {
+          "properties": {
+            "DB_FLAVOR": "NOT_EXISTING",
+            }
+        },
+        "ranger-admin-site": {
+          "properties": {
+            "ranger.service.http.port": "7777",
+            "ranger.service.http.enabled": "true",
+            }
+        }
+      }
+    }
+    expected = {
+      "ranger.service.http.port": "7777",
+      "ranger.service.http.enabled": "true",
+    }
+    siteProperties = stack_advisor.getServicesSiteProperties(services, "ranger-admin-site")
+    self.assertEquals(siteProperties, expected)
+

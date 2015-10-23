@@ -23,12 +23,23 @@
 
 var App = require('app');
 
-App.ConfigCondition = DS.Model.extend({
+App.ThemeCondition = DS.Model.extend({
   /**
    * unique id generated as <code>config_name<code><code>filename<code>
    * @property {string}
    */
   id: DS.attr('string'),
+
+  /**
+   *  type can be `config`, `service`
+   */
+  type: DS.attr('string'),
+
+  /**
+   * This is specific to subsection and subsectionTab type
+   */
+
+  name: DS.attr('string'),
 
   /**
    * Name of the config that is being affected with the condition
@@ -62,4 +73,4 @@ App.ConfigCondition = DS.Model.extend({
 
 });
 
-App.ConfigCondition.FIXTURES = [];
+App.ThemeCondition.FIXTURES = [];

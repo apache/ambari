@@ -23,6 +23,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -58,6 +59,7 @@ public class ConfigImpl implements Config {
   private volatile Map<String, String> properties;
   private volatile Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
+  private volatile Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes;
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -81,6 +83,7 @@ public class ConfigImpl implements Config {
     stackId = cluster.getDesiredStackVersion();
 
     injector.injectMembers(this);
+    propertiesTypes = cluster.getConfigPropertiesTypes(type);
   }
 
 
@@ -96,6 +99,7 @@ public class ConfigImpl implements Config {
 
     this.entity = entity;
     injector.injectMembers(this);
+    propertiesTypes = cluster.getConfigPropertiesTypes(type);
   }
 
   /**
@@ -117,6 +121,26 @@ public class ConfigImpl implements Config {
       readWriteLock.readLock().unlock();
     }
 
+  }
+
+  @Override
+  public Map<PropertyInfo.PropertyType, Set<String>> getPropertiesTypes() {
+    readWriteLock.readLock().lock();
+    try {
+      return propertiesTypes;
+    } finally {
+      readWriteLock.readLock().unlock();
+    }
+  }
+
+  @Override
+  public void setPropertiesTypes(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes) {
+    readWriteLock.writeLock().lock();
+    try {
+      this.propertiesTypes = propertiesTypes;
+    } finally {
+      readWriteLock.writeLock().unlock();
+    }
   }
 
   @Override

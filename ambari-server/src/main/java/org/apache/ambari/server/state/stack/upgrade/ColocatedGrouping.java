@@ -81,7 +81,7 @@ public class ColocatedGrouping extends Grouping {
 
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-        boolean clientOnly, ProcessingComponent pc) {
+        boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
 
       boolean forUpgrade = ctx.getDirection().isUpgrade();
 
@@ -110,7 +110,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.clientOnly = clientOnly;
           proxy.message = getStageText("Preparing",
               ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.service = service;
           proxy.component = pc.name;
           targetList.add(proxy);
@@ -122,7 +122,7 @@ public class ColocatedGrouping extends Grouping {
           if (RestartTask.class.isInstance(t)) {
             proxy = new TaskProxy();
             proxy.clientOnly = clientOnly;
-            proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), t));
+            proxy.tasks.add(new TaskWrapper(service, pc.name, Collections.singleton(host), params, t));
             proxy.restart = true;
             proxy.service = service;
             proxy.component = pc.name;
@@ -139,7 +139,7 @@ public class ColocatedGrouping extends Grouping {
           proxy.clientOnly = clientOnly;
           proxy.component = pc.name;
           proxy.service = service;
-          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks));
+          proxy.tasks.addAll(TaskWrapperBuilder.getTaskList(service, pc.name, singleHostsType, tasks, params));
           proxy.message = getStageText("Completing",
               ctx.getComponentDisplay(service, pc.name), Collections.singleton(host));
           targetList.add(proxy);

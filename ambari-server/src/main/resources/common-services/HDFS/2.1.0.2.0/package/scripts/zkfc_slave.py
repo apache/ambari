@@ -42,7 +42,7 @@ class ZkfcSlave(Script):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class ZkfcSlaveDefault(ZkfcSlave):
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
@@ -68,7 +68,7 @@ class ZkfcSlaveDefault(ZkfcSlave):
       create_log_dir=True
     )
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)

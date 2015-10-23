@@ -109,6 +109,46 @@ public class HostRoleCommandDAOTest {
   }
 
   /**
+   * Tests updating various commands to be skipped on failures automatically.
+   */
+  @Test
+  public void testUpdateAutoSkipOnFailures() {
+    OrmTestHelper helper = m_injector.getInstance(OrmTestHelper.class);
+    helper.createDefaultData();
+
+    Long requestId = Long.valueOf(100L);
+    ClusterEntity clusterEntity = m_clusterDAO.findByName("test_cluster1");
+
+    RequestEntity requestEntity = new RequestEntity();
+    requestEntity.setRequestId(requestId);
+    requestEntity.setClusterId(clusterEntity.getClusterId());
+    requestEntity.setStages(new ArrayList<StageEntity>());
+    m_requestDAO.create(requestEntity);
+
+    AtomicLong stageId = new AtomicLong(1);
+    HostEntity host = m_hostDAO.findByName("test_host1");
+    host.setHostRoleCommandEntities(new ArrayList<HostRoleCommandEntity>());
+
+    createStage(stageId.getAndIncrement(), 3, host, requestEntity, HostRoleStatus.PENDING, false);
+    createStage(stageId.getAndIncrement(), 2, host, requestEntity, HostRoleStatus.PENDING, false);
+    createStage(stageId.getAndIncrement(), 1, host, requestEntity, HostRoleStatus.PENDING, false);
+
+    List<HostRoleCommandEntity> tasks = m_hostRoleCommandDAO.findByRequest(requestId);
+    Assert.assertEquals(6, tasks.size());
+
+    for (HostRoleCommandEntity task : tasks) {
+      Assert.assertFalse(task.isFailureAutoSkipped());
+    }
+
+    m_hostRoleCommandDAO.updateAutomaticSkipOnFailure(requestId, true);
+    tasks = m_hostRoleCommandDAO.findByRequest(requestId);
+
+    for (HostRoleCommandEntity task : tasks) {
+      Assert.assertTrue(task.isFailureAutoSkipped());
+    }
+  }
+
+  /**
    * Creates a single stage with the specified number of commands.
    *
    * @param startStageId

@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+
+<metainfo>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HAWQ</name>
+      <displayName>HAWQ</displayName>
+      <comment>Apache HAWQ - Apache Hadoop Native SQL</comment>
+      <version>2.0</version>
+      <components>
+
+        <component>
+          <name>HAWQMASTER</name>
+          <displayName>HAWQ Master</displayName>
+          <category>MASTER</category>
+          <cardinality>1</cardinality>
+          <commandScript>
+            <script>scripts/hawqmaster.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/NAMENODE</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                  <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+      <component>
+          <name>HAWQSTANDBY</name>
+          <displayName>HAWQ Standby Master</displayName>
+          <category>MASTER</category>
+          <cardinality>0-1</cardinality>
+          <commandScript>
+              <script>scripts/hawqstandby.py</script>
+              <scriptType>PYTHON</scriptType>
+              <timeout>600</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+                <name>HDFS/HDFS_CLIENT</name>
+                <scope>host</scope>
+                <auto-deploy>
+                    <enabled>true</enabled>
+                </auto-deploy>
+            </dependency>
+          </dependencies>
+      </component>
+
+        <component>
+          <name>HAWQSEGMENT</name>
+          <displayName>HAWQ Segment</displayName>
+          <category>SLAVE</category>
+          <cardinality>1+</cardinality>
+          <commandScript>
+            <script>scripts/hawqsegment.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>600</timeout>
+          </commandScript>
+           <dependencies>
+            <dependency>
+              <name>HDFS/DATANODE</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>false</enabled>
+                <co-locate>HDFS/DATANODE</co-locate>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+      </components> 
+      <requiredServices>
+          <service>HDFS</service>
+      </requiredServices>
+
+      <osSpecifics>
+        <osSpecific>
+          <osFamily>any</osFamily>
+           <packages>
+            <package>
+              <name>hawq</name>
+            </package>
+          </packages>
+        </osSpecific>
+      </osSpecifics>
+
+      <commandScript>
+        <script>scripts/service_check.py</script>
+        <scriptType>PYTHON</scriptType>
+        <timeout>300</timeout>
+      </commandScript>
+
+      <configuration-dependencies>
+        <config-type>hawq-site</config-type>
+        <config-type>gpcheck-env</config-type>
+      </configuration-dependencies>
+    </service>
+
+  </services>
+</metainfo>
+

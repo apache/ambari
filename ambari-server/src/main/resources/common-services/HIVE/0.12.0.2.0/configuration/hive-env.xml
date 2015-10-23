@@ -91,6 +91,7 @@
     <display-name>Hive Log Dir</display-name>
     <description>Directory for Hive Log files.</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -101,6 +102,7 @@
     <display-name>Hive PID Dir</display-name>
     <description>Hive PID Dir.</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -121,6 +123,7 @@
     <display-name>WebHCat Log Dir</display-name>
     <description>WebHCat Log Dir.</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -131,6 +134,7 @@
     <display-name>WebHCat Pid Dir</display-name>
     <description>WebHCat Pid Dir.</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>

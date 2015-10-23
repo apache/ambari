@@ -74,8 +74,9 @@ class HostLog:
 class SCP:
   """ SCP implementation that is thread based. The status can be returned using
    status val """
-  def __init__(self, user, sshkey_file, host, inputFile, remote, bootdir, host_log):
+  def __init__(self, user, sshPort, sshkey_file, host, inputFile, remote, bootdir, host_log):
     self.user = user
+    self.sshPort = sshPort
     self.sshkey_file = sshkey_file
     self.host = host
     self.inputFile = inputFile
@@ -90,7 +91,7 @@ class SCP:
                   "-r",
                   "-o", "ConnectTimeout=60",
                   "-o", "BatchMode=yes",
-                  "-o", "StrictHostKeyChecking=no",
+                  "-o", "StrictHostKeyChecking=no", "-P", self.sshPort,
                   "-i", self.sshkey_file, self.inputFile, self.user + "@" +
                                                          self.host + ":" + self.remote]
     if DEBUG:
@@ -111,8 +112,9 @@ class SCP:
 
 class SSH:
   """ Ssh implementation of this """
-  def __init__(self, user, sshkey_file, host, command, bootdir, host_log, errorMessage = None):
+  def __init__(self, user, sshPort, sshkey_file, host, command, bootdir, host_log, errorMessage = None):
     self.user = user
+    self.sshPort = sshPort
     self.sshkey_file = sshkey_file
     self.host = host
     self.command = command
@@ -128,7 +130,7 @@ class SSH:
                   "-o", "StrictHostKeyChecking=no",
                   "-o", "BatchMode=yes",
                   "-tt", # Should prevent "tput: No value for $TERM and no -T specified" warning
-                  "-i", self.sshkey_file,
+                  "-i", self.sshkey_file, "-p", self.sshPort,
                   self.user + "@" + self.host, self.command]
     if DEBUG:
       self.host_log.write("Running ssh command " + ' '.join(sshcommand))
@@ -454,7 +456,7 @@ class BootstrapDefault(Bootstrap):
     params = self.shared_state
     self.host_log.write("==========================\n")
     self.host_log.write("Copying OS type check script...")
-    scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     result = scp.run()
     self.host_log.write("\n")
@@ -467,7 +469,7 @@ class BootstrapDefault(Bootstrap):
     params = self.shared_state
     self.host_log.write("==========================\n")
     self.host_log.write("Copying common functions script...")
-    scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     result = scp.run()
     self.host_log.write("\n")
@@ -507,7 +509,7 @@ class BootstrapDefault(Bootstrap):
     if (os.path.exists(fileToCopy)):
       self.host_log.write("==========================\n")
       self.host_log.write("Copying repo file to 'tmp' folder...")
-      scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+      scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
                 target, params.bootdir, self.host_log)
       retcode1 = scp.run()
       self.host_log.write("\n")
@@ -517,7 +519,7 @@ class BootstrapDefault(Bootstrap):
       self.host_log.write("Moving file to repo dir...")
       targetDir = self.getRepoDir()
       command = self.getMoveRepoFileCommand(targetDir)
-      ssh = SSH(params.user, params.sshkey_file, self.host, command,
+      ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
                 params.bootdir, self.host_log)
       retcode2 = ssh.run()
       self.host_log.write("\n")
@@ -526,7 +528,7 @@ class BootstrapDefault(Bootstrap):
       self.host_log.write("==========================\n")
       self.host_log.write("Changing permissions for ambari.repo...")
       command = self.getRepoFileChmodCommand()
-      ssh = SSH(params.user, params.sshkey_file, self.host, command,
+      ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
                 params.bootdir, self.host_log)
       retcode4 = ssh.run()
       self.host_log.write("\n")
@@ -536,7 +538,7 @@ class BootstrapDefault(Bootstrap):
         self.host_log.write("==========================\n")
         self.host_log.write("Update apt cache of repository...")
         command = self.getAptUpdateCommand()
-        ssh = SSH(params.user, params.sshkey_file, self.host, command,
+        ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
                   params.bootdir, self.host_log)
         retcode2 = ssh.run()
         self.host_log.write("\n")
@@ -554,7 +556,7 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Copying setup script file...")
     fileToCopy = params.setup_agent_file
     target = self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
-    scp = SCP(params.user, params.sshkey_file, self.host, fileToCopy,
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, fileToCopy,
               target, params.bootdir, self.host_log)
     retcode3 = scp.run()
     self.host_log.write("\n")
@@ -600,7 +602,7 @@ class BootstrapDefault(Bootstrap):
               (self.getOsCheckScriptRemoteLocation(),
                PYTHON_ENV, self.getOsCheckScriptRemoteLocation(), params.cluster_os_type)
 
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
     self.host_log.write("\n")
@@ -615,7 +617,7 @@ class BootstrapDefault(Bootstrap):
       command = "dpkg --get-selections|grep -e '^sudo\s*install'"
     else:
       command = "rpm -qa | grep -e '^sudo\-'"
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log,
               errorMessage="Error: Sudo command is not available. "
                            "Please install the sudo command.")
@@ -627,7 +629,7 @@ class BootstrapDefault(Bootstrap):
     # Copy the password file
     self.host_log.write("Copying password file to 'tmp' folder...")
     params = self.shared_state
-    scp = SCP(params.user, params.sshkey_file, self.host, params.password_file,
+    scp = SCP(params.user, params.sshPort, params.sshkey_file, self.host, params.password_file,
               self.getPasswordFile(), params.bootdir, self.host_log)
     retcode1 = scp.run()
 
@@ -636,7 +638,7 @@ class BootstrapDefault(Bootstrap):
     # Change password file mode to 600
     self.host_log.write("Changing password file mode...")
     command = "chmod 600 " + self.getPasswordFile()
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode2 = ssh.run()
 
@@ -648,7 +650,7 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Changing password file mode...")
     params = self.shared_state
     command = "chmod 600 " + self.getPasswordFile()
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
     self.host_log.write("Change password file mode on host finished")
@@ -659,7 +661,7 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("Deleting password file...")
     params = self.shared_state
     command = "rm " + self.getPasswordFile()
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
     self.host_log.write("Deleting password file finished")
@@ -675,7 +677,7 @@ class BootstrapDefault(Bootstrap):
     command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 777 {0}".format(
       self.TEMP_FOLDER, quote_bash_args(params.user), DEFAULT_AGENT_DATA_FOLDER, DEFAULT_AGENT_LIB_FOLDER)
 
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
     self.host_log.write("\n")
@@ -692,7 +694,7 @@ class BootstrapDefault(Bootstrap):
     self.host_log.write("==========================\n")
     self.host_log.write("Running setup agent script...")
     command = self.getRunSetupCommand(self.host)
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+    ssh = SSH(params.user, params.sshPort, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
     retcode = ssh.run()
     self.host_log.write("\n")
@@ -791,11 +793,12 @@ class PBootstrap:
 
 
 class SharedState:
-  def __init__(self, user, sshkey_file, script_dir, boottmpdir, setup_agent_file,
+  def __init__(self, user, sshPort, sshkey_file, script_dir, boottmpdir, setup_agent_file,
                ambari_server, cluster_os_type, ambari_version, server_port,
                user_run_as, password_file = None):
     self.hostlist_to_remove_password_file = None
     self.user = user
+    self.sshPort = sshPort
     self.sshkey_file = sshkey_file
     self.bootdir = boottmpdir
     self.script_dir = script_dir
@@ -817,7 +820,7 @@ def main(argv=None):
   onlyargs = argv[1:]
   if len(onlyargs) < 3:
     sys.stderr.write("Usage: <comma separated hosts> "
-                     "<tmpdir for storage> <user> <sshkey_file> <agent setup script>"
+                     "<tmpdir for storage> <user> <sshPort> <sshkey_file> <agent setup script>"
                      " <ambari-server name> <cluster os type> <ambari version> <ambari port> <user_run_as> <passwordFile>\n")
     sys.exit(2)
     pass
@@ -827,14 +830,15 @@ def main(argv=None):
   hostList = onlyargs[0].split(",")
   bootdir =  onlyargs[1]
   user = onlyargs[2]
-  sshkey_file = onlyargs[3]
-  setupAgentFile = onlyargs[4]
-  ambariServer = onlyargs[5]
-  cluster_os_type = onlyargs[6]
-  ambariVersion = onlyargs[7]
-  server_port = onlyargs[8]
-  user_run_as = onlyargs[9]
-  passwordFile = onlyargs[10]
+  sshPort = onlyargs[3]
+  sshkey_file = onlyargs[4]
+  setupAgentFile = onlyargs[5]
+  ambariServer = onlyargs[6]
+  cluster_os_type = onlyargs[7]
+  ambariVersion = onlyargs[8]
+  server_port = onlyargs[9]
+  user_run_as = onlyargs[10]
+  passwordFile = onlyargs[11]
 
   if not OSCheck.is_windows_family():
     # ssh doesn't like open files
@@ -845,10 +849,10 @@ def main(argv=None):
 
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +
-               " with user '" + user + "' sshKey File " + sshkey_file + " password File " + passwordFile +\
+               " with user '" + user + "'with ssh Port '" + sshPort + "' sshKey File " + sshkey_file + " password File " + passwordFile +\
                " using tmp dir " + bootdir + " ambari: " + ambariServer +"; server_port: " + server_port +\
                "; ambari version: " + ambariVersion+"; user_run_as: " + user_run_as)
-  sharedState = SharedState(user, sshkey_file, scriptDir, bootdir, setupAgentFile,
+  sharedState = SharedState(user, sshPort, sshkey_file, scriptDir, bootdir, setupAgentFile,
                        ambariServer, cluster_os_type, ambariVersion,
                        server_port, user_run_as, passwordFile)
   pbootstrap = PBootstrap(hostList, sharedState)

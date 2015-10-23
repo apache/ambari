@@ -151,7 +151,7 @@ App.StackServiceComponent = DS.Model.extend({
    * @property {Boolean} isMasterAddableOnlyOnHA
    */
   isMasterAddableOnlyOnHA: function () {
-    return ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN', 'OOZIE_SERVER'].contains(this.get('componentName'));
+    return ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN'].contains(this.get('componentName'));
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
@@ -197,7 +197,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
   isNotAddableOnlyInInstall: function() {
-    return ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER'].contains(this.get('componentName'));
+    return ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER'].contains(this.get('componentName'));
   }.property('componentName')
 
 });

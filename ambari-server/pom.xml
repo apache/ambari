@@ -203,6 +203,9 @@
             <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
             <exclude>src/main/resources/stacks/HDPWIN/2.1/services/*/configuration*/*</exclude>
 
+            <!-- HAWQ Stack definitions -->
+            <exclude>src/main/resources/common-services/HAWQ/2.0.0.0/package/templates/*.j2</exclude>
+
             <!--test samples -->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>

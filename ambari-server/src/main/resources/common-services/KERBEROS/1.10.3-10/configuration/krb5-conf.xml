@@ -43,6 +43,7 @@
     <value>true</value>
     <value-attributes>
       <overridable>false</overridable>
+      <type>boolean</type>
     </value-attributes>
   </property>
 
@@ -52,6 +53,7 @@
     <description>The krb5.conf configuration directory</description>
     <value>/etc</value>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -91,6 +93,7 @@
 {# Append additional realm declarations below #}
     </value>
     <value-attributes>
+      <type>content</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

@@ -48,8 +48,14 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+# New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
+
+# The desired role is only available during a Non-Rolling Upgrade in HA.
+# The server calculates which of the two NameNodes will be the active, and the other the standby since they
+# are started using different commands.
+desired_namenode_role = default("/commandParams/desired_namenode_role", None)
+
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user

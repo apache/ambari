@@ -22,7 +22,7 @@ App.themesMapper = App.QuickDataMapper.create({
   sectionModel: App.Section,
   subSectionModel: App.SubSection,
   subSectionTabModel: App.SubSectionTab,
-  configConditionModel: App.ConfigCondition,
+  themeConditionModel: App.ThemeCondition,
 
   tabConfig: {
     "id": "name",
@@ -71,6 +71,7 @@ App.themesMapper = App.QuickDataMapper.create({
   },
 
   map: function (json) {
+    console.time('App.themesMapper execution time');
     var tabs = [];
     json.items.forEach(function(item) {
       this.mapThemeLayouts(item, tabs);
@@ -80,6 +81,7 @@ App.themesMapper = App.QuickDataMapper.create({
 
     App.store.loadMany(this.get("tabModel"), tabs);
     App.store.commit();
+    console.timeEnd('App.themesMapper execution time');
   },
 
   /**
@@ -105,27 +107,40 @@ App.themesMapper = App.QuickDataMapper.create({
 
               if (section.subsections) {
                 var subSections = [];
+                var subSectionConditions = [];
                 section.subsections.forEach(function(subSection) {
                   var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
                   parsedSubSection.section_id = parsedSection.id;
 
                   if (subSection['subsection-tabs']) {
                     var subSectionTabs = [];
+                    var subSectionTabConditions = [];
 
                     subSection['subsection-tabs'].forEach(function (subSectionTab) {
                       var parsedSubSectionTab = this.parseIt(subSectionTab, this.get("subSectionTabConfig"));
                       parsedSubSectionTab.sub_section_id = parsedSubSection.id;
-
+                      if (parsedSubSectionTab['depends_on']) {
+                        subSectionTabConditions.push(parsedSubSectionTab);
+                      }
                       subSectionTabs.push(parsedSubSectionTab);
                     }, this);
                     subSectionTabs[0].is_active = true;
-
+                    if (subSectionTabConditions.length) {
+                      var type = 'subsectionTab';
+                      this.mapThemeConditions(subSectionTabConditions, type);
+                    }
                     App.store.loadMany(this.get("subSectionTabModel"), subSectionTabs);
                     parsedSubSection.sub_section_tabs = subSectionTabs.mapProperty("id");
                   }
-
+                  if (parsedSubSection['depends_on']) {
+                    subSectionConditions.push(parsedSubSection);
+                  }
                   subSections.push(parsedSubSection);
                 }, this);
+                if (subSectionConditions.length) {
+                  var type = 'subsection';
+                  this.mapThemeConditions(subSectionConditions, type);
+                }
                 App.store.loadMany(this.get("subSectionModel"), subSections);
                 parsedSection.sub_sections = subSections.mapProperty("id");
               }
@@ -157,15 +172,12 @@ App.themesMapper = App.QuickDataMapper.create({
       var subSectionTabId = configLink["subsection-tab-name"];
       if (subSectionTabId) {
         var subSectionTab = App.SubSectionTab.find(subSectionTabId);
-        var subSectionTabDependsOnConfigs = subSectionTab.get('dependsOn');
       } else if (subSectionId) {
         var subSection = App.SubSection.find(subSectionId);
-        var subSectionDependsOnConfigs = subSection.get('dependsOn');
       }
       var configProperty = App.StackConfigProperty.find(configId);
 
-      var configDependsOnOtherConfigs = configLink["depends-on"] || [];
-      var dependsOnConfigs = configDependsOnOtherConfigs.concat(subSectionDependsOnConfigs || []).concat(subSectionTabDependsOnConfigs || []);
+      var dependsOnConfigs = configLink["depends-on"] || [];
 
       if (configProperty.get('id') && subSection) {
         subSection.get('configProperties').pushObject(configProperty);
@@ -179,7 +191,7 @@ App.themesMapper = App.QuickDataMapper.create({
         if (valueAttributes) {
           var isUiOnlyProperty = valueAttributes["ui_only_property"];
           // UI only configs are mentioned in the themes for supporting widgets that is not intended for setting a value
-          // And thus is affiliated witha fake config peperty termed as ui only config property
+          // And thus is affiliated with fake config property termed as ui only config property
           if (isUiOnlyProperty && subSection) {
             var split = configLink.config.split("/");
             var fileName =  split[0] + '.xml';
@@ -235,11 +247,43 @@ App.themesMapper = App.QuickDataMapper.create({
       }
 
       configCondition.resource = _configCondition.resource || 'config';
+      configCondition.type = _configCondition.type || 'config';
 
       configConditionsCopy.pushObject(configCondition);
     }, this);
 
-    App.store.loadMany(this.get("configConditionModel"), configConditionsCopy);
+    App.store.loadMany(this.get("themeConditionModel"), configConditionsCopy);
+    App.store.commit();
+  },
+
+  /**
+   *
+   * @param subSections: Array
+   * @param type: {String} possible values: `subsection` or `subsectionTab`
+   */
+  mapThemeConditions: function(subSections, type) {
+    var subSectionConditionsCopy = [];
+    subSections.forEach(function(_subSection){
+      var subSectionConditions = _subSection['depends_on'];
+      subSectionConditions.forEach(function(_subSectionCondition, index){
+        var subSectionCondition = $.extend({},_subSectionCondition);
+        subSectionCondition.id = _subSection.id + '_' + index;
+        subSectionCondition.name = _subSection.name;
+        if (_subSectionCondition.configs && _subSectionCondition.configs.length) {
+          subSectionCondition.configs = _subSectionCondition.configs.map(function (item) {
+            var result = {};
+            result.fileName = item.split('/')[0] + '.xml';
+            result.configName = item.split('/')[1];
+            return result;
+          });
+        }
+
+        subSectionCondition.resource = _subSectionCondition.resource || 'config';
+        subSectionCondition.type = _subSectionCondition.type || type;
+        subSectionConditionsCopy.pushObject(subSectionCondition);
+      }, this);
+    }, this);
+    App.store.loadMany(this.get("themeConditionModel"), subSectionConditionsCopy);
     App.store.commit();
   },
 

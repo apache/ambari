@@ -24,22 +24,56 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
 
   POLL_INTERVAL: 1000,
 
-  isNextEnabled: function(){
-    //only 3 JournalNodes could be installed
-    return (this.get('initJnCounter') === 3);
-  }.property('initJnCounter'),
+  /**
+   * Define whether next button should be enabled
+   * @type {Boolean}
+   */
+  isNextEnabled: false,
 
+  /**
+   * Counter of initialized JournalNodes
+   * @type {Number}
+   */
   initJnCounter: 0,
+
+  /**
+   * Counter of completed requests
+   * @type {Number}
+   */
+  requestsCounter: 0,
+
+  /**
+   * Define whether are some not started JournalNodes
+   * @type {Boolean}
+   */
+  hasStoppedJNs: false,
+
+  /**
+   * Current status for step.
+   * waiting - for waiting for initializing
+   * done - for completed initializing check
+   * journalnode_stopped - if there are stopped JournalNode
+   * @type {String}
+   */
+  status: 'waiting',
+
+  loadStep: function () {
+    this.set('status', 'waiting');
+    this.set('isNextEnabled', false);
+    this.pullCheckPointStatus();
+  },
 
   pullCheckPointStatus: function () {
     this.set('initJnCounter', 0);
+    this.set('requestsCounter', 0);
+    this.set('hasStoppedJNs', false);
     var hostNames = this.get('content.masterComponentHosts').filterProperty('component', "JOURNALNODE").mapProperty('hostName');
     hostNames.forEach(function (hostName) {
       this.pullEachJnStatus(hostName);
     }, this);
   },
 
-  pullEachJnStatus: function(hostName){
+  pullEachJnStatus: function (hostName) {
     App.ajax.send({
       name: 'admin.high_availability.getJnCheckPointStatus',
       sender: this,
@@ -53,17 +87,32 @@ App.HighAvailabilityWizardStep6Controller = Em.Controller.extend({
   checkJnCheckPointStatus: function (data) {
     var self = this;
     var journalStatusInfo;
+    var initJnCounter = 0;
+
     if (data.metrics && data.metrics.dfs) {
       journalStatusInfo = $.parseJSON(data.metrics.dfs.journalnode.journalsStatus);
       if (journalStatusInfo[this.get('content.nameServiceId')] && journalStatusInfo[this.get('content.nameServiceId')].Formatted === "true") {
-        this.set("initJnCounter", (this.get('initJnCounter') + 1));
-        return;
+        initJnCounter = this.incrementProperty('initJnCounter');
       }
+    } else {
+      this.set('hasStoppedJNs', true);
     }
 
-    window.setTimeout(function () {
-      self.pullEachJnStatus(data.HostRoles.host_name);
-    }, self.POLL_INTERVAL);
+    if (this.incrementProperty('requestsCounter') === 3) {
+      if (initJnCounter === 3) {
+        this.set('status', 'done');
+        this.set('isNextEnabled', true);
+      } else {
+        if (this.get('hasStoppedJNs')) {
+          this.set('status', 'journalnode_stopped')
+        } else {
+          this.set('status', 'waiting');
+        }
+        window.setTimeout(function () {
+          self.pullCheckPointStatus();
+        }, self.POLL_INTERVAL);
+      }
+    }
   },
 
   done: function () {

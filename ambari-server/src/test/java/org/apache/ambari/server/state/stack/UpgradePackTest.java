@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -232,22 +233,41 @@ public class UpgradePackTest {
     UpgradePack upgrade = upgrades.get("upgrade_test_nonrolling");
 
     List<String> expected_up = Arrays.asList(
-        "PRE_CLUSTER",
-        "Stop High-Level Daemons",
-        "Backups",
-        "Stop Low-Level Daemons",
-        "UPDATE_DESIRED_STACK_ID",
-        "ALL_HOST_OPS",
-        "ZOOKEEPER",
-        "HDFS",
-        "MR and YARN",
-        "POST_CLUSTER");
+      "PRE_CLUSTER",
+      "Stop High-Level Daemons",
+      "Backups",
+      "Stop Low-Level Daemons",
+      "UPDATE_DESIRED_STACK_ID",
+      "ALL_HOST_OPS",
+      "ZOOKEEPER",
+      "HDFS",
+      "MR and YARN",
+      "POST_CLUSTER");
 
-    int i = 0;
-    List<Grouping> groups = upgrade.getGroups(Direction.UPGRADE);
-    for (Grouping g : groups) {
-      assertEquals(expected_up.get(i), g.name);
-      i++;
+    List<String> expected_down = Arrays.asList(
+      "Stop High-Level Daemons",
+      "Stop Low-Level Daemons",
+      "Restore Backups",
+      "UPDATE_DESIRED_STACK_ID",
+      "ALL_HOST_OPS",
+      "ZOOKEEPER",
+      "HDFS",
+      "MR and YARN",
+      "POST_CLUSTER");
+
+
+    Iterator<String> itr_up = expected_up.iterator();
+    List<Grouping> upgrade_groups = upgrade.getGroups(Direction.UPGRADE);
+    for (Grouping g : upgrade_groups) {
+      assertEquals(true, itr_up.hasNext());
+      assertEquals(itr_up.next(), g.name);
+    }
+
+    Iterator<String> itr_down = expected_down.iterator();
+    List<Grouping> downgrade_groups = upgrade.getGroups(Direction.DOWNGRADE);
+    for (Grouping g : downgrade_groups) {
+      assertEquals(true, itr_down.hasNext());
+      assertEquals(itr_down.next(), g.name);
     }
   }
 

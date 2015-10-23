@@ -20,14 +20,7 @@ var App = require('app');
 
 module.exports = {
 
-  initialValue: function (configProperty, localDB, configs) {
-    var hiveMetastoreUrisConfig = configs.filterProperty('filename', 'hive-site.xml').findProperty('name', 'hive.metastore.uris');
-    var clientPortConfig = configs.filterProperty('filename', 'zoo.cfg.xml').findProperty('name', 'clientPort');
-    var dependencies = {
-      'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.recommendedValue,
-      'clientPort': clientPortConfig && clientPortConfig.recommendedValue
-    };
-
+  initialValue: function (configProperty, localDB, dependencies) {
     var masterComponentHostsInDB = localDB.masterComponentHosts;
     var isOnlyFirstOneNeeded = true;
     var hostWithPort = "([\\w|\\.]*)(?=:)";
@@ -243,15 +236,15 @@ module.exports = {
         this.setRecommendedValue(configProperty, hostWithPort, nnHost);
         break;
       case 'hawq_resourcemanager_yarn_resourcemanager_address':
-        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
         if (rmHost) {
-          this.setRecommendedValue(configProperty, hostWithPort, rmHost);
+          this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);
         }
         break;
       case 'hawq_resourcemanager_yarn_resourcemanager_scheduler_address':
-        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
         if (rmHost) {
-          this.setRecommendedValue(configProperty, hostWithPort, rmHost);
+          this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);
         }
         break;
     }

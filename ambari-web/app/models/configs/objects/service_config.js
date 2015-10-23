@@ -61,7 +61,7 @@ App.ServiceConfig = Ember.Object.extend({
         category.incrementProperty('nonSlaveErrorCount');
         masterErrors++;
       }
-      if (!item.get('isValid') && item.get('widget') && item.get('isVisible')) {
+      if (!item.get('isValid') && item.get('widget') && item.get('isVisible') && !item.get('hiddenBySection')) {
         enhancedConfigsErrors++;
       }
       if (item.get('overrides')) {

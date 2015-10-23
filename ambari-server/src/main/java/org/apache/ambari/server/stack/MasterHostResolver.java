@@ -222,6 +222,29 @@ public class MasterHostResolver {
     }
   }
 
+  /**
+   * Determine if HDFS is present and it has NameNode High Availability.
+   * @return true if has NameNode HA, otherwise, false.
+   */
+  public boolean isNameNodeHA() throws AmbariException {
+    Map<String, org.apache.ambari.server.state.Service> services = m_cluster.getServices();
+    if (services != null && services.containsKey("HDFS")) {
+
+      Set<String> secondaryNameNodeHosts = m_cluster.getHosts("HDFS", "SECONDARY_NAMENODE");
+      Set<String> nameNodeHosts = m_cluster.getHosts("HDFS", "NAMENODE");
+
+      if (secondaryNameNodeHosts.size() == 1 && nameNodeHosts.size() == 1) {
+        return false;
+      }
+      if (nameNodeHosts.size() > 1) {
+        return true;
+      }
+
+      throw new AmbariException("Unable to determine if cluster has NameNode HA.");
+    }
+    return false;
+  }
+
 
   /**
    * Get mapping of the HDFS Namenodes from the state ("active" or "standby") to the hostname.

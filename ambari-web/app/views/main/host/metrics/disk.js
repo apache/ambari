@@ -36,7 +36,7 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
 
   loadGroup: {
     name: 'host.metrics.aggregated',
-    fields: ['metrics/disk/disk_total']
+    fields: ['metrics/disk/disk_total', 'metrics/disk/disk_free']
   },
 
   transformToSeries: function (jsonData) {

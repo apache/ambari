@@ -970,6 +970,12 @@ var urls = {
   'service.metrics.flume.channel_size_for_all': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
+  'service.metrics.flume.channel_size_for_all.mma': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/ChannelSize/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },
+  'service.metrics.flume.channel_size_for_all.sum': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/ChannelSize/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },
   'service.metrics.flume.gc': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=host_components/metrics/jvm/gcTimeMillis[{fromSeconds},{toSeconds},{stepSeconds}]',
     'mock': '/data/services/metrics/flume/jvmGcTime.json',
@@ -992,9 +998,19 @@ var urls = {
   },
   'service.metrics.flume.incoming_event_put_successCount': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },'service.metrics.flume.incoming_event_put_successCount.mma': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },'service.metrics.flume.incoming_event_put_successCount.sum': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.outgoing_event_take_success_count': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },
+  'service.metrics.flume.outgoing_event_take_success_count.mma': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
+  },
+  'service.metrics.flume.outgoing_event_take_success_count.sum': {
+    'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventTakeSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.hbase.cluster_requests': {
     'real': '/clusters/{clusterName}/services/HBASE/components/HBASE_MASTER?fields=metrics/hbase/master/cluster_requests[{fromSeconds},{toSeconds},{stepSeconds}]',
@@ -2872,6 +2888,7 @@ var ajax = Em.Object.extend({
 
     if (showStatus.contains(jqXHR.status) && !this.get('modalPopup')) {
       this.set('modalPopup', App.ModalPopup.show({
+        elementId: 'default-error-modal',
         header: Em.I18n.t('common.error'),
         secondary: false,
         onPrimary: function () {

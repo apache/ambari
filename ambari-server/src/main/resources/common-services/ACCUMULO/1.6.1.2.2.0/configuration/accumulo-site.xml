@@ -65,6 +65,9 @@
     <description>Controls whether or not native maps are enabled
       for Accumulo's in-memory map, where incoming writes are
       sorted (see also tserver.memory.maps.max).</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -96,6 +99,9 @@
     <name>master.port.client</name>
     <value>9999</value>
     <description>Port for client connections to the master.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -103,12 +109,18 @@
     <value>12234</value>
     <description>Port for delivering tracing data to the tracer
       process.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>tserver.port.client</name>
     <value>9997</value>
     <description>Port for client connections to the tservers.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -116,12 +128,18 @@
     <value>50092</value>
     <description>Port for monitoring the Accumulo garbage
       collector.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>monitor.port.client</name>
     <value>50095</value>
     <description>Port for the Accumulo monitor UI.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -129,6 +147,9 @@
     <value>4560</value>
     <description>Port for delivering logs for aggregation by the
       Accumulo monitor.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -164,5 +185,8 @@ $HADOOP_CONF_DIR,
     <description>List of jars and directories that will be added to
       Accumulo's classpath.  Ordering matters, as the entries will be
       searched in order when attempting to load a class.</description>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

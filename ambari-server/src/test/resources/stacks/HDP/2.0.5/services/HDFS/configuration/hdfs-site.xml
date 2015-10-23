@@ -23,6 +23,12 @@
 <configuration>
 
 <!-- file system properties -->
+  <property>
+    <name>test.password</name>
+    <property-type>PASSWORD</property-type>
+    <value>test</value>
+    <description>1</description>
+  </property>
 
   <property>
     <name>dfs.namenode.name.dir</name>

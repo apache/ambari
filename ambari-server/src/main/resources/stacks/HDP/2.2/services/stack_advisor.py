@@ -23,6 +23,7 @@ from urlparse import urlparse
 import os
 import fnmatch
 import socket
+import re
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
@@ -569,13 +570,20 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
               ('hbase-site' in services['configurations'] and 'phoenix.functions.allowUserDefinedFunctions' in services['configurations']["hbase-site"]["properties"]):
         putHbaseSitePropertyAttributes('phoenix.functions.allowUserDefinedFunctions', 'delete', 'true')
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
+    if "ranger-env" in services["configurations"] and "ranger-hbase-plugin-properties" in services["configurations"] and \
+        "ranger-hbase-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
+      putHbaseRangerPluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
+      rangerEnvHbasePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hbase-plugin-enabled"]
+      putHbaseRangerPluginProperty("ranger-hbase-plugin-enabled", rangerEnvHbasePluginProperty)
+
+    rangerPluginEnabled = ''
+    if 'ranger-hbase-plugin-properties' in configurations and 'ranger-hbase-plugin-enabled' in  configurations['ranger-hbase-plugin-properties']['properties']:
+      rangerPluginEnabled = configurations['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
+    elif 'ranger-hbase-plugin-properties' in services['configurations'] and 'ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']:
       rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
-        putHbaseSiteProperty("hbase.security.authorization", 'true')
-        putHbaseSiteProperty("hbase.coprocessor.master.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
-        putHbaseSiteProperty("hbase.coprocessor.region.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
+
+    if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+      putHbaseSiteProperty('hbase.security.authorization','true')
 
     # Recommend configs for bucket cache
     threshold = 23 # 2 Gb is reserved for other offheap memory
@@ -670,11 +678,38 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
 
-    if "ranger-env" in services["configurations"] and "ranger-hbase-plugin-properties" in services["configurations"] and \
-        "ranger-hbase-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
-      putHbaseRangerPluginProperty = self.putProperty(configurations, "ranger-hbase-plugin-properties", services)
-      rangerEnvHbasePluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-hbase-plugin-enabled"]
-      putHbaseRangerPluginProperty("ranger-hbase-plugin-enabled", rangerEnvHbasePluginProperty)
+    stackVersion = services["Versions"]["stack_version"]
+
+    if stackVersion == '2.2':
+      rangerClass = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    else:
+      rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
+
+    nonRangerClass = 'org.apache.hadoop.hbase.security.access.AccessController'
+    hbaseClassConfigs = ['hbase.coprocessor.master.classes', 'hbase.coprocessor.region.classes']
+
+    for item in range(len(hbaseClassConfigs)):
+      if hbaseClassConfigs[item] in services['configurations']['hbase-site']['properties']:
+        if 'hbase-site' in configurations and hbaseClassConfigs[item] in configurations['hbase-site']['properties']:
+          coprocessorConfig = configurations['hbase-site']['properties'][hbaseClassConfigs[item]]
+        else:
+          coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
+        coprocessorClasses = coprocessorConfig.split(",")
+        coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
+        if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+          if nonRangerClass in coprocessorClasses:
+            coprocessorClasses.remove(nonRangerClass)
+          if not rangerClass in coprocessorClasses:
+            coprocessorClasses.append(rangerClass)
+          putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
+        elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'No'.lower():
+          if rangerClass in coprocessorClasses:
+            coprocessorClasses.remove(rangerClass)
+            if not nonRangerClass in coprocessorClasses:
+              coprocessorClasses.append(nonRangerClass)
+            putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
+      elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+        putHbaseSiteProperty(hbaseClassConfigs[item], rangerClass)
 
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
@@ -732,11 +767,35 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
+    core_site = services["configurations"]["core-site"]["properties"]
+    stackVersion = services["Versions"]["stack_version"]
     if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
         "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
       rangerEnvStormPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-storm-plugin-enabled"]
       putStormRangerPluginProperty("ranger-storm-plugin-enabled", rangerEnvStormPluginProperty)
+
+    rangerPluginEnabled = ''
+    if 'ranger-storm-plugin-properties' in configurations and 'ranger-storm-plugin-enabled' in  configurations['ranger-storm-plugin-properties']['properties']:
+      rangerPluginEnabled = configurations['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
+    elif 'ranger-storm-plugin-properties' in services['configurations'] and 'ranger-storm-plugin-enabled' in services['configurations']['ranger-storm-plugin-properties']['properties']:
+      rangerPluginEnabled = services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
+
+    nonRangerClass = 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer'
+    if stackVersion == '2.2':
+      rangerClass = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
+    else:
+      rangerClass = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
+    # Cluster is kerberized
+    if ('hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos'):
+      if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+        putStormSiteProperty('nimbus.authorizer',rangerClass)
+      elif (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == rangerClass):
+        putStormSiteProperty('nimbus.authorizer', nonRangerClass)
+    else:
+      putStormSiteAttributes('nimbus.authorizer', 'delete', 'true')
 
   def recommendKnoxConfigurations(self, configurations, clusterData, services, hosts):
     if "ranger-env" in services["configurations"] and "ranger-knox-plugin-properties" in services["configurations"] and \
@@ -745,19 +804,48 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerEnvKnoxPluginProperty = services["configurations"]["ranger-env"]["properties"]["ranger-knox-plugin-enabled"]
       putKnoxRangerPluginProperty("ranger-knox-plugin-enabled", rangerEnvKnoxPluginProperty)
 
+    if 'topology' in services["configurations"] and 'content' in services["configurations"]["topology"]["properties"]:
+      putKnoxTopologyContent = self.putProperty(configurations, "topology", services)
+      rangerPluginEnabled = ''
+      if 'ranger-knox-plugin-properties' in configurations and 'ranger-knox-plugin-enabled' in  configurations['ranger-knox-plugin-properties']['properties']:
+        rangerPluginEnabled = configurations['ranger-knox-plugin-properties']['properties']['ranger-knox-plugin-enabled']
+      elif 'ranger-knox-plugin-properties' in services['configurations'] and 'ranger-knox-plugin-enabled' in services['configurations']['ranger-knox-plugin-properties']['properties']:
+        rangerPluginEnabled = services['configurations']['ranger-knox-plugin-properties']['properties']['ranger-knox-plugin-enabled']
+      topologyContent = services["configurations"]["topology"]["properties"]["content"]
+      authPattern = "<provider>\s*<role>\s*authorization\s*</role>[\s\S]*?</provider>"
+      authXml = re.search(authPattern, topologyContent)
+
+      if authXml.group(0):
+        authNamePattern = "<name>\s*(.*?)\s*</name>"
+        authName = re.search(authNamePattern, authXml.group(0))
+        newAuthName=''
+        if authName.group(1) == 'AclsAuthz' and rangerPluginEnabled and rangerPluginEnabled.lower() == "Yes".lower():
+          newAuthName = authName.group(0).replace('AclsAuthz', 'XASecurePDPKnox')
+        elif ((not rangerPluginEnabled) or rangerPluginEnabled.lower() != "Yes".lower()) and authName.group(1) == 'XASecurePDPKnox':
+          newAuthName = authName.group(0).replace('XASecurePDPKnox', 'AclsAuthz')
+        if newAuthName:
+          newAuthxml = authXml.group(0).replace(authName.group(0), newAuthName)
+          newTopologyXmlContent = topologyContent.replace(authXml.group(0), newAuthxml)
+          putKnoxTopologyContent('content', newTopologyXmlContent)
 
 
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
-               "hadoop-env": self.validateHDFSConfigurationsEnv},
-      "YARN": {"yarn-env": self.validateYARNEnvConfigurations},
+               "hadoop-env": self.validateHDFSConfigurationsEnv,
+               "ranger-hdfs-plugin-properties": self.validateHDFSRangerPluginConfigurations},
+      "YARN": {"yarn-env": self.validateYARNEnvConfigurations,
+               "ranger-yarn-plugin-properties": self.validateYARNRangerPluginConfigurations},
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                "hive-site": self.validateHiveConfigurations,
                "hive-env": self.validateHiveConfigurationsEnv},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations,
-                "hbase-env": self.validateHBASEEnvConfigurations},
+                "hbase-env": self.validateHBASEEnvConfigurations,
+                "ranger-hbase-plugin-properties": self.validateHBASERangerPluginConfigurations},
+      "KNOX": {"ranger-knox-plugin-properties": self.validateKnoxRangerPluginConfigurations},
+      "KAFKA": {"ranger-kafka-plugin-properties": self.validateKafkaRangerPluginConfigurations},
+      "STORM": {"ranger-storm-plugin-properties": self.validateStormRangerPluginConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "TEZ": {"tez-site": self.validateTezConfigurations}
     }
@@ -859,7 +947,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                         {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
                         {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
     return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
-  
+
+  def validateHDFSRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if (ranger_plugin_enabled.lower() == 'yes'):
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-hdfs-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-hdfs-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-hdfs-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled must correspond ranger-env/ranger-hdfs-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-hdfs-plugin-properties")
+
+
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -1061,7 +1164,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       authorization_item = self.getErrorItem("hive_security_authorization should not be None "
                                              "if hive.security.authorization.enabled is set")
       validationItems.append({"config-name": "hive_security_authorization", "item": authorization_item})
-
+    if "hive_security_authorization" in hive_env and \
+        str(hive_env["hive_security_authorization"]).lower() == "ranger":
+      # ranger-hive-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-hive-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-hive-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'hive_security_authorization',
+                                "item": self.getWarnItem(
+                                  "ranger-env/ranger-hive-plugin-enabled must be enabled when hive_security_authorization is set to Ranger")})
     return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
@@ -1185,6 +1296,62 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
 
+  def validateHBASERangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if ranger_plugin_enabled.lower() == 'yes':
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-hbase-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-hbase-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-hbase-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-hbase-plugin-properties/ranger-hbase-plugin-enabled must correspond ranger-env/ranger-hbase-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-hbase-plugin-properties")
+
+  def validateKnoxRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-knox-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-knox-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if ranger_plugin_enabled.lower() == 'yes':
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-knox-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-knox-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-knox-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-knox-plugin-properties/ranger-knox-plugin-enabled must correspond ranger-env/ranger-knox-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-knox-plugin-properties")
+
+  def validateKafkaRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-kafka-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-kafka-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if ranger_plugin_enabled.lower() == 'yes':
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-kafka-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-kafka-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-kafka-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-kafka-plugin-properties/ranger-kafka-plugin-enabled must correspond ranger-env/ranger-kafka-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-kafka-plugin-properties")
+
+  def validateStormRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-storm-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-storm-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if ranger_plugin_enabled.lower() == 'yes':
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-storm-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-storm-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-storm-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-storm-plugin-properties/ranger-storm-plugin-enabled must correspond ranger-env/ranger-storm-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-storm-plugin-properties")
+
   def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = []
     if "yarn_cgroups_enabled" in properties:
@@ -1197,6 +1364,20 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         validationItems.append({"config-name": "yarn_cgroups_enabled",
                               "item": self.getWarnItem("CPU Isolation should only be enabled if security is enabled")})
     return self.toConfigurationValidationProblems(validationItems, "yarn-env")
+
+  def validateYARNRangerPluginConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-yarn-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-yarn-plugin-enabled'] if ranger_plugin_properties else 'No'
+    if ranger_plugin_enabled.lower() == 'yes':
+      # ranger-hdfs-plugin must be enabled in ranger-env
+      ranger_env = getServicesSiteProperties(services, 'ranger-env')
+      if not ranger_env or not 'ranger-yarn-plugin-enabled' in ranger_env or \
+          ranger_env['ranger-yarn-plugin-enabled'].lower() != 'yes':
+        validationItems.append({"config-name": 'ranger-yarn-plugin-enabled',
+                                "item": self.getWarnItem(
+                                  "ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled must correspond ranger-env/ranger-yarn-plugin-enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "ranger-yarn-plugin-properties")
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()

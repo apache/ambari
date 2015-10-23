@@ -20,9 +20,9 @@
 
 {{#each item in controller.rangerPlugins}}
   {{#if item.isDisplayed}}
-    <tr>
+    <tr class="ranger-plugin">
       <td class="summary-label">{{item.pluginTitle}}</td>
-      <td>{{item.status}}</td>
+      <td class="summary-value">{{item.status}}</td>
     </tr>
   {{/if}}
 {{/each}}

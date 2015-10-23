@@ -30,22 +30,21 @@ App.ChartServiceMetricsFlume_OutgoingMMA = App.ChartLinearTimeView.extend({
   renderer: 'line',
   title: Em.I18n.t('services.service.info.metrics.flume.outgoing.mma'),
 
-  ajaxIndex: 'service.metrics.flume.outgoing_event_take_success_count',
+  ajaxIndex: 'service.metrics.flume.outgoing_event_take_success_count.mma',
   yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('',
       App.ChartLinearTimeView.DefaultFormatter),
 
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     var self = this;
+    var data = Em.get(jsonData, 'metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate');
 
-    if (Em.get(jsonData, "metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate")) {
-      for ( var cname in jsonData.metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate) {
-        if(cname != "sum"){
-          var seriesName = Em.I18n.t('services.service.info.metrics.flume.outgoing_mma').format(cname);
-          var seriesData = jsonData.metrics.flume.flume.CHANNEL.EventTakeSuccessCount.rate[cname];
-          if (seriesData) {
-            seriesArray.push(self.transformData(seriesData, seriesName));
-          }
+    if (data) {
+      for (var cname in data) {
+        var seriesName = Em.I18n.t('services.service.info.metrics.flume.outgoing_mma').format(cname);
+        var seriesData = data[cname];
+        if (seriesData) {
+          seriesArray.push(self.transformData(seriesData, seriesName));
         }
       }
     }

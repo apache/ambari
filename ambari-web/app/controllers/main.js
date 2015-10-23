@@ -25,6 +25,7 @@ App.MainController = Em.Controller.extend({
   checkActivenessInterval: null,
   lastUserActiveTime: null,
   userTimeOut: 0,
+  userTimeOutModal: null,
 
   updateTitle: function(){
     var name = App.router.get('clusterController.clusterName');
@@ -191,7 +192,6 @@ App.MainController = Em.Controller.extend({
   },
 
   monitorInactivity: function() {
-    //console.error('======MONITOR==START========');
     var timeout = Number(App.router.get('clusterController.ambariProperties')['user.inactivity.timeout.default']);
     var readonly_timeout = Number(App.router.get('clusterController.ambariProperties')['user.inactivity.timeout.role.readonly.default']);
     var isAdmin = App.get('isAdmin');
@@ -218,7 +218,6 @@ App.MainController = Em.Controller.extend({
   /* this will be triggerred by user driven events: 'mousemove', 'keypress' and 'click' */
   keepActive: function() {
     var scope = App.router.get('mainController');
-    //console.error('keepActive');
     if (scope.get('isUserActive')) {
       scope.set('lastUserActiveTime', Date.now());
     }
@@ -226,13 +225,48 @@ App.MainController = Em.Controller.extend({
 
   checkActiveness: function() {
     var scope = App.router.get('mainController');
-    //console.error("checkActiveness " + scope.get('lastUserActiveTime') + " : " + Date.now());
-    if (Date.now() - scope.get('lastUserActiveTime') > scope.get('userTimeOut') && !scope.isOnWizard()) {
-      scope.set('isUserActive', false);
-      //console.error("LOGOUT!");
-      scope.unbindActivityEventMonitors();
-      clearInterval(scope.get('checkActivenessInterval'));
-      App.router.logOff({});
+    if (!scope.isOnWizard()) {
+      var remainTime = scope.get('userTimeOut') - (Date.now() - scope.get('lastUserActiveTime'));
+      if (remainTime < 0) {
+        scope.set('isUserActive', false);
+        scope.unbindActivityEventMonitors();
+        clearInterval(scope.get('checkActivenessInterval'));
+        App.router.logOff({});
+      } else if (remainTime < App.inactivityRemainTime * 1000 && !scope.userTimeOutModal) {
+        // show alert 60 seconds before logging user out
+        scope.userTimeOutModal = App.ModalPopup.show({
+          primary: Em.I18n.t('common.timeout.warning.popup.primary'),
+          secondary: Em.I18n.t('common.timeout.warning.popup.secondary'),
+          third: false,
+          header: Em.I18n.t('common.timeout.warning.popup.header'),
+          showCloseButton: false,
+          bodyClass: Ember.View.extend({
+            template: Ember.Handlebars.compile('<p>{{view.beforeMsg}}<b>{{view.remainTime}}</b>{{view.afterMsg}}</p>'),
+            beforeMsg: Em.I18n.t('common.timeout.warning.popup.body.before'),
+            afterMsg: Em.I18n.t('common.timeout.warning.popup.body.after'),
+            remainTime: App.inactivityRemainTime,
+            didInsertElement: function() {
+              var self = this;
+              setInterval(function(){self.countDown();}, 1000)
+            },
+            countDown: function() {
+              this.set('remainTime', this.get('remainTime') - 1);
+              if (this.get('remainTime') == 0) {
+                App.router.logOff({});
+              }
+            }
+          }),
+          onPrimary: function() {
+            scope.userTimeOutModal.hide();
+            delete scope.userTimeOutModal;
+          },
+          onSecondary: function() {
+            scope.userTimeOutModal.hide();
+            delete scope.userTimeOutModal;
+            App.router.logOff({});
+          }
+        });
+      }
     }
   },
 

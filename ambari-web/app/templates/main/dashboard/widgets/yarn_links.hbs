@@ -29,14 +29,14 @@
         <div class="widget-content">
           <table>
             <!-- Resource Manager-->
-            <tr>
+            <tr class="resourcemanager-link">
               <td>
                 <a href="#" {{action showDetails view.model.resourceManager.host}}> {{t dashboard.services.yarn.resourceManager}}</a>
               </td>
             </tr>
 
             <!-- Node Manages-->
-            <tr>
+            <tr class="nodemanager-link">
               <td>
                 <a href="#" {{action filterHosts view.component}}> {{view.model.nodeManagersTotal}} {{t dashboard.services.yarn.nodeManagers}}</a>
               </td>

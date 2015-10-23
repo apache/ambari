@@ -19,6 +19,8 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
+var configTagFromFileNameMap = {};
+
 App.config = Em.Object.create({
 
   CONFIG_GROUP_NAME_MAX_LENGTH: 18,
@@ -69,7 +71,12 @@ App.config = Em.Object.create({
    * @method getConfigTagFromFileName
    **/
   getConfigTagFromFileName: function (fileName) {
-    return fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
+    if (configTagFromFileNameMap[fileName]) {
+      return configTagFromFileNameMap[fileName];
+    }
+    var ret = fileName.endsWith('.xml') ? fileName.slice(0, -4) : fileName;
+    configTagFromFileNameMap[fileName] = ret;
+    return ret;
   },
 
   /**
@@ -128,6 +135,14 @@ App.config = Em.Object.create({
   },
 
   secureConfigs: require('data/HDP2/secure_mapping'),
+
+  secureConfigsMap: function () {
+    var ret = {};
+    this.get('secureConfigs').forEach(function (sc) {
+      ret[sc.name] = true;
+    });
+    return ret;
+  }.property('secureConfigs.[]'),
 
   customStackMapping: require('data/custom_stack_map'),
 
@@ -206,6 +221,16 @@ App.config = Em.Object.create({
     });
   },
 
+  serviceByConfigTypeMap: function () {
+    var ret = {};
+    App.StackService.find().forEach(function(s) {
+      Object.keys(s.get('configTypes')).forEach(function (ct) {
+        ret[ct] = s;
+      });
+    });
+    return ret;
+  }.property(),
+
   /**
    * generates config objects
    * @param configGroups
@@ -217,9 +242,10 @@ App.config = Em.Object.create({
   mergePredefinedWithSaved: function (configGroups, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
     var serviceConfigProperty;
+    var serviceByConfigTypeMap = this.get('serviceByConfigTypeMap');
 
     configGroups.forEach(function (siteConfig) {
-      var service = this.getServiceByConfigType(siteConfig.type);
+      var service = serviceByConfigTypeMap[siteConfig.type];
       if (service && serviceName != 'MISC') {
         serviceName = service.get('serviceName');
       }
@@ -269,7 +295,7 @@ App.config = Em.Object.create({
 
   /**
    * This method sets default values for config property
-   * These property values has the lowest priority and can be overriden be stack/UI
+   * These property values has the lowest priority and can be overridden be stack/UI
    * config property but is used when such properties are absent in stack/UI configs
    * @param {string} name
    * @param {string} serviceName
@@ -279,7 +305,7 @@ App.config = Em.Object.create({
    * @returns {Object}
    */
   createDefaultConfig: function(name, serviceName, fileName, definedInStack, coreObject) {
-    return $.extend({
+    var tpl = {
       /** core properties **/
       name: name,
       filename: fileName,
@@ -293,7 +319,7 @@ App.config = Em.Object.create({
       supportsFinal: this.shouldSupportFinal(serviceName, fileName),
       serviceName: serviceName,
       displayName: this.getDefaultDisplayName(name, fileName),
-      displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : ''),
+      displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : '', serviceName),
       description: null,
       category: this.getDefaultCategory(definedInStack, fileName),
       isSecureConfig: this.getIsSecure(name),
@@ -312,7 +338,9 @@ App.config = Em.Object.create({
       options: null,
       radioName: null,
       belongsToService: []
-    }, coreObject);
+    };
+    return Object.keys(coreObject|| {}).length ?
+      $.extend(tpl, coreObject) : tpl;
   },
 
   /**
@@ -373,12 +401,19 @@ App.config = Em.Object.create({
    * @returns {*}
    */
   getPropertyIfExists: function(propertyName, defaultValue, firstPriority, secondPriority) {
-    if (firstPriority && !Em.isNone(Em.get(firstPriority, propertyName))) {
-      return Em.get(firstPriority, propertyName);
-    } else if (secondPriority && !Em.isNone(Em.get(secondPriority, propertyName))) {
-      return Em.get(secondPriority, propertyName);
-    } else {
-      return defaultValue;
+    firstPriority = firstPriority || {};
+    secondPriority = secondPriority || {};
+    var fp = Em.get(firstPriority, propertyName);
+    if (firstPriority && !Em.isNone(fp)) {
+      return fp;
+    }
+    else {
+      var sp = Em.get(secondPriority, propertyName);
+      if (secondPriority && !Em.isNone(sp)) {
+        return sp;
+      } else {
+        return defaultValue;
+      }
     }
   },
 
@@ -387,13 +422,20 @@ App.config = Em.Object.create({
    * @param name
    * @param type
    * @param value
+   * @param serviceName
    * @returns {string}
    */
-  getDefaultDisplayType: function(name, type, value) {
+  getDefaultDisplayType: function(name, type, value, serviceName) {
     if (this.isContentProperty(name, type)) {
       return 'content';
+    } else if (serviceName && serviceName == 'FALCON' && this.getConfigTagFromFileName(type) == 'oozie-site') {
+      /**
+       * This specific type for 'oozie-site' configs of FALCON service.
+       * After this type will be moved to stack definition this hard-code should be removed
+       */
+      return 'custom';
     }
-    return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'advanced';
+    return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'string';
   },
 
   /**
@@ -422,7 +464,7 @@ App.config = Em.Object.create({
    * @returns {boolean}
    */
   getIsSecure: function(propertyName) {
-    return this.get('secureConfigs').mapProperty('name').contains(propertyName);
+    return !!this.get('secureConfigsMap')[propertyName];
   },
 
   /**
@@ -449,7 +491,7 @@ App.config = Em.Object.create({
         category = Em.get(serviceConfigProperty, 'category');
     switch (displayType) {
       case 'content':
-      case 'advanced':
+      case 'string':
       case 'multiLine':
         return this.trimProperty({ displayType: displayType, value: value });
         break;
@@ -529,25 +571,39 @@ App.config = Em.Object.create({
     var uiPersistentProperties = [
       this.configId('oozie_hostname', 'oozie-env.xml')
     ];
-    var configTypes = App.StackService.find().filter(function(service) {
+    var configTypesMap = {};
+    App.StackService.find().filter(function (service) {
       return selectedServiceNames.contains(service.get('serviceName'));
-    }).map(function(item) {
+    }).map(function (item) {
       return Em.keys(item.get('configTypes'));
-    }).reduce(function(p,c) { return p.concat(c); }).concat(['cluster-env', 'alert_notification'])
-      .uniq().compact().filter(function(configType) { return !!configType; });
-
-    // ui only required configs from theme are required to show configless widgets (widget that are not related to a config)
+    }).reduce(function (p, c) {
+      return p.concat(c);
+    }).concat(['cluster-env', 'alert_notification'])
+      .uniq().compact().filter(function (configType) {
+        return !!configType;
+      }).forEach(function (c) {
+        configTypesMap[c] = true;
+      });
     var predefinedIds = Object.keys(this.get('preDefinedSitePropertiesMap'));
     var uiOnlyConfigDerivedFromTheme =  App.uiOnlyConfigDerivedFromTheme.mapProperty('name');
-    var stackIds = App.StackConfigProperty.find().filterProperty('isValueDefined').mapProperty('id');
+    // ui only required configs from theme are required to show configless widgets (widget that are not related to a config)
+    var stackIds = [];
+    var stackConfigPropertyMap = {};
 
+    App.StackConfigProperty.find().forEach(function (scp) {
+      var id = scp.get('id');
+      if(scp.get('isValueDefined')) {
+        stackIds.push(id);
+      }
+      stackConfigPropertyMap[id] = scp;
+    });
     var configIds = stackIds.concat(predefinedIds).concat(uiOnlyConfigDerivedFromTheme).uniq();
 
     configIds.forEach(function(id) {
 
       var preDefined = this.get('preDefinedSitePropertiesMap')[id];
       var isUIOnlyFromTheme = App.uiOnlyConfigDerivedFromTheme.findProperty('name',id);
-      var advanced = App.StackConfigProperty.find(id);
+      var advanced = stackConfigPropertyMap[id] || Em.Object.create({});
 
       var name = preDefined ? preDefined.name : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('name') : advanced.get('name');
       var filename = preDefined ? preDefined.filename : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('filename') : advanced.get('filename');
@@ -564,7 +620,7 @@ App.config = Em.Object.create({
         return;
       }
       var serviceName = preDefined ? preDefined.serviceName : isUIOnlyFromTheme ? isUIOnlyFromTheme.get('serviceName') : advanced.get('serviceName');
-      if (configTypes.contains(this.getConfigTagFromFileName(filename))) {
+      if (configTypesMap[this.getConfigTagFromFileName(filename)]) {
         var configData = this.createDefaultConfig(name, serviceName, filename, true, preDefined || isUIOnlyFromTheme || {});
         if (configData.recommendedValue) {
           configData.value = configData.recommendedValue;
@@ -654,7 +710,7 @@ App.config = Em.Object.create({
         propertyData.category = 'Users and Groups';
         propertyData.isVisible = !App.get('isHadoopWindowsStack');
         propertyData.serviceName = 'MISC';
-        propertyData.displayType = checkboxProperties.contains(config.property_name) ? 'checkbox' : 'user';
+        propertyData.displayType = checkboxProperties.contains(config.property_name) ? 'boolean' : 'user';
         if (config.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
           propertyData.index = 999;
         } else if (config.service_name) {
@@ -674,6 +730,8 @@ App.config = Em.Object.create({
     return propertyData;
   },
 
+  configTypesInfoMap: {},
+
   /**
    * Get config types and config type attributes from stack service
    *
@@ -681,6 +739,11 @@ App.config = Em.Object.create({
    * @return {object}
    */
   getConfigTypesInfoFromService: function (service) {
+    var configTypesInfoMap = this.get('configTypesInfoMap');
+    if (configTypesInfoMap[service]) {
+      // don't recalculate
+      return configTypesInfoMap[service];
+    }
     var configTypes = service.get('configTypes');
     var configTypesInfo = {
       items: [],
@@ -696,6 +759,8 @@ App.config = Em.Object.create({
         }
       }
     }
+    configTypesInfoMap[service] = configTypesInfo;
+    this.set('configTypesInfoMap', configTypesInfoMap);
     return configTypesInfo;
   },
 
@@ -911,11 +976,10 @@ App.config = Em.Object.create({
         break;
       case 'password':
         break;
-      case 'advanced':
+      default:
         if (name == 'javax.jdo.option.ConnectionURL' || name == 'oozie.service.JPAService.jdbc.url') {
           rez = value.trim();
         }
-      default:
         rez = (typeof value == 'string') ? value.replace(/(\s+$)/g, '') : value;
     }
     return ((rez == '') || (rez == undefined)) ? value : rez;
@@ -1011,15 +1075,13 @@ App.config = Em.Object.create({
     if (!serviceName || unsupportedServiceNames.contains(serviceName) || !filename) {
       return false;
     } else {
-      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      var stackService = App.StackService.find(serviceName);
       if (!stackService) {
         return false;
       }
-      var supportsFinal = this.getConfigTypesInfoFromService(stackService).supportsFinal;
-      var matchingConfigType = supportsFinal.find(function (configType) {
+      return !!this.getConfigTypesInfoFromService(stackService).supportsFinal.find(function (configType) {
         return filename.startsWith(configType);
       });
-      return !!matchingConfigType;
     }
   },
 

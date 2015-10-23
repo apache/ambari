@@ -37,7 +37,7 @@ public class ConnectionTest {
 
     thrown.expect(HiveClientException.class);
     thrown.expectMessage("Connection refused");
-    new Connection("nonexistent.host.com", 10000, auth, "ambari-qa", null);
+    new Connection("127.0.0.1", 42420, auth, "ambari-qa", null);
   }
 
   @Test
@@ -47,7 +47,7 @@ public class ConnectionTest {
     auth.put("password", "${ask_password}");
 
     thrown.expect(HiveAuthRequiredException.class);
-    new Connection("nonexistent.host.com", 10000, auth, "ambari-qa", null);
+    new Connection("127.0.0.1", 42420, auth, "ambari-qa", null);
   }
 
   @Test
@@ -58,6 +58,6 @@ public class ConnectionTest {
 
     thrown.expect(HiveClientException.class);
     thrown.expectMessage("Connection refused");
-    new Connection("nonexistent.host.com", 10000, auth, "ambari-qa", "password");
+    new Connection("127.0.0.1", 42420, auth, "ambari-qa", "password");
   }
 }

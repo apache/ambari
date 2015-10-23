@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+-->
+<configuration>
+  <property>
+    <name>hawq_master_address_host</name>
+    <display-name>HAWQ Master</display-name>
+    <value>localhost</value>
+    <description>The host name of HAWQ master.</description>
+  </property>
+
+  <property>
+    <name>hawq_standby_address_host</name>
+    <display-name>HAWQ Standby Master</display-name>
+    <value>localhost</value>
+    <description>The host name of HAWQ standby.</description>
+  </property>
+
+  <property>
+    <name>hawq_master_address_port</name>
+    <display-name>HAWQ Master Port</display-name>
+    <value>5432</value>
+    <description>The port of HAWQ master.</description>
+  </property>
+
+  <property>
+    <name>hawq_segment_address_port</name>
+    <display-name>HAWQ Segment Port</display-name>
+    <value>40000</value>
+    <description>The port of HAWQ segment.</description>
+  </property>
+
+  <property>
+    <name>hawq_dfs_url</name>
+    <display-name>HAWQ DFS URL</display-name>
+    <value>localhost:8020/hawq_default</value>
+    <description>URL for accessing HDFS.</description>
+  </property>
+
+  <property>
+    <name>hawq_master_directory</name>
+    <display-name>HAWQ Master Directory</display-name>
+    <value>/data/hawq/master</value>
+    <description>The directory of HAWQ master.</description>
+  </property>
+
+  <property>
+    <name>hawq_segment_directory</name>
+    <display-name>HAWQ Segment Directory</display-name>
+    <value>/data/hawq/segment</value>
+    <description>The directory of HAWQ segment.</description>
+  </property> 
+
+  <property>
+    <name>hawq_master_temp_directory</name>
+    <display-name>HAWQ Master Temp Directory</display-name>
+    <value>/tmp</value>
+    <description>The temporary directory reserved for HAWQ master.</description>
+  </property>
+
+  <property>
+    <name>hawq_segment_temp_directory</name>
+    <display-name>HAWQ Segment Temp Directory</display-name>
+    <value>/tmp</value>
+    <description>The temporary directory reserved for HAWQ segment.</description>
+  </property>
+
+  <!-- HAWQ resource manager parameters -->
+  <property>
+    <name>hawq_resourcemanager_server_type</name>
+    <value>none</value>
+    <description>The resource manager type to start for allocating resource. 
+      'none' means HAWQ resource manager exclusively uses whole
+      cluster; 'yarn' means HAWQ resource manager contacts YARN
+      resource manager to negotiate resource.
+    </description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_segment_limit_memory_use</name>
+    <value>64GB</value>
+    <description>The limit of memory usage in a HAWQ segment when 
+      HAWQ is set 'none'.
+    </description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_segment_limit_core_use</name>
+    <value>16</value>
+    <description>The limit of virtual core usage in a HAWQ segment when 
+      HAWQ is set 'none'.
+    </description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_yarn_resourcemanager_address</name>
+    <value>localhost:8032</value>
+    <description>The address of YARN resource manager server.</description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_yarn_resourcemanager_scheduler_address</name>
+    <value>localhost:8030</value>
+    <description>The address of YARN scheduler server.</description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_yarn_queue</name>
+    <value>default</value>
+    <description>The YARN queue name to register HAWQ resource manager.</description>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_yarn_application_name</name>
+    <value>hawq</value>
+    <description>The application name to register HAWQ resource manager in YARN.</description>
+  </property>
+  <property>
+    <name>hawq_resourcemanager_log_level</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_cpu_enable</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_cgroup_mount_point</name>
+    <value>/sys/fs/cgroup</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_cgroup_hierarchy_name</name>
+    <value>hadoop-yarn</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_cleanup_period</name>
+    <value>180</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_cpu_weight</name>
+    <value>1024.0</value>
+  </property>
+
+  <property>
+    <name>hawq_resourceenforcer_vcore_pcore_ratio</name>
+    <value>1.0</value>
+  </property>
+
+</configuration>

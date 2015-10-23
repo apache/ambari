@@ -122,13 +122,10 @@ App.ServiceConfigGroup = DS.Model.extend({
    */
   availableHosts: function () {
     if (this.get('isDefault')) return [];
-    var unusedHostsMap = {};
+    var unusedHostsMap = this.get('parentConfigGroup.hosts').toWickMap();
     var availableHosts = [];
     var sharedHosts = this.get('clusterHosts');
     // parentConfigGroup.hosts(hosts from default group) - are available hosts, which don't belong to any group
-    this.get('parentConfigGroup.hosts').forEach(function (hostName) {
-      unusedHostsMap[hostName] = true;
-    });
     sharedHosts.forEach(function (host) {
       if (unusedHostsMap[host.get('id')]) {
         availableHosts.pushObject(Ember.Object.create({

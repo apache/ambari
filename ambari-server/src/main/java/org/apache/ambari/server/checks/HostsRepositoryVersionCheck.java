@@ -53,6 +53,10 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     super(CheckDescription.HOSTS_REPOSITORY_VERSION);
   }
 
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    return super.isApplicable(request) && request.getRepositoryVersion() != null;
+  }
+
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {

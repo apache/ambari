@@ -21,6 +21,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOL
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,10 +103,12 @@ import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -387,57 +390,68 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // !!! above check ensures only one
     final Map<String, Object> propertyMap = requestMaps.iterator().next();
 
-    String requestId = (String) propertyMap.get(UPGRADE_REQUEST_ID);
-    if (null == requestId) {
+    String requestIdProperty = (String) propertyMap.get(UPGRADE_REQUEST_ID);
+    if (null == requestIdProperty) {
       throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_ID));
     }
 
+    long requestId = Long.parseLong(requestIdProperty);
+    UpgradeEntity upgradeEntity = s_upgradeDAO.findUpgradeByRequestId(requestId);
+    if( null == upgradeEntity){
+      String exceptionMessage = MessageFormat.format("The upgrade with request ID {0} was not found", requestIdProperty);
+      throw new NoSuchParentResourceException(exceptionMessage);
+    }
+
+    // the properties which are allowed to be updated; the request must include
+    // at least 1
+    List<String> updatableProperties = Lists.newArrayList(UPGRADE_REQUEST_STATUS,
+        UPGRADE_SKIP_FAILURES, UPGRADE_SKIP_SC_FAILURES);
+
+    boolean isRequiredPropertyInRequest = CollectionUtils.containsAny(updatableProperties,
+        propertyMap.keySet());
+
+    if (!isRequiredPropertyInRequest) {
+      String exceptionMessage = MessageFormat.format(
+          "At least one of the following properties is required in the request: {0}",
+          StringUtils.join(updatableProperties, ", "));
+      throw new IllegalArgumentException(exceptionMessage);
+    }
+
     String requestStatus = (String) propertyMap.get(UPGRADE_REQUEST_STATUS);
-    if (null == requestStatus) {
-      throw new IllegalArgumentException(String.format("%s is required", UPGRADE_REQUEST_STATUS));
+    String skipFailuresRequestProperty = (String) propertyMap.get(UPGRADE_SKIP_FAILURES);
+    String skipServiceCheckFailuresRequestProperty = (String) propertyMap.get(UPGRADE_SKIP_SC_FAILURES);
+
+    if (null != requestStatus) {
+      HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
+      setUpgradeRequestStatus(requestIdProperty, status, propertyMap);
     }
 
-    HostRoleStatus status = HostRoleStatus.valueOf(requestStatus);
-    if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
-      throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
-          status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
-    }
+    // if either of the skip failure settings are in the request, then we need
+    // to iterate over the entire series of tasks anyway, so do them both at the
+    // same time
+    if (StringUtils.isNotEmpty(skipFailuresRequestProperty)
+        || StringUtils.isNotEmpty(skipServiceCheckFailuresRequestProperty)) {
+      // grab the current settings for both
+      boolean skipFailures = upgradeEntity.isComponentFailureAutoSkipped();
+      boolean skipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
 
-    String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
-    if (null == reason) {
-      reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
-    }
-
-    ActionManager actionManager = getManagementController().getActionManager();
-    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(
-        Collections.singletonList(Long.valueOf(requestId)));
-
-    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
-
-    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
-        internalRequest.getStages()).getStatus();
-
-    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
-      throw new IllegalArgumentException(
-          String.format("Can only set status to %s when the upgrade is %s (currently %s)", status,
-              HostRoleStatus.ABORTED, internalStatus));
-    }
-
-    if (HostRoleStatus.ABORTED == status) {
-      if (!internalStatus.isCompletedState()) {
-        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
-      }
-    } else {
-      List<Long> taskIds = new ArrayList<Long>();
-
-      for (HostRoleCommand hrc : internalRequest.getCommands()) {
-        if (HostRoleStatus.ABORTED == hrc.getStatus()
-            || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
-          taskIds.add(hrc.getTaskId());
-        }
+      // update skipping failures on commands which are not SERVICE_CHECKs
+      if (null != skipFailuresRequestProperty) {
+        skipFailures = Boolean.parseBoolean(skipFailuresRequestProperty);
+        s_hostRoleCommandDAO.updateAutomaticSkipOnFailure(requestId, skipFailures);
       }
 
-      actionManager.resubmitTasks(taskIds);
+      // if the service check failure skip is present, then update all role
+      // commands that are SERVICE_CHECKs
+      if (null != skipServiceCheckFailuresRequestProperty) {
+        skipServiceCheckFailures = Boolean.parseBoolean(skipServiceCheckFailuresRequestProperty);
+        s_hostRoleCommandDAO.updateAutomaticSkipServiceCheckFailure(requestId,
+            skipServiceCheckFailures);
+      }
+
+      upgradeEntity.setAutoSkipComponentFailures(skipFailures);
+      upgradeEntity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
+      upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
     }
 
     return getRequestStatus(null);
@@ -465,6 +479,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     setResourceProperty(resource, UPGRADE_TO_VERSION, entity.getToVersion(), requestedIds);
     setResourceProperty(resource, UPGRADE_DIRECTION, entity.getDirection(), requestedIds);
     setResourceProperty(resource, UPGRADE_DOWNGRADE_ALLOWED, entity.isDowngradeAllowed(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SKIP_FAILURES, entity.isComponentFailureAutoSkipped(), requestedIds);
+    setResourceProperty(resource, UPGRADE_SKIP_SC_FAILURES, entity.isServiceCheckFailureAutoSkipped(), requestedIds);
 
     return resource;
   }
@@ -490,8 +506,14 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String preferredUpgradePackName = (String) requestMap.get(UPGRADE_PACK);
 
     // Default to ROLLING upgrade, but attempt to read from properties.
-    final UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
-        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+    if (requestMap.containsKey(UPGRADE_TYPE)) {
+      try {
+        upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
+      } catch(Exception e){
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.", UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
+      }
+    }
 
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
@@ -524,8 +546,15 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     boolean skipPrereqChecks = Boolean.parseBoolean((String) requestMap.get(UPGRADE_SKIP_PREREQUISITE_CHECKS));
     boolean failOnCheckWarnings = Boolean.parseBoolean((String) requestMap.get(UPGRADE_FAIL_ON_CHECK_WARNINGS));
     String preferredUpgradePack = requestMap.containsKey(UPGRADE_PACK) ? (String) requestMap.get(UPGRADE_PACK) : null;
-    UpgradeType upgradeType = requestMap.containsKey(UPGRADE_TYPE) ?
-        UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString()) : UpgradeType.ROLLING;
+
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+    if (requestMap.containsKey(UPGRADE_TYPE)) {
+      try {
+        upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
+      } catch(Exception e){
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.", UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
+      }
+    }
 
     // Validate there isn't an direction == upgrade/downgrade already in progress.
     List<UpgradeEntity> upgrades = s_upgradeDAO.findUpgrades(cluster.getClusterId());
@@ -762,7 +791,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntity.setTasks(wrapper.getTasksJson());
               itemEntity.setHosts(wrapper.getHostsJson());
               itemEntities.add(itemEntity);
-              
+
               // At this point, need to change the effective Stack Id so that subsequent tasks run on the newer value.
               // TODO AMBARI-12698, check if this works during a Stop-the-World Downgrade.
               if (UpdateStackGrouping.class.equals(group.groupClass)) {
@@ -806,6 +835,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setDirection(direction);
     entity.setUpgradePackage(pack.getName());
     entity.setUpgradeType(pack.getType());
+    entity.setAutoSkipComponentFailures(skipComponentFailures);
+    entity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
     entity.setDowngradeAllowed(pack.isDowngradeAllowed());
 
     req.getRequestStatusResponse();
@@ -1057,6 +1088,23 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
   }
 
+  /**
+   * Modify the commandParams by applying additional parameters from the stage.
+   * @param wrapper Stage Wrapper that may contain additional parameters.
+   * @param commandParams Parameters to modify.
+   */
+  private void applyAdditionalParameters(StageWrapper wrapper, Map<String, String> commandParams) {
+    if (wrapper.getParams() != null) {
+      Iterator it = wrapper.getParams().entrySet().iterator();
+      while (it.hasNext()) {
+        Map.Entry<String, String> pair = (Map.Entry) it.next();
+        if (!commandParams.containsKey(pair.getKey())) {
+          commandParams.put(pair.getKey(), pair.getValue());
+        }
+      }
+    }
+  }
+
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
       UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
           throws AmbariException {
@@ -1079,6 +1127,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     params.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, params);
 
     // Because custom task may end up calling a script/function inside a
     // service, it is necessary to set the
@@ -1188,6 +1239,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
 
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, commandParams);
+
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         function, filters, commandParams);
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
@@ -1239,6 +1293,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Apply additional parameters to the command that come from the stage.
+    applyAdditionalParameters(wrapper, commandParams);
 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "SERVICE_CHECK", filters, commandParams);
@@ -1299,6 +1356,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+
+    // Notice that this does not apply any params because the input does not specify a stage.
+    // All of the other actions do use additional params.
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
@@ -1402,5 +1462,66 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> parameters = new HashMap<String, String>();
     parameters.put(KeyNames.REFRESH_CONFIG_TAGS_BEFORE_EXECUTION, "*");
     return parameters;
+  }
+
+  /**
+   * Changes the status of the specified request for an upgrade. The valid
+   * values are:
+   * <ul>
+   * <li>{@link HostRoleStatus#ABORTED}</li>
+   * <li>{@link HostRoleStatus#PENDING}</li>
+   * </ul>
+   *
+   * @param requestId
+   *          the request to change the status for.
+   * @param status
+   *          the status to set
+   * @param propertyMap
+   *          the map of request properties (needed for things like abort reason
+   *          if present)
+   */
+  private void setUpgradeRequestStatus(String requestId, HostRoleStatus status,
+      Map<String, Object> propertyMap) {
+    if (status != HostRoleStatus.ABORTED && status != HostRoleStatus.PENDING) {
+      throw new IllegalArgumentException(String.format("Cannot set status %s, only %s is allowed",
+          status, EnumSet.of(HostRoleStatus.ABORTED, HostRoleStatus.PENDING)));
+    }
+
+    String reason = (String) propertyMap.get(UPGRADE_ABORT_REASON);
+    if (null == reason) {
+      reason = String.format(DEFAULT_REASON_TEMPLATE, requestId);
+    }
+
+    ActionManager actionManager = getManagementController().getActionManager();
+    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(
+        Collections.singletonList(Long.valueOf(requestId)));
+
+    org.apache.ambari.server.actionmanager.Request internalRequest = requests.get(0);
+
+    HostRoleStatus internalStatus = CalculatedStatus.statusFromStages(
+        internalRequest.getStages()).getStatus();
+
+    if (HostRoleStatus.PENDING == status && internalStatus != HostRoleStatus.ABORTED) {
+      throw new IllegalArgumentException(
+          String.format("Can only set status to %s when the upgrade is %s (currently %s)", status,
+              HostRoleStatus.ABORTED, internalStatus));
+    }
+
+    if (HostRoleStatus.ABORTED == status) {
+      if (!internalStatus.isCompletedState()) {
+        actionManager.cancelRequest(internalRequest.getRequestId(), reason);
+      }
+    } else {
+      List<Long> taskIds = new ArrayList<Long>();
+
+      for (HostRoleCommand hrc : internalRequest.getCommands()) {
+        if (HostRoleStatus.ABORTED == hrc.getStatus()
+            || HostRoleStatus.TIMEDOUT == hrc.getStatus()) {
+          taskIds.add(hrc.getTaskId());
+        }
+      }
+
+      actionManager.resubmitTasks(taskIds);
+    }
   }
 }

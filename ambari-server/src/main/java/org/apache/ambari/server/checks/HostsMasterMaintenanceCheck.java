@@ -53,6 +53,10 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
     super(CheckDescription.HOSTS_MASTER_MAINTENANCE);
   }
 
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+      return super.isApplicable(request) && request.getRepositoryVersion() != null;
+  }
+
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();

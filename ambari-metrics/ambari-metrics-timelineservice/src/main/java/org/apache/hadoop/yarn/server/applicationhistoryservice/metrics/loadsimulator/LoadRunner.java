@@ -82,13 +82,13 @@ public class LoadRunner {
 
     int startIndex = 0;
     if (createMaster) {
-      String simHost = hostName + ".0";
+      String simHost = hostName + "0";
       addMetricsWorkers(senderWorkers, simHost, metricsHost, MASTER_APPS);
       startIndex++;
     }
 
     for (int i = startIndex; i < threadCount; i++) {
-      String simHost = hostName + "." + i;
+      String simHost = hostName + i;
       addMetricsWorkers(senderWorkers, simHost, metricsHost, SLAVE_APPS);
     }
 

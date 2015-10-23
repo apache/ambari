@@ -104,13 +104,13 @@ describe('#App.ManageCredentialsFormView', function() {
 
   describe('#removeKDCCredentials', function() {
     it('should show confirmation popup', function() {
-      var popup = view.removeKDCCredentials();
+      var popup = view.removeKDCCredentials().popup;
       expect(popup).be.instanceof(App.ModalPopup);
       popup.destroy();
     });
     it('should call credentialUtils#removeCredentials', function() {
       this.clock = sinon.useFakeTimers();
-      var popup = view.removeKDCCredentials();
+      var popup = view.removeKDCCredentials().popup;
       assert.isFalse(view.get('actionStatus'), '#actionStatus before remove');
       sinon.stub(credentialUtils, 'removeCredentials', function() {
         var dfd = $.Deferred();

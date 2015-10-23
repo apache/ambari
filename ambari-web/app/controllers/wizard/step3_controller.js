@@ -278,6 +278,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         'sshKey': this.get('content.installOptions.sshKey'),
         'hosts': this.getBootstrapHosts(),
         'user': this.get('content.installOptions.sshUser'),
+        'sshPort': this.get('content.installOptions.sshPort'),
         'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
     });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
@@ -461,6 +462,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         'sshKey': this.get('content.installOptions.sshKey'),
         'hosts': hosts.mapProperty('name'),
         'user': this.get('content.installOptions.sshUser'),
+        'sshPort': this.get('content.installOptions.sshPort'),
         'userRunAs': App.get('supports.customizeAgentUserAccount') ? this.get('content.installOptions.agentUser') : 'root'
       });
     this.set('numPolls', 0);

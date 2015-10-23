@@ -35,12 +35,16 @@
     <description>A directory on the local filesystem used by Storm for any local
        filesystem usage it needs. The directory must exist and the Storm daemons must
        have permission to read/write from this location.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.servers</name>
     <value>['localhost']</value>
     <description>A list of hosts of ZooKeeper servers used to manage the cluster.</description>
     <value-attributes>
+      <type>componentHosts</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -49,26 +53,41 @@
     <name>storm.zookeeper.port</name>
     <value>2181</value>
     <description>The port Storm will use to connect to each of the ZooKeeper servers.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.root</name>
     <value>/storm</value>
     <description>The root location at which Storm stores data in ZooKeeper.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.session.timeout</name>
     <value>20000</value>
     <description>The session timeout for clients to ZooKeeper.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.connection.timeout</name>
     <value>15000</value>
     <description>The connection timeout for clients to ZooKeeper.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.retry.times</name>
     <value>5</value>
     <description>The number of times to retry a Zookeeper operation.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.zookeeper.retry.interval</name>
@@ -76,6 +95,7 @@
     <description>The interval between retries of a Zookeeper operation.</description>
     <value-attributes>
       <unit>ms</unit>
+      <type>int</type>
     </value-attributes>
   </property>
   <property>
@@ -83,6 +103,7 @@
     <value>30000</value>
     <description>The ceiling of the interval between retries of a Zookeeper operation.</description>
     <value-attributes>
+      <type>int</type>
       <unit>ms</unit>
     </value-attributes>
   </property>
@@ -99,6 +120,9 @@
        of this flag is to make it easy to run Storm in local mode by eliminating
        the need for native dependencies, which can be difficult to install.
     </description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.thrift.transport</name>
@@ -115,6 +139,7 @@
     <value>localhost</value>
     <description>The host that the master server is running on.</description>
     <value-attributes>
+      <type>componentHost</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -124,12 +149,16 @@
     <value>6627</value>
     <description> Which port the Thrift interface of Nimbus should run on. Clients should
        connect to this port to upload jars and submit topologies.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.thrift.max_buffer_size</name>
     <value>1048576</value>
     <description>The maximum buffer size thrift should use when reading messages.</description>
     <value-attributes>
+      <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
   </property>
@@ -138,6 +167,7 @@
     <value>-Xmx1024m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8649,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Nimbus_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the nimbus daemon.</description>
     <value-attributes>
+      <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -146,6 +176,7 @@
     <value>30</value>
     <description>How long without heartbeating a task can go before nimbus will consider the task dead and reassign it to another location.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -153,6 +184,9 @@
     <name>nimbus.supervisor.timeout.secs</name>
     <value>60</value>
     <description>How long before a supervisor can go without heartbeating before nimbus considers it dead and stops assigning new work to it.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.monitor.freq.secs</name>
@@ -163,6 +197,7 @@
        This parameter is for checking for failures when there's no explicit event like that occuring.
     </description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -171,6 +206,7 @@
     <value>600</value>
     <description>How often nimbus should wake the cleanup thread to clean the inbox.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -185,6 +221,7 @@
        NIMBUS_CLEANUP_INBOX_JAR_EXPIRATION_SECS (depending on how often NIMBUS_CLEANUP_FREQ_SECS is set to).
       </description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -194,6 +231,7 @@
     <description>A special timeout used when a task is initially launched. During launch, this is the timeout
        used until the first heartbeat, overriding nimbus.task.timeout.secs.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -202,6 +240,9 @@
     <value>true</value>
     <description>Whether or not nimbus should reassign tasks if it detects that a task goes down.
        Defaults to true, and it's not recommended to change this value.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>nimbus.file.copy.expiration.secs</name>
@@ -209,6 +250,7 @@
     <description>During upload/download with the master, how long an upload or download connection is idle
        before nimbus considers it dead and drops the connection.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -223,6 +265,9 @@
     <name>ui.port</name>
     <value>8744</value>
     <description>Storm UI binds to this port.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>ui.childopts</name>
@@ -248,21 +293,33 @@
     <name>drpc.port</name>
     <value>3772</value>
     <description>This port is used by Storm DRPC for receiving DPRC requests from clients.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>drpc.worker.threads</name>
     <value>64</value>
     <description>DRPC thrift server worker threads.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>drpc.queue.size</name>
     <value>128</value>
     <description>DRPC thrift server queue size.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>drpc.invocations.port</name>
     <value>3773</value>
     <description>This port on Storm DRPC is used by DRPC topologies to receive function invocations and send results back.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>drpc.request.timeout.secs</name>
@@ -271,6 +328,7 @@
        timeout based on the socket timeout on the DRPC client, and separately based on the topology message
        timeout for the topology implementing the DRPC function.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -308,6 +366,7 @@
     <value>-Xmx256m -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port={{jmxremote_port}} -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Supervisor_JVM</value>
     <description>This parameter is used by the storm-deploy project to configure the jvm options for the supervisor daemon.</description>
     <value-attributes>
+      <type>multiLine</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -319,6 +378,7 @@
        supervisor.worker.timeout.secs during launch because there is additional
        overhead to starting and configuring the JVM on launch.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -327,6 +387,7 @@
     <value>30</value>
     <description>How long a worker can go without heartbeating before the supervisor tries to restart the worker process.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -335,6 +396,7 @@
     <value>3</value>
     <description>How often the supervisor checks the worker heartbeats to see if any of them need to be restarted.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -343,6 +405,7 @@
     <value>5</value>
     <description>How often the supervisor sends a heartbeat to the master.</description>
     <value-attributes>
+      <type>int</type>
       <unit>seconds</unit>
     </value-attributes>
   </property>
@@ -350,6 +413,9 @@
     <name>worker.childopts</name>
     <value>-Xmx768m -javaagent:/usr/lib/storm/contrib/storm-jmxetric/lib/jmxetric-1.0.4.jar=host=localhost,port=8650,wireformat31x=true,mode=multicast,config=/usr/lib/storm/contrib/storm-jmxetric/conf/jmxetric-conf.xml,process=Worker_%ID%_JVM</value>
     <description>The jvm opts provided to workers launched by this supervisor. All \"%ID%\" substrings are replaced with an identifier for this worker.</description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
   <property>
     <name>worker.heartbeat.frequency.secs</name>
@@ -392,17 +458,24 @@
     <name>storm.messaging.netty.server_worker_threads</name>
     <value>1</value>
     <description>Netty based messaging: The # of worker threads for the server.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.messaging.netty.client_worker_threads</name>
     <value>1</value>
     <description>Netty based messaging: The # of worker threads for the client.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.messaging.netty.buffer_size</name>
     <value>5242880</value>
     <description>Netty based messaging: The buffer size for send/recv buffer.</description>
     <value-attributes>
+      <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
   </property>
@@ -410,12 +483,16 @@
     <name>storm.messaging.netty.max_retries</name>
     <value>30</value>
     <description>Netty based messaging: The max # of retries that a peer will perform when a remote is not accessible.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm.messaging.netty.max_wait_ms</name>
     <value>1000</value>
     <description>Netty based messaging: The max # of milliseconds that a peer will wait.</description>
     <value-attributes>
+      <type>int</type>
       <unit>ms</unit>
     </value-attributes>
   </property>
@@ -424,6 +501,7 @@
     <value>100</value>
     <description>Netty based messaging: The min # of milliseconds that a peer will wait.</description>
     <value-attributes>
+      <type>int</type>
       <unit>ms</unit>
     </value-attributes>
   </property>

@@ -42,6 +42,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -383,7 +384,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     m.setHostName(host);
     m.setMetricName(metricName);
     m.setStartTime(startTime);
-    Map<Long, Double> vals = new HashMap<Long, Double>();
+    TreeMap<Long, Double> vals = new TreeMap<Long, Double>();
     vals.put(startTime + 15000l, 0.0);
     vals.put(startTime + 30000l, 0.0);
     vals.put(startTime + 45000l, 1.0);

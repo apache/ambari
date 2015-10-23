@@ -26,12 +26,13 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.decorator import retry
 
 
-def pre_upgrade_shutdown():
+def pre_rolling_upgrade_shutdown(hdfs_binary):
   """
   Runs the "shutdownDatanode {ipc_address} upgrade" command to shutdown the
   DataNode in preparation for an upgrade. This will then periodically check
   "getDatanodeInfo" to ensure the DataNode has shutdown correctly.
   This function will obtain the Kerberos ticket if security is enabled.
+  :param hdfs_binary: name/path of the HDFS binary to use
   :return: Return True if ran ok (even with errors), and False if need to stop the datanode forcefully.
   """
   import params
@@ -40,38 +41,39 @@ def pre_upgrade_shutdown():
   if params.security_enabled:
     Execute(params.dn_kinit_cmd, user = params.hdfs_user)
 
-  command = format('hdfs dfsadmin -shutdownDatanode {dfs_dn_ipc_address} upgrade')
+  command = format('{hdfs_binary} dfsadmin -shutdownDatanode {dfs_dn_ipc_address} upgrade')
 
   code, output = shell.call(command, user=params.hdfs_user)
   if code == 0:
     # verify that the datanode is down
-    _check_datanode_shutdown()
+    _check_datanode_shutdown(hdfs_binary)
   else:
-    # Due to bug HDFS-7533, DataNode may not always shutdown during rolling upgrade, and it is necessary to kill it.
+    # Due to bug HDFS-7533, DataNode may not always shutdown during stack upgrade, and it is necessary to kill it.
     if output is not None and re.search("Shutdown already in progress", output):
       Logger.error("Due to a known issue in DataNode, the command {0} did not work, so will need to shutdown the datanode forcefully.".format(command))
       return False
   return True
 
 
-def post_upgrade_check():
+def post_upgrade_check(hdfs_binary):
   """
   Verifies that the DataNode has rejoined the cluster. This function will
   obtain the Kerberos ticket if security is enabled.
+  :param hdfs_binary: name/path of the HDFS binary to use
   :return:
   """
   import params
 
   Logger.info("Checking that the DataNode has rejoined the cluster after upgrade...")
   if params.security_enabled:
-    Execute(params.dn_kinit_cmd,user = params.hdfs_user)
+    Execute(params.dn_kinit_cmd, user=params.hdfs_user)
 
   # verify that the datanode has started and rejoined the HDFS cluster
-  _check_datanode_startup()
+  _check_datanode_startup(hdfs_binary)
 
 
 @retry(times=24, sleep_time=5, err_class=Fail)
-def _check_datanode_shutdown():
+def _check_datanode_shutdown(hdfs_binary):
   """
   Checks that a DataNode is down by running "hdfs dfsamin getDatanodeInfo"
   several times, pausing in between runs. Once the DataNode stops responding
@@ -84,13 +86,14 @@ def _check_datanode_shutdown():
   https://issues.apache.org/jira/browse/HDFS-8510 tracks reducing the
   times for ipc.client.connect.retry.interval. In the meantime, override them
   here, but only for RU.
+  :param hdfs_binary: name/path of the HDFS binary to use
   :return:
   """
   import params
 
   # override stock retry timeouts since after 30 seconds, the datanode is
   # marked as dead and can affect HBase during RU
-  command = format('hdfs dfsadmin -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
+  command = format('{hdfs_binary} dfsadmin -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo {dfs_dn_ipc_address}')
 
   try:
     Execute(command, user=params.hdfs_user, tries=1)
@@ -103,19 +106,19 @@ def _check_datanode_shutdown():
 
 
 @retry(times=12, sleep_time=10, err_class=Fail)
-def _check_datanode_startup():
+def _check_datanode_startup(hdfs_binary):
   """
   Checks that a DataNode is reported as being alive via the
   "hdfs dfsadmin -report -live" command. Once the DataNode is found to be
   alive this method will return, otherwise it will raise a Fail(...) and retry
   automatically.
+  :param hdfs_binary: name/path of the HDFS binary to use
   :return:
   """
   import params
 
   try:
-    # 'su - hdfs -c "hdfs dfsadmin -report -live"'
-    command = 'hdfs dfsadmin -report -live'
+    command = format('{hdfs_binary} dfsadmin -report -live')
     return_code, hdfs_output = shell.call(command, user=params.hdfs_user)
   except:
     raise Fail('Unable to determine if the DataNode has started after upgrade.')

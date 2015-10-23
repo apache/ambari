@@ -109,6 +109,8 @@ import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -253,6 +255,8 @@ public class ClusterImpl implements Cluster {
 
   private volatile Multimap<String, String> serviceConfigTypes;
 
+  private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> configProperiesTypesCache;
+
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
                      Injector injector) throws AmbariException {
@@ -266,6 +270,8 @@ public class ClusterImpl implements Cluster {
       List<ServiceComponentHost>>();
 
     desiredStackVersion = new StackId(clusterEntity.getDesiredStack());
+
+    configProperiesTypesCache = new HashMap<>();
 
     cacheConfigurations();
 
@@ -1263,7 +1269,7 @@ public class ClusterImpl implements Cluster {
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
     LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED host versions, " +
-            "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
+        "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 
@@ -1791,6 +1797,23 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Config getConfigByVersion(String configType, Long configVersion) {
+    clusterGlobalLock.readLock().lock();
+    try {
+      if (!allConfigs.containsKey(configType)) {
+        return null;
+      }
+      for(Map.Entry<String, Config> entry: allConfigs.get(configType).entrySet()) {
+        if(entry.getValue().getVersion().equals(configVersion))
+          return entry.getValue();
+      }
+      return null;
+    } finally {
+      clusterGlobalLock.readLock().unlock();
+    }
+  }
+
+  @Override
   public void addConfig(Config config) {
     clusterGlobalLock.writeLock().lock();
     try {
@@ -2217,7 +2240,7 @@ public class ClusterImpl implements Cluster {
           serviceConfigVersionResponse.getConfigurations().add(
               new ConfigurationResponse(getClusterName(), config.getStackId(),
                   config.getType(), config.getTag(), config.getVersion(),
-                  config.getProperties(), config.getPropertiesAttributes()));
+                  config.getProperties(), config.getPropertiesAttributes(), config.getPropertiesTypes()));
         }
 
         serviceConfigVersionResponses.add(serviceConfigVersionResponse);
@@ -2917,6 +2940,39 @@ public class ClusterImpl implements Cluster {
     }
 
     return temp.values();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public synchronized Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
+    if(configProperiesTypesCache.containsKey(configType)) {
+      return configProperiesTypesCache.get(configType);
+    } else {
+      Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = new HashMap<>();
+      try {
+        StackId stackId = this.getCurrentStackVersion();
+        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+        Collection<ServiceInfo> services = stackInfo.getServices();
+        for (ServiceInfo serviceInfo : services) {
+          for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
+            if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
+              Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
+              for (PropertyInfo.PropertyType propertyType : types) {
+                if (!propertiesTypes.containsKey(propertyType))
+                  propertiesTypes.put(propertyType, new HashSet<String>());
+                propertiesTypes.get(propertyType).add(propertyInfo.getName());
+              }
+            }
+          }
+        }
+      } catch (Exception e) {
+
+      }
+      configProperiesTypesCache.put(configType, propertiesTypes);
+      return propertiesTypes;
+    }
   }
 
   /**

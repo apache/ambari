@@ -230,4 +230,81 @@
       <increment-step>0.01</increment-step>
     </value-attributes>
   </property>
+  <property>
+    <name>hbase.coprocessor.master.classes</name>
+    <value></value>
+    <description>A comma-separated list of
+      org.apache.hadoop.hbase.coprocessor.MasterObserver coprocessors that are
+      loaded by default on the active HMaster process. For any implemented
+      coprocessor methods, the listed classes will be called in order. After
+      implementing your own MasterObserver, just put it in HBase's classpath
+      and add the fully qualified class name here.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hbase.coprocessor.region.classes</name>
+    <value>org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint</value>
+    <description>A comma-separated list of Coprocessors that are loaded by
+      default on all tables. For any override coprocessor method, these classes
+      will be called in order. After implementing your own Coprocessor, just put
+      it in HBase's classpath and add the fully qualified class name here.
+      A coprocessor can also be loaded on demand by setting HTableDescriptor.
+    </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authentication</name>
+      </property>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hbase.security.authorization</name>
+    <value>false</value>
+    <description> Set Authorization Method.</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Native</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-hbase-plugin-properties</type>
+        <name>ranger-hbase-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

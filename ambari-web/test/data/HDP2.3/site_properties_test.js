@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('utils/helper');
+require('data/HDP2/gluster_fs_properties');
 var siteProperties = require('data/HDP2.3/site_properties').configProperties;
 
 describe('hdp2SiteProperties', function () {
@@ -25,7 +26,8 @@ describe('hdp2SiteProperties', function () {
    * @stackProperties: All the properties that are derived from stack definition
    */
   var stackProperties = siteProperties.filter(function(item){
-    return  (!(item.isRequiredByAgent === false || item.filename === 'alert_notification' || item.category === 'Ambari Principals' || item.name === 'oozie_hostname'))
+    return  (!(item.isRequiredByAgent === false || item.filename === 'alert_notification' || item.category === 'Ambari Principals'
+    || item.name === 'oozie_hostname' || item.serviceName === 'HAWQ'))
   });
 
   stackProperties.forEach(function(siteProperty){
@@ -52,6 +54,15 @@ describe('hdp2SiteProperties', function () {
       expect(siteProperty.displayName).to.equal(undefined);
       expect(siteProperty.showLabel).to.equal(undefined);
       expect(siteProperty.unit).to.equal(undefined);
+    });
+
+
+    /**
+     * displayTypes <code>supportTextConnection<code> and <code>radio button<code>
+     * can be used as exception. Other displayTypes values should be used in stack definition
+     */
+    it('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Display type value ' + siteProperty.displayType + ' should be described in stack ', function () {
+      expect(siteProperty.displayType).to.match(/undefined|supportTextConnection|radio button/);
     });
 
     /**

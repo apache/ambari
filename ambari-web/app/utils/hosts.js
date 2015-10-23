@@ -53,6 +53,8 @@ module.exports = {
 
       classNames: [ 'sixty-percent-width-modal' ],
 
+      elementId: 'host-selection-dialog',
+
       header: popupDescription.header,
 
       dialogMessage: popupDescription.dialogMessage,

@@ -79,13 +79,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           alertMetricsUriDefinitions = [],
           alertGroupsMap = App.cache['previousAlertGroupsMap'],
           existingAlertDefinitions = App.AlertDefinition.find(),
-          existingAlertDefinitionsMap = {},
+          existingAlertDefinitionsMap = existingAlertDefinitions.toArray().toMapByProperty('id'),
           alertDefinitionsToDelete = existingAlertDefinitions.mapProperty('id'),
           rawSourceData = {};
-
-      existingAlertDefinitions.forEach(function (d) {
-        existingAlertDefinitionsMap[d.get('id')] = d;
-      });
 
       json.items.forEach(function (item) {
         var convertedReportDefinitions = [];
@@ -206,10 +202,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
    * @param data
    */
   setMetricsSourcePropertyLists: function (model, data) {
-    var modelsMap = {};
-    model.find().forEach(function (m) {
-      modelsMap[m.get('id')] = m;
-    });
+    var modelsMap = model.find().toArray().toMapByProperty('id');
     data.forEach(function (record) {
       var m = modelsMap[record.id];
       if (m) {
@@ -224,10 +217,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
    */
   setAlertDefinitionsRawSourceData: function (rawSourceData) {
     var allDefinitions = App.AlertDefinition.find();
-    var allDefinitionsMap = {};
-    allDefinitions.forEach(function(d) {
-      allDefinitionsMap[d.get('id')] = d;
-    });
+    var allDefinitionsMap = allDefinitions.toArray().toMapByProperty('id');
     for (var alertDefinitionId in rawSourceData) {
       if (rawSourceData.hasOwnProperty(alertDefinitionId)) {
         var m = allDefinitionsMap[+alertDefinitionId];

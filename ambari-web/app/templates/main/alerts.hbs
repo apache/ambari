@@ -53,16 +53,16 @@
       {{#if view.pageContent}}
         {{#each alertDefinition in view.pageContent}}
           <tr>
-            <td class="first">
+            <td class="first alert-name">
               <span {{bindAttr title="alertDefinition.type"}} {{bindAttr class=":type-icon  alertDefinition.typeIconClass"}}></span>
               <a href="#" {{action "gotoAlertDetails" alertDefinition}}>{{alertDefinition.label}}</a>
             </td>
-            <td>{{{alertDefinition.status}}}</td>
-            <td>{{alertDefinition.serviceDisplayName}}</td>
-            <td>
+            <td class="alert-status">{{{alertDefinition.status}}}</td>
+            <td class="alert-service">{{alertDefinition.serviceDisplayName}}</td>
+            <td class="alert-time">
               <time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time>
             </td>
-            <td class="last toggle-state-button">
+            <td class="last toggle-state-button alert-state">
               {{#if alertDefinition.enabled}}
                 {{#isAccessible ADMIN}}
                   <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>

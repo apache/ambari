@@ -27,6 +27,7 @@
     <value>/etc/flume/conf</value>
     <description>Location to save configuration files</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -37,6 +38,7 @@
     <value>/var/log/flume</value>
     <description>Location to save log files</description>
     <value-attributes>
+      <type>directory</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -94,4 +96,7 @@ export HIVE_HOME={{flume_hive_home}}
 export HCAT_HOME={{flume_hcat_home}}
     </value>
   </property>
+  <value-attributes>
+    <type>content</type>
+  </value-attributes>
 </configuration>

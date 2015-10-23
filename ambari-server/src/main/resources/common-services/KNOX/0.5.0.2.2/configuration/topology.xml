@@ -122,5 +122,11 @@
        <empty-value-valid>true</empty-value-valid>
        <show-property-name>false</show-property-name>
     </value-attributes>
+        <depends-on>
+            <property>
+                <type>ranger-knox-plugin-properties</type>
+                <name>ranger-knox-plugin-enabled</name>
+            </property>
+        </depends-on>
     </property>
 </configuration>

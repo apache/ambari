@@ -25,9 +25,11 @@ public enum AppID {
   DATANODE("datanode"),
   NODEMANAGER("nodemanager"),
   MASTER_HBASE("hbase"),
-  SLAVE_HBASE("hbase");
+  SLAVE_HBASE("hbase"),
+  NIMBUS("nimbus"),
+  KAFKA_BROKER("kafka_broker");
 
-  public static final AppID[] MASTER_APPS = {HOST, NAMENODE, RESOURCEMANAGER, MASTER_HBASE};
+  public static final AppID[] MASTER_APPS = {HOST, NAMENODE, RESOURCEMANAGER, MASTER_HBASE, KAFKA_BROKER, NIMBUS};
   public static final AppID[] SLAVE_APPS = {HOST, DATANODE, NODEMANAGER, SLAVE_HBASE};
 
   private String id;

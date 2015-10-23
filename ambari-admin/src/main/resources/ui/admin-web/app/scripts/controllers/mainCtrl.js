@@ -20,12 +20,6 @@
 angular.module('ambariAdminConsole')
 .controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View) {
   $scope.signOut = function() {
-    var data = JSON.parse(localStorage.ambari);
-    delete data.app.authenticated;
-    delete data.app.loginName;
-    delete data.app.user;
-    localStorage.ambari = JSON.stringify(data);
-    $scope.hello = "hello";
     Auth.signout().finally(function() {
       $window.location.pathname = '';
     });
@@ -93,7 +87,6 @@ angular.module('ambariAdminConsole')
     var lastActiveTime = Date.now();
 
     var keepActive = function() {
-      //console.error('keepActive');
       if (active) {
         lastActiveTime = Date.now();
       }
@@ -104,15 +97,46 @@ angular.module('ambariAdminConsole')
     $(window).bind('click', keepActive);
 
     var checkActiveness = function() {
-      //console.error("checkActiveness " + lastActiveTime + " : " + Date.now());
-      if (Date.now() - lastActiveTime > TIME_OUT) {
-        //console.error("LOGOUT!");
+      var remainTime = TIME_OUT - (Date.now() - lastActiveTime);
+      if (remainTime < 0) {
         active = false;
         $(window).unbind('mousemove', keepActive);
         $(window).unbind('keypress', keepActive);
         $(window).unbind('click', keepActive);
         clearInterval($rootScope.userActivityTimeoutInterval);
         $scope.signOut();
+      } else if (remainTime < 60000 && !$rootScope.timeoutModal) {
+        $rootScope.timeoutModal = $modal.open({
+          templateUrl: 'views/modals/TimeoutWarning.html',
+          backdrop: false,
+          controller: ['$scope', 'Auth', function($scope, Auth) {
+            $scope.remainTime = 60;
+            $scope.title = 'Automatic Logout';
+            $scope.primaryText = 'Remain Logged In';
+            $scope.secondaryText = 'Log Out Now';
+            $scope.remain = function() {
+              $rootScope.timeoutModal.close();
+              delete $rootScope.timeoutModal;
+            };
+            $scope.logout = function() {
+              $rootScope.timeoutModal.close();
+              delete $rootScope.timeoutModal;
+              Auth.signout().finally(function() {
+                $window.location.pathname = '';
+              });
+            };
+            $scope.countDown = function() {
+              $scope.remainTime--;
+              $scope.$apply();
+              if ($scope.remainTime == 0) {
+                Auth.signout().finally(function() {
+                  $window.location.pathname = '';
+                });
+              }
+            };
+            setInterval($scope.countDown, 1000);
+          }]
+        });
       }
     };
     $rootScope.userActivityTimeoutInterval = window.setInterval(checkActiveness, 1000);
@@ -125,8 +149,9 @@ angular.module('ambariAdminConsole')
 
   if (!$rootScope.userActivityTimeoutInterval) {
     Cluster.getAmbariTimeout().then(function(timeout) {
-      if (Number(timeout) > 0)
-        $scope.startInactiveTimeoutMonitoring(timeout * 1000);
+      $rootScope.userTimeout = Number(timeout) * 1000;
+      if ($rootScope.userTimeout > 0)
+        $scope.startInactiveTimeoutMonitoring($rootScope.userTimeout);
     });
   }
   if (!$rootScope.noopPollingInterval) {

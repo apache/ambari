@@ -52,7 +52,7 @@
           {{t app.settings.notShowBgOperations}}</label>
         {{/if}}
         {{#if view.third}}
-          <button class="btn" {{bindAttr disabled="view.disableThird"}} {{action onThird target="view"}}>{{view.third}}</button>
+          <button {{bindAttr disabled="view.disableThird" class=":btn view.thirdClass"}} {{action onThird target="view"}}>{{view.third}}</button>
         {{/if}}
         {{#if view.secondary}}
           <button {{bindAttr disabled="view.disableSecondary" class=":btn view.secondaryClass"}} {{action onSecondary target="view"}}>{{view.secondary}}</button>

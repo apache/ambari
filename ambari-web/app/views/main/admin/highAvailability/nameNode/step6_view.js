@@ -24,7 +24,7 @@ App.HighAvailabilityWizardStep6View = Em.View.extend({
   templateName: require('templates/main/admin/highAvailability/nameNode/step6'),
 
   didInsertElement: function() {
-    this.get('controller').pullCheckPointStatus();
+    this.get('controller').loadStep();
   },
 
   step6BodyText: function () {
@@ -33,9 +33,16 @@ App.HighAvailabilityWizardStep6View = Em.View.extend({
   }.property('controller.content.masterComponentHosts'),
 
   jnCheckPointText: function () {
-    return this.get('controller.isNextEnabled') ?
-      Em.I18n.t('admin.highAvailability.wizard.step6.jsInit') :
-      Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
-  }.property('controller.isNextEnabled')
+    switch (this.get('controller.status')) {
+      case 'waiting':
+        return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
+      case 'done':
+        return Em.I18n.t('admin.highAvailability.wizard.step6.jsInit');
+      case 'journalnode_stopped':
+        return Em.I18n.t('admin.highAvailability.wizard.step6.jnStopped');
+      default:
+        return Em.I18n.t('admin.highAvailability.wizard.step6.jsNoInit');
+    }
+  }.property('controller.status')
 
 });

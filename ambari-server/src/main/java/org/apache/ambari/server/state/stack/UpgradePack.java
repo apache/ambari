@@ -86,7 +86,7 @@ public class UpgradePack {
    * Tag is optional and can be {@code null}, use {@code isDowngradeAllowed} getter instead.
    */
   @XmlElement(name = "downgrade-allowed", required = false)
-  private Boolean downgradeAllowed = null;
+  private boolean downgradeAllowed = true;
 
   /**
    * {@code true} to automatically skip service check failures. The default is
@@ -205,13 +205,9 @@ public class UpgradePack {
 
   /**
    * @return {@code true} if upgrade pack supports downgrade or {@code false} if not.
-   * Default {@code true}
    */
   public boolean isDowngradeAllowed(){
-    if (downgradeAllowed != null) {
-      return downgradeAllowed;  // if tag is present, just return exact value
-    }
-    return true;
+    return downgradeAllowed;
   }
 
   public boolean canBeApplied(String targetVersion){
@@ -287,14 +283,11 @@ public class UpgradePack {
   }
 
   private List<Grouping> getDowngradeGroupsForNonrolling() {
-    throw new UnsupportedOperationException("TODO AMBARI-12698");
-    /*
     List<Grouping> list = new ArrayList<Grouping>();
     for (Grouping g : groups) {
       list.add(g);
     }
     return list;
-    */
   }
 
   /**

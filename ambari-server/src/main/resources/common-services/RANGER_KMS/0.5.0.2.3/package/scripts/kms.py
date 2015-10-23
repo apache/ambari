@@ -264,7 +264,6 @@ def enable_kms_plugin():
   import params
 
   if params.has_ranger_admin:
-
     ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
     ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
     response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)

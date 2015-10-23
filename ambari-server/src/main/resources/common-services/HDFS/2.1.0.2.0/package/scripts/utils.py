@@ -32,6 +32,7 @@ from resource_management.core.logger import Logger
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.namenode_ha_utils import get_namenode_states
+from resource_management.libraries.script.script import Script
 
 from zkfc_slave import ZkfcSlave
 
@@ -336,3 +337,32 @@ def is_secure_port(port):
     return port < 1024
   else:
     return False
+
+def is_previous_fs_image():
+  """
+  Return true if there's a previous folder in the HDFS namenode directories.
+  """
+  import params
+  if params.dfs_name_dir:
+    nn_name_dirs = params.dfs_name_dir.split(',')
+    for nn_dir in nn_name_dirs:
+      prev_dir = os.path.join(nn_dir, "previous")
+      if os.path.isdir(prev_dir):
+        return True
+  return False
+
+def get_hdfs_binary(distro_component_name):
+  """
+  Get the hdfs binary to use depending on the stack and version.
+  :param distro_component_name: e.g., hadoop-hdfs-namenode, hadoop-hdfs-datanode
+  :return: The hdfs binary to use
+  """
+  import params
+  hdfs_binary = "hdfs"
+  if params.stack_name == "HDP":
+    # This was used in HDP 2.1 and earlier
+    hdfs_binary = "hdfs"
+    if Script.is_hdp_stack_greater_or_equal("2.2"):
+      hdfs_binary = "/usr/hdp/current/{0}/bin/hdfs".format(distro_component_name)
+
+  return hdfs_binary

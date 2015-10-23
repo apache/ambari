@@ -233,6 +233,95 @@ Array.prototype.sortPropertyLight = function (path) {
   });
   return this;
 };
+
+/**
+ * Create map from array with executing provided callback for each array's item
+ * Example:
+ * <pre>
+ *   var array = [{a: 1, b: 3}, {a: 2, b: 2}, {a: 3, b: 1}];
+ *   var map = array.toMapByCallback('a', function (item) {
+ *    return Em.get(item, 'b');
+ *   });
+ *   console.log(map); // {1: 3, 2: 2, 3: 1}
+ * </pre>
+ * <code>map[1]</code> is much more faster than <code>array.findProperty('a', 1).get('b')</code>
+ *
+ * @param {string} property
+ * @param {Function} callback
+ * @returns {object}
+ * @method toMapByCallback
+ */
+Array.prototype.toMapByCallback = function (property, callback) {
+  var ret = {};
+  Em.assert('`property` can\'t be empty string', property.length);
+  Em.assert('`callback` should be a function', 'function' === Em.typeOf(callback));
+  this.forEach(function (item) {
+    var key = Em.get(item, property);
+    ret[key] = callback(item, property);
+  });
+  return ret;
+};
+
+/**
+ * Create map from array
+ * Example:
+ * <pre>
+ *   var array = [{a: 1}, {a: 2}, {a: 3}];
+ *   var map = array.toMapByProperty('a'); // {1: {a: 1}, 2: {a: 2}, 3: {a: 3}}
+ * </pre>
+ * <code>map[1]</code> is much more faster than <code>array.findProperty('a', 1)</code>
+ *
+ * @param {string} property
+ * @return {object}
+ * @method toMapByProperty
+ * @see toMapByCallback
+ */
+Array.prototype.toMapByProperty = function (property) {
+  return this.toMapByCallback(property, function (item) {
+    return item;
+  });
+};
+
+/**
+ * Create wick map from array
+ * Example:
+ * <pre>
+ *   var array = [{a: 1}, {a: 2}, {a: 3}];
+ *   var map = array.toWickMapByProperty('a'); // {1: true, 2: true, 3: true}
+ * </pre>
+ * <code>map[1]</code> works faster than <code>array.someProperty('a', 1)</code>
+ *
+ * @param {string} property
+ * @return {object}
+ * @method toWickMapByProperty
+ * @see toMapByCallback
+ */
+Array.prototype.toWickMapByProperty = function (property) {
+  return this.toMapByCallback(property, function () {
+    return true;
+  });
+};
+
+/**
+ * Create wick map from array of primitives
+ * Example:
+ * <pre>
+ *   var array = [1, 2, 3];
+ *   var map = array.toWickMap(); // {1: true, 2: true, 3: true}
+ * </pre>
+ * <code>map[1]</code> works faster than <code>array.contains(1)</code>
+ *
+ * @returns {object}
+ * @method toWickMap
+ */
+Array.prototype.toWickMap = function () {
+  var ret = {};
+  this.forEach(function (item) {
+    ret[item] = true;
+  });
+  return ret;
+};
+
 /** @namespace Em **/
 Em.CoreObject.reopen({
   t:function (key, attrs) {
@@ -635,7 +724,7 @@ App.dateTime = function() {
 App.dateTimeWithTimeZone = function (x) {
   var timezone = App.router.get('userSettingsController.userSettings.timezone');
   if (timezone) {
-    var tz = Em.getWithDefault(timezoneUtils.get('timezonesMappedByLabel')[timezone], 'zones.0.value', '');
+    var tz = Em.getWithDefault(timezone, 'zones.0.value', '');
     return moment(moment.tz(x ? new Date(x) : new Date(), tz).toArray()).toDate().getTime();
   }
   return x || new Date().getTime();

@@ -75,7 +75,7 @@ App.ConfigsComparator = Em.Mixin.create({
    */
   initCompareConfig: function(allConfigs, json) {
     var serviceVersionMap = {};
-    var configNamesMap = {};
+    var configNamesMap = allConfigs.toWickMapByProperty('name');
     var serviceName = this.get('content.serviceName');
     var compareVersionNumber = this.get('compareServiceVersion').get('version');
     //indicate whether compared versions are from non-default group
@@ -85,9 +85,6 @@ App.ConfigsComparator = Em.Mixin.create({
     if (compareNonDefaultVersions) {
       serviceVersionMap[this.get('selectedVersion')] = {};
     }
-    allConfigs.mapProperty('name').forEach(function(name) {
-      configNamesMap[name] = true;
-    });
 
     json.items.forEach(function (item) {
       item.configurations.forEach(function (configuration) {
@@ -270,8 +267,8 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
-    var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'advanced' });
-    var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'advanced' });
+    var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'string' });
+    var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'string' });
 
     if (originalValue.toArray) {
       originalValue = originalValue.toArray();

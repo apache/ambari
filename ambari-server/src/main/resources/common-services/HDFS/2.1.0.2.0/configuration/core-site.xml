@@ -177,6 +177,9 @@ If you want to treat all principals from APACHE.ORG with /admin as "admin", your
 RULE[2:$1%$2@$0](.%admin@APACHE.ORG)s/./admin/
 DEFAULT
     </description>
+    <value-attributes>
+      <type>multiLine</type>
+    </value-attributes>
   </property>
   <property>
     <name>net.topology.script.file.name</name>

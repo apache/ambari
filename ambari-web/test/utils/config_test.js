@@ -223,21 +223,21 @@ describe('App.config', function () {
       },
       {
         config: {
-          displayType: 'advanced',
+          displayType: 'string',
           value: ' value'
         },
         e: ' value'
       },
       {
         config: {
-          displayType: 'advanced',
+          displayType: 'string',
           value: ' value'
         },
         e: ' value'
       },
       {
         config: {
-          displayType: 'advanced',
+          displayType: 'string',
           value: 'http://localhost ',
           name: 'javax.jdo.option.ConnectionURL'
         },
@@ -245,7 +245,7 @@ describe('App.config', function () {
       },
       {
         config: {
-          displayType: 'advanced',
+          displayType: 'string',
           value: 'http://localhost    ',
           name: 'oozie.service.JPAService.jdbc.url'
         },
@@ -476,7 +476,7 @@ describe('App.config', function () {
           property_name: 'ignore_groupsusers_create'
         },
         output: {
-          displayType: 'checkbox'
+          displayType: 'boolean'
         },
         title: 'ignore_groupsusers_create'
       },
@@ -773,12 +773,17 @@ describe('App.config', function () {
     });
     it('returns singleLine displayType', function() {
       sinon.stub(App.config, 'isContentProperty', function () {return false});
-      expect(App.config.getDefaultDisplayType('n1','f1','v1')).to.equal('advanced');
+      expect(App.config.getDefaultDisplayType('n1','f1','v1')).to.equal('string');
       App.config.isContentProperty.restore();
     });
     it('returns multiLine displayType', function() {
       sinon.stub(App.config, 'isContentProperty', function () {return false});
       expect(App.config.getDefaultDisplayType('n2', 'f2', 'v1\nv2')).to.equal('multiLine');
+      App.config.isContentProperty.restore();
+    });
+    it('returns custom displayType for FALCON oozie-site properties', function() {
+      sinon.stub(App.config, 'isContentProperty', function () {return false});
+      expect(App.config.getDefaultDisplayType('n2', 'oozie-site.xml', 'v1\nv2', 'FALCON')).to.equal('custom');
       App.config.isContentProperty.restore();
     });
   });

@@ -271,6 +271,19 @@
       </service>
     </group>
 
+    <group xsi:type="cluster" name="HDFS_LEAFE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <direction>UPGRADE</direction>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
+        <task xsi:type="execute" hosts="master" summary="Wait for NameNode to leave Safemode">
+          <script>scripts/namenode.py</script>
+          <function>wait_for_safemode_off</function>
+        </task>
+      </execute-stage>
+    </group>
+
     <group xsi:type="restart" name="MR and YARN" title="MR and YARN">
       <service-check>false</service-check>
       <skippable>true</skippable>

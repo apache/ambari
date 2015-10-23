@@ -28,7 +28,7 @@
       {{#if view.isHAEnabled }}
         <table>
           <!--Active NameNode-->
-          <tr>
+          <tr class="active-namenode-link">
             {{#if view.isActiveNNValid}}
               <td><a href="#" {{action showDetails view.model.activeNameNode.host}}>{{t dashboard.widgets.HDFSLinks.activeNameNode}}</a></td>
             {{else}}
@@ -36,7 +36,7 @@
             {{/if}}
           </tr>
           <!--Standby NameNodes-->
-          <tr>
+          <tr class="standby-namenode-link">
             {{#if view.isStandbyNNValid}}
               {{#if view.isTwoStandbyNN}}
                 <!--Two Standby NameNodes-->
@@ -50,7 +50,7 @@
             {{/if}}
           </tr>
           <!--Data Nodes-->
-          <tr>
+          <tr class="datanode-link">
             <td>
               <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodesTotal}} {{t dashboard.services.hdfs.datanodes}}</a>
             </td>
@@ -59,15 +59,15 @@
       {{else}}
         <table>
           <!--NameNode-->
-          <tr>
+          <tr class="namenode-link">
             <td><a href="#" {{action showDetails view.model.nameNode.host}}>{{t dashboard.services.hdfs.nanmenode}}</a></td>
           </tr>
           <!--SecondaryNameNode-->
-          <tr>
+          <tr class="secondary-namenode-link">
             <td><a href="#" {{action showDetails view.model.snameNode.host}}>{{t dashboard.services.hdfs.snanmenode}}</a></td>
           </tr>
           <!--Data Nodes-->
-          <tr>
+          <tr class="datanode-link">
             <td>
               <a href="#" {{action filterHosts view.component}}>{{view.model.dataNodesTotal}} {{t dashboard.services.hdfs.datanodes}}</a>
             </td>

@@ -25,17 +25,17 @@
   <table class="table table-striped">
     <thead>
     <tr>
-      <th class="span3">
+      <th class="span3" id="service-name">
           {{view Ember.Checkbox disabledBinding="isInstalled" checkedBinding="isAllChecked"}}{{t common.service}}
       </th>
-      <th>{{t common.version}}</th>
-      <th>{{t common.description}}</th>
+      <th id="service-version">{{t common.version}}</th>
+      <th id="service-description">{{t common.description}}</th>
     </tr>
     </thead>
     <tbody>
     {{#each controller}}
       {{#unless isHiddenOnSelectServicePage}}
-        <tr {{bindAttr class="isSelected:success:"}}>
+        <tr {{bindAttr class="isSelected:success isSelected:service-selected"}}>
           <td><label class="checkbox">{{view Ember.Checkbox classBinding="serviceName"
           disabledBinding="isInstalled"
           checkedBinding="isSelected"}}{{displayNameOnSelectServicePage}}</label>

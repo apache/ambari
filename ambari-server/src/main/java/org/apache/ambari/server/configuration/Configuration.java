@@ -21,8 +21,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -179,8 +181,10 @@ public class Configuration {
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
   public static final String ROLLING_UPGRADE_MIN_STACK_KEY = "rolling.upgrade.min.stack";
   public static final String ROLLING_UPGRADE_MAX_STACK_KEY = "rolling.upgrade.max.stack";
+  public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
   public static final String ROLLING_UPGRADE_MIN_STACK_DEFAULT = "HDP-2.2";
   public static final String ROLLING_UPGRADE_MAX_STACK_DEFAULT = "";
+  public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
 
   public static final String SERVER_JDBC_CONNECTION_POOL = "server.jdbc.connection-pool";
   public static final String SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = "server.jdbc.connection-pool.min-size";
@@ -920,6 +924,22 @@ public class Configuration {
 
   public String getRollingUpgradeMaxStack() {
     return properties.getProperty(ROLLING_UPGRADE_MAX_STACK_KEY, ROLLING_UPGRADE_MAX_STACK_DEFAULT);
+  }
+
+  /**
+   * @return a list of prefixes. Packages whose name starts with any of these
+   * prefixes, should be skipped during upgrade.
+   */
+  public List<String> getRollingUpgradeSkipPackagesPrefixes() {
+    String propertyValue = properties.getProperty(ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY,
+            ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT);
+    ArrayList<String> res = new ArrayList<>();
+    for (String prefix : propertyValue.split(",")) {
+      if (! prefix.isEmpty()) {
+        res.add(prefix.trim());
+      }
+    }
+    return res;
   }
 
   /**

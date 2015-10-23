@@ -62,6 +62,7 @@
       </property>
     </depends-on>
     <value-attributes>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

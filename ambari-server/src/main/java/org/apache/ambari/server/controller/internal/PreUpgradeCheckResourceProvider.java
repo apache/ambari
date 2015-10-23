@@ -134,8 +134,16 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).toString();
-      final UpgradeType upgradeType = propertyMap.containsKey(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID) ?
-          UpgradeType.valueOf(propertyMap.get(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).toString()) : UpgradeType.ROLLING;
+
+      UpgradeType upgradeType = UpgradeType.ROLLING;
+      if (propertyMap.containsKey(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID)) {
+        try {
+          upgradeType = UpgradeType.valueOf(propertyMap.get(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID).toString());
+        } catch(Exception e){
+          throw new SystemException(String.format("Property %s has an incorrect value of %s.", UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID, propertyMap.get(UPGRADE_CHECK_UPGRADE_TYPE_PROPERTY_ID)));
+        }
+      }
+
       final Cluster cluster;
 
       try {

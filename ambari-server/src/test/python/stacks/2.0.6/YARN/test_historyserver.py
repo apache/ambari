@@ -18,7 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import json
-from mock.mock import MagicMock, patch
+from mock.mock import MagicMock, patch, call
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import version
 from stacks.utils.RMFTestCase import *
@@ -767,7 +767,7 @@ class TestHistoryServer(RMFTestCase):
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
   @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.3.0.0-1234"))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  def test_pre_rolling_restart_23(self, copy_to_hdfs_mock):
+  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -778,7 +778,7 @@ class TestHistoryServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/historyserver.py",
                        classname = "HistoryServer",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -786,7 +786,9 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-mapreduce-historyserver', version), sudo=True)
-    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs", host_sys_prepped=False)
+    self.assertTrue(call("tez", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
+    self.assertTrue(call("slider", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
+
 
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,

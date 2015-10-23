@@ -41,6 +41,7 @@ class BSRunner extends Thread {
   private static Log LOG = LogFactory.getLog(BSRunner.class);
 
   private static final String DEFAULT_USER = "root";
+  private static final String DEFAULT_SSHPORT = "22";
 
   private  boolean finished = false;
   private SshHostInfo sshHostInfo;
@@ -164,7 +165,13 @@ class BSRunner extends Thread {
     if (user == null || user.isEmpty()) {
       user = DEFAULT_USER;
     }
-    String command[] = new String[12];
+
+    String sshPort = sshHostInfo.getSshPort();
+    if(sshPort == null || sshPort.isEmpty()){
+       sshPort = DEFAULT_SSHPORT;
+    }
+
+    String command[] = new String[13];
     BSStat stat = BSStat.RUNNING;
     String scriptlog = "";
     try {
@@ -194,14 +201,15 @@ class BSRunner extends Thread {
       command[1] = hostString;
       command[2] = this.requestIdDir.toString();
       command[3] = user;
-      command[4] = this.sshKeyFile.toString();
-      command[5] = this.agentSetupScript.toString();
-      command[6] = this.ambariHostname;
-      command[7] = this.clusterOsFamily;
-      command[8] = this.projectVersion;
-      command[9] = this.serverPort+"";
-      command[10] = userRunAs;
-      command[11] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
+      command[4] = sshPort;
+      command[5] = this.sshKeyFile.toString();
+      command[6] = this.agentSetupScript.toString();
+      command[7] = this.ambariHostname;
+      command[8] = this.clusterOsFamily;
+      command[9] = this.projectVersion;
+      command[10] = this.serverPort+"";
+      command[11] = userRunAs;
+      command[12] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
 
       Map<String, String> envVariables = new HashMap<String, String>();
 
@@ -218,7 +226,7 @@ class BSRunner extends Thread {
       }
 
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
-          requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
+          requestIdDir + " user=" + user + " sshPort=" + sshPort + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
           " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs);
 

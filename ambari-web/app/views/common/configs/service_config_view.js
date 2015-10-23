@@ -162,6 +162,7 @@ App.ServiceConfigView = Em.View.extend({
 
   setActiveTab: function (event) {
     if (event.context.get('isHiddenByFilter')) return false;
+    this.set('initalActiveTabIsSet', true);
     this.get('tabs').forEach(function (tab) {
       tab.set('isActive', false);
     });
@@ -197,7 +198,7 @@ App.ServiceConfigView = Em.View.extend({
     if (tabs.everyProperty('isConfigsPrepared', true) && !this.get('initalActiveTabIsSet')) {
       this.get('tabs').setEach('isActive', false);
       this.pickActiveTab(this.get('tabs'));
-      this.set('tabsWereSet', true);
+      this.set('initalActiveTabIsSet', true);
     }
   }.observes('tabs.@each.isConfigsPrepared'),
 

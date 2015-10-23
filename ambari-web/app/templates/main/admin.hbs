@@ -20,7 +20,7 @@
   <div id="main-admin-menu" class="well span2">
       <ul class="nav nav-list">
         {{#each category in view.categories}}
-          {{#view view.NavItemView itemBinding="category.name" }}
+          {{#view view.NavItemView itemBinding="category.name" elementIdBinding="category.name"}}
               <a href="#" {{action "goToAdmin" category.url}} >{{category.label}}</a>
           {{/view}}
         {{/each}}

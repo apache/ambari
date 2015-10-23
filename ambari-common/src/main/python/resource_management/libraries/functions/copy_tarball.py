@@ -35,6 +35,8 @@ STACK_VERSION_PATTERN = "{{ stack_version }}"
 
 TARBALL_MAP = {
   "HDP": {
+    "slider":      ("/usr/hdp/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/slider/slider.tar.gz".format(STACK_VERSION_PATTERN)),    
     "tez":       ("/usr/hdp/{0}/tez/lib/tez.tar.gz".format(STACK_VERSION_PATTERN),
                   "/hdp/apps/{0}/tez/tez.tar.gz".format(STACK_VERSION_PATTERN)),
 
