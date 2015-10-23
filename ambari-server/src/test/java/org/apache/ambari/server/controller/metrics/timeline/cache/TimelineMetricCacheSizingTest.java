@@ -91,7 +91,7 @@ public class TimelineMetricCacheSizingTest {
     metricMap.put(metric5, getSampleTimelineMetric(metric5));
     metricMap.put(metric6, getSampleTimelineMetric(metric6));
 
-    TimelineMetricsCacheValue value = new TimelineMetricsCacheValue(now - 1000, now, metricMap);
+    TimelineMetricsCacheValue value = new TimelineMetricsCacheValue(now - 1000, now, metricMap, null);
 
     TimelineMetricsCacheSizeOfEngine customSizeOfEngine = new TimelineMetricsCacheSizeOfEngine();
 
