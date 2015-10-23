@@ -138,4 +138,17 @@
       These metrics would be included even if the exclude prefix omits them.
     </description>
   </property>
+  <property>
+    <name>authorizer.class.name</name>
+    <value>kafka.security.auth.SimpleAclAuthorizer</value>
+    <description>
+      Kafka authorizer class
+    </description>
+    <depends-on>
+      <property>
+        <type>ranger-kafka-plugin-properties</type>
+        <name>ranger-kafka-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

@@ -114,6 +114,12 @@ log4j.additivity.state.change.logger=false
     <value-attributes>
       <show-property-name>false</show-property-name>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-kafka-plugin-properties</type>
+        <name>ranger-kafka-plugin-enabled</name>
+      </property>
+    </depends-on>
   </property>
 
 </configuration>
