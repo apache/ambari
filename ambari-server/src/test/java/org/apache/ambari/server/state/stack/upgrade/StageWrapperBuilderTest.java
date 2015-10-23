@@ -126,7 +126,7 @@ public class StageWrapperBuilderTest {
      */
     @Override
     public void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
-        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
+        boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
     }
 
     /**

@@ -89,7 +89,7 @@ public class Grouping {
      */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-       boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
+       boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
 
       boolean forUpgrade = ctx.getDirection().isUpgrade();
 
@@ -112,14 +112,23 @@ public class Grouping {
       // Add the processing component
       if (null != pc.tasks && 1 == pc.tasks.size()) {
         Task t = pc.tasks.get(0);
-
-        for (String hostName : hostsType.hosts) {
+        if(scheduleInParallel) {
+          // Create single stage for all
           StageWrapper stage = new StageWrapper(
               t.getStageWrapperType(),
-              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
+              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), hostsType.hosts),
               params,
-              new TaskWrapper(service, pc.name, Collections.singleton(hostName), params, t));
+              new TaskWrapper(service, pc.name, hostsType.hosts, params, t));
           m_stages.add(stage);
+        } else {
+          for (String hostName : hostsType.hosts) {
+            StageWrapper stage = new StageWrapper(
+                t.getStageWrapperType(),
+                getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), Collections.singleton(hostName)),
+                params,
+                new TaskWrapper(service, pc.name, Collections.singleton(hostName), params, t));
+            m_stages.add(stage);
+          }
         }
       }
 
