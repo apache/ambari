@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 import java.util.Date;
@@ -30,11 +31,13 @@ public class TimelineMetricsCacheValue {
   private Long startTime;
   private Long endTime;
   private Map<String, TimelineMetric> timelineMetrics;
+  private Precision precision;
 
-  public TimelineMetricsCacheValue(Long startTime, Long endTime, Map<String, TimelineMetric> timelineMetrics) {
+  public TimelineMetricsCacheValue(Long startTime, Long endTime, Map<String, TimelineMetric> timelineMetrics, Precision precision) {
     this.startTime = startTime;
     this.endTime = endTime;
     this.timelineMetrics = timelineMetrics;
+    this.precision = precision;
   }
 
   public Map<String, TimelineMetric> getTimelineMetrics() {
@@ -79,6 +82,7 @@ public class TimelineMetricsCacheValue {
       "metricNames = " + timelineMetrics.keySet() +
       ", startTime = " + new Date(getMillisecondsTime(startTime)) +
       ", endTime = " + new Date(getMillisecondsTime(endTime)) +
+      ", precision = " + precision +
       ", timelineMetrics =");
 
     for (TimelineMetric metric : timelineMetrics.values()) {
@@ -90,5 +94,13 @@ public class TimelineMetricsCacheValue {
     }
     sb.append("}");
     return sb.toString();
+  }
+
+  public Precision getPrecision() {
+    return precision;
+  }
+
+  public void setPrecision(Precision precision) {
+    this.precision = precision;
   }
 }
