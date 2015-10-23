@@ -123,12 +123,12 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if params.dfs_ha_enabled:
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
-      is_active_namenode_cmd = None
+      is_active_namenode_cmd = False
     
     # During NonRolling Upgrade, both NameNodes are initially down,
     # so no point in checking if this is the active or standby.
     if upgrade_type == "nonrolling":
-      is_active_namenode_cmd = None
+      is_active_namenode_cmd = False
 
     # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
     # no-HA                 | ON -> OFF                | Yes                      |

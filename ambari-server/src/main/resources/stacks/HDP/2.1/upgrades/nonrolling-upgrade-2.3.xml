@@ -45,7 +45,7 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="stop" name="Stop High-Level Daemons" title="Stop Daemons for High-Level Services">
+    <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
       <skippable>true</skippable>
       <service-check>false</service-check>
 
@@ -86,7 +86,7 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="Backups" title="Take Backups">
+    <group xsi:type="cluster" name="Backups" title="Perform Backups">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
@@ -116,7 +116,7 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="stop" name="Stop Low-Level Daemons" title="Stop Daemons for Low-Level Services">
+    <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services (HDFS, HBase, ZooKeeper and Ranger)">
       <skippable>true</skippable>
       <service-check>false</service-check>
 
@@ -290,8 +290,8 @@
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Desired Stack Id">
-      <execute-stage title="Update Desired Stack Id" service="" component="">
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
+      <execute-stage title="Update Target Stack" service="" component="">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
         </task>
       </execute-stage>
@@ -309,7 +309,7 @@
 
     <!-- Now, restart all of the services. -->
 
-    <group xsi:type="restart" name="ZOOKEEPER" title="Zookeeper">
+    <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <service name="ZOOKEEPER">
@@ -345,7 +345,7 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="restart" name="MR and YARN" title="MR and YARN">
+    <group xsi:type="restart" name="YARN and MapReduce2" title="YARN and MapReduce2">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <service name="MAPREDUCE2">

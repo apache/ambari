@@ -23,6 +23,7 @@ Ambari Agent
 __all__ = ["Environment"]
 
 import os
+import types
 import logging
 import shutil
 import time
@@ -118,6 +119,9 @@ class Environment(object):
     provider_action()
 
   def _check_condition(self, cond):
+    if type(cond) == types.BooleanType:
+      return cond
+
     if hasattr(cond, '__call__'):
       return cond()
 
