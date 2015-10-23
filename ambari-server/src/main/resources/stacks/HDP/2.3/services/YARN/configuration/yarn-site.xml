@@ -32,6 +32,30 @@
   </property>
 
   <property>
+    <name>yarn.acl.enable</name>
+    <value>false</value>
+    <description> Are acls enabled. </description>
+    <depends-on>
+      <property>
+        <type>ranger-yarn-plugin-properties</type>
+        <name>ranger-yarn-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>yarn.authorization-provider</name>
+    <value>org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer</value>
+    <description> Yarn authorization provider class. </description>
+    <depends-on>
+      <property>
+        <type>ranger-yarn-plugin-properties</type>
+        <name>ranger-yarn-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
     <name>yarn.admin.acl</name>
     <value>yarn</value>
     <description> ACL of who can be admin of the YARN cluster. </description>

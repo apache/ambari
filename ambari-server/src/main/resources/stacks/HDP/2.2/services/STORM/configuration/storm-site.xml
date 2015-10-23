@@ -109,4 +109,16 @@
     <value>{{log_dir}}</value>
     <description>Log directory for Storm.</description>
   </property>
+
+  <property>
+    <name>nimbus.authorizer</name>
+    <value>backtype.storm.security.auth.authorizer.SimpleACLAuthorizer</value>
+    <description>Log directory for Storm.</description>
+    <depends-on>
+      <property>
+        <type>ranger-storm-plugin-properties</type>
+        <name>ranger-storm-plugin-enabled</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

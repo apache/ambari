@@ -71,6 +71,207 @@ class TestHDP23StackAdvisor(TestCase):
     open_mock.return_value = MagicFile()
     return self.get_system_min_uid_real()
 
+  def test_recommendHDFSConfigurations(self):
+    configurations = {}
+    clusterData = {
+      "totalAvailableRam": 2048,
+      "hBaseInstalled": True,
+      "hbaseRam": 112,
+      "reservedRam": 128
+    }
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "HDFS",
+              "service_version" : "2.6.0.2.2"
+            }
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.3"
+      },
+      "configurations": {
+        "hdfs-site": {
+          "properties": {
+            "dfs.namenode.inode.attributes.provider.class": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer"
+          }
+        },
+        "ranger-hdfs-plugin-properties": {
+          "properties": {
+            "ranger-hdfs-plugin-enabled": "No"
+          }
+        }
+      }
+    }
+
+    # Test with Ranger HDFS plugin disabled
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['hdfs-site']['property_attributes']['dfs.namenode.inode.attributes.provider.class'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
+
+    # Test with Ranger HDFS plugin is enabled
+    configurations['hdfs-site']['properties'] = {}
+    configurations['hdfs-site']['property_attributes'] = {}
+    services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
+
+  def test_recommendYARNConfigurations(self):
+    configurations = {}
+    servicesList = ["YARN"]
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 6,
+            "total_mem" : 50331648,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ],
+            "public_host_name" : "c6401.ambari.apache.org",
+            "host_name" : "c6401.ambari.apache.org"
+          }
+        }
+      ]
+    }
+    services = {
+      "services" : [ {
+        "StackServices":{
+          "service_name": "YARN",
+        },
+        "Versions": {
+          "stack_version": "2.3"
+        },
+        "components": [
+          {
+            "StackServiceComponents": {
+              "component_name": "NODEMANAGER",
+              "hostnames": ["c6401.ambari.apache.org"]
+            }
+          }
+        ]
+      }
+      ],
+      "configurations": {
+        "yarn-site": {
+          "properties": {
+            "yarn.authorization-provider": "org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer"
+          }
+        },
+        "ranger-yarn-plugin-properties": {
+          "properties": {
+            "ranger-yarn-plugin-enabled": "No"
+          }
+        }
+      }
+    }
+
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
+    # Test with Ranger YARN plugin disabled
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['yarn-site']['property_attributes']['yarn.authorization-provider'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
+
+    # Test with Ranger YARN plugin is enabled
+    configurations['yarn-site']['properties'] = {}
+    configurations['yarn-site']['property_attributes'] = {}
+    services['configurations']['ranger-yarn-plugin-properties']['properties']['ranger-yarn-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['yarn-site']['properties']['yarn.authorization-provider'], 'org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer', "Test with Ranger YARN plugin enabled")
+
+
+  def test_recommendKAFKAConfigurations(self):
+    configurations = {}
+    clusterData = {
+      "totalAvailableRam": 2048,
+      "hBaseInstalled": True,
+      "hbaseRam": 112,
+      "reservedRam": 128
+    }
+    services = {
+      "services":
+        [
+          {
+            "StackServices": {
+              "service_name" : "KAFKA",
+              "service_version" : "2.6.0.2.2"
+            }
+          }
+        ],
+      "Versions": {
+        "stack_version": "2.3"
+      },
+      "configurations": {
+        "core-site": {
+          "properties": { },
+        },
+        "kafka-broker": {
+          "properties": {
+            "authorizer.class.name" : "kafka.security.auth.SimpleAclAuthorizer"
+          },
+          "property_attributes": {}
+        },
+        "ranger-kafka-plugin-properties": {
+          "properties": {
+            "ranger-kafka-plugin-enabled": "No"
+          }
+        },
+        "kafka-log4j": {
+          "properties": {
+            "content": "kafka.logs.dir=logs"
+          }
+        }
+      }
+    }
+
+    # Test authorizer.class.name with Ranger Kafka plugin disabled in non-kerberos environment
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['kafka-broker']['property_attributes']['authorizer.class.name'], {'delete': 'true'}, "Test authorizer.class.name with Ranger Kafka plugin is disabled in non-kerberos environment")
+
+    # Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment
+    configurations['kafka-broker']['properties'] = {}
+    configurations['kafka-broker']['property_attributes'] = {}
+    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer'
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
+
+    # Test authorizer.class.name with Ranger Kafka plugin enabled in non-kerberos environment
+    configurations['kafka-broker']['properties'] = {}
+    configurations['kafka-broker']['property_attributes'] = {}
+    del services['configurations']['core-site']['properties']['hadoop.security.authentication']
+    services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
+    services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
+
+    # Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment
+    configurations['kafka-broker']['properties'] = {}
+    configurations['kafka-broker']['property_attributes'] = {}
+    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
+    services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer', "Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment")
+
+    # Test kafka-log4j content when Ranger plugin for Kafka is enabled
+
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    log4jContent = services['configurations']['kafka-log4j']['properties']['content']
+    newRangerLog4content = "\nlog4j.appender.rangerAppender=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.rangerAppender.DatePattern='.'yyyy-MM-dd-HH\n" \
+                     "log4j.appender.rangerAppender.File=${kafka.logs.dir}/ranger_kafka.log\nlog4j.appender.rangerAppender.layout" \
+                     "=org.apache.log4j.PatternLayout\nlog4j.appender.rangerAppender.layout.ConversionPattern=%d{ISO8601} %p [%t] %C{6} (%F:%L) - %m%n\n" \
+                     "log4j.logger.org.apache.ranger=INFO, rangerAppender"
+    expectedLog4jContent = log4jContent + newRangerLog4content
+    self.assertEquals(configurations['kafka-log4j']['properties']['content'], expectedLog4jContent, "Test kafka-log4j content when Ranger plugin for Kafka is enabled")
+
+
   def test_recommendHBASEConfigurations(self):
     configurations = {}
     clusterData = {
@@ -201,6 +402,9 @@ class TestHDP23StackAdvisor(TestCase):
             },
             ],
           }],
+      "Versions": {
+        "stack_version": "2.3"
+      },
       "configurations": {
         "yarn-site": {
           "properties": {

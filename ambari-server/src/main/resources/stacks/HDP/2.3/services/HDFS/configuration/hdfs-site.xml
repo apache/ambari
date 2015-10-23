@@ -54,4 +54,19 @@
     </description>
   </property>
 
+  <property>
+    <name>dfs.namenode.inode.attributes.provider.class</name>
+    <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
+    <description>Enable ranger hdfs plugin</description>
+    <depends-on>
+      <property>
+        <type>ranger-hdfs-plugin-properties</type>
+        <name>ranger-hdfs-plugin-enabled</name>
+      </property>
+    </depends-on>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+  </property>
+
 </configuration>
