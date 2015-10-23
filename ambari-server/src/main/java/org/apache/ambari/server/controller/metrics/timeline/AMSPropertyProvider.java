@@ -50,7 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -564,7 +563,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
 
       if (collectorPort == null) {
-        collectorPort = hostProvider.getCollectorPortName(clusterName, TIMELINE_METRICS);
+        collectorPort = hostProvider.getCollectorPort(clusterName, TIMELINE_METRICS);
       }
 
       for (String id : ids) {
