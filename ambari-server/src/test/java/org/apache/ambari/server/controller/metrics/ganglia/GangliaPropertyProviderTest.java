@@ -871,7 +871,7 @@ public class GangliaPropertyProviderTest {
     }
 
     @Override
-    public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
+    public String getCollectorPort(String clusterName, MetricsService service) throws SystemException {
       return null;
     }
 

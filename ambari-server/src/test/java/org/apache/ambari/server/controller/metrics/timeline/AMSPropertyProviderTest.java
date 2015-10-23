@@ -695,7 +695,7 @@ public class AMSPropertyProviderTest {
     }
 
     @Override
-    public String getCollectorPortName(String clusterName, MetricsService service) throws SystemException {
+    public String getCollectorPort(String clusterName, MetricsService service) throws SystemException {
       return "8188";
     }
 
