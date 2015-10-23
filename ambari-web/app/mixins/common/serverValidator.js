@@ -304,8 +304,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
       error: 'validationError'
     }).done(function (data) {
       App.router.get('configurationController').getConfigsByTags([{
-        siteName: data.items[0].type,
-        tagName: data.items[0].tag
+        siteName: data.items[data.items.length - 1].type,
+        tagName: data.items[data.items.length - 1].tag
       }]).done(function (clusterEnvConfigs) {
         var configsObject = clusterEnvConfigs[0].properties;
         var configsArray = [];
