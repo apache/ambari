@@ -679,9 +679,9 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
     }
     if (!App.get('isHaEnabled') && App.Service.find('ACCUMULO').get('isLoaded')) {
+      // Update the Namenode's hostname in instance.volumes
       configs['accumulo-site']['instance.volumes'] = configs['accumulo-site']['instance.volumes'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
-    }
-    if (App.Service.find('ACCUMULO').get('isLoaded')) {
+      // Add a replacement entry from the old hostname to the new hostname
       var target = 'hdfs://' + this.get('content.reassignHosts.target') + ':8020' + '/apps/accumulo/data';
       var source = 'hdfs://' + this.get('content.reassignHosts.source') + ':8020' + '/apps/accumulo/data';
       if (configs['accumulo-site']) {
