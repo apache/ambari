@@ -38,6 +38,13 @@ def service(componentName, action='start', serviceName='yarn'):
 def service(componentName, action='start', serviceName='yarn'):
   import params
 
+  if componentName == 'timelineserver' and serviceName == 'yarn' and action == 'start':
+    File(params.ats_leveldb_lock_file,
+         action = "delete",
+         only_if = format("ls {params.ats_leveldb_lock_file}"),
+         ignore_failures = True
+    )
+
   if serviceName == 'mapreduce' and componentName == 'historyserver':
     delete_pid_file = True
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")

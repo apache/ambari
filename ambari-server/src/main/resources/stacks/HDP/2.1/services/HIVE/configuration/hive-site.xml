@@ -495,7 +495,7 @@ limitations under the License.
   <property>
     <name>hive.compactor.initiator.on</name>
     <value>false</value>
-    <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
+    <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should be set to true on only one instance. Setting true on only one host can be achieved by creating a config-group containing the metastore host, and overriding the default value to true in it.</description>
     <display-name>Run Compactor</display-name>
     <value-attributes>
       <type>value-list</type>

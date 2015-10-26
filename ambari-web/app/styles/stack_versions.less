@@ -267,11 +267,28 @@
   .task-list-main-warp i {
     font-size: 16px;
   }
-  .upgrade-options-button {
+  .upgrade-options-link {
     position: absolute;
+    cursor: pointer;
     right: 10%;
-    top: 10px;
+    top: 13px;
     width: 100px;
+    a {
+      font-size: 13px;
+    }
+    .icon-cogs {
+      color: #0088cc;
+      margin-right: 3px;
+    }
+  }
+  .upgrade-options-link.disabled {
+    cursor: not-allowed;
+    a, .icon-cogs {
+      color: #808080;
+    }
+    a:hover {
+      text-decoration: none;
+    }
   }
 }
 
@@ -292,7 +309,7 @@
       width: 43.5%;
     }
     .thumbnail {
-      height: 140px;
+      height: 165px;
       cursor: pointer;
       border: none;
       width: 99%;
@@ -328,11 +345,11 @@
       }
     }
     .selected.ROLLING, .selected.NON_ROLLING {
-      background-color: #cbe3c2;
+      background-color: #d3e7ca;
       box-shadow: 0 8px 6px -6px #b3b3b3;
     }
     .ROLLING:hover, .NON_ROLLING:hover {
-      background-color: #d3e7ca;
+      background-color: #cbe3c2;
     }
 
     .thumbnail.not-allowed:hover {
@@ -389,6 +406,9 @@
   }
   .tolerance-text .tolerance-option {
     margin: 5px 15px;
+    .ember-checkbox {
+      margin-top: 0px;
+    }
   }
   .text {
     margin-left: 10px;

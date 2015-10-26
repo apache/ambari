@@ -668,11 +668,22 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             success: 'updateOptionsSuccessCallback'
           });
         } else {
-          version.upgradeType = self.get('upgradeMethods').findProperty('selected', true).get('type');
+          var upgradeType = self.get('upgradeMethods').findProperty('selected', true).get('type');
+          version.upgradeType = upgradeType;
           version.upgradeTypeDisplayName = self.get('upgradeMethods').findProperty('selected', true).get('displayName');
           version.skipComponentFailures = this.get('skipComponentFailures');
           version.skipSCFailures = this.get('skipSCFailures');
-          self.runPreUpgradeCheck.call(self, version);
+
+          var fromVersion = self.get('upgradeVersion');
+          var toVersion = version.get('displayName');
+          var bodyMessage = Em.Object.create({
+            confirmButton: Em.I18n.t('yes'),
+            confirmMsg: upgradeType == 'ROLLING'? Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.confirm.msg').format(fromVersion, toVersion):
+             Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.confirm.msg').format(fromVersion, toVersion)
+          });
+          return App.showConfirmationFeedBackPopup(function (query) {
+            return self.runPreUpgradeCheck.call(self, version);
+          }, bodyMessage);
         }
       },
       onSecondary: function () {
@@ -686,9 +697,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * open upgrade options from upgrade wizard
-   * @return App.ModalPopup
    */
   openUpgradeOptions: function () {
+    if (this.get('isDowngrade')) return;
     this.upgradeOptions(true, null);
   },
 
@@ -751,10 +762,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     method.set('precheckResultsData', data);
     this.updateSelectedMethod(false);
     Em.run.later(this, function () {
+      // add tooltip for the type with preCheck errors
       App.tooltip($(".thumbnail.check-failed"), {
         placement: "bottom",
         title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
       });
+      // destroy the tooltip for the type wo preCheck errors
       $(".thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
     }, 1000);
   },
@@ -777,8 +790,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     } else {
       var ruMethod = this.get('upgradeMethods').findProperty('type', 'ROLLING');
       var euMethod = this.get('upgradeMethods').findProperty('type', 'NON_ROLLING');
-      if (ruMethod.get('isPrecheckFailed')) ruMethod.set('selected', false);
-      if (euMethod.get('isPrecheckFailed')) euMethod.set('selected', false);
+      if (ruMethod && ruMethod.get('isPrecheckFailed')) ruMethod.set('selected', false);
+      if (euMethod && euMethod.get('isPrecheckFailed')) euMethod.set('selected', false);
     }
   },
 

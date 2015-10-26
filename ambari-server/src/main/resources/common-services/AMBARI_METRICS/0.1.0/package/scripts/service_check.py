@@ -76,10 +76,10 @@ class AMSServiceCheck(Script):
 
     for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
-        Logger.info("Connecting (POST) to %s:%s%s" % (params.ams_collector_host_single,
+        Logger.info("Connecting (POST) to %s:%s%s" % (params.metric_collector_host,
                                                       params.metric_collector_port,
                                                       self.AMS_METRICS_POST_URL))
-        conn = httplib.HTTPConnection(params.ams_collector_host_single,
+        conn = httplib.HTTPConnection(params.metric_collector_host,
                                         int(params.metric_collector_port))
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
       except (httplib.HTTPException, socket.error) as ex:
@@ -123,11 +123,11 @@ class AMSServiceCheck(Script):
     }
     encoded_get_metrics_parameters = urllib.urlencode(get_metrics_parameters)
 
-    Logger.info("Connecting (GET) to %s:%s%s" % (params.ams_collector_host_single,
+    Logger.info("Connecting (GET) to %s:%s%s" % (params.metric_collector_host,
                                                  params.metric_collector_port,
                                               self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters))
 
-    conn = httplib.HTTPConnection(params.ams_collector_host_single,
+    conn = httplib.HTTPConnection(params.metric_collector_host,
                                   int(params.metric_collector_port))
     conn.request("GET", self.AMS_METRICS_GET_URL % encoded_get_metrics_parameters)
     response = conn.getresponse()

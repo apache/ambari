@@ -93,7 +93,7 @@ public class UpgradeCatalog220Test {
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
-    Assert.assertEquals("2.1.0", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals("2.1.3", upgradeCatalog.getSourceVersion());
   }
 
   private AbstractUpgradeCatalog getUpgradeCatalog(final DBAccessor dbAccessor) {

@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
@@ -172,7 +173,7 @@ public class TestPhoenixTransactSQL {
     Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
     verify(connection, preparedStatement);
 
-    // SECONDS precision
+    // MINUTES precision
     startTime = endTime-PhoenixTransactSQL.DAY/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
@@ -187,7 +188,7 @@ public class TestPhoenixTransactSQL {
     PhoenixTransactSQL.prepareGetAggregateSqlStmt(connection, condition);
     stmt = stmtCapture.getValue();
     Assert.assertTrue(stmt.contains("FROM METRIC_AGGREGATE"));
-    Assert.assertEquals(Precision.SECONDS, condition.getPrecision());
+    Assert.assertEquals(Precision.MINUTES, condition.getPrecision());
     verify(connection, preparedStatement);
 
     // HOURS precision
@@ -286,7 +287,7 @@ public class TestPhoenixTransactSQL {
     reset(connection, preparedStatement);
 
     // SECONDS precision
-    startTime = endTime-PhoenixTransactSQL.HOUR*10/1000;
+    startTime = endTime-PhoenixTransactSQL.HOUR*2/1000;
     condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),
       "a1", "i1", startTime, endTime, null, null, false);

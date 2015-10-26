@@ -502,11 +502,21 @@ describe('App.QuickViewLinks', function () {
             hasMaster: false
           })
         ];
-      })
+      });
+      sinon.stub(App.Service, 'find', function () {
+        return Em.Object.create({
+          hostComponents: Em.A([
+            Em.Object.create({
+              isMaster: true
+            })
+          ])
+        });
+      });
     });
 
     after(function () {
       App.StackService.find.restore();
+      App.Service.find.restore();
     });
 
     afterEach(function () {

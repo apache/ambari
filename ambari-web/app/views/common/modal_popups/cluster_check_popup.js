@@ -99,7 +99,8 @@ App.showPreUpgradeCheckPopup = function (data, header, failTitle, failAlert, war
       templateName: require('templates/common/modal_popups/cluster_check_dialog'),
       fails: fails,
       warnings: warnings,
-      hasConfigsMergeConflicts: hasConfigsMergeConflicts
+      hasConfigsMergeConflicts: hasConfigsMergeConflicts,
+      isAllPassed: !fails.length && !warnings.length && !hasConfigsMergeConflicts.length
     };
   if (hasConfigsMergeConflicts) {
     popupBody.configsMergeTable = Em.View.extend({

@@ -387,7 +387,6 @@ public class UpgradeResourceProviderTest {
     assertEquals("Save Cluster State", postClusterUpgradeItems.get(0).getText());
   }
 
-  @Ignore
   @Test
   public void testGetResources() throws Exception {
     RequestStatus status = testCreateResources();
@@ -419,6 +418,7 @@ public class UpgradeResourceProviderTest {
     assertEquals(Direction.UPGRADE, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_DIRECTION));
     assertEquals(false, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES));
     assertEquals(false, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES));
+    assertEquals(UpgradeType.ROLLING, res.getPropertyValue(UpgradeResourceProvider.UPGRADE_TYPE));
 
     // upgrade groups
     propertyIds.clear();
@@ -1051,6 +1051,7 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -1062,6 +1063,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity entity = upgrades.get(0);
     assertEquals(cluster.getClusterId(), entity.getClusterId().longValue());
+    assertEquals(UpgradeType.ROLLING, entity.getUpgradeType());
 
     StageDAO stageDAO = injector.getInstance(StageDAO.class);
     List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
