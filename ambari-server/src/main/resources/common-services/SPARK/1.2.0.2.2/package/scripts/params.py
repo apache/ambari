@@ -161,9 +161,12 @@ if security_enabled:
 
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
+spark_thrift_cmd_opts_properties = ''
 if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 \
     and 'spark-thrift-sparkconf' in config['configurations']:
   spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
+  spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
+
   if is_hive_installed:
       spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
 
