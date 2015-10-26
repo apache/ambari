@@ -173,16 +173,11 @@ class HiveMetastoreDefault(HiveMetastore):
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
       target_directory = format("/usr/hdp/{version}/hive/lib")
 
-      # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
-      # but if hdp-select is called and the restart fails, then this means that current pointer
-      # is now pointing to the upgraded version location; that's bad for the cp command
-      source_jdbc_file = format(params.target.replace("/usr/hdp/current", "/usr/hdp/{current_version}"))
-
       # download it if it does not exist
-      if not os.path.exists(source_jdbc_file):
+      if not os.path.exists(params.source_jdbc_file):
         jdbc_connector()
 
-      target_directory_and_filename = os.path.join(target_directory, os.path.basename(source_jdbc_file))
+      target_directory_and_filename = os.path.join(target_directory, os.path.basename(params.source_jdbc_file))
 
       if params.sqla_db_used:
         target_native_libs_directory = format("{target_directory}/native/lib64")
@@ -198,7 +193,7 @@ class HiveMetastoreDefault(HiveMetastore):
         # copy the JDBC driver from the older metastore location to the new location only
         # if it does not already exist
         if not os.path.exists(target_directory_and_filename):
-          Execute(('cp', source_jdbc_file, target_directory),
+          Execute(('cp', params.source_jdbc_file, target_directory),
             path=["/bin", "/usr/bin/"], sudo = True)
 
       File(target_directory_and_filename, mode = 0644)
