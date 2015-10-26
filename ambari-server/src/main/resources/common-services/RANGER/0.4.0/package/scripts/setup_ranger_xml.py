@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 import os
+import re
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import File, Directory, Execute
 from resource_management.core.source import DownloadSource, InlineTemplate
@@ -270,12 +271,23 @@ def do_keystore_setup(rolling_upgrade=False):
       mode = 0640
     )
 
+def password_validation(password):
+  import params
+  if password.strip() == "":
+    raise Fail("Blank password is not allowed for Bind user. Please enter valid password.")
+  if re.search("[\\\`'\"]",password):
+    raise Fail("LDAP/AD bind password contains one of the unsupported special characters like \" ' \ `")
+  else:
+    Logger.info("password validated")
  
 def setup_usersync(rolling_upgrade=False):
   import params
 
   usersync_home = params.usersync_home
   ranger_ugsync_conf = params.ranger_ugsync_conf
+
+  if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
+    password_validation(params.ranger_usersync_ldap_ldapbindpassword)
 
   if rolling_upgrade:
     usersync_home = format("/usr/hdp/{version}/ranger-usersync")
