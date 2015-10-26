@@ -533,7 +533,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         }),
         Em.Object.create({
           displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON-ROLLING'
+          type: 'NON_ROLLING'
         })
       ];
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
@@ -788,7 +788,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         }),
         Em.Object.create({
           displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON-ROLLING',
+          type: 'NON_ROLLING',
           icon: "icon-bolt",
           description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
           selected: false,
@@ -843,16 +843,18 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it("make ajax call", function() {
       controller.set('upgradeVersion', 'HDP-2.3');
+      controller.set('upgradeType', 'NON_ROLLING');
       controller.downgrade(Em.Object.create({
         repository_version: '2.2',
         repository_name: 'HDP-2.2'
       }), {context: 'context'});
       expect(controller.abortUpgrade.calledOnce).to.be.true;
       expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        from: '2.3',
         value: '2.2',
         label: 'HDP-2.2',
-        from: '2.3',
-        isDowngrade: true
+        isDowngrade: true,
+        upgradeType: "NON_ROLLING"
       });
       expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.downgrade.start');
       expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);

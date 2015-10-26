@@ -1633,7 +1633,8 @@ var urls = {
           },
           "Upgrade": {
             "from_version": data.from,
-            "repository_version": data.value
+            "repository_version": data.value,
+            "upgrade_type": data.upgradeType
           }
         })
       }

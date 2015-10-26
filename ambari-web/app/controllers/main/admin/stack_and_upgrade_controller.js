@@ -462,7 +462,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         from: App.RepositoryVersion.find().findProperty('displayName', this.get('upgradeVersion')).get('repositoryVersion'),
         value: currentVersion.repository_version,
         label: currentVersion.repository_name,
-        isDowngrade: true
+        isDowngrade: true,
+        upgradeType: this.get('upgradeType')
       },
       success: 'upgradeSuccessCallback',
       callback: function() {
