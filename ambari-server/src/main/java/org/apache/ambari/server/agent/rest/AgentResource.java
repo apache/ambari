@@ -58,6 +58,13 @@ public class AgentResource {
   @Inject
   public static void init(HeartBeatHandler instance) {
     hh = instance;
+    //hh.start();
+  }
+
+  /**
+   * Explicitly start HH
+   */
+  public static void statHeartBeatHandler() {
     hh.start();
   }
 
