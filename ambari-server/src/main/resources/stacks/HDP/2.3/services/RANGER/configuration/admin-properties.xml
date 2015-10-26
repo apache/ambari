@@ -62,7 +62,6 @@
     <description>Database admin user</description>
     <value-attributes>
       <overridable>false</overridable>
-      <visible>false</visible>
     </value-attributes>
   </property>
 
@@ -74,7 +73,6 @@
     <description>Database password for the database admin user-id</description>
     <value-attributes>
       <overridable>false</overridable>
-      <visible>false</visible>
     </value-attributes>
   </property>
 

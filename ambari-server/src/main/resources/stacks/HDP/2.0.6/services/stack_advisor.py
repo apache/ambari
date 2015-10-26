@@ -305,23 +305,64 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
     putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
-    # Recommend ldap settings based on ambari.properties configuration
-    # If 'ambari.ldap.isConfigured' == true
-    # For stack_version 2.2
     stackVersion = services["Versions"]["stack_version"]
-    if stackVersion == '2.2' and 'ambari-server-properties' in services and \
+    if stackVersion == '2.2':
+      # Recommend ldap settings based on ambari.properties configuration
+      # If 'ambari.ldap.isConfigured' == true
+      # For stack_version 2.2
+      if 'ambari-server-properties' in services and \
       'ambari.ldap.isConfigured' in services['ambari-server-properties'] and \
-      services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
-      putUserSyncProperty = self.putProperty(configurations, "usersync-properties", services)
-      serverProperties = services['ambari-server-properties']
-      if 'authentication.ldap.managerDn' in serverProperties:
-        putUserSyncProperty('SYNC_LDAP_BIND_DN', serverProperties['authentication.ldap.managerDn'])
-      if 'authentication.ldap.primaryUrl' in serverProperties:
-        putUserSyncProperty('SYNC_LDAP_URL', serverProperties['authentication.ldap.primaryUrl'])
-      if 'authentication.ldap.userObjectClass' in serverProperties:
-        putUserSyncProperty('SYNC_LDAP_USER_OBJECT_CLASS', serverProperties['authentication.ldap.userObjectClass'])
-      if 'authentication.ldap.usernameAttribute' in serverProperties:
-        putUserSyncProperty('SYNC_LDAP_USER_NAME_ATTRIBUTE', serverProperties['authentication.ldap.usernameAttribute'])
+        services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
+        putUserSyncProperty = self.putProperty(configurations, "usersync-properties", services)
+        serverProperties = services['ambari-server-properties']
+        if 'authentication.ldap.managerDn' in serverProperties:
+          putUserSyncProperty('SYNC_LDAP_BIND_DN', serverProperties['authentication.ldap.managerDn'])
+        if 'authentication.ldap.primaryUrl' in serverProperties:
+          putUserSyncProperty('SYNC_LDAP_URL', serverProperties['authentication.ldap.primaryUrl'])
+        if 'authentication.ldap.userObjectClass' in serverProperties:
+          putUserSyncProperty('SYNC_LDAP_USER_OBJECT_CLASS', serverProperties['authentication.ldap.userObjectClass'])
+        if 'authentication.ldap.usernameAttribute' in serverProperties:
+          putUserSyncProperty('SYNC_LDAP_USER_NAME_ATTRIBUTE', serverProperties['authentication.ldap.usernameAttribute'])
+
+      # Recommend xasecure.audit.destination.hdfs.dir
+      # For stack_version 2.2
+      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+      putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
+      include_hdfs = "HDFS" in servicesList
+      if include_hdfs:
+        if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
+          default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
+          default_fs += '/ranger/audit/%app-type%/%time:yyyyMMdd%'
+          putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', default_fs)
+
+      # Recommend Ranger Audit properties for ranger supported services
+      # For stack_version 2.2
+      ranger_services = [
+        {'service_name': 'HDFS', 'audit_file': 'ranger-hdfs-plugin-properties'},
+        {'service_name': 'HBASE', 'audit_file': 'ranger-hbase-plugin-properties'},
+        {'service_name': 'HIVE', 'audit_file': 'ranger-hive-plugin-properties'},
+        {'service_name': 'KNOX', 'audit_file': 'ranger-knox-plugin-properties'},
+        {'service_name': 'STORM', 'audit_file': 'ranger-storm-plugin-properties'}
+      ]
+
+      for item in range(len(ranger_services)):
+        if ranger_services[item]['service_name'] in servicesList:
+          component_audit_file =  ranger_services[item]['audit_file']
+          if component_audit_file in services["configurations"]:
+            ranger_audit_dict = [
+              {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.db', 'target_configname': 'XAAUDIT.DB.IS_ENABLED'},
+              {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.hdfs', 'target_configname': 'XAAUDIT.HDFS.IS_ENABLED'},
+              {'filename': 'ranger-env', 'configname': 'xasecure.audit.destination.hdfs.dir', 'target_configname': 'XAAUDIT.HDFS.DESTINATION_DIRECTORY'}
+            ]
+            putRangerAuditProperty = self.putProperty(configurations, component_audit_file, services)
+
+            for item in ranger_audit_dict:
+              if item['filename'] in services["configurations"] and item['configname'] in  services["configurations"][item['filename']]["properties"]:
+                if item['filename'] in configurations and item['configname'] in  configurations[item['filename']]["properties"]:
+                  rangerAuditProperty = configurations[item['filename']]["properties"][item['configname']]
+                else:
+                  rangerAuditProperty = services["configurations"][item['filename']]["properties"][item['configname']]
+                putRangerAuditProperty(item['target_configname'], rangerAuditProperty)
 
 
   def getAmsMemoryRecommendation(self, services, hosts):

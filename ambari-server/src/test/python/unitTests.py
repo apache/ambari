@@ -19,11 +19,12 @@ limitations under the License.
 import unittest
 import multiprocessing
 import os
-import sys
-from random import shuffle
 import fnmatch
 import tempfile
 import shutil
+
+import sys
+
 
 #excluded directories with non-test staff from stack and service scanning,
 #also we can add service or stack to skip here

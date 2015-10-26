@@ -45,7 +45,7 @@
                       "column-span": "2"
                     },
                     {
-                      "name": "subsection-ranger-db-row3-col1",
+                      "name": "subsection-ranger-db-root-user-col1",
                       "row-index": "2",
                       "column-index": "0",
                       "row-span": "1",
@@ -70,7 +70,7 @@
                       ]
                     },
                     {
-                      "name": "subsection-ranger-db-row3-col2",
+                      "name": "subsection-ranger-db-root-user-col2",
                       "row-index": "2",
                       "column-index": "1",
                       "row-span": "1",
@@ -403,19 +403,19 @@
         },
         {
           "config": "admin-properties/db_root_user",
-          "subsection-name": "subsection-ranger-db-row3-col1"
+          "subsection-name": "subsection-ranger-db-root-user-col1"
         },
         {
           "config": "ranger-env/ranger_privelege_user_jdbc_url",
-          "subsection-name": "subsection-ranger-db-row3-col1"
+          "subsection-name": "subsection-ranger-db-root-user-col1"
         },
         {
           "config": "admin-properties/db_root_password",
-          "subsection-name": "subsection-ranger-db-row3-col2"
+          "subsection-name": "subsection-ranger-db-root-user-col2"
         },
         {
           "config": "ranger-env/test_root_db_connection",
-          "subsection-name": "subsection-ranger-db-row3-col1",
+          "subsection-name": "subsection-ranger-db-root-user-col1",
           "property_value_attributes": {
             "ui_only_property": true
           }
@@ -1269,7 +1269,6 @@
           "type": "combo"
         }
       },
-
       {
         "config": "ranger-ugsync-site/ranger.usersync.ldap.url",
         "widget": {
