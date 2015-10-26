@@ -281,6 +281,15 @@ yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix'
 target = format("{hive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
 
+
+if Script.is_hdp_stack_less_than("2.2"):
+  source_jdbc_file = target
+else:
+  # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
+  # but in RU if hdp-select is called and the restart fails, then this means that current pointer
+  # is now pointing to the upgraded version location; that's bad for the cp command
+  source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
+
 jdk_location = config['hostLevelParams']['jdk_location']
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 
