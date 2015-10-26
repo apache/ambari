@@ -1,0 +1,93 @@
+{
+  "href" : "/api/v1/hosts?fields=Hosts/*&Hosts/host_name.in(c6401.ambari.apache.org)",
+  "items" : [
+    {
+      "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+      "Hosts" : {
+        "cpu_count" : 1,
+        "desired_configs" : null,
+        "disk_info" : [
+          {
+            "available" : "481199976",
+            "device" : "/dev/mapper/VolGroup-lv_root",
+            "used" : "5713880",
+            "percent" : "2%",
+            "size" : "512971376",
+            "type" : "ext4",
+            "mountpoint" : "/"
+          },
+          {
+            "available" : "1478456",
+            "device" : "tmpfs",
+            "used" : "0",
+            "percent" : "0%",
+            "size" : "1478456",
+            "type" : "tmpfs",
+            "mountpoint" : "/dev/shm"
+          },
+          {
+            "available" : "438284",
+            "device" : "/dev/sda1",
+            "used" : "31960",
+            "percent" : "7%",
+            "size" : "495844",
+            "type" : "ext4",
+            "mountpoint" : "/boot"
+          },
+          {
+            "available" : "191037148",
+            "device" : "vagrant",
+            "used" : "296051072",
+            "percent" : "61%",
+            "size" : "487088220",
+            "type" : "vboxsf",
+            "mountpoint" : "/vagrant"
+          }
+        ],
+        "host_health_report" : "",
+        "host_name" : "c6401.ambari.apache.org",
+        "host_state" : "HEALTHY",
+        "host_status" : "HEALTHY",
+        "ip" : "192.168.64.101",
+        "last_agent_env" : {
+          "stackFoldersAndFiles" : [ ],
+          "alternatives" : [ ],
+          "existingUsers" : [ ],
+          "existingRepos" : [ ],
+          "installedPackages" : [ ],
+          "hostHealth" : {
+            "activeJavaProcs" : [ ],
+            "agentTimeStampAtReporting" : 1445288922364,
+            "serverTimeStampAtReporting" : 1445288922425,
+            "liveServices" : [
+              {
+                "desc" : "",
+                "name" : "ntpd",
+                "status" : "Healthy"
+              }
+            ]
+          },
+          "umask" : 18,
+          "transparentHugePage" : "always",
+          "firewallRunning" : false,
+          "firewallName" : "iptables",
+          "reverseLookup" : true
+        },
+        "last_heartbeat_time" : 1445288922425,
+        "last_registration_time" : 1445288888619,
+        "os_arch" : "x86_64",
+        "os_family" : "redhat6",
+        "os_type" : "centos6",
+        "ph_cpu_count" : 1,
+        "public_host_name" : "c6401.ambari.apache.org",
+        "rack_info" : "/default-rack",
+        "recovery_report" : {
+          "summary" : "DISABLED",
+          "component_reports" : [ ]
+        },
+        "recovery_summary" : "DISABLED",
+        "total_mem" : 2956916
+      }
+    }
+  ]
+}
