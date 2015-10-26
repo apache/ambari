@@ -380,12 +380,12 @@ public class AmbariServer {
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
       sh.setInitParameter("com.sun.jersey.config.property.packages",
-          "org.apache.ambari.server.api.rest;" +
-              "org.apache.ambari.server.api.services;" +
-              "org.apache.ambari.eventdb.webservice;" +
-              "org.apache.ambari.server.api");
+        "org.apache.ambari.server.api.rest;" +
+          "org.apache.ambari.server.api.services;" +
+          "org.apache.ambari.eventdb.webservice;" +
+          "org.apache.ambari.server.api");
       sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
-          "true");
+        "true");
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -406,6 +406,9 @@ public class AmbariServer {
           "true");
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
+
+      AgentResource.statHeartBeatHandler();
+      LOG.info("********** Started Heartbeat handler **********");
 
       ServletHolder cert = new ServletHolder(ServletContainer.class);
       cert.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",

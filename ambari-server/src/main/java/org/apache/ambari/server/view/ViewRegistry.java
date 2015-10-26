@@ -464,7 +464,7 @@ public class ViewRegistry {
    * Read all view archives.
    */
   public void readViewArchives() {
-    readViewArchives(false, true, ALL_VIEWS_REG_EXP);
+    readViewArchives(false, false, ALL_VIEWS_REG_EXP);
   }
 
   /**
