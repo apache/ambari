@@ -69,8 +69,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   protected Injector injector;
 
   // map and list with constants, for filtration like in stack advisor
-  protected Map<String,List<String>> hiveAuthPropertyValueDependencies = new HashMap<String, List<String>>();
-  protected List<String> allHiveAuthPropertyValueDependecies = new ArrayList<String>();
 
   /**
    * Override variable in child's if table name was changed
@@ -99,17 +97,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     this.injector = injector;
     injector.injectMembers(this);
     registerCatalog(this);
-
-    hiveAuthPropertyValueDependencies.put("ldap", Arrays.asList("hive.server2.authentication.ldap.url",
-            "hive.server2.authentication.ldap.baseDN"));
-    hiveAuthPropertyValueDependencies.put("kerberos", Arrays.asList("hive.server2.authentication.kerberos.keytab",
-            "hive.server2.authentication.kerberos.principal"));
-    hiveAuthPropertyValueDependencies.put("pam", Arrays.asList("hive.server2.authentication.pam.services"));
-    hiveAuthPropertyValueDependencies.put("custom", Arrays.asList("hive.server2.custom.authentication.class"));
-
-    for (List<String> dependencies : hiveAuthPropertyValueDependencies.values()) {
-      allHiveAuthPropertyValueDependecies.addAll(dependencies);
-    }
   }
 
   /**
@@ -284,7 +271,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
             String configType = ConfigHelper.fileNameToConfigType(property.getFilename());
             Config clusterConfigs = cluster.getDesiredConfigByType(configType);
             if(clusterConfigs == null || !clusterConfigs.getProperties().containsKey(property.getName())) {
-              if (!checkAccordingToStackAdvisor(property, cluster) || property.getValue() == null) {
+              if (property.getValue() == null || property.getPropertyTypes().contains(PropertyInfo.PropertyType.DONT_ADD_ON_UPGRADE)) {
                 continue;
               }
 
@@ -306,23 +293,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
         }
       }
     }
-  }
-
-  protected boolean checkAccordingToStackAdvisor(PropertyInfo property, Cluster cluster) {
-    if (allHiveAuthPropertyValueDependecies.contains(property.getName())) {
-      Config hiveSite = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_HIVE_SITE);
-      if (hiveSite != null) {
-        String hiveAuthValue = hiveSite.getProperties().get(PROPERTY_HIVE_SERVER2_AUTHENTICATION);
-        if (hiveAuthValue != null) {
-          List<String> dependencies = hiveAuthPropertyValueDependencies.get(hiveAuthValue.toLowerCase());
-          if (dependencies != null) {
-            return dependencies.contains(property.getName());
-          }
-        }
-      }
-      return false;
-    }
-    return true;
   }
 
   protected boolean isNNHAEnabled(Cluster cluster) {

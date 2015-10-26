@@ -1734,6 +1734,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.ldap.url</name>
     <value> </value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1744,6 +1745,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
     <value></value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1754,6 +1756,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.kerberos.keytab</name>
     <value>/etc/security/keytabs/hive.service.keytab</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1764,6 +1767,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.kerberos.principal</name>
     <value>hive/_HOST@EXAMPLE.COM</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1774,6 +1778,7 @@ limitations under the License.
   <property>
     <name>hive.server2.authentication.pam.services</name>
     <value></value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
@@ -1784,6 +1789,7 @@ limitations under the License.
   <property>
     <name>hive.server2.custom.authentication.class</name>
     <value></value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>
         <type>hive-site</type>
