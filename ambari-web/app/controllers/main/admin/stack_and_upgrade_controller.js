@@ -49,6 +49,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {string}
    * @default null
    */
+  upgradeType: null,
+
+  /**
+   * @type {string}
+   * @default null
+   */
   upgradeTypeDisplayName: null,
 
   /**
@@ -111,7 +117,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * properties that stored to localStorage to resume wizard progress
    */
-  wizardStorageProperties: ['upgradeId', 'upgradeVersion', 'currentVersion', 'upgradeTypeDisplayName', 'failuresTolerance', 'isDowngrade', 'isSuspended'],
+  wizardStorageProperties: [
+    'upgradeId',
+    'upgradeVersion',
+    'currentVersion',
+    'upgradeTypeDisplayName',
+    'upgradeType',
+    'failuresTolerance',
+    'isDowngrade',
+    'isSuspended'
+  ],
 
   /**
    * mutable properties of Upgrade Task
@@ -511,7 +526,15 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.set('upgradeVersion', params.label);
     this.set('isDowngrade', !!params.isDowngrade);
     var upgradeMethod = this.get('upgradeMethods').findProperty('type', params.type);
-    var upgradeTypeDisplayName  = upgradeMethod ? upgradeMethod.get('displayName') : null;
+    var upgradeTypeDisplayName = null;
+    var upgradeType = null;
+
+    if (upgradeMethod) {
+      upgradeTypeDisplayName = upgradeMethod.get('displayName');
+      upgradeType = upgradeMethod.get('type');
+    }
+
+    this.set('upgradeType', upgradeType);
     this.set('upgradeTypeDisplayName', upgradeTypeDisplayName);
     this.set('failuresTolerance', Em.Object.create({
       skipComponentFailures: params.skipComponentFailures == 'true',
@@ -522,6 +545,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       upgradeId: data.resources[0].Upgrade.request_id,
       upgradeState: 'PENDING',
       isDowngrade: !!params.isDowngrade,
+      upgradeType: upgradeType,
       upgradeTypeDisplayName: upgradeTypeDisplayName,
       failuresTolerance: Em.Object.create({
         skipComponentFailures: params.skipComponentFailures == 'true',
@@ -781,7 +805,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var self = this;
     if (isInUpgradeWizard) {
       this.get('upgradeMethods').forEach(function(method){
-        if (method.get('displayName') == self.get('upgradeTypeDisplayName')) {
+        if (method.get('type') == self.get('upgradeType')) {
           method.set('selected', true);
         } else {
           method.set('selected', false);
@@ -1107,6 +1131,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         upgradeVersion: undefined,
         currentVersion: undefined,
         upgradeTypeDisplayName: undefined,
+        upgradeType: undefined,
         failuresTolerance: undefined,
         isDowngrade: undefined
       });
