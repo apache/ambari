@@ -1095,7 +1095,9 @@ class TestHDP23StackAdvisor(TestCase):
         }
       },
       'ranger-env': {
-        'properties': {}
+        'properties': {
+          'ranger-storm-plugin-enabled': 'No',
+        }
       }
     }
 

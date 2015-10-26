@@ -38,7 +38,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "AMBARI_METRICS": self.recommendAmsConfigurations,
       "YARN": self.recommendYARNConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "KNOX": self.recommendKnoxConfigurations
+      "KNOX": self.recommendKnoxConfigurations,
+      "RANGER": self.recommendRangerConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -829,6 +830,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putKnoxTopologyContent('content', newTopologyXmlContent)
 
 
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    putRangerEnvProperty = self.putProperty(configurations, "ranger-env")
+    cluster_env = getServicesSiteProperties(services, "cluster-env")
+    security_enabled = cluster_env is not None and "security_enabled" in cluster_env and \
+                       cluster_env["security_enabled"].lower() == "true"
+    if "ranger-env" in configurations and not security_enabled:
+      putRangerEnvProperty("ranger-storm-plugin-enabled", "No")
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
@@ -847,7 +857,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "KAFKA": {"ranger-kafka-plugin-properties": self.validateKafkaRangerPluginConfigurations},
       "STORM": {"ranger-storm-plugin-properties": self.validateStormRangerPluginConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
-      "TEZ": {"tez-site": self.validateTezConfigurations}
+      "TEZ": {"tez-site": self.validateTezConfigurations},
+      "RANGER": {"ranger-env": self.validateRangerConfigurationsEnv}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -1378,6 +1389,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                 "item": self.getWarnItem(
                                   "ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled must correspond ranger-env/ranger-yarn-plugin-enabled")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-yarn-plugin-properties")
+
+  def validateRangerConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    if "ranger-storm-plugin-enabled" in properties and "ranger-storm-plugin-enabled" in recommendedDefaults and \
+      properties["ranger-storm-plugin-enabled"] != recommendedDefaults["ranger-storm-plugin-enabled"]:
+        validationItems.append({"config-name": "ranger-storm-plugin-enabled",
+                                "item": self.getWarnItem(
+                                  "Ranger Storm plugin should not be enabled in non-kerberos environment.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "ranger-env")
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()
