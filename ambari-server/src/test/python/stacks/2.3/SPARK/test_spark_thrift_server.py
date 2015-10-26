@@ -53,7 +53,7 @@ class TestSparkThriftServer(RMFTestCase):
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-thriftserver.sh --properties-file /usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf',
+    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-thriftserver.sh --properties-file /usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf --driver-memory 1g',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid` >/dev/null 2>&1',
         user = 'spark',

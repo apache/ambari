@@ -51,7 +51,7 @@ def spark_service(name, action):
     elif name == 'sparkthriftserver':
       thriftserver_no_op_test = format(
       'ls {spark_thrift_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_thrift_server_pid_file}` >/dev/null 2>&1')
-      Execute(format('{spark_thrift_server_start} --properties-file {spark_thrift_server_conf_file}'),
+      Execute(format('{spark_thrift_server_start} --properties-file {spark_thrift_server_conf_file} {spark_thrift_cmd_opts_properties}'),
               user=params.spark_user,
               environment={'JAVA_HOME': params.java_home},
               not_if=thriftserver_no_op_test

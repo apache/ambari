@@ -100,4 +100,10 @@ fi
 </value>
   </property>
 
+  <property>
+    <name>spark_thrift_cmd_opts</name>
+    <description>additional spark thrift server commandline options</description>
+    <value>
+    </value>
+  </property>
 </configuration>
