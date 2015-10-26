@@ -52,6 +52,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeType: null,
 
   /**
+   * @type {boolean}
+   * @default null
+   */
+  downgradeAllowed: null,
+
+  /**
    * @type {string}
    * @default null
    */
@@ -125,6 +131,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     'upgradeType',
     'failuresTolerance',
     'isDowngrade',
+    'downgradeAllowed',
     'isSuspended'
   ],
 
@@ -1142,7 +1149,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         upgradeTypeDisplayName: undefined,
         upgradeType: undefined,
         failuresTolerance: undefined,
-        isDowngrade: undefined
+        isDowngrade: undefined,
+        downgradeAllowed: undefined
       });
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data

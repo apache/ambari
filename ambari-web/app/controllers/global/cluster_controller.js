@@ -296,7 +296,8 @@ App.ClusterController = Em.Controller.extend({
           upgradeId: lastUpgradeData.Upgrade.request_id,
           isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
           upgradeState: lastUpgradeData.Upgrade.request_status,
-          upgradeType: lastUpgradeData.Upgrade.upgrade_type
+          upgradeType: lastUpgradeData.Upgrade.upgrade_type,
+          downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed
         });
         upgradeController.loadRepoVersionsToModel().done(function () {
           upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
