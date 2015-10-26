@@ -128,21 +128,19 @@ class UpgradeSetAll(Script):
 
     :original_conf_directory: the original conf directory that was made into a symlink (/etc/component/conf)
     """
-    if not os.path.islink(original_conf_directory):
-      Logger.info("Skipping the unlink of {0}; it is not a symlink or does not exist".format(original_conf_directory))
-      return
-
     # calculate the parent and backup directories
     original_conf_parent_directory = os.path.abspath(os.path.join(original_conf_directory, os.pardir))
     backup_conf_directory = os.path.join(original_conf_parent_directory, "conf.backup")
-
-    Logger.info("Unlinking {0} and restoring {1}".format(original_conf_directory, backup_conf_directory))
-
-    # remove the old symlink
-    Execute(("rm", original_conf_directory), sudo=True)
-
-    # rename the backup to the original name
-    Execute(("mv", backup_conf_directory, original_conf_directory), sudo=True)
+    if not os.path.isdir(backup_conf_directory):
+      Logger.info("Skipping restoring config from backup {0} since it does not exist".format(backup_conf_directory))
+    elif not os.path.islink(original_conf_directory):
+      Logger.info("Skipping the unlink of {0}; it is not a symlink or does not exist".format(original_conf_directory))
+    else:
+      Logger.info("Unlinking {0} and restoring {1}".format(original_conf_directory, backup_conf_directory))
+      # remove the old symlink
+      Execute(("rm", original_conf_directory), sudo=True)
+      # rename the backup to the original name
+      Execute(("mv", backup_conf_directory, original_conf_directory), sudo=True)
 
 
 def link_config(old_conf, link_conf):
