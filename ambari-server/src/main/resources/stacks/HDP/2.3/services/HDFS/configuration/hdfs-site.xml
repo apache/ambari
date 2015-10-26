@@ -56,7 +56,6 @@
 
   <property>
     <name>dfs.namenode.inode.attributes.provider.class</name>
-    <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
     <description>Enable ranger hdfs plugin</description>
     <depends-on>
       <property>
