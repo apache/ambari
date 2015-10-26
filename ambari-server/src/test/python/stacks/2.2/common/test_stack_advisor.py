@@ -3494,3 +3494,58 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateStormRangerPluginConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 
+
+  def test_recommendRangerConfigurations(self):
+    clusterData = {}
+    # Recommend ranger-storm-plugin-enabled=No on non-kerberos cluster
+    services = {
+      "Versions" : {
+        "stack_version" : "2.3",
+        },
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "RANGER"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        },
+        ],
+      "configurations": {
+        "cluster-env": {
+          "properties": {
+            "security_enabled": "false",
+          }
+        },
+      },
+    }
+
+    expected = {
+      'admin-properties': {'properties': {'policymgr_external_url': 'http://host1:6080'}}, 'ranger-env': {'properties': {'ranger-storm-plugin-enabled': 'No'}}
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected)
+
+  def test_validateRangerConfigurationsEnv(self):
+    properties = {
+      "ranger-storm-plugin-enabled": "Yes",
+    }
+    recommendedDefaults = {
+      "ranger-storm-plugin-enabled": "No",
+    }
+    configurations = {}
+    services = {}
+
+    # Test with ranger plugin enabled, validation fails
+    res_expected = [{'config-type': 'ranger-env', 'message': 'Ranger Storm plugin should not be enabled in non-kerberos environment.', 'type': 'configuration', 'config-name': 'ranger-storm-plugin-enabled', 'level': 'WARN'}]
+    res = self.stackAdvisor.validateRangerConfigurationsEnv(properties, recommendedDefaults, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
