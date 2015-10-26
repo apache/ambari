@@ -135,18 +135,14 @@ def get_check_command(oozie_url, host_name, configurations, parameters):
       kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
 
     klist_path_local = get_klist_path(kerberos_executable_search_paths)
-    klist_command = format("{klist_path_local} -s {ccache_file}")
+    kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
 
     # Determine if we need to kinit by testing to see if the relevant cache exists and has
     # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
     # it kinits we do but recover quickly when keytabs are regenerated
-    return_code, _ = call(klist_command, user=user)
-    if return_code != 0:
-      kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
-      kinit_command = format("{kinit_path_local} -l 5m -kt {user_keytab} {user_principal}; ")
 
-      # kinit
-      Execute(kinit_command, environment=kerberos_env, user=user)
+    kinit_command = "{0} -s {1} || ".format(klist_path_local, ccache_file) + format("{kinit_path_local} -l 5m20s -c {ccache_file} -kt {user_keytab} {user_principal}; ")
+    Execute(kinit_command, environment=kerberos_env, user=user)
 
   # oozie configuration directory uses a symlink when > HDP 2.2
   oozie_config_directory = OOZIE_CONF_DIR_LEGACY
