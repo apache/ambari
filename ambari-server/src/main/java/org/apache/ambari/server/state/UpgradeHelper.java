@@ -51,6 +51,7 @@ import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
@@ -353,18 +354,31 @@ public class UpgradeHelper {
           if (upgradePack.getType() == UpgradeType.ROLLING) {
             pc = allTasks.get(service.serviceName).get(component);
           } else if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
-            // Construct a processing task on-the-fly
             if (null != functionName) {
-              pc = new ProcessingComponent();
-              pc.name = component;
-              pc.tasks = new ArrayList<>();
-
-              if (functionName == Type.START) {
-                pc.tasks.add(new StartTask());
-              } else if (functionName == Type.STOP) {
+              // Construct a processing task on-the-fly if it is a "stop" group.
+              if (functionName == Type.STOP) {
+                pc = new ProcessingComponent();
+                pc.name = component;
+                pc.tasks = new ArrayList<>();
                 pc.tasks.add(new StopTask());
-              } else if (functionName == Type.RESTART) {
-                pc.tasks.add(new RestartTask());
+              } else {
+                // For Start and Restart, make a best attempt at finding Processing Components.
+                // If they don't exist, make one on the fly.
+                if (allTasks.containsKey(service.serviceName) && allTasks.get(service.serviceName).containsKey(component)) {
+                  pc = allTasks.get(service.serviceName).get(component);
+                } else {
+                  // Construct a processing task on-the-fly so that the Upgrade Pack is less verbose.
+                  pc = new ProcessingComponent();
+                  pc.name = component;
+                  pc.tasks = new ArrayList<>();
+
+                  if (functionName == Type.START) {
+                    pc.tasks.add(new StartTask());
+                  }
+                  if (functionName == Type.RESTART) {
+                    pc.tasks.add(new RestartTask());
+                  }
+                }
               }
             }
           }

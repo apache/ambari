@@ -47,7 +47,7 @@ class OozieClient(Script):
     raise ClientComponentHasNoStatus()
 
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -56,7 +56,7 @@ class OozieClient(Script):
     if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
       return
 
-    Logger.info("Executing Oozie Client Rolling Upgrade pre-restart")
+    Logger.info("Executing Oozie Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "oozie", params.version)
     hdp_select.select("oozie-client", params.version)
 
