@@ -2736,6 +2736,7 @@ Em.I18n.translations = {
   'common.combobox.dropdown.warnings': 'Show property warnings',
 
   'quick.links.error.label': 'Hostname is undefined',
+  'quick.links.error.label2': 'Quick Links are not available',
   'quick.links.publicHostName': '{0} ({1})',
   'quick.links.label.active': 'Active',
   'quick.links.label.standby': 'Standby',
