@@ -56,6 +56,11 @@ class TestAppTimelineServer(RMFTestCase):
 
     self.assert_configure_default()
 
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
+                              only_if='ls /var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
+                              action=['delete'],
+                              ignore_failures=True)
+
     pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid` >/dev/null 2>&1'
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
                               not_if=pid_check_cmd,

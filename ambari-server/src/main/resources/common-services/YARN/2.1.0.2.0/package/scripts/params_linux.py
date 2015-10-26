@@ -145,6 +145,7 @@ resourcemanager_heapsize = config['configurations']['yarn-env']['resourcemanager
 nodemanager_heapsize = config['configurations']['yarn-env']['nodemanager_heapsize']
 apptimelineserver_heapsize = default("/configurations/yarn-env/apptimelineserver_heapsize", 1024)
 ats_leveldb_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-timeline-store.path']
+ats_leveldb_lock_file = os.path.join(ats_leveldb_dir, "leveldb-timeline-store.ldb", "LOCK")
 yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
 yarn_pid_dir_prefix = status_params.yarn_pid_dir_prefix
 mapred_pid_dir_prefix = status_params.mapred_pid_dir_prefix
