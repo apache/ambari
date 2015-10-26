@@ -571,20 +571,42 @@ class TestHiveMetastore(RMFTestCase):
       call_mocks = [(0, None), (0, None)],
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute',
-      ('cp', '/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar', '/usr/hdp/2.3.0.0-1234/hive/lib'),
-      path = ['/bin', '/usr/bin/'], sudo = True)
-
-    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
-      mode = 0644,
+    self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
+        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     '/tmp/mysql-connector-java.jar',
+     '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
     )
 
-    self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema",
-     logoutput = True, environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
-      tries = 1, user = 'hive')
-
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-metastore', version), sudo=True,)
-
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-server2/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/hdp/2.2.7.0-1234/hive/lib/mysql-connector-java.jar',
+     '/usr/hdp/2.3.0.0-1234/hive/lib'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/2.3.0.0-1234/hive/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType mysql -upgradeSchema',
+        logoutput = True,
+        environment = {'HIVE_CONF_DIR': '/etc/hive/conf.server'},
+        tries = 1,
+        user = 'hive',
+    )
+    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hive-metastore', '2.3.0.0-1234'),
+        sudo = True,
+    )
     self.assertNoMoreResources()
 
   @patch("os.path.exists")
