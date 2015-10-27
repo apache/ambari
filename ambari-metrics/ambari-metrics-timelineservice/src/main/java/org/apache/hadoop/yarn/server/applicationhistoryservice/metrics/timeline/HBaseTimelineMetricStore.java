@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
 
@@ -191,7 +192,7 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
 
       if (prevTime != null) {
         step = currTime - prevTime;
-        Double rate = currVal / step;
+        Double rate = currVal / TimeUnit.MILLISECONDS.toSeconds(step);
         timeValueEntry.setValue(rate);
       } else {
         timeValueEntry.setValue(0.0);
