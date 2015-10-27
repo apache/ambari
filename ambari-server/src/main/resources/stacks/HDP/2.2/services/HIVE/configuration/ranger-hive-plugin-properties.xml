@@ -64,6 +64,12 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.db</name>
+      </property>
+    </depends-on>
   </property> 
 
   <property>
@@ -74,12 +80,24 @@
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
-    <value>hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
     <description></description>
+    <depends-on>
+      <property>
+        <type>ranger-env</type>
+        <name>xasecure.audit.destination.hdfs.dir</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

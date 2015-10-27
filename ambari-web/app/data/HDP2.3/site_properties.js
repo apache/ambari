@@ -21,14 +21,7 @@ var App = require('app');
 var hdp22properties = require('data/HDP2.2/site_properties').configProperties;
 
 var excludedConfigs = [
-  'DB_FLAVOR',
-  'db_name',
-  'db_user',
-  'db_password',
-  'db_root_user',
-  'db_root_password',
   'nimbus.host',
-  'db_host',
   'XAAUDIT.DB.IS_ENABLED',
   'XAAUDIT.HDFS.IS_ENABLED',
   'UPDATE_XAPOLICIES_ON_GRANT_REVOKE',
