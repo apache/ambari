@@ -483,7 +483,7 @@ class TestHiveMetastore(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -491,7 +491,7 @@ class TestHiveMetastore(RMFTestCase):
     json_content['commandParams']['version'] = version
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -500,7 +500,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -510,7 +510,7 @@ class TestHiveMetastore(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -535,11 +535,12 @@ class TestHiveMetastore(RMFTestCase):
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_hdp_version")
   def test_upgrade_metastore_schema(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
-
     get_hdp_version_mock.return_value = '2.3.0.0-1234'
 
     def side_effect(path):
       if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
+        return True
+      if ".j2" in path:
         return True
       return False
 
@@ -556,7 +557,6 @@ class TestHiveMetastore(RMFTestCase):
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['hostLevelParams']['current_version'] = "2.2.7.0-1234"
 
-
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
     json_content['configurations']['hive-env']['hive_database'] = "Existing"
@@ -564,12 +564,16 @@ class TestHiveMetastore(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
       classname = "HiveMetastore",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
       call_mocks = [(0, None), (0, None)],
       mocks_dict = mocks_dict)
+
+    # we don't care about configure here - the strings are different anyway because this
+    # is an upgrade, so just pop those resources off of the call stack
+    self.pop_resources(21)
 
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
@@ -619,7 +623,14 @@ class TestHiveMetastore(RMFTestCase):
 
     get_hdp_version_mock.return_value = '2.3.0.0-1234'
 
-    os_path_exists_mock.return_value = False
+    def side_effect(path):
+      if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
+        return True
+      if ".j2" in path:
+        return True
+      return False
+
+    os_path_exists_mock.side_effect = side_effect
 
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
 
@@ -639,12 +650,16 @@ class TestHiveMetastore(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None), (0, None)],
                        mocks_dict = mocks_dict)
+
+    # we don't care about configure here - the strings are different anyway because this
+    # is an upgrade, so just pop those resources off of the call stack
+    self.pop_resources(25)
 
     self.assertResourceCalled('Execute',
                               ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),

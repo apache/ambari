@@ -246,7 +246,7 @@
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER">
-        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentification"/>
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
       </execute-stage>
 
       <execute-stage service="HIVE" component="WEBHCAT_SERVER">

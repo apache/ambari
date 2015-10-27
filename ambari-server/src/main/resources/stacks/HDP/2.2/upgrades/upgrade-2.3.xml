@@ -610,7 +610,7 @@
           
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
 
-          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentification"/>
+          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_policy"/>
 
