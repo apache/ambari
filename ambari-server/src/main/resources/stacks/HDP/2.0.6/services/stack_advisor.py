@@ -272,28 +272,28 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     port = '6080'
 
     # Check if http is disabled. For HDP-2.3 this can be checked in ranger-admin-site/ranger.service.http.enabled
-    # For HDP-2.2 this can be checked in ranger-site/http.enabled
+    # For Ranger-0.4.0 this can be checked in ranger-site/http.enabled
     if ('ranger-site' in services['configurations'] and 'http.enabled' in services['configurations']['ranger-site']['properties'] \
       and services['configurations']['ranger-site']['properties']['http.enabled'].lower() == 'false') or \
       ('ranger-admin-site' in services['configurations'] and 'ranger.service.http.enabled' in services['configurations']['ranger-admin-site']['properties'] \
       and services['configurations']['ranger-admin-site']['properties']['ranger.service.http.enabled'].lower() == 'false'):
       # HTTPS protocol is used
       protocol = 'https'
-      # In HDP-2.3 port stored in ranger-admin-site ranger.service.https.port
+      # Starting Ranger-0.5.0.2.3 port stored in ranger-admin-site ranger.service.https.port
       if 'ranger-admin-site' in services['configurations'] and \
           'ranger.service.https.port' in services['configurations']['ranger-admin-site']['properties']:
         port = services['configurations']['ranger-admin-site']['properties']['ranger.service.https.port']
-      # In HDP-2.2 port stored in ranger-site https.service.port
+      # In Ranger-0.4.0 port stored in ranger-site https.service.port
       elif 'ranger-site' in services['configurations'] and \
           'https.service.port' in services['configurations']['ranger-site']['properties']:
         port = services['configurations']['ranger-site']['properties']['https.service.port']
     else:
       # HTTP protocol is used
-      # In HDP-2.3 port stored in ranger-admin-site ranger.service.http.port
+      # Starting Ranger-0.5.0.2.3 port stored in ranger-admin-site ranger.service.http.port
       if 'ranger-admin-site' in services['configurations'] and \
           'ranger.service.http.port' in services['configurations']['ranger-admin-site']['properties']:
         port = services['configurations']['ranger-admin-site']['properties']['ranger.service.http.port']
-      # In HDP-2.2 port stored in ranger-site http.service.port
+      # In Ranger-0.4.0 port stored in ranger-site http.service.port
       elif 'ranger-site' in services['configurations'] and \
           'http.service.port' in services['configurations']['ranger-site']['properties']:
         port = services['configurations']['ranger-site']['properties']['http.service.port']
@@ -305,11 +305,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
     putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
-    stackVersion = services["Versions"]["stack_version"]
-    if stackVersion == '2.2':
+    rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
+    if rangerServiceVersion == '0.4.0':
       # Recommend ldap settings based on ambari.properties configuration
       # If 'ambari.ldap.isConfigured' == true
-      # For stack_version 2.2
+      # For Ranger version 0.4.0
       if 'ambari-server-properties' in services and \
       'ambari.ldap.isConfigured' in services['ambari-server-properties'] and \
         services['ambari-server-properties']['ambari.ldap.isConfigured'].lower() == "true":
@@ -324,8 +324,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if 'authentication.ldap.usernameAttribute' in serverProperties:
           putUserSyncProperty('SYNC_LDAP_USER_NAME_ATTRIBUTE', serverProperties['authentication.ldap.usernameAttribute'])
 
+
+      # Set Ranger Admin Authentication method
+      if 'admin-properties' in services['configurations'] and 'usersync-properties' in services['configurations'] and \
+          'SYNC_SOURCE' in services['configurations']['usersync-properties']['properties']:
+        rangerUserSyncSource = services['configurations']['usersync-properties']['properties']['SYNC_SOURCE']
+        authenticationMethod = rangerUserSyncSource.upper()
+        if authenticationMethod != 'FILE':
+          putRangerAdminProperty('authentication_method', authenticationMethod)
+
       # Recommend xasecure.audit.destination.hdfs.dir
-      # For stack_version 2.2
+      # For Ranger version 0.4.0
       servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
       putRangerEnvProperty = self.putProperty(configurations, "ranger-env", services)
       include_hdfs = "HDFS" in servicesList
@@ -336,7 +345,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', default_fs)
 
       # Recommend Ranger Audit properties for ranger supported services
-      # For stack_version 2.2
+      # For Ranger version 0.4.0
       ranger_services = [
         {'service_name': 'HDFS', 'audit_file': 'ranger-hdfs-plugin-properties'},
         {'service_name': 'HBASE', 'audit_file': 'ranger-hbase-plugin-properties'},

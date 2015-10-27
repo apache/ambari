@@ -545,11 +545,6 @@
           "subsection-tab-name": "ldap-common-configs"
         },
         {
-          "config": "ranger-admin-site/ranger.ldap.ad.domain",
-          "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-common-configs"
-        },
-        {
           "config": "ranger-env/bind_anonymous",
           "subsection-name": "subsection-ranger-user-row2-col1",
           "subsection-tab-name": "ldap-common-configs"
@@ -576,7 +571,6 @@
               }
             }
           ]
-
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.ldapbindpassword",
@@ -1279,12 +1273,6 @@
         "config": "ranger-env/bind_anonymous",
         "widget": {
           "type": "toggle"
-        }
-      },
-      {
-        "config": "ranger-admin-site/ranger.ldap.ad.domain",
-        "widget": {
-          "type": "text-field"
         }
       },
       {

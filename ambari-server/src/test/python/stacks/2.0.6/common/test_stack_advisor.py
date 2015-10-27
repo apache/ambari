@@ -682,12 +682,13 @@ class TestHDP206StackAdvisor(TestCase):
     # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
     services = {
       "Versions" : {
-        "stack_version" : "2.2",
+        "stack_version" : "2.3",
       },
       "services":  [
         {
           "StackServices": {
-            "service_name": "RANGER"
+            "service_name": "RANGER",
+            "service_version": "0.5.0"
           },
           "components": [
             {
@@ -732,8 +733,7 @@ class TestHDP206StackAdvisor(TestCase):
           "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
           "policymgr_external_url": "http://host1:7777",
         }
-      },
-      "ranger-env": {"properties": {}}
+      }
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
@@ -761,8 +761,7 @@ class TestHDP206StackAdvisor(TestCase):
           "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
           "policymgr_external_url": "https://host1:7777",
           }
-      },
-      "ranger-env": {"properties": {}}
+      }
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
@@ -794,6 +793,7 @@ class TestHDP206StackAdvisor(TestCase):
     }
 
     recommendedConfigurations = {}
+    services['services'][0]['StackServices']['service_version'] = "0.4.0"
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected, "Test for DB_FLAVOR ORACLE and https enabled, HDP-2.2")
 
