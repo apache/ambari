@@ -17,12 +17,17 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutionException;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -30,8 +35,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Order;
 import javax.persistence.metamodel.SingularAttribute;
 
+import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -48,9 +56,13 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.alert.Scope;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -60,8 +72,15 @@ import com.google.inject.persist.Transactional;
  * The {@link AlertsDAO} class manages the {@link AlertHistoryEntity} and
  * {@link AlertCurrentEntity} instances. Each {@link AlertHistoryEntity} is
  * known as an "alert" that has been triggered and received.
+ * <p/>
+ * If alert caching is enabled, then updates to {@link AlertCurrentEntity} are
+ * not immediately persisted to JPA. Instead, they are kept in a cache and
+ * periodically flushed. This means that many queries will need to swap in the
+ * cached {@link AlertCurrentEntity} with that returned from the EclipseLink JPA
+ * entity manager.
  */
 @Singleton
+@Experimental(feature = ExperimentalFeature.ALERT_CACHING)
 public class AlertsDAO {
   /**
    * Logger.
@@ -111,6 +130,69 @@ public class AlertsDAO {
    */
   @Inject
   private Provider<Clusters> m_clusters;
+
+  /**
+   * Configuration.
+   */
+  private final Configuration m_configuration;
+
+  /**
+   * A cache of current alert information. The {@link AlertCurrentEntity}
+   * instances cached are currently managed. This allows the cached instances to
+   * be easiler flushed from the cache to JPA.
+   * <p/>
+   * This also means that the cache is holding onto a rather large map of JPA
+   * entities. This could lead to OOM errors over time if the indirectly
+   * referenced entity map contains more than just {@link AlertCurrentEntity}.
+   */
+  private LoadingCache<AlertCacheKey, AlertCurrentEntity> m_currentAlertCache = null;
+
+  /**
+   * Constructor.
+   *
+   */
+  @Inject
+  public AlertsDAO(Configuration configuration) {
+    m_configuration = configuration;
+
+    if( m_configuration.isAlertCacheEnabled() ){
+      int maximumSize = m_configuration.getAlertCacheSize();
+
+      LOG.info("Alert caching is enabled (size={}, flushInterval={}m)", maximumSize,
+          m_configuration.getAlertCacheFlushInterval());
+
+      // construct a cache for current alerts which will prevent database hits
+      // on every heartbeat
+      m_currentAlertCache = CacheBuilder.newBuilder().maximumSize(
+          maximumSize).build(new CacheLoader<AlertCacheKey, AlertCurrentEntity>() {
+            @Override
+            public AlertCurrentEntity load(AlertCacheKey key) throws Exception {
+              LOG.debug("Cache miss for alert key {}, fetching from JPA", key);
+
+              final AlertCurrentEntity alertCurrentEntity;
+
+              long clusterId = key.getClusterId();
+              String alertDefinitionName = key.getAlertDefinitionName();
+              String hostName = key.getHostName();
+
+              if (StringUtils.isEmpty(hostName)) {
+                alertCurrentEntity = findCurrentByNameNoHostInternalInJPA(clusterId,
+                    alertDefinitionName);
+              } else {
+                alertCurrentEntity = findCurrentByHostAndNameInJPA(clusterId, hostName,
+                    alertDefinitionName);
+              }
+
+              if (null == alertCurrentEntity) {
+                LOG.trace("Cache lookup failed for {} because the alert does not yet exist", key);
+                throw new AlertNotYetCreatedException();
+              }
+
+              return alertCurrentEntity;
+            }
+          });
+    }
+  }
 
   /**
    * Gets an alert with the specified ID.
@@ -323,7 +405,14 @@ public class AlertsDAO {
       typedQuery.setMaxResults(request.Pagination.getPageSize());
     }
 
-    return m_daoUtils.selectList(typedQuery);
+    List<AlertCurrentEntity> alerts = m_daoUtils.selectList(typedQuery);
+
+    // if caching is enabled, replace results with cached values when present
+    if (m_configuration.isAlertCacheEnabled()) {
+      alerts = supplementWithCachedAlerts(alerts);
+    }
+
+    return alerts;
   }
 
   /**
@@ -349,7 +438,14 @@ public class AlertsDAO {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.findAll", AlertCurrentEntity.class);
 
-    return m_daoUtils.selectList(query);
+    List<AlertCurrentEntity> alerts = m_daoUtils.selectList(query);
+
+    // if caching is enabled, replace results with cached values when present
+    if (m_configuration.isAlertCacheEnabled()) {
+      alerts = supplementWithCachedAlerts(alerts);
+    }
+
+    return alerts;
   }
 
   /**
@@ -379,7 +475,14 @@ public class AlertsDAO {
 
     query.setParameter("definitionId", Long.valueOf(definitionId));
 
-    return m_daoUtils.selectList(query);
+    List<AlertCurrentEntity> alerts = m_daoUtils.selectList(query);
+
+    // if caching is enabled, replace results with cached values when present
+    if (m_configuration.isAlertCacheEnabled()) {
+      alerts = supplementWithCachedAlerts(alerts);
+    }
+
+    return alerts;
   }
 
   /**
@@ -395,7 +498,14 @@ public class AlertsDAO {
 
     query.setParameter("clusterId", Long.valueOf(clusterId));
 
-    return m_daoUtils.selectList(query);
+    List<AlertCurrentEntity> alerts = m_daoUtils.selectList(query);
+
+    // if caching is enabled, replace results with cached values when present
+    if (m_configuration.isAlertCacheEnabled()) {
+      alerts = supplementWithCachedAlerts(alerts);
+    }
+
+    return alerts;
   }
 
   /**
@@ -447,7 +557,7 @@ public class AlertsDAO {
   }
 
   /**
-   * Retrieves the summary information for all the hosts in the provided cluster. 
+   * Retrieves the summary information for all the hosts in the provided cluster.
    * The result is mapping from hostname to summary DTO.
    *
    * @param clusterId
@@ -548,13 +658,62 @@ public class AlertsDAO {
     query.setParameter("serviceName", serviceName);
     query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.SERVICE));
 
-    return m_daoUtils.selectList(query);
+    List<AlertCurrentEntity> alerts = m_daoUtils.selectList(query);
+
+    // if caching is enabled, replace results with cached values when present
+    if (m_configuration.isAlertCacheEnabled()) {
+      alerts = supplementWithCachedAlerts(alerts);
+    }
+
+    return alerts;
   }
 
-  @RequiresSession
+  /**
+   * Locate the current alert for the provided service and alert name. This
+   * method will first consult the cache if configured with
+   * {@link Configuration#isAlertCacheEnabled()}.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @param hostName
+   *          the name of the host (not {@code null}).
+   * @param alertName
+   *          the name of the alert (not {@code null}).
+   * @return the current record, or {@code null} if not found
+   */
   public AlertCurrentEntity findCurrentByHostAndName(long clusterId, String hostName,
       String alertName) {
 
+    if( m_configuration.isAlertCacheEnabled() ){
+      AlertCacheKey key = new AlertCacheKey(clusterId, alertName, hostName);
+
+      try {
+        return m_currentAlertCache.get(key);
+      } catch (ExecutionException executionException) {
+        Throwable cause = executionException.getCause();
+        if (!(cause instanceof AlertNotYetCreatedException)) {
+          LOG.warn("Unable to retrieve alert for key {} from the cache", key);
+        }
+      }
+    }
+
+    return findCurrentByHostAndNameInJPA(clusterId, hostName, alertName);
+  }
+
+  /**
+   * Locate the current alert for the provided service and alert name.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @param hostName
+   *          the name of the host (not {@code null}).
+   * @param alertName
+   *          the name of the alert (not {@code null}).
+   * @return the current record, or {@code null} if not found
+   */
+  @RequiresSession
+  private AlertCurrentEntity findCurrentByHostAndNameInJPA(long clusterId, String hostName,
+      String alertName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.findByHostAndName", AlertCurrentEntity.class);
 
@@ -589,6 +748,12 @@ public class AlertsDAO {
     historyQuery.executeUpdate();
 
     entityManager.clear();
+
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
   }
 
   /**
@@ -603,7 +768,15 @@ public class AlertsDAO {
         "AlertCurrentEntity.removeByHistoryId", AlertCurrentEntity.class);
 
     query.setParameter("historyId", historyId);
-    return query.executeUpdate();
+    int rowsRemoved = query.executeUpdate();
+
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
+
+    return rowsRemoved;
   }
 
   /**
@@ -616,7 +789,15 @@ public class AlertsDAO {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.removeDisabled", AlertCurrentEntity.class);
 
-    return query.executeUpdate();
+    int rowsRemoved = query.executeUpdate();
+
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
+
+    return rowsRemoved;
   }
 
   /**
@@ -642,6 +823,12 @@ public class AlertsDAO {
 
     int removedItems = query.executeUpdate();
 
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
+
     // publish the event to recalculate aggregates
     m_alertEventPublisher.publish(new AggregateAlertRecalculateEvent(clusterId));
     return removedItems;
@@ -666,6 +853,12 @@ public class AlertsDAO {
 
     query.setParameter("hostName", hostName);
     int removedItems = query.executeUpdate();
+
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
 
     // publish the event to recalculate aggregates for every cluster since a host could potentially have several clusters
     try {
@@ -714,6 +907,12 @@ public class AlertsDAO {
     query.setParameter("hostName", hostName);
 
     int removedItems = query.executeUpdate();
+
+    // if caching is enabled, invalidate the cache to force the latest values
+    // back from the DB
+    if (m_configuration.isAlertCacheEnabled()) {
+      m_currentAlertCache.invalidateAll();
+    }
 
     // publish the event to recalculate aggregates
     m_alertEventPublisher.publish(new AggregateAlertRecalculateEvent(clusterId));
@@ -800,27 +999,49 @@ public class AlertsDAO {
    */
   @Transactional
   public AlertCurrentEntity merge(AlertCurrentEntity alert) {
-    return m_entityManagerProvider.get().merge(alert);
+    // perform the JPA merge
+    alert = m_entityManagerProvider.get().merge(alert);
+
+    // if caching is enabled, update the cache
+    if( m_configuration.isAlertCacheEnabled() ){
+      AlertCacheKey key = AlertCacheKey.build(alert);
+      m_currentAlertCache.put(key, alert);
+    }
+
+    return alert;
   }
 
   /**
-   * Merge the specified current alert with the history and
-   * the existing alert in the database in a single transaction.
+   * Updates the internal cache of alerts with the specified alert. Unlike
+   * {@link #merge(AlertCurrentEntity)}, this is not transactional and only
+   * updates the cache.
+   * <p/>
+   * The alert should already exist in JPA - this is mainly to update the text
+   * and timestamp.
    *
    * @param alert
-   *          the current alert to merge (not {@code null}).
-   * @param history
-   *          the history to set to alert (not {@code null}).
-   * @return the updated current alert with merged content (never @code null}).
+   *          the alert to update in the cache (not {@code null}).
+   * @param updateCacheOnly
+   *          if {@code true}, then only the cache is updated and not JPA.
+   * @see Configuration#isAlertCacheEnabled()
    */
-  @Transactional
-  public AlertCurrentEntity mergeAlertCurrentWithAlertHistory(
-      AlertCurrentEntity alert, AlertHistoryEntity history) {
+  public AlertCurrentEntity merge(AlertCurrentEntity alert, boolean updateCacheOnly) {
+    // cache only updates
+    if (updateCacheOnly) {
+      AlertCacheKey key = AlertCacheKey.build(alert);
 
-    // manually create the new history entity since we are merging into
-    // an existing current entity
-    create(history);
-    alert.setAlertHistory(history);
+      // cache not configured, log error
+      if (!m_configuration.isAlertCacheEnabled()) {
+        LOG.error(
+            "Unable to update a cached alert instance for {} because cached alerts are not enabled",
+            key);
+      } else {
+        // update cache and return alert; no database work
+        m_currentAlertCache.put(key, alert);
+        return alert;
+      }
+    }
+
     return merge(alert);
   }
 
@@ -865,13 +1086,45 @@ public class AlertsDAO {
 
   /**
    * Locate the current alert for the provided service and alert name, but when
-   * host is not set ({@code IS NULL}).
-   * @param clusterId the cluster id
-   * @param alertName the name of the alert
+   * host is not set ({@code IS NULL}). This method will first consult the cache
+   * if configured with {@link Configuration#isAlertCacheEnabled()}.
+   *
+   * @param clusterId
+   *          the cluster id
+   * @param alertName
+   *          the name of the alert
+   * @return the current record, or {@code null} if not found
+   */
+  public AlertCurrentEntity findCurrentByNameNoHost(long clusterId, String alertName) {
+    if( m_configuration.isAlertCacheEnabled() ){
+      AlertCacheKey key = new AlertCacheKey(clusterId, alertName);
+
+      try {
+        return m_currentAlertCache.get(key);
+      } catch (ExecutionException executionException) {
+        Throwable cause = executionException.getCause();
+
+        if (!(cause instanceof AlertNotYetCreatedException)) {
+          LOG.warn("Unable to retrieve alert for key {} from, the cache", key);
+        }
+      }
+    }
+
+    return findCurrentByNameNoHostInternalInJPA(clusterId, alertName);
+  }
+
+  /**
+   * Locate the current alert for the provided service and alert name, but when
+   * host is not set ({@code IS NULL}). This method
+   *
+   * @param clusterId
+   *          the cluster id
+   * @param alertName
+   *          the name of the alert
    * @return the current record, or {@code null} if not found
    */
   @RequiresSession
-  public AlertCurrentEntity findCurrentByNameNoHost(long clusterId, String alertName) {
+  private AlertCurrentEntity findCurrentByNameNoHostInternalInJPA(long clusterId, String alertName) {
     TypedQuery<AlertCurrentEntity> query = m_entityManagerProvider.get().createNamedQuery(
         "AlertCurrentEntity.findByNameAndNoHost", AlertCurrentEntity.class);
 
@@ -879,6 +1132,57 @@ public class AlertsDAO {
     query.setParameter("definitionName", alertName);
 
     return m_daoUtils.selectOne(query);
+  }
+
+  /**
+   * Writes all cached {@link AlertCurrentEntity} instances to the database and
+   * clears the cache.
+   */
+  @Transactional
+  public void flushCachedEntitiesToJPA() {
+    if (!m_configuration.isAlertCacheEnabled()) {
+      LOG.warn("Unable to flush cached alerts to JPA because caching is not enabled");
+      return;
+    }
+
+    // capture for logging purposes
+    long cachedEntityCount = m_currentAlertCache.size();
+
+    ConcurrentMap<AlertCacheKey, AlertCurrentEntity> map = m_currentAlertCache.asMap();
+    Set<Entry<AlertCacheKey, AlertCurrentEntity>> entries = map.entrySet();
+    for (Entry<AlertCacheKey, AlertCurrentEntity> entry : entries) {
+      merge(entry.getValue());
+    }
+
+    m_currentAlertCache.invalidateAll();
+
+    LOG.info("Flushed {} cached alerts to the database", cachedEntityCount);
+  }
+
+  /**
+   * Gets a list that is comprised of the original values replaced by any cached
+   * values from {@link #m_currentAlertCache}. This method should only be
+   * invoked if {@link Configuration#isAlertCacheEnabled()} is {@code true}
+   *
+   * @param alerts
+   *          the list of alerts to iterate over and replace with cached
+   *          instances.
+   * @return the list of alerts from JPA combined with any cached alerts.
+   */
+  private List<AlertCurrentEntity> supplementWithCachedAlerts(List<AlertCurrentEntity> alerts) {
+    List<AlertCurrentEntity> cachedAlerts = new ArrayList<>(alerts.size());
+
+    for (AlertCurrentEntity alert : alerts) {
+      AlertCacheKey key = AlertCacheKey.build(alert);
+      AlertCurrentEntity cachedEntity = m_currentAlertCache.getIfPresent(key);
+      if (null != cachedEntity) {
+        alert = cachedEntity;
+      }
+
+      cachedAlerts.add(alert);
+    }
+
+    return cachedAlerts;
   }
 
   /**
@@ -945,5 +1249,165 @@ public class AlertsDAO {
         String propertyId) {
       return AlertCurrentEntity_.getPredicateMapping().get(propertyId);
     }
+  }
+
+  /**
+   * The {@link AlertCacheKey} class is used as a key in the cache of
+   * {@link AlertCurrentEntity}.
+   */
+  private final static class AlertCacheKey {
+    private final long m_clusterId;
+    private final String m_hostName;
+    private final String m_alertDefinitionName;
+
+    /**
+     * Constructor.
+     *
+     * @param clusterId
+     * @param alertDefinitionName
+     */
+    private AlertCacheKey(long clusterId, String alertDefinitionName) {
+      this(clusterId, alertDefinitionName, null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param clusterId
+     * @param alertDefinitionName
+     * @param hostName
+     */
+    private AlertCacheKey(long clusterId, String alertDefinitionName, String hostName) {
+      m_clusterId = clusterId;
+      m_alertDefinitionName = alertDefinitionName;
+      m_hostName = hostName;
+    }
+
+    /**
+     * Builds a key from an entity.
+     *
+     * @param current
+     *          the entity to create the key for.
+     * @return the key (never {@code null}).
+     */
+    public static AlertCacheKey build(AlertCurrentEntity current) {
+      AlertHistoryEntity history = current.getAlertHistory();
+      AlertCacheKey key = new AlertCacheKey(history.getClusterId(),
+          history.getAlertDefinition().getDefinitionName(), history.getHostName());
+
+      return key;
+    }
+
+    /**
+     * Gets the ID of the cluster that the alert is for.
+     *
+     * @return the clusterId
+     */
+    public long getClusterId() {
+      return m_clusterId;
+    }
+
+    /**
+     * Gets the host name, or {@code null} if none.
+     *
+     * @return the hostName, or {@code null} if none.
+     */
+    public String getHostName() {
+      return m_hostName;
+    }
+
+    /**
+     * Gets the unique name of the alert definition.
+     *
+     * @return the alertDefinitionName
+     */
+    public String getAlertDefinitionName() {
+      return m_alertDefinitionName;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result
+          + ((m_alertDefinitionName == null) ? 0 : m_alertDefinitionName.hashCode());
+      result = prime * result + (int) (m_clusterId ^ (m_clusterId >>> 32));
+      result = prime * result + ((m_hostName == null) ? 0 : m_hostName.hashCode());
+      return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj) {
+        return true;
+      }
+
+      if (obj == null) {
+        return false;
+      }
+
+      if (getClass() != obj.getClass()) {
+        return false;
+      }
+
+      AlertCacheKey other = (AlertCacheKey) obj;
+
+      if (m_clusterId != other.m_clusterId) {
+        return false;
+      }
+
+      if (m_alertDefinitionName == null) {
+        if (other.m_alertDefinitionName != null) {
+          return false;
+        }
+      } else if (!m_alertDefinitionName.equals(other.m_alertDefinitionName)) {
+        return false;
+      }
+
+      if (m_hostName == null) {
+        if (other.m_hostName != null) {
+          return false;
+        }
+      } else if (!m_hostName.equals(other.m_hostName)) {
+        return false;
+      }
+
+      return true;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+      StringBuilder buffer = new StringBuilder("AlertCacheKey{");
+      buffer.append("cluserId=").append(m_clusterId);
+      buffer.append(", alertName=").append(m_alertDefinitionName);
+
+      if (null != m_hostName) {
+        buffer.append(", hostName=").append(m_hostName);
+      }
+
+      buffer.append("}");
+      return buffer.toString();
+    }
+  }
+
+  /**
+   * The {@link AlertNotYetCreatedException} is used as a way to signal to the
+   * {@link CacheLoader} that there is no value for the specified
+   * {@link AlertCacheKey}. Because this cache doesn't understand {@code null}
+   * values, we use the exception mechanism to indicate that it should be
+   * created and that the {@code null} value should not be cached.
+   */
+  @SuppressWarnings("serial")
+  private static final class AlertNotYetCreatedException extends Exception {
   }
 }

@@ -32,8 +32,6 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Properties;
 
-import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -52,6 +50,8 @@ import org.powermock.api.support.membermodification.MemberMatcher;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import junit.framework.Assert;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Configuration.class })
@@ -497,6 +497,22 @@ public class ConfigurationTest {
         Boolean.TRUE.toString());
 
     Assert.assertTrue(configuration.isExperimentalConcurrentStageProcessingEnabled());
-
   }
+
+  @Test
+  public void testAlertCaching() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertFalse(configuration.isAlertCacheEnabled());
+
+    ambariProperties.setProperty(Configuration.ALERTS_CACHE_ENABLED, Boolean.TRUE.toString());
+    ambariProperties.setProperty(Configuration.ALERTS_CACHE_FLUSH_INTERVAL, "60");
+    ambariProperties.setProperty(Configuration.ALERTS_CACHE_SIZE, "1000");
+
+    Assert.assertTrue(configuration.isAlertCacheEnabled());
+    Assert.assertEquals(60, configuration.getAlertCacheFlushInterval());
+    Assert.assertEquals(1000, configuration.getAlertCacheSize());
+  }
+
 }

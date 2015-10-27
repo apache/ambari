@@ -23,7 +23,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.ws.rs.*;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 
@@ -64,25 +70,25 @@ public class PersistKeyValueService {
   @PUT
   @Produces("text/plain")
   public String store(String values) throws IOException, JAXBException {
-    LOG.info("Received message from UI " + values);
+    LOG.debug("Received message from UI " + values);
     Collection<String> valueCollection = StageUtils.fromJson(values, Collection.class);
     Collection<String> keys = new ArrayList<String>(valueCollection.size());
     for (String s : valueCollection) {
       keys.add(persistKeyVal.put(s));
     }
     String stringRet = StageUtils.jaxbToString(keys);
-    LOG.info("Returning " + stringRet);
+    LOG.debug("Returning " + stringRet);
     return stringRet;
   }
-  
+
   @GET
   @Produces("text/plain")
   @Path("{keyName}")
   public String getKey( @PathParam("keyName") String keyName) {
-    LOG.info("Looking for keyName " + keyName);
+    LOG.debug("Looking for keyName " + keyName);
     return persistKeyVal.getValue(keyName);
   }
-  
+
   @GET
   @Produces("text/plain")
   public String getAllKeyValues() throws JAXBException, IOException {

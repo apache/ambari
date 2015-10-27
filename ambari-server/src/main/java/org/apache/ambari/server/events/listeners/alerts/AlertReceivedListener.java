@@ -21,9 +21,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
@@ -50,6 +50,7 @@ import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link AlertReceivedListener} class handles {@link AlertReceivedEvent}
@@ -63,6 +64,9 @@ public class AlertReceivedListener {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(AlertReceivedListener.class);
+
+  @Inject
+  Configuration m_configuration;
 
   @Inject
   AlertsDAO m_alertsDao;
@@ -197,10 +201,11 @@ public class AlertReceivedListener {
 
         toCreateHistoryAndMerge.put(alert, current);
         oldStates.put(alert, oldState);
-
       }
     }
 
+    // invokes the EntityManager create/merge on various entities in a single
+    // transaction
     saveEntities(toCreate, toMerge, toCreateHistoryAndMerge);
 
     //broadcast events
@@ -241,11 +246,17 @@ public class AlertReceivedListener {
 
   }
 
-  Long getClusterIdByName(String clusterName) {
+  /**
+   * Gets the cluster ID given a name.
+   *
+   * @param clusterName
+   * @return
+   */
+  private Long getClusterIdByName(String clusterName) {
     try {
       return m_clusters.get().getCluster(clusterName).getClusterId();
     } catch (AmbariException e) {
-      LOG.warn("Cluster lookup failed for clusterName={}", clusterName);
+      LOG.warn("Cluster lookup failed for cluster named {}", clusterName);
       return null;
     }
   }
@@ -257,15 +268,16 @@ public class AlertReceivedListener {
    * @param toCreateHistoryAndMerge - create new history, merge alert
    */
   @Transactional
-  void saveEntities(Map<Alert, AlertCurrentEntity> toCreate, Map<Alert, AlertCurrentEntity> toMerge,
-                    Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
+  private void saveEntities(Map<Alert, AlertCurrentEntity> toCreate,
+      Map<Alert, AlertCurrentEntity> toMerge,
+      Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
     for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {
       AlertCurrentEntity entity = entry.getValue();
       m_alertsDao.create(entity);
     }
 
     for (AlertCurrentEntity entity : toMerge.values()) {
-      m_alertsDao.merge(entity);
+      m_alertsDao.merge(entity, m_configuration.isAlertCacheEnabled());
     }
 
     for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreateHistoryAndMerge.entrySet()) {

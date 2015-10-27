@@ -23,8 +23,10 @@ import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -450,8 +452,6 @@ public class Configuration {
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
 
-  // experimental options
-
   /**
    * Governs the use of {@link Parallel} to process {@link StageEntity}
    * instances into {@link Stage}.
@@ -463,11 +463,45 @@ public class Configuration {
    */
   private static final String ALERT_TEMPLATE_FILE = "alerts.template.file";
 
+  /**
+   * The maximum number of threads which will handle published alert events.
+   */
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
+
+  /**
+   * The default core threads for handling published alert events
+   */
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
   /**
-   *   For HTTP Response header configuration for Ambari Server UI
+   * If {@code true} then alert information is cached and not immediately
+   * persisted in the database.
+   */
+  public static final String ALERTS_CACHE_ENABLED = "alerts.cache.enabled";
+
+  /**
+   * The time after which cached alert information is flushed to the database.
+   */
+  public static final String ALERTS_CACHE_FLUSH_INTERVAL = "alerts.cache.flush.interval";
+
+  /**
+   * The default time, in minutes, that cached alert information is flushed to
+   * the database.
+   */
+  public static final String ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT = "10";
+
+  /**
+   * The size of the alert cache.
+   */
+  public static final String ALERTS_CACHE_SIZE = "alerts.cache.size";
+
+  /**
+   * The default size of the alerts cache.
+   */
+  public static final String ALERTS_CACHE_SIZE_DEFAULT = "50000";
+
+  /**
+   * For HTTP Response header configuration for Ambari Server UI
    */
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "http.strict-transport-security";
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
@@ -2236,9 +2270,49 @@ public class Configuration {
    * @return {code true} if the experimental feature is enabled, {@code false}
    *         otherwise.
    */
-  @Experimental
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public boolean isExperimentalConcurrentStageProcessingEnabled() {
     return Boolean.parseBoolean(properties.getProperty(
         EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED, Boolean.FALSE.toString()));
+  }
+
+  /**
+   * If {@code true}, then alerts processed by the {@link AlertReceivedListener}
+   * will not write alert data to the database on every event. Instead, data
+   * like timestamps and text will be kept in a cache and flushed out
+   * periodically to the database.
+   * <p/>
+   * The default value is {@code false}.
+   *
+   * @return {@code true} if the cache is enabled, {@code false} otherwise.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public boolean isAlertCacheEnabled() {
+    return Boolean.parseBoolean(
+        properties.getProperty(ALERTS_CACHE_ENABLED, Boolean.FALSE.toString()));
+  }
+
+  /**
+   * Gets the interval at which cached alert data is written out to the
+   * database, if enabled.
+   *
+   * @return the cache flush interval, or
+   *         {@value #ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT} if not set.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public int getAlertCacheFlushInterval() {
+    return Integer.parseInt(
+        properties.getProperty(ALERTS_CACHE_FLUSH_INTERVAL, ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT));
+  }
+
+  /**
+   * Gets the size of the alerts cache, if enabled.
+   *
+   * @return the cache flush interval, or {@value #ALERTS_CACHE_SIZE_DEFAULT} if
+   *         not set.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public int getAlertCacheSize() {
+    return Integer.parseInt(properties.getProperty(ALERTS_CACHE_SIZE, ALERTS_CACHE_SIZE_DEFAULT));
   }
 }
