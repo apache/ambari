@@ -1340,4 +1340,35 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
+
+  describe("#runUpgradeMethodChecks()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'runPreUpgradeCheckOnly');
+    });
+    afterEach(function () {
+      controller.runPreUpgradeCheckOnly.restore();
+    });
+    it("no allowed upgrade methods", function () {
+      controller.set('upgradeMethods', [Em.Object.create({
+        allowed: false
+      })]);
+      controller.runUpgradeMethodChecks();
+      expect(controller.runPreUpgradeCheckOnly.called).to.be.false;
+    });
+    it("Rolling method allowed", function () {
+      controller.set('upgradeMethods', [Em.Object.create({
+        allowed: true,
+        type: 'ROLLING'
+      })]);
+      controller.runUpgradeMethodChecks(Em.Object.create({
+        repositoryVersion: 'v1',
+        displayName: 'V1'
+      }));
+      expect(controller.runPreUpgradeCheckOnly.calledWith({
+        value: 'v1',
+        label: 'V1',
+        type: 'ROLLING'
+      })).to.be.true;
+    });
+  });
 });
