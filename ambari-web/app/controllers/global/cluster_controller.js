@@ -308,7 +308,11 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
           isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
           upgradeState: lastUpgradeData.Upgrade.request_status,
           upgradeType: lastUpgradeData.Upgrade.upgrade_type,
-          downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed
+          downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
+          failuresTolerance: Em.Object.create({
+            skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
+            skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
+          })
         });
         upgradeController.loadRepoVersionsToModel().done(function () {
           upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
