@@ -723,10 +723,11 @@ public class UpgradeCatalog213Test {
 
   }
 
+  @Test
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
-    Assert.assertEquals("2.1.2", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals("2.1.2.1", upgradeCatalog.getSourceVersion());
   }
 
   @Test
