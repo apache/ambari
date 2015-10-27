@@ -96,8 +96,10 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
+import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
+import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
@@ -663,10 +665,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
     }
 
+    // Default to ROLLING upgrade, but attempt to read from properties.
+    UpgradeType upgradeType = UpgradeType.ROLLING;
+    if (requestMap.containsKey(UPGRADE_TYPE)) {
+      try {
+        upgradeType = UpgradeType.valueOf(requestMap.get(UPGRADE_TYPE).toString());
+      } catch(Exception e){
+        throw new AmbariException(String.format("Property %s has an incorrect value of %s.", UPGRADE_TYPE, requestMap.get(UPGRADE_TYPE)));
+      }
+    }
+
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
+    // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
     MasterHostResolver resolver = direction.isUpgrade()
@@ -793,13 +805,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
               itemEntities.add(itemEntity);
 
               // At this point, need to change the effective Stack Id so that subsequent tasks run on the newer value.
-              // TODO AMBARI-12698, check if this works during a Stop-the-World Downgrade.
-              if (UpdateStackGrouping.class.equals(group.groupClass)) {
+              if (upgradeType == UpgradeType.NON_ROLLING && UpdateStackGrouping.class.equals(group.groupClass)) {
+                if (direction.isUpgrade()) {
+                  ctx.setEffectiveStackId(ctx.getTargetStackId());
+                } else {
+                  ctx.setEffectiveStackId(ctx.getOriginalStackId());
+                }
+              } else if (UpdateStackGrouping.class.equals(group.groupClass)) {
                 ctx.setEffectiveStackId(ctx.getTargetStackId());
               }
 
               injectVariables(configHelper, cluster, itemEntity);
-
               makeServerSideStage(ctx, req, itemEntity, (ServerSideActionTask) task, skippable,
                   allowRetry, configUpgradePack);
             }

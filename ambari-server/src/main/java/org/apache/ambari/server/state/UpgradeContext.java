@@ -117,7 +117,7 @@ public class UpgradeContext {
         m_effectiveStackId = targetStackId;
         break;
       case NON_ROLLING:
-        m_effectiveStackId = sourceStackId;
+        m_effectiveStackId = (direction.isUpgrade())? sourceStackId : targetStackId;
         break;
       default:
         m_effectiveStackId = targetStackId;

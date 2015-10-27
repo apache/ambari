@@ -244,8 +244,6 @@ public class UpgradePackTest {
       "POST_CLUSTER");
 
     List<String> expected_down = Arrays.asList(
-      "Stop High-Level Daemons",
-      "Stop Low-Level Daemons",
       "Restore Backups",
       "UPDATE_DESIRED_STACK_ID",
       "ALL_HOST_OPS",
