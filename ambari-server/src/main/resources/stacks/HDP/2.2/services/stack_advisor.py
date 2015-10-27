@@ -678,10 +678,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     uniqueCoprocessorRegionClassList = []
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    rangerServiceVersion=''
+    if 'RANGER' in servicesList:
+      rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
 
-    stackVersion = services["Versions"]["stack_version"]
-
-    if stackVersion == '2.2':
+    if rangerServiceVersion and rangerServiceVersion == '0.4.0':
       rangerClass = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     else:
       rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
@@ -785,7 +787,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerPluginEnabled = services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
 
     nonRangerClass = 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer'
-    if stackVersion == '2.2':
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    rangerServiceVersion=''
+    if 'RANGER' in servicesList:
+      rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
+
+    if rangerServiceVersion and rangerServiceVersion == '0.4.0':
       rangerClass = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
     else:
       rangerClass = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'

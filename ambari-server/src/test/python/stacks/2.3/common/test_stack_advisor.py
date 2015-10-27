@@ -1203,7 +1203,8 @@ class TestHDP23StackAdvisor(TestCase):
       "services":  [
         {
           "StackServices": {
-            "service_name": "RANGER"
+            "service_name": "RANGER",
+            "service_version": "0.5.0.2.3"
           },
           "components": [
             {

@@ -190,6 +190,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>usersync-properties</type>
+        <name>SYNC_SOURCE</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -261,8 +267,9 @@
 
   <property>
     <name>xa_ldap_ad_domain</name>
-    <value>"xasecure.net"</value>
-    <description></description>
+    <display-name>Domain Name (AD specific)</display-name>
+    <value></value>
+    <description>AD domain, only used if Authentication method is AD</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -270,7 +277,7 @@
 
   <property>
     <name>xa_ldap_ad_url</name>
-    <value>"ldap://ad.xasecure.net:389"</value>
+    <value></value>
     <description></description>
     <value-attributes>
       <overridable>false</overridable>

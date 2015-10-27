@@ -462,6 +462,18 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         putRangerUgsyncSite('ranger.usersync.ldap.user.nameattribute', serverProperties['authentication.ldap.usernameAttribute'])
 
 
+    # Recommend Ranger Authentication method
+    authMap = {
+      'org.apache.ranger.unixusersync.process.UnixUserGroupBuilder': 'UNIX',
+      'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder': 'LDAP'
+    }
+
+    if 'ranger-ugsync-site' in services['configurations'] and 'ranger.usersync.source.impl.class' in services['configurations']["ranger-ugsync-site"]["properties"]:
+      rangerUserSyncClass = services['configurations']["ranger-ugsync-site"]["properties"]["ranger.usersync.source.impl.class"]
+      if rangerUserSyncClass in authMap:
+        rangerSqlConnectorProperty = authMap.get(rangerUserSyncClass)
+        putRangerAdminProperty('ranger.authentication.method', rangerSqlConnectorProperty)
+
     # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
     include_hdfs = "HDFS" in servicesList
     zookeeper_host_port = self.getZKHostPortString(services)

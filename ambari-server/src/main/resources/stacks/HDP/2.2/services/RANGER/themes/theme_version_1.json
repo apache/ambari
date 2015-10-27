@@ -304,11 +304,6 @@
           "subsection-tab-name": "ldap-common-configs"
         },
         {
-          "config": "admin-properties/xa_ldap_ad_domain",
-          "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-common-configs"
-        },
-        {
           "config": "ranger-env/bind_anonymous",
           "subsection-name": "subsection-ranger-user-row2-col1",
           "subsection-tab-name": "ldap-common-configs"

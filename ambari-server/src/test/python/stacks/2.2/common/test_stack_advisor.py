@@ -2270,6 +2270,20 @@ class TestHDP22StackAdvisor(TestCase):
     }
     services = {
       "services" : [
+        {
+          "StackServices": {
+            "service_name": "RANGER",
+            "service_version": "0.4.0"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "RANGER_ADMIN",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
       ],
       "Versions": {
         "stack_version": "2.2"
@@ -2413,7 +2427,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
-    self.assertEquals(configurations, expected)     #"Test when Ranger plugin HBase is enabled in non-kerberos environment"
+    self.assertEquals(configurations, expected, "Test when Ranger plugin HBase is enabled in non-kerberos environment")
 
     # Test when hbase.security.authentication = kerberos AND class already there
     configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
@@ -2476,6 +2490,20 @@ class TestHDP22StackAdvisor(TestCase):
               "service_name" : "STORM",
               "service_version" : "2.6.0.2.2"
             }
+          },
+          {
+            "StackServices": {
+              "service_name": "RANGER",
+              "service_version": "0.4.0"
+            },
+            "components": [
+              {
+                "StackServiceComponents": {
+                  "component_name": "RANGER_ADMIN",
+                  "hostnames": ["host1"]
+                }
+              }
+            ]
           }
         ],
       "Versions": {
@@ -3505,7 +3533,8 @@ class TestHDP22StackAdvisor(TestCase):
       "services":  [
         {
           "StackServices": {
-            "service_name": "RANGER"
+            "service_name": "RANGER",
+          "service_version": "0.5.0.2.3"
           },
           "components": [
             {

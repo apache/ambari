@@ -102,7 +102,7 @@ hdp23properties.push({
       },
       {
         displayName: 'ACTIVE_DIRECTORY',
-        foreignKeys: ['ranger.ldap.ad.url','ranger.ldap.ad.base.dn','ranger.ldap.ad.bind.dn','ranger.ldap.ad.bind.password','ranger.ldap.ad.referral','ranger.ldap.ad.user.searchfilter']
+        foreignKeys: ['ranger.ldap.ad.domain','ranger.ldap.ad.url','ranger.ldap.ad.base.dn','ranger.ldap.ad.bind.dn','ranger.ldap.ad.bind.password','ranger.ldap.ad.referral','ranger.ldap.ad.user.searchfilter']
       },
       {
         displayName: 'UNIX',
