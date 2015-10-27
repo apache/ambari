@@ -31,7 +31,7 @@ def webhcat_service(action='start', rolling_restart=False):
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def webhcat_service(action='start', rolling_restart=False):
+def webhcat_service(action='start', upgrade_type=None):
   import params
 
   environ = {
@@ -41,7 +41,7 @@ def webhcat_service(action='start', rolling_restart=False):
   cmd = format('{webhcat_bin_dir}/webhcat_server.sh')
 
   if action == 'start':
-    if rolling_restart and params.version:
+    if upgrade_type is not None and params.version:
       environ['HADOOP_HOME'] = format("/usr/hdp/{version}/hadoop")
 
     daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')

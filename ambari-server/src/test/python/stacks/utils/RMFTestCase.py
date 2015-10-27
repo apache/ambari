@@ -223,7 +223,13 @@ class RMFTestCase(TestCase):
       s = self.reindent(s, intendation)
       print s
     print(self.reindent("self.assertNoMoreResources()", intendation))
-  
+
+  def pop_resources(self, count):
+    with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
+      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")
+      for i in range(count):
+        RMFTestCase.env.resource_list.pop(0)
+
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
       self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")

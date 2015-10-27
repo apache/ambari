@@ -175,7 +175,7 @@ class TestHiveClient(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -183,7 +183,7 @@ class TestHiveClient(RMFTestCase):
     json_content['commandParams']['version'] = version
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_client.py",
                        classname = "HiveClient",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -192,7 +192,7 @@ class TestHiveClient(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -202,7 +202,7 @@ class TestHiveClient(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_client.py",
                        classname = "HiveClient",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

@@ -364,6 +364,8 @@ class TestHiveMetastore(RMFTestCase):
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_hdp_version")
   def test_start_ru(self, call_mock, get_hdp_version_mock):
+    from ambari_commons.constants import UPGRADE_TYPE_ROLLING
+
     get_hdp_version_mock.return_value = '2.3.0.0-1234'
 
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
@@ -380,7 +382,7 @@ class TestHiveMetastore(RMFTestCase):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
                        command = "start",
-                       command_args = [True],
+                       command_args = [UPGRADE_TYPE_ROLLING],
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
