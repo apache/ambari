@@ -134,6 +134,7 @@ module.exports = App.WizardRoute.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       wizardStep5Controller.clearRecommendations(); // Force reload recommendation between steps 1 and 2
       addServiceController.setDBProperty('recommendations', undefined);
+      addServiceController.set('stackConfigsLoaded', false);
       router.transitionTo('step2');
     }
   }),
