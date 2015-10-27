@@ -17,18 +17,11 @@
  */
 package org.apache.ambari.server.configuration;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -47,8 +40,18 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 
 /**
@@ -487,6 +490,7 @@ public class Configuration {
       Configuration.class);
 
   private Properties properties;
+  private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
   private Map<String, String> agentConfigsMap;
   private CredentialProvider credentialProvider = null;
@@ -832,6 +836,31 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  public JsonObject getHostChangesJson(String hostChangesFile) {
+    if (hostChangesJson == null) {
+      hostChangesJson = readFileToJSON(hostChangesFile);
+    }
+    return hostChangesJson;
+  }
+
+  private JsonObject readFileToJSON (String file) {
+
+    // Read from File to String
+    JsonObject jsonObject = new JsonObject();
+
+    try {
+      JsonParser parser = new JsonParser();
+      JsonElement jsonElement = parser.parse(new FileReader(file));
+      jsonObject = jsonElement.getAsJsonObject();
+    } catch (FileNotFoundException e) {
+      throw new IllegalArgumentException("No file " + file, e);
+    } catch (IOException ioe){
+      throw new IllegalArgumentException("Can't read file " + file, ioe);
+    }
+
+    return jsonObject;
   }
 
   /**
