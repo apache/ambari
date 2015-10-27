@@ -45,6 +45,7 @@
     </group>
 
     <group xsi:type="stop" name="Stop High-Level Daemons" title="Stop Daemons for High-Level Services">
+      <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
 
@@ -72,6 +73,7 @@
     </group>
 
     <group xsi:type="stop" name="Stop Low-Level Daemons" title="Stop Daemons for Low-Level Services">
+      <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
 
