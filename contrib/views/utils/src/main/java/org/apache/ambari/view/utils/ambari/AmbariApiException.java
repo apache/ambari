@@ -18,6 +18,10 @@
 
 package org.apache.ambari.view.utils.ambari;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
+
 /**
  * Exception during work with Ambari API
  */
@@ -28,5 +32,14 @@ public class AmbariApiException extends RuntimeException {
 
   public AmbariApiException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  public Response toEntity() {
+    HashMap<String, Object> respJson = new HashMap<>();
+    respJson.put("trace", getCause());
+    respJson.put("message", getMessage());
+    respJson.put("status", Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+      .entity(respJson).type(MediaType.APPLICATION_JSON).build();
   }
 }

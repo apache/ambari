@@ -180,9 +180,8 @@ App.Helpers.ambari = (function () {
      * @method getInstanceParametersErrorCallback
      */
     getInstanceParametersErrorCallback: function (request, ajaxOptions, error) {
-      var message = 'Ambari instance parameter fetch failed: ' + error;
-      App.Helpers.ErrorBar.getInstance().show(message);
-      Ember.assert(message);
+      var json = request.responseJSON;
+      App.Helpers.ErrorBar.getInstance().show(json.message, json.trace);
     }
   };
 
