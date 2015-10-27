@@ -224,7 +224,7 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_set_global_memstore_size"/>
       </execute-stage>
 
-      <execute-stage service="HBASE" component="HBASE_MASTER">
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Calculating HBase Properties">
         <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
       </execute-stage>
 
