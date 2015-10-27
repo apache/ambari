@@ -250,6 +250,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         recommendations: undefined,
         masterComponentHosts: undefined
       });
+      controller.set('stackConfigsLoaded', false);
       router.transitionTo('step5');
       console.timeEnd('step4 next');
     }
