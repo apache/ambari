@@ -123,7 +123,7 @@ public class ClusterGrouping extends Grouping {
         return stageWrappers;
       }
 
-      List<StageWrapper> results = new ArrayList<StageWrapper>(stageWrappers);
+      List<StageWrapper> results = new ArrayList<>(stageWrappers);
 
       if (executionStages != null) {
         for (ExecuteStage execution : executionStages) {
@@ -146,6 +146,19 @@ public class ClusterGrouping extends Grouping {
                   StageWrapper.Type.SERVER_SIDE_ACTION,
                   execution.title,
                   new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+              break;
+
+            case CONFIGURE:
+              Set<String> matchingHosts = getHostsForExecuteStage(upgradeContext, execution);
+              if (matchingHosts == null || matchingHosts.isEmpty()) { // No target services, don't create stage
+                wrapper = null;
+              } else {
+                // We don't care about real host list
+                wrapper = new StageWrapper(
+                    StageWrapper.Type.SERVER_SIDE_ACTION,
+                    execution.title,
+                    new TaskWrapper(null, null, Collections.<String>emptySet(), execution.task));
+              }
               break;
 
             case EXECUTE:
@@ -190,24 +203,44 @@ public class ClusterGrouping extends Grouping {
       fillHostDetails(mt, ctx.getUnhealthy());
     }
 
-    Set<String> realHosts = Collections.emptySet();
+    Set<String> realHosts = getHostsForExecuteStage(ctx, execution);
 
+    if (realHosts == null) { // No target services, don't create stage
+      return null;
+    } else {
+      return new StageWrapper(
+          StageWrapper.Type.SERVER_SIDE_ACTION,
+          execution.title,
+          new TaskWrapper(service, component, realHosts, task));
+    }
+  }
+
+  /**
+   * Looks for real hosts that match service/component restrictions of
+   * an Execution Stage
+   * @param ctx Upgrade Context
+   * @param execution Execution Stage
+   * @return <ul>
+   *   <li> empty Set if Execution Stage has no restrictions;
+   *   <li> set of real hosts that match restrictions if Execution Stage has
+   *   restrictions and some hosts match
+   *   <li> null if Execution Stage has restrictions, but no any host matches
+   */
+  static Set<String> getHostsForExecuteStage(UpgradeContext ctx, ExecuteStage execution) {
+    String service   = execution.service;
+    String component = execution.component;
+
+    Set<String> realHosts = Collections.emptySet();
     if (null != service && !service.isEmpty() &&
         null != component && !component.isEmpty()) {
-
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
-
       if (null == hosts) {
-        return null;
+        realHosts = null;
       } else {
-        realHosts = new LinkedHashSet<String>(hosts.hosts);
+        realHosts = new LinkedHashSet<>(hosts.hosts);
       }
     }
-
-    return new StageWrapper(
-        StageWrapper.Type.SERVER_SIDE_ACTION,
-        execution.title,
-        new TaskWrapper(service, component, realHosts, task));
+    return realHosts;
   }
 
   /**
