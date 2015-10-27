@@ -17,26 +17,23 @@
  */
 package org.apache.ambari.annotations;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.concurrent.Executor;
 
 /**
- * The {@code Experimental} annotation is used to mark an area of code which
- * contains untested functionality. This allows areas of code
- * which may not be completed to be quickly located.
+ * The {@link ExperimentalFeature} enumeration is meant to be used with the
+ * {@link Experimental} annotation to indicate which feature set experimental
+ * code belongs to.
  */
-@Retention(RetentionPolicy.SOURCE)
-@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.CONSTRUCTOR,
-    ElementType.ANNOTATION_TYPE, ElementType.PACKAGE, ElementType.FIELD,
-    ElementType.LOCAL_VARIABLE })
-public @interface Experimental {
+public enum ExperimentalFeature {
+  /**
+   * The processing of arbitrary, atomic list elements by an {@link Executor} in
+   * order to arrive at a full processed list faster.
+   */
+  PARALLEL_PROCESSING,
 
   /**
-   * The logical feature set that an experimental area of code belongs to.
-   *
-   * @return
+   * The caching of current alert information in order to reduce overall load on
+   * the database by preventing frequent updates and JPA entity invalidation.
    */
-  ExperimentalFeature feature();
+  ALERT_CACHING
 }
