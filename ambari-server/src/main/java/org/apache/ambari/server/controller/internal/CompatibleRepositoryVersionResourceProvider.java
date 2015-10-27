@@ -17,17 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
-import org.apache.ambari.server.api.resources.RepositoryResourceDefinition;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -44,9 +38,14 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 
 /**
  * Resource provider for repository versions resources.
@@ -56,28 +55,30 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
   // ----- Property ID constants ---------------------------------------------
 
-  public static final String REPOSITORY_VERSION_ID_PROPERTY_ID                 = "CompatibleRepositoryVersions/id";
-  public static final String REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID         = "CompatibleRepositoryVersions/stack_name";
-  public static final String REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID      = "CompatibleRepositoryVersions/stack_version";
+  public static final String REPOSITORY_VERSION_ID_PROPERTY_ID = "CompatibleRepositoryVersions/id";
+  public static final String REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID = "CompatibleRepositoryVersions/stack_name";
+  public static final String REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID = "CompatibleRepositoryVersions/stack_version";
   public static final String REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID = "CompatibleRepositoryVersions/repository_version";
-  public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID       = "CompatibleRepositoryVersions/display_name";
-  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID         = new OperatingSystemResourceDefinition().getPluralName();
-  public static final String SUBRESOURCE_REPOSITORIES_PROPERTY_ID              = new RepositoryResourceDefinition().getPluralName();
+  public static final String REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID = "CompatibleRepositoryVersions/display_name";
+  public static final String REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID = "CompatibleRepositoryVersions/upgrade_types";
+  public static final String SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID = new OperatingSystemResourceDefinition().getPluralName();
 
   private static Set<String> pkPropertyIds = Collections.singleton(REPOSITORY_VERSION_ID_PROPERTY_ID);
 
   static Set<String> propertyIds = Sets.newHashSet(
-      REPOSITORY_VERSION_ID_PROPERTY_ID,
-      REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
-      REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
-      REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
-      REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
-      SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
+    REPOSITORY_VERSION_ID_PROPERTY_ID,
+    REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+    REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+    REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+    REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+    SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+    REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
 
   static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
     {
       put(Type.Stack, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID);
       put(Type.StackVersion, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
+      put(Type.Upgrade, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
       put(Type.CompatibleRepositoryVersion, REPOSITORY_VERSION_ID_PROPERTY_ID);
     }
   };
@@ -93,7 +94,6 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
   /**
    * Create a new resource provider.
-   *
    */
   public CompatibleRepositoryVersionResourceProvider(AmbariManagementController amc) {
     super(propertyIds, keyPropertyIds, amc);
@@ -101,56 +101,84 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
-      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
+    List<CompatibleRepositoryVersion> requestedEntities = new ArrayList<CompatibleRepositoryVersion>();
+    String currentStackUniqueId = null;
+    Map<String, CompatibleRepositoryVersion> compatibleRepositoryVersionsMap = new HashMap<String, CompatibleRepositoryVersion>();
 
-    List<RepositoryVersionEntity> requestedEntities = new ArrayList<RepositoryVersionEntity>();
-    for (Map<String, Object> propertyMap: propertyMaps) {
+    for (Map<String, Object> propertyMap : propertyMaps) {
 
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
-      if (stackId != null && propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
-        requestedEntities.addAll(s_repositoryVersionDAO.findByStack(stackId));
+      if (stackId != null) {
+        if (propertyMaps.size() == 1) {
+          if (LOG.isDebugEnabled()) {
+            LOG.debug("Stack Name : " + stackId.getStackName() + ", Stack Version : " + stackId.getStackVersion());
+          }
+          for (RepositoryVersionEntity repositoryVersionEntity : s_repositoryVersionDAO.findByStack(stackId)) {
+            currentStackUniqueId = Long.toString(repositoryVersionEntity.getId());
+            compatibleRepositoryVersionsMap.put(currentStackUniqueId, new CompatibleRepositoryVersion(repositoryVersionEntity));
+            if (LOG.isDebugEnabled()) {
+              LOG.debug("Added current stack id : " + currentStackUniqueId + " to Map.");
+            }
+          }
 
-        Map<String, UpgradePack> packs = s_ambariMetaInfo.get().getUpgradePacks(
+          Map<String, UpgradePack> packs = s_ambariMetaInfo.get().getUpgradePacks(
             stackId.getStackName(), stackId.getStackVersion());
 
-        for (UpgradePack up : packs.values()) {
-          if (null != up.getTargetStack()) {
-            StackId targetStackId = new StackId(up.getTargetStack());
-            requestedEntities.addAll(s_repositoryVersionDAO.findByStack(targetStackId));
+          for (UpgradePack up : packs.values()) {
+            if (null != up.getTargetStack()) {
+              StackId targetStackId = new StackId(up.getTargetStack());
+              List<RepositoryVersionEntity> repositoryVersionEntities = s_repositoryVersionDAO.findByStack(targetStackId);
+              for (RepositoryVersionEntity repositoryVersionEntity : repositoryVersionEntities) {
+                if (compatibleRepositoryVersionsMap.containsKey(Long.toString(repositoryVersionEntity.getId()))) {
+                  compatibleRepositoryVersionsMap.get(Long.toString(repositoryVersionEntity.getId())).addUpgradePackType(up.getType().toString());
+                  if (LOG.isDebugEnabled()) {
+                    LOG.debug("Stack id : " + repositoryVersionEntity.getId() + " exists in Map. " + "Appended new Upgrade type : " + up.getType());
+                  }
+                } else {
+                  CompatibleRepositoryVersion compatibleRepositoryVersionEntity = new CompatibleRepositoryVersion(repositoryVersionEntity);
+                  compatibleRepositoryVersionEntity.addUpgradePackType(up.getType().toString());
+                  compatibleRepositoryVersionsMap.put(Long.toString(repositoryVersionEntity.getId()), compatibleRepositoryVersionEntity);
+                  if (LOG.isDebugEnabled()) {
+                    LOG.debug("Added Stack id : " + repositoryVersionEntity.getId() + " to Map with Upgrade type : " + up.getType());
+                  }
+                }
+              }
+            } else {
+              if (currentStackUniqueId != null) {
+                compatibleRepositoryVersionsMap.get(currentStackUniqueId).addUpgradePackType(up.getType().toString());
+                if (LOG.isDebugEnabled()) {
+                  LOG.debug("Current Stack id : " + currentStackUniqueId + " retrieved from Map. Added Upgrade type : " + up.getType());
+                }
+              } else {
+                LOG.error("Couldn't retrieve Current stack entry from Map.");
+              }
+            }
           }
-        }
 
-      } else {
-        final Long id;
-        try {
-          id = Long.parseLong(propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID).toString());
-        } catch (Exception ex) {
-          throw new SystemException("Repository version should have numerical id");
-        }
-        final RepositoryVersionEntity entity = s_repositoryVersionDAO.findByPK(id);
-        if (entity == null) {
-          throw new NoSuchResourceException("There is no repository version with id " + id);
         } else {
-          requestedEntities.add(entity);
+          LOG.error("Property Maps size NOT equal to 1. Current 'propertyMaps' size = " + propertyMaps.size());
         }
+      } else {
+        LOG.error("StackId is NULL.");
       }
     }
 
-    for (RepositoryVersionEntity entity: requestedEntities) {
-
+    for (String stackId : compatibleRepositoryVersionsMap.keySet()) {
+      CompatibleRepositoryVersion entity = compatibleRepositoryVersionsMap.get(stackId);
+      RepositoryVersionEntity repositoryVersionEntity = entity.getRepositoryVersionEntity();
       final Resource resource = new ResourceImpl(Resource.Type.CompatibleRepositoryVersion);
-
-      setResourceProperty(resource, REPOSITORY_VERSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
-      setResourceProperty(resource, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, entity.getStackName(), requestedIds);
-      setResourceProperty(resource, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, entity.getStackVersion(), requestedIds);
-      setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName(), requestedIds);
-      setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
-
+      setResourceProperty(resource, REPOSITORY_VERSION_ID_PROPERTY_ID, repositoryVersionEntity.getId(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, repositoryVersionEntity.getStackName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, repositoryVersionEntity.getStackVersion(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, repositoryVersionEntity.getDisplayName(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, repositoryVersionEntity.getVersion(), requestedIds);
+      setResourceProperty(resource, REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID, entity.getSupportedTypes(), requestedIds);
       resources.add(resource);
     }
     return resources;
@@ -163,8 +191,9 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
 
   /**
    * Gets the stack id from the request map
+   *
    * @param propertyMap the request map
-   * @return  the StackId, or {@code null} if not found.
+   * @return the StackId, or {@code null} if not found.
    */
   protected StackId getStackInformationFromUrl(Map<String, Object> propertyMap) {
     if (propertyMap.containsKey(REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID) && propertyMap.containsKey(REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID)) {

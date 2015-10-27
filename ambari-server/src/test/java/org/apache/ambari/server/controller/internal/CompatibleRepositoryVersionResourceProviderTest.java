@@ -18,20 +18,16 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import junit.framework.Assert;
-
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import static junit.framework.Assert.assertEquals;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -44,14 +40,15 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.*;
 
 /**
  * CompatibleRepositoryVersionResourceProvider tests.
@@ -76,6 +73,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     entity1.setOperatingSystems(jsonStringRedhat6);
     entity1.setStack(hdp11Stack);
     entity1.setVersion("1.1.1.1");
+    entity1.setId(1L);
 
     StackEntity hdp22Stack = new StackEntity();
     hdp22Stack.setStackName("HDP");
@@ -86,6 +84,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     entity2.setOperatingSystems(jsonStringRedhat6);
     entity2.setStack(hdp22Stack);
     entity2.setVersion("2.2.2.2");
+    entity2.setId(2L);
 
     final RepositoryVersionDAO repoVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
 
@@ -112,9 +111,14 @@ public class CompatibleRepositoryVersionResourceProviderTest {
           public String getTarget() {
             return "1.1.*.*";
           }
+
+          @Override
+          public UpgradeType getType() {
+            return UpgradeType.ROLLING;
+          }
         };
 
-        final UpgradePack pack2 = new UpgradePack() {
+        UpgradePack pack2 = new UpgradePack() {
           @Override
           public String getName() {
             return "pack2";
@@ -129,10 +133,38 @@ public class CompatibleRepositoryVersionResourceProviderTest {
           public String getTargetStack() {
             return "HDP-2.2";
           }
+
+          @Override
+          public UpgradeType getType() {
+            return UpgradeType.NON_ROLLING;
+          }
+        };
+
+        UpgradePack pack3 = new UpgradePack() {
+          @Override
+          public String getName() {
+            return "pack2";
+          }
+
+          @Override
+          public String getTarget() {
+            return "2.2.*.*";
+          }
+
+          @Override
+          public String getTargetStack() {
+            return "HDP-2.2";
+          }
+
+          @Override
+          public UpgradeType getType() {
+            return UpgradeType.ROLLING;
+          }
         };
 
         map.put("pack1", pack1);
         map.put("pack2", pack2);
+        map.put("pack3", pack3);
         return map;
       }
     };
@@ -152,13 +184,17 @@ public class CompatibleRepositoryVersionResourceProviderTest {
           public String getTarget() {
             return "2.2.*.*";
           }
+
+          @Override
+          public UpgradeType getType() {
+            return UpgradeType.NON_ROLLING;
+          }
         };
 
         map.put("pack2", pack);
         return map;
       }
     };
-
 
 
     InMemoryDefaultTestModule injectorModule = new InMemoryDefaultTestModule() {
@@ -169,7 +205,9 @@ public class CompatibleRepositoryVersionResourceProviderTest {
         bind(ClusterVersionDAO.class).toInstance(clusterVersionDAO);
         bind(RepositoryVersionDAO.class).toInstance(repoVersionDAO);
         requestStaticInjection(CompatibleRepositoryVersionResourceProvider.class);
-      };
+      }
+
+      ;
     };
     injector = Guice.createInjector(injectorModule);
 
@@ -192,27 +230,60 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     Request getRequest = PropertyHelper.getReadRequest(
-        RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
-        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
-        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
+      RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
+      RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+      RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+      CompatibleRepositoryVersionResourceProvider.REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
     Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
     Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
 
     // !!! non-compatible, within stack
-    Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+    assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
 
     CompatibleRepositoryVersionResourceProvider compatibleProvider = new CompatibleRepositoryVersionResourceProvider(null);
 
     getRequest = PropertyHelper.getReadRequest(
-        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
-        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
-        CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID);
+      CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
+      CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+      CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+      CompatibleRepositoryVersionResourceProvider.REPOSITORY_UPGRADES_SUPPORTED_TYPES_ID);
     predicateStackName = new PredicateBuilder().property(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
     predicateStackVersion = new PredicateBuilder().property(CompatibleRepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
 
     // !!! compatible, across stack
-    Assert.assertEquals(2, compatibleProvider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+    Set<Resource> resources = compatibleProvider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+    assertEquals(2, resources.size());
 
+    // Test For Upgrade Types
+    Map<String, List<String>> versionToUpgradeTypesMap = new HashMap<String, List<String>>();
+    versionToUpgradeTypesMap.put("1.1", Arrays.asList("ROLLING"));
+    versionToUpgradeTypesMap.put("2.2", Arrays.asList("NON_ROLLING", "ROLLING"));
+    assertEquals(versionToUpgradeTypesMap.size(), checkUpgradeTypes(resources, versionToUpgradeTypesMap));
+  }
+
+  /**
+   * Checks for UpgradeTypes for the specified Target stack versions.
+   *
+   * @param resources                The resource Set to iterate over
+   * @param versionToUpgradeTypesMap Contains 'Stack version' to 'Upgrade Type' Map.
+   * @return count, 0 or number of Stack version's Upgrade Type(s) correctly compared.
+   */
+  public int checkUpgradeTypes(Set<Resource> resources, Map<String, List<String>> versionToUpgradeTypesMap) {
+    int count = 0;
+    Iterator<Resource> itr = resources.iterator();
+    while (itr.hasNext()) {
+      Resource res = itr.next();
+      Map<String, Map<String, Object>> resPropMap = res.getPropertiesMap();
+      for (String resource : resPropMap.keySet()) {
+        Map<String, Object> propMap = resPropMap.get(resource);
+        String stackVersion = propMap.get("stack_version").toString();
+        if (versionToUpgradeTypesMap.containsKey(stackVersion)) {
+          assertEquals(versionToUpgradeTypesMap.get(stackVersion), (List<String>) propMap.get("upgrade_types"));
+          count++;
+        }
+      }
+    }
+    return count;
   }
 
 }
