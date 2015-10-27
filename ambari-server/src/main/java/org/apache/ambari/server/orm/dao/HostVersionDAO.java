@@ -28,6 +28,7 @@ import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
@@ -192,4 +193,36 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
       this.remove(hostVersion);
     }
   }
+
+  /**
+   * Updates the host versions existing CURRENT record to the INSTALLED, and the target
+   * becomes CURRENT.  This method invokes {@code clear()} on the entity manager to force entities to be refreshed.
+   * @param target    the repo version that all hosts to mark as CURRENT
+   * @param current   the repo version that all hosts marked as INSTALLED
+   */
+  @Transactional
+  public void updateVersions(RepositoryVersionEntity target, RepositoryVersionEntity current) {
+    // !!! first update target to be current
+    StringBuilder sb = new StringBuilder("UPDATE HostVersionEntity hve");
+    sb.append(" SET hve.state = ?1 ");
+    sb.append(" WHERE hve.repositoryVersion = ?2");
+
+    EntityManager em = entityManagerProvider.get();
+
+    TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
+    daoUtils.executeUpdate(query, RepositoryVersionState.CURRENT, target);
+
+    // !!! then move existing current to installed
+    sb = new StringBuilder("UPDATE HostVersionEntity hve");
+    sb.append(" SET hve.state = ?1 ");
+    sb.append(" WHERE hve.repositoryVersion = ?2");
+    sb.append(" AND hve.state = ?3");
+
+    query = em.createQuery(sb.toString(), Long.class);
+    daoUtils.executeUpdate(query, RepositoryVersionState.INSTALLED, current,
+        RepositoryVersionState.CURRENT);
+
+    em.clear();
+  }
+
 }
