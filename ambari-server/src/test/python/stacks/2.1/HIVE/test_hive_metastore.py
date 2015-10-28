@@ -573,12 +573,14 @@ class TestHiveMetastore(RMFTestCase):
 
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
-    self.pop_resources(21)
+    self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
+      mode = 0755, recursive = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
         sudo = True,
     )
+
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
     )
@@ -659,7 +661,8 @@ class TestHiveMetastore(RMFTestCase):
 
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
-    self.pop_resources(25)
+    self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
+      mode = 0755, recursive = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute',
                               ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),

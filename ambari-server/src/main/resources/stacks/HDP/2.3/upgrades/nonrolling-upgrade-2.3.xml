@@ -90,7 +90,7 @@
       </service>
 
       <service name="YARN">
-        <component>NODEMANAGER</component>        
+        <component>NODEMANAGER</component>
         <component>RESOURCEMANAGER</component>
         <component>APP_TIMELINE_SERVER</component>
       </service>
@@ -244,12 +244,16 @@
       </execute-stage>
     </group>
 
+    <!-- Invoke hdp-select set all after all components have been stopped by
+    before starting new ones. This step must be done here in order to
+    ensure that components which rely on other components (like ZKFC on hadoop)
+    will start on the correct versions -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
       <skippable>true</skippable>
       <execute-stage title="Update stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>      
+          <function>actionexecute</function>
         </task>
       </execute-stage>
     </group>
@@ -262,7 +266,7 @@
       <service name="ZOOKEEPER">
         <service-check>false</service-check>        <!-- TODO (Alejandro), enable service-check once done testing -->
         <component>ZOOKEEPER_SERVER</component>
-        <component>ZOOKEEPER_CLIENT</component>     
+        <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
 
@@ -315,13 +319,13 @@
       <skippable>true</skippable>
       <service name="MAPREDUCE2">
         <component>HISTORYSERVER</component>
-        <component>MAPREDUCE2_CLIENT</component>    
+        <component>MAPREDUCE2_CLIENT</component>
       </service>
       <service name="YARN">
         <component>APP_TIMELINE_SERVER</component>
         <component>RESOURCEMANAGER</component>
-        <component>NODEMANAGER</component>          
-        <component>YARN_CLIENT</component>          
+        <component>NODEMANAGER</component>
+        <component>YARN_CLIENT</component>
       </service>
     </group>
 
@@ -330,13 +334,13 @@
       <skippable>true</skippable>
       <service name="HBASE">
         <component>HBASE_MASTER</component>
-        <component>HBASE_REGIONSERVER</component>   
-        <component>HBASE_CLIENT</component>         
+        <component>HBASE_REGIONSERVER</component>
+        <component>HBASE_CLIENT</component>
         <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
-    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">  
+    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
 
@@ -375,8 +379,8 @@
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
         <component>WEBHCAT_SERVER</component>
-        <component>HIVE_CLIENT</component>          
-        <component>HCAT</component>                 
+        <component>HIVE_CLIENT</component>
+        <component>HCAT</component>
       </service>
     </group>
 
@@ -385,7 +389,7 @@
       <skippable>true</skippable>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
-        <component>SPARK_CLIENT</component>         
+        <component>SPARK_CLIENT</component>
       </service>
     </group>
 
@@ -418,7 +422,7 @@
       <skippable>true</skippable>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
-        <component>OOZIE_CLIENT</component>         
+        <component>OOZIE_CLIENT</component>
       </service>
     </group>
 
@@ -427,7 +431,7 @@
       <skippable>true</skippable>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
-        <component>FALCON_CLIENT</component>        
+        <component>FALCON_CLIENT</component>
       </service>
     </group>
 
@@ -501,7 +505,7 @@
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
         </task>
       </execute-stage>
-      
+
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">

@@ -225,6 +225,10 @@
       </execute-stage>
     </group>
 
+    <!-- Invoke hdp-select set all after all components have been stopped by
+    before starting new ones. This step must be done here in order to
+    ensure that components which rely on other components (like ZKFC on hadoop)
+    will start on the correct versions -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
       <skippable>true</skippable>
       <execute-stage title="Update stack to {{version}}">
@@ -456,7 +460,7 @@
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
         </task>
       </execute-stage>
-      
+
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">

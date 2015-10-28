@@ -224,15 +224,30 @@ class RMFTestCase(TestCase):
       print s
     print(self.reindent("self.assertNoMoreResources()", intendation))
 
-  def pop_resources(self, count):
+  def assertResourceCalledIgnoreEarlier(self, resource_type, name, **kwargs):
+    """
+    Fast fowards past earlier resources called, popping them off the list until the specified
+    resource is hit. If it's not found, then an assertion is thrown that there are no more
+    resources.
+    """
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
-      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")
-      for i in range(count):
-        RMFTestCase.env.resource_list.pop(0)
+      while len(RMFTestCase.env.resource_list) >= 0:
+        # no more items means exit the loop
+        self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "The specified resource was not found in the call stack.")
+
+        # take the next resource and try it out
+        resource = RMFTestCase.env.resource_list.pop(0)
+        try:
+          self.assertEquals(resource_type, resource.__class__.__name__)
+          self.assertEquals(name, resource.name)
+          self.assertEquals(kwargs, resource.arguments)
+          break
+        except AssertionError:
+          pass
 
   def assertResourceCalled(self, resource_type, name, **kwargs):
     with patch.object(UnknownConfiguration, '__getattr__', return_value=lambda: "UnknownConfiguration()"):
-      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There was no more resources executed!")
+      self.assertNotEqual(len(RMFTestCase.env.resource_list), 0, "There were no more resources executed!")
       resource = RMFTestCase.env.resource_list.pop(0)
 
       self.assertEquals(resource_type, resource.__class__.__name__)
@@ -240,7 +255,7 @@ class RMFTestCase(TestCase):
       self.assertEquals(kwargs, resource.arguments)
     
   def assertNoMoreResources(self):
-    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There was other resources executed!")
+    self.assertEquals(len(RMFTestCase.env.resource_list), 0, "There were other resources executed!")
     
   def assertResourceCalledByIndex(self, index, resource_type, name, **kwargs):
     resource = RMFTestCase.env.resource_list[index]

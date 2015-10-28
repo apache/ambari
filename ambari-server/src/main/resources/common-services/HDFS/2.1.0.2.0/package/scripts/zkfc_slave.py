@@ -16,16 +16,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
-from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.libraries.functions.security_commons import build_expectations, \
-  cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
-  FILE_TYPE_XML
-import utils  # this is needed to avoid a circular dependency since utils.py calls this class
+# this is needed to avoid a circular dependency since utils.py calls this class
+import utils
 from hdfs import hdfs
-from ambari_commons.os_family_impl import OsFamilyImpl
+
 from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.service import Service
+from resource_management.core import shell
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.security_commons import build_expectations
+from resource_management.libraries.functions.security_commons import cached_kinit_executor
+from resource_management.libraries.functions.security_commons import get_params_from_filesystem
+from resource_management.libraries.functions.security_commons import validate_security_config_properties
+from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
+from resource_management.libraries.script import Script
 
 class ZkfcSlave(Script):
   def install(self, env):
@@ -159,6 +167,8 @@ class ZkfcSlaveWindows(ZkfcSlave):
 
   def status(self, env):
     import status_params
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
+
     env.set_params(status_params)
     check_windows_service_status(status_params.zkfc_win_service_name)
 
