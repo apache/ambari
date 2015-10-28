@@ -186,7 +186,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     }
     hadoop_env_exports.update(custom_export)
 
-  check_process = as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
+  process_id_exists_command = as_sudo(["test", "-f", pid_file]) + " && " + as_sudo(["pgrep", "-F", pid_file])
 
   # on STOP directories shouldn't be created
   # since during stop still old dirs are used (which were created during previous start)
@@ -261,21 +261,13 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
       cmd += " " + options
     daemon_cmd = as_user(cmd, user)
      
-  service_is_up = check_process if action == "start" else None
-  #remove pid file from dead process
-  File(pid_file,
-       action="delete",
-       not_if=check_process
-  )
-  Execute(daemon_cmd,
-          not_if=service_is_up,
-          environment=hadoop_env_exports
-  )
-
-  if action == "stop":
-    File(pid_file,
-         action="delete",
-    )
+  if action == "start":
+    # remove pid file from dead process
+    File(pid_file, action="delete", not_if=process_id_exists_command)
+    Execute(daemon_cmd, not_if=process_id_exists_command, environment=hadoop_env_exports)
+  elif action == "stop":
+    Execute(daemon_cmd, only_if=process_id_exists_command, environment=hadoop_env_exports)
+    File(pid_file, action="delete")
 
 def get_jmx_data(nn_address, modeler_type, metric, encrypted=False, security_enabled=False):
   """

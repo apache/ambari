@@ -86,20 +86,14 @@ class TestNFSGateway(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
-        action = ['delete'],
-        not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid",
-    )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
            'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
            'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
            'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
-        not_if = None,
-    )
-    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
-                              action = ['delete'],
-                              )
+        only_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid")
+
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid', action = ['delete'])
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -159,20 +153,14 @@ class TestNFSGateway(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
-        action = ['delete'],
-        not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid",
-    )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3',
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec',
            'HADOOP_PRIVILEGED_NFS_LOG_DIR': u'/var/log/hadoop/root',
            'HADOOP_PRIVILEGED_NFS_PID_DIR': u'/var/run/hadoop/root',
            'HADOOP_PRIVILEGED_NFS_USER': u'hdfs'},
-        not_if = None,
-    )
-    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
-                              action = ['delete'],
-                              )
+        only_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/root/hadoop_privileged_nfs3.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/root/hadoop_privileged_nfs3.pid")
+
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid', action = ['delete'])
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

@@ -67,7 +67,11 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'APP_TIMELINE_SERVER' : 'hadoop-yarn-timelineserver',
   'NODEMANAGER' : 'hadoop-yarn-nodemanager',
   'RESOURCEMANAGER' : 'hadoop-yarn-resourcemanager',
-  'ZOOKEEPER_SERVER' : 'zookeeper-server'
+  'ZOOKEEPER_SERVER' : 'zookeeper-server',
+
+  # ZKFC is tied to NN since it doesn't have its own componnet in hdp-select and there is
+  # a requirement that the ZKFC is installed on each NN
+  'ZKFC' : 'hadoop-hdfs-namenode'
 }
 
 # mapping of service check to hdp-select component

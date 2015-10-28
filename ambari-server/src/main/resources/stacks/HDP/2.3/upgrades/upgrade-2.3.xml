@@ -121,8 +121,8 @@
       <service-check>false</service-check>
       <service name="HDFS">
         <component>JOURNALNODE</component>
-        <component>ZKFC</component>
         <component>NAMENODE</component>
+        <component>ZKFC</component>
       </service>
 
       <service name="MAPREDUCE2">
