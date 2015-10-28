@@ -232,6 +232,7 @@ public class PropertyInfo {
     PASSWORD,
     USER,
     GROUP,
+    TEXT,
     ADDITIONAL_USER_PROPERTY,
     DONT_ADD_ON_UPGRADE
   }
