@@ -276,8 +276,8 @@ def validate_configuration():
     raise Fail("Configurations does not contain hawq-site. Please include HAWQ")
 
   # If HAWQ is set to use YARN and YARN is not configured, error.
-  rm_type = params.config["configurations"]["hawq-site"].get("hawq_resourcemanager_server_type")
+  rm_type = params.config["configurations"]["hawq-site"].get("hawq_global_rm_type")
   if rm_type == "yarn" and "yarn-site" not in params.config["configurations"]:
     raise Fail("HAWQ is set to use YARN but YARN is not deployed. " + 
-               "hawq_resourcemanager_server_type property in hawq-site is set to 'yarn' but YARN is not configured. " + 
-               "Please deploy YARN before starting HAWQ or change the value of hawq_resourcemanager_server_type property to 'none'")
+               "hawq_global_rm_type property in hawq-site is set to 'yarn' but YARN is not configured. " + 
+               "Please deploy YARN before starting HAWQ or change the value of hawq_global_rm_type property to 'none'")

@@ -81,7 +81,7 @@
 
   <!-- HAWQ resource manager parameters -->
   <property>
-    <name>hawq_resourcemanager_server_type</name>
+    <name>hawq_global_rm_type</name>
     <value>none</value>
     <description>The resource manager type to start for allocating resource. 
       'none' means HAWQ resource manager exclusively uses whole
@@ -94,7 +94,7 @@
     <name>hawq_resourcemanager_segment_limit_memory_use</name>
     <value>64GB</value>
     <description>The limit of memory usage in a HAWQ segment when 
-      HAWQ is set 'none'.
+      hawq_global_rm_type is set 'none'.
     </description>
   </property>
 
@@ -102,7 +102,7 @@
     <name>hawq_resourcemanager_segment_limit_core_use</name>
     <value>16</value>
     <description>The limit of virtual core usage in a HAWQ segment when 
-      HAWQ is set 'none'.
+      hawq_global_rm_type is set 'none'.
     </description>
   </property>
 
@@ -162,6 +162,21 @@
   <property>
     <name>hawq_resourceenforcer_vcore_pcore_ratio</name>
     <value>1.0</value>
+  </property>
+
+  <property>
+    <name>hawq_resourcemanager_master_address_domainsocket_port</name>
+    <value>5436</value>
+  </property>
+
+  <property>
+    <name>hawq_rm_master_port</name>
+    <value>5437</value>
+  </property>
+
+  <property>
+    <name>hawq_rm_segment_port</name>
+    <value>5438</value>
   </property>
 
 </configuration>
