@@ -4123,7 +4123,7 @@ public class AmbariManagementControllerTest {
     Config config1 = cf.createNew(cluster, "global",
         new HashMap<String, String>() {{
           put("key1", "value1");
-        }}, new HashMap<String, Map<String, String>>());
+        }}, new HashMap<String, Map<String,String>>());
     config1.setTag("version1");
 
     Config config2 = cf.createNew(cluster, "core-site",
@@ -4132,15 +4132,8 @@ public class AmbariManagementControllerTest {
         }}, new HashMap<String, Map<String,String>>());
     config2.setTag("version1");
 
-    Config config3 = cf.createNew(cluster, "yarn-site",
-        new HashMap<String, String>() {{
-          put("test.password", "supersecret");
-        }}, new HashMap<String, Map<String,String>>());
-    config3.setTag("version1");
-
     cluster.addConfig(config1);
     cluster.addConfig(config2);
-    cluster.addConfig(config3);
 
     Service hdfs = cluster.addService("HDFS");
     hdfs.persist();
@@ -4168,7 +4161,6 @@ public class AmbariManagementControllerTest {
 
     Map<String, String> params = new HashMap<String, String>() {{
       put("test", "test");
-      put("pwd", "SECRET:yarn-site:1:test.password");
     }};
 
     Map<String, String> requestProperties = new HashMap<String, String>();
@@ -4201,8 +4193,6 @@ public class AmbariManagementControllerTest {
     Map<String, String> commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
     Assert.assertTrue(commandParametersStage.containsKey("test"));
-    Assert.assertTrue(commandParametersStage.containsKey("pwd"));
-    Assert.assertEquals(commandParametersStage.get("pwd"), "supersecret");
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertNotNull(hostParametersStage.get("jdk_location"));
@@ -4243,8 +4233,6 @@ public class AmbariManagementControllerTest {
     commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
 
     Assert.assertTrue(commandParametersStage.containsKey("test"));
-    Assert.assertTrue(commandParametersStage.containsKey("pwd"));
-    Assert.assertEquals(commandParametersStage.get("pwd"), "supersecret");
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
@@ -10601,7 +10589,7 @@ public class AmbariManagementControllerTest {
         "hdfs-site",
         "version2",
         new HashMap<String, String>(){{
-          put("test.password", "SECRET:hdfs-site:1:test.password");
+          put("test.password", "SECRET:c1:hdfs-site:1");
           put("new", "new");//need this to mark config as "changed"
         }},
         new HashMap<String, Map<String, String>>()
@@ -10626,7 +10614,7 @@ public class AmbariManagementControllerTest {
         "hdfs-site",
         "version3",
         new HashMap<String, String>(){{
-          put("test.password", "SECRET:hdfs-site:666:test.password");
+          put("test.password", "SECRET:c1:hdfs-site:666");
         }},
         new HashMap<String, Map<String, String>>()
     );
@@ -10654,7 +10642,7 @@ public class AmbariManagementControllerTest {
         "hdfs-site",
         "version5",
         new HashMap<String, String>(){{
-          put("test.password", "SECRET:hdfs-site:4:test.password");
+          put("test.password", "SECRET:c1:hdfs-site:4");
           put("new", "new");
         }},
         new HashMap<String, Map<String, String>>()
@@ -10665,7 +10653,7 @@ public class AmbariManagementControllerTest {
       controller.updateClusters(Collections.singleton(crReq), null);
       fail("Request need to be failed with wrong secret reference");
     } catch (AmbariException e) {
-      assertEquals("Error when parsing secret reference. Cluster: foo1 ConfigType: hdfs-site ConfigVersion: 4 does not contain property 'test.password'",
+      assertEquals("Cluster: foo1 ConfigType: hdfs-site ConfigVersion: 4 does not contain property 'test.password'",
           e.getMessage());
     }
     cl.getAllConfigs();
@@ -10688,7 +10676,7 @@ public class AmbariManagementControllerTest {
       add(configRequest);
     }});
     for(ConfigurationResponse resp : requestedConfigs) {
-      String secretName = "SECRET:hdfs-site:"+resp.getVersion().toString()+":test.password";
+      String secretName = "SECRET:foo1:hdfs-site:"+resp.getVersion().toString();
       if(resp.getConfigs().containsKey("test.password")) {
         assertEquals(resp.getConfigs().get("test.password"), secretName);
       }

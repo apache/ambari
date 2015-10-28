@@ -24,12 +24,6 @@
 <!-- ResourceManager -->
 
   <property>
-    <name>test.password</name>
-    <value> </value>
-    <property-type>PASSWORD</property-type>
-  </property>
-
-  <property>
     <name>yarn.resourcemanager.resource-tracker.address</name>
     <value>localhost:8025</value>
     <deleted>true</deleted>
