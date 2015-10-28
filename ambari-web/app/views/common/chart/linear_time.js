@@ -511,6 +511,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       var min = Number.MAX_VALUE;
       var max = Number.MIN_VALUE;
       var numberOfNotNullValues = 0;
+      series.isZero = true;
       for (var i = 0; i < series.data.length; i++) {
         avg += series.data[i]['y'];
         if (series.data[i]['y'] !== null) {
@@ -524,15 +525,20 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         if (series.data[i]['y'] > max) {
           max = series.data[i]['y'];
         }
+        if (series.data[i]['y'] > 1) {
+          series.isZero = false;
+        }
       }
-      series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
-        string_utils.pad('min', 5, '&nbsp;', 3) +
-        string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
-        string_utils.pad('avg', 5, '&nbsp;', 3) +
-        string_utils.pad(self.get('yAxisFormatter')(avg / numberOfNotNullValues), 12, '&nbsp;', 3) +
-        string_utils.pad('max', 12, '&nbsp;', 3) +
-        string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
-      if (min === max && 0 === min || max === Number.MIN_VALUE) {
+      if (self.get('isPopup')) {
+        series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
+          string_utils.pad('min', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
+          string_utils.pad('avg', 5, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(avg / numberOfNotNullValues), 12, '&nbsp;', 3) +
+          string_utils.pad('max', 12, '&nbsp;', 3) +
+          string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+      }
+      if (series.isZero) {
         series.stroke = series.color;
       }
       if (series.data.length < series_min_length) {
@@ -571,7 +577,8 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       interpolation: 'step-after',
       stroke: true,
       renderer: this.get('renderer'),
-      strokeWidth: 'area' === this.get('renderer') ? 1 : 2
+      strokeWidth: 'area' === this.get('renderer') ? 1 : 2,
+      max: seriesData.everyProperty('isZero') ? 1 : null
     });
 
     if ('area' === this.get('renderer')) {
