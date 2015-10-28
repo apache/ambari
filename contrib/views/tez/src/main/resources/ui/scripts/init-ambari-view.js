@@ -182,6 +182,7 @@ App.Helpers.ambari = (function () {
     getInstanceParametersErrorCallback: function (request, ajaxOptions, error) {
       var json = request.responseJSON;
       App.Helpers.ErrorBar.getInstance().show(json.message, json.trace);
+      Ember.assert(json.message);
     }
   };
 
