@@ -149,7 +149,7 @@ class TestSparkThriftServer(RMFTestCase):
     )
 
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  def test_pre_rolling_restart_23(self, copy_to_hdfs_mock):
+  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -160,7 +160,7 @@ class TestSparkThriftServer(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_thrift_server.py",
                        classname = "SparkThriftServer",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

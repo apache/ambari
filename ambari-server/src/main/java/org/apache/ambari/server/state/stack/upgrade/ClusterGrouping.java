@@ -138,27 +138,9 @@ public class ClusterGrouping extends Grouping {
 
           switch (task.getType()) {
             case MANUAL:
-              wrapper = getManualStageWrapper(upgradeContext, execution);
-              break;
-
             case SERVER_ACTION:
-              wrapper = new StageWrapper(
-                  StageWrapper.Type.SERVER_SIDE_ACTION,
-                  execution.title,
-                  new TaskWrapper(null, null, Collections.<String>emptySet(), task));
-              break;
-
             case CONFIGURE:
-              Set<String> matchingHosts = getHostsForExecuteStage(upgradeContext, execution);
-              if (matchingHosts == null || matchingHosts.isEmpty()) { // No target services, don't create stage
-                wrapper = null;
-              } else {
-                // We don't care about real host list
-                wrapper = new StageWrapper(
-                    StageWrapper.Type.SERVER_SIDE_ACTION,
-                    execution.title,
-                    new TaskWrapper(null, null, Collections.<String>emptySet(), execution.task));
-              }
+              wrapper = getServerActionStageWrapper(upgradeContext, execution);
               break;
 
             case EXECUTE:
@@ -180,20 +162,19 @@ public class ClusterGrouping extends Grouping {
   }
 
   /**
-   * Return a Stage Wrapper for a manual task that runs on the server.
+   * Return a Stage Wrapper for a server side action that runs on the server.
    * @param ctx Upgrade Context
    * @param execution Execution Stage
    * @return Returns a Stage Wrapper
    */
-  private StageWrapper getManualStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
+  private StageWrapper getServerActionStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
 
     String service   = execution.service;
     String component = execution.component;
     String id        = execution.id;
     Task task        = execution.task;
 
-    if (null != id && id.equals("unhealthy-hosts")) {
-
+    if ( Task.Type.MANUAL == task.getType() &&  null != id && id.equals("unhealthy-hosts")) {
       // !!! this specific task is used ONLY when there are unhealthy
       if (ctx.getUnhealthy().isEmpty()) {
         return null;
@@ -203,44 +184,31 @@ public class ClusterGrouping extends Grouping {
       fillHostDetails(mt, ctx.getUnhealthy());
     }
 
-    Set<String> realHosts = getHostsForExecuteStage(ctx, execution);
+    Set<String> realHosts = Collections.emptySet();
 
-    if (realHosts == null) { // No target services, don't create stage
-      return null;
-    } else {
+    if (null != service && !service.isEmpty() &&
+        null != component && !component.isEmpty()) {
+
+      HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
+
+      if (null == hosts || hosts.hosts.isEmpty()) {
+        return null;
+      } else {
+        realHosts = new LinkedHashSet<String>(hosts.hosts);
+      }
+    }
+
+    if (Task.Type.MANUAL == task.getType()) {
       return new StageWrapper(
           StageWrapper.Type.SERVER_SIDE_ACTION,
           execution.title,
           new TaskWrapper(service, component, realHosts, task));
+    } else {
+      return new StageWrapper(
+          StageWrapper.Type.SERVER_SIDE_ACTION,
+          execution.title,
+          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
     }
-  }
-
-  /**
-   * Looks for real hosts that match service/component restrictions of
-   * an Execution Stage
-   * @param ctx Upgrade Context
-   * @param execution Execution Stage
-   * @return <ul>
-   *   <li> empty Set if Execution Stage has no restrictions;
-   *   <li> set of real hosts that match restrictions if Execution Stage has
-   *   restrictions and some hosts match
-   *   <li> null if Execution Stage has restrictions, but no any host matches
-   */
-  static Set<String> getHostsForExecuteStage(UpgradeContext ctx, ExecuteStage execution) {
-    String service   = execution.service;
-    String component = execution.component;
-
-    Set<String> realHosts = Collections.emptySet();
-    if (null != service && !service.isEmpty() &&
-        null != component && !component.isEmpty()) {
-      HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
-      if (null == hosts) {
-        realHosts = null;
-      } else {
-        realHosts = new LinkedHashSet<>(hosts.hosts);
-      }
-    }
-    return realHosts;
   }
 
   /**

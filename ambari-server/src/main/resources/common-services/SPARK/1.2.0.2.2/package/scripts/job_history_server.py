@@ -47,14 +47,14 @@ class JobHistoryServer(Script):
     
     setup_spark(env, 'server', action = 'config')
     
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
     self.configure(env)
     spark_service('jobhistoryserver', action='start')
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
@@ -70,11 +70,12 @@ class JobHistoryServer(Script):
   def get_stack_to_component(self):
      return {"HDP": "spark-historyserver"}
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Logger.info("Executing Spark Job History Server Stack Upgrade pre-restart")
       conf_select.select(params.stack_name, "spark", params.version)
       hdp_select.select("spark-historyserver", params.version)
 
