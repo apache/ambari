@@ -18,16 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -54,10 +44,18 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.easymock.Capture;
-import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -257,7 +255,7 @@ public class AmbariContextTest {
     replayAll();
 
     // test
-    context.createAmbariResources(topology, CLUSTER_NAME);
+    context.createAmbariResources(topology, CLUSTER_NAME, null);
 
     // assertions
     ClusterRequest clusterRequest = clusterRequestCapture.getValue();

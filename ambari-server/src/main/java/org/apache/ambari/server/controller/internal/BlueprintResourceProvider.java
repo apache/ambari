@@ -20,16 +20,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -51,11 +42,23 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 
-import com.google.gson.Gson;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -72,6 +75,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       PropertyHelper.getPropertyId("Blueprints", "stack_name");
   public static final String STACK_VERSION_PROPERTY_ID =
       PropertyHelper.getPropertyId("Blueprints", "stack_version");
+
+  public static final String BLUEPRINT_SECURITY_PROPERTY_ID =
+    PropertyHelper.getPropertyId("Blueprints", "security");
+
+  public static final String BLUEPRINTS_PROPERTY_ID = "Blueprints";
 
   // Host Groups
   public static final String HOST_GROUP_PROPERTY_ID = "host_groups";
@@ -107,6 +115,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   private static BlueprintFactory blueprintFactory;
 
   /**
+   * Used to create SecurityConfiguration instances
+   */
+  private static SecurityConfigurationFactory securityConfigurationFactory;
+
+  /**
    * Blueprint Data Access Object
    */
   private static BlueprintDAO blueprintDAO;
@@ -115,7 +128,6 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * Used to serialize to/from json.
    */
   private static Gson jsonSerializer;
-
 
   // ----- Constructors ----------------------------------------------------
 
@@ -140,9 +152,11 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @param dao       blueprint data access object
    * @param gson      json serializer
    */
-  public static void init(BlueprintFactory factory, BlueprintDAO dao, Gson gson) {
+  public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
+    securityFactory, Gson gson) {
     blueprintFactory = factory;
     blueprintDAO = dao;
+    securityConfigurationFactory = securityFactory;
     jsonSerializer = gson;
   }
 
@@ -242,8 +256,8 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
-        blueprintDAO.removeByName(blueprintName);
-        return null;
+          blueprintDAO.removeByName(blueprintName);
+          return null;
         }
       });
     }
@@ -291,7 +305,16 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     }
     setResourceProperty(resource, HOST_GROUP_PROPERTY_ID, listGroupProps, requestedIds);
     setResourceProperty(resource, CONFIGURATION_PROPERTY_ID,
-        populateConfigurationList(entity.getConfigurations()), requestedIds);
+      populateConfigurationList(entity.getConfigurations()), requestedIds);
+
+    if (entity.getSecurityType() != null) {
+      Map<String, String> securityConfigMap = new LinkedHashMap<>();
+      securityConfigMap.put(SecurityConfigurationFactory.TYPE_PROPERTY_ID, entity.getSecurityType().name());
+      if(entity.getSecurityType() == SecurityType.KERBEROS) {
+        securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID, entity.getSecurityDescriptorReference());
+      }
+      setResourceProperty(resource, BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap, requestedIds);
+    }
 
     return resource;
   }
@@ -405,9 +428,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
             Preconditions.checkArgument(((Map) map).size() <= 1, CONFIGURATION_MAP_SIZE_CHECK_ERROR_MESSAGE);
           }
         }
+        SecurityConfiguration securityConfiguration = securityConfigurationFactory
+          .createSecurityConfigurationFromRequest((Map<String, Object>) rawBodyMap.get(BLUEPRINTS_PROPERTY_ID), true);
+
         Blueprint blueprint;
         try {
-          blueprint = blueprintFactory.createBlueprint(properties);
+          blueprint = blueprintFactory.createBlueprint(properties, securityConfiguration);
         } catch (NoSuchStackException e) {
           throw new IllegalArgumentException("Specified stack doesn't exist: " + e, e);
         }

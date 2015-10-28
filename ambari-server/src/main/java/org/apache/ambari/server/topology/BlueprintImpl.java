@@ -19,12 +19,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
 import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -39,6 +33,12 @@ import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
 /**
  * Blueprint implementation.
  */
@@ -49,10 +49,14 @@ public class BlueprintImpl implements Blueprint {
   private Stack stack;
   private Configuration configuration;
   private BlueprintValidator validator;
-
+  private SecurityConfiguration security;
 
   public BlueprintImpl(BlueprintEntity entity) throws NoSuchStackException {
     this.name = entity.getBlueprintName();
+    if (entity.getSecurityType() != null) {
+      this.security = new SecurityConfiguration(entity.getSecurityType(), entity.getSecurityDescriptorReference(),
+        null);
+    }
 
     parseStack(entity.getStack());
 
@@ -63,9 +67,10 @@ public class BlueprintImpl implements Blueprint {
     validator = new BlueprintValidatorImpl(this);
   }
 
-  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration) {
+  public BlueprintImpl(String name, Collection<HostGroup> groups, Stack stack, Configuration configuration, SecurityConfiguration security) {
     this.name = name;
     this.stack = stack;
+    this.security = security;
 
     // caller should set host group configs
     for (HostGroup hostGroup : groups) {
@@ -89,6 +94,10 @@ public class BlueprintImpl implements Blueprint {
 
   public String getStackVersion() {
     return stack.getVersion();
+  }
+
+  public SecurityConfiguration getSecurity() {
+    return security;
   }
 
   //todo: safe copy?
@@ -182,6 +191,14 @@ public class BlueprintImpl implements Blueprint {
 
     BlueprintEntity entity = new BlueprintEntity();
     entity.setBlueprintName(name);
+    if (security != null) {
+      if (security.getType() != null) {
+        entity.setSecurityType(security.getType());
+      }
+      if (security.getDescriptorReference() != null) {
+        entity.setSecurityDescriptorReference(security.getDescriptorReference());
+      }
+    }
 
     //todo: not using stackDAO so stackEntity.id is not set
     //todo: this is now being set in BlueprintDAO

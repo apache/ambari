@@ -19,6 +19,8 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.state.SecurityType;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -31,6 +33,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -119,10 +122,14 @@ public class BlueprintImplTest {
     // for this basic test not ensuring that stack properties are ignored, this is tested in another test
     Configuration configuration = new Configuration(properties, attributes, EMPTY_CONFIGURATION);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration);
+    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, securityConfiguration);
     blueprint.validateRequiredProperties();
+    BlueprintEntity entity = blueprint.toEntity();
 
     verify(stack, group1, group2);
+    assertTrue(entity.getSecurityType() == SecurityType.KERBEROS);
+    assertTrue(entity.getSecurityDescriptorReference().equals("testRef"));
   }
 
   @Test
@@ -192,7 +199,7 @@ public class BlueprintImplTest {
     // for this basic test not ensuring that stack properties are ignored, this is tested in another test
     Configuration configuration = new Configuration(properties, attributes, EMPTY_CONFIGURATION);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     try {
       blueprint.validateRequiredProperties();
       fail("Expected exception to be thrown for missing config property");
@@ -276,10 +283,13 @@ public class BlueprintImplTest {
 
     replay(stack, group1, group2);
 
-    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration);
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
     blueprint.validateRequiredProperties();
+    BlueprintEntity entity = blueprint.toEntity();
 
     verify(stack, group1, group2);
+    assertTrue(entity.getSecurityType() == SecurityType.NONE);
+    assertTrue(entity.getSecurityDescriptorReference() == null);
   }
 
   //todo: ensure coverage for these existing tests

@@ -27,6 +27,7 @@ import java.util.Map;
  * Factory for creating topology requests.
  */
 public interface TopologyRequestFactory {
-  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties) throws InvalidTopologyTemplateException;
+
+  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException;
   // todo: use to create other request types
 }

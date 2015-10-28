@@ -2201,6 +2201,11 @@ public class BlueprintConfigurationProcessor {
       }
 
     }
+
+    if(clusterTopology.isClusterKerberosEnabled()) {
+      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, "security_enabled", "true");
+      configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
+    }
   }
 
   /**

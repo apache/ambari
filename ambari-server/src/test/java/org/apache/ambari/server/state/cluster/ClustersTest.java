@@ -18,18 +18,11 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import static org.junit.Assert.fail;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -52,6 +45,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -61,12 +55,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import junit.framework.Assert;
+import static org.junit.Assert.fail;
 
 public class ClustersTest {
 
@@ -165,6 +163,19 @@ public class ClustersTest {
 
   }
 
+  @Test
+  public void testAddAndGetClusterWithSecurityType() throws AmbariException {
+    StackId stackId = new StackId("HDP-2.1.1");
+
+    String c1 = "foo";
+    SecurityType securityType = SecurityType.KERBEROS;
+    clusters.addCluster(c1, stackId, securityType);
+
+    Assert.assertNotNull(clusters.getCluster(c1));
+
+    Assert.assertEquals(c1, clusters.getCluster(c1).getClusterName());
+    Assert.assertEquals(securityType, clusters.getCluster(c1).getSecurityType());
+  }
 
   @Test
   public void testAddAndGetHost() throws AmbariException {

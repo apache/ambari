@@ -18,11 +18,11 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.AmbariException;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.ambari.server.AmbariException;
 
 /**
  * Single entity that tracks all clusters and hosts that are managed
@@ -32,7 +32,6 @@ public interface Clusters {
 
   /**
    * Add a new Cluster
-   * 
    * @param clusterName
    *          the cluster name (not {@code null}).
    * @param stackId
@@ -40,6 +39,19 @@ public interface Clusters {
    */
   public void addCluster(String clusterName, StackId stackId)
       throws AmbariException;
+
+  /**
+   * Add a new cluster
+   * @param clusterName
+   *          the cluster name (not {@code null}).
+   * @param stackId
+   *          the stack for the cluster (not {@code null}).
+   * @param securityType
+   *          the cluster will be created with this security type.
+   * @throws AmbariException
+   */
+  public void addCluster(String clusterName, StackId stackId, SecurityType securityType)
+    throws AmbariException;
 
   /**
    * Gets the Cluster given the cluster name

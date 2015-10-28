@@ -790,6 +790,11 @@ public class UpgradeCatalog213Test {
     Capture<DBAccessor.DBColumnInfo> capturedColumn = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedHostRoleCommandColumn = EasyMock.newCapture();
 
+    Capture<String> capturedBlueprintTableName = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn1 = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn2 = EasyMock.newCapture();
+
+
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
     EasyMock.expect(mockedConfiguration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
@@ -809,6 +814,9 @@ public class UpgradeCatalog213Test {
     mockedDbAccessor.createTable(capture(capturedTableName), capture(capturedColumns), capture(capturedPKColumn));
     mockedDbAccessor.alterColumn(eq("host_role_command"), capture(capturedHostRoleCommandColumn));
 
+    mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn1));
+    mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn2));
+
     mocksControl.replay();
 
     UpgradeCatalog213 testSubject = new UpgradeCatalog213(mockedInjector);
@@ -826,6 +834,13 @@ public class UpgradeCatalog213Test {
     Assert.assertEquals("The table name is wrong!", "kerberos_descriptor", capturedTableName.getValue());
     Assert.assertEquals("The primary key is wrong!", "kerberos_descriptor_name", capturedPKColumn.getValue());
     Assert.assertTrue("Ther number of columns is wrong!", capturedColumns.getValue().size() == 2);
+
+    Assert.assertEquals("The table name is wrong!", "blueprint", capturedBlueprintTableName.getValue());
+
+    Assert.assertEquals("The column name is wrong!", "security_type", capturedNewBlueprintColumn1.getValue().getName());
+    Assert.assertEquals("The column name is wrong!", "security_descriptor_reference", capturedNewBlueprintColumn2
+      .getValue().getName());
+
 
   }
 

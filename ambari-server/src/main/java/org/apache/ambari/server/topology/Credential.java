@@ -19,17 +19,53 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-
-import java.util.Map;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 
 /**
- * Factory for creating topology requests.
+ * Holds credential info submitted in a cluster create template.
  */
-public class TopologyRequestFactoryImpl implements TopologyRequestFactory {
-  @Override
-  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
-    return new ProvisionClusterRequest(properties, securityConfiguration);
+public class Credential {
 
+  /**
+   * Credential alias like kdc.admin.credential.
+   */
+  private String alias;
+
+  /**
+   * Name of a principal.
+   */
+  private String principal;
+
+  /**
+   * Key of credential.
+   */
+  private String key;
+
+  /**
+   * Type of credential store.
+   */
+  private CredentialStoreType type;
+
+  public Credential(String alias, String principal, String key, CredentialStoreType type) {
+    this.alias = alias;
+    this.principal = principal;
+    this.key = key;
+    this.type = type;
+  }
+
+  public String getAlias() {
+    return alias;
+  }
+
+  public String getPrincipal() {
+    return principal;
+  }
+
+  public String getKey() {
+    return key;
+  }
+
+  public CredentialStoreType getType() {
+    return type;
   }
 }

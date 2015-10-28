@@ -103,6 +103,8 @@ public interface Blueprint {
    */
   public Collection<HostGroup> getHostGroupsForComponent(String component);
 
+  public SecurityConfiguration getSecurity();
+
   /**
    * Validate the blueprint topology.
    *

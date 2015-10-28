@@ -17,22 +17,29 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.base.Enums;
+import com.google.common.base.Strings;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
+import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.RequiredPasswordValidator;
+import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Request for provisioning a cluster.
@@ -94,14 +101,18 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   private String defaultPassword;
 
+  private Map<String, Credential> credentialsMap;
+
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
    * Constructor.
    *
    * @param properties  request properties
+   * @param securityConfiguration  security config related properties
    */
-  public ProvisionClusterRequest(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
+    InvalidTopologyTemplateException {
     setClusterName(String.valueOf(properties.get(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 
@@ -117,12 +128,52 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("The specified blueprint doesn't exist: " + e, e);
     }
 
+    this.securityConfiguration = securityConfiguration;
+
     Configuration configuration = configurationFactory.getConfiguration(
         (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
+
+    this.credentialsMap = parseCredentials(properties);
+  }
+
+  private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
+    InvalidTopologyTemplateException {
+    HashMap<String, Credential> credentialHashMap = new HashMap<>();
+    Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS_PROPERTY_ID);
+    if (credentialsSet != null) {
+      for (Map<String, String> credentialMap : credentialsSet) {
+        String alias = Strings.emptyToNull(credentialMap.get("alias"));
+        if (alias == null) {
+          throw new InvalidTopologyTemplateException("credential.alias property is missing.");
+        }
+        String principal = Strings.emptyToNull(credentialMap.get("principal"));
+        if (principal == null) {
+          throw new InvalidTopologyTemplateException("credential.principal property is missing.");
+        }
+        String key = Strings.emptyToNull(credentialMap.get("key"));
+        if (key == null) {
+          throw new InvalidTopologyTemplateException("credential.key is missing.");
+        }
+        String typeString = Strings.emptyToNull(credentialMap.get("type"));
+        if (typeString == null) {
+          throw new InvalidTopologyTemplateException("credential.type is missing.");
+        }
+        CredentialStoreType type = Enums.getIfPresent(CredentialStoreType.class, typeString.toUpperCase()).orNull();
+        if (type == null) {
+          throw new InvalidTopologyTemplateException("credential.type is invalid.");
+        }
+        credentialHashMap.put(alias, new Credential(alias, principal, key, type));
+      }
+    }
+    return credentialHashMap;
+  }
+
+  public Map<String, Credential> getCredentialsMap() {
+    return credentialsMap;
   }
 
   public String getClusterName() {
