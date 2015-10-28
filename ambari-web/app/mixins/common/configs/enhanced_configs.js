@@ -469,6 +469,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           initialValue = validator.isValidFloat(initialValue) ? parseFloat(initialValue).toString() : initialValue;
           recommendedValue = validator.isValidFloat(recommendedValue) ? parseFloat(recommendedValue).toString() : recommendedValue;
 
+          var groupName = group && Em.get(group, 'name');
+          var dependentProperty = this.get('_dependentConfigValues').find(function (dcv) {
+            return dcv.propertyName === propertyName && dcv.fileName === key && dcv.configGroup === groupName;
+          });
+
           if (!updateOnlyBoundaries && !parentPropertiesNames.contains(App.config.configId(propertyName, key)) && initialValue != recommendedValue) { //on first initial request we don't need to change values
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', initialValue);
