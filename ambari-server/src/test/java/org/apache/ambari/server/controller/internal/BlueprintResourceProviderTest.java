@@ -44,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider.BlueprintConfigPopulationStrategy;
@@ -70,8 +69,6 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.*;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -107,7 +104,7 @@ public class BlueprintResourceProviderTest {
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(blueprintFactory, dao, gson, metaInfo);
+    BlueprintResourceProvider.init(blueprintFactory, dao, gson);
 
     StackEntity stackEntity = new StackEntity();
     stackEntity.setStackName("test-stack-name");
@@ -384,12 +381,7 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testGetResourcesNoPredicate_withConfiguration() throws SystemException, UnsupportedPropertyException,
-      NoSuchParentResourceException, NoSuchResourceException, AmbariException {
-
-    StackInfo info = createMock(StackInfo.class);
-    expect(info.getConfigPropertiesTypes("core-site")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
-    expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
-    replay(info, metaInfo);
+      NoSuchParentResourceException, NoSuchResourceException {
     Request request = createNiceMock(Request.class);
 
     Set<Map<String, Object>> testProperties = getBlueprintTestProperties();
@@ -959,44 +951,20 @@ public class BlueprintResourceProviderTest {
 
   @Test
   public void testPopulateConfigurationList() throws Exception {
-    StackEntity stackEntity = new StackEntity();
-    stackEntity.setStackName("test-stack-name");
-    stackEntity.setStackVersion("test-stack-version");
-    BlueprintEntity entity = createMock(BlueprintEntity.class);
-    expect(entity.getStack()).andReturn(stackEntity).anyTimes();
-
-    HashMap<PropertyInfo.PropertyType, Set<String>> pwdProperties = new HashMap<PropertyInfo.PropertyType, Set<String>>() {{
-      put(PropertyInfo.PropertyType.PASSWORD, new HashSet<String>(){{
-        add("test.password");
-      }});
-    }};
-
-    StackInfo info = createMock(StackInfo.class);
-    expect(info.getConfigPropertiesTypes("type1")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
-    expect(info.getConfigPropertiesTypes("type2")).andReturn(new HashMap<PropertyInfo.PropertyType, Set<String>>()).anyTimes();
-    expect(info.getConfigPropertiesTypes("type3")).andReturn(pwdProperties).anyTimes();
-    expect(metaInfo.getStack("test-stack-name", "test-stack-version")).andReturn(info).anyTimes();
-
-    replay(info, metaInfo, entity);
-
-
     // attributes is null
-    BlueprintConfigEntity config1 = new BlueprintConfigEntity();
+    BlueprintConfiguration config1 = new BlueprintConfigEntity();
     config1.setType("type1");
     config1.setConfigData("{\"key1\":\"value1\"}");
-    config1.setBlueprintEntity(entity);
     // attributes is empty
-    BlueprintConfigEntity config2 = new BlueprintConfigEntity();
+    BlueprintConfiguration config2 = new BlueprintConfigEntity();
     config2.setType("type2");
     config2.setConfigData("{\"key2\":\"value2\"}");
     config2.setConfigAttributes("{}");
-    config2.setBlueprintEntity(entity);
     // attributes is provided
-    BlueprintConfigEntity config3 = new BlueprintConfigEntity();
+    BlueprintConfiguration config3 = new BlueprintConfigEntity();
     config3.setType("type3");
-    config3.setConfigData("{\"key3\":\"value3\",\"key4\":\"value4\",\"test.password\":\"pwdValue\"}");
+    config3.setConfigData("{\"key3\":\"value3\",\"key4\":\"value4\"}");
     config3.setConfigAttributes("{\"final\":{\"key3\":\"attrValue1\",\"key4\":\"attrValue2\"}}");
-    config3.setBlueprintEntity(entity);
 
     List<Map<String, Map<String, Object>>> configs =
         provider.populateConfigurationList(Arrays.asList(config1, config2, config3));
@@ -1042,10 +1010,9 @@ public class BlueprintResourceProviderTest {
     Map<String, String> confProperties3
         = (Map<String, String>) typeConfig3.get(BlueprintResourceProvider.PROPERTIES_PROPERTY_ID);
     assertNotNull(confProperties3);
-    assertEquals(3, confProperties3.size());
+    assertEquals(2, confProperties3.size());
     assertEquals("value3", confProperties3.get("key3"));
     assertEquals("value4", confProperties3.get("key4"));
-    assertEquals("SECRET:type3:-1:test.password", confProperties3.get("test.password"));
     assertTrue(typeConfig3.containsKey(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID));
     Map<String, Map<String, String>> confAttributes3
         = (Map<String, Map<String, String>>) typeConfig3.get(BlueprintResourceProvider.PROPERTIES_ATTRIBUTES_PROPERTY_ID);

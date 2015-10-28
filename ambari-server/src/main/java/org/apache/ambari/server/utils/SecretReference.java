@@ -21,36 +21,37 @@ package org.apache.ambari.server.utils;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.PropertyInfo;
 
 import java.util.Map;
-import java.util.Set;
 
 public class SecretReference {
-  private static final String secretPrefix = "SECRET";
+  private String clusterName;
   private String configType;
   private Long version;
   private String value;
+  private String reference;
 
-  public SecretReference(String reference, Cluster cluster) throws AmbariException{
+  public SecretReference(String reference, String propertyName, Cluster cluster) throws AmbariException{
     String[] values = reference.split(":");
-
-    configType = values[1];
-    version = Long.valueOf(values[2]);
-
-    String propertyName = values[3];
-    String clusterName = cluster.getClusterName();
+    clusterName = values[1];
+    configType = values[2];
+    version = Long.valueOf(values[3]);
     Config refConfig = cluster.getConfigByVersion(configType, version);
 
     if(refConfig == null)
-      throw new AmbariException(String.format("Error when parsing secret reference. Cluster: %s does not contain ConfigType: %s ConfigVersion: %s",
-          clusterName, configType, version));
+      throw new AmbariException(String.format("Cluster: %s does not contain ConfigType: %s ConfigVersion: %s",
+          cluster.getClusterName(), configType, version));
     Map<String, String> refProperties = refConfig.getProperties();
     if(!refProperties.containsKey(propertyName))
-      throw new AmbariException(String.format("Error when parsing secret reference. Cluster: %s ConfigType: %s ConfigVersion: %s does not contain property '%s'",
-          clusterName, configType, version, propertyName));
-
+      throw new AmbariException(String.format("Cluster: %s ConfigType: %s ConfigVersion: %s does not contain property '%s'",
+          cluster.getClusterName(), configType, version, propertyName));
     this.value = refProperties.get(propertyName);
+
+    this.reference = reference;
+  }
+
+  public String getClusterName() {
+    return clusterName;
   }
 
   public void setConfigType(String configType) {
@@ -67,51 +68,10 @@ public class SecretReference {
 
   public static boolean isSecret(String value) {
     String[] values = value.split(":");
-    return values.length == 4 && values[0].equals(secretPrefix);
+    return values.length == 4 && values[0].equals("SECRET");
   }
 
-  public static String generateStub(String configType, Long configVersion, String propertyName) {
-    return secretPrefix + ":" + configType + ":" + configVersion.toString() + ":" + propertyName;
-  }
-
-  /**
-   * Replace secret references with appropriate real passwords.
-   * @param targetMap map in which replacement will be performed
-   * @param cluster current cluster
-   * @throws AmbariException
-   */
-  public static void replaceReferencesWithPasswords(Map<String, String> targetMap, Cluster cluster)
-      throws AmbariException {
-    if(cluster != null) {
-      for (Map.Entry<String, String> propertyValueEntry : targetMap.entrySet()) {
-        String key = propertyValueEntry.getKey();
-        String value = propertyValueEntry.getValue();
-        if (value != null && SecretReference.isSecret(value)) {
-          SecretReference ref = new SecretReference(value, cluster);
-          targetMap.put(key, ref.getValue());
-        }
-      }
-    }
-  }
-
-  /**
-   * Replace real passwords with secret references
-   * @param propertiesTypes map with properties types
-   * @param propertiesMap map with properties in which replacement will be performed
-   * @param configType configuration type
-   * @param configVersion configuration version
-   */
-  public static void replacePasswordsWithReferences(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes,
-                                                    Map<String, String> propertiesMap,
-                                                    String configType,
-                                                    Long configVersion){
-    if(propertiesTypes != null && propertiesTypes.containsKey(PropertyInfo.PropertyType.PASSWORD)) {
-      for(String pwdPropertyName: propertiesTypes.get(PropertyInfo.PropertyType.PASSWORD)) {
-        if(propertiesMap.containsKey(pwdPropertyName)){
-          String stub = SecretReference.generateStub(configType, configVersion, pwdPropertyName);
-          propertiesMap.put(pwdPropertyName, stub);
-        }
-      }
-    }
+  public static String generateStub(String clusterName, String configType, Long configVersion) {
+    return "SECRET:" + clusterName + ":" + configType + ":" + configVersion.toString();
   }
 }

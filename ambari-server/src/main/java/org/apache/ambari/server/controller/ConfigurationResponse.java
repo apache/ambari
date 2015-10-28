@@ -79,7 +79,7 @@ public class ConfigurationResponse {
     this.configs = configs;
     this.configAttributes = configAttributes;
     this.propertiesTypes = propertiesTypes;
-    SecretReference.replacePasswordsWithReferences(propertiesTypes, configs, type, version);
+    stubPasswords();
   }
 
   /**
@@ -214,5 +214,16 @@ public class ConfigurationResponse {
 
   public void setPropertiesTypes(Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes) {
     this.propertiesTypes = propertiesTypes;
+  }
+
+  private void stubPasswords(){
+    if(propertiesTypes != null && propertiesTypes.containsKey(PropertyInfo.PropertyType.PASSWORD)) {
+      for(String pwdPropertyName: propertiesTypes.get(PropertyInfo.PropertyType.PASSWORD)) {
+        if(configs.containsKey(pwdPropertyName)){
+          String stub = SecretReference.generateStub(clusterName, type, version);
+          configs.put(pwdPropertyName, stub);
+        }
+      }
+    }
   }
 }
