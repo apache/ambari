@@ -41,13 +41,13 @@ class KmsServer(Script):
     self.configure(env)
     setup_java_patch()
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
     kms_service(action = 'stop')
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
 
     env.set_params(params)
@@ -69,7 +69,7 @@ class KmsServer(Script):
     env.set_params(params)
     kms()
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

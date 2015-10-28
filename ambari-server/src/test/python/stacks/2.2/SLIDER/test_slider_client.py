@@ -115,10 +115,10 @@ class TestSliderClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
                        classname = "SliderClient",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_file="default.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -128,7 +128,7 @@ class TestSliderClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  def test_pre_rolling_restart_23(self):
+  def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -137,7 +137,7 @@ class TestSliderClient(RMFTestCase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
                        classname = "SliderClient",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

@@ -242,6 +242,40 @@ public class UpgradeHelperTest {
     assertEquals(8, groups.get(3).items.size());
   }
 
+  @Test
+  public void testUpgradeServerActionOrchestration() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    ServiceInfo si = ambariMetaInfo.getService("HDP", "2.1.1", "ZOOKEEPER");
+    si.setDisplayName("Zk");
+    ComponentInfo ci = si.getComponentByName("ZOOKEEPER_SERVER");
+    ci.setDisplayName("ZooKeeper1 Server2");
+
+    assertTrue(upgrades.containsKey("upgrade_server_action_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_server_action_test");
+    assertNotNull(upgrade);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(1, groups.size());
+    UpgradeGroupHolder group = groups.get(0);
+    assertEquals("CLUSTER_SERVER_ACTIONS", group.name);
+    List<StageWrapper> stageWrappers = group.items;
+    assertEquals(6, stageWrappers.size());
+    assertEquals("Pre Upgrade", stageWrappers.get(0).getText());
+    assertEquals("Pre Upgrade Zookeeper", stageWrappers.get(1).getText());
+    assertEquals("Configuring", stageWrappers.get(2).getText());
+    assertEquals("Configuring HDFS", stageWrappers.get(3).getText());
+    assertEquals("Calculating Properties", stageWrappers.get(4).getText());
+    assertEquals("Calculating HDFS Properties", stageWrappers.get(5).getText());
+
+  }
+
   /**
    * Verify that a Rolling Upgrades restarts the NameNodes in the following order: standby, active.
    * @throws Exception

@@ -158,7 +158,7 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger">
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
@@ -167,7 +167,7 @@
       <!--TODO: Ranger KMS seems to be absent at 2.2 stack, not backing it up-->
     </group>
 
-    <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services (HDFS, HBase, ZooKeeper and Ranger)">
+    <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
@@ -203,39 +203,39 @@
       <!-- If the user attempts a downgrade after this point, they will need to restore backups
       before starting any of the services. -->
 
-      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Restore Oozie Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Oozie Server database on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
-      <execute-stage service="HIVE" component="HIVE_METASTORE" title="Backup Hive Metastore">
+      <execute-stage service="HIVE" component="HIVE_METASTORE" title="Restore Hive Metastore">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Hive Metastore database located on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
-      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /etc/knox/data/security/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
-      <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Restore HBASE Snapshot">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
           <function>restore_snapshot</function>
         </task>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
+      <execute-stage service="HDFS" component="NAMENODE" title="Restore HDFS Snapshot">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>restore_snapshot</function>
         </task>
       </execute-stage>
 
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Backup Ranger">
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
@@ -256,7 +256,7 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
       </execute-stage>
 
-      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
         <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
       </execute-stage>
 
@@ -500,6 +500,13 @@
       <service name="RANGER">
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="RANGER_KMS">
         <component>RANGER_KMS_SERVER</component>
       </service>
     </group>
@@ -517,7 +524,7 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="HDFS_LEAFE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+    <group xsi:type="cluster" name="HDFS_LEAVE_SAFEMODE" title="HDFS - Wait to leave Safemode">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
@@ -595,6 +602,15 @@
       </service>
     </group>
 
+    <group xsi:type="restart" name="SPARK" title="Spark">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="SPARK">
+        <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_CLIENT</component>         <!-- TODO, parallelize -->
+      </service>
+    </group>
+
     <!-- Upgrade Oozie DB only on Upgrade direction, and always create a new ShareLib. -->
     <group name="Upgrade Oozie" title="Upgrade Oozie Database">
       <direction>UPGRADE</direction>
@@ -669,6 +685,14 @@
           <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
         </task>
       </execute-stage>
+    </group>
+
+    <group xsi:type="restart" name="SLIDER" title="Slider">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="SLIDER">
+        <component>SLIDER</component>
+      </service>
     </group>
 
     <group xsi:type="restart" name="FLUME" title="Flume">

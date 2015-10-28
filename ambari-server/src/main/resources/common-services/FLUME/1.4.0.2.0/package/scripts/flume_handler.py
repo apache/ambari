@@ -33,57 +33,36 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class FlumeHandler(Script):
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def get_stack_to_component(self):
-    return {"HDP": "flume-server"}
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def install(self, env):
-    import params
-    self.install_packages(env)
-    env.set_params(params)
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def install(self, env):
-    if not check_windows_service_exists(service_mapping.flume_win_service_name):
-      self.install_packages(env)
-    self.configure(env)
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def start(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    self.configure(env)
-    flume(action='start')
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def start(self, env):
-    import params
-    env.set_params(params)
-    self.configure(env)
-    Service(service_mapping.flume_win_service_name, action="start")
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def stop(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    flume(action='stop')
-
-    # only backup data on upgrade
-    if rolling_restart and params.upgrade_direction == Direction.UPGRADE:
-      flume_upgrade.post_stop_backup()
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def stop(self, env):
-    Service(service_mapping.flume_win_service_name, action="stop")
-
   def configure(self, env):
     import params
     env.set_params(params)
     flume(action='config')
 
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class FlumeHandlerLinux(FlumeHandler):
+  def get_stack_to_component(self):
+    return {"HDP": "flume-server"}
+
+  def install(self, env):
+    import params
+    self.install_packages(env)
+    env.set_params(params)
+
+  def start(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    flume(action='start')
+
+  def stop(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    flume(action='stop')
+
+    # only backup data on upgrade
+    if upgrade_type is not None and params.upgrade_direction == Direction.UPGRADE:
+      flume_upgrade.post_stop_backup()
+
   def status(self, env):
     import params
     env.set_params(params)
@@ -94,8 +73,8 @@ class FlumeHandler(Script):
     json['processes'] = processes
     self.put_structured_out(json)
 
-    # only throw an exception if there are agents defined and there is a 
-    # problem with the processes; if there are no agents defined, then 
+    # only throw an exception if there are agents defined and there is a
+    # problem with the processes; if there are no agents defined, then
     # the service should report STARTED (green) ONLY if the desired state is started.  otherwise, INSTALLED (red)
     if len(expected_agents) > 0:
       for proc in processes:
@@ -104,14 +83,7 @@ class FlumeHandler(Script):
     elif len(expected_agents) == 0 and 'INSTALLED' == get_desired_state():
       raise ComponentIsNotRunning()
 
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def status(self, env):
-    import params
-    check_windows_service_status(service_mapping.flume_win_service_name)
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -120,13 +92,33 @@ class FlumeHandler(Script):
     if not params.version or Script.is_hdp_stack_less_than("2.2"):
       return
 
-    Logger.info("Executing Flume Rolling Upgrade pre-restart")
+    Logger.info("Executing Flume Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "flume", params.version)
     hdp_select.select("flume-server", params.version)
 
     # only restore on upgrade, not downgrade
     if params.upgrade_direction == Direction.UPGRADE:
       flume_upgrade.pre_start_restore()
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class FlumeHandlerWindows(FlumeHandler):
+  def install(self, env):
+    if not check_windows_service_exists(service_mapping.flume_win_service_name):
+      self.install_packages(env)
+    self.configure(env)
+
+  def start(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    Service(service_mapping.flume_win_service_name, action="start")
+
+  def stop(self, env, upgrade_type=None):
+    Service(service_mapping.flume_win_service_name, action="stop")
+
+  def status(self, env):
+    import params
+    check_windows_service_status(service_mapping.flume_win_service_name)
 
 if __name__ == "__main__":
   FlumeHandler().execute()
