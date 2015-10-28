@@ -33,27 +33,14 @@ App.ChartServiceMetricsFlume_JVMThreadsRunnable = App.ChartLinearTimeView.extend
 
   ajaxIndex: 'service.metrics.flume.jvm_threads_runnable',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    var MB = Math.pow(2, 20);
-    if (jsonData && jsonData.host_components) {
-      jsonData.host_components.forEach(function (hc) {
-        var hostName = hc.HostRoles.host_name;
-        var host = App.Host.find(hostName);
-        if (host && host.get('publicHostName')) {
-          hostName = host.get('publicHostName');
-        }
-        if (hc.metrics && hc.metrics.jvm && hc.metrics.jvm.threadsRunnable) {
-          var seriesName = Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
-          var seriesData = hc.metrics.jvm.threadsRunnable;
-          if (seriesData) {
-            var s = self.transformData(seriesData, seriesName);
-            seriesArray.push(s);
-          }
-        }
-      });
+  seriesTemplate: {
+    path: 'metrics.jvm.threadsRunnable',
+    displayName: function (name, hostName) {
+      return Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
     }
-    return seriesArray;
+  },
+
+  getData: function (jsonData) {
+    return this.getFlumeData(jsonData);
   }
 });

@@ -34,18 +34,7 @@ App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   isTimePagingDisable: false,
   renderer: 'line',
   title: Em.I18n.t('dashboard.clusterMetrics.load'),
-  
-  transformToSeries: function(jsonData){
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.load) {
-      for ( var name in jsonData.metrics.load) {
-        var displayName = name;
-        var seriesData = jsonData.metrics.load[name];
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
-    }
-    return seriesArray;
+  seriesTemplate: {
+    path: 'metrics.load'
   }
 });

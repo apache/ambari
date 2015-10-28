@@ -39,35 +39,22 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
     fields: ['metrics/disk/disk_total', 'metrics/disk/disk_free']
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var GB = Math.pow(2, 30);
-    if (jsonData && jsonData.metrics && jsonData.metrics.disk) {
-      if(jsonData.metrics.part_max_used){
-        jsonData.metrics.disk.part_max_used = jsonData.metrics.part_max_used;
-      }
-      for ( var name in jsonData.metrics.disk) {
-        var displayName;
-        var seriesData = jsonData.metrics.disk[name];
-        switch (name) {
-          case "disk_total":
-            displayName = Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_total');
-            break;
-          case "disk_free":
-            displayName = Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_free');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          var s = this.transformData(seriesData, displayName);
-          for (var i = 0; i < s.data.length; i++) {
-            s.data[i].y *= GB;
-          }
-          seriesArray.push(s);
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.disk',
+    displayName: function (name) {
+      var displayNameMap = {
+        disk_total: Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_total'),
+        disk_free: Em.I18n.t('hosts.host.metrics.disk.displayNames.disk_free')
+      };
+      return displayNameMap[name];
+    },
+    factor: Math.pow(2, 30)
+  },
+
+  getData: function (jsonData) {
+    if (jsonData.metrics.part_max_used) {
+      jsonData.metrics.disk.part_max_used = jsonData.metrics.part_max_used;
     }
-    return seriesArray;
+    return this._super(jsonData);
   }
 });

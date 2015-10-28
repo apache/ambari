@@ -36,10 +36,10 @@ App.StormLinearTimeChartMixin = Em.Mixin.create({
     };
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var pathKeys = ['metrics','storm','nimbus'];
-    var validPath = true;
+  getData: function (jsonData) {
+    var dataArray = [],
+      pathKeys = ['metrics','storm','nimbus'],
+      validPath = true;
     pathKeys.forEach(function(key) {
       if (!jsonData[key]) {
         validPath = false;
@@ -48,11 +48,14 @@ App.StormLinearTimeChartMixin = Em.Mixin.create({
       }
     });
     if (!validPath) {
-      return seriesArray;
+      return dataArray;
     }
     this.get('stormChartDefinition').forEach(function(chart){
-      seriesArray.push(this.transformData(jsonData[chart.field], chart.name));
+      dataArray.push({
+        name: chart.name,
+        data: jsonData[chart.field]
+      });
     }, this);
-    return seriesArray;
+    return dataArray;
   }
 });

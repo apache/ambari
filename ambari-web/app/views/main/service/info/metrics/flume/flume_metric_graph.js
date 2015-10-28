@@ -59,20 +59,25 @@ App.ChartServiceFlumeMetricGraph = App.ChartLinearTimeView.extend({
     return data;
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    if (jsonData && jsonData.metrics && jsonData.metrics.flume && jsonData.metrics.flume.flume &&
-        jsonData.metrics.flume.flume[this.get('metricType')]) {
-      var metricTypeData = jsonData.metrics.flume.flume[this.get('metricType')];
-      for ( var componentName in metricTypeData) {
-        var seriesName = componentName;
-        var seriesData = metricTypeData[componentName][this.get('metricName')];
+  seriesTemplate: {
+    path: 'metrics.flume.flume'
+  },
+
+  getData: function (jsonData) {
+
+    var dataArray = [],
+      data = Em.get(jsonData, this.get('seriesTemplate.path') + '.' + this.get('metricType'));
+    if (data) {
+      for (var componentName in data) {
+        var seriesData = data[componentName][this.get('metricName')];
         if (seriesData) {
-          seriesArray.push(self.transformData(seriesData, seriesName));
+          dataArray.push({
+            name: componentName,
+            data: seriesData
+          });
         }
       }
     }
-    return seriesArray;
+    return dataArray;
   }
 });

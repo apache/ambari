@@ -32,30 +32,15 @@ App.ChartServiceMetricsKafka_ReplicaManager = App.ChartLinearTimeView.extend({
   renderer: 'line',
   ajaxIndex: 'service.metrics.kafka.server.ReplicaManager',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (Em.get(jsonData, 'metrics.kafka.server.ReplicaManager')) {
-      for (var name in Em.get(jsonData, 'metrics.kafka.server.ReplicaManager')) {
-        var displayName = null;
-        var seriesData = Em.get(jsonData, 'metrics.kafka.server.ReplicaManager.' + name);
-        switch (name) {
-          case "LeaderCount":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.LeaderCount');
-            break;
-          case "UnderReplicatedPartitions":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.UnderReplicatedPartitions');
-            break;
-          case "PartitionCount":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.PartitionCount');
-            break;
-          default:
-            break;
-        }
-        if (seriesData != null && displayName) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.kafka.server.ReplicaManager',
+    displayName: function (name) {
+      var displayNameMap = {
+        LeaderCount: Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.LeaderCount'),
+        UnderReplicatedPartitions: Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.UnderReplicatedPartitions'),
+        PartitionCount: Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaManager.displayNames.PartitionCount')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
   }
 });

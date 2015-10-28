@@ -308,7 +308,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
   }),
 
   exportGraphData: function (event) {
-    this._super();
+    this.set('isExportMenuHidden', true);
     var data,
       isCSV = !!event.context,
       fileType = isCSV ? 'csv' : 'json',
@@ -318,7 +318,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         return Em.isArray(item.data);
       });
     if (hasData) {
-      data = isCSV ? this.prepareCSV(metrics) : this.prepareJSON(metrics);
+      data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, ['name', 'data'], 4);
       fileUtils.downloadTextFile(data, fileType, fileName);
     } else {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));
