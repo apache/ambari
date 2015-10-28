@@ -611,7 +611,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   upgradeOptions: function (isInUpgradeWizard, version) {
     var self = this;
     if (!isInUpgradeWizard) {
-      this.runUpgradeMethodChecks(version);
+      this.getSupportedUpgradeTypes(Ember.Object.create({
+        stackName: App.get('currentStackVersion').split('-')[0],
+        stackVersion: App.get('currentStackVersion').split('-')[1],
+        toVersion: version.get('repositoryVersion')
+      })).done(function(){
+          self.runUpgradeMethodChecks(version);
+      });
     }
 
     return App.ModalPopup.show({
@@ -771,6 +777,30 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         error: "runPreUpgradeCheckError"
       });
     }
+  },
+
+  /**
+   * send request to get available upgrade tye names
+   */
+  getSupportedUpgradeTypes: function(data) {
+    return App.ajax.send({
+      name: "admin.upgrade.get_supported_upgradeTypes",
+      sender: this,
+      data: data,
+      success: "getSupportedUpgradeTypesSuccess",
+      error: "getSupportedUpgradeTypesError"
+    });
+  },
+
+  /**
+   * success callback of <code>getSupportedUpgradeTypes()</code>
+   * @param data {object}
+   */
+  getSupportedUpgradeTypesSuccess: function (data) {
+    var supportedUpgradeTypes = data.items[0] && data.items[0].CompatibleRepositoryVersions.upgrade_types;
+    this.get('upgradeMethods').forEach(function (method) {
+      method.set('allowed', supportedUpgradeTypes && !!supportedUpgradeTypes.contains(method.get('type')));
+    });
   },
 
   /**
