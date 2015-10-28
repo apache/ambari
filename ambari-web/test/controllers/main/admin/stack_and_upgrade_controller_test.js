@@ -768,15 +768,20 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.spy(App, 'ModalPopup');
       sinon.spy(App, 'showConfirmationFeedBackPopup');
+      this.mock = sinon.stub(controller, 'getSupportedUpgradeTypes');
       sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
     });
     after(function () {
       App.ModalPopup.restore();
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
+      this.mock.restore();
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
+      this.mock.returns({
+        done: function(callback) {callback([1]);}
+      });
       controller.upgradeMethods = [
         Em.Object.create({
           displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
@@ -805,6 +810,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     it("NOT show confirmation popup on Downgrade", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
+      this.mock.returns({
+        done: function(callback) {callback([1]);}
+      });
       controller.set('isDowngrade', true);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.false;
