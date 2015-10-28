@@ -41,6 +41,9 @@ from check_oozie_server_status import check_oozie_server_status
          
 class OozieServer(Script):
 
+  def get_stack_to_component(self):
+    return {"HDP": "oozie-server"}
+
   def install(self, env):
     self.install_packages(env)
 
@@ -50,7 +53,7 @@ class OozieServer(Script):
 
     oozie(is_server=True)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -58,15 +61,15 @@ class OozieServer(Script):
 
     # preparing the WAR file must run after configure since configure writes out
     # oozie-env.sh which is needed to have the right environment directories setup!
-    if rolling_restart is True:
+    if upgrade_type is not None:
       OozieUpgrade.prepare_warfile()
 
-    oozie_service(action='start', rolling_restart=rolling_restart)
+    oozie_service(action='start', upgrade_type=upgrade_type)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    oozie_service(action='stop', rolling_restart=rolling_restart)
+    oozie_service(action='stop', upgrade_type=upgrade_type)
 
 
   def status(self, env):
@@ -77,9 +80,6 @@ class OozieServer(Script):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class OozieServerDefault(OozieServer):
-
-  def get_stack_to_component(self):
-    return {"HDP": "oozie-server"}
 
   def security_status(self, env):
     import status_params
@@ -144,7 +144,7 @@ class OozieServerDefault(OozieServer):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     """
     Performs the tasks that should be done before an upgrade of oozie. This includes:
       - backing up configurations
@@ -162,7 +162,7 @@ class OozieServerDefault(OozieServer):
     if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
       return
 
-    Logger.info("Executing Oozie Server Rolling Upgrade pre-restart")
+    Logger.info("Executing Oozie Server Stack Upgrade pre-restart")
 
     OozieUpgrade.backup_configuration()
 

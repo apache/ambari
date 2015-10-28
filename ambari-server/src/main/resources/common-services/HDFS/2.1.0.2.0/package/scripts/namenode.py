@@ -212,7 +212,9 @@ class NameNodeDefault(NameNode):
 
     hdfs_binary = self.get_hdfs_binary()
     Execute(format("{hdfs_binary} dfsadmin -report -live"),
-            user=params.hdfs_user
+            user=params.hdfs_user,
+            tries=60,
+            try_sleep=10
     )
 
   def security_status(self, env):

@@ -1334,7 +1334,9 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
-                              user = 'hdfs',
+                              user='hdfs',
+                              tries=60,
+                              try_sleep=10
                               )
     self.assertNoMoreResources()
 

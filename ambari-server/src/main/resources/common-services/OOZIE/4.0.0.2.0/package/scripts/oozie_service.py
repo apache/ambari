@@ -25,7 +25,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def oozie_service(action='start', rolling_restart=False):
+def oozie_service(action='start', upgrade_type=None):
   import params
 
   if action == 'start':
@@ -36,11 +36,11 @@ def oozie_service(action='start', rolling_restart=False):
     Service(params.oozie_server_win_service_name, action="stop")
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def oozie_service(action = 'start', rolling_restart=False):
+def oozie_service(action = 'start', upgrade_type=None):
   """
   Starts or stops the Oozie service
   :param action: 'start' or 'stop'
-  :param rolling_restart: if True, then most of the pre-startup checks are
+  :param upgrade_type: type of upgrade, either "rolling" or "non_rolling"
   skipped since a variation of them was performed during the rolling upgrade
   :return:
   """
@@ -70,7 +70,7 @@ def oozie_service(action = 'start', rolling_restart=False):
     else:
       db_connection_check_command = None
 
-    if not rolling_restart:
+    if upgrade_type is None:
       if not os.path.isfile(params.target) and params.jdbc_driver_name == "org.postgresql.Driver":
         print format("ERROR: jdbc file {target} is unavailable. Please, follow next steps:\n" \
           "1) Download postgresql-9.0-801.jdbc4.jar.\n2) Create needed directory: mkdir -p {oozie_home}/libserver/\n" \
