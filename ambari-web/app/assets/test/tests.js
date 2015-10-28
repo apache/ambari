@@ -76,6 +76,7 @@ var files = [
   'test/controllers/main/charts/heatmap_metrics/heatmap_metric_test',
   'test/controllers/main/alerts/manage_alert_groups_controller_test',
   'test/controllers/main/host/add_controller_test',
+  'test/controllers/main/host/bulk_operations_controller_test',
   'test/controllers/main/host/host_alerts_controller_test',
   'test/controllers/main/host/configs_service_test',
   'test/controllers/main/host/details_test',

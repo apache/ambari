@@ -17,10 +17,16 @@
  */
 
 var App = require('app');
+var O = Em.Object;
 
+/**
+ * @class HostTableMenuView
+ */
 App.HostTableMenuView = Em.View.extend({
 
   templateName: require('templates/main/host/bulk_operation_menu'),
+
+  controllerBinding: 'App.router.bulkOperationsController',
 
   menuItems: function () {
     return {
@@ -30,38 +36,38 @@ App.HostTableMenuView = Em.View.extend({
     };
   }.property('App.router.clusterController.isLoaded'),
 
-  components: function(){
+  components: function () {
+    var serviceNames = App.Service.find().mapProperty('serviceName');
     var menuItems = [
-    Em.Object.create({
-      serviceName: 'HDFS',
-      componentName: 'DATANODE',
-      masterComponentName: 'NAMENODE',
-      componentNameFormatted: Em.I18n.t('dashboard.services.hdfs.datanodes')
-    }),
-    Em.Object.create({
-      serviceName: 'YARN',
-      componentName: 'NODEMANAGER',
-      masterComponentName: 'RESOURCEMANAGER',
-      componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
-    }),
-    Em.Object.create({
-      serviceName: 'HBASE',
-      componentName: 'HBASE_REGIONSERVER',
-      masterComponentName: 'HBASE_MASTER',
-      componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
-    }),
-    Em.Object.create({
-      serviceName: 'STORM',
-      componentName: 'SUPERVISOR',
-      masterComponentName: 'SUPERVISOR',
-      componentNameFormatted: Em.I18n.t('dashboard.services.storm.supervisors')
-    })];
+      O.create({
+        serviceName: 'HDFS',
+        componentName: 'DATANODE',
+        masterComponentName: 'NAMENODE',
+        componentNameFormatted: Em.I18n.t('dashboard.services.hdfs.datanodes')
+      }),
+      O.create({
+        serviceName: 'YARN',
+        componentName: 'NODEMANAGER',
+        masterComponentName: 'RESOURCEMANAGER',
+        componentNameFormatted: Em.I18n.t('dashboard.services.yarn.nodeManagers')
+      }),
+      O.create({
+        serviceName: 'HBASE',
+        componentName: 'HBASE_REGIONSERVER',
+        masterComponentName: 'HBASE_MASTER',
+        componentNameFormatted: Em.I18n.t('dashboard.services.hbase.regionServers')
+      }),
+      O.create({
+        serviceName: 'STORM',
+        componentName: 'SUPERVISOR',
+        masterComponentName: 'SUPERVISOR',
+        componentNameFormatted: Em.I18n.t('dashboard.services.storm.supervisors')
+      })];
 
-    return menuItems.filter(function(item){
-      return App.Service.find().findProperty('serviceName',item.serviceName);
+    return menuItems.filter(function (item) {
+      return serviceNames.contains(item.serviceName);
     });
   }.property(),
-
 
   /**
    * slaveItemView build second-level menu
@@ -94,9 +100,9 @@ App.HostTableMenuView = Em.View.extend({
     operationsInfo: function () {
       var content = this.get('content');
       var menuItems = Em.A([
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('common.start'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: App.HostComponentStatus.started,
             message: Em.I18n.t('common.start'),
             componentName: content.componentName,
@@ -104,9 +110,9 @@ App.HostTableMenuView = Em.View.extend({
             componentNameFormatted: content.componentNameFormatted
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('common.stop'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: App.HostComponentStatus.stopped,
             message: Em.I18n.t('common.stop'),
             componentName: content.componentName,
@@ -114,9 +120,9 @@ App.HostTableMenuView = Em.View.extend({
             componentNameFormatted: content.componentNameFormatted
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('common.restart'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'RESTART',
             message: Em.I18n.t('common.restart'),
             componentName: content.componentName,
@@ -126,10 +132,10 @@ App.HostTableMenuView = Em.View.extend({
         })
       ]);
       if (App.get('components.decommissionAllowed').contains(content.componentName)) {
-        menuItems.pushObject(Em.Object.create({
+        menuItems.pushObject(O.create({
           label: Em.I18n.t('common.decommission'),
           decommission: true,
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'DECOMMISSION',
             message: Em.I18n.t('common.decommission'),
             componentName: content.masterComponentName,
@@ -138,10 +144,10 @@ App.HostTableMenuView = Em.View.extend({
             componentNameFormatted: content.componentNameFormatted
           })
         }));
-        menuItems.pushObject(Em.Object.create({
+        menuItems.pushObject(O.create({
           label: Em.I18n.t('common.recommission'),
           decommission: true,
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'DECOMMISSION_OFF',
             message: Em.I18n.t('common.recommission'),
             componentName: content.masterComponentName,
@@ -161,13 +167,8 @@ App.HostTableMenuView = Em.View.extend({
     commonOperationView: Em.View.extend({
       tagName: 'li',
 
-      /**
-       * click function use
-       * App.MainHostView as a thirl level parent
-       * and runs it's function
-       */
       click: function () {
-        this.get('parentView.parentView.parentView').bulkOperationConfirm(this.get('content'), this.get('selection'));
+        this.get('controller').bulkOperationConfirm(this.get('content'), this.get('selection'));
       }
     }),
 
@@ -187,23 +188,18 @@ App.HostTableMenuView = Em.View.extend({
 
       tooltipMsg: function () {
         return (this.get('disabledElement') == 'disabled') ?
-           Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'),  App.format.role(this.get('content.componentName'))) : '';
-      }.property('disabledElement','content.componentName'),
+          Em.I18n.t('hosts.decommission.tooltip.warning').format(this.get('content.message'), App.format.role(this.get('content.componentName'))) : '';
+      }.property('disabledElement', 'content.componentName'),
 
       disabledElement: function () {
-        return (this.get('service.workStatus') != 'STARTED') ? 'disabled' : '';
+        return this.get('service.workStatus') == 'STARTED' ? '' : 'disabled';
       }.property('service.workStatus'),
 
-      /**
-       * click function use
-       * App.MainHostView as a thirl level parent
-       * and runs it's function
-       */
       click: function () {
         if (this.get('disabledElement') == 'disabled') {
           return;
         }
-        this.get('parentView.parentView.parentView').bulkOperationConfirm(this.get('content'), this.get('selection'));
+        this.get('controller').bulkOperationConfirm(this.get('content'), this.get('selection'));
       },
 
       didInsertElement: function () {
@@ -238,48 +234,48 @@ App.HostTableMenuView = Em.View.extend({
      */
     operationsInfo: function () {
       return [
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('hosts.host.details.startAllComponents'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'STARTED',
             actionToCheck: 'INSTALLED',
             message: Em.I18n.t('hosts.host.details.startAllComponents')
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('hosts.host.details.stopAllComponents'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'INSTALLED',
             actionToCheck: 'STARTED',
             message: Em.I18n.t('hosts.host.details.stopAllComponents')
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('hosts.table.menu.l2.restartAllComponents'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'RESTART',
             message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('passiveState.turnOn'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             state: 'ON',
             action: 'PASSIVE_STATE',
             message: Em.I18n.t('passiveState.turnOnFor').format('hosts')
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('passiveState.turnOff'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             state: 'OFF',
             action: 'PASSIVE_STATE',
             message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
           })
         }),
-        Em.Object.create({
+        O.create({
           label: Em.I18n.t('hosts.host.details.setRackId'),
-          operationData: Em.Object.create({
+          operationData: O.create({
             action: 'SET_RACK_INFO',
             message: Em.I18n.t('hosts.host.details.setRackId').format('hosts')
           })
@@ -294,14 +290,10 @@ App.HostTableMenuView = Em.View.extend({
     operationView: Em.View.extend({
       tagName: 'li',
 
-      /**
-       * click function use
-       * App.MainHostView as a thirl level parent
-       * and runs it's function
-       */
       click: function () {
-        this.get('parentView.parentView.parentView').bulkOperationConfirm(this.get('content'), this.get('selection'));
+        this.get('controller').bulkOperationConfirm(this.get('content'), this.get('selection'));
       }
     })
   })
+
 });
