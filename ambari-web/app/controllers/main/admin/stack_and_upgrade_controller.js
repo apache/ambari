@@ -148,6 +148,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   finalizeContext: 'Confirm Finalize',
 
   /**
+   * context for Resolve hosts item
+   * @type {string}
+   */
+  resolveHostsContext: 'Check Unhealthy Hosts',
+
+  /**
    * Check if current item is Finalize
    * @type {boolean}
    */

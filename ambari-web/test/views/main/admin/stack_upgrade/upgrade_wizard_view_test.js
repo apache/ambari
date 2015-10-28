@@ -27,13 +27,16 @@ describe('App.upgradeWizardView', function () {
   view.reopen({
     controller: Em.Object.create({
       finalizeContext: 'Confirm Finalize',
+      resolveHostsContext: 'Check Unhealthy Hosts',
       upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
       setUpgradeItemStatus: Em.K,
-      getUpgradeItem: Em.K
+      getUpgradeItem: Em.K,
+      load: Em.K
     })
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
+  view.removeObserver('App.clusterName', view, 'loadVersionPage');
 
   describe("#upgradeGroups", function () {
     it("upgradeGroups is null", function () {
@@ -96,12 +99,16 @@ describe('App.upgradeWizardView', function () {
           }
         }
       });
+      sinon.stub(view.get('controller'), 'load', function() {
+        return {done: Em.K};
+      });
       sinon.stub(view, 'doPolling', Em.K);
       view.set('isLoaded', false);
     });
     afterEach(function () {
       view.get('controller').loadUpgradeData.restore();
       view.doPolling.restore();
+      view.get('controller').load.restore();
     });
     it("clusterName is null", function () {
       App.set('clusterName', null);
@@ -115,6 +122,61 @@ describe('App.upgradeWizardView', function () {
       expect(view.get('controller').loadUpgradeData.calledOnce).to.be.true;
       expect(view.doPolling.calledOnce).to.be.true;
       expect(view.get('isLoaded')).to.be.true;
+    });
+  });
+
+  describe("#loadVersionPage()", function () {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'load', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
+      view.set('isLoaded', false);
+    });
+    afterEach(function () {
+      view.get('controller').load.restore();
+    });
+    it("clusterName is null", function () {
+      App.set('clusterName', null);
+      view.set('controller.isLoaded', false);
+      view.loadVersionPage();
+      expect(view.get('controller').load.called).to.be.false;
+      expect(view.get('controller.isLoaded')).to.be.false;
+    });
+    it("controller already loaded", function () {
+      App.set('clusterName', 'c1');
+      view.set('controller.isLoaded', true);
+      view.loadVersionPage();
+      expect(view.get('controller').load.called).to.be.false;
+      expect(view.get('controller.isLoaded')).to.be.true;
+    });
+    it("controller not loaded and clusterName present", function () {
+      App.set('clusterName', 'c1');
+      view.set('controller.isLoaded', false);
+      view.loadVersionPage();
+      expect(view.get('controller').load.calledOnce).to.be.true;
+      expect(view.get('controller.isLoaded')).to.be.true;
+    });
+  });
+
+  describe("#showFailedHosts()", function () {
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show');
+    });
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+    it("", function () {
+      view.showFailedHosts();
+      expect(App.ModalPopup.show.calledWith({
+        content: "",
+        header: Em.I18n.t('common.hosts'),
+        bodyClass: App.SelectablePopupBodyView,
+        secondary: null
+      })).to.be.true;
     });
   });
 
@@ -424,6 +486,30 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
+  describe("#plainManualItem", function () {
+    it("depends of manualItem.context", function () {
+      view.reopen({
+        manualItem: {
+          context: 'context'
+        }
+      });
+      view.propertyDidChange('plainManualItem');
+      expect(view.get('plainManualItem')).to.be.true;
+    });
+  });
+
+  describe("#isResolveHostsItem", function () {
+    it("depends of manualItem.context", function () {
+      view.reopen({
+        manualItem: {
+          context: 'Check Unhealthy Hosts'
+        }
+      });
+      view.propertyDidChange('isResolveHostsItem');
+      expect(view.get('isResolveHostsItem')).to.be.true;
+    });
+  });
+
   describe("#isFinalizeItem", function () {
     it("depends of manualItem.context", function () {
       view.reopen({
@@ -433,6 +519,49 @@ describe('App.upgradeWizardView', function () {
       });
       view.propertyDidChange('isFinalizeItem');
       expect(view.get('isFinalizeItem')).to.be.true;
+    });
+  });
+
+  describe("#failedHosts", function() {
+    beforeEach(function () {
+      sinon.stub(App.RepositoryVersion, 'find').returns([Em.Object.create({
+        displayName: 'HDP-1',
+        notInstalledHosts: ['host1']
+      })]);
+      view.set('controller.upgradeVersion', 'HDP-1');
+    });
+    afterEach(function () {
+      App.RepositoryVersion.find.restore();
+    });
+    it("not resolve context", function() {
+      view.reopen({
+        manualItem: {
+          context: 'not resolve context'
+        }
+      });
+      view.propertyDidChange('isResolveHostsItem');
+      view.propertyDidChange('failedHosts');
+      expect(view.get('failedHosts')).to.be.empty;
+    });
+    it("host resolve context", function() {
+      view.reopen({
+        manualItem: {
+          context: 'Check Unhealthy Hosts'
+        }
+      });
+      view.propertyDidChange('isResolveHostsItem');
+      view.propertyDidChange('failedHosts');
+      expect(view.get('failedHosts')).to.eql(['host1']);
+    });
+  });
+
+  describe("#failedHostsMessage", function() {
+    it("", function() {
+      view.reopen({
+        failedHosts: ['host1']
+      });
+      view.propertyDidChange('failedHostsMessage');
+      expect(view.get('failedHostsMessage')).to.equal(Em.I18n.t('admin.stackUpgrade.failedHosts.showHosts').format(1));
     });
   });
 

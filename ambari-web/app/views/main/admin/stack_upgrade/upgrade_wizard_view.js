@@ -170,12 +170,47 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
+   * plain manual item
+   * @type {object|undefined}
+   */
+  plainManualItem: function () {
+    return this.get('manualItem') && ![this.get('controller.finalizeContext'), this.get('controller.resolveHostsContext')].contains(this.get('manualItem.context'));
+  }.property('manualItem.context'),
+
+  /**
    * indicate whether the step is Finalize
    * @type {boolean}
    */
   isFinalizeItem: function () {
     return this.get('manualItem.context') === this.get('controller.finalizeContext');
   }.property('manualItem.context'),
+
+  /**
+   * indicate whether the step is Resolve Hosts
+   * @type {boolean}
+   */
+  isResolveHostsItem: function () {
+    return this.get('manualItem.context') === this.get('controller.resolveHostsContext');
+  }.property('manualItem.context'),
+
+  /**
+   * hosts failed to be upgraded
+   * @type {Array}
+   */
+  failedHosts: function() {
+    if (this.get('isResolveHostsItem')) {
+      var version = App.RepositoryVersion.find().findProperty('displayName', this.get('controller.upgradeVersion'));
+      return version ? version.get('notInstalledHosts') : [];
+    }
+    return [];
+  }.property('isResolveHostsItem', 'controller.upgradeVersion', 'controller.isLoaded'),
+
+  /**
+   * @type {string}
+   */
+  failedHostsMessage: function() {
+    return Em.I18n.t('admin.stackUpgrade.failedHosts.showHosts').format(this.get('failedHosts.length'));
+  }.property('failedHosts'),
 
   /**
    * label of Upgrade status
@@ -214,6 +249,18 @@ App.upgradeWizardView = Em.View.extend({
       return "";
     }
   }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade', 'controller.isSuspended'),
+
+  /**
+   * load versions page
+   */
+  loadVersionPage: function () {
+    var controller = this.get('controller');
+    if (!controller.get('isLoaded') && App.get('clusterName')) {
+      controller.load().done(function () {
+        controller.set('isLoaded', true);
+      });
+    }
+  }.observes('App.clusterName'),
 
   /**
    * toggle details box
@@ -360,9 +407,18 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   pauseUpgrade: function() {
-    if (this.get('isFinalizeItem')) {
+    if (this.get('isFinalizeItem') || this.get('isResolveHostsItem')) {
       this.get('controller').suspendUpgrade();
     }
     this.get('parentView').closeWizard();
+  },
+
+  showFailedHosts: function() {
+    return App.ModalPopup.show({
+      content: this.get('failedHosts').join(", "),
+      header: Em.I18n.t('common.hosts'),
+      bodyClass: App.SelectablePopupBodyView,
+      secondary: null
+    });
   }
 });
