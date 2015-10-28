@@ -2920,19 +2920,7 @@ public class ClusterImpl implements Cluster {
       try {
         StackId stackId = this.getCurrentStackVersion();
         StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-        Collection<ServiceInfo> services = stackInfo.getServices();
-        for (ServiceInfo serviceInfo : services) {
-          for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
-            if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
-              Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
-              for (PropertyInfo.PropertyType propertyType : types) {
-                if (!propertiesTypes.containsKey(propertyType))
-                  propertiesTypes.put(propertyType, new HashSet<String>());
-                propertiesTypes.get(propertyType).add(propertyInfo.getName());
-              }
-            }
-          }
-        }
+        propertiesTypes = stackInfo.getConfigPropertiesTypes(configType);
       } catch (Exception e) {
 
       }

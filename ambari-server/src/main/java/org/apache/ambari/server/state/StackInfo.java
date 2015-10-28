@@ -436,4 +436,23 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     }
     return result;
   }
+
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType) {
+    Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = new HashMap<>();
+    Collection<ServiceInfo> services = getServices();
+    for (ServiceInfo serviceInfo : services) {
+      for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
+        if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
+          Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
+          for (PropertyInfo.PropertyType propertyType : types) {
+            if (!propertiesTypes.containsKey(propertyType))
+              propertiesTypes.put(propertyType, new HashSet<String>());
+            propertiesTypes.get(propertyType).add(propertyInfo.getName());
+          }
+        }
+      }
+    }
+    return propertiesTypes;
+  }
+
 }
