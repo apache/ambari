@@ -95,7 +95,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
 
     processServiceComponentHosts(cluster, kerberosDescriptor, schToProcess, identityFilter, dataDirectory, kerberosConfigurations);
 
-    if("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
+    if ("true".equalsIgnoreCase(getCommandParameterValue(commandParameters, UPDATE_CONFIGURATIONS))) {
       processAuthToLocalRules(cluster, kerberosDescriptor, schToProcess, kerberosConfigurations, getDefaultRealm(commandParameters));
       processConfigurationChanges(dataDirectory, kerberosConfigurations);
     }
@@ -113,7 +113,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
   }
 
   /**
-   * Calls {@link KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, KerberosHelper.Command)}
+   * Calls {@link KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, Collection, KerberosHelper.Command)}
    * with no filter on ServiceComponentHosts
    * <p/>
    * The <code>shouldProcessCommand</code> implementation passed to KerberosHelper#getServiceComponentHostsToProcess
@@ -121,10 +121,9 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
    *
    * @param cluster            the cluster
    * @param kerberosDescriptor the current Kerberos descriptor
-   * @param identityFilter     a list of identities to include, or all if null
-   * @return the list of ServiceComponentHosts to process
+   * @param identityFilter     a list of identities to include, or all if null  @return the list of ServiceComponentHosts to process
    * @throws AmbariException
-   * @see KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, KerberosHelper.Command)
+   * @see KerberosHelper#getServiceComponentHostsToProcess(Cluster, KerberosDescriptor, Map, Collection, Collection, KerberosHelper.Command)
    */
   protected List<ServiceComponentHost> getServiceComponentHostsToProcess(Cluster cluster,
                                                                          KerberosDescriptor kerberosDescriptor,
@@ -133,7 +132,7 @@ public class PrepareKerberosIdentitiesServerAction extends AbstractPrepareKerber
     return kerberosHelper.getServiceComponentHostsToProcess(cluster,
         kerberosDescriptor,
         getServiceComponentFilter(),
-        identityFilter,
+        getHostFilter(), identityFilter,
         new KerberosHelper.Command<Boolean, ServiceComponentHost>() {
           @Override
           public Boolean invoke(ServiceComponentHost sch) throws AmbariException {

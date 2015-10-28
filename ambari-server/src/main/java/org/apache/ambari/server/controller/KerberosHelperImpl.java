@@ -209,10 +209,10 @@ public class KerberosHelperImpl implements KerberosHelper {
 
     if (securityType == SecurityType.KERBEROS) {
       LOG.info("Configuring Kerberos for realm {} on cluster, {}", kerberosDetails.getDefaultRealm(), cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, requestStageContainer, new EnableKerberosHandler());
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, null, requestStageContainer, new EnableKerberosHandler());
     } else if (securityType == SecurityType.NONE) {
       LOG.info("Disabling Kerberos from cluster, {}", cluster.getClusterName());
-      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, requestStageContainer, new DisableKerberosHandler());
+      requestStageContainer = handle(cluster, kerberosDetails, null, null, null, null, requestStageContainer, new DisableKerberosHandler());
     } else {
       throw new AmbariException(String.format("Unexpected security type value: %s", securityType.name()));
     }
@@ -249,7 +249,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
               if (handler != null) {
                 requestStageContainer = handle(cluster, getKerberosDetails(cluster, manageIdentities),
-                    null, null, null, requestStageContainer, handler);
+                    null, null, null, null, requestStageContainer, handler);
               } else {
                 throw new AmbariException(String.format("Unexpected directive value: %s", value));
               }
@@ -269,20 +269,20 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   @Override
   public RequestStageContainer ensureIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                Collection<String> identityFilter, Set<String> hostsToForceKerberosOperations,
+                                                Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsToForceKerberosOperations,
                                                 RequestStageContainer requestStageContainer, Boolean manageIdentities)
       throws AmbariException, KerberosOperationException {
-    return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, identityFilter,
+    return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, hostFilter, identityFilter,
         hostsToForceKerberosOperations, requestStageContainer, new CreatePrincipalsAndKeytabsHandler(false, false));
   }
 
   @Override
   public RequestStageContainer deleteIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                Collection<String> identityFilter, RequestStageContainer requestStageContainer,
+                                                Set<String> hostFilter, Collection<String> identityFilter, RequestStageContainer requestStageContainer,
                                                 Boolean manageIdentities)
       throws AmbariException, KerberosOperationException {
-    return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, identityFilter, null,
-        requestStageContainer, new DeletePrincipalsAndKeytabsHandler());
+    return handle(cluster, getKerberosDetails(cluster, manageIdentities), serviceComponentFilter, hostFilter, identityFilter,
+        null, requestStageContainer, new DeletePrincipalsAndKeytabsHandler());
   }
 
   @Override
@@ -458,7 +458,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   public List<ServiceComponentHost> getServiceComponentHostsToProcess(Cluster cluster,
                                                                       KerberosDescriptor kerberosDescriptor,
                                                                       Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                                      Collection<String> identityFilter,
+                                                                      Collection<String> hostFilter, Collection<String> identityFilter,
                                                                       Command<Boolean, ServiceComponentHost> shouldProcessCommand)
       throws AmbariException {
     List<ServiceComponentHost> serviceComponentHostsToProcess = new ArrayList<ServiceComponentHost>();
@@ -474,28 +474,31 @@ public class KerberosHelperImpl implements KerberosHelper {
         for (Host host : hosts) {
           String hostname = host.getHostName();
 
-          // Get a list of components on the current host
-          List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
+          // Filter hosts as needed....
+          if ((hostFilter == null) || hostFilter.contains(hostname)) {
+            // Get a list of components on the current host
+            List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
 
-          if ((serviceComponentHosts != null) && !serviceComponentHosts.isEmpty()) {
+            if ((serviceComponentHosts != null) && !serviceComponentHosts.isEmpty()) {
 
-            // Iterate over the components installed on the current host to get the service and
-            // component-level Kerberos descriptors in order to determine which principals,
-            // keytab files, and configurations need to be created or updated.
-            for (ServiceComponentHost sch : serviceComponentHosts) {
-              String serviceName = sch.getServiceName();
-              String componentName = sch.getServiceComponentName();
+              // Iterate over the components installed on the current host to get the service and
+              // component-level Kerberos descriptors in order to determine which principals,
+              // keytab files, and configurations need to be created or updated.
+              for (ServiceComponentHost sch : serviceComponentHosts) {
+                String serviceName = sch.getServiceName();
+                String componentName = sch.getServiceComponentName();
 
-              // If there is no filter or the filter contains the current service name...
-              if ((serviceComponentFilter == null) || serviceComponentFilter.containsKey(serviceName)) {
-                Collection<String> componentFilter = (serviceComponentFilter == null) ? null : serviceComponentFilter.get(serviceName);
-                KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
+                // If there is no filter or the filter contains the current service name...
+                if ((serviceComponentFilter == null) || serviceComponentFilter.containsKey(serviceName)) {
+                  Collection<String> componentFilter = (serviceComponentFilter == null) ? null : serviceComponentFilter.get(serviceName);
+                  KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
 
-                if (serviceDescriptor != null) {
-                  // If there is no filter or the filter contains the current component name,
-                  // test to see if this component should be processed by querying the handler...
-                  if (((componentFilter == null) || componentFilter.contains(componentName)) && shouldProcessCommand.invoke(sch)) {
-                    serviceComponentHostsToProcess.add(sch);
+                  if (serviceDescriptor != null) {
+                    // If there is no filter or the filter contains the current component name,
+                    // test to see if this component should be processed by querying the handler...
+                    if (((componentFilter == null) || componentFilter.contains(componentName)) && shouldProcessCommand.invoke(sch)) {
+                      serviceComponentHostsToProcess.add(sch);
+                    }
                   }
                 }
               }
@@ -1021,6 +1024,9 @@ public class KerberosHelperImpl implements KerberosHelper {
    * @param serviceComponentFilter         a Map of service names to component names indicating the relevant
    *                                       set of services and components - if null, no filter is relevant;
    *                                       if empty, the filter indicates no relevant services or components
+   * @param hostFilter                     a set of hostname indicating the set of hosts to process -
+   *                                       if null, no filter is relevant; if empty, the filter indicates no
+   *                                       relevant hosts
    * @param identityFilter                 a Collection of identity names indicating the relevant identities -
    *                                       if null, no filter is relevant; if empty, the filter indicates no
    *                                       relevant identities
@@ -1043,7 +1049,7 @@ public class KerberosHelperImpl implements KerberosHelper {
   private RequestStageContainer handle(Cluster cluster,
                                        KerberosDetails kerberosDetails,
                                        Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                       Collection<String> identityFilter,
+                                       Set<String> hostFilter, Collection<String> identityFilter,
                                        Set<String> hostsToForceKerberosOperations,
                                        RequestStageContainer requestStageContainer,
                                        final Handler handler)
@@ -1056,6 +1062,7 @@ public class KerberosHelperImpl implements KerberosHelper {
         cluster,
         kerberosDescriptor,
         serviceComponentFilter,
+        hostFilter,
         identityFilter,
         new Command<Boolean, ServiceComponentHost>() {
           @Override
@@ -1122,7 +1129,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     // Use the handler implementation to setup the relevant stages.
     handler.createStages(cluster, clusterHostInfoJson,
         hostParamsJson, event, roleCommandOrder, kerberosDetails, dataDirectory,
-        requestStageContainer, schToProcess, serviceComponentFilter, identityFilter,
+        requestStageContainer, schToProcess, serviceComponentFilter, hostFilter, identityFilter,
         hostsWithValidKerberosClient);
 
     // Add the finalize stage...
@@ -1366,7 +1373,7 @@ public class KerberosHelperImpl implements KerberosHelper {
           handler.createStages(cluster,
               clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, kerberosDetails,
               dataDirectory, requestStageContainer, serviceComponentHostsToProcess,
-              Collections.<String, Collection<String>>emptyMap(), null, hostsWithValidKerberosClient);
+              Collections.<String, Collection<String>>emptyMap(), null, null, hostsWithValidKerberosClient);
 
 
           handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
@@ -1915,6 +1922,9 @@ public class KerberosHelperImpl implements KerberosHelper {
      * @param serviceComponentFilter a Map of service names to component names indicating the relevant
      *                               set of services and components - if null, no filter is relevant;
      *                               if empty, the filter indicates no relevant services or components
+     * @param hostFilter             a set of hostname indicating the set of hosts to process -
+     *                               if null, no filter is relevant; if empty, the filter indicates no
+     *                               relevant hosts
      * @param identityFilter         a Collection of identity names indicating the relevant identities -
      *                               if null, no filter is relevant; if empty, the filter indicates no
      *                               relevant identities
@@ -1928,8 +1938,10 @@ public class KerberosHelperImpl implements KerberosHelper {
                                KerberosDetails kerberosDetails, File dataDirectory,
                                RequestStageContainer requestStageContainer,
                                List<ServiceComponentHost> serviceComponentHosts,
-                               Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
-        throws AmbariException;
+                               Map<String, ? extends Collection<String>> serviceComponentFilter,
+                               Set<String> hostFilter, Collection<String> identityFilter,
+                               Set<String> hostsWithValidKerberosClient)
+    throws AmbariException;
 
 
     public void addPrepareEnableKerberosOperationsStage(Cluster cluster, String clusterHostInfoJson,
@@ -2300,7 +2312,8 @@ public class KerberosHelperImpl implements KerberosHelper {
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
                              List<ServiceComponentHost> serviceComponentHosts,
-                             Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
+                             Map<String, ? extends Collection<String>> serviceComponentFilter,
+                             Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals, keytabs, and configurations to process, setup the following sages:
       //  1) prepare identities
@@ -2328,6 +2341,9 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
       if (serviceComponentFilter != null) {
         commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
+      }
+      if (hostFilter != null) {
+        commandParameters.put(KerberosServerAction.HOST_FILTER, StageUtils.getGson().toJson(hostFilter));
       }
       if (identityFilter != null) {
         commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
@@ -2412,7 +2428,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
                              List<ServiceComponentHost> serviceComponentHosts,
-                             Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient) throws AmbariException {
+                             Map<String, ? extends Collection<String>> serviceComponentFilter, Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient) throws AmbariException {
       //  1) revert configurations
 
       // If a RequestStageContainer does not already exist, create a new one...
@@ -2434,6 +2450,9 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
       if (serviceComponentFilter != null) {
         commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
+      }
+      if (hostFilter != null) {
+        commandParameters.put(KerberosServerAction.HOST_FILTER, StageUtils.getGson().toJson(hostFilter));
       }
       if (identityFilter != null) {
         commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
@@ -2541,7 +2560,8 @@ public class KerberosHelperImpl implements KerberosHelper {
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
                              List<ServiceComponentHost> serviceComponentHosts,
-                             Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
+                             Map<String, ? extends Collection<String>> serviceComponentFilter,
+                             Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
       // If there are principals and keytabs to process, setup the following sages:
       //  1) prepare identities
@@ -2568,6 +2588,9 @@ public class KerberosHelperImpl implements KerberosHelper {
       }
       if (serviceComponentFilter != null) {
         commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
+      }
+      if (hostFilter != null) {
+        commandParameters.put(KerberosServerAction.HOST_FILTER, StageUtils.getGson().toJson(hostFilter));
       }
       if (identityFilter != null) {
         commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
@@ -2654,7 +2677,7 @@ public class KerberosHelperImpl implements KerberosHelper {
                              RoleCommandOrder roleCommandOrder, KerberosDetails kerberosDetails,
                              File dataDirectory, RequestStageContainer requestStageContainer,
                              List<ServiceComponentHost> serviceComponentHosts,
-                             Map<String, ? extends Collection<String>> serviceComponentFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
+                             Map<String, ? extends Collection<String>> serviceComponentFilter, Set<String> hostFilter, Collection<String> identityFilter, Set<String> hostsWithValidKerberosClient)
         throws AmbariException {
 
       // If a RequestStageContainer does not already exist, create a new one...
@@ -2680,6 +2703,9 @@ public class KerberosHelperImpl implements KerberosHelper {
         }
         if (serviceComponentFilter != null) {
           commandParameters.put(KerberosServerAction.SERVICE_COMPONENT_FILTER, StageUtils.getGson().toJson(serviceComponentFilter));
+        }
+        if (hostFilter != null) {
+          commandParameters.put(KerberosServerAction.HOST_FILTER, StageUtils.getGson().toJson(hostFilter));
         }
         if (identityFilter != null) {
           commandParameters.put(KerberosServerAction.IDENTITY_FILTER, StageUtils.getGson().toJson(identityFilter));
