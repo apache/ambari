@@ -133,6 +133,9 @@ public interface KerberosHelper {
    *                                       relevant set of services and components - if null, no
    *                                       filter is relevant; if empty, the filter indicates no
    *                                       relevant services or components
+   * @param hostFilter                     a set of hostname indicating the set of hosts to process -
+   *                                       if null, no filter is relevant; if empty, the filter
+   *                                       indicates no relevant hosts
    * @param identityFilter                 a Collection of identity names indicating the relevant
    *                                       identities - if null, no filter is relevant; if empty,
    *                                       the filter indicates no relevant identities
@@ -155,8 +158,9 @@ public interface KerberosHelper {
    *                                               Kerberos-specific configuration details
    */
   RequestStageContainer ensureIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                         Collection<String> identityFilter, Set<String> hostsToForceKerberosOperations,
-                                         RequestStageContainer requestStageContainer, Boolean manageIdentities)
+                                         Set<String> hostFilter, Collection<String> identityFilter,
+                                         Set<String> hostsToForceKerberosOperations, RequestStageContainer requestStageContainer,
+                                         Boolean manageIdentities)
       throws AmbariException, KerberosOperationException;
 
   /**
@@ -177,6 +181,9 @@ public interface KerberosHelper {
    * @param serviceComponentFilter a Map of service names to component names indicating the relevant
    *                               set of services and components - if null, no filter is relevant;
    *                               if empty, the filter indicates no relevant services or components
+   * @param hostFilter             a set of hostname indicating the set of hosts to process -
+   *                               if null, no filter is relevant; if empty, the filter
+   *                               indicates no relevant hosts
    * @param identityFilter         a Collection of identity names indicating the relevant identities -
    *                               if null, no filter is relevant; if empty, the filter indicates no
    *                               relevant identities
@@ -193,8 +200,8 @@ public interface KerberosHelper {
    *                                               Kerberos-specific configuration details
    */
   RequestStageContainer deleteIdentities(Cluster cluster, Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                         Collection<String> identityFilter, RequestStageContainer requestStageContainer,
-                                         Boolean manageIdentities)
+                                         Set<String> hostFilter, Collection<String> identityFilter,
+                                         RequestStageContainer requestStageContainer, Boolean manageIdentities)
       throws AmbariException, KerberosOperationException;
 
   /**
@@ -266,10 +273,30 @@ public interface KerberosHelper {
                            Map<String, Map<String, String>> kerberosConfigurations)
       throws AmbariException;
 
+  /**
+   * @param cluster                the cluster
+   * @param kerberosDescriptor     the current Kerberos descriptor
+   * @param serviceComponentFilter a Map of service names to component names indicating the
+   *                               relevant set of services and components - if null, no
+   *                               filter is relevant; if empty, the filter indicates no
+   *                               relevant services or components
+   * @param hostFilter             a set of hostname indicating the set of hosts to process -
+   *                               if null, no filter is relevant; if empty, the filter
+   *                               indicates no relevant hosts
+   * @param identityFilter         a Collection of identity names indicating the relevant
+   *                               identities - if null, no filter is relevant; if empty,
+   *                               the filter indicates no relevant identities
+   * @param shouldProcessCommand   a Command implementation to determine if the relevant component
+   *                               is in a state in which is should be process for the current
+   *                               Kerberos operation.
+   * @return a list of ServiceComponentHost instances and should be processed during the relevant
+   * Kerberos operation.
+   * @throws AmbariException
+   */
   List<ServiceComponentHost> getServiceComponentHostsToProcess(Cluster cluster,
                                                                KerberosDescriptor kerberosDescriptor,
                                                                Map<String, ? extends Collection<String>> serviceComponentFilter,
-                                                               Collection<String> identityFilter,
+                                                               Collection<String> hostFilter, Collection<String> identityFilter,
                                                                Command<Boolean, ServiceComponentHost> shouldProcessCommand)
       throws AmbariException;
 
@@ -423,10 +450,10 @@ public interface KerberosHelper {
   /**
    * Sets the previously stored KDC administrator credentials.
    *
+   * @param clusterName the name of the relevant cluster
    * @return a PrincipalKeyCredential or null, if the KDC administrator credentials have not be set or
    * have been removed
    * @throws AmbariException if an error occurs while retrieving the credentials
-   * @param clusterName
    */
   PrincipalKeyCredential getKDCAdministratorCredentials(String clusterName) throws AmbariException;
 

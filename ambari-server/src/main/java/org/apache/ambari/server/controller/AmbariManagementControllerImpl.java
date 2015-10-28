@@ -2497,6 +2497,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
       if (!componentsToEnableKerberos.isEmpty()) {
         Map<String, Collection<String>> serviceFilter = new HashMap<String, Collection<String>>();
+        Set<String> hostFilter = new HashSet<String>();
 
         for (ServiceComponentHost scHost : componentsToEnableKerberos) {
           String serviceName = scHost.getServiceName();
@@ -2508,10 +2509,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
 
           componentFilter.add(scHost.getServiceComponentName());
+          hostFilter.add(scHost.getHostName());
         }
 
         try {
-          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, hostsToForceKerberosOperations, requestStages,
+          kerberosHelper.ensureIdentities(cluster, serviceFilter, hostFilter, null, hostsToForceKerberosOperations, requestStages,
               kerberosHelper.getManageIdentitiesDirective(requestProperties));
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);

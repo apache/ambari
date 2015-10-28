@@ -91,7 +91,7 @@ public class PrepareDisableKerberosServerAction extends AbstractPrepareKerberosS
     List<ServiceComponentHost> schToProcess = kerberosHelper.getServiceComponentHostsToProcess(cluster,
         kerberosDescriptor,
         getServiceComponentFilter(),
-        identityFilter,
+        null, identityFilter,
         new KerberosHelper.Command<Boolean, ServiceComponentHost>() {
           @Override
           public Boolean invoke(ServiceComponentHost sch) throws AmbariException {
