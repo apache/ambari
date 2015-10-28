@@ -429,25 +429,97 @@ class ActionScheduler implements Runnable {
   }
 
   /**
-   * Returns filtered list of stages following the rule:
-   * 1) remove stages that has the same host. Leave only first stage, the rest that have same host of any operation will be filtered
-   * 2) do not remove stages intersected by host if they have intersection by background command
-   * @param stages
-   * @return
+   * Returns filtered list of stages such that the returned list is an ordered list of stages that may
+   * be executed in parallel or in the order in which they are presented
+   * <p/>
+   * Assumption: the list of stages supplied as input are ordered by request id and then stage id.
+   * <p/>
+   * Rules:
+   * <ul>
+   * <li>
+   * Stages are filtered such that the first stage in the list (assumed to be the first pending
+   * stage from the earliest active request) has priority
+   * </li>
+   * <li>
+   * No stage in any request may be executed before an earlier stage in the same request
+   * </li>
+   * <li>
+   * A stages in different requests may be performed in parallel if the relevant hosts for the
+   * stage in the later requests do not intersect with the union of hosts from (pending) stages
+   * in earlier requests
+   * </li>
+   * </ul>
+   *
+   * @param stages the stages to process
+   * @return a list of stages that may be executed in parallel
    */
   private List<Stage> filterParallelPerHostStages(List<Stage> stages) {
     List<Stage> retVal = new ArrayList<Stage>();
     Set<String> affectedHosts = new HashSet<String>();
-    for(Stage s : stages){
+    Set<Long> affectedRequests = new HashSet<Long>();
+
+    for (Stage s : stages) {
+      long requestId = s.getRequestId();
+
+      if (LOG.isTraceEnabled()) {
+        LOG.trace("==> Processing stage: {}/{} ({}) for {}", requestId, s.getStageId(), s.getRequestContext());
+      }
+
+      boolean addStage = true;
+
+      // Iterate over the relevant hosts for this stage to see if any intersect with the set of
+      // hosts needed for previous stages.  If any intersection occurs, this stage may not be
+      // executed in parallel.
       for (String host : s.getHosts()) {
-        if (!affectedHosts.contains(host)) {
-          if(!isStageHasBackgroundCommandsOnly(s, host)){
+        LOG.trace("===> Processing Host {}", host);
+
+        if (affectedHosts.contains(host)) {
+          if (LOG.isTraceEnabled()) {
+            LOG.trace("===>  Skipping stage since it utilizes at least one host that a previous stage requires: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
+          }
+
+          addStage &= false;
+        } else {
+          if (!Stage.INTERNAL_HOSTNAME.equalsIgnoreCase(host) && !isStageHasBackgroundCommandsOnly(s, host)) {
+            LOG.trace("====>  Adding host to affected hosts: {}", host);
             affectedHosts.add(host);
           }
-          retVal.add(s);
+
+          addStage &= true;
         }
       }
+
+      // If this stage is for a request that we have already processed, the it cannot execute in
+      // parallel since only one stage per request my execute at a time. The first time we encounter
+      // a request id, will be for the first pending stage for that request, so it is a candidate
+      // for execution at this time - if the previous test for host intersection succeeds.
+      if (affectedRequests.contains(requestId)) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("===>  Skipping stage since the request it is in has been processed already: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
+        }
+
+        addStage = false;
+      } else {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("====>  Adding request to affected requests: {}", requestId);
+        }
+
+        affectedRequests.add(requestId);
+        addStage &= true;
+      }
+
+      // If both tests pass - the stage is the first pending stage in its request and the hosts
+      // required in the stage do not intersect with hosts from stages that should occur before this,
+      // than add it to the list of stages that may be executed in parallel.
+      if (addStage) {
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("===>  Adding stage to return value: {}/{} ({})", s.getRequestId(), s.getStageId(), s.getRequestContext());
+        }
+
+        retVal.add(s);
+      }
     }
+
     return retVal;
   }
 

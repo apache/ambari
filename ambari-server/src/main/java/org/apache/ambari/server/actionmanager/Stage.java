@@ -63,7 +63,7 @@ public class Stage {
    * don't want stages getting confused with Ambari vs cluster hosts, so
    * don't use {@link StageUtils#getHostName()}
    */
-  private static final String INTERNAL_HOSTNAME = "_internal_ambari";
+  public static final String INTERNAL_HOSTNAME = "_internal_ambari";
 
   private static Logger LOG = LoggerFactory.getLogger(Stage.class);
   private final long requestId;
