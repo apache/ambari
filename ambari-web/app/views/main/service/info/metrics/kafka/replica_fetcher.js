@@ -32,13 +32,10 @@ App.ChartServiceMetricsKafka_ReplicaFetcher = App.ChartLinearTimeView.extend({
   renderer: 'line',
   ajaxIndex: 'service.metrics.kafka.server.ReplicaFetcherManager',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var seriesData = Em.get(jsonData, 'metrics.kafka.server.ReplicaFetcherManager.Replica-MaxLag');
-    if (seriesData != null) {
-      var displayName = Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaFetcherManager.displayNames.Replica-MaxLag');
-      seriesArray.push(this.transformData(seriesData, displayName));
+  seriesTemplate: {
+    path: 'metrics.kafka.server.ReplicaFetcherManager',
+    displayName: function () {
+      return Em.I18n.t('services.service.info.metrics.kafka.server.ReplicaFetcherManager.displayNames.Replica-MaxLag');
     }
-    return seriesArray;
   }
 });

@@ -29,21 +29,28 @@ var App = require('app');
 App.ChartServiceMetricsAMS_RegionServerBaseView = App.ChartLinearTimeView.extend({
   displayName: '',
   regionServerName: '',
+  seriesTemplate: {
+    path: 'metrics.hbase.regionserver'
+  },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.hbase && jsonData.metrics.hbase.regionserver) {
-      for (var name in jsonData.metrics.hbase.regionserver) {
-        var displayName,
-            seriesData = jsonData.metrics.hbase.regionserver[name];
+  getData: function (jsonData) {
+    var dataArray = [],
+      template = this.get('seriesTemplate'),
+      data = Em.get(jsonData, template.path);
+    if (data) {
+      for (var name in data) {
         if (name === this.get('regionServerName')) {
-          displayName = this.get('displayName');
-          if (seriesData) {
-            seriesArray.push(this.transformData(seriesData, displayName));
+          var displayName = this.get('displayName'),
+            currentData = data[name];
+          if (currentData) {
+            dataArray.push({
+              name: displayName,
+              data: currentData
+            });
           }
         }
       }
     }
-    return seriesArray;
+    return dataArray;
   }
 });

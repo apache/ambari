@@ -32,27 +32,18 @@ App.ChartServiceMetricsKafka_ControllerStatus = App.ChartLinearTimeView.extend({
   renderer: 'line',
   ajaxIndex: 'service.metrics.kafka.controller.ControllerStats',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (Em.get(jsonData, 'metrics.kafka.controller.ControllerStats')) {
-      for (var name in Em.get(jsonData, 'metrics.kafka.controller.ControllerStats')) {
-        var displayName = null;
-        var seriesData = Em.get(jsonData, 'metrics.kafka.controller.ControllerStats.' + name + '.1MinuteRate');
-        switch (name) {
-          case "LeaderElectionRateAndTimeMs":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.controller.ControllerStats.displayNames.LeaderElectionRateAndTimeMs');
-            break;
-          case "UncleanLeaderElectionsPerSec":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.controller.ControllerStats.displayNames.UncleanLeaderElectionsPerSec');
-            break;
-          default:
-            break;
-        }
-        if (seriesData != null && displayName) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.kafka.controller.ControllerStats',
+    displayName: function (name) {
+      var displayNameMap = {
+        LeaderElectionRateAndTimeMs: Em.I18n.t('services.service.info.metrics.kafka.controller.ControllerStats.displayNames.LeaderElectionRateAndTimeMs'),
+        UncleanLeaderElectionsPerSec: Em.I18n.t('services.service.info.metrics.kafka.controller.ControllerStats.displayNames.UncleanLeaderElectionsPerSec')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
+  },
+
+  getData: function (jsonData) {
+    return this.getKafkaData(jsonData);
   }
 });

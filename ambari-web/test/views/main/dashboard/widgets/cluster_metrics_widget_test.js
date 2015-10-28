@@ -28,61 +28,25 @@ describe('App.ClusterMetricsDashboardWidgetView', function () {
     view = App.ClusterMetricsDashboardWidgetView.create();
   });
 
-  describe('#exportGraphData', function () {
+  describe('#exportTargetView', function () {
+
+    var childViews = [
+        {
+          p0: 'v0'
+        },
+        {
+          p1: 'v1'
+        }
+      ],
+      title = 'should take last child view';
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-      view.get('childViews').pushObjects([
-        {
-          ajaxIndex: 'ai0',
-          getDataForAjaxRequest: function () {
-            return {
-              p0: 'v0'
-            }
-          }
-        },
-        {
-          ajaxIndex: 'ai1',
-          getDataForAjaxRequest: function () {
-            return {
-              p1: 'v1'
-            }
-          }
-        }
-      ]);
+      view.get('childViews').pushObjects(childViews);
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
+    it(title, function () {
+      expect(view.get('exportTargetView')).to.eql(childViews[1]);
     });
-
-    var cases = [
-      {
-        event: {},
-        isCSV: false,
-        title: 'JSON export'
-      },
-      {
-        event: {
-          context: true
-        },
-        isCSV: true,
-        title: 'CSV export'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.exportGraphData(item.event);
-        expect(App.ajax.send.calledOnce).to.be.true;
-        expect(App.ajax.send.firstCall.args[0].name).to.equal('ai1');
-        expect(App.ajax.send.firstCall.args[0].data).to.eql({
-          p1: 'v1',
-          isCSV: item.isCSV
-        });
-      });
-    });
-
   });
 
 });

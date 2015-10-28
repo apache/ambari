@@ -32,13 +32,10 @@ App.ChartServiceMetricsKafka_Controller = App.ChartLinearTimeView.extend({
   renderer: 'line',
   ajaxIndex: 'service.metrics.kafka.controller.KafkaController',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var seriesData = Em.get(jsonData, 'metrics.kafka.controller.KafkaController.ActiveControllerCount');
-    if (seriesData != null) {
-      var displayName = Em.I18n.t('services.service.info.metrics.kafka.controller.KafkaController.displayNames.ActiveControllerCount');
-      seriesArray.push(this.transformData(seriesData, displayName));
+  seriesTemplate: {
+    path: 'metrics.kafka.controller.KafkaController',
+    displayName: function () {
+      return Em.I18n.t('services.service.info.metrics.kafka.controller.KafkaController.displayNames.ActiveControllerCount');
     }
-    return seriesArray;
   }
 });

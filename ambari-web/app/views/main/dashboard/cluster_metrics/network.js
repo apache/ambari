@@ -36,18 +36,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',
-
-  transformToSeries : function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.network) {
-      for ( var name in jsonData.metrics.network) {
-        var displayName = name;
-        var seriesData = jsonData.metrics.network[name];
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
-    }
-    return seriesArray;
+  seriesTemplate: {
+    path: 'metrics.network'
   }
 });

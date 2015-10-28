@@ -22,6 +22,10 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
 
   templateName: require('templates/main/dashboard/widgets/cluster_metrics'),
 
+  exportTargetView: function () {
+    return this.get('childViews.lastObject');
+  }.property(),
+
   didInsertElement: function () {
     var self = this;
     this.$().on('mouseleave', function () {
@@ -29,20 +33,6 @@ App.ClusterMetricsDashboardWidgetView = App.DashboardWidgetView.extend(App.Expor
     });
     App.tooltip(this.$('.corner-icon > .icon-save'), {
       title: Em.I18n.t('common.export')
-    });
-  },
-
-  exportGraphData: function (event) {
-    this._super();
-    var ajaxIndex = this.get('childViews.lastObject.ajaxIndex');
-    App.ajax.send({
-      name: ajaxIndex,
-      data: $.extend(this.get('childViews.lastObject').getDataForAjaxRequest(), {
-        isCSV: !!event.context
-      }),
-      sender: this,
-      success: 'exportGraphDataSuccessCallback',
-      error: 'exportGraphDataErrorCallback'
     });
   }
 

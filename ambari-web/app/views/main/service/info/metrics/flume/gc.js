@@ -33,25 +33,14 @@ App.ChartServiceMetricsFlume_GarbageCollection = App.ChartLinearTimeView.extend(
 
   ajaxIndex: 'service.metrics.flume.gc',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    if (jsonData && jsonData.host_components) {
-      jsonData.host_components.forEach(function (hc) {
-        var hostName = hc.HostRoles.host_name;
-        var host = App.Host.find(hostName);
-        if (host && host.get('publicHostName')) {
-          hostName = host.get('publicHostName');
-        }
-        if (hc.metrics && hc.metrics.jvm && hc.metrics.jvm.gcTimeMillis) {
-          var seriesName = Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
-          var seriesData = hc.metrics.jvm.gcTimeMillis;
-          if (seriesData) {
-            seriesArray.push(self.transformData(seriesData, seriesName));
-          }
-        }
-      });
+  seriesTemplate: {
+    path: 'metrics.jvm.gcTimeMillis',
+    displayName: function (name, hostName) {
+      return Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
     }
-    return seriesArray;
+  },
+
+   getData: function (jsonData) {
+    return this.getFlumeData(jsonData);
   }
 });
