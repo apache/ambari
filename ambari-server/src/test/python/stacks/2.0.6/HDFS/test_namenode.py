@@ -95,7 +95,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
         security_enabled = False,
-        only_if=False,
+        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -112,7 +112,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         security_enabled = False,
-        only_if=False,
+        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -129,7 +129,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
-        only_if=False,
+        only_if=True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'wasb://abc@c6401.ambari.apache.org',
@@ -208,7 +208,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', '/tmp',
         security_enabled = False,
-        only_if = False,
+        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -225,7 +225,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         security_enabled = False,
-        only_if = False,
+        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -242,7 +242,7 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
-        only_if = False,
+        only_if = True,
         keytab = UnknownConfigurationMock(),
         hadoop_bin_dir = '/usr/bin',
         default_fs = 'hdfs://c6401.ambari.apache.org:8020',
@@ -354,7 +354,7 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0777,
-        only_if = False
+        only_if = True
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa',
         security_enabled = True,
@@ -368,11 +368,11 @@ class TestNamenode(RMFTestCase):
         type = 'directory',
         action = ['create_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name='hdfs', default_fs='hdfs://c6401.ambari.apache.org:8020',
         mode = 0770,
-        only_if = False
+        only_if = True
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
-        only_if = False,
+        only_if = True,
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         hadoop_bin_dir = '/usr/bin',
         kinit_path_local = '/usr/bin/kinit',
