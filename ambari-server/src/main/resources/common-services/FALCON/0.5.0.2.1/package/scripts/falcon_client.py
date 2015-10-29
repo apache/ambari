@@ -42,7 +42,8 @@ class FalconClientLinux(FalconClient):
     self.install_packages(env)
     self.configure(env)
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 

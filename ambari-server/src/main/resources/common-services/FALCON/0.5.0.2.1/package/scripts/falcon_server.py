@@ -35,24 +35,24 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class FalconServer(Script):
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    falcon('server', action='config')
+    falcon('server', action='config', upgrade_type=upgrade_type)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env)
-    falcon('server', action='start')
+    self.configure(env, upgrade_type=upgrade_type)
+    falcon('server', action='start', upgrade_type=upgrade_type)
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    falcon('server', action='stop')
+    falcon('server', action='stop', upgrade_type=upgrade_type)
 
-    # if performing an upgrade, backup some directories after stopping falcon
-    if rolling_restart:
+    # if performing an upgrade (ROLLING / NON_ROLLING), backup some directories after stopping falcon
+    if upgrade_type is not None:
       falcon_server_upgrade.post_stop_backup()
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -70,7 +70,8 @@ class FalconServerLinux(FalconServer):
     env.set_params(status_params)
     check_process_status(status_params.server_pid_file)
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
