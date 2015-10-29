@@ -62,17 +62,22 @@ describe('App.SubSection', function () {
           m: 'Can\'t be hidden if there is no configs'
         },
         {
-          configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}],
+          configs: [Em.Object.create({isHiddenByFilter: true, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
           e: true,
           m: 'All configs are hidden'
         },
         {
-          configs: [{isHiddenByFilter: false}, {isHiddenByFilter: true}],
+          configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
           e: false,
           m: 'Some configs are hidden'
         },
         {
-          configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}],
+          configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: true, isVisible: true})],
+          e: false,
+          m: 'Some configs are hidden'
+        },
+        {
+          configs: [Em.Object.create({isHiddenByFilter: false, isVisible: true}), Em.Object.create({isHiddenByFilter: false, isVisible: true})],
           e: false,
           m: 'No configs are hidden'
         }
