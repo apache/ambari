@@ -22,6 +22,10 @@ import os
 import sys
 
 from ambari_commons.exceptions import FatalException
+from ambari_server import serverConfiguration
+from ambari_server import dbConfiguration
+from ambari_server import setupSecurity
+from ambari_commons import os_utils
 from ambari_server.serverConfiguration import configDefaults, get_java_exe_path, get_ambari_properties, read_ambari_user, \
                                               parse_properties_file, JDBC_DATABASE_PROPERTY
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg
@@ -69,7 +73,7 @@ def update_host_names(args, options):
   if not os.access(host_mapping_file_path, os.R_OK):
     raise FatalException(1, "File is not readable")
 
-  jdk_path = get_java_exe_path()
+  jdk_path = serverConfiguration.get_java_exe_path()
 
   if jdk_path is None:
     print_error_msg("No JDK found, please run the \"setup\" "
@@ -77,22 +81,22 @@ def update_host_names(args, options):
                     "JDK manually to " + configDefaults.JDK_INSTALL_DIR)
     sys.exit(1)
 
-  properties = get_ambari_properties()
-  parse_properties_file(options)
+  properties = serverConfiguration.get_ambari_properties()
+  serverConfiguration.parse_properties_file(options)
   options.database_index = LINUX_DBMS_KEYS_LIST.index(properties[JDBC_DATABASE_PROPERTY])
 
-  ensure_jdbc_driver_is_installed(options, get_ambari_properties())
+  dbConfiguration.ensure_jdbc_driver_is_installed(options, serverConfiguration.get_ambari_properties())
 
-  serverClassPath = ServerClassPath(get_ambari_properties(), options)
+  serverClassPath = ServerClassPath(serverConfiguration.get_ambari_properties(), options)
   class_path = serverClassPath.get_full_ambari_classpath_escaped_for_shell()
 
   command = HOST_UPDATE_HELPER_CMD.format(jdk_path, class_path, host_mapping_file_path)
 
-  ambari_user = read_ambari_user()
-  current_user = ensure_can_start_under_current_user(ambari_user)
-  environ = generate_env(options, ambari_user, current_user)
+  ambari_user = serverConfiguration.read_ambari_user()
+  current_user = setupSecurity.ensure_can_start_under_current_user(ambari_user)
+  environ = setupSecurity.generate_env(options, ambari_user, current_user)
 
-  (retcode, stdout, stderr) = run_os_command(command, env=environ)
+  (retcode, stdout, stderr) = os_utils.run_os_command(command, env=environ)
   print_info_msg("Return code from update host names command, retcode = " + str(retcode))
 
   if retcode > 0:
