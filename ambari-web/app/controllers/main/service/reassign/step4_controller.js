@@ -18,7 +18,9 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
+
+  name: "reassignMasterWizardStep4Controller",
 
   commands: [
     'stopRequiredServices',
@@ -1000,7 +1002,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   testDBConnection: function() {
     this.prepareDBCheckAction();
-    // this.onTaskCompleted();
   },
 
   isComponentWithDB: function() {
@@ -1084,8 +1085,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   }.property('dbProperty'),
 
   prepareDBCheckAction: function() {
-    var ambariProperties = null;
-    var properties = this.get('content.serviceProperties');
     var params = this.get('preparedDBProperties');
 
     ambariProperties = App.router.get('clusterController.ambariProperties');

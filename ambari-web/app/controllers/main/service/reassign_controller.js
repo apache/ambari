@@ -23,7 +23,7 @@ App.ReassignMasterController = App.WizardController.extend({
 
   name: 'reassignMasterController',
 
-  totalSteps: 7,
+  totalSteps: 6,
 
   /**
    * Used for hiding back button in wizard
@@ -80,7 +80,9 @@ App.ReassignMasterController = App.WizardController.extend({
   ],
 
   addManualSteps: function () {
-    this.set('content.hasManualSteps', this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name')));
+    var hasManualSteps = this.get('content.componentsWithManualCommands').contains(this.get('content.reassign.component_name'));
+    this.set('content.hasManualSteps', hasManualSteps);
+    this.set('totalSteps', hasManualSteps ? 6 : 4);
   }.observes('content.reassign.component_name'),
 
   addCheckDBStep: function () {
@@ -234,6 +236,7 @@ App.ReassignMasterController = App.WizardController.extend({
         var manual = App.router.reassignMasterController.get('content.componentsWithManualCommands').without('OOZIE_SERVER');
         App.router.reassignMasterController.set('content.hasManualSteps', false);
         App.router.reassignMasterController.set('content.componentsWithManualCommands', manual);
+        this.set('totalSteps', 4);
       }
     }
   },

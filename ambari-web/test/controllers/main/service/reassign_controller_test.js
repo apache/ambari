@@ -26,8 +26,35 @@ describe('App.ReassignMasterController', function () {
   var reassignMasterController = App.ReassignMasterController.create({});
 
   describe('#totalSteps', function () {
-    it('check', function () {
-      expect(reassignMasterController.get('totalSteps')).to.equal(7);
+
+    var cases = [
+      {
+        componentName: 'ZOOKEEPER_SERVER',
+        result: 4
+      },
+      {
+        componentName: 'RESOURCE_MANAGER',
+        result: 4
+      },
+      {
+        componentName: 'OOZIE_SERVER',
+        result: 6
+      },
+      {
+        componentName: 'APP_TIMELINE_SERVER',
+        result: 6
+      },
+      {
+        componentName: 'NAMENODE',
+        result: 6
+      }
+    ];
+
+    cases.forEach(function (c) {
+      it('check ' + c.componentName, function () {
+        reassignMasterController.set('content.reassign', {'component_name': c.componentName});
+        expect(reassignMasterController.get('totalSteps')).to.equal(c.result);
+      });
     });
   });
 
