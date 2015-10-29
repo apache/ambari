@@ -1288,6 +1288,30 @@ class TestNamenode(RMFTestCase):
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+  @patch("utils.get_namenode_states")
+  def test_upgrade_restart_eu(self, get_namenode_states_mock):
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    mocks_dict = {}
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "restart",
+                       config_file = "nn_eu_standby.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       mocks_dict=mocks_dict)
+
+    # for now, just make sure hdfs bootstrap standby is called
+    found = False
+    for ca in mocks_dict['call'].call_args_list:
+      if str(ca[0][0]).startswith("/usr/hdp/2.3.2.0-2844/hadoop/bin/hdfs namenode -bootstrapStandby -nonInteractive"):
+        found = True
+
+    self.assertTrue(found)
+
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
