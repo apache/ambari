@@ -474,11 +474,13 @@ class GeneratorHelper(object):
 
   def copy_stacks(self):
     original_folder = os.path.join(self.resources_folder, 'stacks', self.config_data.baseStackName)
+    partial_target_folder = os.path.join(self.resources_folder, 'stacks', self.config_data.stackName)
     target_folder = os.path.join(self.output_folder, 'stacks', self.config_data.stackName)
 
     for stack in self.config_data.versions:
       original_stack = os.path.join(original_folder, stack.baseVersion)
       target_stack = os.path.join(target_folder, stack.version)
+      partial_target_stack = os.path.join(partial_target_folder, stack.version)
 
       desired_services = [service.name for service in stack.services]
       desired_services.append('stack_advisor.py')  # stack_advisor.py placed in stacks folder
@@ -530,8 +532,12 @@ class GeneratorHelper(object):
           process_other_files(target, self.config_data, self.stack_version_changes)
 
       copy_tree(original_stack, target_stack, ignored_files, post_copy=post_copy)
-      # copy default stack advisor
-      shutil.copy(os.path.join(self.resources_folder, 'stacks', 'stack_advisor.py'), os.path.join(target_folder, '../stack_advisor.py'))
+      # After generating target stack from base stack, overlay target stack partial definition defined under
+      # <resourceDir>/stacks/<targetStackName>/<targetStackVersion>
+      copy_tree(partial_target_stack, target_stack, ignored_files, post_copy=None)
+
+    # copy default stack advisor
+    shutil.copy(os.path.join(self.resources_folder, 'stacks', 'stack_advisor.py'), os.path.join(target_folder, '../stack_advisor.py'))
 
   def copy_common_services(self, common_services = []):
     ignored_files = ['.pyc']
