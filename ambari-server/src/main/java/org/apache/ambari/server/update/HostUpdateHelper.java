@@ -61,6 +61,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +119,14 @@ public class HostUpdateHelper {
     this.hostChangesFile = hostChangesFile;
   }
 
+  public Map<String, Map<String, String>> getHostChangesFileMap() {
+    return hostChangesFileMap;
+  }
+
+  public void setHostChangesFileMap(Map<String, Map<String, String>> hostChangesFileMap) {
+    this.hostChangesFileMap = hostChangesFileMap;
+  }
+
   /**
    * Extension of main controller module
    */
@@ -138,8 +147,8 @@ public class HostUpdateHelper {
   * Check cluster and hosts existence.
   * Check on valid structure of json.
   * */
-  private void validateHostChanges() throws AmbariException {
-    if (hostChangesFileMap == null && hostChangesFileMap.isEmpty()) {
+  void validateHostChanges() throws AmbariException {
+    if (hostChangesFileMap == null || hostChangesFileMap.isEmpty()) {
       throw new AmbariException(String.format("File with host names changes is null or empty"));
     }
 
@@ -181,11 +190,10 @@ public class HostUpdateHelper {
   * Method updates all properties in all configs,
   * which value contains hostname that should be updated
   * */
-  private void updateHostsInConfigurations() throws AmbariException {
+  void updateHostsInConfigurations() throws AmbariException {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
-    ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
 
     if (clusters != null) {
 
@@ -235,16 +243,18 @@ public class HostUpdateHelper {
     }
   }
 
+  /*
+  * Method replaces current hosts with new hosts in propertyValue
+  * */
   private String replaceHosts(String propertyValue, List<String> currentHostNames, Map<String,String> hostMapping) {
-    List<String> currentHostNamesWhichPropertyValueIncludes = new ArrayList<>();
-    List<String> hostListForReplace = new ArrayList<>();
+    List<String> hostListForReplace;
     String updatedPropertyValue = null;
 
-    currentHostNamesWhichPropertyValueIncludes = getHostNamesWhichValueIncludes(currentHostNames, propertyValue);
+    hostListForReplace = getHostNamesWhichValueIncludes(currentHostNames, propertyValue);
 
-    if (!currentHostNamesWhichPropertyValueIncludes.isEmpty() && hostMapping != null) {
-      // filter current hosts which are included in other hosts
-      hostListForReplace = filterHostNamesIncludedInOtherHostNames(currentHostNamesWhichPropertyValueIncludes);
+    if (!hostListForReplace.isEmpty() && hostMapping != null) {
+      // sort included hosts
+      Collections.sort(hostListForReplace, new StringComparator());
 
       updatedPropertyValue = propertyValue;
       // create map with replace codes, it will help us to replace every hostname only once
@@ -286,29 +296,12 @@ public class HostUpdateHelper {
   }
 
   /*
-  * Method returns filtered list of host names
-  * which are not includes each other
+  * String comparator. For sorting collection of strings from longer to shorter..
   * */
-  private List<String> filterHostNamesIncludedInOtherHostNames(List<String> hostNames) {
-    if (hostNames != null && !hostNames.isEmpty()) {
-      int includeCounter;
-      List<String> hostNamesToExclude = new ArrayList<>();
-      for (String hostNameToCheck : hostNames) {
-        includeCounter = 0;
-        for (String hostName : hostNames) {
-          if (StringUtils.contains(hostName, hostNameToCheck)) {
-            includeCounter++;
-          }
-        }
-        if (includeCounter > 1) {
-          hostNamesToExclude.add(hostNameToCheck);
-        }
-      }
+  public class StringComparator implements Comparator<String> {
 
-      hostNames.removeAll(hostNamesToExclude);
-      return hostNames;
-    } else {
-      return Collections.emptyList();
+    public int compare(String s1, String s2) {
+      return s2.length() - s1.length();
     }
   }
 
@@ -317,7 +310,7 @@ public class HostUpdateHelper {
   * If enabled for someone, then we will throw exception
   * and put message to log.
   * */
-  private void checkForSecurity() throws AmbariException {
+  void checkForSecurity() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
     List<String> clustersInSecure = new ArrayList<>();
@@ -362,7 +355,7 @@ public class HostUpdateHelper {
   /*
   * Method updates host names in db for hosts table..
   * */
-  private void updateHostsInDB() {
+  void updateHostsInDB() {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
 
@@ -392,7 +385,7 @@ public class HostUpdateHelper {
   * Method updates Current Alerts host name and
   * regenerates hash for alert definitions(for alerts to be recreated)
   * */
-  private void updateHostsForAlertsInDB() {
+  void updateHostsForAlertsInDB() {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     AlertsDAO alertsDAO = injector.getInstance(AlertsDAO.class);
     AlertDefinitionDAO alertDefinitionDAO = injector.getInstance(AlertDefinitionDAO.class);
@@ -434,7 +427,7 @@ public class HostUpdateHelper {
   /*
   * Method updates hosts for Topology Requests (Blue Prints logic)
   * */
-  private void updateHostsForTopologyRequests() {
+  void updateHostsForTopologyRequests() {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     TopologyRequestDAO topologyRequestDAO = injector.getInstance(TopologyRequestDAO.class);
     TopologyHostRequestDAO topologyHostRequestDAO = injector.getInstance(TopologyHostRequestDAO.class);
