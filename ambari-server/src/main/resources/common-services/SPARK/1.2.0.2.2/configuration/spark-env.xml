@@ -70,7 +70,7 @@
 # Generic options for the daemons used in the standalone deploy mode
 
 # Alternate conf dir. (Default: ${SPARK_HOME}/conf)
-export SPARK_CONF_DIR=${SPARK_CONF_DIR:-{{spark_home}}}/conf
+export SPARK_CONF_DIR=${SPARK_HOME:-{{spark_home}}}/conf
 
 # Where log files are stored.(Default:${SPARK_HOME}/logs)
 #export SPARK_LOG_DIR=${SPARK_HOME:-{{spark_home}}}/logs
