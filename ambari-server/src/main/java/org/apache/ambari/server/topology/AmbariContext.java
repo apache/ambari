@@ -18,15 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.Role;
@@ -67,6 +58,15 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Provides topology related information as well as access to the core Ambari functionality.
@@ -136,15 +136,15 @@ public class AmbariContext {
     return getController().getActionManager().getTaskById(id);
   }
 
-  public void createAmbariResources(ClusterTopology topology, String clusterName) {
+  public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
     Stack stack = topology.getBlueprint().getStack();
-    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion());
+    createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);
     createAmbariServiceAndComponentResources(topology, clusterName);
   }
 
-  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion) {
+  public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
-    ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, stackInfo, null);
+    ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
     try {
       getController().createCluster(clusterRequest);
     } catch (AmbariException e) {

@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.gson.Gson;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
@@ -25,15 +26,6 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceConfigVersionRequest;
 import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -45,7 +37,21 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.topology.*;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.TopologyRequestFactory;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -56,8 +62,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   // ----- Property ID constants ---------------------------------------------
 
   // Clusters
-  public static final String CLUSTER_ID_PROPERTY_ID      = PropertyHelper.getPropertyId("Clusters", "cluster_id");
-  public static final String CLUSTER_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Clusters", "cluster_name");
+  public static final String CLUSTER_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "cluster_id");
+  public static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "cluster_name");
   public static final String CLUSTER_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "version");
   public static final String CLUSTER_PROVISIONING_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "provisioning_state");
   public static final String CLUSTER_SECURITY_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "security_type");
@@ -67,6 +73,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   public static final String CLUSTER_HEALTH_REPORT_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "health_report");
   public static final String CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID = PropertyHelper.getPropertyId("Clusters", "credential_store_properties");
   public static final String BLUEPRINT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "blueprint");
+  public static final String SECURITY_PROPERTY_ID = PropertyHelper.getPropertyId(null, "security");
+  public static final String CREDENTIALS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "credentials");
   public static final String SESSION_ATTRIBUTES_PROPERTY_ID = "session_attributes";
 
   /**
@@ -90,6 +98,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   private static TopologyRequestFactory topologyRequestFactory;
 
   /**
+   * Used to create SecurityConfiguration instances
+   */
+  private static SecurityConfigurationFactory securityConfigurationFactory;
+
+  /**
    * The cluster primary key properties.
    */
   private static Set<String> pkPropertyIds =
@@ -108,6 +121,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    */
   private static Set<String> propertyIds = new HashSet<String>();
 
+  /**
+   * Used to serialize to/from json.
+   */
+  private static Gson jsonSerializer;
+
 
   static {
     propertyIds.add(CLUSTER_ID_PROPERTY_ID);
@@ -122,6 +140,8 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     propertyIds.add(CLUSTER_CREDENTIAL_STORE_PROPERTIES_PROPERTY_ID);
     propertyIds.add(BLUEPRINT_PROPERTY_ID);
     propertyIds.add(SESSION_ATTRIBUTES_PROPERTY_ID);
+    propertyIds.add(SECURITY_PROPERTY_ID);
+    propertyIds.add(CREDENTIALS_PROPERTY_ID);
   }
 
 
@@ -149,7 +169,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     RequestStatusResponse createResponse = null;
     for (final Map<String, Object> properties : request.getProperties()) {
       if (isCreateFromBlueprint(properties)) {
-        createResponse = processBlueprintCreate(properties);
+        createResponse = processBlueprintCreate(properties, request.getRequestInfoProperties());
       } else {
         createClusterResource(properties);
       }
@@ -320,6 +340,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("host_groups");
     baseUnsupported.remove("default_password");
     baseUnsupported.remove("configurations");
+    baseUnsupported.remove("credentials");
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
@@ -329,14 +350,17 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
   /**
    * Inject the blueprint data access object which is used to obtain blueprint entities.
-   *
-   * @param manager         topology manager
+   *  @param manager         topology manager
    * @param requestFactory  request factory
+   * @param instance
    */
   //todo: proper static injection mechanism
-  public static void init(TopologyManager manager, TopologyRequestFactory requestFactory) {
+  public static void init(TopologyManager manager, TopologyRequestFactory requestFactory,
+                          SecurityConfigurationFactory securityFactory, Gson instance) {
     topologyManager = manager;
     topologyRequestFactory = requestFactory;
+    securityConfigurationFactory = securityFactory;
+    jsonSerializer = instance;
   }
 
 
@@ -451,6 +475,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    *
    * @param properties  request body properties
    *
+   * @param requestInfoProperties raw request body
    * @return asynchronous response information
    *
    * @throws ResourceAlreadyExistsException if cluster already exists
@@ -459,25 +484,36 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    * @throws NoSuchParentResourceException  if a necessary parent resource doesn't exist
    */
   @SuppressWarnings("unchecked")
-  private RequestStatusResponse processBlueprintCreate(Map<String, Object> properties)
+  private RequestStatusResponse processBlueprintCreate(Map<String, Object> properties, Map<String, String> requestInfoProperties)
       throws ResourceAlreadyExistsException, SystemException, UnsupportedPropertyException,
       NoSuchParentResourceException {
 
     LOG.info("Creating Cluster '" + properties.get(CLUSTER_NAME_PROPERTY_ID) +
         "' based on blueprint '" + String.valueOf(properties.get(BLUEPRINT_PROPERTY_ID)) + "'.");
 
+    String rawRequestBody = requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY);
+    Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
+
+    SecurityConfiguration securityConfiguration = securityConfigurationFactory.createSecurityConfigurationFromRequest
+      (rawBodyMap, false);
     ProvisionClusterRequest createClusterRequest;
     try {
-      createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties);
+      createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Cluster Creation Template: " + e, e);
+    }
+
+    if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.NONE &&
+        createClusterRequest.getBlueprint().getSecurity() != null && createClusterRequest.getBlueprint().getSecurity()
+        .getType() == SecurityType.KERBEROS) {
+      throw new IllegalArgumentException("Setting security to NONE is not allowed as security type in blueprint is set to KERBEROS!");
     }
 
     try {
       return topologyManager.provisionCluster(createClusterRequest);
     } catch (InvalidTopologyException e) {
       throw new IllegalArgumentException("Topology validation failed: " + e, e);
-    }  catch (AmbariException e) {
+    } catch (AmbariException e) {
       e.printStackTrace();
       throw new SystemException("Unknown exception when asking TopologyManager to provision cluster", e);
     }

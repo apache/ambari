@@ -389,6 +389,8 @@ CREATE TABLE requestschedulebatchrequest (
 
 CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
+  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  security_descriptor_reference VARCHAR(255),
   stack_id BIGINT NOT NULL,
   PRIMARY KEY(blueprint_name)
 );

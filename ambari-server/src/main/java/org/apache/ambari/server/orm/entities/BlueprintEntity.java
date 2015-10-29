@@ -18,21 +18,21 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import com.google.gson.Gson;
+import org.apache.ambari.server.state.SecurityType;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.persistence.Transient;
+import java.util.Collection;
 
 
 /**
@@ -49,6 +49,14 @@ public class BlueprintEntity {
       updatable = false, unique = true, length = 100)
   private String blueprintName;
 
+  @Basic
+  @Enumerated(value = EnumType.STRING)
+  @Column(name = "security_type", nullable = false, insertable = true, updatable = true)
+  private SecurityType securityType = SecurityType.NONE;
+
+  @Basic
+  @Column(name = "security_descriptor_reference", nullable = true, insertable = true, updatable = true)
+  private String securityDescriptorReference;
 
   /**
    * Unidirectional one-to-one association to {@link StackEntity}
@@ -135,5 +143,21 @@ public class BlueprintEntity {
    */
   public void setConfigurations(Collection<BlueprintConfigEntity> configurations) {
     this.configurations = configurations;
+  }
+
+  public SecurityType getSecurityType() {
+    return securityType;
+  }
+
+  public void setSecurityType(SecurityType securityType) {
+    this.securityType = securityType;
+  }
+
+  public String getSecurityDescriptorReference() {
+    return securityDescriptorReference;
+  }
+
+  public void setSecurityDescriptorReference(String securityDescriptorReference) {
+    this.securityDescriptorReference = securityDescriptorReference;
   }
 }

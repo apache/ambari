@@ -22,7 +22,6 @@ package org.apache.ambari.server.topology;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.Stack;
@@ -88,10 +87,11 @@ public class BlueprintFactory {
    * Convert a map of properties to a blueprint entity.
    *
    * @param properties  property map
+   * @param securityConfiguration security related properties
    * @return new blueprint entity
    */
   @SuppressWarnings("unchecked")
-  public Blueprint createBlueprint(Map<String, Object> properties) throws NoSuchStackException {
+  public Blueprint createBlueprint(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws NoSuchStackException {
     String name = String.valueOf(properties.get(BLUEPRINT_NAME_PROPERTY_ID));
     // String.valueOf() will return "null" if value is null
     if (name.equals("null") || name.isEmpty()) {
@@ -104,7 +104,7 @@ public class BlueprintFactory {
     Configuration configuration = configFactory.getConfiguration((Collection<Map<String, String>>)
         properties.get(CONFIGURATION_PROPERTY_ID));
 
-    return new BlueprintImpl(name, hostGroups, stack, configuration);
+    return new BlueprintImpl(name, hostGroups, stack, configuration, securityConfiguration);
   }
 
   protected Stack createStack(Map<String, Object> properties) throws NoSuchStackException {

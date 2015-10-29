@@ -17,27 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
-import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
-
-import javax.persistence.EntityManager;
-
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 import org.apache.ambari.server.api.query.render.AlertStateSummary;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer;
 import org.apache.ambari.server.api.query.render.AlertSummaryGroupedRenderer.AlertDefinitionSummary;
@@ -73,11 +57,26 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.util.Modules;
+import javax.persistence.EntityManager;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
+import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Test the AlertResourceProvider class
@@ -577,6 +576,9 @@ public class AlertResourceProviderTest {
       expect(configuration.getDatabaseUser()).andReturn("test").anyTimes();
       expect(configuration.getDatabasePassword()).andReturn("test").anyTimes();
       expect(configuration.getAlertEventPublisherPoolSize()).andReturn(Integer.valueOf(Configuration.ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT)).anyTimes();
+      expect(configuration.getMasterKeyLocation()).andReturn(new File("/test")).anyTimes();
+      expect(configuration.getTemporaryKeyStoreRetentionMinutes()).andReturn(2l).anyTimes();
+      expect(configuration.isActivelyPurgeTemporaryKeyStore()).andReturn(true).anyTimes();
       replay(configuration);
     }
   }
