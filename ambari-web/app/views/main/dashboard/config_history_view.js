@@ -45,7 +45,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
       controllerName = this.get('controller.name'),
       savedSortConditions = App.db.getSortingStatuses(controllerName) || [];
 
-    if (savedSortConditions && savedSortConditions.everyProperty('status', 'sorting')) {
+    if (savedSortConditions.everyProperty('status', 'sorting')) {
       savedSortConditions.push({
         name: "createTime",
         status: "sorting_desc"
