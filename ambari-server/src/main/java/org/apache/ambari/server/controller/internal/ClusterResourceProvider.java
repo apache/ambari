@@ -341,6 +341,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("default_password");
     baseUnsupported.remove("configurations");
     baseUnsupported.remove("credentials");
+    baseUnsupported.remove("config_recommendation_strategy");
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }

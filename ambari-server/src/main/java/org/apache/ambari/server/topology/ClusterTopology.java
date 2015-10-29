@@ -153,6 +153,12 @@ public interface ClusterTopology {
    */
   public RequestStatusResponse startHost(String hostName);
 
+  public void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
+
+  public ConfigRecommendationStrategy getConfigRecommendationStrategy();
+
+  public Map<String, AdvisedConfiguration> getAdvisedConfigurations();
+
   //todo: don't expose ambari context from this class
   public AmbariContext getAmbariContext();
 
