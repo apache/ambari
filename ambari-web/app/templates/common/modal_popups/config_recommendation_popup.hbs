@@ -43,15 +43,17 @@
           {{/if}}
           {{#if property.error}}
             {{#if property.isVisible}}
-              <tr>
-                <td>{{property.serviceName}}</td>
-                <td>{{property.name}}</td>
-                <td>{{property.value}}</td>
-                <td>
-                  <div class="property-message">{{property.errorMessage}}</div>
-                  <div class="property-description">{{property.description}}</div>
-                </td>
-              </tr>
+              {{#unless property.hiddenBySection}}
+                <tr>
+                  <td>{{property.serviceName}}</td>
+                  <td>{{property.name}}</td>
+                  <td>{{property.value}}</td>
+                  <td>
+                    <div class="property-message">{{property.errorMessage}}</div>
+                    <div class="property-description">{{property.description}}</div>
+                  </td>
+                </tr>
+              {{/unless}}
             {{/if}}
           {{/if}}
         {{/each}}
