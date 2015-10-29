@@ -693,19 +693,17 @@ public class StackManagerTest {
     // verify that services that have ranger plugin are after ranger admin in the role command order sequence
     // as these services require ranger admin and ranger user sync to up upfront
     Map<String, Object> generalDeps = (Map<String, Object>)rco.get("general_deps");
-    Map<String, Object> optionalGlusterfs = (Map<String, Object>)rco.get("optional_glusterfs");
     Map<String, Object> optionalNoGlusterfs = (Map<String, Object>)rco.get("optional_no_glusterfs");
-    Map<String, Object> namenodeOptionalHa = (Map<String, Object>)rco.get("namenode_optional_ha");
-    Map<String, Object> resourcemanagerOptionalHa = (Map<String, Object>)rco.get("resourcemanager_optional_ha");
+
 
     // HDFS
     String nameNodeRoleCommand  = Role.NAMENODE +  "-" + RoleCommand.START;
-    ArrayList<String> nameNodeBlockers = (ArrayList<String>)generalDeps.get(nameNodeRoleCommand);
+    ArrayList<String> nameNodeBlockers = (ArrayList<String>)optionalNoGlusterfs.get(nameNodeRoleCommand);
 
     assertTrue(nameNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, nameNodeBlockers.contains(rangerUserSyncRoleCommand));
 
     String dataNodeRoleCommand = Role.DATANODE +  "-" + RoleCommand.START;
-    ArrayList<String> dataNodeBlockers = (ArrayList<String>)generalDeps.get(dataNodeRoleCommand);
+    ArrayList<String> dataNodeBlockers = (ArrayList<String>)optionalNoGlusterfs.get(dataNodeRoleCommand);
 
     assertTrue(dataNodeRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, dataNodeBlockers.contains(rangerUserSyncRoleCommand));
 
