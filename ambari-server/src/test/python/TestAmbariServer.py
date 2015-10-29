@@ -8178,7 +8178,7 @@ class TestAmbariServer(TestCase):
     print_error_msg_mock.assert_called_once_with("stderr:\nstderr")
     pass
 
-
+  '''
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
   @patch("ambari_commons.os_utils.run_os_command")
   @patch("ambari_server.setupSecurity.generate_env")
@@ -8221,5 +8221,5 @@ class TestAmbariServer(TestCase):
     self.assertEquals(runOSCommandMock.call_args[0][0], '/path/to/java -cp test:path12 '
                           'org.apache.ambari.server.update.HostUpdateHelper /testFileWithChanges > '
                           '/var/log/ambari-server/ambari-server.out 2>&1')
-
+  '''
 
