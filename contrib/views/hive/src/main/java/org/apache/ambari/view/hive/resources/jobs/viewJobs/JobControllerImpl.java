@@ -96,6 +96,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   }
 
   @Override
+  public OperationHandleController.OperationStatus getStatus() throws ItemNotFound, HiveClientException, NoOperationStatusSetException {
+    OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
+    return handle.getOperationStatus();
+  }
+
+  @Override
   public void submit() {
     setupHiveBeforeQueryExecute();
 
