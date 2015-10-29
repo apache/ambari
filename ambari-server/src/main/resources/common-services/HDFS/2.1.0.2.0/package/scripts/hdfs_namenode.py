@@ -38,7 +38,6 @@ from resource_management.core.logger import Logger
 
 from utils import service, safe_zkfc_op, is_previous_fs_image
 from setup_ranger_hdfs import setup_ranger_hdfs
-from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -100,7 +99,9 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
           options = "" if is_previous_image_dir else "-upgrade"
 
         if params.desired_namenode_role == "standby":
-          options = "-bootstrapStandby -force"
+          # bootstrap NN separately before starting the daemon
+          bootstrap_standby_namenode(params, use_path=True)
+
       else:
         # Both Primary and Secondary NameNode can use the same command.
         options = "" if is_previous_image_dir else "-upgrade"
@@ -409,17 +410,20 @@ def decommission():
   Execute(nn_refresh_cmd, user=hdfs_user)
 
 
-def bootstrap_standby_namenode(params):
+def bootstrap_standby_namenode(params, use_path=False):
+
+  bin_path = os.path.join(params.hadoop_bin_dir, '') if use_path else ""
+
   try:
     iterations = 50
-    bootstrap_cmd = "hdfs namenode -bootstrapStandby -nonInteractive"
+    bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive")
     # Blue print based deployments start both NN in parallel and occasionally
     # the first attempt to bootstrap may fail. Depending on how it fails the
     # second attempt may not succeed (e.g. it may find the folder and decide that
     # bootstrap succeeded). The solution is to call with -force option but only
     # during initial start
     if params.command_phase == "INITIAL_START":
-      bootstrap_cmd = "hdfs namenode -bootstrapStandby -nonInteractive -force"
+      bootstrap_cmd = format("{bin_path}hdfs namenode -bootstrapStandby -nonInteractive -force")
     Logger.info("Boostrapping standby namenode: %s" % (bootstrap_cmd))
     for i in range(iterations):
       Logger.info('Try %d out of %d' % (i+1, iterations))
