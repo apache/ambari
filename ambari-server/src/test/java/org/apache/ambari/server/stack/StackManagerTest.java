@@ -681,6 +681,9 @@ public class StackManagerTest {
 
     String rangerUserSyncRoleCommand = Role.RANGER_USERSYNC + "-" + RoleCommand.START;
     String rangerAdminRoleCommand = Role.RANGER_ADMIN + "-" + RoleCommand.START;
+    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
+    String nodeManagerRoleCommand = Role.NODEMANAGER + "-" + RoleCommand.START;
+    String mySqlServerRoleCommand = Role.MYSQL_SERVER + "-" + RoleCommand.START;
 
     // When
     StackInfo hdp = stackManager.getStack("HDP", "2.3");
@@ -690,6 +693,10 @@ public class StackManagerTest {
     // verify that services that have ranger plugin are after ranger admin in the role command order sequence
     // as these services require ranger admin and ranger user sync to up upfront
     Map<String, Object> generalDeps = (Map<String, Object>)rco.get("general_deps");
+    Map<String, Object> optionalGlusterfs = (Map<String, Object>)rco.get("optional_glusterfs");
+    Map<String, Object> optionalNoGlusterfs = (Map<String, Object>)rco.get("optional_no_glusterfs");
+    Map<String, Object> namenodeOptionalHa = (Map<String, Object>)rco.get("namenode_optional_ha");
+    Map<String, Object> resourcemanagerOptionalHa = (Map<String, Object>)rco.get("resourcemanager_optional_ha");
 
     // HDFS
     String nameNodeRoleCommand  = Role.NAMENODE +  "-" + RoleCommand.START;
@@ -714,6 +721,7 @@ public class StackManagerTest {
     ArrayList<String> hbaseBlockers = (ArrayList<String>)generalDeps.get(hbaseRoleCommand);
 
     assertTrue(hbaseRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hbaseBlockers.contains(rangerUserSyncRoleCommand));
+    assertTrue(hbaseRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, hbaseBlockers.contains(zookeeperServerRoleCommand));
 
     // Knox
     String knoxRoleCommand = Role.KNOX_GATEWAY +  "-" + RoleCommand.START;
@@ -732,12 +740,15 @@ public class StackManagerTest {
     ArrayList<String> hiveBlockers = (ArrayList<String>)generalDeps.get(hiveRoleCommand);
 
     assertTrue(hiveRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, hiveBlockers.contains(rangerUserSyncRoleCommand));
+    assertTrue(hiveRoleCommand + " should be dependent of " + nodeManagerRoleCommand, hiveBlockers.contains(nodeManagerRoleCommand));
+    assertTrue(hiveRoleCommand + " should be dependent of " + mySqlServerRoleCommand, hiveBlockers.contains(mySqlServerRoleCommand));
 
     // Storm
     String stormRoleCommand = Role.NIMBUS +  "-" + RoleCommand.START;
     ArrayList<String> stormBlockers = (ArrayList<String>)generalDeps.get(stormRoleCommand);
 
     assertTrue(stormRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, stormBlockers.contains(rangerUserSyncRoleCommand));
+    assertTrue(stormRoleCommand + " should be dependent of " + zookeeperServerRoleCommand, stormBlockers.contains(zookeeperServerRoleCommand));
 
     // Ranger KMS
     String kmsRoleCommand = Role.RANGER_KMS_SERVER +  "-" + RoleCommand.START;
@@ -752,11 +763,9 @@ public class StackManagerTest {
     assertTrue(rangerUserSyncRoleCommand + " should be dependent of " + kmsRoleCommand, rangerUserSyncBlockers.contains(kmsRoleCommand));
 
     // Zookeeper Server
-    String zookeeperServerRoleCommand = Role.ZOOKEEPER_SERVER + "-" + RoleCommand.START;
     ArrayList<String> zookeeperBlockers = (ArrayList<String>)generalDeps.get(zookeeperServerRoleCommand);
 
     assertTrue(zookeeperServerRoleCommand + " should be dependent of " + rangerUserSyncRoleCommand, zookeeperBlockers.contains(rangerUserSyncRoleCommand));
-
 
   }
 
