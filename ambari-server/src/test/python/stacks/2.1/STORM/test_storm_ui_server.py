@@ -23,6 +23,8 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import resource_management.core.source
 from test_storm_base import TestStormBase
+
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0, '123', '')))
 class TestStormUiServer(TestStormBase):
 
   def test_configure_default(self):
@@ -61,7 +63,7 @@ class TestStormUiServer(TestStormBase):
         try_sleep = 10,
     )
     self.assertNoMoreResources()
-
+  
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
@@ -70,10 +72,10 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
         not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
         not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
         ignore_failures = True,
     )
@@ -127,10 +129,10 @@ class TestStormUiServer(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
         not_if = "! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/storm/ui.pid'`",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
         not_if = "sleep 2; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1') || sleep 20; ! (ambari-sudo.sh su storm -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/storm/ui.pid >/dev/null 2>&1 && ps -p `cat /var/run/storm/ui.pid` >/dev/null 2>&1')",
         ignore_failures = True,
     )
