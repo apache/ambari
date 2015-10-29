@@ -411,7 +411,8 @@ def set_current(options):
   data = {
     "ClusterStackVersions": {
       "repository_version": finalize_options.desired_repo_version,
-      "state": "CURRENT"
+      "state": "CURRENT",
+      "force": "true" if finalize_options.force_repo_version else "false"
     }
   }
 
@@ -496,6 +497,11 @@ class SetCurrentVersionOptions:
       self.desired_repo_version = options.desired_repo_version
     except AttributeError:
       self.desired_repo_version = None
+
+    try:
+      self.force_repo_version = options.force_repo_version
+    except AttributeError:
+      self.force_repo_version = False
 
   def no_finalize_options_set(self):
     return self.cluster_name is None or self.desired_repo_version is None

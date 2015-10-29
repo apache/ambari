@@ -372,7 +372,7 @@ def init_parser_options(parser):
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
-
+  parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def are_cmd_line_db_args_blank(options):

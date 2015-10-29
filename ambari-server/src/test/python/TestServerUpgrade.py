@@ -39,6 +39,7 @@ class TestServerUpgrade(TestCase):
     options = MagicMock()
     options.cluster_name = 'cc'
     options.desired_repo_version = 'HDP-2.2.2.0-2561'
+    options.force_repo_version = None
 
     # Case when server is not running
     is_server_runing_mock.return_value = False, None
@@ -75,11 +76,63 @@ class TestServerUpgrade(TestCase):
     self.assertTrue(urlopen_mock.called)
     request = urlopen_mock.call_args_list[0][0][0]
     self.assertEquals(request._Request__original, 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
-    self.assertEquals(request.data, '{"ClusterStackVersions": {"state": "CURRENT", "repository_version": "HDP-2.2.2.0-2561"}}')
+    self.assertEquals(request.data, '{"ClusterStackVersions": {"state": "CURRENT", "repository_version": "HDP-2.2.2.0-2561", "force": "false"}}')
     self.assertEquals(request.origin_req_host, '127.0.0.1')
     self.assertEquals(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
 
+  @patch("ambari_server.serverUpgrade.is_server_runing")
+  @patch('ambari_server.serverUpgrade.SetCurrentVersionOptions.no_finalize_options_set')
+  @patch('ambari_server.serverUpgrade.get_validated_string_input')
+  @patch('ambari_server.serverUpgrade.get_ambari_properties')
+  @patch('ambari_server.serverUtils.get_ambari_server_api_base')
+  @patch('ambari_commons.logging_utils.get_verbose')
+  @patch('urllib2.urlopen')
+  def test_set_current_with_force(self, urlopen_mock, get_verbose_mock, get_ambari_server_api_base_mock,
+                       get_ambari_properties_mock, get_validated_string_input_mock,
+                       no_finalize_options_set_mock, is_server_runing_mock):
+    options = MagicMock()
+    options.cluster_name = 'cc'
+    options.desired_repo_version = 'HDP-2.2.2.0-2561'
+    options.force_repo_version = True
 
+    # Case when server is not running
+    is_server_runing_mock.return_value = False, None
+    try:
+      set_current(options)
+      self.fail("Server is not running - should error out")
+    except FatalException:
+      pass  # expected
+
+
+    is_server_runing_mock.return_value = True, 11111
+
+    # Test insufficient options case
+    no_finalize_options_set_mock.return_value = True
+    try:
+      set_current(options)
+      self.fail("Should error out")
+    except FatalException:
+      pass  # expected
+
+    no_finalize_options_set_mock.return_value = False
+
+    # Test normal flow
+    get_validated_string_input_mock.return_value = 'dummy_string'
+
+    p = get_ambari_properties_mock.return_value
+    p.get_property.side_effect = ["8080", "false"]
+
+    get_ambari_server_api_base_mock.return_value = 'http://127.0.0.1:8080/api/v1/'
+    get_verbose_mock.retun_value = False
+
+    set_current(options)
+
+    self.assertTrue(urlopen_mock.called)
+    request = urlopen_mock.call_args_list[0][0][0]
+    self.assertEquals(request._Request__original, 'http://127.0.0.1:8080/api/v1/clusters/cc/stack_versions')
+    self.assertEquals(request.data, '{"ClusterStackVersions": {"state": "CURRENT", "repository_version": "HDP-2.2.2.0-2561", "force": "true"}}')
+    self.assertEquals(request.origin_req_host, '127.0.0.1')
+    self.assertEquals(request.headers, {'X-requested-by': 'ambari', 'Authorization': 'Basic ZHVtbXlfc3RyaW5nOmR1bW15X3N0cmluZw=='})
 
   def testCurrentVersionOptions(self):
     # Negative test cases
