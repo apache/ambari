@@ -20,7 +20,6 @@ package org.apache.ambari.server.upgrade;
 
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -31,44 +30,38 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.*;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
+import org.easymock.internal.MockBuilder;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+import org.powermock.core.classloader.annotations.PrepareForTest;
 
-
+@PrepareForTest(UpgradeCatalog2121.class)
 public class UpgradeCatalog2121Test {
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
@@ -100,12 +93,16 @@ public class UpgradeCatalog2121Test {
   @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method updatePHDConfigs = UpgradeCatalog2121.class.getDeclaredMethod("updatePHDConfigs");
+    Method updateOozieConfigs = UpgradeCatalog2121.class.getDeclaredMethod("updateOozieConfigs");
 
     UpgradeCatalog2121 upgradeCatalog2121 = createMockBuilder(UpgradeCatalog2121.class)
         .addMockedMethod(updatePHDConfigs)
+        .addMockedMethod(updateOozieConfigs)
         .createMock();
 
     upgradeCatalog2121.updatePHDConfigs();
+    expectLastCall().once();
+    upgradeCatalog2121.updateOozieConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog2121);
@@ -113,6 +110,53 @@ public class UpgradeCatalog2121Test {
     upgradeCatalog2121.executeDMLUpdates();
 
     verify(upgradeCatalog2121);
+  }
+
+  @Test
+  public void testUpdateOozieConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesOozieSite = new HashMap<String, String>() {{
+      put("oozie.authentication.kerberos.name.rules", " ");
+    }};
+    final Config oozieSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("oozie-site")).andReturn(oozieSiteConf).atLeastOnce();
+
+    expect(oozieSiteConf.getProperties()).andReturn(propertiesOozieSite).once();
+
+    UpgradeCatalog2121 upgradeCatalog2121 = createMockBuilder(UpgradeCatalog2121.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+                    Map.class, Set.class, boolean.class, boolean.class)
+            .createMock();
+    upgradeCatalog2121.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "oozie-site", null, Collections.singleton("oozie.authentication.kerberos.name.rules"),
+            true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog2121);
+    upgradeCatalog2121.updateOozieConfigs();
+    easyMockSupport.verifyAll();
+
   }
 }
 

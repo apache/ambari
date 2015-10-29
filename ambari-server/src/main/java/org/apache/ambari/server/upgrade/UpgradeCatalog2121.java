@@ -27,13 +27,17 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.StackId;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Upgrade catalog for version 2.1.2.1
@@ -47,6 +51,9 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
 
   @Inject
   DaoUtils daoUtils;
+
+  private static final String OOZIE_SITE_CONFIG = "oozie-site";
+  private static final String OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES = "oozie.authentication.kerberos.name.rules";
 
   // ----- Constructors ------------------------------------------------------
 
@@ -104,6 +111,7 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     updatePHDConfigs();
+    updateOozieConfigs();
   }
 
   /**
@@ -164,6 +172,23 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
         }
       }
     }
+  }
+
+  protected void updateOozieConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config oozieSiteProps = cluster.getDesiredConfigByType(OOZIE_SITE_CONFIG);
+      if (oozieSiteProps != null) {
+        // Remove oozie.authentication.kerberos.name.rules if empty
+        String oozieAuthKerbRules = oozieSiteProps.getProperties().get(OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES);
+        if (StringUtils.isBlank(oozieAuthKerbRules)) {
+          Set<String> removeProperties = new HashSet<String>();
+          removeProperties.add(OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES);
+          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, null, removeProperties, true, false);
+        }
+      }
+    }
+
   }
 }
 
