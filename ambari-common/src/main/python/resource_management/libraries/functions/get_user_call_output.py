@@ -24,7 +24,7 @@ import os
 import tempfile
 from resource_management.core import shell
 
-def get_user_call_output(command, user, is_checked_call=True, **call_kwargs):
+def get_user_call_output(command, user, quiet=False, is_checked_call=True, **call_kwargs):
   """
   This function eliminates only output of command inside the su, ignoring the su ouput itself.
   This is useful since some users have motd messages setup by default on su -l. 
@@ -46,11 +46,11 @@ def get_user_call_output(command, user, is_checked_call=True, **call_kwargs):
     command_string += " 2>" + out_files[1].name
     
     func = shell.checked_call if is_checked_call else shell.call
-    func_result = func(shell.as_user(command_string, user), **call_kwargs)
+    func_result = func(shell.as_user(command_string, user), quiet=quiet, **call_kwargs)
     
     files_output = []
     for f in out_files:
-      files_output.append(f.read())
+      files_output.append(f.read().strip('\n'))
     
     return func_result[0], files_output[0], files_output[1]
   finally:
