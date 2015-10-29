@@ -18,15 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,6 +59,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -84,6 +76,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
@@ -96,8 +89,10 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
 
+import static org.easymock.EasyMock.*;
 
-/**
+
+ /**
  * ClusterStackVersionResourceProvider tests.
  */
 public class ClusterStackVersionResourceProviderTest {
@@ -109,6 +104,7 @@ public class ClusterStackVersionResourceProviderTest {
   private ResourceTypeDAO resourceTypeDAO;
   private StackDAO stackDAO;
   private ClusterDAO clusterDAO;
+  private ClusterVersionDAO clusterVersionDAO;
   private HostDAO hostDAO;
   private ConfigHelper configHelper;
   private Configuration configuration;
@@ -150,6 +146,7 @@ public class ClusterStackVersionResourceProviderTest {
             String.valueOf(MAX_TASKS_PER_STAGE));
     configuration = new Configuration(properties);
     stageFactory = createNiceMock(StageFactory.class);
+    clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
 
     // Initialize injector
     injector = Guice.createInjector(Modules.override(inMemoryModule).with(new MockModule()));
