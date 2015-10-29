@@ -19,6 +19,7 @@ var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var hostsManagement = require('utils/hosts');
 var O = Em.Object;
+
 /**
  * @class BulkOperationsController
  */
@@ -30,6 +31,7 @@ App.BulkOperationsController = Em.Controller.extend({
    * Bulk operation wrapper
    * @param {Object} operationData - data about bulk operation (action, hosts or hostComponents etc)
    * @param {Array} hosts - list of affected hosts
+   * @method bulkOperation
    */
   bulkOperation: function (operationData, hosts) {
     if (operationData.componentNameFormatted) {
@@ -37,26 +39,29 @@ App.BulkOperationsController = Em.Controller.extend({
         this.bulkOperationForHostComponentsRestart(operationData, hosts);
       }
       else {
-        if (operationData.action.indexOf('DECOMMISSION') != -1) {
-          this.bulkOperationForHostComponentsDecommission(operationData, hosts);
+        if (operationData.action.indexOf('DECOMMISSION') == -1) {
+          this.bulkOperationForHostComponents(operationData, hosts);
         }
         else {
-          this.bulkOperationForHostComponents(operationData, hosts);
+          this.bulkOperationForHostComponentsDecommission(operationData, hosts);
         }
       }
     }
     else {
       if (operationData.action === 'SET_RACK_INFO') {
         this.bulkOperationForHostsSetRackInfo(operationData, hosts);
-      } else if (operationData.action === 'RESTART') {
-        this.bulkOperationForHostsRestart(operationData, hosts);
       }
       else {
-        if (operationData.action === 'PASSIVE_STATE') {
-          this.bulkOperationForHostsPassiveState(operationData, hosts);
+        if (operationData.action === 'RESTART') {
+          this.bulkOperationForHostsRestart(operationData, hosts);
         }
         else {
-          this.bulkOperationForHosts(operationData, hosts);
+          if (operationData.action === 'PASSIVE_STATE') {
+            this.bulkOperationForHostsPassiveState(operationData, hosts);
+          }
+          else {
+            this.bulkOperationForHosts(operationData, hosts);
+          }
         }
       }
     }
@@ -66,32 +71,34 @@ App.BulkOperationsController = Em.Controller.extend({
    * Bulk operation (start/stop all) for selected hosts
    * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
    * @param {Array} hosts - list of affected hosts
+   * @return {$.ajax}
    */
   bulkOperationForHosts: function (operationData, hosts) {
     var self = this;
-
-    batchUtils.getComponentsFromServer({
+    return batchUtils.getComponentsFromServer({
       hosts: hosts.mapProperty('hostName'),
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/component_name']
     }, function (data) {
-      self.bulkOperationForHostsCallback(operationData, data);
+      return self._getComponentsFromServerForHostsCallback(operationData, data);
     });
   },
+
   /**
    * run Bulk operation (start/stop all) for selected hosts
    * after host and components are loaded
    * @param operationData
    * @param data
    */
-  bulkOperationForHostsCallback: function (operationData, data) {
+  _getComponentsFromServerForHostsCallback: function (operationData, data) {
     var query = [];
     var hostNames = [];
     var hostsMap = {};
+    var clients = App.components.get('clients');
 
     data.items.forEach(function (host) {
       host.host_components.forEach(function (hostComponent) {
-        if (!App.components.get('clients').contains((hostComponent.HostRoles.component_name))) {
+        if (!clients.contains((hostComponent.HostRoles.component_name))) {
           if (hostsMap[host.Hosts.host_name]) {
             hostsMap[host.Hosts.host_name].push(hostComponent.HostRoles.component_name);
           } else {
@@ -103,60 +110,28 @@ App.BulkOperationsController = Em.Controller.extend({
 
     var nn_hosts = [];
     for (var hostName in hostsMap) {
-      var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
-      var components = hostsMap[hostName];
+      if (hostsMap.hasOwnProperty(hostName)) {
+        var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
+        var components = hostsMap[hostName];
 
-      if (components.length) {
-        if (components.indexOf('NAMENODE') >= 0) {
-          nn_hosts.push(hostName);
+        if (components.length) {
+          if (components.contains('NAMENODE')) {
+            nn_hosts.push(hostName);
+          }
+          query.push(subQuery.fmt(components.join(',')));
         }
-        query.push(subQuery.fmt(components.join(',')));
+        hostNames.push(hostName);
       }
-      hostNames.push(hostName);
     }
     hostNames = hostNames.join(",");
     if (query.length) {
       query = query.join('|');
       var self = this;
       // if NameNode included, check HDFS NameNode checkpoint before stop NN
-      if (nn_hosts.length == 1 && operationData.action === 'INSTALLED' && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
-        var hostName = nn_hosts[0];
-        App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(function () {
-          App.ajax.send({
-            name: 'common.host_components.update',
-            sender: self,
-            data: {
-              query: query,
-              HostRoles: {
-                state: operationData.action
-              },
-              context: operationData.message,
-              hostName: hostNames,
-              noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
-            },
-            success: 'bulkOperationForHostComponentsSuccessCallback'
-          });
-        }, hostName);
-      } else if (nn_hosts.length == 2 && operationData.action === 'INSTALLED' && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
-        // HA enabled
-        App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
-          App.ajax.send({
-            name: 'common.host_components.update',
-            sender: self,
-            data: {
-              query: query,
-              HostRoles: {
-                state: operationData.action
-              },
-              context: operationData.message,
-              hostName: hostNames,
-              noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
-            },
-            success: 'bulkOperationForHostComponentsSuccessCallback'
-          });
-        });
-      } else {
-        App.ajax.send({
+      var isHDFSStarted = 'STARTED' === App.Service.find('HDFS').get('workStatus');
+
+      var request = function () {
+        return App.ajax.send({
           name: 'common.host_components.update',
           sender: self,
           data: {
@@ -170,10 +145,21 @@ App.BulkOperationsController = Em.Controller.extend({
           },
           success: 'bulkOperationForHostComponentsSuccessCallback'
         });
+      };
+
+      if (operationData.action === 'INSTALLED' && isHDFSStarted) {
+        if (nn_hosts.length == 1) {
+          return App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(request, nn_hosts[0]);
+        }
+        if (nn_hosts.length == 2) {
+          // HA enabled
+          return App.router.get('mainServiceItemController').checkNnLastCheckpointTime(request);
+        }
       }
+      return request();
     }
     else {
-      App.ModalPopup.show({
+      return App.ModalPopup.show({
         header: Em.I18n.t('rolling.nothingToDo.header'),
         body: Em.I18n.t('rolling.nothingToDo.body').format(Em.I18n.t('hosts.host.maintainance.allComponents.context')),
         secondary: false
@@ -182,7 +168,7 @@ App.BulkOperationsController = Em.Controller.extend({
   },
 
   bulkOperationForHostsSetRackInfo: function (operationData, hosts) {
-    hostsManagement.setRackInfo(operationData, hosts);
+    return hostsManagement.setRackInfo(operationData, hosts);
   },
 
   /**
@@ -191,36 +177,51 @@ App.BulkOperationsController = Em.Controller.extend({
    * @param {Ember.Enumerable} hosts - list of affected hosts
    */
   bulkOperationForHostsRestart: function (operationData, hosts) {
-    batchUtils.getComponentsFromServer({
+    return batchUtils.getComponentsFromServer({
       passiveState: 'OFF',
       hosts: hosts.mapProperty('hostName'),
       displayParams: ['host_components/HostRoles/component_name']
-    }, function (data) {
-      var hostComponents = [];
-      data.items.forEach(function (host) {
-        host.host_components.forEach(function (hostComponent) {
-          hostComponents.push(O.create({
-            componentName: hostComponent.HostRoles.component_name,
-            hostName: host.Hosts.host_name
-          }));
-        })
-      });
-      // if NameNode included, check HDFS NameNode checkpoint before restart NN
-      var nn_count = hostComponents.filterProperty('componentName', 'NAMENODE').get('length');
-      if (nn_count == 1 && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
-        var hostName = hostComponents.findProperty('componentName', 'NAMENODE').get('hostName');
-        App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(function () {
-          batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
-        }, hostName);
-      } else if (nn_count == 2 && App.Service.find().filterProperty('serviceName', 'HDFS').someProperty('workStatus', App.HostComponentStatus.started)) {
+    }, this._getComponentsFromServerForRestartCallback);
+  },
+
+  /**
+   *
+   * @param {object} data
+   * @private
+   * @method _getComponentsFromServerCallback
+   */
+  _getComponentsFromServerForRestartCallback: function (data) {
+    var hostComponents = [];
+    data.items.forEach(function (host) {
+      host.host_components.forEach(function (hostComponent) {
+        hostComponents.push(O.create({
+          componentName: hostComponent.HostRoles.component_name,
+          hostName: host.Hosts.host_name
+        }));
+      })
+    });
+    // if NameNode included, check HDFS NameNode checkpoint before restart NN
+    var isHDFSStarted = 'STARTED' === App.Service.find('HDFS').get('workStatus');
+    var namenodes = hostComponents.filterProperty('componentName', 'NAMENODE');
+    var nn_count = namenodes.get('length');
+
+    if (nn_count == 1 && isHDFSStarted) {
+      var hostName = namenodes.get('firstObject.hostName');
+      App.router.get('mainHostDetailsController').checkNnLastCheckpointTime(function () {
+        batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
+      }, hostName);
+    }
+    else {
+      if (nn_count == 2 && isHDFSStarted) {
         // HA enabled
         App.router.get('mainServiceItemController').checkNnLastCheckpointTime(function () {
           batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
         });
-      } else {
+      }
+      else {
         batchUtils.restartHostComponents(hostComponents, Em.I18n.t('rollingrestart.context.allOnSelectedHosts'), "HOST");
       }
-    });
+    }
   },
 
   /**
@@ -231,40 +232,51 @@ App.BulkOperationsController = Em.Controller.extend({
   bulkOperationForHostsPassiveState: function (operationData, hosts) {
     var self = this;
 
-    batchUtils.getComponentsFromServer({
+    return batchUtils.getComponentsFromServer({
       hosts: hosts.mapProperty('hostName'),
       displayParams: ['Hosts/maintenance_state']
     }, function (data) {
-      var hostNames = [];
+      return self._getComponentsFromServerForPassiveStateCallback(operationData, data)
+    });
+  },
 
-      data.items.forEach(function (host) {
-        if (host.Hosts.maintenance_state !== operationData.state) {
-          hostNames.push(host.Hosts.host_name);
-        }
-      });
-      if (hostNames.length) {
-        App.ajax.send({
-          name: 'bulk_request.hosts.passive_state',
-          sender: self,
-          data: {
-            hostNames: hostNames.join(','),
-            passive_state: operationData.state,
-            requestInfo: operationData.message
-          },
-          success: 'updateHostPassiveState'
-        });
-      } else {
-        App.ModalPopup.show({
-          header: Em.I18n.t('rolling.nothingToDo.header'),
-          body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
-          secondary: false
-        });
+  /**
+   *
+   * @param {object} operationData
+   * @param {object} data
+   * @returns {$.ajax|App.ModalPopup}
+   * @private
+   * @method _getComponentsFromServerForPassiveStateCallback
+   */
+  _getComponentsFromServerForPassiveStateCallback: function (operationData, data) {
+    var hostNames = [];
+
+    data.items.forEach(function (host) {
+      if (host.Hosts.maintenance_state !== operationData.state) {
+        hostNames.push(host.Hosts.host_name);
       }
+    });
+    if (hostNames.length) {
+      return App.ajax.send({
+        name: 'bulk_request.hosts.passive_state',
+        sender: this,
+        data: {
+          hostNames: hostNames.join(','),
+          passive_state: operationData.state,
+          requestInfo: operationData.message
+        },
+        success: 'updateHostPassiveState'
+      });
+    }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('rolling.nothingToDo.header'),
+      body: Em.I18n.t('hosts.bulkOperation.passiveState.nothingToDo.body'),
+      secondary: false
     });
   },
 
   updateHostPassiveState: function (data, opt, params) {
-    batchUtils.infoPassiveState(params.passive_state);
+    return batchUtils.infoPassiveState(params.passive_state);
   },
   /**
    * Bulk operation for selected hostComponents
@@ -274,35 +286,44 @@ App.BulkOperationsController = Em.Controller.extend({
   bulkOperationForHostComponents: function (operationData, hosts) {
     var self = this;
 
-    batchUtils.getComponentsFromServer({
+    return batchUtils.getComponentsFromServer({
       components: [operationData.componentName],
       hosts: hosts.mapProperty('hostName'),
       passiveState: 'OFF'
     }, function (data) {
-      if (data.items.length) {
-        var hostsWithComponentInProperState = data.items.mapProperty('Hosts.host_name');
-        App.ajax.send({
-          name: 'common.host_components.update',
-          sender: self,
-          data: {
-            HostRoles: {
-              state: operationData.action
-            },
-            query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
-            context: operationData.message + ' ' + operationData.componentNameFormatted,
-            level: 'SERVICE',
-            noOpsMessage: operationData.componentNameFormatted
+      return self._getComponentsFromServerForHostComponentsCallback(operationData, data)
+    });
+  },
+
+  /**
+   *
+   * @param {object} operationData
+   * @param {object} data
+   * @returns {$.ajax|App.ModalPopup}
+   * @private
+   */
+  _getComponentsFromServerForHostComponentsCallback: function (operationData, data) {
+    if (data.items) {
+      var hostsWithComponentInProperState = data.items.mapProperty('Hosts.host_name');
+      return App.ajax.send({
+        name: 'common.host_components.update',
+        sender: this,
+        data: {
+          HostRoles: {
+            state: operationData.action
           },
-          success: 'bulkOperationForHostComponentsSuccessCallback'
-        });
-      }
-      else {
-        App.ModalPopup.show({
-          header: Em.I18n.t('rolling.nothingToDo.header'),
-          body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
-          secondary: false
-        });
-      }
+          query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
+          context: operationData.message + ' ' + operationData.componentNameFormatted,
+          level: 'SERVICE',
+          noOpsMessage: operationData.componentNameFormatted
+        },
+        success: 'bulkOperationForHostComponentsSuccessCallback'
+      });
+    }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('rolling.nothingToDo.header'),
+      body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+      secondary: false
     });
   },
 
@@ -314,13 +335,13 @@ App.BulkOperationsController = Em.Controller.extend({
   bulkOperationForHostComponentsDecommission: function (operationData, hosts) {
     var self = this;
 
-    batchUtils.getComponentsFromServer({
+    return batchUtils.getComponentsFromServer({
       components: [operationData.realComponentName],
       hosts: hosts.mapProperty('hostName'),
       passiveState: 'OFF',
       displayParams: ['host_components/HostRoles/state']
     }, function (data) {
-      self.bulkOperationForHostComponentsDecommissionCallBack(operationData, data)
+      return self._getComponentsFromServerForHostComponentsDecommissionCallBack(operationData, data)
     });
   },
 
@@ -329,8 +350,9 @@ App.BulkOperationsController = Em.Controller.extend({
    * after host and components are loaded
    * @param operationData
    * @param data
+   * @method _getComponentsFromServerForHostComponentsDecommissionCallBack
    */
-  bulkOperationForHostComponentsDecommissionCallBack: function (operationData, data) {
+  _getComponentsFromServerForHostComponentsDecommissionCallBack: function (operationData, data) {
     var service = App.Service.find(operationData.serviceName);
     var components = [];
 
@@ -426,72 +448,76 @@ App.BulkOperationsController = Em.Controller.extend({
    */
   warnBeforeDecommissionSuccess: function(data, opt, params) {
     if (Em.get(data, 'items.length')) {
-      App.router.get('mainHostDetailsController').showHbaseActiveWarning();
-    } else {
-      App.router.get('mainHostDetailsController').checkRegionServerState(params.hostNames);
+      return App.router.get('mainHostDetailsController').showHbaseActiveWarning();
     }
+    return App.router.get('mainHostDetailsController').checkRegionServerState(params.hostNames);
   },
+
   /**
    * Bulk restart for selected hostComponents
    * @param {Object} operationData
    * @param {Array} hosts
    */
   bulkOperationForHostComponentsRestart: function (operationData, hosts) {
-    var service = App.Service.find(operationData.serviceName);
-
-    batchUtils.getComponentsFromServer({
+    var self = this;
+    return batchUtils.getComponentsFromServer({
       components: [operationData.componentName],
       hosts: hosts.mapProperty('hostName'),
       passiveState: 'OFF',
       displayParams: ['Hosts/maintenance_state', 'host_components/HostRoles/stale_configs', 'host_components/HostRoles/maintenance_state']
     }, function (data) {
-      var wrappedHostComponents = [];
+      return self._getComponentsFromServerForHostComponentsRestartCallback(operationData, data);
+    });
+  },
 
-      data.items.forEach(function (host) {
-        host.host_components.forEach(function (hostComponent) {
-          wrappedHostComponents.push(O.create({
-            componentName: hostComponent.HostRoles.component_name,
-            serviceName: operationData.serviceName,
-            hostName: host.Hosts.host_name,
-            hostPassiveState: host.Hosts.maintenance_state,
-            staleConfigs: hostComponent.HostRoles.stale_configs,
-            passiveState: hostComponent.HostRoles.maintenance_state
-          }))
-        });
+  _getComponentsFromServerForHostComponentsRestartCallback: function (operationData, data) {
+    var wrappedHostComponents = [];
+    var service = App.Service.find(operationData.serviceName);
+
+    data.items.forEach(function (host) {
+      host.host_components.forEach(function (hostComponent) {
+        wrappedHostComponents.push(O.create({
+          componentName: hostComponent.HostRoles.component_name,
+          serviceName: operationData.serviceName,
+          hostName: host.Hosts.host_name,
+          hostPassiveState: host.Hosts.maintenance_state,
+          staleConfigs: hostComponent.HostRoles.stale_configs,
+          passiveState: hostComponent.HostRoles.maintenance_state
+        }));
       });
+    });
 
-      if (wrappedHostComponents.length) {
-        batchUtils.showRollingRestartPopup(wrappedHostComponents.objectAt(0).get('componentName'), service.get('displayName'), service.get('passiveState') === "ON", false, wrappedHostComponents);
-      } else {
-        App.ModalPopup.show({
-          header: Em.I18n.t('rolling.nothingToDo.header'),
-          body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
-          secondary: false
-        });
-      }
+    if (wrappedHostComponents.length) {
+      return batchUtils.showRollingRestartPopup(wrappedHostComponents.objectAt(0).get('componentName'), service.get('displayName'), service.get('passiveState') === "ON", false, wrappedHostComponents);
+    }
+    return App.ModalPopup.show({
+      header: Em.I18n.t('rolling.nothingToDo.header'),
+      body: Em.I18n.t('rolling.nothingToDo.body').format(operationData.componentNameFormatted),
+      secondary: false
     });
   },
 
   updateHostComponentsPassiveState: function (data, opt, params) {
-    batchUtils.infoPassiveState(params.passive_state);
+    return batchUtils.infoPassiveState(params.passive_state);
   },
+
   /**
    * Show BO popup after bulk request
+   * @method bulkOperationForHostComponentsSuccessCallback
    */
   bulkOperationForHostComponentsSuccessCallback: function (data, opt, params, req) {
     if (!data && req.status == 200) {
-      App.ModalPopup.show({
+      return App.ModalPopup.show({
         header: Em.I18n.t('rolling.nothingToDo.header'),
         body: Em.I18n.t('rolling.nothingToDo.body').format(params.noOpsMessage || Em.I18n.t('hosts.host.maintainance.allComponents.context')),
         secondary: false
       });
-    } else {
-      App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
-        if (initValue) {
-          App.router.get('backgroundOperationsController').showPopup();
-        }
-      });
     }
+    return App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
   },
 
   /**
@@ -501,14 +527,14 @@ App.BulkOperationsController = Em.Controller.extend({
    * @param {String} divider - string to separate hostNames
    * @param {Number} minShown - min amount of hostName to be shown
    * @returns {String} hostNames
-   * @method showHostNames
+   * @method _showHostNames
+   * @private
    */
-  showHostNames: function(hostNames, divider, minShown) {
+  _showHostNames: function(hostNames, divider, minShown) {
     if (hostNames.length > minShown) {
       return hostNames.slice(0, minShown).join(divider) + divider + Em.I18n.t("installer.step8.other").format(hostNames.length - minShown);
-    } else {
-      return hostNames.join(divider);
     }
+    return hostNames.join(divider);
   },
 
   /**
@@ -554,13 +580,11 @@ App.BulkOperationsController = Em.Controller.extend({
   },
 
   getHostsForBulkOperations: function (queryParams, operationData, loadingPopup) {
-    var params = App.router.get('updateController').computeParameters(queryParams);
-
-    App.ajax.send({
+    return App.ajax.send({
       name: 'hosts.bulk.operations',
       sender: this,
       data: {
-        parameters: params,
+        parameters: App.router.get('updateController').computeParameters(queryParams),
         operationData: operationData,
         loadingPopup: loadingPopup
       },
@@ -568,7 +592,7 @@ App.BulkOperationsController = Em.Controller.extend({
     });
   },
 
-  convertHostsObjects: function (hosts) {
+  _convertHostsObjects: function (hosts) {
     return hosts.map(function (host) {
       return {
         index: host.index,
@@ -582,72 +606,45 @@ App.BulkOperationsController = Em.Controller.extend({
   },
 
   getHostsForBulkOperationSuccessCallback: function(json, opt, param) {
-    var self = this,
-      operationData = param.operationData,
-      hosts = this.convertHostsObjects(App.hostsMapper.map(json, true));
+    var self = this;
+    var operationData = param.operationData;
+    var hosts = this._convertHostsObjects(App.hostsMapper.map(json, true));
     // no hosts - no actions
     if (!hosts.length) {
       console.log('No bulk operation if no hosts selected.');
       return;
     }
+
+    Em.tryInvoke(param.loadingPopup, 'hide');
+
+    if ('SET_RACK_INFO' === operationData.action) {
+      return self.bulkOperation(operationData, hosts);
+    }
+
     var hostNames = hosts.mapProperty('hostName');
-    var hostsToSkip = [];
-    if (operationData.action == "DECOMMISSION") {
-      var hostComponentStatusMap = {}; // "DATANODE_c6401.ambari.apache.org" => "STARTED"
-      var hostComponentIdMap = {}; // "DATANODE_c6401.ambari.apache.org" => "DATANODE"
-      if (json.items) {
-        json.items.forEach(function(host) {
-          if (host.host_components) {
-            host.host_components.forEach(function(component) {
-              hostComponentStatusMap[component.id] = component.HostRoles.state;
-              hostComponentIdMap[component.id] = component.HostRoles.component_name;
-            });
-          }
-        });
-      }
-      hostsToSkip = hosts.filter(function(host) {
-        var invalidStateComponents = host.hostComponents.filter(function(component) {
-          return hostComponentIdMap[component] == operationData.realComponentName && hostComponentStatusMap[component] == 'INSTALLED';
-        });
-        return invalidStateComponents.length > 0;
-      });
+    var hostNamesSkipped = [];
+    if ('DECOMMISSION' === operationData.action) {
+      hostNamesSkipped = this._getSkippedForDecommissionHosts(json, hosts, operationData);
     }
-    var hostNamesSkipped = hostsToSkip.mapProperty('hostName');
-    if (operationData.action === 'PASSIVE_STATE') {
-      hostNamesSkipped = [];
-      var outOfSyncHosts = App.StackVersion.find().findProperty('isCurrent').get('outOfSyncHosts');
-      for (var i = 0; i < outOfSyncHosts.length; i++) {
-        if (hostNames.contains(outOfSyncHosts[i])) {
-          hostNamesSkipped.push(outOfSyncHosts[i]);
-        }
-      }
-    }
-    var message;
-    if (operationData.componentNameFormatted) {
-      message = Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length);
-    }
-    else {
-      message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
+    if ('PASSIVE_STATE' === operationData.action) {
+      hostNamesSkipped = this._getSkippedForPassiveStateHosts(hosts);
     }
 
-    if (param.loadingPopup) {
-      param.loadingPopup.hide();
-    }
+    var message = operationData.componentNameFormatted ?
+      Em.I18n.t('hosts.bulkOperation.confirmation.hostComponents').format(operationData.message, operationData.componentNameFormatted, hostNames.length) :
+      Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
 
-    if (operationData.action === 'SET_RACK_INFO') {
-      self.bulkOperation(operationData, hosts);
-      return;
-    }
-
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
-      visibleHosts: self.showHostNames(hostNames, "\n", 3),
-      hostNamesSkippedVisible: self.showHostNames(hostNamesSkipped, "\n", 3),
+      visibleHosts: self._showHostNames(hostNames, "\n", 3),
+      hostNamesSkippedVisible: self._showHostNames(hostNamesSkipped, "\n", 3),
+      expanded: false,
+
       hostNamesSkipped: function() {
         return hostNamesSkipped.length ? hostNamesSkipped.join("\n") : false;
       }.property(),
-      expanded: false,
+
       didInsertElement: function() {
         this.set('expanded', hostNames.length <= 3);
       },
@@ -655,9 +652,12 @@ App.BulkOperationsController = Em.Controller.extend({
         self.bulkOperation(operationData, hosts);
         this._super();
       },
+
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/bulk_operation_confirm_popup'),
         message: message,
+        textareaVisible: false,
+
         warningInfo: function() {
           switch (operationData.action) {
             case "DECOMMISSION":
@@ -669,15 +669,17 @@ App.BulkOperationsController = Em.Controller.extend({
               return ""
           }
         }.property(),
-        textareaVisible: false,
+
         textTrigger: function() {
-          this.set('textareaVisible', !this.get('textareaVisible'));
+          this.toggleProperty('textareaVisible');
         },
+
         showAll: function() {
           this.set('parentView.visibleHosts', this.get('parentView.hostNames'));
           this.set('parentView.hostNamesSkippedVisible', this.get('parentView.hostNamesSkipped'));
           this.set('parentView.expanded', true);
         },
+
         putHostNamesToTextarea: function() {
           var hostNames = this.get('parentView.hostNames');
           if (this.get('textareaVisible')) {
@@ -688,8 +690,57 @@ App.BulkOperationsController = Em.Controller.extend({
             });
           }
         }.observes('textareaVisible')
+
       })
     });
+  },
+
+  /**
+   * @param {object} json
+   * @param {object[]} hosts
+   * @param {object} operationData
+   * @returns {string[]}
+   * @private
+   * @method _getSkippedForDecommissionHosts
+   */
+  _getSkippedForDecommissionHosts: function (json, hosts, operationData) {
+    var hostComponentStatusMap = {}; // "DATANODE_c6401.ambari.apache.org" => "STARTED"
+    var hostComponentIdMap = {}; // "DATANODE_c6401.ambari.apache.org" => "DATANODE"
+    if (json.items) {
+      json.items.forEach(function(host) {
+        if (host.host_components) {
+          host.host_components.forEach(function(component) {
+            hostComponentStatusMap[component.id] = component.HostRoles.state;
+            hostComponentIdMap[component.id] = component.HostRoles.component_name;
+          });
+        }
+      });
+    }
+    return hosts.filter(function(host) {
+      return host.hostComponents.filter(function(component) {
+        return hostComponentIdMap[component] == operationData.realComponentName && hostComponentStatusMap[component] == 'INSTALLED';
+      }).length > 0;
+    }).mapProperty('hostName');
+  },
+
+  /**
+   * Exclude <code>outOfSyncHosts</code> hosts for PASSIVE request
+   *
+   * @param {object[]} hosts
+   * @returns {string[]}
+   * @private
+   * @method _getSkippedForPassiveStateHosts
+   */
+  _getSkippedForPassiveStateHosts: function (hosts) {
+    var hostNames = hosts.mapProperty('hostName');
+    var hostNamesSkipped = [];
+    var outOfSyncHosts = App.StackVersion.find().findProperty('isCurrent').get('outOfSyncHosts');
+    for (var i = 0; i < outOfSyncHosts.length; i++) {
+      if (hostNames.contains(outOfSyncHosts[i])) {
+        hostNamesSkipped.push(outOfSyncHosts[i]);
+      }
+    }
+    return hostNamesSkipped;
   }
 
 });

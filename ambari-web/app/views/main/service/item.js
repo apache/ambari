@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var batchUtils = require('utils/batch_scheduled_requests');
 
 App.MainServiceItemView = Em.View.extend({
   templateName: require('templates/main/service/item'),
@@ -230,19 +229,19 @@ App.MainServiceItemView = Em.View.extend({
       options.push(actionMap.DOWNLOAD_CLIENT_CONFIGS);
     }
 
-    if (!this.get('maintenance').length) {
-      this.set('maintenance', options);
-    } else {
+    if (this.get('maintenance.length')) {
       this.get('maintenance').forEach(function(option, index) {
-        if ( JSON.stringify(option) != JSON.stringify(options[index])  ) {
+        if (JSON.stringify(option) != JSON.stringify(options[index])) {
           self.get('maintenance').removeAt(index).insertAt(index, options[index]);
         }
       });
       options.forEach(function(opt, index) {
-        if ( JSON.stringify(opt) != JSON.stringify(self.get('maintenance')[index])  ) {
+        if (JSON.stringify(opt) != JSON.stringify(self.get('maintenance')[index])) {
           self.get('maintenance').pushObject(opt);
         }
       });
+    } else {
+      this.set('maintenance', options);
     }
     this.set('isMaintenanceSet', true);
   },
@@ -267,19 +266,22 @@ App.MainServiceItemView = Em.View.extend({
     this.get('controller').setStartStopState();
   },
 
+  maintenanceObsFields: ['isStopDisabled', 'isClientsOnlyService', 'content.isRestartRequired', 'isServicesInfoLoaded'],
+
   willInsertElement: function () {
-    this.addObserver('controller.isStopDisabled', this, 'observeMaintenance');
-    this.addObserver('controller.isClientsOnlyService', this, 'observeMaintenance');
-    this.addObserver('controller.content.isRestartRequired', this, 'observeMaintenance');
-    this.addObserver('controller.isServicesInfoLoaded', this, 'observeMaintenance');
+    var self = this;
+    this.get('maintenanceObsFields').forEach(function (field) {
+      self.addObserver('controller.' + field, self, 'observeMaintenance');
+    });
   },
 
   willDestroyElement: function() {
-    this.removeObserver('controller.isStopDisabled', this, 'observeMaintenance');
-    this.removeObserver('controller.isClientsOnlyService', this, 'observeMaintenance');
-    this.removeObserver('controller.content.isRestartRequired', this, 'observeMaintenance');
-    this.removeObserver('controller.isServicesInfoLoaded', this, 'observeMaintenance');
+    var self = this;
+    this.get('maintenanceObsFields').forEach(function (field) {
+      self.removeObserver('controller.' + field, self, 'observeMaintenance');
+    });
   },
+
   service:function () {
     var svc = this.get('controller.content');
     var svcName = svc.get('serviceName');
