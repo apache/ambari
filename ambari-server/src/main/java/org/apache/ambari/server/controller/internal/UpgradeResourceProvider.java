@@ -681,9 +681,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    MasterHostResolver resolver = direction.isUpgrade()
-        ? new MasterHostResolver(configHelper, cluster)
-        : new MasterHostResolver(configHelper, cluster, version);
+    MasterHostResolver resolver = null;
+    if (direction.isUpgrade()) {
+      resolver = new MasterHostResolver(configHelper, cluster);
+    } else {
+      if (upgradeType == UpgradeType.ROLLING) {
+        resolver = new MasterHostResolver(configHelper, cluster, version);
+      } else {
+        // due to EU stop components at the start of upgrade, components will never advertise their updated versions
+        resolver = new MasterHostResolver(configHelper, cluster);
+      }
+    }
 
     StackId sourceStackId = null;
     StackId targetStackId = null;
