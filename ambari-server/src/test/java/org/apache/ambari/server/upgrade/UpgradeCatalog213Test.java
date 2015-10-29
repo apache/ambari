@@ -201,6 +201,7 @@ public class UpgradeCatalog213Test {
     Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method updateHadoopEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
+    Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
       .addMockedMethod(updateAMSConfigs)
@@ -212,6 +213,7 @@ public class UpgradeCatalog213Test {
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateZookeeperLog4j)
       .addMockedMethod(updateHadoopEnvConfig)
+      .addMockedMethod(updateRangerEnvConfig)
       .createMock();
 
     upgradeCatalog213.updateHbaseEnvConfig();
@@ -231,6 +233,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateHDFSConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateZookeeperLog4j();
+    expectLastCall().once();
+    upgradeCatalog213.updateRangerEnvConfig();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -719,6 +723,67 @@ public class UpgradeCatalog213Test {
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateZookeeperLog4j();
+    easyMockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testUpdateRangerEnvConfig() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesHiveEnv = new HashMap<String, String>() {{
+        put("hive_security_authorization", "Ranger");
+    }};
+    final Map<String, String> propertiesRangerHdfsPlugin = new HashMap<String, String>() {{
+      put("ranger-hdfs-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerHbasePlugin = new HashMap<String, String>() {{
+      put("ranger-hbase-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerKafkaPlugin = new HashMap<String, String>() {{
+      put("ranger-kafka-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerYarnPlugin = new HashMap<String, String>() {{
+      put("ranger-yarn-plugin-enabled", "No");
+    }};
+
+    final Config mockHiveEnvConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerHdfsPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerHbasePluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerKafkaPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerYarnPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnvConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-hdfs-plugin-properties")).andReturn(mockRangerHdfsPluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-hbase-plugin-properties")).andReturn(mockRangerHbasePluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-kafka-plugin-properties")).andReturn(mockRangerKafkaPluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-yarn-plugin-properties")).andReturn(mockRangerYarnPluginConf).atLeastOnce();
+
+    expect(mockHiveEnvConf.getProperties()).andReturn(propertiesHiveEnv).times(2);
+    expect(mockRangerHdfsPluginConf.getProperties()).andReturn(propertiesRangerHdfsPlugin).times(2);
+    expect(mockRangerHbasePluginConf.getProperties()).andReturn(propertiesRangerHbasePlugin).times(2);
+    expect(mockRangerKafkaPluginConf.getProperties()).andReturn(propertiesRangerKafkaPlugin).times(2);
+    expect(mockRangerYarnPluginConf.getProperties()).andReturn(propertiesRangerYarnPlugin).times(2);
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateRangerEnvConfig();
     easyMockSupport.verifyAll();
 
   }
