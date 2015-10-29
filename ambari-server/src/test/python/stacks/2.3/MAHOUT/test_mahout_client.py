@@ -68,7 +68,7 @@ class TestMahoutClient(RMFTestCase):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
       classname = "MahoutClient",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -93,7 +93,7 @@ class TestMahoutClient(RMFTestCase):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
       classname = "MahoutClient",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,
