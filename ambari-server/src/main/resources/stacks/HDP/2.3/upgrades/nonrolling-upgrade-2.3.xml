@@ -54,6 +54,14 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
+      
+      <service name="ACCUMULO">
+        <component>ACCUMULO_TRACER</component>
+        <component>ACCUMULO_GC</component>
+        <component>ACCUMULO_TSERVER</component>
+        <component>ACCUMULO_MONITOR</component>
+        <component>ACCUMULO_MASTER</component>
+      </service>
 
       <service name="STORM">
         <component>DRPC_SERVER</component>
@@ -244,7 +252,7 @@
       </execute-stage>
     </group>
 
-    <!-- Invoke hdp-select set all after all components have been stopped by
+    <!-- Invoke hdp-select set all after all components have been stopped but
     before starting new ones. This step must be done here in order to
     ensure that components which rely on other components (like ZKFC on hadoop)
     will start on the correct versions -->
@@ -470,18 +478,6 @@
       </execute-stage>
     </group>
 
-    <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
-      <skippable>true</skippable>
-      <service name="ACCUMULO">
-        <component>ACCUMULO_MASTER</component>
-        <component>ACCUMULO_TSERVER</component>
-        <component>ACCUMULO_MONITOR</component>
-        <component>ACCUMULO_GC</component>
-        <component>ACCUMULO_TRACER</component>
-        <component>ACCUMULO_CLIENT</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="SLIDER" title="Slider">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -495,6 +491,19 @@
       <skippable>true</skippable>
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
+      </service>
+    </group>
+    
+    <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="ACCUMULO">
+        <component>ACCUMULO_MASTER</component>
+        <component>ACCUMULO_TSERVER</component>
+        <component>ACCUMULO_MONITOR</component>
+        <component>ACCUMULO_GC</component>
+        <component>ACCUMULO_TRACER</component>
+        <component>ACCUMULO_CLIENT</component>
       </service>
     </group>
 

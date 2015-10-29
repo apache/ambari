@@ -202,7 +202,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=True, sudo=True)
+  code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True)
 
   # conf-select can set more than one directory
   # per package, so return that list, especially for dry_run
