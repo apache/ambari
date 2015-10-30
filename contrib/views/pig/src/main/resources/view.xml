@@ -198,7 +198,7 @@
 
     <persistence>
         <entity>
-            <class>org.apache.ambari.view.pig.persistence.DataStoreStorage$SmokeTestEntity</class>
+            <class>org.apache.ambari.view.pig.persistence.SmokeTestEntity</class>
             <id-property>id</id-property>
         </entity>
         <entity>
