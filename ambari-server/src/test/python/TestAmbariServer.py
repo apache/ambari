@@ -6771,6 +6771,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
 
   @patch.object(ServerClassPath, "get_full_ambari_classpath_escaped_for_shell", new = MagicMock(return_value = 'test' + os.pathsep + 'path12'))
+  @patch("ambari_server.serverUtils.is_server_runing")
   @patch("ambari_commons.os_utils.run_os_command")
   @patch("ambari_server.setupSecurity.generate_env")
   @patch("ambari_server.setupSecurity.ensure_can_start_under_current_user")
@@ -6785,7 +6786,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.userInput.get_YN_input")
   def test_update_host_names(self, getYNInput_mock, sysExitMock, isFileMock, osAccessMock, getJavaExePathMock,
                              getAmbariPropertiesMock, parsePropertiesFileMock, ensureDriverInstalledMock, readAmbariUserMock,
-                             ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock):
+                             ensureCanStartUnderCurrentUserMock, generateEnvMock, runOSCommandMock, isServerRunningMock):
     properties = Properties()
     properties.process_pair("server.jdbc.database", "embedded")
 
@@ -6798,6 +6799,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     ensureCanStartUnderCurrentUserMock.return_value = "test_user"
     generateEnvMock.return_value = {}
     runOSCommandMock.return_value = (0, "", "")
+    isServerRunningMock.return_value = (False, 1)
 
     update_host_names(["update-host-names", "/testFileWithChanges"], properties)
 
