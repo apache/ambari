@@ -33,4 +33,16 @@ public interface ViewController {
    * @return Get the properties that any user is allowed to see, even non-admin users.
    */
   public ViewStatus getViewStatus();
+
+  /**
+   *
+   * @return The Active Application timeline server URL. Though, there is currently no
+   * HA in ATS, the ATS Url that is returned is considered as the Active one.
+   */
+  String getActiveATSUrl();
+
+  /**
+   * @return The active resource manager URL.
+   */
+  String getActiveRMUrl();
 }

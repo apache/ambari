@@ -42,7 +42,6 @@ public class ViewControllerImpl implements ViewController {
 
   private AmbariApi ambariApi;
 
-
   @Inject
   public ViewControllerImpl(ViewContext viewContext) {
     this.ambariApi = new AmbariApi(viewContext);
@@ -60,21 +59,28 @@ public class ViewControllerImpl implements ViewController {
 
     ViewStatus status = new ViewStatus();
     Map<String, String> parameters = new HashMap<String, String>();
-    try {
-      parameters.put(ViewController.PARAM_YARN_ATS_URL, ambariApi.getServices().getTimelineServerUrl());
-    } catch (AmbariApiException ex) {
-      throw new ATSUrlFetchException(ex);
-    }
-
-    try {
-      parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, ambariApi.getServices().getRMUrl());
-    } catch (AmbariApiException ex) {
-      throw new ActiveRMFetchException(ex);
-    }
-
+    parameters.put(ViewController.PARAM_YARN_ATS_URL, getActiveATSUrl());
+    parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, getActiveRMUrl());
     status.setParameters(parameters);
     return status;
   }
 
+  @Override
+  public String getActiveATSUrl() {
+    try {
+      return ambariApi.getServices().getTimelineServerUrl();
+    } catch (AmbariApiException ex) {
+      throw new ATSUrlFetchException(ex);
+    }
+  }
+
+  @Override
+  public String getActiveRMUrl() {
+    try {
+      return ambariApi.getServices().getRMUrl();
+    } catch (AmbariApiException ex) {
+      throw new ActiveRMFetchException(ex);
+    }
+  }
 }
 
