@@ -76,7 +76,7 @@ def service(name, action = 'start'):
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
-    pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=params.storm_user)[1]
+    pid = get_user_call_output.get_user_call_output(format("! test -f {pid_file} ||  cat {pid_file}"), user=params.storm_user)[1]
 
     Execute(format("{sudo} kill {pid}"),
       not_if = process_dont_exist)
