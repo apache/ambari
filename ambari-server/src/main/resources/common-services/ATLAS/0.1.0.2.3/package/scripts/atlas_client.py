@@ -31,10 +31,19 @@ class AtlasClient(Script):
   def get_stack_to_component(self):
     return {"HDP": "atlas-client"}
 
+  # ToDo: currently hdp-select doesn't contain atlas-client, uncomment this block when
+  # ToDo: atlas-client will be available
+  # def pre_upgrade_restart(self, env, upgrade_type=None):
+  #   import params
+  #   env.set_params(params)
+  #
+  #   if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') >= 0:
+  #     conf_select.select(params.stack_name, "atlas", params.version)
+  #     hdp_select.select("atlas-client", params.version)
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
-
 
   def configure(self, env):
     import params

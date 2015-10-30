@@ -37,12 +37,12 @@ class KafkaBroker(Script):
     env.set_params(params)
     kafka()
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     upgrade.prestart(env, "kafka-broker")
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
@@ -55,7 +55,7 @@ class KafkaBroker(Script):
             not_if=no_op_test
     )
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh; {params.kafka_bin} stop')
