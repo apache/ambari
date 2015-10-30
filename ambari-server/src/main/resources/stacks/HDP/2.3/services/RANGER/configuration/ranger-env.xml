@@ -30,7 +30,7 @@
     <name>create_db_dbuser</name>
     <value>true</value>
     <display-name>Setup Database and Databse User</display-name>
-    <description>If set to Yes, Ranger will Setup Database and Databse User. This will require to specify Database root user and password</description>
+    <description>If set to Yes, Ambari will create and setup Ranger Database and Database User. This will require to specify Database Admin user and password</description>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
