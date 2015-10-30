@@ -698,27 +698,28 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hbaseClassConfigs = ['hbase.coprocessor.master.classes', 'hbase.coprocessor.region.classes']
 
     for item in range(len(hbaseClassConfigs)):
-      if hbaseClassConfigs[item] in services['configurations']['hbase-site']['properties']:
-        if 'hbase-site' in configurations and hbaseClassConfigs[item] in configurations['hbase-site']['properties']:
-          coprocessorConfig = configurations['hbase-site']['properties'][hbaseClassConfigs[item]]
-        else:
-          coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
-        coprocessorClasses = coprocessorConfig.split(",")
-        coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
-        if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
-          if nonRangerClass in coprocessorClasses:
-            coprocessorClasses.remove(nonRangerClass)
-          if not rangerClass in coprocessorClasses:
-            coprocessorClasses.append(rangerClass)
-          putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
-        elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'No'.lower():
-          if rangerClass in coprocessorClasses:
-            coprocessorClasses.remove(rangerClass)
-            if not nonRangerClass in coprocessorClasses:
-              coprocessorClasses.append(nonRangerClass)
+      if 'hbase-site' in services['configurations']:
+        if hbaseClassConfigs[item] in services['configurations']['hbase-site']['properties']:
+          if 'hbase-site' in configurations and hbaseClassConfigs[item] in configurations['hbase-site']['properties']:
+            coprocessorConfig = configurations['hbase-site']['properties'][hbaseClassConfigs[item]]
+          else:
+            coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
+          coprocessorClasses = coprocessorConfig.split(",")
+          coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
+          if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+            if nonRangerClass in coprocessorClasses:
+              coprocessorClasses.remove(nonRangerClass)
+            if not rangerClass in coprocessorClasses:
+              coprocessorClasses.append(rangerClass)
             putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
-      elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
-        putHbaseSiteProperty(hbaseClassConfigs[item], rangerClass)
+          elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'No'.lower():
+            if rangerClass in coprocessorClasses:
+              coprocessorClasses.remove(rangerClass)
+              if not nonRangerClass in coprocessorClasses:
+                coprocessorClasses.append(nonRangerClass)
+              putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
+        elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+          putHbaseSiteProperty(hbaseClassConfigs[item], rangerClass)
 
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
