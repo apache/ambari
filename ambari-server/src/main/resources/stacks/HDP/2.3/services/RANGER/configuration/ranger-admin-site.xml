@@ -93,7 +93,7 @@
     <name>ranger.jpa.jdbc.driver</name>
     <value>com.mysql.jdbc.Driver</value>
     <display-name>Driver class name for a JDBC Ranger database</display-name>
-    <description>JDBC driver class name</description>
+    <description>JDBC driver class name. Example: For Mysql: com.mysql.jdbc.Driver, For Oracle: oracle.jdbc.OracleDriver</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -109,7 +109,7 @@
     <name>ranger.jpa.jdbc.url</name>
     <value>jdbc:mysql://localhost</value>
     <display-name>JDBC connect string for a Ranger database</display-name>
-    <description>JDBC connect string - auto populated based on other values</description>
+    <description>JDBC connect string</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -275,7 +275,7 @@
 
   <property>
     <name>ranger.ldap.ad.domain</name>
-    <display-name>Domain Name (AD specific)</display-name>
+    <display-name>Domain Name (Only for AD)</display-name>
     <value></value>
     <description>AD domain, only used if Authentication method is AD</description>
     <value-attributes>

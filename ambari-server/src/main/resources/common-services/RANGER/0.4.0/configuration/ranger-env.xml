@@ -24,7 +24,7 @@
     <name>ranger_user</name>
     <value>ranger</value>
     <property-type>USER</property-type>
-    <display-name>Used to create user and assign permission</display-name>
+    <display-name>Ranger User</display-name>
     <description>Ranger username</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -35,7 +35,7 @@
     <name>ranger_group</name>
     <value>ranger</value>
     <property-type>GROUP</property-type>
-    <display-name>Used to create group and assign permission</display-name>
+    <display-name>Ranger Group</display-name>
     <description>Ranger group</description>
     <value-attributes>
       <overridable>false</overridable>
