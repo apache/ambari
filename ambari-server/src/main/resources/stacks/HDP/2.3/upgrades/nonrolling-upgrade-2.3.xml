@@ -58,6 +58,10 @@
       <skippable>true</skippable>
       <service-check>false</service-check>
 
+      <service name="ATLAS">
+        <component>ATLAS_SERVER</component>
+      </service>
+
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
@@ -389,6 +393,14 @@
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="ATLAS" title="Atlas">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <service name="ATLAS">
+        <component>ATLAS_SERVER</component>
       </service>
     </group>
 
@@ -887,6 +899,15 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
+    </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
     </service>
   </processing>
 </upgrade>

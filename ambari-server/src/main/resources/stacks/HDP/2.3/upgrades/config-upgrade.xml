@@ -809,6 +809,18 @@
         </changes>
       </component>
     </service>
+
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_listeners">
+            <type>kafka-broker</type>
+            <set key="listeners" value="PLAINTEXT://localhost:6667"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
   </services>
 
 </upgrade-config-changes>
