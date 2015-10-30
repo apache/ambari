@@ -671,7 +671,7 @@ App.config = Em.Object.create({
           var configObject = _configString.substring(2, _configString.length - 1).split("/");
           var config = serviceConfigs.filterProperty('filename', configObject[0] + '.xml').findProperty('name', configObject[1]);
           if (config) {
-            var configValue = config.get('value');
+            var configValue = config.value;
             parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
           }
         }, this);
