@@ -221,7 +221,7 @@ class TestKnoxGateway(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
   @patch("os.path.isdir")
-  def test_pre_rolling_restart(self, isdir_mock):
+  def test_pre_upgrade_restart(self, isdir_mock):
     isdir_mock.return_value = True
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/knox_upgrade.json"
     with open(config_file, "r") as f:
@@ -231,7 +231,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -257,7 +257,7 @@ class TestKnoxGateway(RMFTestCase):
   @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_to_hdp_2300(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+  def test_pre_upgrade_restart_to_hdp_2300(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
     """
     In HDP 2.3.0.0, Knox was using a data dir of /var/lib/knox/data
     """
@@ -273,7 +273,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -325,7 +325,7 @@ class TestKnoxGateway(RMFTestCase):
   @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_from_hdp_2300_to_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+  def test_pre_upgrade_restart_from_hdp_2300_to_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
     """
     In RU from HDP 2.3.0.0 to 2.3.2.0, should backup the data dir used by the source version, which
     is /var/lib/knox/data
@@ -345,7 +345,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
@@ -397,7 +397,7 @@ class TestKnoxGateway(RMFTestCase):
   @patch("os.path.exists")
   @patch("os.path.isdir")
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_from_hdp_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
+  def test_pre_upgrade_restart_from_hdp_2320(self, call_mock, isdir_mock, path_exists_mock, remove_mock):
     """
     In RU from HDP 2.3.2 to anything higher, should backup the data dir used by the source version, which
     is /var/lib/knox/data_${source_version}
@@ -417,7 +417,7 @@ class TestKnoxGateway(RMFTestCase):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,

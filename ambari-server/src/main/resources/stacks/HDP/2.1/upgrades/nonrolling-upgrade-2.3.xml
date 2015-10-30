@@ -196,46 +196,46 @@
 
       <!--Changes for stack 2.2-->
       <!--YARN-->
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER">
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath"/>
       </execute-stage>
 
 
       <!--Changes for stack 2.3-->
       <!--HDFS-->
-      <execute-stage service="HDFS" component="NAMENODE">
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
         <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
       </execute-stage>
 
 
       <!--YARN-->
-      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER">
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="APP_TIMELINE_SERVER">
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_clear_default_node_label_expression"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_def_capacity"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="RESOURCEMANAGER">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
       </execute-stage>
 
 
       <!--HBASE-->
-      <execute-stage service="HBASE" component="HBASE_MASTER">
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_set_global_memstore_size"/>
       </execute-stage>
 
@@ -243,27 +243,27 @@
         <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
       </execute-stage>
 
-      <execute-stage service="HBASE" component="HBASE_MASTER">
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"/>
       </execute-stage>
 
 
       <!--TEZ-->
-      <execute-stage service="TEZ" component="TEZ_CLIENT">
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
       </execute-stage>
 
 
       <!--HIVE-->
-      <execute-stage service="HIVE" component="HIVE_SERVER">
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
       </execute-stage>
 
-      <execute-stage service="HIVE" component="HIVE_SERVER">
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
       </execute-stage>
 
-      <execute-stage service="HIVE" component="WEBHCAT_SERVER">
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_env"/>
       </execute-stage>
 
@@ -273,51 +273,35 @@
 
 
       <!--OOZIE-->
-      <execute-stage service="OOZIE" component="OOZIE_SERVER">
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
       </execute-stage>
 
 
       <!--STORM-->
-      <execute-stage service="STORM" component="NIMBUS">
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS">
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS">
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_cluster_logs_content"/>
       </execute-stage>
 
-      <execute-stage service="STORM" component="NIMBUS">
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_worker_logs_content"/>
       </execute-stage>
 
 
-      <execute-stage service="STORM" component="NIMBUS">
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
       </execute-stage>
 
     </group>
-
-    <!-- Invoke hdp-select set all after all components have been stopped by 
-    before starting new ones. This step must be done here in order to
-    ensure that components which rely on other components (like ZKFC on hadoop)
-    will start on the correct versions -->
-    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
-      <skippable>true</skippable>
-      <execute-stage title="Update stack to {{version}}">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>actionexecute</function>
-        </task>
-      </execute-stage>
-    </group>
-
     <!-- Now, restart all of the services. -->
-
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -460,6 +444,20 @@
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>
+    </group>
+
+    <!--
+    Invoke "hdp-select set all" to change any components we may have missed
+    that are installed on the hosts but not known by Ambari.
+    -->
+    <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
+      <skippable>true</skippable>
+      <execute-stage title="Update stack to {{version}}">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>actionexecute</function>
+        </task>
+      </execute-stage>
     </group>
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">

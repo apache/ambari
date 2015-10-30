@@ -42,6 +42,8 @@ def backup_data():
   Logger.info('Backing up Knox data directory before upgrade...')
   directoryMappings = _get_directory_mappings_during_upgrade()
 
+  Logger.info("Directory mappings to backup: {0}".format(str(directoryMappings)))
+
   absolute_backup_dir = os.path.join(tempfile.gettempdir(), BACKUP_TEMP_DIR)
   if not os.path.isdir(absolute_backup_dir):
     os.makedirs(absolute_backup_dir)
