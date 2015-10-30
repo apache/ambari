@@ -65,7 +65,10 @@ class TestStormRestApi(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_stop_default(self):
+  @patch("os.path.exists")
+  def test_stop_default(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [True, ]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/rest_api.py",
                        classname = "StormRestApi",
                        command = "stop",
@@ -122,7 +125,10 @@ class TestStormRestApi(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_stop_secured(self):
+  @patch("os.path.exists")
+  def test_stop_secured(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [True, ]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/rest_api.py",
                        classname = "StormRestApi",
                        command = "stop",

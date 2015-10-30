@@ -53,7 +53,10 @@ class TestStormNimbus(TestStormBase):
 
     self.assertNoMoreResources()
 
-  def test_stop_default(self):
+  @patch("os.path.exists")
+  def test_stop_default(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [False, False, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -93,7 +96,10 @@ class TestStormNimbus(TestStormBase):
 
     self.assertNoMoreResources()
 
-  def test_stop_secured(self):
+  @patch("os.path.exists")
+  def test_stop_secured(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [False, False, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
                        classname = "Nimbus",
                        command = "stop",
@@ -106,10 +112,10 @@ class TestStormNimbus(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
                        classname = "Nimbus",
-                       command = "pre_rolling_restart",
+                       command = "pre_upgrade_restart",
                        config_file="default.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -117,7 +123,7 @@ class TestStormNimbus(TestStormBase):
     self.assertResourceCalled("Execute", ('hdp-select', 'set', 'storm-client', '2.2.1.0-2067'), sudo=True)
     self.assertResourceCalled("Execute", ('hdp-select', 'set', 'storm-nimbus', '2.2.1.0-2067'), sudo=True)
 
-  def test_pre_rolling_restart_23(self):
+  def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -127,7 +133,7 @@ class TestStormNimbus(TestStormBase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nimbus_prod.py",
                      classname = "Nimbus",
-                     command = "pre_rolling_restart",
+                     command = "pre_upgrade_restart",
                      config_dict = json_content,
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,

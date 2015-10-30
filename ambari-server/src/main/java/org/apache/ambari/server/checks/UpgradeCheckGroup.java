@@ -43,26 +43,31 @@ public enum UpgradeCheckGroup {
   NAMENODE_HA(3.0f),
 
   /**
+   * Checks for the topology of service and components.
+   */
+  TOPOLOGY(4.0f),
+
+  /**
    * Checks for the state of a host or service being alive and responsive.
    */
-  LIVELINESS(4.0f),
+  LIVELINESS(5.0f),
 
   /**
    * Checks for the client retry properties to be set in clients that support
    * this.
    */
-  CLIENT_RETRY_PROPERTY(5.0f),
+  CLIENT_RETRY_PROPERTY(6.0f),
 
   /**
    * Checks for various HA components, such as multiple metastores, are
    * available.
    */
-  MULTIPLE_COMPONENT_WARNING(6.0f),
+  MULTIPLE_COMPONENT_WARNING(7.0f),
 
   /**
    * A general group for warning about configuration properties.
    */
-  CONFIGURATION_WARNING(7.0f),
+  CONFIGURATION_WARNING(8.0f),
 
   /**
    * All other checks.

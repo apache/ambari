@@ -66,7 +66,10 @@ class TestStormDrpcServer(TestStormBase):
 
     self.assertNoMoreResources()
 
-  def test_stop_default(self):
+  @patch("os.path.exists")
+  def test_stop_default(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [True, ]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "stop",
@@ -123,7 +126,10 @@ class TestStormDrpcServer(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_stop_secured(self):
+  @patch("os.path.exists")
+  def test_stop_secured(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [True, ]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
                        classname = "DrpcServer",
                        command = "stop",
@@ -163,7 +169,7 @@ class TestStormDrpcServer(TestStormBase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
                      classname = "DrpcServer",
-                     command = "pre_rolling_restart",
+                     command = "pre_upgrade_restart",
                      config_dict = json_content,
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,

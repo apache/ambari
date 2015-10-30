@@ -63,8 +63,11 @@ class TestStormUiServer(TestStormBase):
         try_sleep = 10,
     )
     self.assertNoMoreResources()
-  
-  def test_stop_default(self):
+
+  @patch("os.path.exists")
+  def test_stop_default(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [False, False, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
                        command = "stop",
@@ -121,7 +124,10 @@ class TestStormUiServer(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_stop_secured(self):
+  @patch("os.path.exists")
+  def test_stop_secured(self, path_exists_mock):
+    # Last bool is for the pid file
+    path_exists_mock.side_effect = [False, False, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
                        command = "stop",
@@ -161,7 +167,7 @@ class TestStormUiServer(TestStormBase):
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                      classname = "UiServer",
-                     command = "pre_rolling_restart",
+                     command = "pre_upgrade_restart",
                      config_dict = json_content,
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES,

@@ -108,6 +108,13 @@ def storm(name=None):
   )
   
   if params.storm_logs_supported:
+    Directory(params.log4j_dir,
+              owner=params.storm_user,
+              group=params.user_group,
+              mode=0755,
+              recursive=True
+    )
+    
     File(format("{log4j_dir}/cluster.xml"),
       owner=params.storm_user,
       content=InlineTemplate(params.storm_cluster_log4j_content)

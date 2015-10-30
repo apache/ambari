@@ -301,7 +301,6 @@
       <skippable>true</skippable>
       <service name="STORM">
         <component>NIMBUS</component>
-        <component>STORM_REST_API</component>
         <component>SUPERVISOR</component>
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
