@@ -175,6 +175,14 @@
       </execute-stage>
     </group>
 
+    <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
+    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
+      <execute-stage title="Update Target Stack" service="" component="">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
+        </task>
+      </execute-stage>
+    </group>
+
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>false</skippable>
@@ -285,14 +293,6 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
       </execute-stage>
 
-    </group>
-
-    <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
-    <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
-      <execute-stage title="Update Target Stack" service="" component="">
-        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.UpdateDesiredStackAction">
-        </task>
-      </execute-stage>
     </group>
 
     <!-- Invoke hdp-select set all after all components have been stopped by 
