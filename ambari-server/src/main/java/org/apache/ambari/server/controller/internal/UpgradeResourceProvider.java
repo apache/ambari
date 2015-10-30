@@ -170,6 +170,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_VERSION = VERSION;
   private static final String COMMAND_PARAM_CLUSTER_NAME = "clusterName";
   private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  private static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
   // TODO AMBARI-12698, change this variable name since it is no longer always a restart. Possible values are rolling_upgrade or nonrolling_upgrade
   // This will involve changing Script.py
   private static final String COMMAND_PARAM_RESTART_TYPE = "restart_type";
@@ -273,7 +274,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param controller
    *          the controller
    */
-  UpgradeResourceProvider(AmbariManagementController controller) {
+  public UpgradeResourceProvider(AmbariManagementController controller) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, controller);
   }
 
@@ -825,7 +826,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
               injectVariables(configHelper, cluster, itemEntity);
               makeServerSideStage(ctx, req, itemEntity, (ServerSideActionTask) task, skippable,
-                  allowRetry, configUpgradePack);
+                  allowRetry, pack, configUpgradePack);
             }
           }
         } else {
@@ -908,7 +909,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    *          which services are effected.
    * @throws AmbariException
    */
-  void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
+  public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
       throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
@@ -1368,7 +1369,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    */
   private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
       UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable, boolean allowRetry,
-      ConfigUpgradePack configUpgradePack)
+      UpgradePack upgradePack, ConfigUpgradePack configUpgradePack)
           throws AmbariException {
 
     Cluster cluster = context.getCluster();
@@ -1380,6 +1381,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
     commandParams.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
     commandParams.put(COMMAND_DOWNGRADE_FROM_VERSION, context.getDowngradeFromVersion());
+    commandParams.put(COMMAND_PARAM_UPGRADE_PACK, upgradePack.getName());
 
     // Notice that this does not apply any params because the input does not specify a stage.
     // All of the other actions do use additional params.
