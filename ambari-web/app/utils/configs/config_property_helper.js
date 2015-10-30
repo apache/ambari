@@ -215,13 +215,6 @@ module.exports = {
           configProperty.set('isRequired', 'false');
         }
         break;
-      case 'db_host':
-        var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
-        if (masterComponent) {
-          configProperty.set('value', masterComponent.hostName);
-          configProperty.set('recommendedValue', masterComponent.hostName);
-        }
-        break;
       case 'hawq_master_address_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HAWQMASTER').hostName);
         break;
