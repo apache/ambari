@@ -54,6 +54,7 @@ describe('App.ReassignMasterController', function () {
       it('check ' + c.componentName, function () {
         reassignMasterController.set('content.reassign', {'component_name': c.componentName});
         expect(reassignMasterController.get('totalSteps')).to.equal(c.result);
+        reassignMasterController.set('content.reassign', {service_id:null});
       });
     });
   });

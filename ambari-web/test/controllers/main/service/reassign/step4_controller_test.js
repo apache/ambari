@@ -490,7 +490,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         componentName: 'OOZIE_SERVER',
         result: [
           "(type=oozie-site&tag=6)",
-          "(type=core-site&tag=2)"
+          "(type=core-site&tag=2)",
+          "(type=oozie-env&tag=2)"
         ]
       },
       {
@@ -510,6 +511,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'mapred-site': {tag: 4},
           'yarn-site': {tag: 5},
           'oozie-site': {tag: 6},
+          'oozie-env': {tag: 2},
           'webhcat-site': {tag: 7},
           'yarn-env': {tag: 8},
           'accumulo-site': {tag: 9}
