@@ -489,7 +489,7 @@ class TestFalconServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
   @patch('os.path.isfile', new=MagicMock(return_value=True))
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/falcon-upgrade.json"
 
     with open(config_file, "r") as f:
@@ -511,7 +511,7 @@ class TestFalconServer(RMFTestCase):
   @patch.object(tarfile, 'open')
   @patch.object(shutil, 'rmtree')
   @patch("resource_management.core.shell.call")
-  def test_pre_rolling_restart_23(self, tarfile_open_mock, rmtree_mock, call_mock):
+  def test_pre_upgrade_restart_23(self, tarfile_open_mock, rmtree_mock, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/falcon-upgrade.json"
 
     with open(config_file, "r") as f:

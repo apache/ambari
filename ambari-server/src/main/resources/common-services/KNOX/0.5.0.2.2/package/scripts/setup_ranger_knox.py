@@ -19,7 +19,7 @@ limitations under the License.
 """
 from resource_management.core.logger import Logger
 
-def setup_ranger_knox(rolling_upgrade = False):
+def setup_ranger_knox(upgrade_type=None):
   import params
   
   if params.has_ranger_admin:
@@ -30,7 +30,7 @@ def setup_ranger_knox(rolling_upgrade = False):
       from resource_management.libraries.functions.setup_ranger_plugin import setup_ranger_plugin
     
     hdp_version = None
-    if rolling_upgrade:
+    if upgrade_type is not None:
       hdp_version = params.version
 
     if params.retryAble:

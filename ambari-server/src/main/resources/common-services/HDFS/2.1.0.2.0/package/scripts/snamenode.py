@@ -18,13 +18,19 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
+
 from hdfs_snamenode import snamenode
 from hdfs import hdfs
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
+
+from resource_management.core.logger import Logger
 
 class SNameNode(Script):
   def install(self, env):
@@ -61,7 +67,13 @@ class SNameNodeDefault(SNameNode):
     return {"HDP": "hadoop-hdfs-secondarynamenode"}
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
-    pass
+    Logger.info("Executing Stack Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hadoop", params.version)
+      hdp_select.select("hadoop-hdfs-secondarynamenode", params.version)
 
   def security_status(self, env):
     import status_params
