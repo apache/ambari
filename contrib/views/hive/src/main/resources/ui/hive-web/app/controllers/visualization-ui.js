@@ -41,14 +41,14 @@ export default Ember.Controller.extend({
   visualizationTabs: function () {
     return [
       Ember.Object.create({
+        name: 'Data Visualization',
+        id: 'visualization',
+        url: this.get('polestarUrl')
+      }),
+      Ember.Object.create({
         name: 'Data Explorer',
         id: 'data_explorer',
         url: this.get('voyagerUrl')
-      }),
-      Ember.Object.create({
-        name: 'Advanced Visualization',
-        id: 'visualization',
-        url: this.get('polestarUrl')
       })
     ]
   }.property('polestarUrl', 'voyagerUrl'),
