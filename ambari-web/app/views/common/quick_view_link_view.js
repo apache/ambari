@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site', 'ranger-site'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site', 'application-properties', 'ranger-admin-site', 'ranger-site', 'admin-properties'],
   /**
    * Get public host name by its host name.
    *
@@ -152,6 +152,15 @@ App.QuickViewLinks = Em.View.extend({
           } else if (item.get('service_id') === 'MAPREDUCE2') {
             siteConfigs = self.get('configProperties').findProperty('type', item.get('site')).properties;
             item.set('url', item.get('template').fmt(protocol, siteConfigs[item.get(protocol + '_config')]));
+          } else if (item.get('service_id') === 'RANGER') {
+            siteConfigs = self.get('configProperties').findProperty('type', 'admin-properties').properties;
+            if (siteConfigs['policymgr_external_url']) {
+              // external_url example: "http://c6404.ambari.apache.org:6080"
+              var hostAndPort = siteConfigs['policymgr_external_url'] && siteConfigs['policymgr_external_url'].split('://')[1];
+              item.set('url', protocol + '://' + hostAndPort);
+            } else {
+              item.set('url', item.get('template').fmt(protocol, hosts[0], port));
+            }
           } else {
             item.set('url', item.get('template').fmt(protocol, hosts[0], port));
           }
