@@ -19,6 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
@@ -47,15 +48,18 @@ public class ClusterConfigurationRequest {
   private AmbariContext ambariContext;
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
+  private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
   private Stack stack;
 
-  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial) {
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial,
+                                     StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor) {
     this.ambariContext = ambariContext;
     this.clusterTopology = clusterTopology;
     Blueprint blueprint = clusterTopology.getBlueprint();
     this.stack = blueprint.getStack();
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
+    this.stackAdvisorBlueprintProcessor = stackAdvisorBlueprintProcessor;
     if (setInitial) {
       setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
     }
@@ -69,7 +73,12 @@ public class ClusterConfigurationRequest {
   public void process() throws AmbariException, ConfigurationTopologyException {
     // this will update the topo cluster config and all host group configs in the cluster topology
     Set<String> updatedConfigTypes = Collections.emptySet();
+
     try {
+      // obtain recommended configurations before config updates
+      if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
+        stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology);
+      }
       updatedConfigTypes =
         configurationProcessor.doUpdateForClusterCreate();
     } catch (ConfigurationTopologyException e) {

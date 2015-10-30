@@ -19,9 +19,11 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Enums;
 import com.google.common.base.Strings;
+import com.google.common.base.Optional;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
 import org.apache.ambari.server.topology.Credential;
@@ -87,6 +89,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String DEFAULT_PASSWORD_PROPERTY = "default_password";
 
   /**
+   * configuration recommendation strategy property name
+   */
+  public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
+
+  /**
    * configuration factory
    */
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
@@ -103,6 +110,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   private Map<String, Credential> credentialsMap;
 
+  /**
+   * configuration recommendation strategy
+   */
+  private final ConfigRecommendationStrategy configRecommendationStrategy;
+
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
@@ -114,7 +126,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
     InvalidTopologyTemplateException {
     setClusterName(String.valueOf(properties.get(
-        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
+      ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
       defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
@@ -138,6 +150,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     parseHostGroupInfo(properties);
 
     this.credentialsMap = parseCredentials(properties);
+
+    this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
   }
 
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
@@ -182,6 +196,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
+    return configRecommendationStrategy;
   }
 
   @Override
@@ -342,6 +360,29 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     if (hostGroupInfo.getRequestedHostCount() == 0) {
       throw new InvalidTopologyTemplateException(String.format(
           "Host group '%s' must contain at least one 'hosts/fqdn' or a 'host_count' value", name));
+    }
+  }
+
+  /**
+   * Parse config recommendation strategy. Throws exception in case of the value is not correct.
+   * The default value is {@link ConfigRecommendationStrategy#NEVER_APPLY}
+   * @param properties request properties
+   * @throws InvalidTopologyTemplateException specified config recommendation strategy property fail validation
+   */
+  private ConfigRecommendationStrategy parseConfigRecommendationStrategy(Map<String, Object> properties)
+    throws InvalidTopologyTemplateException {
+    if (properties.containsKey(CONFIG_RECOMMENDATION_STRATEGY)) {
+      String configRecommendationStrategy = String.valueOf(properties.get(CONFIG_RECOMMENDATION_STRATEGY));
+      Optional<ConfigRecommendationStrategy> configRecommendationStrategyOpt =
+        Enums.getIfPresent(ConfigRecommendationStrategy.class, configRecommendationStrategy);
+      if (!configRecommendationStrategyOpt.isPresent()) {
+        throw new InvalidTopologyTemplateException(String.format(
+          "Config recommendation stratagy is not supported: %s", configRecommendationStrategy));
+      }
+      return configRecommendationStrategyOpt.get();
+    } else {
+      // default
+      return ConfigRecommendationStrategy.NEVER_APPLY;
     }
   }
 }

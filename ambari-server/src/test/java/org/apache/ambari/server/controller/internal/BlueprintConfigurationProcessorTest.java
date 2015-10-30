@@ -21,8 +21,12 @@ package org.apache.ambari.server.controller.internal;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertFalse;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
+import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -1207,7 +1211,7 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForBlueprintExport();
 
     assertEquals("hdfs config property not exported properly",
-        createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.http.address"));
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.http.address"));
     assertEquals("hdfs config property not exported properly",
         createExportedAddress(expectedPortNum, expectedHostGroupName), hdfsSiteProperties.get("dfs.https.address"));
     assertEquals("hdfs config property not exported properly",
@@ -1500,9 +1504,9 @@ public class BlueprintConfigurationProcessorTest {
 
     // verify that the oozie properties that can refer to an external DB are not included in the export
     assertFalse("oozie_existing_mysql_host should not have been present in the exported configuration",
-        oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
+      oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
     assertFalse("oozie.service.JPAService.jdbc.url should not have been present in the exported configuration",
-        oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
+      oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
 
     // verify that oozie-env heapsize properties are not removed from the configuration
     assertEquals("oozie_heapsize should have been included in exported configuration",
@@ -1584,11 +1588,11 @@ public class BlueprintConfigurationProcessorTest {
         createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
         webHCatSiteProperties.get("templeton.zookeeper.hosts"));
     assertEquals("yarn-site zookeeper config not properly exported",
-        createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
-        yarnSiteProperties.get("hadoop.registry.zk.quorum"));
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+      yarnSiteProperties.get("hadoop.registry.zk.quorum"));
     assertEquals("slider-client zookeeper config not properly exported",
-        createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
-        sliderClientProperties.get("slider.zookeeper.quorum"));
+      createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+      sliderClientProperties.get("slider.zookeeper.quorum"));
     assertEquals("kafka zookeeper config not properly exported",
         createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
         kafkaBrokerProperties.get("zookeeper.connect"));
@@ -1745,7 +1749,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("Property was incorrectly exported",
         "%HOSTGROUP::" + expectedHostGroupName + "%", properties.get("storm.zookeeper.servers"));
     assertEquals("Property with undefined host was incorrectly exported",
-        "undefined", properties.get("nimbus.childopts"));
+      "undefined", properties.get("nimbus.childopts"));
     assertEquals("Property with undefined host was incorrectly exported",
         "some other info, undefined, more info" , properties.get("worker.childopts"));
   }
@@ -2475,8 +2479,8 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertEquals("Unexpected config update for hive_hostname",
-        expectedPropertyValue,
-        hiveEnvProperties.get("hive_hostname"));
+      expectedPropertyValue,
+      hiveEnvProperties.get("hive_hostname"));
 
     assertEquals("Unexpected config update for hive.metastore.uris",
         expectedMetaStoreURIs,
@@ -2724,7 +2728,7 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForBlueprintExport();
 
     assertEquals("oozie property not updated correctly",
-        createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
+      createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
     assertEquals("oozie property not updated correctly",
       createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
     assertEquals("oozie property not updated correctly",
@@ -2785,13 +2789,13 @@ public class BlueprintConfigurationProcessorTest {
 
     // verify that the properties with hostname information was correctly preserved
     assertEquals("Yarn Log Server URL was incorrectly updated",
-        "http://" + expectedHostName + ":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
+      "http://" + expectedHostName + ":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
     assertEquals("Yarn ResourceManager hostname was incorrectly exported",
-        expectedHostName, yarnSiteProperties.get("yarn.resourcemanager.hostname"));
+      expectedHostName, yarnSiteProperties.get("yarn.resourcemanager.hostname"));
     assertEquals("Yarn ResourceManager tracker address was incorrectly updated",
         createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.resource-tracker.address"));
     assertEquals("Yarn ResourceManager webapp address was incorrectly updated",
-        createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.address"));
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.address"));
     assertEquals("Yarn ResourceManager scheduler address was incorrectly updated",
         createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.scheduler.address"));
     assertEquals("Yarn ResourceManager address was incorrectly updated",
@@ -3734,7 +3738,7 @@ public class BlueprintConfigurationProcessorTest {
       expectedHostName + ":" + expectedPortNum, falconStartupProperties.get("*.broker.url"));
 
     assertEquals("Falcon Kerberos Principal property not properly exported",
-        "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
+      "falcon/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.service.authentication.kerberos.principal"));
 
     assertEquals("Falcon Kerberos HTTP Principal property not properly exported",
       "HTTP/" + expectedHostName + "@EXAMPLE.COM", falconStartupProperties.get("*.falcon.http.authentication.kerberos.principal"));
@@ -4131,7 +4135,7 @@ public class BlueprintConfigurationProcessorTest {
     updater.doUpdateForClusterCreate();
 
     assertFalse("hbase.coprocessor.regionserver.classes should have been filtered out of configuration",
-                hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
+      hbaseSiteProperties.containsKey("hbase.coprocessor.regionserver.classes"));
     assertTrue("hbase.coprocessor.master.classes should not have been filtered out of configuration",
                hbaseSiteProperties.containsKey("hbase.coprocessor.master.classes"));
     assertTrue("hbase.coprocessor.region.classes should not have been filtered out of configuration",
@@ -4324,7 +4328,7 @@ public class BlueprintConfigurationProcessorTest {
       "localhost", stormSiteProperties.get("supervisor.childopts"));
 
     assertEquals("nimbus startup settings not properly handled by cluster create",
-        "localhost", stormSiteProperties.get("nimbus.childopts"));
+      "localhost", stormSiteProperties.get("nimbus.childopts"));
 
     assertEquals("Kafka ganglia host property not properly handled by cluster create",
       "localhost", kafkaBrokerProperties.get("kafka.ganglia.metrics.host"));
@@ -4659,9 +4663,9 @@ public class BlueprintConfigurationProcessorTest {
         hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo));
 
     assertEquals("HTTPS address HA property not properly exported", expectedPropertyValue,
-        hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
+      hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
     assertEquals("HTTPS address HA property not properly exported", expectedPropertyValue,
-        hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+      hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
 
     // verify that the Blueprint config processor has not overridden
     // the user's configuration to determine the active and
@@ -5113,6 +5117,178 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.groups"));
   }
 
+  @Test
+  public void testRecommendConfiguration_applyStackDefaultsOnly() throws Exception {
+    // GIVEN
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteMap = new HashMap<String, String>();
+    properties.put("core-site", coreSiteMap);
+    coreSiteMap.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostGroupName));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Configuration parentConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentConfig);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    reset(stack);
+    expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
+    replay(stack);
+    // WHEN
+    configProcessor.doUpdateForClusterCreate();
+    // THEN
+    assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site", "fs.default.name"));
+    assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
+    // verify that fs.stackDefault.key2 is removed
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
+    // verify that fs.notStackDefault is filtered out
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+  }
+
+  @Test
+  public void testRecommendConfiguration_applyAlways() throws Exception {
+    // GIVEN
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteMap = new HashMap<String, String>();
+    properties.put("core-site", coreSiteMap);
+    coreSiteMap.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostGroupName));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ALWAYS_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    // WHEN
+    configProcessor.doUpdateForClusterCreate();
+    // THEN
+    assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site","fs.default.name"));
+    assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
+    // verify that fs.stackDefault.key2 is removed
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
+    // verify that fs.notStackDefault is not filtered out
+    assertNotNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+    assertEquals(1, topology.getAdvisedConfigurations().size());
+  }
+
+  @Test
+  public void testRecommendConfiguration_neverApply() throws Exception {
+    // GIVEN
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteMap = new HashMap<String, String>();
+    properties.put("core-site", coreSiteMap);
+    coreSiteMap.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
+    coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostGroupName));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), createStackDefaults());
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    topology.getAdvisedConfigurations().putAll(createAdvisedConfigMap());
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    // WHEN
+    configProcessor.doUpdateForClusterCreate();
+    // THEN
+    assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site", "fs.default.name"));
+    // verify that no any value added/upgraded/removed
+    assertNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+    assertEquals("stackDefaultValue1", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
+    assertNotNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
+  }
+
+  private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
+    Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();
+    Map<String, String> confProp = new HashMap<String, String>();
+    confProp.put("fs.stackDefault.key1", "stackDefaultUpgraded");
+    confProp.put("fs.notStackDefault", "notStackDefault");
+    Map<String, ValueAttributesInfo> valueAttributesInfoMap = new HashMap<String, ValueAttributesInfo>();
+    ValueAttributesInfo vaInfo = new ValueAttributesInfo();
+    vaInfo.setDelete("true");
+    valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo);
+    advMap.put("core-site", new AdvisedConfiguration(confProp, valueAttributesInfoMap));
+    return advMap;
+  }
+
 
   private static String createExportedAddress(String expectedPortNum, String expectedHostGroupName) {
     return createExportedHostName(expectedHostGroupName, expectedPortNum);
@@ -5129,6 +5305,19 @@ public class BlueprintConfigurationProcessorTest {
 
   private static String createHostAddress(String hostName, String portNumber) {
     return hostName + ":" + portNumber;
+  }
+
+  private Configuration createStackDefaults() {
+    Map<String, Map<String, String>> stackDefaultProps =
+      new HashMap<String, Map<String, String>>();
+    Map<String, String> coreSiteDefault = new HashMap<String, String>();
+    coreSiteDefault.put("fs.stackDefault.key1", "stackDefaultValue1");
+    coreSiteDefault.put("fs.stackDefault.key2", "stackDefaultValue2");
+    stackDefaultProps.put("core-site", coreSiteDefault);
+
+    Map<String, Map<String, Map<String, String>>> stackDefaultAttributes =
+      new HashMap<String, Map<String, Map<String, String>>>();
+    return new Configuration(stackDefaultProps, stackDefaultAttributes);
   }
 
   private ClusterTopology createClusterTopology(Blueprint blueprint, Configuration configuration,
@@ -5173,7 +5362,11 @@ public class BlueprintConfigurationProcessorTest {
 
     replay(bp);
 
-    return new ClusterTopologyImpl(ambariConext, 1L, blueprint, configuration, hostGroupInfo);
+    ClusterTopology topology = new ClusterTopologyImpl
+      (ambariConext, 1L, blueprint, configuration, hostGroupInfo);
+    topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.NEVER_APPLY);
+
+    return topology;
   }
 
   private class TestHostGroup {

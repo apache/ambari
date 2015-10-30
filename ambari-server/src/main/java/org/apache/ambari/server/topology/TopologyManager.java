@@ -22,6 +22,7 @@ import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Request;
+import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
@@ -82,6 +83,7 @@ public class TopologyManager {
   //todo: inject
   private static LogicalRequestFactory logicalRequestFactory = new LogicalRequestFactory();
   private static AmbariContext ambariContext = new AmbariContext();
+  private static StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
 
   private final Object initializationLock = new Object();
 
@@ -148,15 +150,17 @@ public class TopologyManager {
     long clusterId = ambariContext.getClusterId(clusterName);
     topology.setClusterId(clusterId);
     request.setClusterId(clusterId);
+    // set recommendation strategy
+    topology.setConfigRecommendationStrategy(request.getConfigRecommendationStrategy());
     // persist request after it has successfully validated
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
 
     clusterTopologyMap.put(clusterId, topology);
 
-    addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true));
-
     final Stack stack = topology.getBlueprint().getStack();
 
+    addClusterConfigRequest(topology, new ClusterConfigurationRequest(
+      ambariContext, topology, true, stackAdvisorBlueprintProcessor));
     LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
@@ -274,7 +278,7 @@ public class TopologyManager {
     // this registers/updates all request host groups
     topology.update(request);
     return getRequestStatus(processRequest(persistedRequest, topology,
-        ambariContext.getNextRequestId()).getRequestId());
+      ambariContext.getNextRequestId()).getRequestId());
   }
 
   public void onHostRegistered(HostImpl host, boolean associatedWithCluster) {
@@ -446,7 +450,7 @@ public class TopologyManager {
   }
 
   private LogicalRequest processRequest(PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
-      throws AmbariException {
+    throws AmbariException {
 
     LOG.info("TopologyManager.processRequest: Entering");
 
@@ -599,7 +603,8 @@ public class TopologyManager {
         configChecked = true;
         if (!ambariContext.doesConfigurationWithTagExist(topology.getClusterId(), TOPOLOGY_RESOLVED_TAG)) {
           LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
-          addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, false));
+          addClusterConfigRequest(topology, new ClusterConfigurationRequest(
+            ambariContext, topology, false, stackAdvisorBlueprintProcessor));
         }
       }
     }
@@ -635,6 +640,10 @@ public class TopologyManager {
    */
   private void addClusterConfigRequest(ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
     executor.execute(new ConfigureClusterTask(topology, configurationRequest));
+  }
+
+  public static void init(StackAdvisorBlueprintProcessor instance) {
+    stackAdvisorBlueprintProcessor = instance;
   }
 
   private class ConfigureClusterTask implements Runnable {

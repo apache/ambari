@@ -45,6 +45,8 @@ public class ClusterTopologyImpl implements ClusterTopology {
   //todo: for example: provision using bp1 and scale using bp2
   private Blueprint blueprint;
   private Configuration configuration;
+  private ConfigRecommendationStrategy configRecommendationStrategy;
+  private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
   private final AmbariContext ambariContext;
 
@@ -231,6 +233,21 @@ public class ClusterTopologyImpl implements ClusterTopology {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy) {
+    this.configRecommendationStrategy = strategy;
+  }
+
+  @Override
+  public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
+    return this.configRecommendationStrategy;
+  }
+
+  @Override
+  public Map<String, AdvisedConfiguration> getAdvisedConfigurations() {
+    return this.advisedConfigurations;
   }
 
   @Override
