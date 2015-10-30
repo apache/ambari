@@ -66,7 +66,6 @@
         <component>DRPC_SERVER</component>
         <component>STORM_UI_SERVER</component>
         <component>SUPERVISOR</component>
-        <component>STORM_REST_API</component>
         <component>NIMBUS</component>
       </service>
 
@@ -415,7 +414,6 @@
       <skippable>true</skippable>
       <service name="STORM">
         <component>NIMBUS</component>
-        <component>STORM_REST_API</component>
         <component>SUPERVISOR</component>
         <component>STORM_UI_SERVER</component>
         <component>DRPC_SERVER</component>
@@ -737,12 +735,6 @@
 
     <service name="STORM">
       <component name="NIMBUS">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="STORM_REST_API">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

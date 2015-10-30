@@ -48,7 +48,7 @@ class DrpcServer(Script):
 
     storm()
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -56,14 +56,14 @@ class DrpcServer(Script):
       conf_select.select(params.stack_name, "storm", params.version)
       hdp_select.select("storm-client", params.version)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
 
     service("drpc", action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

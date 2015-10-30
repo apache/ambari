@@ -23,6 +23,7 @@
   <type>NON_ROLLING</type>
   <downgrade-allowed>false</downgrade-allowed>
   <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.StormRestAPIDeletedCheck</check>
   </prerequisite-checks>
   <upgrade-path>
     <intermediate-stack version="2.2"/>
