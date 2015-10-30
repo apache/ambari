@@ -606,7 +606,17 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     });
     this.set('progress', '100');
 
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log("Error starting installed services: ", jqXHR, ajaxOptions, error, opt);
+    App.ModalPopup.show({
+      encodeBody: false,
+      primary: Em.I18n.t('ok'),
+      header: Em.I18n.t('installer.step9.service.start.header'),
+      secondaryClass: "hide",
+      body: Em.I18n.t('installer.step9.service.start.failed'),
+      primaryClass: 'btn-success',
+      onPrimary: function() { this.hide(); },
+      onClose: function() { this.hide(); }
+    });
   },
 
   /**
