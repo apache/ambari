@@ -25,9 +25,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Assert;
 import org.junit.Test;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -106,7 +104,9 @@ public class TimelineMetricCacheSizingTest {
     long sampleSizeInMB = bytesFromReflectionEngine / (1024 * 1024);
     long discrepancyInKB = Math.abs(bytesFromCustomSizeOfEngine - bytesFromReflectionEngine) / 1024;
 
-    Assert.assertTrue("Sample size is greater that 10 MB", sampleSizeInMB > 10);
-    Assert.assertTrue("Discrepancy in values is less than 10K", discrepancyInKB  < 10);
+    Assert.assertTrue("Sample size is " + sampleSizeInMB + ", expected to be" +
+        "greater that 10 MB", sampleSizeInMB > 10);
+    Assert.assertTrue("Discrepancy in values is " + discrepancyInKB  + ", " +
+        "expected to be less than 10K", discrepancyInKB  < 10);
   }
 }

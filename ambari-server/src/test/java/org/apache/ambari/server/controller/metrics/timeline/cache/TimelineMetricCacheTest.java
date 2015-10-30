@@ -31,15 +31,12 @@ import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.timeline.MetricsRequestHelper;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Test;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,8 +46,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-
 import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_INSTANCE_NAME;
+import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_MANAGER_NAME;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
@@ -83,7 +80,7 @@ public class TimelineMetricCacheTest {
     // Avoids Object Exists Exception on unit tests by adding a new cache for
     // every provider.
     CacheManager manager = CacheManager.getInstance();
-    manager.removeCache(TIMELINE_METRIC_CACHE_INSTANCE_NAME);
+    manager.removeAllCaches();
   }
 
   // General cache behavior demonstration
@@ -395,8 +392,7 @@ public class TimelineMetricCacheTest {
   }
 
   @Test
-  public void testTimelineMetricCachePrecisionUpdates () throws Exception {
-
+  public void testTimelineMetricCachePrecisionUpdates() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
     expect(configuration.getMetricCacheTTLSeconds()).andReturn(3600);
     expect(configuration.getMetricCacheIdleSeconds()).andReturn(100);
@@ -406,10 +402,10 @@ public class TimelineMetricCacheTest {
 
     final long now = System.currentTimeMillis();
     long second = 1000;
-    long min = 60*second;
-    long hour = 60*min;
-    long day = 24*hour;
-    long year = 365*day;
+    long min = 60 * second;
+    long hour = 60 * min;
+    long day = 24 * hour;
+    long year = 365 * day;
 
     //Original Values
     Map<String, TimelineMetric> valueMap = new HashMap<String, TimelineMetric>();
@@ -418,7 +414,7 @@ public class TimelineMetricCacheTest {
     timelineMetric.setAppId("app1");
 
     TreeMap<Long, Double> metricValues = new TreeMap<Long, Double>();
-    for(long i=1*year-1*day;i>=0;i-=1*day) {
+    for (long i = 1 * year - 1 * day; i >= 0; i -= 1 * day) {
       metricValues.put(now-i, 1.0);
     }
 
@@ -459,7 +455,7 @@ public class TimelineMetricCacheTest {
     TimelineAppMetricCacheKey newKey = new TimelineAppMetricCacheKey(
         Collections.singleton("cpu_user"),
         "app1",
-        new TemporalInfoImpl(now-1*day, now+2*day, 1)
+        new TemporalInfoImpl(now - 1 * day, now + 2 * day, 1)
     );
     newKey.setSpec("");
 
@@ -468,8 +464,9 @@ public class TimelineMetricCacheTest {
       .andReturn(metrics).andReturn(newMetrics);
     replay(metricsRequestHelperForGets);
 
-    TimelineMetricCacheEntryFactory cacheEntryFactory = createMockBuilder(TimelineMetricCacheEntryFactory.class)
-     .withConstructor(Configuration.class).withArgs(configuration).createMock();
+    TimelineMetricCacheEntryFactory cacheEntryFactory =
+      createMockBuilder(TimelineMetricCacheEntryFactory.class)
+        .withConstructor(configuration).createMock();
 
     Field requestHelperField = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
     requestHelperField.setAccessible(true);
@@ -501,5 +498,6 @@ public class TimelineMetricCacheTest {
     Assert.assertEquals("app1", metric.getAppId());
     Assert.assertEquals(newMetricValues,metric.getMetricValues());
 
+    verify(configuration, metricsRequestHelperForGets, cacheEntryFactory);
   }
 }
