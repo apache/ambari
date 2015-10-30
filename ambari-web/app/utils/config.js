@@ -628,6 +628,7 @@ App.config = Em.Object.create({
         if (advanced.get('id')) {
           configData = this.mergeStaticProperties(configData, advanced, null, ['name', 'filename']);
           configData.value = configData.recommendedValue = this.formatPropertyValue(advanced, advanced.get('value'));
+          configData.widget = advanced.get('widget');
         }
 
         mergedConfigs.push(configData);
@@ -635,6 +636,43 @@ App.config = Em.Object.create({
 
     }, this);
     return mergedConfigs;
+  },
+
+  /**
+   *
+   * @param {string} ifStatement
+   * @param {Array} serviceConfigs
+   * @returns {boolean}
+   */
+  calculateConfigCondition: function(ifStatement, serviceConfigs) {
+    // Split `if` statement if it has logical operators
+    var ifStatementRegex = /(&&|\|\|)/;
+    var IfConditions = ifStatement.split(ifStatementRegex);
+    var allConditionResult = [];
+    IfConditions.forEach(function(_condition){
+      var condition = _condition.trim();
+      if (condition === '&&' || condition === '||') {
+        allConditionResult.push(_condition);
+      }  else {
+        var splitIfCondition = condition.split('===');
+        var ifCondition = splitIfCondition[0];
+        var result = splitIfCondition[1] || "true";
+        var parseIfConditionVal = ifCondition;
+        var regex = /\$\{.*?\}/g;
+        var configStrings = ifCondition.match(regex);
+        configStrings.forEach(function (_configString) {
+          var configObject = _configString.substring(2, _configString.length - 1).split("/");
+          var config = serviceConfigs.filterProperty('filename', configObject[0] + '.xml').findProperty('name', configObject[1]);
+          if (config) {
+            var configValue = config.get('value');
+            parseIfConditionVal = parseIfConditionVal.replace(_configString, configValue);
+          }
+        }, this);
+        var conditionResult = window.eval(JSON.stringify(parseIfConditionVal.trim())) === result.trim();
+        allConditionResult.push(conditionResult);
+      }
+    }, this);
+    return Boolean(window.eval(allConditionResult.join('')));
   },
 
   miscConfigVisibleProperty: function (configs, serviceToShow) {

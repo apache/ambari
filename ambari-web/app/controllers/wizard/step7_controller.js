@@ -624,6 +624,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       : App.config.mergePreDefinedWithStack(this.get('selectedServiceNames').concat(this.get('installedServiceNames')));
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
 
+    this.resolveConfigThemeConditions(configs);
+
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController') {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
@@ -633,6 +635,43 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     } else {
       this.applyServicesConfigs(configs, storedConfigs);
     }
+  },
+
+  /**
+   * Resolve config theme conditions
+   * in order to correctly calculate config errors number of service
+   * @param {Array} configs
+   */
+  resolveConfigThemeConditions: function (configs) {
+    App.ThemeCondition.find().forEach(function (configCondition) {
+      var _configs = Em.A(configCondition.get('configs'));
+      if (configCondition.get("resource") === 'config' && _configs.length > 0) {
+        var isConditionTrue = App.config.calculateConfigCondition(configCondition.get("if"), configs);
+        var action = isConditionTrue ? configCondition.get("then") : configCondition.get("else");
+        if (configCondition.get('id')) {
+          var valueAttributes = action.property_value_attributes;
+          if (valueAttributes && !Em.none(valueAttributes['visible'])) {
+            var themeResource;
+            if (configCondition.get('type') === 'subsection') {
+              themeResource = App.SubSection.find().findProperty('name', configCondition.get('name'));
+            } else if (configCondition.get('type') === 'subsectionTab') {
+              themeResource = App.SubSectionTab.find().findProperty('name', configCondition.get('name'));
+            }
+            if (themeResource) {
+              themeResource.get('configProperties').forEach(function (_config) {
+                configs.find(function (item) {
+                  if (item.name === _config.get('name') && item.filename === _config.get('fileName')) {
+                    item.hiddenBySection = !valueAttributes['visible'];
+                    return true;
+                  }
+                  return false;
+                });
+              }, this);
+            }
+          }
+        }
+      }
+    });
   },
 
   applyServicesConfigs: function (configs, storedConfigs) {
