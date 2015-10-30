@@ -31,7 +31,7 @@ HBASE_CONF_DIR=/etc/ams-hbase/conf
 
 HBASE_CMD=${HBASE_DIR}/bin/hbase
 
-METRIC_TABLE_NAME=METRIC_AGGREGATE_DAILY
+METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_DAILY METRIC_RECORD_HOURLY METRIC_RECORD_MINUTE)
 METRIC_COLLECTOR=ambari-metrics-collector
 
 AMS_LOG_DIR=/var/log/ambari-metrics-collector
@@ -80,6 +80,18 @@ function write_pidfile
       echo "ERROR:  Cannot write pid ${pidfile}."
       exit 1;
     fi
+}
+
+# TODO replace this with Phoenix DDL, when normalization support added to Phoenix
+function enable_normalization
+{
+  # Enable normalization for all the tables
+  command=""
+  for table in "${METRIC_TABLES[@]}"
+  do
+    command="$command \n alter_async '$table', {NORMALIZATION_ENABLED => 'true'}"
+  done
+  echo -e ${command} | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell > /dev/null 2>&1
 }
 
 function hadoop_java_setup
@@ -201,10 +213,10 @@ function start()
 
   echo "Collector successfully started."
   echo "Initializing Ambari Metrics data model"
-  # Wait until METRIC_RECORD table created
+  # Wait until METRIC_* tables created
   for retry in {1..10}
   do
-    echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLE_NAME} > /dev/null 2>&1
+    echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
       echo "Ambari Metrics data model initialization completed."
       break
@@ -216,7 +228,8 @@ function start()
     exit -1
   fi
 
-}
+  enable_normalization
+  }
 
 function stop()
 {
@@ -331,6 +344,3 @@ case "$1" in
 	;;
 
 esac
-
-
-
