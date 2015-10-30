@@ -290,6 +290,8 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
     var task = this.get('tasks').findProperty('status', 'FAILED');
     task.set('showRetry', false);
     task.set('showRollback', false);
+    this.set('isSubmitDisabled', true);
+    this.set('isBackButtonDisabled', true);
     task.set('status', 'PENDING');
   },
 
