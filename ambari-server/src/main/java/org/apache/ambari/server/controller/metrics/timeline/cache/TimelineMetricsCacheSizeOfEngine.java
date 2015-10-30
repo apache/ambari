@@ -23,6 +23,7 @@ import net.sf.ehcache.pool.impl.DefaultSizeOfEngine;
 import net.sf.ehcache.pool.sizeof.ReflectionSizeOf;
 import net.sf.ehcache.pool.sizeof.SizeOf;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
@@ -89,14 +90,11 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
 
   private long getTimelineMetricCacheValueSize(TimelineMetricsCacheValue value) {
     long size = 16; // startTime + endTime
-    Map<String, TimelineMetric> metrics = value.getTimelineMetrics();
+    TimelineMetrics metrics = value.getTimelineMetrics();
     size += 8; // Object reference
 
     if (metrics != null) {
-      for (Map.Entry<String, TimelineMetric> metricEntry : metrics.entrySet()) {
-        size += reflectionSizeOf.sizeOf(metricEntry.getKey());
-
-        TimelineMetric metric = metricEntry.getValue();
+      for (TimelineMetric metric : metrics.getMetrics()) {
 
         if (timelineMetricPrimitivesApproximation == 0) {
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getMetricName());

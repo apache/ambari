@@ -22,6 +22,7 @@ import net.sf.ehcache.pool.sizeof.SizeOf;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Assert;
 import org.junit.Test;
 import java.util.HashMap;
@@ -47,7 +48,7 @@ public class TimelineMetricCacheSizingTest {
     // JSON dser gives a LinkedHashMap
     TreeMap<Long, Double> valueMap = new TreeMap<>();
     long now = System.currentTimeMillis();
-    for (int i = 0; i < 25000; i++) {
+    for (int i = 0; i < 50000; i++) {
       valueMap.put(new Long(now + i), new Double(1.0 + i));
     }
 
@@ -83,16 +84,16 @@ public class TimelineMetricCacheSizingTest {
       "jvm.JvmMetrics.MemHeapCommittedM&appId=RESOURCEMANAGER&" +
       "startTime=1439522640000&endTime=1440127440000&precision=hours");
 
-    Map<String, TimelineMetric> metricMap = new HashMap<>();
-    metricMap.put(metric1, getSampleTimelineMetric(metric1));
-    metricMap.put(metric2, getSampleTimelineMetric(metric2));
-    metricMap.put(metric3, getSampleTimelineMetric(metric3));
-    metricMap.put(metric4, getSampleTimelineMetric(metric4));
-    metricMap.put(metric5, getSampleTimelineMetric(metric5));
-    metricMap.put(metric6, getSampleTimelineMetric(metric6));
+    TimelineMetrics metrics = new TimelineMetrics();
+    metrics.getMetrics().add(getSampleTimelineMetric(metric1));
+    metrics.getMetrics().add(getSampleTimelineMetric(metric2));
+    metrics.getMetrics().add(getSampleTimelineMetric(metric3));
+    metrics.getMetrics().add(getSampleTimelineMetric(metric4));
+    metrics.getMetrics().add(getSampleTimelineMetric(metric5));
+    metrics.getMetrics().add(getSampleTimelineMetric(metric6));
 
     TimelineMetricsCacheValue value = new TimelineMetricsCacheValue(now -
-      1000, now, metricMap, null);
+      1000, now, metrics, null);
 
     TimelineMetricsCacheSizeOfEngine customSizeOfEngine = new TimelineMetricsCacheSizeOfEngine();
 
