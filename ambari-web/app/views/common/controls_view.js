@@ -775,13 +775,9 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
     if (this.get('clicked')) {
       this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
       Em.run.next(this, function() {
-        console.debug('App.ServiceConfigRadioButton.onChecked');
         this.set('parentView.serviceConfig.value', this.get('value'));
-        var components = this.get('parentView.serviceConfig.options');
-        if (components && components.someProperty('foreignKeys')) {
-          this.get('controller.stepConfigs').findProperty('serviceName', this.get('parentView.serviceConfig.serviceName')).propertyDidChange('errorCount');
-        }
         this.set('clicked', false);
+        this.updateForeignKeys();
       });
     }
   }.observes('checked'),
@@ -789,8 +785,17 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfig
   updateCheck: function() {
     if (!this.get('clicked')) {
       this.set('checked', this.get('parentView.serviceConfig.value') === this.get('value'));
+      this.updateForeignKeys();
     }
   }.observes('parentView.serviceConfig.value'),
+
+  updateForeignKeys: function() {
+    var components = this.get('parentView.serviceConfig.options');
+    if (components && components.someProperty('foreignKeys')) {
+      this.get('controller.stepConfigs').findProperty('serviceName', this.get('parentView.serviceConfig.serviceName')).propertyDidChange('errorCount');
+    }
+  },
+
 
   disabled: function () {
     return !this.get('parentView.serviceConfig.isEditable') ||
