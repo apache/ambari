@@ -214,25 +214,23 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         hooks_value = " "
     putHiveSiteProperty(hooks_property, hooks_value)
 
-    if include_atlas:
+    atlas_server_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
+    if include_atlas and atlas_server_host_info:
       cluster_name = 'default'
       putHiveSiteProperty('atlas.cluster.name', cluster_name)
-      metadata_host_info = self.getHostWithComponent("ATLAS", "ATLAS_SERVER", services, hosts)
-      metadata_host = metadata_host_info['Hosts']['host_name']
+      atlas_rest_host = atlas_server_host_info['Hosts']['host_name']
       scheme = "http"
       metadata_port = "21000"
-      tls_enabled = "false"
       if 'application-properties' in services['configurations']:
         tls_enabled = services['configurations']['application-properties']['properties']['atlas.enableTLS']
         metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.http.port']
         if tls_enabled.lower() == "true":
           scheme = "https"
           metadata_port =  services['configurations']['application-properties']['properties']['atlas.server.https.port']
-      putHiveSiteProperty('atlas.rest.address', '{0}://{1}:{2}'.format(scheme, metadata_host, metadata_port))
+      putHiveSiteProperty('atlas.rest.address', '{0}://{1}:{2}'.format(scheme, atlas_rest_host, metadata_port))
     else:
       putHiveSitePropertyAttribute('atlas.cluster.name', 'delete', 'true')
       putHiveSitePropertyAttribute('atlas.rest.address', 'delete', 'true')
-
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
