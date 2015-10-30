@@ -896,6 +896,8 @@ Em.I18n.translations = {
   'installer.step9.serviceStatus.abort.completed':' aborted successfully',
   'installer.step9.serviceStatus.abort.failed':' failed to abort',
   'installer.step9.components.install.failed': 'Installation Failure',
+  'installer.step9.service.start.failed': 'There were issues starting installed services. Please go to individual service pages to start them.',
+  'installer.step9.service.start.header': 'Start Services',
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
