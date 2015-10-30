@@ -26,6 +26,8 @@ from ambari_server import serverConfiguration
 from ambari_server import dbConfiguration
 from ambari_server import setupSecurity
 from ambari_commons import os_utils
+from ambari_server import userInput
+from ambari_server import serverUtils
 from ambari_server.serverConfiguration import configDefaults, get_java_exe_path, get_ambari_properties, read_ambari_user, \
                                               parse_properties_file, JDBC_DATABASE_PROPERTY
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg
@@ -41,22 +43,22 @@ HOST_UPDATE_HELPER_CMD = "{0} -cp {1} " + \
                             " > " + configDefaults.SERVER_OUT_FILE + " 2>&1"
 
 def update_host_names(args, options):
-  services_stopped = get_YN_input("Please, confirm Ambari services are stopped [y/n] (n)? ", False)
+  services_stopped = userInput.get_YN_input("Please, confirm Ambari services are stopped [y/n] (n)? ", False)
   if not services_stopped:
     print 'Exiting...'
     sys.exit(1)
 
-  pending_commands = get_YN_input("Please, confirm there are no pending commands on cluster [y/n] (n)? ", False)
+  pending_commands = userInput.get_YN_input("Please, confirm there are no pending commands on cluster [y/n] (n)? ", False)
   if not pending_commands:
     print 'Exiting...'
     sys.exit(1)
 
-  db_backup_done = get_YN_input("Please, confirm you have made backup of the Ambari db [y/n] (n)? ", False)
+  db_backup_done = userInput.get_YN_input("Please, confirm you have made backup of the Ambari db [y/n] (n)? ", False)
   if not db_backup_done:
     print 'Exiting...'
     sys.exit(1)
 
-  status, pid = is_server_runing()
+  status, pid = serverUtils.is_server_runing()
   if status:
     raise FatalException(1, "Ambari Server should be stopped")
 
