@@ -107,7 +107,7 @@
 
       <execute-stage service="HIVE" component="HIVE_METASTORE" title="Backup Hive Metastore">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Hive Metastore database located on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Hive Metastore database referenced by the Hive Metastore service(s) located on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
