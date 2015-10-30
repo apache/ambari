@@ -258,6 +258,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putKafkaLog4jProperty = self.putProperty(configurations, "kafka-log4j", services)
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
 
+    #If AMS is part of Services, use the KafkaTimelineMetricsReporter for metric reporting. Default is ''.
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "AMBARI_METRICS" in servicesList:
+      putKafkaBrokerProperty('kafka.metrics.reporters', 'org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter')
+
     if "ranger-env" in services["configurations"] and "ranger-kafka-plugin-properties" in services["configurations"] and \
         "ranger-kafka-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putKafkaRangerPluginProperty = self.putProperty(configurations, "ranger-kafka-plugin-properties", services)

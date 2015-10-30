@@ -277,10 +277,13 @@
   </property>
   <property>
     <name>kafka.metrics.reporters</name>
-    <value>org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter</value>
+    <value></value>
     <description>
       kafka ganglia metrics reporter and kafka timeline metrics reporter
     </description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
   </property>
   <property>
     <name>kafka.ganglia.metrics.reporter.enabled</name>

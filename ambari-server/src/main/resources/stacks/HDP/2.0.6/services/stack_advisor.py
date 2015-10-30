@@ -20,7 +20,7 @@ limitations under the License.
 import re
 import os
 import sys
-from math import ceil
+from math import ceil, floor
 
 from stack_advisor import DefaultStackAdvisor
 
@@ -480,27 +480,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
         putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
-        hbase_xmn_size = '512'
       elif total_sinks_count >= 500:
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
-        hbase_xmn_size = '512'
-      elif total_sinks_count >= 250:
-        hbase_xmn_size = '256'
-      else:
-        hbase_xmn_size = '128'
       pass
 
-    # Embedded mode heap size : master + regionserver
+    # Distributed mode heap size
     if rootDir.startswith("hdfs://"):
       putHbaseEnvProperty("hbase_master_heapsize", "512")
+      putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
-      putHbaseEnvProperty("regionserver_xmn_size", hbase_xmn_size)
+      putHbaseEnvProperty("regionserver_xmn_size", round_to_n(0.15*hbase_heapsize,64))
     else:
+      # Embedded mode heap size : master + regionserver
+      hbase_rs_heapsize = 512
       putHbaseEnvProperty("hbase_master_heapsize", hbase_heapsize)
-      putHbaseEnvProperty("hbase_master_xmn_size", hbase_xmn_size)
+      putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
     if rootDir.startswith("hdfs://"):
@@ -876,6 +873,49 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     amsHbaseSite = getSiteProperties(configurations, "ams-hbase-site")
     logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
                                                   ams_env, "metrics_collector_log_dir")
+
+    # Validate Xmn settings.
+    hbase_master_heapsize = to_number(properties["hbase_master_heapsize"])
+    hbase_master_xmn_size = to_number(properties["hbase_master_xmn_size"])
+    hbase_regionserver_heapsize = to_number(properties["hbase_regionserver_heapsize"])
+    hbase_regionserver_xmn_size = to_number(properties["regionserver_xmn_size"])
+
+    masterXmnItem = None
+    regionServerXmnItem = None
+    hbase_rootdir = amsHbaseSite.get("hbase.rootdir")
+    is_hbase_distributed = hbase_rootdir.startswith('hdfs://')
+
+    if is_hbase_distributed:
+      minMasterXmn = 0.12 *  hbase_master_heapsize
+      maxMasterXmn = 0.2 *  hbase_master_heapsize
+      if hbase_master_xmn_size < minMasterXmn:
+        masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
+                                         "(12% of hbase_master_heapsize)".format(int(math.ceil(minMasterXmn))))
+
+      if hbase_master_xmn_size > maxMasterXmn:
+        masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
+                                         "(20% of hbase_master_heapsize)".format(int(math.floor(maxMasterXmn))))
+
+      minRegionServerXmn = 0.12 *  hbase_regionserver_heapsize
+      maxRegionServerXmn = 0.2 *  hbase_regionserver_heapsize
+      if hbase_regionserver_xmn_size < minRegionServerXmn:
+        regionServerXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
+                              "(12% of hbase_regionserver_heapsize)".format(int(math.ceil(minRegionServerXmn))))
+
+      if hbase_regionserver_xmn_size > maxRegionServerXmn:
+        regionServerXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
+                              "(20% of hbase_regionserver_heapsize)".format(int(math.floor(maxRegionServerXmn))))
+    else:
+      minMasterXmn = 0.12 *  ( hbase_master_heapsize + hbase_regionserver_heapsize )
+      maxMasterXmn = 0.2 *  ( hbase_master_heapsize + hbase_regionserver_heapsize )
+      if hbase_master_xmn_size < minMasterXmn:
+        masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
+                        "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)".format(int(math.ceil(minMasterXmn))))
+
+      if hbase_master_xmn_size > maxMasterXmn:
+        masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
+                        "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)".format(int(math.floor(maxMasterXmn))))
+
     validationItems = []
     masterHostItem = None
 
@@ -918,19 +958,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
           requiredMemory = getMemorySizeRequired(hostComponents, configurations)
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-          hbase_rootdir = amsHbaseSite.get("hbase.rootdir")
           if unusedMemory > 4294967296:  # warn user, if more than 4GB RAM is unused
             heapPropertyToIncrease = "hbase_regionserver_heapsize" if hbase_rootdir.startswith("hdfs://") else "hbase_master_heapsize"
             xmnPropertyToIncrease = "regionserver_xmn_size" if hbase_rootdir.startswith("hdfs://") else "hbase_master_xmn_size"
             collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
             hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
-
-            if hbase_heapsize/1048576 > 2048:
-              xmn_size = '512'
-            elif hbase_heapsize/1048576 > 1024:
-              xmn_size = '256'
-            else:
-              xmn_size = '128'
+            hbase_heapsize = min(32*1024*1024*1024, hbase_heapsize) #Make sure heapsize < 32GB
+            xmn_size = round_to_n(0.12*hbase_heapsize,128)
 
             msg = "{0} MB RAM is unused on the host {1} based on components " \
                   "assigned. Consider allocating  {2} MB to " \
@@ -946,7 +980,9 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       {"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
       {"config-name": "hbase_master_heapsize", "item": masterItem},
       {"config-name": "hbase_master_heapsize", "item": masterHostItem},
-      {"config-name": "hbase_log_dir", "item": logDirItem}
+      {"config-name": "hbase_log_dir", "item": logDirItem},
+      {"config-name": "hbase_master_xmn_size", "item": masterXmnItem},
+      {"config-name": "regionserver_xmn_size", "item": regionServerXmnItem}
     ])
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 

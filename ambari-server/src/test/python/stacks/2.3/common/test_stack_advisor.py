@@ -202,6 +202,24 @@ class TestHDP23StackAdvisor(TestCase):
               "service_name" : "KAFKA",
               "service_version" : "2.6.0.2.2"
             }
+          },
+          {
+            "StackServices": {
+              "service_name": "AMBARI_METRICS"
+            },
+            "components": [{
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1"]
+              }
+
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1"]
+              }
+
+            }]
           }
         ],
       "Versions": {
@@ -271,6 +289,10 @@ class TestHDP23StackAdvisor(TestCase):
     expectedLog4jContent = log4jContent + newRangerLog4content
     self.assertEquals(configurations['kafka-log4j']['properties']['content'], expectedLog4jContent, "Test kafka-log4j content when Ranger plugin for Kafka is enabled")
 
+    # Test kafka.metrics.reporters when AMBARI_METRICS is present in services
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEqual(configurations['kafka-broker']['properties']['kafka.metrics.reporters'],
+                                              'org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter')
 
   def test_recommendHBASEConfigurations(self):
     configurations = {}
