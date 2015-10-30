@@ -423,7 +423,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
       classname = "PhoenixQueryServer",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0")],
       hdp_stack_version = self.STACK_VERSION,
