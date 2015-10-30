@@ -1556,7 +1556,7 @@ var urls = {
   },
   'admin.upgrade.data': {
     'real': '/clusters/{clusterName}/upgrades/{id}?upgrade_groups/UpgradeGroup/status!=PENDING&fields=' +
-    'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,' +
+    'Upgrade/progress_percent,Upgrade/request_context,Upgrade/request_status,Upgrade/direction,Upgrade/downgrade_allowed,' +
     'upgrade_groups/UpgradeGroup,' +
     'upgrade_groups/upgrade_items/UpgradeItem/status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/context,' +
