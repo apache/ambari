@@ -53,9 +53,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * @type {boolean}
-   * @default null
+   * @default true
    */
-  downgradeAllowed: null,
+  downgradeAllowed: true,
 
   /**
    * @type {string}
@@ -392,6 +392,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       upgradeGroups: upgradeGroups,
       Upgrade: newData.Upgrade
     }));
+    this.set('downgradeAllowed', newData.Upgrade.downgrade_allowed);
+    this.setDBProperty('downgradeAllowed', newData.Upgrade.downgrade_allowed);
   },
 
   /**

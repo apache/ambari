@@ -650,10 +650,17 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#initUpgradeData()", function() {
+    beforeEach(function () {
+      sinon.stub(controller, 'setDBProperty');
+    });
+    afterEach(function () {
+      controller.setDBProperty.restore();
+    });
     it("", function() {
       var newData = {
         Upgrade: {
-          request_id: 1
+          request_id: 1,
+          downgrade_allowed: false
         },
         upgrade_groups: [
           {
@@ -702,6 +709,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         ]
       };
       controller.initUpgradeData(newData);
+      expect(controller.setDBProperty.calledWith('downgradeAllowed', false)).to.be.true;
+      expect(controller.get('downgradeAllowed')).to.be.false;
       expect(controller.get('upgradeData.Upgrade.request_id')).to.equal(1);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(3);
       expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(2);
