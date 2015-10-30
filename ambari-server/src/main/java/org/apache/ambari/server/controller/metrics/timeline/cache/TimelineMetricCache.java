@@ -69,7 +69,7 @@ public class TimelineMetricCache extends UpdatingSelfPopulatingCache {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Returning value from cache: " + value);
       }
-      timelineMetrics.setMetrics(new ArrayList<TimelineMetric>(value.getTimelineMetrics().values()));
+      timelineMetrics = value.getTimelineMetrics();
     }
 
     if (LOG.isDebugEnabled()) {
