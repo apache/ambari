@@ -56,6 +56,30 @@
   </property>
 
   <property>
+    <name>policymgr_external_url</name>
+    <value></value>
+    <display-name>External URL</display-name>
+    <description>Policy Manager external url eg: http://RANGER_HOST:6080</description>
+    <value-attributes>
+      <overridable>false</overridable>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.http.enabled</name>
+      </property>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.http.port</name>
+      </property>
+      <property>
+        <type>ranger-admin-site</type>
+        <name>ranger.service.https.port</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
     <name>db_root_user</name>
     <value>root</value>
     <display-name>Ranger DB root user</display-name>
