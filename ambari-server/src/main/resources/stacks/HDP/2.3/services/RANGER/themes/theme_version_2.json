@@ -1503,7 +1503,7 @@
       {
         "config": "ranger-admin-site/ranger.audit.solr.password",
         "widget": {
-          "type": "text-field"
+          "type": "password"
         }
       },
       {
