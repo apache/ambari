@@ -170,6 +170,20 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-site</type>
+        <name>http.enabled</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>http.service.port</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>https.service.port</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
