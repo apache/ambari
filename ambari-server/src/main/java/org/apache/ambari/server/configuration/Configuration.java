@@ -451,6 +451,7 @@ public class Configuration {
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "300000";
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
+  private static final String TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE = "server.timeline.metrics.cache.use.custom.sizing.engine";
 
   /**
    * Governs the use of {@link Parallel} to process {@link StageEntity}
@@ -2260,6 +2261,14 @@ public class Configuration {
       DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT);
 
     return percent.trim().endsWith("%") ? percent.trim() : percent.trim() + "%";
+  }
+
+  /**
+   * Allow disabling custom sizing engine.
+   */
+  public boolean useMetricsCacheCustomSizingEngine() {
+    return Boolean.parseBoolean(properties
+      .getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE, "true"));
   }
 
   /**

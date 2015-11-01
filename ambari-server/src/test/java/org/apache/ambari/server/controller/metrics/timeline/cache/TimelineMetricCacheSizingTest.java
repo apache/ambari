@@ -96,8 +96,8 @@ public class TimelineMetricCacheSizingTest {
     TimelineMetricsCacheSizeOfEngine customSizeOfEngine = new TimelineMetricsCacheSizeOfEngine();
 
     long bytesFromReflectionEngine =
-      reflectionSizeOf.deepSizeOf(1000, false, key).getCalculated() +
-      reflectionSizeOf.deepSizeOf(1000, false, value).getCalculated();
+      reflectionSizeOf.deepSizeOf(50000, false, key).getCalculated() +
+      reflectionSizeOf.deepSizeOf(50000, false, value).getCalculated();
 
     long bytesFromCustomSizeOfEngine = customSizeOfEngine.sizeOf(key, value, null).getCalculated();
 
@@ -107,6 +107,8 @@ public class TimelineMetricCacheSizingTest {
     Assert.assertTrue("Sample size is " + sampleSizeInMB + ", expected to be" +
         "greater that 10 MB", sampleSizeInMB > 10);
     Assert.assertTrue("Discrepancy in values is " + discrepancyInKB  + ", " +
-        "expected to be less than 10K", discrepancyInKB  < 10);
+        "expected to be less than 10K. " + "Bytes from reflection = " +
+        bytesFromReflectionEngine + ", bytes from custom sizing engine = " +
+        bytesFromCustomSizeOfEngine, discrepancyInKB  < 10);
   }
 }
