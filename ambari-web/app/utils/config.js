@@ -337,7 +337,8 @@ App.config = Em.Object.create({
       dependentConfigPattern: null,
       options: null,
       radioName: null,
-      belongsToService: []
+      belongsToService: [],
+      widget: null
     };
     return Object.keys(coreObject|| {}).length ?
       $.extend(tpl, coreObject) : tpl;
