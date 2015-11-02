@@ -28,6 +28,17 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
     view = App.SelectDefinitionsPopupBodyView.create({
       parentView: Em.Object.create()
     });
+    sinon.stub(App.db, 'setFilterConditions', Em.K);
+    sinon.stub(App.db, 'getFilterConditions', function () {
+      return [];
+    });
+    sinon.stub(view, 'initFilters', Em.K)
+  });
+
+  afterEach(function () {
+    App.db.setFilterConditions.restore();
+    App.db.getFilterConditions.restore();
+    view.initFilters.restore();
   });
 
   describe("#filteredContentObs()", function () {

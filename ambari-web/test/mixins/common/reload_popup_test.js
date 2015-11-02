@@ -144,7 +144,6 @@ describe('App.ReloadPopupMixin', function () {
 
     beforeEach(function () {
       sinon.stub(obj, 'closeReloadPopup', Em.K);
-      sinon.stub(console, 'log', Em.K);
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
       sinon.stub(obj, 'showReloadPopup', Em.K);
       sinon.stub(App, 'get').withArgs('maxRetries').returns(3);
@@ -153,7 +152,6 @@ describe('App.ReloadPopupMixin', function () {
 
     afterEach(function () {
       obj.closeReloadPopup.restore();
-      console.log.restore();
       App.ajax.defaultErrorHandler.restore();
       obj.showReloadPopup.restore();
       App.get.restore();
@@ -167,7 +165,6 @@ describe('App.ReloadPopupMixin', function () {
         }
         obj.reloadErrorCallback.apply(obj, item.args);
         expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
-        expect(console.log.callCount).to.equal(item.consoleLogCallCount);
         expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
         expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
         expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);

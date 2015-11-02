@@ -47,7 +47,6 @@ var controller,
 describe('App.WizardStep6Controller', function () {
 
   beforeEach(function () {
-    sinon.stub(console, 'error', Em.K);
     controller = App.WizardStep6Controller.create();
     controller.set('content', Em.Object.create({
       hosts: {},
@@ -70,10 +69,6 @@ describe('App.WizardStep6Controller', function () {
     controller.set('content.masterComponentHosts', m);
     controller.set('isMasters', false);
 
-  });
-
-  afterEach(function () {
-    console.error.restore();
   });
 
   describe('#isAddHostWizard', function () {

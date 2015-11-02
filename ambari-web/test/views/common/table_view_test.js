@@ -30,10 +30,12 @@ describe('App.TableView', function () {
 
   beforeEach(function() {
     App.db.cleanUp();
+    sinon.stub(App.db, 'setFilterConditions', Em.K);
   });
 
   afterEach(function() {
     App.db.cleanUp();
+    App.db.setFilterConditions.restore();
   });
 
   describe('#init', function() {

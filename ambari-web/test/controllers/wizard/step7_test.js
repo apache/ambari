@@ -106,12 +106,10 @@ describe('App.InstallerStep7Controller', function () {
         serviceConfigProperties: []
       })
     });
-    sinon.stub(console, 'error', Em.K);
   });
 
   afterEach(function() {
     App.config.setPreDefinedServiceConfigs.restore();
-    console.error.restore();
   });
 
   describe('#installedServiceNames', function () {

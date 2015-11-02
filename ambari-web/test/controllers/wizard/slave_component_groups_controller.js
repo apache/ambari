@@ -273,37 +273,6 @@ describe('App.SlaveComponentGroupsController', function () {
     });
   });
 
-  describe('#selectedSlaveComponent', function () {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(Em.A([
-        Em.Object.create({
-          serviceName: 'HDFS',
-          configCategories: Em.A([
-            Em.Object.create({
-              isForSlaveComponent: true,
-              primaryName: 'sl1',
-              slaveConfigs: Em.A([]),
-              name: 'name'
-            })
-          ])
-        })
-      ]));
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it('should return selected component name', function () {
-      var controller = App.SlaveComponentGroupsController.create({
-        content: {}
-      });
-      controller.set('selectedComponentName', Em.Object.create({
-        displayName: 'name'
-      }));
-      controller.set('selectedComponentName', 'value')
-      expect(controller.get('selectedSlaveComponent')).to.be.null;
-    });
-  });
-
   describe('#removeSlaveComponentGroup', function () {
     beforeEach(function() {
       sinon.stub(controller, 'componentProperties').returns(Em.A([]));

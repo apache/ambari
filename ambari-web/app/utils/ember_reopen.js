@@ -151,7 +151,7 @@ Ember.RadioButton = Ember.Checkbox.extend({
  *   var a = {b: {}};
  *   var path = 'b.c.d';
  *   var value = 1;
- *   Em.setFullPath(a, path, value); // a = {b: {c: {d: 1}}
+ *   Em.setFullPath(a, path, value); // a = {b: {c: {d: 1}}}
  * </code>
  *
  * @param {object} obj
@@ -172,6 +172,20 @@ Ember.setFullPath = function (obj, path, value) {
       Em.set(obj, sub_path, {});
     }
   });
+};
+
+/**
+ *
+ * @param {object} target
+ * @param {string[]} propertyNames
+ * @returns {{}}
+ */
+Ember.getProperties = function (target, propertyNames) {
+  var ret = {};
+  for(var i = 0; i < propertyNames.length; i++) {
+    ret[propertyNames[i]] = Em.get(target, propertyNames[i]);
+  }
+  return ret;
 };
 
 Em.View.reopen({
