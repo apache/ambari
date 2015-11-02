@@ -184,7 +184,7 @@ public class UpgradeCatalog2121 extends AbstractUpgradeCatalog {
         if (StringUtils.isBlank(oozieAuthKerbRules)) {
           Set<String> removeProperties = new HashSet<String>();
           removeProperties.add(OOZIE_AUTHENTICATION_KERBEROS_NAME_RULES);
-          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, null, removeProperties, true, false);
+          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, new HashMap<String, String>(), removeProperties, true, false);
         }
       }
     }
