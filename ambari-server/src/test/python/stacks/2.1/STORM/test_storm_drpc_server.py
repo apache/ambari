@@ -149,17 +149,17 @@ class TestStormDrpcServer(TestStormBase):
     )
     self.assertNoMoreResources()
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/drpc_server.py",
                      classname = "DrpcServer",
-                     command = "pre_rolling_restart",
+                     command = "pre_upgrade_restart",
                      config_file="default.json",
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled("Execute", ('hdp-select', 'set', 'storm-client', '2.2.1.0-2067'), sudo=True)
 
-  def test_pre_rolling_restart_23(self):
+  def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)

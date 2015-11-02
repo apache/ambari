@@ -277,7 +277,7 @@ public class UpgradeResourceProviderTest {
 
     assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
         zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(4).getText());
@@ -325,7 +325,7 @@ public class UpgradeResourceProviderTest {
 
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(3, zookeeperUpgradeItems.size());
-    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
 
@@ -370,7 +370,7 @@ public class UpgradeResourceProviderTest {
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(4, zookeeperUpgradeItems.size());
 
-    assertEquals("Restarting ZooKeeper Server on " + StageUtils.getHostName(), zookeeperUpgradeItems.get(0).getText());
+    assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
     assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(3).getText());
@@ -1051,7 +1051,9 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 

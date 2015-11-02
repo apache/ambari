@@ -71,6 +71,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
@@ -257,10 +258,18 @@ public class ClusterStackVersionResourceProviderTest {
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
 
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterId(1l);
+    clusterEntity.setClusterName(clusterName);
+    ClusterVersionEntity cve = new ClusterVersionEntity(clusterEntity,
+            repoVersion, RepositoryVersionState.INSTALL_FAILED, 0, "");
+    expect(clusterVersionDAO.findByClusterAndStackAndVersion(anyObject(String.class),
+            anyObject(StackId.class), anyObject(String.class))).andReturn(cve);
+
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
         cluster, repositoryVersionDAOMock, configHelper, sch, actionManager,
-            executionCommand, executionCommandWrapper,stage, stageFactory);
+            executionCommand, executionCommandWrapper,stage, stageFactory, clusterVersionDAO);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -290,7 +299,7 @@ public class ClusterStackVersionResourceProviderTest {
     Assert.assertNotNull(status);
 
     // verify
-    verify(managementController, response, clusters, stageFactory, stage);
+    verify(managementController, response, clusters, stageFactory, stage, clusterVersionDAO);
 
     // check that the success factor was populated in the stage
     Float successFactor = successFactors.get(Role.INSTALL_PACKAGES);
@@ -407,6 +416,7 @@ public class ClusterStackVersionResourceProviderTest {
 
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
+    expect(cluster.getHosts()).andReturn(Arrays.asList(new Host[]{host1, host2}));
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
 
@@ -560,7 +570,7 @@ public class ClusterStackVersionResourceProviderTest {
     expect(repositoryVersionDAOMock.findByDisplayName(anyObject(String.class))).andReturn(repoVersion);
 
     clusterVersionDAO.updateVersions((Long) anyObject(),
-        (RepositoryVersionEntity) anyObject(), (RepositoryVersionEntity) anyObject());
+            (RepositoryVersionEntity) anyObject(), (RepositoryVersionEntity) anyObject());
     expectLastCall().once();
 
     hostVersionDAO.updateVersions((RepositoryVersionEntity) anyObject(), (RepositoryVersionEntity) anyObject());
