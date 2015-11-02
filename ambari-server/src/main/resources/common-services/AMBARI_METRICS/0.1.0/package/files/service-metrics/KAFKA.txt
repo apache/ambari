@@ -40,31 +40,31 @@ kafka.network.RequestMetrics.RequestsPerSec.request.Produce.meanRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Offsets.meanRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Offsets.1MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.OffsetFetch.meanRate
- kafka.network.RequestMetrics.RequestsPerSec.request.OffsetFetch.count 
+kafka.network.RequestMetrics.RequestsPerSec.request.OffsetFetch.count
 kafka.network.RequestMetrics.RequestsPerSec.request.OffsetFetch.5MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.OffsetCommit.count
+kafka.network.RequestMetrics.RequestsPerSec.request.OffsetCommit.count
 kafka.network.RequestMetrics.RequestsPerSec.request.Metadata.count
-kafka.network.RequestMetrics.RequestsPerSec.request.LeaderAndIsr.1MinuteRate 
+kafka.network.RequestMetrics.RequestsPerSec.request.LeaderAndIsr.1MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.LeaderAndIsr.15MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.meanRate 
+kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.meanRate
 kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.count
- kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.5MinuteRate 
-kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.1MinuteRate 
-kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.15MinuteRate 
+kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.5MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.1MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.JoinGroup.15MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.meanRate
- kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.count
- kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.5MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.1MinuteRate 
-kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.15MinuteRate 
+kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.count
+kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.5MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.1MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.Heartbeat.15MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.meanRate
-kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.5MinuteRate 
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.5MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.1MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.15MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.meanRate
- kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.count 
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchFollower.15MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.meanRate
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.count
 kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.5MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.1MinuteRate
- kafka.network.RequestMetrics.RequestsPerSec.request.Fetch.count
+kafka.network.RequestMetrics.RequestsPerSec.request.FetchConsumer.1MinuteRate
+kafka.network.RequestMetrics.RequestsPerSec.request.Fetch.count
 kafka.network.RequestMetrics.RequestsPerSec.request.Offsets.5MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.Offsets.15MinuteRate
 kafka.network.RequestMetrics.RequestsPerSec.request.OffsetCommit.5MinuteRate
