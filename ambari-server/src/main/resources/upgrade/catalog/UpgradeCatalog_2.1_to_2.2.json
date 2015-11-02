@@ -170,7 +170,7 @@
           "hive.security.metastore.authorization.auth.reads": "true",
           "hive.server2.allow.user.substitution": "true",
           "hive.server2.logging.operation.enabled": "true",
-          "hive.server2.logging.operation.log.location": "${system:java.io.tmpdir}/${system:user.name}/operation_logs",
+          "hive.server2.logging.operation.log.location": "/tmp/hive/operation_logs",
           "hive.server2.table.type.mapping": "CLASSIC",
           "hive.server2.thrift.http.path": "cliservice",
           "hive.server2.thrift.http.port": "10001",

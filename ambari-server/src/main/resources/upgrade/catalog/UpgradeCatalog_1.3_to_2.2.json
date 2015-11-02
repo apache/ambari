@@ -592,7 +592,7 @@
           "hive.orc.compute.splits.num.threads": "10",
           "hive.tez.smb.number.waves": "0.5",
           "hive.convert.join.bucket.mapjoin.tez": "false",
-          "hive.server2.logging.operation.log.location": "${system:java.io.tmpdir}/${system:user.name}/operation_logs",
+          "hive.server2.logging.operation.log.location": "/tmp/hive/operation_logs",
           "hive.tez.input.format": "org.apache.hadoop.hive.ql.io.HiveInputFormat",
           "hive.exec.orc.default.compress": "ZLIB",
           "hive.support.concurrency": "false",
