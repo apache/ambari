@@ -333,7 +333,27 @@
       a normal table and would return items in rowkey order for scans
     </description>
   </property>
-
+  <property>
+    <name>phoenix.coprocessor.maxServerCacheTimeToLiveMs</name>
+    <value>60000</value>
+    <description>
+      Maximum living time (in milliseconds) of server caches. A cache entry
+      expires after this amount of time has passed since last access. Consider
+      adjusting this parameter when a server-side IOException(
+      “Could not find hash cache for joinId”) happens. Getting warnings like
+      “Earlier hash cache(s) might have expired on servers” might also be a
+      sign that this number should be increased.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.coprocessor.maxMetaDataCacheSize</name>
+    <value>20480000</value>
+    <description>
+      Max size in bytes of total server-side metadata cache after which
+      evictions will begin to occur based on least recent access time.
+      Default is 20Mb
+    </description>
+  </property>
   <property>
     <name>dfs.client.read.shortcircuit</name>
     <value>true</value>

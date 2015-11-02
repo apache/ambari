@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -39,6 +40,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.SplitByMetricNamesCondition;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
+import org.apache.phoenix.exception.PhoenixIOException;
 import org.apache.phoenix.exception.SQLExceptionCode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -463,6 +465,26 @@ public class PhoenixHBaseAccessor {
         }
       }
 
+    } catch (PhoenixIOException pioe) {
+      Throwable pioe2 = pioe.getCause();
+      // Need to find out if this is exception "Could not find hash cache
+      // for joinId" or another PhoenixIOException
+      if (pioe2 instanceof PhoenixIOException &&
+        pioe2.getCause() instanceof DoNotRetryIOException) {
+        String className = null;
+        for (StackTraceElement ste : pioe2.getCause().getStackTrace()) {
+          className = ste.getClassName();
+        }
+
+        if (className != null && className.equals("HashJoinRegionScanner")) {
+          LOG.error("The cache might have expired and have been removed. Try to" +
+            " increase the cache size by setting bigger value for " +
+            "phoenix.coprocessor.maxMetaDataCacheSize in ams-hbase-site config." +
+            " Falling back to sort-merge join algorithm.");
+          PhoenixTransactSQL.setSortMergeJoinEnabled(true);
+        }
+      }
+      throw pioe;
     } catch (RuntimeException ex) {
       // We need to find out if this is a real IO exception
       // or exception "maxStamp is smaller than minStamp"

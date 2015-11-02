@@ -1999,6 +1999,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "ams-hbase-site": {
         "properties": {
+          "phoenix.coprocessor.maxMetaDataCacheSize": "20480000",
           "hbase.regionserver.global.memstore.lowerLimit": "0.3",
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hbase.hregion.memstore.flush.size": "134217728",
