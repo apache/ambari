@@ -119,7 +119,7 @@ public class UpgradeCatalog2121Test {
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
     final Map<String, String> propertiesOozieSite = new HashMap<String, String>() {{
-      put("oozie.authentication.kerberos.name.rules", " ");
+      put("oozie.authentication.kerberos.name.rules", "\n ");
     }};
     final Config oozieSiteConf = easyMockSupport.createNiceMock(Config.class);
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
@@ -148,7 +148,7 @@ public class UpgradeCatalog2121Test {
                     Map.class, Set.class, boolean.class, boolean.class)
             .createMock();
     upgradeCatalog2121.updateConfigurationPropertiesForCluster(mockClusterExpected,
-            "oozie-site", null, Collections.singleton("oozie.authentication.kerberos.name.rules"),
+            "oozie-site", new HashMap<String, String>(), Collections.singleton("oozie.authentication.kerberos.name.rules"),
             true, false);
     expectLastCall().once();
 
