@@ -30,7 +30,7 @@ App.MainAdminAdvancedController = Em.Controller.extend({
         var form = this.getForm();
         if(form) {
           if(form.isValid()) {
-            console.warn("TODO: request for cluster uninstall");
+
           }
         }
         this.onClose();

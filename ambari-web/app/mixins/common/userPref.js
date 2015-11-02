@@ -121,7 +121,6 @@ App.UserPref = Em.Mixin.create({
    * @param {Object} data
    */
   postUserPrefBeforeSend: function(request, ajaxOptions, data){
-    console.log('BeforeSend to persist: persistKeyValues', data.keyValuePair);
   }
 
 });

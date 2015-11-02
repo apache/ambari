@@ -20,7 +20,7 @@ var App = require('app');
 
 App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
 
-  name: "reassignMasterWizardStep2Controller",
+  name: "reassignMasterWizardStep6Controller",
 
   commands: ['stopMysqlService', 'putHostComponentsInMaintenanceMode', 'deleteHostComponents', 'startAllServices'],
 

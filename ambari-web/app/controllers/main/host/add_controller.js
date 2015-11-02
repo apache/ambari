@@ -164,7 +164,6 @@ App.AddHostController = App.WizardController.extend({
       });
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
-    console.log("AddHostController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
 
   /**
@@ -176,7 +175,6 @@ App.AddHostController = App.WizardController.extend({
     var clients = this.getClientsToInstall(services, serviceComponents);
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
-    console.log("AddHostController.saveClients: saved list ", clients);
   },
 
   /**
@@ -349,7 +347,6 @@ App.AddHostController = App.WizardController.extend({
       serviceConfigProperties = App.db.get('Installer', 'serviceConfigProperties');
     }
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
   },
   /**
    * Load data for all steps until <code>current step</code>

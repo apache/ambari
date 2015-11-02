@@ -1080,7 +1080,6 @@ App.HostPopup = Em.Object.create({
               self.set('sourceRequestScheduleAborted', false);
             }
           }, function(xhr, textStatus, error, opt) {
-            console.log("Error getting request schedule information: ", textStatus, error, opt);
             self.set('sourceRequestScheduleRunning', false);
             self.set('sourceRequestScheduleAborted', false);
           });
@@ -1092,7 +1091,6 @@ App.HostPopup = Em.Object.create({
         doAbortRequestSchedule: function(event){
           var self = this;
           var id = event.context;
-          console.log("Aborting request schedule: ", id);
           batchUtils.doAbortRequestSchedule(id, function(){
             self.refreshRequestScheduleInfo();
           });

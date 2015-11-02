@@ -214,7 +214,6 @@ App.TimeRangeWidget = Em.View.extend({
         }
       });
     } else {
-      console.log(this.get('chosenPreset'));
       $("#slider").slider("destroy");
     }
   }.observes('chosenPreset')

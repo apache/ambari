@@ -280,7 +280,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
     if (Em.isNone(upgradeId)) {
       deferred.resolve();
-      console.log('Upgrade in INIT state');
     } else {
       this.set('isLoadUpgradeDataPending', true);
       App.ajax.send({
@@ -1065,7 +1064,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       } else {
         var repoVersion = self.prepareRepoForSaving(repo);
         var stackVersionNumber = self.getStackVersionNumber(repo);
-        console.log("Repository stack version:"+stackVersionNumber);
         
         App.ajax.send({
           name: 'admin.stack_versions.edit.repo',
@@ -1366,7 +1364,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   },
 
   loadRepositoriesErrorCallback: function (request, ajaxOptions, error) {
-    console.log('Error message is: ' + request.responseText);
+
   },
 
   /**

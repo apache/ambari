@@ -41,7 +41,6 @@ describe('App.MainAlertInstancesController', function () {
       it('should load by Host name', function () {
 
         controller.loadAlertInstancesByHost('host');
-        console.log(App.ajax.send.args[0]);
         expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_host');
         expect(App.ajax.send.args[0][0].data.hostName).to.equal('host');
 
@@ -50,7 +49,6 @@ describe('App.MainAlertInstancesController', function () {
       it('should load by AlertDefinition id', function () {
 
         controller.loadAlertInstancesByAlertDefinition('1');
-        console.log(App.ajax.send.args[0]);
         expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances.by_definition');
         expect(App.ajax.send.args[0][0].data.definitionId).to.equal('1');
 
@@ -59,7 +57,6 @@ describe('App.MainAlertInstancesController', function () {
       it('should load all', function () {
 
         controller.loadAlertInstances();
-        console.log(App.ajax.send.args[0]);
         expect(App.ajax.send.args[0][0].name).to.equal('alerts.instances');
 
       });

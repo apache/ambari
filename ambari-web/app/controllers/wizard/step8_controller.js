@@ -196,7 +196,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step8: Review Page");
     this.clearStep();
     if (this.get('content.serviceConfigProperties')) {
       this.formatProperties();
@@ -269,7 +268,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     //Admin name
     var admin = this.rawContent.findProperty('config_name', 'Admin');
     admin.config_value = App.db.getLoginName();
-    console.log("STEP8: the value of content cluster name: " + App.db.getLoginName());
     if (admin.config_value) {
       this.get('clusterInfo').pushObject(Ember.Object.create(admin));
     }
@@ -277,7 +275,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     // cluster name
     var cluster = this.rawContent.findProperty('config_name', 'cluster');
     cluster.config_value = this.get('content.cluster.name');
-    console.log("STEP8: the value of content cluster name: " + this.get('content.cluster.name'));
     this.get('clusterInfo').pushObject(Ember.Object.create(cluster));
 
     //hosts
@@ -415,7 +412,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method loadRepoInfoErrorCallback
    */
   loadRepoInfoErrorCallback: function (request) {
-    console.log('Error message is: ' + request.responseText);
     var allRepos = [];
     allRepos.set('display_name', Em.I18n.t("installer.step8.repoInfo.displayName"));
     this.get('clusterInfo').set('repoInfo', allRepos);
@@ -427,7 +423,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadServices: function () {
     this.get('selectedServices').filterProperty('isHiddenOnSelectServicePage', false).forEach(function (service) {
-      console.log('INFO: step8: Name of the service from getService function: ' + service.get('serviceName'));
       var serviceObj = Em.Object.create({
         service_name: service.get('serviceName'),
         display_name: service.get('displayNameOnSelectServicePage'),
@@ -483,7 +478,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         componentValue = this.getMasterComponentValue(component.get('componentName'));
       }
       else {
-        console.log(' --- ---INFO: step8: NOT component isMaster');
         var componentName = component.get('isClient') ? Em.I18n.t('common.client').toUpperCase() : component.get('componentName');
         var hostsLength = this.get('content.slaveComponentHosts')
           .findProperty('componentName', componentName).hosts.length;
@@ -735,7 +729,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   getExistingClusterNamesSuccessCallBack: function (data) {
     var clusterNames = data.items.mapProperty('Clusters.cluster_name');
-    console.log("Got existing cluster names: " + clusterNames);
     this.set('clusterNames', clusterNames);
   },
 
@@ -744,7 +737,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method getExistingClusterNamesErrorCallback
    */
   getExistingClusterNamesErrorCallback: function () {
-    console.log("Failed to get existing cluster names");
     this.set('clusterNames', []);
   },
 

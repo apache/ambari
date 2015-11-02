@@ -74,7 +74,6 @@ module.exports = {
   },
 
   createCredentialsErrorCallback: function(req, ajaxOpts, error) {
-    console.error('createCredentials ERROR:', error);
   },
 
   /**

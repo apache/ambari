@@ -987,7 +987,6 @@ App.config = Em.Object.create({
       });
       return configs.without(configsTextarea);
     }
-    console.log('ERROR: textarea config - ' + complexConfigName + ' is missing');
     return configs;
   },
 

@@ -164,7 +164,6 @@ App.MainAdminStackServicesView = Em.View.extend({
    */
   doSaveRepoUrlsSuccessCallback: function (response, request, data) {
     var id = data.repoId + '-' + data.osType;
-    console.log('Success in check Repo URL. data repoId+osType: ' + id);
     var targetRepo = this.get('allRepos').findProperty('id', id);
     if (!targetRepo) {
       return;
@@ -194,7 +193,6 @@ App.MainAdminStackServicesView = Em.View.extend({
    * onError callback for save Repo URL.
    */
   doSaveRepoUrlsErrorCallback: function (request, ajaxOptions, error, data) {
-    console.log('Error in check Repo URL. The baseURL sent is:  ' + data.data);
     var self = this;
     var id = data.url.split('/')[10] + '-' + data.url.split('/')[8];
     var targetRepo = this.get('allRepos').findProperty('id', id);

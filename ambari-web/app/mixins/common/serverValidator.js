@@ -171,9 +171,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @param data
    */
   loadRecommendationsSuccess: function(data) {
-    if (!data) {
-      console.warn('error while loading default config values');
-    }
     this._saveRecommendedValues(data);
     var configObject = data.resources[0].recommendations.blueprint.configurations;
     if (configObject) this.updateInitialValue(configObject);
@@ -181,7 +178,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
   },
 
   loadRecommendationsError: function(jqXHR, ajaxOptions, error, opt) {
-    console.error("ERROR: Unable to determine recommendations for configs: ", jqXHR, ajaxOptions, error, opt);
+
   },
 
   serverSideValidation: function () {
@@ -382,7 +379,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   validationError: function (jqXHR, ajaxOptions, error, opt) {
     this.set('configValidationFailed', true);
-    console.error('Config validation failed: ', jqXHR, ajaxOptions, error, opt);
   },
 
 
@@ -395,7 +391,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
   warnUser: function(deferred) {
     var self = this;
     if (this.get('configValidationFailed')) {
-      console.error("Config validation failed. Going ahead with saving of configs");
       return App.ModalPopup.show({
         header: Em.I18n.t('installer.step7.popup.validation.failed.header'),
         primary: Em.I18n.t('common.proceedAnyway'),

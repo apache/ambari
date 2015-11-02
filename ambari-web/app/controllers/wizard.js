@@ -436,10 +436,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installServicesSuccessCallback: function (jsonData) {
     var installStartTime = App.dateTime();
-    console.log("TRACE: In success function for the installService call");
     if (jsonData) {
       var requestId = jsonData.Requests.id;
-      console.log('requestId is: ' + requestId);
       var clusterStatus = {
         status: 'PENDING',
         requestId: requestId,
@@ -448,15 +446,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         installStartTime: installStartTime
       };
       this.saveClusterStatus(clusterStatus);
-    } else {
-      console.log('ERROR: Error occurred in parsing JSON data');
     }
   },
 
   installServicesErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: In error function for the installService call");
-    console.log("TRACE: error code status is: " + request.status);
-    console.log('Error message is: ' + request.responseText);
     var clusterStatus = {
       status: 'PENDING',
       requestId: this.get('content.cluster.requestId'),
@@ -534,12 +527,10 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   launchBootstrapSuccessCallback: function (data, opt, params) {
-    console.log("TRACE: POST bootstrap succeeded");
     params.popup.finishLoading(data.requestId, null, data.status, data.log);
   },
 
   launchBootstrapErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    console.log("ERROR: POST bootstrap failed");
     params.popup.finishLoading(null, error);
   },
 
@@ -559,20 +550,17 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (this['get' + name.capitalize()]) {
         result = this['get' + name.capitalize()]();
         this.setDBProperty(name, result);
-        console.log(this.get('name') + ": created " + name, result);
       }
       else {
         console.debug('get' + name.capitalize(), ' not defined in the ' + this.get('name'));
       }
     }
     this.set('content.' + name, result);
-    console.log(this.get('name') + ": loaded " + name, result);
   },
 
   save: function (name) {
     var convertedValue = this.toJSInstance(this.get('content.' + name));
     this.setDBProperty(name, convertedValue);
-    console.log(this.get('name') + ": saved " + name, convertedValue);
   },
 
   clear: function () {
@@ -688,9 +676,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   loadServiceComponentsErrorCallback: function (request, ajaxOptions, error) {
-    console.log("TRACE: STep5 -> In error function for the getServiceComponents call");
-    console.log("TRACE: STep5 -> error code status is: " + request.status);
-    console.log('Step8: Error message is: ' + request.responseText);
   },
 
   /**
@@ -718,7 +703,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       });
     }
     this.set('content.configGroups', serviceConfigGroups);
-    console.log("InstallerController.configGroups: loaded config ", serviceConfigGroups);
   },
 
   registerErrPopup: function (header, message) {
@@ -763,7 +747,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         };
       }
     });
-    console.log('wizardController:saveConfirmedHosts: save hosts ', hosts);
     this.setDBProperty('hosts', hosts);
     this.set('content.hosts', hosts);
   },
@@ -787,7 +770,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     }
     this.set('content.hosts', hostInfo);
     this.setDBProperty('hosts', hostInfo);
-    console.log('wizardController:saveInstalledHosts: save hosts ', hostInfo);
   },
 
   /**
@@ -830,7 +812,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
     });
 
     this.setDBProperty('slaveComponentHosts', slaveComponentHosts);
-    console.log('wizardController.slaveComponentHosts: saved hosts', slaveComponentHosts);
     this.set('content.slaveComponentHosts', slaveComponentHosts);
   },
 
@@ -895,7 +876,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadServiceConfigProperties: function () {
     var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    console.log("AddHostController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
   },
   /**
    * Save config properties
@@ -1132,7 +1112,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   loadClients: function () {
     var clients = this.getDBProperty('clientInfo');
     this.set('content.clients', clients);
-    console.log(this.get('content.controllerName') + ".loadClients: loaded list ", clients);
   },
 
   /**
@@ -1254,7 +1233,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.log('Loading hosts failed');
   },
 
   /**

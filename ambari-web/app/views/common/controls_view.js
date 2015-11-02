@@ -884,8 +884,6 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
 App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   hasNoHosts: function () {
-    console.log('view', this.get('viewName')); //to know which View cause errors
-    console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
     if (!this.get('value')) {
       return true;
     }

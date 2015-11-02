@@ -170,7 +170,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
   getUserPrefErrorCallback: function (request, ajaxOptions, error) {
     if (request.status == 404) {
       // default status already set
-      console.log('Persist API did NOT find the key CLUSTER_CURRENT_STATUS');
       return;
     }
     App.ModalPopup.show({
@@ -268,7 +267,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    * @method postUserPrefErrorCallback
    */
   postUserPrefErrorCallback: function (request, ajaxOptions, error) {
-    console.log("ERROR");
     var msg = '', doc;
     try {
       msg = 'Error ' + (request.status) + ' ';

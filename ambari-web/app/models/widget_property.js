@@ -68,7 +68,6 @@ App.WidgetProperty = Ember.Object.extend({
       case 'select':
         return App.WidgetPropertySelectView;
       default:
-        console.error('Parsing Widget Property: Unable to find viewClass for displayType ', displayType);
     }
   }.property('displayType'),
 

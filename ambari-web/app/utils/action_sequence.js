@@ -81,8 +81,6 @@ App.actionSequence = Em.Object.extend({
   setSequence: function (sequence) {
     if (Array.isArray(sequence)) {
       this.set('sequence', sequence);
-    } else {
-      console.log('ERROR: passed sequence has incorrect type');
     }
     return this;
   },
@@ -127,8 +125,6 @@ App.actionSequence = Em.Object.extend({
           self.runNextAction(index, response);
         });
         return true;
-      } else {
-        console.log('WARNING: action has incorrect type, action skipped');
       }
     } else {
       //if no more actions left then finish sequence

@@ -164,7 +164,6 @@ App.ConfigOverridable = Em.Mixin.create({
       },
       doSelectConfigGroup: function (event) {
         var configGroup = event.context;
-        console.log(configGroup);
         this.set('selectedConfigGroup', configGroup);
       },
       validate: function () {
@@ -257,7 +256,6 @@ App.ConfigOverridable = Em.Mixin.create({
         if (callback) {
           callback(xhr, text, errorThrown);
         }
-        console.error('Error in creating new Config Group');
       }
     };
     sendData.sender = sendData;

@@ -258,7 +258,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * Callback, that shows Background operations popup if request was successful
    */
   commandSuccessCallback: function () {
-    console.log('Send request for refresh configs successfully');
     // load data (if we need to show this background operations popup) from persist
     App.router.get('userSettingsController').dataLoading('show_bg').done(function (showPopup) {
       if (showPopup) {

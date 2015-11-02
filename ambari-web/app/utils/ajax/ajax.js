@@ -2832,7 +2832,6 @@ var ajax = Em.Object.extend({
       }
     };
     opt.success = function (data, textStatus, request) {
-      console.log("TRACE: The url is: " + opt.url);
       if (config.success) {
         config.sender[config.success](data, opt, params, request);
       }

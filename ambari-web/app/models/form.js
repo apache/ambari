@@ -64,7 +64,6 @@ App.Form = Em.View.extend({
       this.validate();
       if (!this.get('isValid')) {
         isValid = false;
-        console.warn(this.get('name') + " IS INVALID : " + this.get('errorMessage'));
       }
     });
 
@@ -126,13 +125,6 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   isRequired:true, // by default a config property is required
   unit:'',
   value:'',
-
-  observeValue:function () {
-
-    if (this.get('displayType') == 'hidden')
-      console.warn(" FORM FIELD VALUE: ", this.get('value'));
-
-  }.observes('value'),
 
   isValid:function () {
     return this.get('errorMessage') === '';

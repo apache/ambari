@@ -328,7 +328,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
    * success callback on <code>updateStatusCounters()</code>
    */
   updateStatusCountersErrorCallback: function() {
-    console.warn('ERROR: updateStatusCounters failed')
+
   },
 
   /**
@@ -512,9 +512,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   removeHosts: function () {
     var hosts = this.get('content');
     var selectedHosts = hosts.filterProperty('isChecked', true);
-    selectedHosts.forEach(function (_hostInfo) {
-      console.log('Removing:  ' + _hostInfo.hostName);
-    });
     this.get('fullContent').removeObjects(selectedHosts);
   },
 

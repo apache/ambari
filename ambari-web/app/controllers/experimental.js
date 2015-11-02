@@ -46,7 +46,6 @@ App.ExperimentalController = Em.Controller.extend(App.UserPref, {
     supports.forEach(function(s){
       var propName = 'App.supports.' + s.get('name');
       var propValue = s.get('selected');
-      console.log(">>>>>>>> " + propName + " = "+ propValue);
       Ember.set(propName, propValue);
     });
     this.postUserPref('user-pref-' + App.router.get('loginName') + '-supports', App.get('supports')).complete(function(){

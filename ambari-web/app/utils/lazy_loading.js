@@ -51,8 +51,6 @@ module.exports = {
       } else {
         instance.context.set('isLoaded', true);
       }
-    } else {
-      console.error('Lazy loading: source or destination has incorrect value');
     }
     return instance;
   },

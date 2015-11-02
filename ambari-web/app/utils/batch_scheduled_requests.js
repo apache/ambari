@@ -304,7 +304,6 @@ module.exports = {
     errorCallback = errorCallback || defaultErrorCallback;
 
     if (!restartHostComponents.length) {
-      console.log('No batch rolling restart if no restartHostComponents provided!');
       return;
     }
     return App.ajax.send({

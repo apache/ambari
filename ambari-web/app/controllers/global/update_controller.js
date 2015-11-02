@@ -401,7 +401,7 @@ App.UpdateController = Em.Controller.extend({
     }
   },
   getHostByHostComponentsErrorCallback: function () {
-    console.warn('ERROR: filtering hosts by host-component failed');
+
   },
   graphs: [],
   graphsUpdate: function (callback) {

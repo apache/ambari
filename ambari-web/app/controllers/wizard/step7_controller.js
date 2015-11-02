@@ -609,7 +609,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step7: Configure Services");
     if (!this.get('isConfigsLoaded')) {
       return;
     }

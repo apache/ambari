@@ -77,7 +77,6 @@ App.StackService = DS.Model.extend({
 
   displayNameOnSelectServicePage: function () {
     var displayName = this.get('displayName');
-    console.info("displayName = " + displayName);
     var services = this.get('coSelectedServices').slice();
     var serviceDisplayNames = services.map(function (item) {
       return App.format.role(item);

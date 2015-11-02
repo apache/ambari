@@ -431,7 +431,6 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method updateValidationsErrorCallback
    */
   updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    console.error('Config validation failed: ', jqXHR, ajaxOptions, error, opt);
   },
 
   /**
@@ -490,7 +489,6 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method loadStep
    */
   loadStep: function () {
-    console.log("WizardStep5Controller: Loading step5: Assign Masters");
     this.clearStep();
     this.renderHostInfo();
     this.loadComponentsRecommendationsFromServer(this.loadStepCallback);
@@ -507,7 +505,6 @@ App.AssignMasterComponents = Em.Mixin.create({
       self.updateComponent(componentName);
     }, self);
     if (self.thereIsNoMasters()) {
-      console.log('no master components to add');
       App.router.send('next');
     }
   },
@@ -751,7 +748,6 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   loadRecommendationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.log('Load recommendations failed');
   },
 
   /**
@@ -770,7 +766,6 @@ App.AssignMasterComponents = Em.Mixin.create({
       var masterComponent = App.StackServiceComponent.find().findProperty('componentName', item.component_name);
       var componentObj = Em.Object.create(item);
       var showRemoveControl;
-      console.log("TRACE: render master component name is: " + item.component_name);
       if (masterComponent.get('isMasterWithMultipleInstances')) {
         showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&
             (masterComponents.filterProperty('component_name', item.component_name).length > 1);
@@ -976,7 +971,6 @@ App.AssignMasterComponents = Em.Mixin.create({
         lastMaster = null;
 
     if (!currentMasters.length) {
-      console.log('ALERT: Zookeeper service was not selected');
       return false;
     }
 

@@ -186,7 +186,6 @@ App.themesMapper = App.QuickDataMapper.create({
         subSectionTab.get('configProperties').pushObject(configProperty);
         configProperty.set('subSectionTab', subSectionTab);
       } else {
-        console.log('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
         var valueAttributes = configLink["property_value_attributes"];
         if (valueAttributes) {
           var isUiOnlyProperty = valueAttributes["ui_only_property"];
@@ -306,8 +305,6 @@ App.themesMapper = App.QuickDataMapper.create({
         var uiOnlyProperty = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename',fileName).findProperty('name',configName);
         if (uiOnlyProperty) {
           uiOnlyProperty.set('widget', widget.widget);
-        } else {
-          console.warn('there is no such property: ' + configId);
         }
       }
     }, this);
@@ -323,7 +320,6 @@ App.themesMapper = App.QuickDataMapper.create({
       var split = json.config.split("/");
       return App.config.configId(split[1], split[0]);
     } else {
-      console.warn('getConfigId: invalid input data');
       return null;
     }
   },

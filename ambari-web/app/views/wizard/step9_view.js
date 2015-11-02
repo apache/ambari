@@ -256,7 +256,6 @@ App.WizardStep9View = App.TableView.extend({
     } else if (this.get('controller.status') === 'failed') {
       this.set('barColor', 'progress-danger');
       this.set('resultMsgColor', 'alert-error');
-      console.log('TRACE: Inside error view step9');
       if (this.get('isHostHeartbeatLost')) {
         // When present requests succeeds but some host components are in UNKNOWN or INSTALL_FAILED state and
         // hosts are in HEARTBEAT_LOST state
@@ -267,7 +266,6 @@ App.WizardStep9View = App.TableView.extend({
         this.set('resultMsg', Em.I18n.t('installer.step9.status.failed'));
       }
     } else if (this.get('controller.status') === 'success') {
-      console.log('TRACE: Inside success view step9');
       this.set('barColor', 'progress-success');
       this.set('resultMsg', this.get('controller.content.cluster.status') === 'START_SKIPPED' ? Em.I18n.t('installer.step9.status.skipStartSuccess') : Em.I18n.t('installer.step9.status.success'));
       this.set('resultMsgColor', 'alert-success');

@@ -100,7 +100,6 @@ App.ReassignMasterController = App.WizardController.extend({
   loadTasksStatuses: function () {
     var statuses = App.db.getReassignTasksStatuses();
     this.set('content.tasksStatuses', statuses);
-    console.log('ReassignMasterController.loadTasksStatuses: loaded statuses', statuses);
   },
 
   /**
@@ -163,7 +162,6 @@ App.ReassignMasterController = App.WizardController.extend({
   saveTasksStatuses: function (statuses) {
     App.db.setReassignTasksStatuses(statuses);
     this.set('content.tasksStatuses', statuses);
-    console.log('ReassignMasterController.saveTasksStatuses: saved statuses', statuses);
   },
 
   loadTasksRequestIds: function () {

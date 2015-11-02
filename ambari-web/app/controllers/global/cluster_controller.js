@@ -164,10 +164,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
     App.set('clockDistance', serverClock - clientClock);
     App.set('currentServerTime', parseInt(serverClock));
-    console.log('loading ambari server clock distance');
   },
   getServerClockErrorCallback: function () {
-    console.log('Cannot load ambari server clock');
   },
 
   getUrl: function (testUrl, url) {
@@ -373,7 +371,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAmbariPropertiesSuccess: function (data) {
-    console.log('loading ambari properties');
     this.set('ambariProperties', data.RootServiceComponents.properties);
     // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
     this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
@@ -381,7 +378,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAmbariPropertiesError: function () {
-    console.warn('can\'t get ambari properties');
+
   },
 
   updateClusterData: function () {
@@ -411,7 +408,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   getHostNamesError: function () {
-    console.error('failed to load hostNames');
+
   },
 
 

@@ -611,7 +611,6 @@ App.BulkOperationsController = Em.Controller.extend({
     var hosts = this._convertHostsObjects(App.hostsMapper.map(json, true));
     // no hosts - no actions
     if (!hosts.length) {
-      console.log('No bulk operation if no hosts selected.');
       return;
     }
 

@@ -296,7 +296,6 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @return {bool}
    */
   evaluateStep: function () {
-    console.log('TRACE: Entering controller:WizardStep2:evaluateStep function');
 
     if (this.get('isSubmitDisabled')) {
       return false;
@@ -526,7 +525,6 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @method onGetAmbariJavaHomeError
    */
   onGetAmbariJavaHomeError: function () {
-    console.warn('can\'t get java.home value from server');
     this.set('content.installOptions.javaHome', App.get('defaultJavaHome'));
   },
 

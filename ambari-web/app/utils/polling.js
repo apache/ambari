@@ -78,9 +78,6 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
       timeout: App.timeout,
       success: function (data) {
         var jsonData = jQuery.parseJSON(data);
-        console.log("TRACE: Polling -> value of the url is: " + url);
-        console.log("TRACE: Polling-> value of the sent data is: " + self.get('data'));
-        console.log("TRACE: Polling-> value of the received data is: " + jsonData);
         if (Em.isNone(jsonData)) {
           self.set('isSuccess', true);
           self.set('isError', false);
@@ -88,12 +85,10 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
           var requestId = jsonData.Requests.id;
           self.set('requestId', requestId);
           self.doPolling();
-          console.log('requestId is: ' + requestId);
         }
       },
 
       error: function () {
-        console.log("ERROR");
         self.set('isError', true);
         self.set('isSuccess', false);
       },
@@ -181,9 +176,6 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
   reloadErrorCallback: function (request, ajaxOptions, error, opt, params) {
     this._super(request, ajaxOptions, error, opt, params);
     if (request.status) {
-      console.log("TRACE: In error function for the GET data");
-      console.log("TRACE: value of the url is: " + url);
-      console.log("TRACE: error code status is: " + request.status);
       if (!this.get('isSuccess')) {
         this.set('isError', true);
       }
@@ -238,12 +230,7 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
 
 
   parseInfo: function (polledData) {
-    console.log('TRACE: Entering task info function');
     var tasksData = polledData.tasks;
-    console.log("The value of tasksData is: ", tasksData);
-    if (!tasksData) {
-      console.log("ERROR: NO tasks available to process");
-    }
     var requestId = this.get('requestId');
     if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
       // We don't want to use non-current requestId's tasks data to
@@ -255,7 +242,6 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
     this.replacePolledData(tasksData);
     var totalProgress = this.calculateProgressByTasks(tasksData);
     this.set('progress', totalProgress.toString());
-    console.log("INFO: right now the progress is: " + this.get('progress'));
     return this.isPollingFinished(tasksData);
   }
 

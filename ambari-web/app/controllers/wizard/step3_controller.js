@@ -311,7 +311,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step3: Confirm Hosts");
     var wizardController = this.get('wizardController');
     var previousStep = wizardController && wizardController.get('previousStep');
     var currentStep = wizardController && wizardController.get('currentStep');
@@ -407,9 +406,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   removeSelectedHosts: function () {
     var selectedHosts = this.get('hosts').filterProperty('isChecked', true);
-    selectedHosts.forEach(function (_hostInfo) {
-      console.log('Removing:  ' + _hostInfo.name);
-    });
     return this.removeHosts(selectedHosts);
   },
 
@@ -581,7 +577,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var pollingInterval = 3000;
     this.reloadSuccessCallback();
     if (Em.isNone(data.hostsStatus)) {
-      console.log('Invalid response, setting timeout');
       window.setTimeout(function () {
         self.doBootstrap()
       }, pollingInterval);
@@ -591,7 +586,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (!(data.hostsStatus instanceof Array)) {
         data.hostsStatus = [ data.hostsStatus ];
       }
-      console.log("TRACE: In success function for the GET bootstrap call");
       var keepPolling = this.parseHostInfo(data.hostsStatus);
 
       // Single host : if the only hostname is invalid (data.status == 'ERROR')
@@ -635,7 +629,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   startRegistration: function () {
     if (Em.isNone(this.get('registrationStartedAt'))) {
       this.set('registrationStartedAt', App.dateTime());
-      console.log('registration started at ' + this.get('registrationStartedAt'));
       this.isHostsRegistered();
     }
   },
@@ -668,12 +661,10 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method isHostsRegisteredSuccessCallback
    */
   isHostsRegisteredSuccessCallback: function (data) {
-    console.log('registration attempt...');
     var hosts = this.get('bootHosts');
     var jsonData = data;
     this.reloadSuccessCallback();
     if (!jsonData) {
-      console.warn("Error: jsonData is null");
       return;
     }
 
@@ -731,7 +722,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       }
       else {
         // registration timed out.  mark all REGISTERING hosts to FAILED
-        console.log('registration timed out');
         hosts.filterProperty('bootStatus', 'REGISTERING').forEach(function (_host) {
           _host.set('bootStatus', 'FAILED');
           _host.set('bootLog', (_host.get('bootLog') != null ? _host.get('bootLog') : '') + Em.I18n.t('installer.step3.hosts.bootLog.failed'));
@@ -859,7 +849,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }
   },
   doCheckJDKerrorCallback: function () {
-    console.log('INFO: Doing JDK check for host failed');
     this.set('isJDKWarningsLoaded', true);
   },
   parseJDKCheckResults: function (data) {
@@ -1069,9 +1058,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method getHostCheckTasksSuccess
    */
   getHostCheckTasksSuccess: function (data) {
-    console.log('checking attempt...');
     if (!data) {
-      console.warn("Error: jsonData is null");
       return;
     }
     if (["FAILED", "COMPLETED", "TIMEDOUT"].contains(data.Requests.request_status)) {
@@ -1086,7 +1073,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           };
         }));
 
-        console.log("Host check result available");
         this.set("hostCheckResult", data); //store the data so that it can be used later on in the getHostInfo handling logic.
         /**
          * Still need to get host info for checks that the host check does not perform currently
@@ -1125,7 +1111,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       };
 
       if (!_task.Tasks.structured_out || !_task.Tasks.structured_out.last_agent_env_check) {
-        console.log("last_agent_env is missing for " + hostName + ".  Skipping host check.");
         return;
       }
 
@@ -1325,7 +1310,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (lastAgentEnvCheck.reverseLookup === false) {
         var name = Em.I18n.t('installer.step3.hostWarningsPopup.reverseLookup.name');
         warning = warnings.filterProperty('category', 'reverseLookup').findProperty('name', name);
-        console.log("warning--"+warning);
         if (warning) {
           warning.hosts.push(hostName);
           warning.hostsLong.push(hostName);
@@ -1391,7 +1375,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   parseHostNameResolution: function (data) {
     if (!data) {
-      console.warn("Error: jsonData is null");
       return;
     }
     data.tasks.forEach(function (task) {
@@ -1436,7 +1419,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method getHostCheckTasksError
    */
   getHostCheckTasksError: function() {
-    console.warn("failed to check hostName resolution");
     this.set('stopChecking', true);
   },
 
@@ -1455,11 +1437,9 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     // parse host checks warning
     var hostCheckResult = this.get("hostCheckResult");
     if(hostCheckResult){
-      console.log("Parsing available host check result...");
       this.parseHostCheckWarnings(hostCheckResult);
       this.set("hostCheckResult", null);
     } else {
-      console.log("Parsing host info result...");
       this.parseWarnings(jsonData);
     }
     this.set('isHostsWarningsLoaded', true);
@@ -1581,7 +1561,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method getHostInfoErrorCallback
    */
   getHostInfoErrorCallback: function () {
-    console.log('INFO: Getting host information(cpu_count and total_mem) from the server failed');
     this.set('isHostsWarningsLoaded', true);
     this.registerErrPopup(Em.I18n.t('installer.step3.hostInformation.popup.header'), Em.I18n.t('installer.step3.hostInformation.popup.body'));
   },
@@ -1603,7 +1582,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   checkTHP: function (hostName, transparentHugePage) {
     if (transparentHugePage == "always") {
-      console.log('WARNING: Transparent Huge Page enabled on host: '+ hostName);
       return Em.I18n.t('installer.step3.hostWarningsPopup.thp.context').format(hostName);
     } else {
       return '';
@@ -1633,8 +1611,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (isValid) {
         return '';
       } else {
-        console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
-          'Host Name: ' + hostName + '. Host os type:' + osFamily + '. Selected group:' + selectedOS.uniq());
         return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osFamily, selectedOS.uniq());
       }
     } else {
@@ -1672,7 +1648,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       }
     });
     if (warningString) {
-      console.log('WARNING: Getting host free disk space. ' + 'Host Name: ' + hostName);
       return Em.I18n.t('installer.step3.hostWarningsPopup.disk.context1').format(hostName) + ' ' + warningString;
     } else {
       return '';
@@ -1763,7 +1738,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   rerunChecksErrorCallback: function () {
     this.set('checksUpdateProgress', 100);
     this.set('checksUpdateStatus', 'FAILED');
-    console.log('INFO: Getting host information(last_agent_env) from the server failed');
   },
 
   /**
@@ -1818,7 +1792,6 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (!_host.Hosts.last_agent_env) {
         // in some unusual circumstances when last_agent_env is not available from the _host,
         // skip the _host and proceed to process the rest of the hosts.
-        console.log("last_agent_env is missing for " + _host.Hosts.host_name + ".  Skipping _host check.");
         return;
       }
 

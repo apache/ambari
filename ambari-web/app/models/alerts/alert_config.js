@@ -145,7 +145,6 @@ App.AlertConfigProperty = Ember.Object.extend({
       case 'radioButton':
         return App.AlertConfigRadioButtonView;
       default:
-        console.error('Unable to find viewClass for displayType ', displayType);
     }
   }.property('displayType'),
 

@@ -267,7 +267,6 @@ App.InstallerController = App.WizardController.extend({
    * onError callback for loading stacks data
    */
   loadStacksErrorCallback: function () {
-    console.log('Error in loading stacks');
   },
 
   /**
@@ -329,7 +328,6 @@ App.InstallerController = App.WizardController.extend({
    * onError callback for loading stacks data
    */
   loadStacksVersionsErrorCallback: function () {
-    console.log('Error in loading stacks');
   },
 
   /**
@@ -367,7 +365,6 @@ App.InstallerController = App.WizardController.extend({
     App.set('isManagedMySQLForHiveEnabled', App.config.isManagedMySQLForHiveAllowed(data.RootServiceComponents.properties['server.os_family']));
   },
   getServerVersionErrorCallback: function () {
-    console.log('ERROR: Cannot load Ambari server version');
   },
 
   /**
@@ -422,7 +419,6 @@ App.InstallerController = App.WizardController.extend({
       });
     });
 
-    console.log("installerController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
     this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
   },
@@ -480,7 +476,6 @@ App.InstallerController = App.WizardController.extend({
       });
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
-    console.log("InstallerController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
 
   /**
@@ -489,7 +484,6 @@ App.InstallerController = App.WizardController.extend({
   loadServiceConfigProperties: function () {
     var serviceConfigProperties = this.getDBProperty('serviceConfigProperties');
     this.set('content.serviceConfigProperties', serviceConfigProperties);
-    console.log("InstallerController.loadServiceConfigProperties: loaded config ", serviceConfigProperties);
   },
   /**
    * Generate clients list for selected services and save it to model
@@ -563,7 +557,6 @@ App.InstallerController = App.WizardController.extend({
    * onSuccess callback for check Repo URL.
    */
   checkRepoURLSuccessCallback: function (response, request, data) {
-    console.log('Success in check Repo URL. data osType: ' + data.osType);
     var selectedStack = this.get('content.stacks').findProperty('isSelected');
     if (selectedStack && selectedStack.get('operatingSystems')) {
       var os = selectedStack.get('operatingSystems').findProperty('id', data.osId);
@@ -583,7 +576,6 @@ App.InstallerController = App.WizardController.extend({
    * onError callback for check Repo URL.
    */
   checkRepoURLErrorCallback: function (request, ajaxOptions, error, data, params) {
-    console.log('Error in check Repo URL. The baseURL sent is:  ' + data.data);
     var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
     if (selectedStack && selectedStack.get('operatingSystems')) {
       var os = selectedStack.get('operatingSystems').findProperty('id', params.osId);

@@ -94,7 +94,6 @@ App.AuthenticationForm = App.Form.extend({
   ],
   fields:[],
   testConfiguration:function () {
-    console.warn('Configuration test is randomized');
     this.set('testResult', parseInt(Math.random() * 2));
     return true;
   },
