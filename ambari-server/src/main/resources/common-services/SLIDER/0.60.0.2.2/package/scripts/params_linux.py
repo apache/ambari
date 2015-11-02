@@ -37,8 +37,8 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
 slider_conf_dir = format("{slider_home_dir}/conf")
 storm_slider_conf_dir = '/usr/hdp/current/storm-slider-client/conf'
 
-slider_tar_gz = format('{slider_home_dir}/slider.tar.gz')
 slider_lib_dir = format('{slider_home_dir}/lib')
+slider_tar_gz = format('{slider_lib_dir}/slider.tar.gz')
 
 user_group = config['configurations']['cluster-env']['user_group']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
