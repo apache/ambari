@@ -18,20 +18,11 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -69,11 +60,19 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -87,9 +86,11 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String HIVE_SITE_CONFIG = "hive-site";
   private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
+  private static final String HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY = "hive.server2.logging.operation.log.location";
   private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String CONTENT_PROPERTY = "content";
   private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
@@ -271,6 +272,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateKafkaConfigs();
     updateRangerEnvConfig();
     updateZookeeperLog4j();
+    updateHiveConfig();
   }
 
   /**
@@ -739,6 +741,20 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         if (nimbusMonitorFreqSecs != null && nimbusMonitorFreqSecs.equals("10")) {
           Map<String, String> updates = Collections.singletonMap(NIMBS_MONITOR_FREQ_SECS_PROPERTY, "120");
           updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
+        }
+      }
+    }
+  }
+
+  protected void updateHiveConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config hiveSiteConfig = cluster.getDesiredConfigByType(HIVE_SITE_CONFIG);
+      if (hiveSiteConfig != null) {
+        String hiveServer2OperationLogLocation = hiveSiteConfig.getProperties().get(HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY);
+        if (hiveServer2OperationLogLocation != null && hiveServer2OperationLogLocation.equals("${system:java.io.tmpdir}/${system:user.name}/operation_logs")) {
+          Map<String, String> updates = Collections.singletonMap(HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY, "/tmp/hive/operation_logs");
+          updateConfigurationPropertiesForCluster(cluster, HIVE_SITE_CONFIG, updates, true, false);
         }
       }
     }
