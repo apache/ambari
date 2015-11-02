@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import java.util.HashSet;
 import java.util.Set;
@@ -55,6 +56,7 @@ public class TimelineMetricCacheSizingTest {
     return metric;
   }
 
+  @Ignore
   @Test
   public void testTimelineMetricCacheSizing() throws Exception {
     Set<String> metricNames = new HashSet<>();

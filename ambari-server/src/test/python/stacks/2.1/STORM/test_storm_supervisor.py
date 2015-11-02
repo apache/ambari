@@ -79,8 +79,8 @@ class TestStormSupervisor(TestStormBase):
 
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
-    # Third bool is for the pid file
-    path_exists_mock.side_effect = [False, False, True, True]
+    # Bools for the pid file
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/supervisor.py",
                        classname = "Supervisor",
                        command = "stop",
@@ -162,8 +162,8 @@ class TestStormSupervisor(TestStormBase):
 
   @patch("os.path.exists")
   def test_stop_secured(self, path_exists_mock):
-    # Third bool is for the pid file
-    path_exists_mock.side_effect = [False, False, True, True]
+    # Bools for the pid file
+    path_exists_mock.side_effect = [True, True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/supervisor.py",
                        classname = "Supervisor",
                        command = "stop",

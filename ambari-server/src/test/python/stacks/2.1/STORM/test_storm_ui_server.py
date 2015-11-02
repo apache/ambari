@@ -66,8 +66,8 @@ class TestStormUiServer(TestStormBase):
 
   @patch("os.path.exists")
   def test_stop_default(self, path_exists_mock):
-    # Last bool is for the pid file
-    path_exists_mock.side_effect = [False, False, True]
+    # Bool for the pid file
+    path_exists_mock.side_effect = [True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
                        command = "stop",
@@ -126,8 +126,8 @@ class TestStormUiServer(TestStormBase):
 
   @patch("os.path.exists")
   def test_stop_secured(self, path_exists_mock):
-    # Last bool is for the pid file
-    path_exists_mock.side_effect = [False, False, True]
+    # Bool for the pid file
+    path_exists_mock.side_effect = [True]
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/ui_server.py",
                        classname = "UiServer",
                        command = "stop",
