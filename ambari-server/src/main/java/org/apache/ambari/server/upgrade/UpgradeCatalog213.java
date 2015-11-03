@@ -628,18 +628,30 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
-      final AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
-          cluster.getClusterId(), "journalnode_process");
+      long clusterID = cluster.getClusterId();
+      final AlertDefinitionEntity journalNodeProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "journalnode_process");
+      final AlertDefinitionEntity hostDiskUsageAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "ambari_agent_disk_usage");
 
-      if (alertDefinitionEntity != null) {
-        String source = alertDefinitionEntity.getSource();
+      if (journalNodeProcessAlertDefinitionEntity != null) {
+        String source = journalNodeProcessAlertDefinitionEntity.getSource();
 
-        alertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
-        alertDefinitionEntity.setSourceType(SourceType.WEB);
-        alertDefinitionEntity.setHash(UUID.randomUUID().toString());
+        journalNodeProcessAlertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
+        journalNodeProcessAlertDefinitionEntity.setSourceType(SourceType.WEB);
+        journalNodeProcessAlertDefinitionEntity.setHash(UUID.randomUUID().toString());
 
-        alertDefinitionDAO.merge(alertDefinitionEntity);
+        alertDefinitionDAO.merge(journalNodeProcessAlertDefinitionEntity);
         LOG.info("journalnode_process alert definition was updated.");
+      }
+
+      if (hostDiskUsageAlertDefinitionEntity != null) {
+        hostDiskUsageAlertDefinitionEntity.setDescription("This host-level alert is triggered if the amount of disk " +
+            "space used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL");
+        hostDiskUsageAlertDefinitionEntity.setLabel("Host Disk Usage");
+
+        alertDefinitionDAO.merge(hostDiskUsageAlertDefinitionEntity);
+        LOG.info("ambari_agent_disk_usage alert definition was updated.");
       }
     }
   }
