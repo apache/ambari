@@ -96,10 +96,8 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
-import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ServerSideActionTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
-import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.TaskWrapper;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
@@ -438,23 +436,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       boolean skipFailures = upgradeEntity.isComponentFailureAutoSkipped();
       boolean skipServiceCheckFailures = upgradeEntity.isServiceCheckFailureAutoSkipped();
 
-      // update skipping failures on commands which are not SERVICE_CHECKs
       if (null != skipFailuresRequestProperty) {
         skipFailures = Boolean.parseBoolean(skipFailuresRequestProperty);
-        s_hostRoleCommandDAO.updateAutomaticSkipOnFailure(requestId, skipFailures);
       }
 
-      // if the service check failure skip is present, then update all role
-      // commands that are SERVICE_CHECKs
       if (null != skipServiceCheckFailuresRequestProperty) {
         skipServiceCheckFailures = Boolean.parseBoolean(skipServiceCheckFailuresRequestProperty);
-        s_hostRoleCommandDAO.updateAutomaticSkipServiceCheckFailure(requestId,
-            skipServiceCheckFailures);
       }
+
+      s_hostRoleCommandDAO.updateAutomaticSkipOnFailure(requestId, skipFailures, skipServiceCheckFailures);
 
       upgradeEntity.setAutoSkipComponentFailures(skipFailures);
       upgradeEntity.setAutoSkipServiceCheckFailures(skipServiceCheckFailures);
       upgradeEntity = s_upgradeDAO.merge(upgradeEntity);
+
     }
 
     return getRequestStatus(null);

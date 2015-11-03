@@ -478,67 +478,33 @@ public class HostRoleCommandDAO {
 
   /**
    * Updates the {@link HostRoleCommandEntity#isFailureAutoSkipped()} flag for
-   * all commands which are not {@link RoleCommand#SERVICE_CHECK}.
+   * all commands for the given request
    * <p/>
-   * This will execute a JPQL {@code UPDATE} statement, bypassing the
-   * {@link EntityManager}. It does this because the amount of
-   * {@link HostRoleCommandEntity}s could number in the 10's of 1000's. As a
-   * result, this will call {@link EntityManager#clear()} after the update to
-   * ensure that the updated entity state is reflected in future queries.
+   * This will update each entity to ensure that the cache is maintained in a correct
+   * state.  A batch update doesn't always reflect in JPA-managed entities
    *
    * @param requestId
    *          the request ID of the commands to update
-   * @param automaticallySkipOnFailure
+   * @param skipOnFailure
    *          {@code true} to automatically skip failures, {@code false}
    *          otherwise.
-   * @see HostRoleCommandDAO#updateAutomaticSkipServiceCheckFailure(long,
-   *      boolean)
+   * @param skipOnServiceCheckFailure
+   *          {@code true} to skip service check failures
    */
   @Transactional
-  public void updateAutomaticSkipOnFailure(long requestId, boolean automaticallySkipOnFailure) {
-    EntityManager entityManager = entityManagerProvider.get();
+  public void updateAutomaticSkipOnFailure(long requestId,
+      boolean skipOnFailure, boolean skipOnServiceCheckFailure) {
 
-    TypedQuery<HostRoleCommandEntity> query = entityManager.createNamedQuery(
-        "HostRoleCommandEntity.updateAutoSkipExcludeRoleCommand", HostRoleCommandEntity.class);
-
-    query.setParameter("requestId", requestId);
-    query.setParameter("roleCommand", RoleCommand.SERVICE_CHECK);
-    query.setParameter("autoSkipOnFailure", automaticallySkipOnFailure ? 1 : 0);
-    query.executeUpdate();
-
-    entityManager.clear();
+    List<HostRoleCommandEntity> tasks = findByRequest(requestId);
+    for (HostRoleCommandEntity task : tasks) {
+      if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK ) {
+        task.setAutoSkipOnFailure(skipOnServiceCheckFailure);
+        merge(task);
+      } else {
+        task.setAutoSkipOnFailure(skipOnFailure);
+        merge(task);
+      }
+    }
   }
 
-  /**
-   * Updates the {@link HostRoleCommandEntity#isFailureAutoSkipped()} flag for
-   * all commands which are of type {@link RoleCommand#SERVICE_CHECK}.
-   * <p/>
-   * This will execute a JPQL {@code UPDATE} statement, bypassing the
-   * {@link EntityManager}. It does this because the amount of
-   * {@link HostRoleCommandEntity}s could number in the 10's of 1000's. As a
-   * result, this will call {@link EntityManager#clear()} after the update to
-   * ensure that the updated entity state is reflected in future queries.
-   *
-   * @param requestId
-   *          the request ID of the service check commands to update
-   * @param automaticallySkipOnFailure
-   *          {@code true} to automatically skip service check failures,
-   *          {@code false} otherwise.
-   * @see HostRoleCommandDAO#updateAutomaticSkipOnFailure(long, boolean)
-   */
-  @Transactional
-  public void updateAutomaticSkipServiceCheckFailure(long requestId,
-      boolean automaticallySkipOnFailure) {
-    EntityManager entityManager = entityManagerProvider.get();
-
-    TypedQuery<HostRoleCommandEntity> query = entityManager.createNamedQuery(
-        "HostRoleCommandEntity.updateAutoSkipForRoleCommand", HostRoleCommandEntity.class);
-
-    query.setParameter("requestId", requestId);
-    query.setParameter("roleCommand", RoleCommand.SERVICE_CHECK);
-    query.setParameter("autoSkipOnFailure", automaticallySkipOnFailure ? 1 : 0);
-    query.executeUpdate();
-
-    entityManager.clear();
-  }
 }
