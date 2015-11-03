@@ -190,7 +190,6 @@ public class BlueprintImplTest {
     properties.put("hdfs-site", hdfsProps);
     hdfsProps.put("foo", "val");
     hdfsProps.put("bar", "val");
-
     Map<String, String> category1Props = new HashMap<String, String>();
     properties.put("category1", category1Props);
     category1Props.put("prop1", "val");
@@ -290,6 +289,68 @@ public class BlueprintImplTest {
     verify(stack, group1, group2);
     assertTrue(entity.getSecurityType() == SecurityType.NONE);
     assertTrue(entity.getSecurityDescriptorReference() == null);
+  }
+
+  @Test
+  public void testValidateConfigurations__secretReference(){
+    Stack stack = createNiceMock(Stack.class);
+
+    HostGroup group1 = createNiceMock(HostGroup.class);
+    HostGroup group2 = createNiceMock(HostGroup.class);
+    Collection<HostGroup> hostGroups = new HashSet<HostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    Set<String> group1Components = new HashSet<String>();
+    group1Components.add("c1");
+    group1Components.add("c2");
+
+    Set<String> group2Components = new HashSet<String>();
+    group2Components.add("c1");
+    group2Components.add("c3");
+
+    Map<String, Map<String, String>> group2Props = new HashMap<String, Map<String, String>>();
+    Map<String, String> group2Category2Props = new HashMap<String, String>();
+    group2Props.put("category2", group2Category2Props);
+    group2Category2Props.put("prop2", "val");
+
+    Collection<Stack.ConfigProperty> requiredHDFSProperties = new HashSet<Stack.ConfigProperty>();
+    requiredHDFSProperties.add(new Stack.ConfigProperty("hdfs-site", "foo", null));
+    requiredHDFSProperties.add(new Stack.ConfigProperty("hdfs-site", "bar", null));
+    requiredHDFSProperties.add(new Stack.ConfigProperty("hdfs-site", "some_password", null));
+
+    requiredHDFSProperties.add(new Stack.ConfigProperty("category1", "prop1", null));
+
+    Collection<Stack.ConfigProperty> requiredService2Properties = new HashSet<Stack.ConfigProperty>();
+    requiredService2Properties.add(new Stack.ConfigProperty("category2", "prop2", null));
+
+
+    // Blueprint config
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hdfsProps = new HashMap<String, String>();
+    properties.put("hdfs-site", hdfsProps);
+    hdfsProps.put("foo", "val");
+    hdfsProps.put("bar", "val");
+    hdfsProps.put("secret", "SECRET:hdfs-site:1:test");
+
+    Map<String, String> category1Props = new HashMap<String, String>();
+    properties.put("category1", category1Props);
+    category1Props.put("prop1", "val");
+
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Configuration configuration = new Configuration(properties, attributes, EMPTY_CONFIGURATION);
+    // set config for group2 which contains a required property
+
+    replay(stack, group1, group2);
+
+    Blueprint blueprint = new BlueprintImpl("test", hostGroups, stack, configuration, null);
+    try {
+      blueprint.validateRequiredProperties();
+      fail("Expected exception to be thrown for using secret reference");
+    } catch (InvalidTopologyException e) {
+      System.out.println("****" + e.getMessage() + "***");
+    }
+
   }
 
   //todo: ensure coverage for these existing tests

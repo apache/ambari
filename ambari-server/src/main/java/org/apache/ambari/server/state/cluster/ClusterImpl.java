@@ -255,7 +255,6 @@ public class ClusterImpl implements Cluster {
 
   private volatile Multimap<String, String> serviceConfigTypes;
 
-  private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> configProperiesTypesCache;
 
   @Inject
   public ClusterImpl(@Assisted ClusterEntity clusterEntity,
@@ -271,7 +270,6 @@ public class ClusterImpl implements Cluster {
 
     desiredStackVersion = new StackId(clusterEntity.getDesiredStack());
 
-    configProperiesTypesCache = new HashMap<>();
 
     cacheConfigurations();
 
@@ -2912,33 +2910,15 @@ public class ClusterImpl implements Cluster {
    * {@inheritDoc}
    */
   @Override
-  public synchronized Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
-    if(configProperiesTypesCache.containsKey(configType)) {
-      return configProperiesTypesCache.get(configType);
-    } else {
-      Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = new HashMap<>();
-      try {
-        StackId stackId = this.getCurrentStackVersion();
-        StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
-        Collection<ServiceInfo> services = stackInfo.getServices();
-        for (ServiceInfo serviceInfo : services) {
-          for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
-            if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
-              Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
-              for (PropertyInfo.PropertyType propertyType : types) {
-                if (!propertiesTypes.containsKey(propertyType))
-                  propertiesTypes.put(propertyType, new HashSet<String>());
-                propertiesTypes.get(propertyType).add(propertyInfo.getName());
-              }
-            }
-          }
-        }
-      } catch (Exception e) {
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
+    try {
+      StackId stackId = this.getCurrentStackVersion();
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      return stackInfo.getConfigPropertiesTypes(configType);
+    } catch (AmbariException e) {
 
-      }
-      configProperiesTypesCache.put(configType, propertiesTypes);
-      return propertiesTypes;
     }
+    return new HashMap<>();
   }
 
   /**

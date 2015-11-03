@@ -729,9 +729,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           String passwordPropertyValue = requestProperties.get(passwordProperty);
           if (!SecretReference.isSecret(passwordPropertyValue))
             continue;
-          SecretReference ref = new SecretReference(passwordPropertyValue, passwordProperty, cluster);
-          if (!ref.getClusterName().equals(request.getClusterName()))
-            throw new AmbariException("Can not reference to different cluster in SECRET");
+          SecretReference ref = new SecretReference(passwordPropertyValue, cluster);
           String refValue = ref.getValue();
           requestProperties.put(passwordProperty, refValue);
         }
@@ -1401,7 +1399,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (propertiesTypes.containsKey(PropertyType.PASSWORD) &&
                 propertiesTypes.get(PropertyType.PASSWORD).contains(propertyName)) {
               if (SecretReference.isSecret(propertyValue)) {
-                SecretReference ref = new SecretReference(propertyValue, propertyName, cluster);
+                SecretReference ref = new SecretReference(propertyValue, cluster);
                 requestConfigProperties.put(propertyName, ref.getValue());
               }
             }
@@ -3388,29 +3386,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster, stackId);
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
+    Map<String, String> commandParamsStage = gson.fromJson(commandParamsForStage, new TypeToken<Map<String, String>>()
+      {}.getType());
     // Ensure that the specified requestContext (if any) is set as the request context
     if (!requestContext.isEmpty()) {
       requestStageContainer.setRequestContext(requestContext);
     }
+
+    // replace password references in requestProperties
+    SecretReference.replaceReferencesWithPasswords(commandParamsStage, cluster);
 
     // If the request is to perform the Kerberos service check, set up the stages to
     // ensure that the (cluster-level) smoke user principal and keytab is available on all hosts
     boolean kerberosServiceCheck = Role.KERBEROS_SERVICE_CHECK.name().equals(actionRequest.getCommandName());
     if (kerberosServiceCheck) {
       // Parse the command parameters into a map so that additional values may be added to it
-      Map<String, String> commandParamsStage = gson.fromJson(commandParamsForStage,
-          new TypeToken<Map<String, String>>() {
-          }.getType());
 
       try {
         requestStageContainer = kerberosHelper.createTestIdentity(cluster, commandParamsStage, requestStageContainer);
       } catch (KerberosOperationException e) {
         throw new IllegalArgumentException(e.getMessage(), e);
       }
-
-      // Recreate commandParamsForStage with the added values
-      commandParamsForStage = gson.toJson(commandParamsStage);
     }
+
+    commandParamsForStage = gson.toJson(commandParamsStage);
 
     Stage stage = createNewStage(requestStageContainer.getLastStageId(), cluster, requestId, requestContext,
         jsons.getClusterHostInfo(), commandParamsForStage, jsons.getHostParamsForStage());
@@ -3442,7 +3441,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (kerberosServiceCheck) {
       // Parse the command parameters into a map so that existing values may be accessed and
       // additional values may be added to it.
-      Map<String, String> commandParamsStage = gson.fromJson(commandParamsForStage,
+      commandParamsStage = gson.fromJson(commandParamsForStage,
           new TypeToken<Map<String, String>>() {
           }.getType());
 
