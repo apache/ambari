@@ -195,6 +195,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
    **/
   createCustomAction: function () {
     var connectionProperties = this.getProperties('db_connection_url','user_name', 'user_passwd');
+    var isServiceInstalled = App.Service.find(this.get('config.serviceName')).get('isLoaded');
     for (var key in connectionProperties) {
       if (connectionProperties.hasOwnProperty(key)) {
         connectionProperties[key] = connectionProperties[key].value;
@@ -203,7 +204,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
     var params = $.extend(true, {}, {db_name: this.get('db_type').toLowerCase()}, connectionProperties, this.get('ambariProperties'));
     var filteredHosts =  Array.isArray(this.get('masterHostName.value')) ? this.get('masterHostName.value') : [this.get('masterHostName.value')];
     App.ajax.send({
-      name: 'custom_action.create',
+      name: (isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create',
       sender: this,
       data: {
         requestInfo: {
