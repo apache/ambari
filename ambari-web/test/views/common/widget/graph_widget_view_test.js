@@ -225,4 +225,26 @@ describe('App.GraphWidgetView', function () {
 
   });
 
+  describe('#exportTargetView', function () {
+
+    var childViews = [
+        {
+          p0: 'v0'
+        },
+        {
+          p1: 'v1'
+        }
+      ],
+      title = 'should take last child view';
+
+    beforeEach(function () {
+      view.get('childViews').pushObjects(childViews);
+      view.propertyDidChange('exportTargetView');
+    });
+
+    it(title, function () {
+      expect(view.get('exportTargetView')).to.eql(childViews[1]);
+    });
+  });
+
 });

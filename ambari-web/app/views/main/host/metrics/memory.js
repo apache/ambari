@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   id: "host-metrics-memory",
   title: Em.I18n.t('hosts.host.metrics.memory'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'host.metrics.memory',

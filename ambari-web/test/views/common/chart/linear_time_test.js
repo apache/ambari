@@ -291,6 +291,60 @@ describe('App.ChartLinearTimeView', function () {
     });
   });
 
+  describe('#setYAxisFormatter', function () {
+
+    var view,
+      cases = [
+        {
+          displayUnit: '%',
+          formatter: 'PercentageFormatter'
+        },
+        {
+          displayUnit: 'B',
+          formatter: 'BytesFormatter'
+        },
+        {
+          displayUnit: 'ms',
+          formatter: 'TimeElapsedFormatter'
+        },
+        {
+          displayUnit: 'kg',
+          formatter: 'DefaultFormatter',
+          title: 'other display unit'
+        },
+        {
+          formatter: 'DefaultFormatter',
+          title: 'no display unit'
+        }
+      ],
+      methodNames = ['PercentageFormatter', 'CreateRateFormatter', 'BytesFormatter', 'TimeElapsedFormatter', 'DefaultFormatter'];
+
+    beforeEach(function () {
+      view = App.ChartLinearTimeView.create();
+      methodNames.forEach(function (name) {
+        sinon.stub(App.ChartLinearTimeView, name, Em.K);
+      });
+    });
+
+    afterEach(function () {
+      methodNames.forEach(function (name) {
+        App.ChartLinearTimeView[name].restore();
+      });
+    });
+
+    cases.forEach(function (item) {
+      it(item.title || item.displayUnit, function () {
+        view.set('displayUnit', item.displayUnit);
+        view.setYAxisFormatter();
+        view.yAxisFormatter();
+        methodNames.forEach(function (name) {
+          expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name == item.formatter));
+        });
+      });
+    });
+
+  });
+
 });
 
 

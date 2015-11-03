@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsFlume_JVMHeapUsed = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-jvm-heap-used",
   title: Em.I18n.t('services.service.info.metrics.flume.jvmHeapUsed'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'service.metrics.flume.jvm_heap_used',

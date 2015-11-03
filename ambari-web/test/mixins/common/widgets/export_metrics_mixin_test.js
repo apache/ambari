@@ -237,7 +237,18 @@ describe('App.ExportMetricsMixin', function () {
 
   describe('#prepareCSV', function () {
 
-    var data = [
+    var cases = [
+        {
+          displayUnit: 'B',
+          result: 'Timestamp,n0 (B),n1 (B)\n1,0,4\n3,2,5\n',
+          title: 'display unit set'
+        },
+        {
+          result: 'Timestamp,n0,n1\n1,0,4\n3,2,5\n',
+          title: 'display unit not set'
+        }
+      ],
+      data = [
         {
           name: 'n0',
           data: [[0, 1], [2, 3]]
@@ -246,12 +257,17 @@ describe('App.ExportMetricsMixin', function () {
           name: 'n1',
           data: [[4, 1], [5, 3]]
         }
-      ],
-      result = 'Timestamp,n0,n1\n1,0,4\n3,2,5\n',
-      title = 'should do CSV export with formatting data as table';
+      ];
 
-    it(title, function () {
-      expect(obj.prepareCSV(data)).to.equal(result);
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        obj.reopen({
+          targetView: {
+            displayUnit: item.displayUnit
+          }
+        });
+        expect(obj.prepareCSV(data)).to.equal(item.result);
+      });
     });
 
   });
@@ -278,6 +294,58 @@ describe('App.ExportMetricsMixin', function () {
           isExportMenuHidden: false
         });
         expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
+      });
+    });
+
+  });
+
+  describe('#jsonReplacer', function () {
+
+    var cases = [
+      {
+        json: [
+          {
+            name: 'n0',
+            data: [
+              [0, 1],
+              [1, 2]
+            ]
+          }
+        ],
+        result: '[{"name":"n0","data":[[0,1],[1,2]]}]',
+        title: 'valid object'
+      },
+      {
+        json: [
+          {
+            name: 'n1',
+            data: [
+              [0, 1],
+              [1, 2]
+            ],
+            p1: 'v1'
+          }
+        ],
+        result: '[{"name":"n1","data":[[0,1],[1,2]]}]',
+        title: 'object with redundant property'
+      },
+      {
+        json: [
+          {
+            name: 'n1',
+            data: {
+              p2: 'v2'
+            }
+          }
+        ],
+        result: '[{"name":"n1","data":{}}]',
+        title: 'object with malformed data'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(JSON.stringify(item.json, obj.jsonReplacer())).to.equal(item.result);
       });
     });
 

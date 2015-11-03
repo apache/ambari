@@ -34,7 +34,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
 
   isTimePagingDisable: false,
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
   seriesTemplate: {
     path: 'metrics.network'

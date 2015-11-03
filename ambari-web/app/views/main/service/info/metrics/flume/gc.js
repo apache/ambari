@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsFlume_GarbageCollection = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-jvm-gc",
   title: Em.I18n.t('services.service.info.metrics.flume.gc'),
-  yAxisFormatter: App.ChartLinearTimeView.TimeElapsedFormatter,
+  displayUnit: 'ms',
 
   ajaxIndex: 'service.metrics.flume.gc',
 

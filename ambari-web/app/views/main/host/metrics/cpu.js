@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   id: "host-metrics-cpu",
   title: Em.I18n.t('hosts.host.metrics.cpu'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
 
   ajaxIndex: 'host.metrics.cpu',
 

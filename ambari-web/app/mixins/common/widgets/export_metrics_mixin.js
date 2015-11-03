@@ -70,7 +70,7 @@ App.ExportMetricsMixin = Em.Mixin.create({
     } else {
       var fileType = params.isCSV ? 'csv' : 'json',
         fileName = 'data.' + fileType,
-        data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, null, 4);
+        data = params.isCSV ? this.prepareCSV(seriesData) : JSON.stringify(seriesData, this.jsonReplacer(), 4);
       fileUtils.downloadTextFile(data, fileType, fileName);
     }
   },
@@ -80,16 +80,17 @@ App.ExportMetricsMixin = Em.Mixin.create({
   },
 
   prepareCSV: function (data) {
-    var titles,
+    var displayUnit = this.get('targetView.displayUnit'),
+      titles,
       ticksNumber,
       metricsNumber,
       metricsArray;
-    if (Em.isArray(data)) {
-      titles = data.mapProperty('name');
-      titles.unshift(Em.I18n.t('common.timestamp'));
-      ticksNumber = data[0].data.length;
-      metricsNumber = data.length;
-    }
+    titles = data.map(function (item) {
+      return displayUnit ? item.name + ' (' + displayUnit + ')' : item.name;
+    }, this);
+    titles.unshift(Em.I18n.t('common.timestamp'));
+    ticksNumber = data[0].data.length;
+    metricsNumber = data.length;
     metricsArray = [titles];
     for (var i = 0; i < ticksNumber; i++) {
       metricsArray.push([data[0].data[i][1]]);
@@ -98,6 +99,15 @@ App.ExportMetricsMixin = Em.Mixin.create({
       };
     }
     return stringUtils.arrayToCSV(metricsArray);
+  },
+
+  jsonReplacer: function () {
+    var displayUnit = this.get('targetView.displayUnit');
+    return function (key, value) {
+      if (['name', 'data'].contains(key) || (!isNaN(key))) {
+        return key == 'name' && displayUnit ? value + ' (' + displayUnit + ')' : value;
+      }
+    }
   }
 
 });

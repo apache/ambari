@@ -33,7 +33,7 @@ App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
 
   isTimePagingDisable: false,
   title: Em.I18n.t('dashboard.clusterMetrics.memory'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
   seriesTemplate: {
     path: 'metrics.memory',

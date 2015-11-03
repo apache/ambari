@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsFlume_ChannelFillPercent = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-channel-fill-percent",
   title: Em.I18n.t('services.service.info.metrics.flume.channelFillPercent'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
 
   ajaxIndex: 'service.metrics.flume.channel_fill_percent',
 

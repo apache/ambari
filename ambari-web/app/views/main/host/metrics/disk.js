@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   id: "host-metrics-disk",
   title: Em.I18n.t('hosts.host.metrics.disk'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'host.metrics.disk',

@@ -31,8 +31,7 @@ App.ChartServiceMetricsFlume_ChannelSizeMMA = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.flume.channelSizeMMA'),
   renderer: 'line',
   ajaxIndex: 'service.metrics.flume.channel_size_for_all.mma',
-  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('',
-    App.ChartLinearTimeView.DefaultFormatter),
+  displayUnit: '/s',
 
   seriesTemplate: {
     path: 'metrics.flume.flume.CHANNEL.ChannelSize.rate',

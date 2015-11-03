@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsFlume_ChannelSizeSum = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-channel-size-sum",
   title: Em.I18n.t('services.service.info.metrics.flume.channelSizeSum'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
 
   ajaxIndex: 'service.metrics.flume.channel_size_for_all.sum',
 
