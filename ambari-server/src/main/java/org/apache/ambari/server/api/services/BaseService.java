@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.utils.RetryHelper;
 import org.eclipse.jetty.util.ajax.JSON;
 
 import javax.ws.rs.core.HttpHeaders;
@@ -117,6 +118,7 @@ public abstract class BaseService {
       builder.type(mediaType);
     }
 
+    RetryHelper.clearAffectedClusters();
     return builder.build();
   }
 

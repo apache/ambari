@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.host.HostFactory;
+import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -272,7 +273,7 @@ public class ClustersImpl implements Clusters {
     if (null == cluster) {
       throw new ClusterNotFoundException(clusterName);
     }
-
+    RetryHelper.addAffectedCluster(cluster);
     return cluster;
   }
 
