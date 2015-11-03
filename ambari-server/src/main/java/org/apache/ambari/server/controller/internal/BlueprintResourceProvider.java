@@ -21,8 +21,10 @@ package org.apache.ambari.server.controller.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -42,6 +44,7 @@ import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -153,11 +156,12 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @param gson      json serializer
    */
   public static void init(BlueprintFactory factory, BlueprintDAO dao, SecurityConfigurationFactory
-    securityFactory, Gson gson) {
+    securityFactory, Gson gson, AmbariMetaInfo metaInfo) {
     blueprintFactory = factory;
     blueprintDAO = dao;
     securityConfigurationFactory = securityFactory;
     jsonSerializer = gson;
+    ambariMetaInfo = metaInfo;
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -189,7 +193,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
   //todo: continue to use dao/entity directly or use blueprint factory?
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
-             NoSuchResourceException, NoSuchParentResourceException {
+      NoSuchResourceException, NoSuchParentResourceException {
 
     List<BlueprintEntity> results        = null;
     boolean               applyPredicate = false;
@@ -266,6 +270,10 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
     return getRequestStatus(null);
   }
 
+  /**
+   * Used to get stack metainfo.
+   */
+  private static AmbariMetaInfo ambariMetaInfo;
 
   // ----- Instance Methods ------------------------------------------------
 
@@ -277,7 +285,7 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    *
    * @return a new resource instance for the given blueprint entity
    */
-  protected Resource toResource(BlueprintEntity entity, Set<String> requestedIds) {
+  protected Resource toResource(BlueprintEntity entity, Set<String> requestedIds) throws NoSuchResourceException {
     StackEntity stackEntity = entity.getStack();
     Resource resource = new ResourceImpl(Resource.Type.Blueprint);
     setResourceProperty(resource, BLUEPRINT_NAME_PROPERTY_ID, entity.getBlueprintName(), requestedIds);
@@ -327,16 +335,39 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    * @return list of configuration property maps
    */
   List<Map<String, Map<String, Object>>> populateConfigurationList(
-      Collection<? extends BlueprintConfiguration> configurations) {
+      Collection<? extends BlueprintConfiguration> configurations) throws NoSuchResourceException {
 
     List<Map<String, Map<String, Object>>> listConfigurations = new ArrayList<Map<String, Map<String, Object>>>();
     for (BlueprintConfiguration config : configurations) {
       Map<String, Map<String, Object>> mapConfigurations = new HashMap<String, Map<String, Object>>();
       Map<String, Object> configTypeDefinition = new HashMap<String, Object>();
       String type = config.getType();
-      Map<String, Object> properties = jsonSerializer.<Map<String, Object>>fromJson(
-          config.getConfigData(), Map.class);
-      configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+
+      if(config instanceof BlueprintConfigEntity) {
+        Map<String, String> properties = jsonSerializer.<Map<String, String>>fromJson(
+            config.getConfigData(), Map.class);
+
+        StackEntity stack = ((BlueprintConfigEntity)config).getBlueprintEntity().getStack();
+        StackInfo metaInfoStack;
+
+        try {
+          metaInfoStack = ambariMetaInfo.getStack(stack.getStackName(), stack.getStackVersion());
+        } catch (AmbariException e) {
+          throw new NoSuchResourceException(e.getMessage());
+        }
+
+        Map<org.apache.ambari.server.state.PropertyInfo.PropertyType, Set<String>> propertiesTypes =
+            metaInfoStack.getConfigPropertiesTypes(type);
+
+        SecretReference.replacePasswordsWithReferences(propertiesTypes, properties, type, -1l);
+
+        configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+      } else {
+        Map<String, Object> properties = jsonSerializer.<Map<String, Object>>fromJson(
+            config.getConfigData(), Map.class);
+        configTypeDefinition.put(PROPERTIES_PROPERTY_ID, properties);
+      }
+
       Map<String, Map<String, String>> attributes = jsonSerializer.<Map<String, Map<String, String>>>fromJson(
           config.getConfigAttributes(), Map.class);
       if (attributes != null && !attributes.isEmpty()) {
