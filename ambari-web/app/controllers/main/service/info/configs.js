@@ -316,6 +316,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         self.loadCurrentVersions();
       });
     }
+    else {
+      this.loadCurrentVersions();
+    }
     this.loadServiceConfigVersions();
   },
 
