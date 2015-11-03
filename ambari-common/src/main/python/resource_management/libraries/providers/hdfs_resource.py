@@ -127,8 +127,14 @@ class WebHDFSUtil:
                                                                           security_enabled, run_user)
     http_nn_address = namenode_ha_utils.get_property_for_active_namenode(hdfs_site, 'dfs.namenode.http-address',
                                                                          security_enabled, run_user)
-    self.is_https_enabled = hdfs_site['dfs.https.enable'] if not is_empty(hdfs_site['dfs.https.enable']) else False
-    
+
+    # check for dfs.http.policy and after that for deprecated(for newer stacks) dfs.https.enable
+    self.is_https_enabled = False
+    if not is_empty(hdfs_site['dfs.http.policy']):
+      self.is_https_enabled = hdfs_site['dfs.http.policy'].lower() == "https_only"
+    elif not is_empty(hdfs_site['dfs.https.enable']):
+      self.is_https_enabled = hdfs_site['dfs.https.enable']
+
     address = https_nn_address if self.is_https_enabled else http_nn_address
     protocol = "https" if self.is_https_enabled else "http"
     
