@@ -383,10 +383,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // Create next stage
       String stageName;
       if (batchCount > 1) {
+        stageName = INSTALL_PACKAGES_FULL_NAME;
+      } else {
         stageName = String.format(INSTALL_PACKAGES_FULL_NAME + ". Batch %d of %d", batchId,
             batchCount);
-      } else {
-        stageName = INSTALL_PACKAGES_FULL_NAME;
       }
 
       Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
@@ -414,6 +414,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         } else {
           directTransitions.add(host);
         }
+
       }
     }
 
@@ -549,11 +550,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         componentInfo = ami.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), component.getServiceName(), component.getServiceComponentName());
       } catch (AmbariException e) {
-        // It is possible that the component has been removed from the new stack
-        // (example: STORM_REST_API has been removed from HDP-2.2)
-        LOG.warn(String.format("Exception while accessing component %s of service %s for stack %s",
-            component.getServiceComponentName(), component.getServiceName(), stackId));
-        continue;
+        throw new SystemException(String.format("Exception while accessing component %s of service %s for stack %s",
+                component.getServiceName(), component.getServiceComponentName(), stackId));
       }
       if (componentInfo.isVersionAdvertised()) {
         return true;
