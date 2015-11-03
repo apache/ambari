@@ -91,7 +91,7 @@
   </property>
 
   <property>
-    <name>hawq_resourcemanager_segment_limit_memory_use</name>
+    <name>hawq_rm_memory_limit_perseg</name>
     <value>64GB</value>
     <description>The limit of memory usage in a HAWQ segment when 
       hawq_global_rm_type is set 'none'.
@@ -99,7 +99,7 @@
   </property>
 
   <property>
-    <name>hawq_resourcemanager_segment_limit_core_use</name>
+    <name>hawq_rm_nvcore_limit_perseg</name>
     <value>16</value>
     <description>The limit of virtual core usage in a HAWQ segment when 
       hawq_global_rm_type is set 'none'.
@@ -107,60 +107,56 @@
   </property>
 
   <property>
-    <name>hawq_resourcemanager_yarn_resourcemanager_address</name>
+    <name>hawq_rm_yarn_address</name>
     <value>localhost:8032</value>
     <description>The address of YARN resource manager server.</description>
   </property>
 
   <property>
-    <name>hawq_resourcemanager_yarn_resourcemanager_scheduler_address</name>
+    <name>hawq_rm_yarn_scheduler_address</name>
     <value>localhost:8030</value>
     <description>The address of YARN scheduler server.</description>
   </property>
 
   <property>
-    <name>hawq_resourcemanager_yarn_queue</name>
+    <name>hawq_rm_yarn_queue_name</name>
     <value>default</value>
     <description>The YARN queue name to register HAWQ resource manager.</description>
   </property>
 
   <property>
-    <name>hawq_resourcemanager_yarn_application_name</name>
+    <name>hawq_rm_yarn_app_name</name>
     <value>hawq</value>
     <description>The application name to register HAWQ resource manager in YARN.</description>
   </property>
-  <property>
-    <name>hawq_resourcemanager_log_level</name>
-    <value>10</value>
-  </property>
 
   <property>
-    <name>hawq_resourceenforcer_cpu_enable</name>
+    <name>hawq_re_cpu_enable</name>
     <value>false</value>
   </property>
 
   <property>
-    <name>hawq_resourceenforcer_cgroup_mount_point</name>
+    <name>hawq_re_cgroup_mount_point</name>
     <value>/sys/fs/cgroup</value>
   </property>
 
   <property>
-    <name>hawq_resourceenforcer_cgroup_hierarchy_name</name>
+    <name>hawq_re_cgroup_hierarchy_name</name>
     <value>hadoop-yarn</value>
   </property>
 
   <property>
-    <name>hawq_resourceenforcer_cleanup_period</name>
+    <name>hawq_re_cleanup_period</name>
     <value>180</value>
   </property>
 
   <property>
-    <name>hawq_resourceenforcer_cpu_weight</name>
+    <name>hawq_re_cpu_weight</name>
     <value>1024.0</value>
   </property>
 
   <property>
-    <name>hawq_resourceenforcer_vcore_pcore_ratio</name>
+    <name>hawq_re_vcore_pcore_ratio</name>
     <value>1.0</value>
   </property>
 

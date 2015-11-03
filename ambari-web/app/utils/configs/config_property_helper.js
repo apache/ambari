@@ -228,13 +228,13 @@ module.exports = {
         var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
         this.setRecommendedValue(configProperty, hostWithPort, nnHost);
         break;
-      case 'hawq_resourcemanager_yarn_resourcemanager_address':
+      case 'hawq_rm_yarn_address':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
         if (rmHost) {
           this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);
         }
         break;
-      case 'hawq_resourcemanager_yarn_resourcemanager_scheduler_address':
+      case 'hawq_rm_yarn_scheduler_address':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
         if (rmHost) {
           this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);

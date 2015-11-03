@@ -107,8 +107,8 @@ def __substitute_hostnames_in_hawq_site():
   substituted_hawq_site = params.hawq_site.copy()
   hawq_site_property_map = {"hawq_master_address_host": params.hawqmaster_host,
                             "hawq_standby_address_host": hawqstandby_host_desired_value,
-                            "hawq_resourcemanager_yarn_resourcemanager_address": params.rm_host,
-                            "hawq_resourcemanager_yarn_resourcemanager_scheduler_address": params.rm_host,
+                            "hawq_rm_yarn_address": params.rm_host,
+                            "hawq_rm_yarn_scheduler_address": params.rm_host,
                             "hawq_dfs_url": params.namenode_host
                             }
 

@@ -172,10 +172,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_cgroup_hierarchy_name",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_hierarchy_name",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_cgroup_hierarchy_name",
+        "property_name" : "hawq_re_cgroup_hierarchy_name",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -183,10 +183,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_cgroup_mount_point",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cgroup_mount_point",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_cgroup_mount_point",
+        "property_name" : "hawq_re_cgroup_mount_point",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -194,10 +194,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_cleanup_period",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cleanup_period",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_cleanup_period",
+        "property_name" : "hawq_re_cleanup_period",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -205,10 +205,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_cpu_enable",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cpu_enable",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_cpu_enable",
+        "property_name" : "hawq_re_cpu_enable",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -216,10 +216,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_cpu_weight",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_cpu_weight",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_cpu_weight",
+        "property_name" : "hawq_re_cpu_weight",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -227,10 +227,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourceenforcer_vcore_pcore_ratio",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_re_vcore_pcore_ratio",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourceenforcer_vcore_pcore_ratio",
+        "property_name" : "hawq_re_vcore_pcore_ratio",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -238,10 +238,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_log_level",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_nvcore_limit_perseg",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_log_level",
+        "property_name" : "hawq_rm_nvcore_limit_perseg",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -249,21 +249,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_segment_limit_core_use",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_memory_limit_perseg",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_segment_limit_core_use",
-        "service_name" : "HAWQ",
-        "stack_name" : "HDP",
-        "stack_version" : "2.3",
-        "type" : "hawq-site.xml"
-      },
-      "dependencies" : [ ]
-    }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_segment_limit_memory_use",
-      "StackConfigurations" : {
-        "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_segment_limit_memory_use",
+        "property_name" : "hawq_rm_memory_limit_perseg",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -282,10 +271,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_yarn_application_name",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_app_name",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_yarn_application_name",
+        "property_name" : "hawq_rm_yarn_app_name",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -293,10 +282,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_yarn_queue",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_queue_name",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_yarn_queue",
+        "property_name" : "hawq_rm_yarn_queue_name",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -304,10 +293,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_yarn_resourcemanager_address",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_address",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_yarn_resourcemanager_address",
+        "property_name" : "hawq_rm_yarn_address",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
@@ -315,10 +304,10 @@
       },
       "dependencies" : [ ]
     }, {
-      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_resourcemanager_yarn_resourcemanager_scheduler_address",
+      "href" : "/api/v1/stacks/HDP/versions/2.3/services/HAWQ/configurations/hawq_rm_yarn_scheduler_address",
       "StackConfigurations" : {
         "property_depends_on" : [ ],
-        "property_name" : "hawq_resourcemanager_yarn_resourcemanager_scheduler_address",
+        "property_name" : "hawq_rm_yarn_scheduler_address",
         "service_name" : "HAWQ",
         "stack_name" : "HDP",
         "stack_version" : "2.3",
