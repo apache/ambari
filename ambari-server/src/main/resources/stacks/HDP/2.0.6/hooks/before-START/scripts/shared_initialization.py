@@ -101,6 +101,9 @@ def setup_hadoop():
            content=Template("hadoop-metrics2.properties.j2")
       )
 
+    if params.dfs_type == 'HCFS' and params.has_core_site:
+       create_dirs()
+
 
 def setup_configs():
   """
@@ -148,4 +151,22 @@ def create_javahome_symlink():
     Link("/usr/jdk/jdk1.6.0_31",
          to="/usr/jdk64/jdk1.6.0_31",
     )
+
+def create_dirs():
+   import params
+   params.HdfsResource("/tmp",
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.hdfs_user,
+                       mode=0777
+   )
+   params.HdfsResource(params.smoke_hdfs_user_dir,
+                       type="directory",
+                       action="create_on_execute",
+                       owner=params.smoke_user,
+                       mode=params.smoke_hdfs_user_mode
+   )
+   params.HdfsResource(None,
+                      action="execute"
+   )
 

@@ -26,11 +26,22 @@ class ECSServiceCheck(Script):
     env.set_params(params)
 
     # run fs list command to make sure ECS client can talk to ECS backend
-    Execute(format("hadoop fs -ls /"),
-              logoutput=True,
-              tries = 3,
-              try_sleep = 20
+    list_command = format("fs -ls /")
+
+    if params.security_enabled:
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user=params.hdfs_user
+      )
+
+    ExecuteHadoop(list_command,
+                  user=params.hdfs_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  try_sleep=3,
+                  tries=20,
+                  bin_dir=params.hadoop_bin_dir
     )
+
 
 if __name__ == "__main__":
   ECSServiceCheck().execute()

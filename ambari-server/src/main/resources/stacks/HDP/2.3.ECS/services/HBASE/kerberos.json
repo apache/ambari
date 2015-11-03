@@ -1,0 +1,132 @@
+{
+  "services": [
+    {
+      "name": "HBASE",
+      "identities": [
+        {
+          "name": "/spnego"
+        },
+        {
+          "name": "/ECS/hdfs"
+        },
+        {
+          "name": "hbase",
+          "principal": {
+            "value": "${hbase-env/hbase_user}-${cluster_name}@${realm}",
+            "type" : "user",
+            "configuration": "hbase-env/hbase_principal_name",
+            "local_username": "${hbase-env/hbase_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/hbase.headless.keytab",
+            "owner": {
+              "name": "${hbase-env/hbase_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": "r"
+            },
+            "configuration": "hbase-env/hbase_user_keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "hbase-site": {
+            "hbase.security.authentication": "kerberos",
+            "hbase.security.authorization": "true",
+            "zookeeper.znode.parent": "/hbase-secure",
+              "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
+              "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
+            "hbase.bulkload.staging.dir": "/apps/hbase/staging"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "HBASE_MASTER",
+          "identities": [
+            {
+              "name": "hbase_master_hbase",
+              "principal": {
+                "value": "hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hbase-site/hbase.master.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "owner": {
+                  "name": "${hbase-env/hbase_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hbase-site/hbase.master.keytab.file"
+              }
+            }
+          ]
+        },
+        {
+          "name": "HBASE_REGIONSERVER",
+          "identities": [
+            {
+              "name": "hbase_regionserver_hbase",
+              "principal": {
+                "value": "hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hbase-site/hbase.regionserver.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "owner": {
+                  "name": "${hbase-env/hbase_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hbase-site/hbase.regionserver.keytab.file"
+              }
+            }
+          ]
+        },
+        {
+          "name": "PHOENIX_QUERY_SERVER",
+          "identities": [
+            {
+              "name": "hbase_queryserver_hbase",
+              "principal": {
+                "value": "hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hbase-site/phoenix.queryserver.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "owner": {
+                  "name": "${hbase-env/hbase_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hbase-site/phoenix.queryserver.keytab.file"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+

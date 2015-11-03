@@ -28,6 +28,11 @@
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
+    <repo>
+      <baseurl>http://ECS_CLIENT_REPO/</baseurl>
+      <repoid>ECS-2.2.0.0</repoid>
+      <reponame>ECS</reponame>
+    </repo>
   </os>
   <os family="redhat7">
     <repo>
@@ -39,6 +44,11 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos7</baseurl>
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
+    </repo>
+    <repo>
+      <baseurl>http://ECS_CLIENT_REPO/</baseurl>
+      <repoid>ECS-2.2.0.0</repoid>
+      <reponame>ECS</reponame>
     </repo>
   </os>
   <os family="suse11">
@@ -52,6 +62,11 @@
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
+    <repo>
+      <baseurl>http://ECS_CLIENT_REPO/</baseurl>
+      <repoid>ECS-2.2.0.0</repoid>
+      <reponame>ECS</reponame>
+    </repo>
   </os>
   <os family="ubuntu12">
     <repo>
@@ -63,6 +78,11 @@
       <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/ubuntu12</baseurl>
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
+    </repo>
+    <repo>
+      <baseurl>http://ECS_CLIENT_REPO/</baseurl>
+      <repoid>ECS-2.2.0.0</repoid>
+      <reponame>ECS</reponame>
     </repo>
   </os>
   <os family="debian7">
@@ -76,6 +96,11 @@
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
+    <repo>
+      <baseurl>http://ECS_CLIENT_REPO/</baseurl>
+      <repoid>ECS-2.2.0.0</repoid>
+      <reponame>ECS</reponame>
+    </repo>
   </os>
   <os family="ubuntu14">
     <repo>
@@ -88,13 +113,10 @@
       <repoid>HDP-UTILS-1.1.0.20</repoid>
       <reponame>HDP-UTILS</reponame>
     </repo>
-  </os>
-  <!-- ECS CLIENT REPO -->
-  <os family="any">
     <repo>
       <baseurl>http://ECS_CLIENT_REPO/</baseurl>
       <repoid>ECS-2.2.0.0</repoid>
       <reponame>ECS</reponame>
     </repo>
-  </os>  
+  </os>
 </reposinfo>

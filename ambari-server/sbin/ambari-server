@@ -148,9 +148,13 @@ case "$1" in
         echo -e "Updating host names"
         $PYTHON /usr/sbin/ambari-server.py $@
         ;;
+  enable-stack)
+        echo -e "Enabling stack(s)..."
+        $PYTHON /usr/sbin/ambari-server.py $@
+        ;;
   *)
         echo "Usage: /usr/sbin/ambari-server
-        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names} [options]
+        {start|stop|restart|setup|setup-jce|upgrade|status|upgradestack|setup-ldap|sync-ldap|set-current|setup-security|refresh-stack-hash|backup|restore|update-host-names|enable-stack} [options]
         Use usr/sbin/ambari-server <action> --help to get details on options available.
         Or, simply invoke ambari-server.py --help to print the options."
         exit 1
