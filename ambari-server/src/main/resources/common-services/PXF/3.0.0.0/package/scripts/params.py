@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,26 +14,29 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
 
 from resource_management import Script
 
-class PxfService(Script):
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
+config = Script.get_config()
 
-  def configure(self, env):
-    pass
 
-  def start(self, env):
-    pass
+pxf_service_name = "pxf-service"
+stack_name = str(config["hostLevelParams"]["stack_name"])
 
-  def stop(self, env):
-    pass
+# Users and Groups
+pxf_user = "pxf"
+pxf_group = pxf_user
+hdfs_superuser_group = config["configurations"]["hdfs-site"]["dfs.permissions.superusergroup"]
+user_group = config["configurations"]["cluster-env"]["user_group"]
+tomcat_group = "tomcat"
 
-  def status(self, env):
-    pass
+# Directories
+pxf_conf_dir = "/etc/pxf/conf"
+pxf_instance_dir = "/var/pxf"
 
-if __name__ == "__main__":
-  PxfService().execute()
+# Java home path
+java_home = config["hostLevelParams"]["java_home"] if "java_home" in config["hostLevelParams"] else None
+
+# Timeouts
+default_exec_timeout = 600
