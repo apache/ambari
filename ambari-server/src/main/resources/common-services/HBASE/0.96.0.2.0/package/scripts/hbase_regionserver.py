@@ -75,7 +75,7 @@ class HbaseRegionServerDefault(HbaseRegionServer):
     env.set_params(params)
     upgrade.prestart(env, "hbase-regionserver")
 
-  def post_upgrade_restart(self, env):
+  def post_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     upgrade.post_regionserver(env)
