@@ -487,6 +487,24 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void testGetExecutionSchedulerWait() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    //default
+    Assert.assertEquals(new Long(1000L), configuration.getExecutionSchedulerWait());
+
+    ambariProperties.setProperty(Configuration.EXECUTION_SCHEDULER_WAIT_KEY, "5");
+    Assert.assertEquals(new Long(5000L), configuration.getExecutionSchedulerWait());
+    // > 60 secs
+    ambariProperties.setProperty(Configuration.EXECUTION_SCHEDULER_WAIT_KEY, "100");
+    Assert.assertEquals(new Long(60000L), configuration.getExecutionSchedulerWait());
+    //not a number
+    ambariProperties.setProperty(Configuration.EXECUTION_SCHEDULER_WAIT_KEY, "100m");
+    Assert.assertEquals(new Long(1000L), configuration.getExecutionSchedulerWait());
+  }
+
+  @Test
   public void testExperimentalConcurrentStageProcessing() throws Exception {
     final Properties ambariProperties = new Properties();
     final Configuration configuration = new Configuration(ambariProperties);

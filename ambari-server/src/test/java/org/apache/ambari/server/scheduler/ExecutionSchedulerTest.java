@@ -48,9 +48,9 @@ public class ExecutionSchedulerTest {
   @Before
   public void setup() throws Exception {
     Properties properties = new Properties();
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_THREADS, "2");
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CLUSTERED, "false");
-    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CONNECTIONS, "2");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_THREADS_KEY, "2");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CLUSTERED_KEY, "false");
+    properties.setProperty(Configuration.EXECUTION_SCHEDULER_CONNECTIONS_KEY, "2");
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, "db.driver");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:postgresql://localhost/");
     properties.setProperty(Configuration.SERVER_JDBC_USER_NAME_KEY, "user");
