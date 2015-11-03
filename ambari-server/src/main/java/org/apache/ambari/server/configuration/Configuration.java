@@ -270,15 +270,17 @@ public class Configuration {
   public static final String REPO_SUFFIX_KEY_UBUNTU = "repo.validation.suffixes.ubuntu";
   public static final String REPO_SUFFIX_KEY_DEFAULT = "repo.validation.suffixes.default";
 
-  public static final String EXECUTION_SCHEDULER_CLUSTERED = "server.execution.scheduler.isClustered";
-  public static final String EXECUTION_SCHEDULER_THREADS = "server.execution.scheduler.maxThreads";
-  public static final String EXECUTION_SCHEDULER_CONNECTIONS = "server.execution.scheduler.maxDbConnections";
-  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "server.execution.scheduler.misfire.toleration.minutes";
-  public static final String EXECUTION_SCHEDULER_START_DELAY = "server.execution.scheduler.start.delay.seconds";
+  public static final String EXECUTION_SCHEDULER_CLUSTERED_KEY = "server.execution.scheduler.isClustered";
+  public static final String EXECUTION_SCHEDULER_THREADS_KEY = "server.execution.scheduler.maxThreads";
+  public static final String EXECUTION_SCHEDULER_CONNECTIONS_KEY = "server.execution.scheduler.maxDbConnections";
+  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION_KEY = "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String EXECUTION_SCHEDULER_START_DELAY_KEY = "server.execution.scheduler.start.delay.seconds";
+  public static final String EXECUTION_SCHEDULER_WAIT_KEY = "server.execution.scheduler.wait";
   public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
   public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
+  public static final String DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS = "1";
   public static final String SERVER_TMP_DIR_KEY = "server.tmp.dir";
   public static final String SERVER_TMP_DIR_DEFAULT = "/var/lib/ambari-server/tmp";
   public static final String EXTERNAL_SCRIPT_TIMEOUT_KEY = "server.script.timeout";
@@ -1251,8 +1253,8 @@ public class Configuration {
    */
   public boolean isAgentApiGzipped() {
     return "true".equalsIgnoreCase(properties.getProperty(
-        AGENT_API_GZIP_COMPRESSION_ENABLED_KEY,
-        API_GZIP_COMPRESSION_ENABLED_DEFAULT));
+      AGENT_API_GZIP_COMPRESSION_ENABLED_KEY,
+      API_GZIP_COMPRESSION_ENABLED_DEFAULT));
   }
 
   /**
@@ -1748,17 +1750,17 @@ public class Configuration {
 
 
   public String isExecutionSchedulerClusterd() {
-    return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED, "false");
+    return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED_KEY, "false");
   }
 
   public String getExecutionSchedulerThreads() {
-    return properties.getProperty(EXECUTION_SCHEDULER_THREADS,
+    return properties.getProperty(EXECUTION_SCHEDULER_THREADS_KEY,
                                   DEFAULT_SCHEDULER_THREAD_COUNT);
   }
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-                                                   REQUEST_READ_TIMEOUT_DEFAULT));
+      REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
@@ -1767,21 +1769,46 @@ public class Configuration {
   }
 
   public String getExecutionSchedulerConnections() {
-    return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+    return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS_KEY,
+      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
     String limit = properties.getProperty
-      (EXECUTION_SCHEDULER_MISFIRE_TOLERATION,
+      (EXECUTION_SCHEDULER_MISFIRE_TOLERATION_KEY,
         DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION);
     return Long.parseLong(limit);
   }
 
   public Integer getExecutionSchedulerStartDelay() {
-    String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
+    String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY_KEY,
                                           DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
+  }
+
+  public Long getExecutionSchedulerWait() {
+
+    String stringValue = properties.getProperty(
+      EXECUTION_SCHEDULER_WAIT_KEY, DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+    Long sleepTime = Long.parseLong(DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+    if (stringValue != null) {
+      try {
+        sleepTime = Long.valueOf(stringValue);
+      } catch (NumberFormatException ignored) {
+        LOG.warn("Value of {} ({}) should be a number, " +
+          "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT_KEY,
+          stringValue, DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+      }
+
+    }
+
+    if (sleepTime > 60) {
+      LOG.warn("Value of {} ({}) should be a number between 1 adn 60, " +
+          "falling back to maximum value ({})",
+        EXECUTION_SCHEDULER_WAIT_KEY, sleepTime, 60);
+      sleepTime = 60L;
+    }
+    return sleepTime*1000;
   }
 
   public Integer getExternalScriptTimeout() {
