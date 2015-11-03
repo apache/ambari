@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "host-metrics-network",
   title: Em.I18n.t('hosts.host.metrics.network'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'host.metrics.network',

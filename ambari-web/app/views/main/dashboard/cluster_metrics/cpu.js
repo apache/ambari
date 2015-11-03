@@ -32,7 +32,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
   ajaxIndex: 'dashboard.cluster_metrics.cpu',
 
   title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
   isTimePagingDisable: false,
   seriesTemplate: {
     path: 'metrics.cpu'

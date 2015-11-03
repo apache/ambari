@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartServiceMetricsFlume_CPUUser = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-cpu-user",
   title: Em.I18n.t('services.service.info.metrics.flume.cpu.user'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
   renderer: 'line',
   
   ajaxIndex: 'service.metrics.flume.cpu_user',

@@ -177,6 +177,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
 
   didInsertElement: function () {
     var self = this;
+    this.setYAxisFormatter();
     this.loadData();
     this.registerGraph();
     this.$().parent().on('mouseleave', function () {
@@ -469,13 +470,35 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   /**
    * Provides the formatter to use in displaying Y axis.
    *
-   * Uses the App.ChartLinearTimeView.DefaultFormatter which shows 10K,
+   * By default, uses the App.ChartLinearTimeView.DefaultFormatter which shows 10K,
    * 300M etc.
    *
    * @type Function
    */
   yAxisFormatter: function (y) {
     return App.ChartLinearTimeView.DefaultFormatter(y);
+  },
+
+  /**
+   * Sets the formatter to use in displaying Y axis depending on graph unit.
+   *
+   * @type Function
+   */
+  setYAxisFormatter: function () {
+    var method,
+      formatterMap = {
+        '%': 'PercentageFormatter',
+        '/s': 'CreateRateFormatter',
+        'B': 'BytesFormatter',
+        'ms': 'TimeElapsedFormatter'
+      },
+      methodName = formatterMap[this.get('displayUnit')];
+    if (methodName) {
+      method = (methodName == 'CreateRateFormatter') ?
+        App.ChartLinearTimeView.CreateRateFormatter('', App.ChartLinearTimeView.DefaultFormatter) :
+        App.ChartLinearTimeView[methodName];
+      this.set('yAxisFormatter', method);
+    }
   },
 
   /**
