@@ -33,12 +33,14 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -591,22 +593,66 @@ public class UpgradeCatalog213Test {
   }
 
   @Test
-  public void testModifyJournalnodeProcessAlertSource() throws Exception {
+  public void testUpdateAlertDefinitions() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
     UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
-    String alertSource = "{\"uri\":\"{{hdfs-site/dfs.journalnode.http-address}}\",\"default_port\":8480," +
-      "\"type\":\"PORT\",\"reporting\":{\"ok\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\"}," +
-      "\"warning\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\",\"value\":1.5}," +
-      "\"critical\":{\"text\":\"Connection failed: {0} to {1}:{2}\",\"value\":5.0}}}";
-    String expected = "{\"reporting\":{\"ok\":{\"text\":\"HTTP {0} response in {2:.3f}s\"}," +
-      "\"warning\":{\"text\":\"HTTP {0} response from {1} in {2:.3f}s ({3})\"}," +
-      "\"critical\":{\"text\":\"Connection failed to {1} ({3})\"}},\"type\":\"WEB\"," +
-      "\"uri\":{\"http\":\"{{hdfs-site/dfs.journalnode.http-address}}\"," +
-      "\"https\":\"{{hdfs-site/dfs.journalnode.https-address}}\"," +
-      "\"kerberos_keytab\":\"{{hdfs-site/dfs.web.authentication.kerberos.keytab}}\"," +
-      "\"kerberos_principal\":\"{{hdfs-site/dfs.web.authentication.kerberos.principal}}\"," +
-      "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
-      "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
-    Assert.assertEquals(expected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(alertSource));
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity mockJournalNodeProcessAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+    final AlertDefinitionEntity mockHostDiskUsageAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final String journalNodeProcessAlertSource = "{\"uri\":\"{{hdfs-site/dfs.journalnode.http-address}}\",\"default_port\":8480," +
+        "\"type\":\"PORT\",\"reporting\":{\"ok\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\"}," +
+        "\"warning\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\",\"value\":1.5}," +
+        "\"critical\":{\"text\":\"Connection failed: {0} to {1}:{2}\",\"value\":5.0}}}";
+    final String journalNodeProcessAlertSourceExpected = "{\"reporting\":{\"ok\":{\"text\":\"HTTP {0} response in {2:.3f}s\"}," +
+        "\"warning\":{\"text\":\"HTTP {0} response from {1} in {2:.3f}s ({3})\"}," +
+        "\"critical\":{\"text\":\"Connection failed to {1} ({3})\"}},\"type\":\"WEB\"," +
+        "\"uri\":{\"http\":\"{{hdfs-site/dfs.journalnode.http-address}}\"," +
+        "\"https\":\"{{hdfs-site/dfs.journalnode.https-address}}\"," +
+        "\"kerberos_keytab\":\"{{hdfs-site/dfs.web.authentication.kerberos.keytab}}\","+
+        "\"kerberos_principal\":\"{{hdfs-site/dfs.web.authentication.kerberos.principal}}\"," +
+        "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
+        "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("journalnode_process"))).andReturn(mockJournalNodeProcessAlertDefinitionEntity).atLeastOnce();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("ambari_agent_disk_usage"))).andReturn(mockHostDiskUsageAlertDefinitionEntity).atLeastOnce();
+
+    expect(mockJournalNodeProcessAlertDefinitionEntity.getSource()).andReturn(journalNodeProcessAlertSource).atLeastOnce();
+    Assert.assertEquals(journalNodeProcessAlertSourceExpected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(journalNodeProcessAlertSource));
+
+    mockHostDiskUsageAlertDefinitionEntity.setDescription(eq("This host-level alert is triggered if the amount of disk space " +
+        "used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL."));
+    expectLastCall().atLeastOnce();
+    mockHostDiskUsageAlertDefinitionEntity.setLabel(eq("Host Disk Usage"));
+    expectLastCall().atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateAlertDefinitions();
+    easyMockSupport.verifyAll();
   }
 
   @Test

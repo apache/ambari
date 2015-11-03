@@ -1230,7 +1230,7 @@
         "id" : 37,
         "ignore_host" : false,
         "interval" : 1,
-        "label" : "Ambari Agent Disk Usage",
+        "label" : "Host Disk Usage",
         "name" : "ambari_agent_disk_usage",
         "scope" : "HOST",
         "service_name" : "AMBARI",

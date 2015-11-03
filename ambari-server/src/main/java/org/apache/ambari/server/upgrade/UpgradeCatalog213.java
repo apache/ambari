@@ -202,9 +202,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   private void executeBlueprintDDLUpdates() throws AmbariException, SQLException {
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_TYPE_COLUMN,
-      String.class, 32, "NONE", false));
+        String.class, 32, "NONE", false));
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_DESCRIPTOR_REF_COLUMN,
-      String.class, null, null, true));
+        String.class, null, null, true));
   }
 
     /**
@@ -628,19 +628,33 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
-      final AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
-        cluster.getClusterId(), "journalnode_process");
+      long clusterID = cluster.getClusterId();
 
-      if (alertDefinitionEntity != null) {
-        String source = alertDefinitionEntity.getSource();
+      final AlertDefinitionEntity journalNodeProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "journalnode_process");
+      final AlertDefinitionEntity hostDiskUsageAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "ambari_agent_disk_usage");
 
-        alertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
-        alertDefinitionEntity.setSourceType(SourceType.WEB);
-        alertDefinitionEntity.setHash(UUID.randomUUID().toString());
+      if (journalNodeProcessAlertDefinitionEntity != null) {
+        String source = journalNodeProcessAlertDefinitionEntity.getSource();
 
-        alertDefinitionDAO.merge(alertDefinitionEntity);
+        journalNodeProcessAlertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
+        journalNodeProcessAlertDefinitionEntity.setSourceType(SourceType.WEB);
+        journalNodeProcessAlertDefinitionEntity.setHash(UUID.randomUUID().toString());
+
+        alertDefinitionDAO.merge(journalNodeProcessAlertDefinitionEntity);
         LOG.info("journalnode_process alert definition was updated.");
       }
+
+      if (hostDiskUsageAlertDefinitionEntity != null) {
+        hostDiskUsageAlertDefinitionEntity.setDescription("This host-level alert is triggered if the amount of disk space " +
+            "used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL.");
+        hostDiskUsageAlertDefinitionEntity.setLabel("Host Disk Usage");
+
+        alertDefinitionDAO.merge(hostDiskUsageAlertDefinitionEntity);
+        LOG.info("ambari_agent_disk_usage alert definition was updated.");
+      }
+
     }
   }
 

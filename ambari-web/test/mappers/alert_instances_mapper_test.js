@@ -35,7 +35,7 @@ describe('App.alertInstanceMapper', function () {
             "host_name": "c6401.ambari.apache.org",
             "id": 2,
             "instance": null,
-            "label": "Ambari Agent Disk Usage",
+            "label": "Host Disk Usage",
             "latest_timestamp": 1415224354954,
             "maintenance_state": "OFF",
             "name": "ambari_agent_disk_usage",
