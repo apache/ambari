@@ -59,6 +59,9 @@ if [ "$EUID" -ne 0 ] ; then
 fi
 
 keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
+# trim spaces
+keysdir=${keysdir// }
+keysdir=${keysdir%% }
 
 change_files_permissions() {
     if [ ! -z "$keysdir" ]; then
