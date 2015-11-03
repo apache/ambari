@@ -65,7 +65,9 @@ angular.module('ambariAdminConsole')
       var url = '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/user.inactivity.timeout.default'
       $http.get(Settings.baseUrl + url)
       .then(function(data) {
-        deferred.resolve(data.data.RootServiceComponents.properties['user.inactivity.timeout.default']);
+        var properties = data.data.RootServiceComponents.properties;
+        var timeout = properties? properties['user.inactivity.timeout.default'] : 0;
+        deferred.resolve(timeout);
       })
       .catch(function(data) {
         deferred.reject(data);
