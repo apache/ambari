@@ -99,6 +99,20 @@ public class ActionMetadata {
     return serviceCheckActions.get(serviceName.toLowerCase());
   }
 
+  /**
+   * Get service name by service check action name
+   * @param serviceCheckAction service check action name like ZOOKEEPER_QUORUM_SERVICE_CHECK
+   * @return service name (capitalized) or null if not found
+   */
+  public String getServiceNameByServiceCheckAction(String serviceCheckAction) {
+    for (Map.Entry<String, String> entry : serviceCheckActions.entrySet()) {
+      if (entry.getValue().equals(serviceCheckAction)) {
+        return entry.getKey().toUpperCase();
+      }
+    }
+    return null;
+  }
+
   public void addServiceCheckAction(String serviceName) {
     String actionName = serviceName + SERVICE_CHECK_POSTFIX;
 
