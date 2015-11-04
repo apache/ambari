@@ -26,10 +26,6 @@ describe('App', function () {
 
   describe('#stackVersionURL', function () {
 
-    App.QuickViewLinks.reopen({
-      loadTags: function () {
-      }
-    });
     App.set('defaultStackVersion', "HDP-1.2.2");
     App.set('currentStackVersion', "HDP-1.2.2");
 
@@ -153,29 +149,21 @@ describe('App', function () {
   describe('#isHaEnabled when HDFS is installed:', function () {
 
     beforeEach(function () {
-      sinon.stub(App.Service, 'find', function () {
-        return [
-          {
-            id: 'HDFS',
-            serviceName: 'HDFS'
-          }
-        ];
-      });
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({'isLoaded': true}));
+      this.mock = sinon.stub(App.HostComponent, 'find');
     });
-
     afterEach(function () {
       App.Service.find.restore();
+      this.mock.restore();
     });
 
     it('if hadoop stack version higher than 2 then isHaEnabled should be true', function () {
+      this.mock.returns([]);
       App.propertyDidChange('isHaEnabled');
       expect(App.get('isHaEnabled')).to.equal(true);
     });
     it('if cluster has SECONDARY_NAMENODE then isHaEnabled should be false', function () {
-      App.store.load(App.HostComponent, {
-        id: 'SECONDARY_NAMENODE',
-        component_name: 'SECONDARY_NAMENODE'
-      });
+      this.mock.returns([Em.Object.create({componentName: 'SECONDARY_NAMENODE'})]);
       App.propertyDidChange('isHaEnabled');
       expect(App.get('isHaEnabled')).to.equal(false);
     });
@@ -184,16 +172,8 @@ describe('App', function () {
   describe('#isHaEnabled when HDFS is not installed:', function () {
 
     beforeEach(function () {
-      sinon.stub(App.Service, 'find', function () {
-        return [
-          {
-            id: 'ZOOKEEPER',
-            serviceName: 'ZOOKEEPER'
-          }
-        ];
-      });
+      sinon.stub(App.Service, 'find').returns(Em.Object.create({'isLoaded': false}));
     });
-
     afterEach(function () {
       App.Service.find.restore();
     });

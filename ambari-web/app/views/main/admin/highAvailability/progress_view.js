@@ -21,31 +21,43 @@ var App = require('app');
 
 App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageViewMixin, {
 
+  /**
+   * @type {string}
+   */
+  notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
+
+  /**
+   * @type {string}
+   */
+  noticeClass: 'alert alert-info',
+
   didInsertElement: function () {
     this.get('controller').loadStep();
   },
 
+  /**
+   * @type {string}
+   */
   headerTitle: function () {
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
-    if (currentStep == 1) {
+    if (currentStep === 1) {
       return  Em.I18n.t('admin.highAvailability.wizard.rollback.header.title');
     } else {
       return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.header.title');
     }
   }.property(),
 
+  /**
+   * @type {string}
+   */
   noticeInProgress: function () {
     var currentStep = App.router.get('highAvailabilityWizardController.currentStep');
-    if (currentStep == 1) {
+    if (currentStep === 1) {
       return  Em.I18n.t('admin.highAvailability.rollback.notice.inProgress');
     } else {
       return  Em.I18n.t('admin.highAvailability.wizard.step' + currentStep + '.notice.inProgress');
     }
   }.property(),
-
-  notice: Em.I18n.t('admin.highAvailability.wizard.progressPage.notice.inProgress'),
-
-  noticeClass: 'alert alert-info',
 
   onStatusChange: function () {
     var status = this.get('controller.status');
@@ -61,6 +73,9 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
     }
   }.observes('controller.status'),
 
+  /**
+   * @type {Em.View}
+   */
   taskView: Em.View.extend({
     icon: '',
     iconColor: '',
@@ -78,8 +93,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
     }.property('content.progress'),
 
     onStatus: function () {
-      var linkClass = !!this.get('content.requestIds.length') ? 'active-link' : 'active-text';
-      this.set('linkClass', linkClass);
+      this.set('linkClass', Boolean(this.get('content.requestIds.length')) ? 'active-link' : 'active-text');
       if (this.get('content.status') === 'IN_PROGRESS') {
         this.set('icon', 'icon-cog');
         this.set('iconColor', 'text-info');
@@ -96,16 +110,10 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
       }
     }.observes('content.status', 'content.hosts.length'),
 
-    showProgressBar: function () {
-      return this.get('content.status') === "IN_PROGRESS";
-    }.property('content.status'),
+    showProgressBar: Em.computed.equal('content.status', 'IN_PROGRESS'),
 
-    hidePercent: function() {
-      return this.get('content.command') === 'testDBConnection';
-    }.property('content.command'),
+    hidePercent: Em.computed.equal('content.command', 'testDBConnection'),
 
-    showDBTooltip: function() {
-      return this.get('content.command') !== 'testDBConnection';
-    }.property('content.command')
+    showDBTooltip: Em.computed.not('hidePercent')
   })
 });
