@@ -185,6 +185,27 @@
       </execute-stage>
     </group>
 
+    <!--
+    This is the point of no return since will delete HDP 2.1 bits.
+    -->
+    <group xsi:type="cluster" name="REMOVE_HDP_21" title="Remove HDP 2.1">
+      <direction>UPGRADE</direction>
+      <skippable>false</skippable>
+
+      <execute-stage title="Confirm removing HDP 2.1">
+        <task xsi:type="manual">
+          <message>Please confirm you want to proceed, which will delete HDP 2.1. This is because HDP 2.1 did not use versioned packages and cannot coexist with HDP 2.3</message>
+        </task>
+      </execute-stage>
+
+      <execute-stage title="Remove HDP 2.1">
+        <task xsi:type="execute">
+          <script>scripts/remove_bits.py</script>
+          <function>remove_hdp_21</function>
+        </task>
+      </execute-stage>
+    </group>
+
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
     <group xsi:type="update-stack" name="UPDATE_DESIRED_STACK_ID" title="Update Target Stack">
       <execute-stage title="Update Target Stack" service="" component="">
@@ -302,8 +323,8 @@
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
       </execute-stage>
-
     </group>
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
