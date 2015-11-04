@@ -48,13 +48,16 @@ App.FilesRoute = Em.Route.extend({
     },
     willTransition:function (argument) {
       var hasModal = this.router._lookupActiveView('modal.chmod'),
-          hasAlert = this.router._lookupActiveView('files.alert');
+          hasAlert = this.router._lookupActiveView('files.alert'),
+          hasPreviewModal = this.router._lookupActiveView('modal.preview');
 
       Em.run.next(function(){
         if (hasAlert) this.send('removeAlert');
         if (hasModal) this.send('removeChmodModal');
+        if (hasPreviewModal) this.send('removePreviewModal');
       }.bind(this));
     },
+
     showChmodModal:function (content) {
       this.controllerFor('chmodModal').set('content',content);
       this.render('modal.chmod',{
@@ -63,7 +66,25 @@ App.FilesRoute = Em.Route.extend({
         controller:'chmodModal'
       });
     },
+
+    showPreviewModal :function (content) {
+      this.controllerFor('previewModal').set('content',content);
+      this.controllerFor('previewModal').set('startIndex',0);
+
+      this.render('modal.preview',{
+        into:'files',
+        outlet:'modal',
+        controller:'previewModal'
+      });
+    },
+
     removeChmodModal:function () {
+      this.disconnectOutlet({
+        outlet: 'modal',
+        parentView: 'files'
+      });
+    },
+    removePreviewModal:function () {
       this.disconnectOutlet({
         outlet: 'modal',
         parentView: 'files'

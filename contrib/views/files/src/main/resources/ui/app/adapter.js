@@ -296,7 +296,7 @@ App.ApplicationStore = DS.Store.extend({
         option = option || "browse";
 
     if (option == 'browse') {
-      query = { "path": files.get('firstObject.path'), "download": download };
+      query = { "path": (files.get('firstObject.path') || files.get('id')), "download": download };
       resolver.resolve(adapter.downloadUrl('browse',query));
       return resolver.promise;
     }
