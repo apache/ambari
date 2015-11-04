@@ -28,16 +28,16 @@ App.PigAlertView = Ember.View.extend({
       dismiss:'alert',
       templateName: 'partials/alert-content',
       didInsertElement:function () {
-        this.$().bind('closed.bs.alert', function () {
-          return this.clearAlert();
-        }.bind(this));
+        this.$().bind('closed.bs.alert', Ember.run.bind(this, 'clearAlert'));
 
-        if (this.get('content.status')!='error') {
-          Ember.run.debounce(this, this.close, 3000);
+        if (this.get('content.status') != 'error') {
+          Ember.run.debounce(this, 'close', 3000);
         }
       },
       close : function () {
-        return this.$().alert('close');
+        if (Em.isArray(this.$())) {
+          this.$().alert('close');
+        }
       },
       clearAlert:function () {
         return this.get('controller').send('removeAlertObject',this.get('content'));

@@ -18,15 +18,28 @@
 
 var App = require('app');
 
-App.PigAlertController = Ember.ArrayController.extend({
-  needs: ['pigErrorLog'],
-  actions:{
-    removeAlertObject:function (alert) {
-      this.get('content').removeObject(alert);
-    },
-    showErrorLog:function (context) {
-      this.set('controllers.pigErrorLog.errorLog',context.trace);
-      this.transitionToRoute('pig.errorLog');
-    }
-  }
+
+App.HighlightErrorsComponent = Em.Component.extend({
+  text:'',
+  hasErrors:false,
+  lines: function () {
+    var text = this.get('text')||'',
+        splitted = text.split('\n'),
+        lines = [],
+        foundErrors = false;
+
+    splitted.forEach(function (line) {
+      if (line.match(' ERROR ')) {
+        foundErrors = true;
+        lines.push({error:'error',content:line});
+      } else {
+        lines.push({error:'',content:line});
+      };
+    });
+
+    this.set('hasErrors',foundErrors);
+
+    return lines;
+  }.property('text'),
+  layout:Em.Handlebars.compile('{{#each line in lines}} <pre class="{{unbound line.error}}" > {{line.content}} </pre>{{/each}}')
 });
