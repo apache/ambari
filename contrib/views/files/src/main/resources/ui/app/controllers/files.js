@@ -87,10 +87,12 @@ App.FilesController = Ember.ArrayController.extend({
     },
     download:function (option) {
       var files = this.get('selectedFiles').filterBy('readAccess',true);
-      this.store.linkFor(files,option).then(function (link) {
+      var content = this.get('content');
+      this.store.linkFor(content, option).then(function (link) {
         window.location.href = link;
       });
     },
+
     mkdir:function (newDirName) {
       this.store.mkdir(newDirName)
         .then(bind(this,this.mkdirSuccessCalback),bind(this,this.throwAlert));
@@ -117,6 +119,12 @@ App.FilesController = Ember.ArrayController.extend({
       this.store
         .chmod(file)
         .then(null,Em.run.bind(this,this.chmodErrorCallback,file));
+    },
+    confirmPreview:function (file) {
+      //this.send('download');
+      this.store.linkFor(file, "browse").then(function (link) {
+        window.location.href = link;
+      });
     },
     clearSearchField:function () {
       this.set('searchString','');

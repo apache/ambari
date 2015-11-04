@@ -12,7 +12,8 @@
     "moment": "~2.5.1",
     "ember-i18n": "~1.6.0",
     "bootstrap-contextmenu": "~0.2.0",
-    "font-awesome": "~4.0.3"
+    "font-awesome": "~4.0.3",
+    "ivy-codemirror": "~1.0.0"
   },
   "overrides": {
     "ember-uploader": {

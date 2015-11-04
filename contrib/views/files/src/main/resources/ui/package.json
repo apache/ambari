@@ -30,7 +30,8 @@
     "phantomjs": "^1.9.2",
     "karma": "*",
     "karma-qunit": "*",
-    "karma-phantomjs-launcher": "~0.1.2"
+    "karma-phantomjs-launcher": "~0.1.2",
+    "ivy-codemirror": "^1.2.0"
   },
   "ignore": [
     "**/.*",

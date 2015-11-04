@@ -21,12 +21,22 @@ var App = require('app');
 App.FileController = Ember.ObjectController.extend({
   needs:['files'],
   actions:{
+    confirmPreview:function (option) {
+      if (this.get('content.readAccess')) {
+        this.store.linkFor([this.get('content')],option).then(function (link) {
+          window.location.href = link;
+        },Em.run.bind(this,this.sendAlert));
+      }
+    },
     download:function (option) {
       if (this.get('content.readAccess')) {
         this.store.linkFor([this.get('content')],option).then(function (link) {
           window.location.href = link;
         },Em.run.bind(this,this.sendAlert));
       }
+    },
+    preview:function (option) {
+      this.send('showPreviewModal',this.get('content'));
     },
     showChmod:function () {
       this.send('showChmodModal',this.get('content'));
@@ -55,7 +65,8 @@ App.FileController = Ember.ObjectController.extend({
       if (this.get('content.isDirectory')) {
         return this.transitionToRoute('files',{queryParams: {path: this.get('content.id')}});
       } else{
-        return this.send('download');
+        //return this.send('download');
+        return this.send('preview');
       }
     },
     deleteFile:function (deleteForever) {

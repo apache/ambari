@@ -31,6 +31,7 @@ require('templates/index');
 require('templates/files');
 require('templates/error');
 require('templates/modal/chmod');
+require('templates/modal/preview');
 require('templates/util/errorRow');
 require('templates/util/fileRow');
 
@@ -56,6 +57,7 @@ require('controllers/file');
 require('controllers/error');
 require('controllers/filesAlert');
 require('controllers/chmodModal');
+require('controllers/previewModal');
 
 /////////////////////////////////
 // Components
@@ -81,6 +83,7 @@ require('views/file');
 require('views/files');
 require('views/filesAlert');
 require('views/modalChmod');
+require('views/modalPreview');
 
 /////////////////////////////////
 // Routes
