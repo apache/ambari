@@ -281,6 +281,7 @@ Em.I18n.translations = {
   'common.timestamp': 'Timestamp',
   'common.timezone': 'Timezone',
   'common.loading.eclipses': 'Loading...',
+  'common.optional': 'Optional',
 
   'common.running': 'Running',
   'common.stopped': 'Stopped',

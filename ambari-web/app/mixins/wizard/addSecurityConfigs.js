@@ -29,6 +29,8 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
   secureProperties: require('data/HDP2/secure_properties').configProperties,
 
+  kerberosDescriptorProperties: require('data/HDP2/kerberos_descriptor_properties'),
+
   secureMapping: require('data/HDP2/secure_mapping'),
 
   serviceUsersBinding: 'App.router.mainAdminSecurityController.serviceUsers',
@@ -477,6 +479,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
       var configObject = {};
       var prop = identity[item];
       var itemValue = prop[{keytab: 'file', principal: 'value'}[item]];
+      var predefinedProperty;
       // skip inherited property without `configuration` and `keytab` or `file` values
       if (!prop.configuration && !itemValue) return;
       // inherited property with value should not observe value from reference
@@ -488,7 +491,9 @@ App.AddSecurityConfigs = Em.Mixin.create({
       configObject.filename = prop.configuration ? prop.configuration.split('/')[0] : 'cluster-env';
       configObject.name = prop.configuration ? prop.configuration.split('/')[1] : name + '_' + item;
 
+      predefinedProperty = self.get('kerberosDescriptorProperties').findProperty('name', configObject.name);
       configObject.displayName = self._getDisplayNameForConfig(configObject.name, configObject.filename);
+      configObject.index = predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.index : Infinity;
       result.push(configObject);
     });
     return result;
@@ -525,6 +530,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     var configs = [];
 
     for (var propertyName in kerberosProperties) {
+      var predefinedProperty = this.get('kerberosDescriptorProperties').findProperty('name', propertyName);
       var propertyObject = {
         name: propertyName,
         value: kerberosProperties[propertyName],
@@ -536,7 +542,9 @@ App.AddSecurityConfigs = Em.Mixin.create({
         isOverridable: false,
         isEditable: propertyName != 'realm',
         isRequired: propertyName != 'additional_realms',
-        isSecureConfig: true
+        isSecureConfig: true,
+        placeholderText: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.placeholderText : '',
+        index: predefinedProperty && !Em.isNone(predefinedProperty.index) ? predefinedProperty.index : Infinity
       };
       configs.push(App.ServiceConfigProperty.create(propertyObject));
     }
@@ -555,7 +563,6 @@ App.AddSecurityConfigs = Em.Mixin.create({
   processConfigReferences: function (kerberosDescriptor, configs) {
     var identities = kerberosDescriptor.identities;
     identities = identities.concat(kerberosDescriptor.services.map(function (service) {
-      var _identities = service.identities || [];
       if (service.components && !!service.components.length) {
         identities = identities.concat(service.components.mapProperty('identities').reduce(function (p, c) {
           return p.concat(c);

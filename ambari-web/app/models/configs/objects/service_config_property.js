@@ -92,6 +92,20 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   rightSideLabel: false,
 
+  /**
+   * Text to be shown as placeholder
+   * By default savedValue is shown as placeholder
+   * @type {String}
+   */
+  placeholderText: '',
+
+  /**
+   * Placeholder used for configs with input type text
+   */
+  placeholder: function () {
+    return this.get('placeholderText') || this.get('savedValue');
+  }.property('savedValue', 'placeholderText'),
+
   retypedPassword: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
@@ -102,7 +116,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   isEditable: true, // by default a config property is editable
   isNotEditable: Ember.computed.not('isEditable'),
   hideFinalIcon: function () {
-    return (!this.get('isFinal'))&& this.get('isNotEditable');
+    return (!this.get('isFinal')) && this.get('isNotEditable');
   }.property('isFinal', 'isNotEditable'),
   isVisible: true,
   isMock: false, // mock config created created only to displaying
