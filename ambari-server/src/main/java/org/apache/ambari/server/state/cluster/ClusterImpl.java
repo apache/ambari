@@ -1335,8 +1335,14 @@ public class ClusterImpl implements Cluster {
               hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, version);
 
       Set<String> hostsWithState = new HashSet<String>();
+      Set<String> hostsInMaintenanceState = new HashSet<>();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         String hostname = hostVersionEntity.getHostEntity().getHostName();
+        Host host = hosts.get(hostname);
+        if(host != null && host.getMaintenanceState(getClusterId()) == MaintenanceState.ON) {
+          hostsInMaintenanceState.add(hostname);
+          continue;
+        }
         hostsWithState.add(hostname);
         RepositoryVersionState hostState = hostVersionEntity.getState();
 
@@ -1351,6 +1357,7 @@ public class ClusterImpl implements Cluster {
 
       hostsWithoutHostVersion.addAll(hosts.keySet());
       hostsWithoutHostVersion.removeAll(hostsWithState);
+      hostsWithoutHostVersion.removeAll(hostsInMaintenanceState);
 
       // Ensure that all of the hosts without a Host Version only have
       // Components that do not advertise a version.

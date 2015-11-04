@@ -29,7 +29,8 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -41,7 +42,7 @@ import org.apache.commons.lang.StringUtils;
 import com.google.inject.Singleton;
 
 /**
- * Checks that services are up.
+ * Checks that service components are installed.
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f, required = true)
@@ -58,7 +59,6 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    List<String> errorMessages = new ArrayList<String>();
     Set<String> failedServiceNames = new HashSet<String>();
 
     StackId stackId = cluster.getCurrentStackVersion();
@@ -68,20 +68,25 @@ public class ComponentsInstallationCheck extends AbstractCheckDescriptor {
 
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();
-      Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+      // Skip service if it is in maintenance mode
+      if (service.getMaintenanceState() != MaintenanceState.ON) {
+        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+        for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
+          ServiceComponent serviceComponent = component.getValue();
+          if (serviceComponent.isVersionAdvertised()) {
+            List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
+                service.getName(), serviceComponent.getName());
 
-      for (Map.Entry<String, ServiceComponent> component : serviceComponents.entrySet()) {
-        ServiceComponent serviceComponent = component.getValue();
-
-        if (serviceComponent.isVersionAdvertised()) {
-          List<HostComponentSummary> hostComponentSummaries = HostComponentSummary.getHostComponentSummaries(
-              service.getName(), serviceComponent.getName());
-
-          for(HostComponentSummary hcs : hostComponentSummaries) {
-            if (State.INSTALL_FAILED == hcs.getCurrentState()) {
-              failedServiceNames.add(service.getName());
-              installFailedHostComponents.add(MessageFormat.format(
-                  "[{0}:{1} on {2}]", service.getName(), serviceComponent.getName(), hcs.getHostName()));
+            for (HostComponentSummary hcs : hostComponentSummaries) {
+              // Skip host if it is in maintenance mode
+              Host host = clustersProvider.get().getHost(hcs.getHostName());
+              if (host.getMaintenanceState(cluster.getClusterId()) != MaintenanceState.ON) {
+                if (hcs.getCurrentState() == State.INSTALL_FAILED) {
+                  failedServiceNames.add(service.getName());
+                  installFailedHostComponents.add(MessageFormat.format(
+                      "[{0}:{1} on {2}]", service.getName(), serviceComponent.getName(), hcs.getHostName()));
+                }
+              }
             }
           }
         }
