@@ -75,9 +75,54 @@ App.ManageCredentialsFormView = Em.View.extend({
    */
   actionStatus: false,
 
-  isSubmitDisabled: function() {
-    return Em.isEmpty(this.get('principal')) || Em.isEmpty(this.get('password'));
-  }.property('principal', 'password'),
+  /**
+   * Validation message error regarding principal name.
+   * When value is <code>false</code> error is hidden.
+   *
+   * @type {boolean|string}
+   */
+  passwordError: false,
+
+  /**
+   * Validation message error regarding principal name field.
+   * When value is <code>false</code> error is hidden.
+   *
+   * @type {boolean|string}
+   */
+  principalError: false,
+
+  isSubmitDisabled: true,
+
+  principalNameObserver: function() {
+    this.set('isPrincipalDirty', true);
+    if (Em.isEmpty(this.get('principal'))) {
+      this.set('principalError', Em.I18n.t('admin.users.editError.requiredField'));
+    } else if (/\s+/.test(this.get('principal'))) {
+      this.set('principalError', Em.I18n.t('host.spacesValidation'));
+    } else {
+      this.set('principalError', false);
+    }
+    this.toggleSubmitState();
+  }.observes('principal'),
+
+  passwordObserver: function() {
+    this.set('isPasswordDirty', true);
+    if (Em.isEmpty(this.get('password'))) {
+      this.set('passwordError', Em.I18n.t('admin.users.editError.requiredField'));
+    } else {
+      this.set('passwordError', false);
+    }
+    this.toggleSubmitState();
+  }.observes('password'),
+
+  /**
+   * Toggle submit disable state only when principal and password fields were modified.
+   */
+  toggleSubmitState: function() {
+    if (this.get('isPrincipalDirty') && this.get('isPasswordDirty')) {
+      this.set('isSubmitDisabled', !!this.get('principalError') || !!this.get('passwordError'));
+    }
+  },
 
   /**
    * Returns storage type used to save credentials e.g. <b>persistent</b>, <b>temporary</b> (default)

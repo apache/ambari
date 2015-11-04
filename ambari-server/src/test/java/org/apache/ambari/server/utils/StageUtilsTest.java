@@ -17,37 +17,13 @@
  */
 package org.apache.ambari.server.utils;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-
-import javax.persistence.EntityManager;
-import javax.xml.bind.JAXBException;
-
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Range;
+import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -60,6 +36,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -80,15 +57,35 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.google.common.collect.ContiguousSet;
-import com.google.common.collect.DiscreteDomain;
-import com.google.common.collect.Range;
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
+import javax.persistence.EntityManager;
+import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.getCurrentArguments;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class StageUtilsTest extends EasyMockSupport {
   private static final String STACK_ID = "HDP-1.3.1";
@@ -108,6 +105,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(HostFactory.class).toInstance(createNiceMock(HostFactory.class));
         bind(SecurityHelper.class).toInstance(createNiceMock(SecurityHelper.class));
         bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(CredentialStoreService.class).toInstance(createNiceMock(CredentialStoreService.class));
         bind(TopologyManager.class).toInstance(createNiceMock(TopologyManager.class));
         bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
         bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));

@@ -498,6 +498,8 @@ public class CalculatedStatusTest {
     assertEquals(80d, calc.getPercent(), 0.1d);
   }
 
+
+
   /**
    * Tests that a SKIPPED_FAILED status means the stage has completed.
    *
@@ -509,7 +511,7 @@ public class CalculatedStatusTest {
 
     CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, false);
 
-    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+    assertEquals(HostRoleStatus.SKIPPED_FAILED, status.getStatus());
   }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {

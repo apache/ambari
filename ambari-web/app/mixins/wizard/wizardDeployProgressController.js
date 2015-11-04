@@ -68,7 +68,6 @@ App.wizardDeployProgressControllerMixin = Em.Mixin.create({
    * @method ajaxQueueFinished
    */
   ajaxQueueFinished: function () {
-    console.log('everything is loaded');
     App.router.send('next');
   },
 

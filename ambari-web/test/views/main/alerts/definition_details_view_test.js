@@ -24,7 +24,9 @@ describe('App.MainAlertDefinitionDetailsView', function () {
 
   beforeEach(function () {
 
-    view = App.MainAlertDefinitionDetailsView.create();
+    view = App.MainAlertDefinitionDetailsView.create({
+      initFilters: Em.K
+    });
 
     instanceTableRow = view.get('instanceTableRow').create();
 

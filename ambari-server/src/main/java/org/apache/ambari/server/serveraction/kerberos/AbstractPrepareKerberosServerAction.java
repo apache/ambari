@@ -41,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractPrepareKerberosServerAction extends KerberosServerAction {
   private final static Logger LOG = LoggerFactory.getLogger(AbstractPrepareKerberosServerAction.class);
@@ -171,6 +172,18 @@ public abstract class AbstractPrepareKerberosServerAction extends KerberosServer
 
     if(serializedValue != null) {
       Type type = new TypeToken<Map<String, ? extends Collection<String>>>() {}.getType();
+      return StageUtils.getGson().fromJson(serializedValue, type);
+    }
+    else {
+      return null;
+    }
+  }
+
+  protected Set<String> getHostFilter() {
+    String serializedValue = getCommandParameterValue(HOST_FILTER);
+
+    if(serializedValue != null) {
+      Type type = new TypeToken<Set<String>>() {}.getType();
       return StageUtils.getGson().fromJson(serializedValue, type);
     }
     else {

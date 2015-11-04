@@ -608,4 +608,9 @@ public interface Cluster {
    *          {@code null}).
    */
   void removeConfigurations(StackId stackId);
+
+  /**
+   * Clear cluster caches and re-read data from database
+   */
+  void invalidateData();
 }

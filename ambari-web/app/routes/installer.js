@@ -23,7 +23,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   App: require('app'),
 
   enter: function (router) {
-    console.log('in /installer:enter');
     var self = this;
 
     App.clusterStatus.set('wizardControllerName', App.router.get('installerController.name'));
@@ -43,8 +42,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             App.router.get('mainViewsController').loadAmbariViews();
             if (App.isAccessible('ADMIN')) {
               router.get('mainController').stopPolling();
-              console.log('In installer with successful authenticated');
-              console.log('current step=' + router.get('installerController.currentStep'));
               Em.run.next(function () {
                 App.clusterStatus.updateFromServer().complete(function () {
                   var currentClusterStatus = App.clusterStatus.get('value');
@@ -68,8 +65,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           });
         });
       } else {
-        console.log('In installer but its not authenticated');
-        console.log('value of authenticated is: ' + router.getAuthenticated());
         Ember.run.next(function () {
           router.transitionTo('login');
         });
@@ -78,8 +73,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   },
 
   routePath: function (router, event) {
-    console.log("INFO: value of router is: " + router);
-    console.log("INFO: value of event is: " + event);
     router.setNavigationFlow(event);
     if (!router.isFwdNavigation) {
       this._super(router, event);
@@ -100,7 +93,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step0',
     connectOutlets: function (router) {
       console.time('step0 connectOutlets');
-      console.log('in installer.step0:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('0');
       controller.loadAllPriorSteps().done(function () {
@@ -124,7 +116,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step1',
     connectOutlets: function (router) {
       console.time('step1 connectOutlets');
-      console.log('in installer.step1:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('1');
       controller.loadAllPriorSteps().done(function () {
@@ -178,7 +169,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step3',
     connectOutlets: function (router) {
       console.time('step3 connectOutlets');
-      console.log('in installer.step3:connectOutlets');
       var controller = router.get('installerController');
       controller.setCurrentStep('3');
       controller.loadAllPriorSteps().done(function () {
@@ -217,7 +207,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
      * @param context Array of hosts to delete
      */
     removeHosts: function (router, context) {
-      console.log('in installer.step2.removeHosts:hosts to delete ', context);
       var controller = router.get('installerController');
       controller.removeHosts(context);
     }
@@ -250,6 +239,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         recommendations: undefined,
         masterComponentHosts: undefined
       });
+      controller.set('stackConfigsLoaded', false);
       router.transitionTo('step5');
       console.timeEnd('step4 next');
     }
@@ -336,7 +326,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step7',
     enter: function (router) {
       console.time('step7 enter');
-      console.log('in /wizardStep7Controller:enter');
       var controller = router.get('installerController');
       controller.setCurrentStep('7');
       console.timeEnd('step7 enter');
@@ -427,7 +416,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step9',
     connectOutlets: function (router, context) {
       console.time('step9 connectOutlets');
-      console.log('in installer.step9:connectOutlets');
       var controller = router.get('installerController'),
           wizardStep9Controller = router.get('wizardStep9Controller');
       controller.loadAllPriorSteps().done(function () {
@@ -489,7 +477,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   step10: Em.Route.extend({
     route: '/step10',
     connectOutlets: function (router, context) {
-      console.log('in installer.step10:connectOutlets');
       var controller = router.get('installerController');
       controller.loadAllPriorSteps().done(function () {
         if (!App.get('testMode')) {

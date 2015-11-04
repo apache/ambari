@@ -34,8 +34,6 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
               services.push(service);
             }
           }
-        } else {
-          console.warn("service not found for " + hc.get('componentName'));
         }
       });
     }

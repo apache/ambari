@@ -26,6 +26,19 @@ describe('App.MainAlertDefinitionsView', function () {
 
   beforeEach(function () {
     view = App.MainAlertDefinitionsView.create({});
+    sinon.stub(App.db, 'setFilterConditions', Em.K);
+    sinon.stub(App.db, 'getFilterConditions', Em.K);
+    sinon.stub(App.db, 'getDisplayLength', Em.K);
+    sinon.stub(App.db, 'setStartIndex', Em.K);
+    sinon.stub(view, 'initFilters', Em.K);
+  });
+
+  afterEach(function () {
+    App.db.setFilterConditions.restore();
+    App.db.getFilterConditions.restore();
+    App.db.getDisplayLength.restore();
+    App.db.setStartIndex.restore();
+    view.initFilters.restore();
   });
 
   describe('#serviceFilterView', function () {

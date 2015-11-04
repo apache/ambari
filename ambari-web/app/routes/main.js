@@ -23,7 +23,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   route: '/main',
   enter: function (router) {
     App.db.updateStorage();
-    console.log('in /main:enter');
     var self = this;
     var location = router.location.location.hash;
     router.getAuthenticated().done(function (loggedIn) {

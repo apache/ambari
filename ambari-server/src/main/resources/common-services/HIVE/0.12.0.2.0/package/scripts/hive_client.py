@@ -50,7 +50,9 @@ class HiveClientDefault(HiveClient):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-client"}
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Hive client Stack Upgrade pre-restart")
+
     import params
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:

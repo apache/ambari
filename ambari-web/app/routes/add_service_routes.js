@@ -23,7 +23,6 @@ module.exports = App.WizardRoute.extend({
   route: '/service/add',
 
   enter: function (router) {
-    console.log('in /service/add:enter');
     if (App.isAccessible('ADMIN')) {
       // `getSecurityStatus` call is required to retrieve information related to kerberos type: Manual or automated kerberos
       router.get('mainController').isLoading.call(router.get('clusterController'),'isClusterNameLoaded').done(function () {
@@ -106,15 +105,9 @@ module.exports = App.WizardRoute.extend({
 
   },
 
-  /*connectOutlets: function (router) {
-   console.log('in /service/add:connectOutlets');
-   router.get('mainController').connectOutlet('addService');
-   },*/
-
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
-      console.log('in addService.step1:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
@@ -136,6 +129,7 @@ module.exports = App.WizardRoute.extend({
       var wizardStep5Controller = router.get('wizardStep5Controller');
       wizardStep5Controller.clearRecommendations(); // Force reload recommendation between steps 1 and 2
       addServiceController.setDBProperty('recommendations', undefined);
+      addServiceController.set('stackConfigsLoaded', false);
       router.transitionTo('step2');
     }
   }),
@@ -143,7 +137,6 @@ module.exports = App.WizardRoute.extend({
   step2: Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router) {
-      console.log('in addService.step2:connectOutlets');
       var controller = router.get('addServiceController');
       var wizardStep2Controller = router.get('wizardStep5Controller');
       controller.setCurrentStep('2');
@@ -172,7 +165,6 @@ module.exports = App.WizardRoute.extend({
   step3: Em.Route.extend({
     route: '/step3',
     connectOutlets: function (router) {
-      console.log('in addService.step3:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('3');
       router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
@@ -212,7 +204,6 @@ module.exports = App.WizardRoute.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router) {
-      console.log('in addService.step4:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
@@ -302,7 +293,6 @@ module.exports = App.WizardRoute.extend({
   step6: Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
-      console.log('in addService.step5:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
@@ -353,7 +343,6 @@ module.exports = App.WizardRoute.extend({
   step7: Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
-      console.log('in addService.step6:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('7');
       if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
@@ -402,7 +391,6 @@ module.exports = App.WizardRoute.extend({
   step8: Em.Route.extend({
     route: '/step8',
     connectOutlets: function (router, context) {
-      console.log('in addService.step7:connectOutlets');
       var controller = router.get('addServiceController');
       controller.setCurrentStep('8');
       controller.setLowerStepsDisable(8);

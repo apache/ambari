@@ -332,8 +332,6 @@ module.exports = {
         config.get('configs').forEach(function(property){
           if (configurations[property.get('filename').replace('.xml','')]){
             configurations[property.get('filename').replace('.xml','')]['properties'][property.get('name')] = property.get('value');
-          } else {
-            console.warn(property.get('name') + " from " + property.get('filename') + " can't be validate");
           }
         });
       }

@@ -437,6 +437,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.requestschedulebatchrequest TO :username;
 CREATE TABLE ambari.blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
   stack_id BIGINT NOT NULL,
+  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  security_descriptor_reference VARCHAR(255),
   PRIMARY KEY(blueprint_name)
 );
 

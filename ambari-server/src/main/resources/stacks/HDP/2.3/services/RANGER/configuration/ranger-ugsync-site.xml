@@ -66,7 +66,7 @@
     <name>ranger.usersync.enabled</name>
     <display-name>Enable User Sync</display-name>
     <value>false</value>
-    <description>Usersync enabled?</description>
+    <description>Should users and groups be synchronized to Ranger Database? Required to setup Ranger policies</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <type>value-list</type>
@@ -120,12 +120,14 @@
     <name>ranger.usersync.unix.group.file</name>
     <display-name>Group File</display-name>
     <value>/etc/group</value>
+    <description>Location of the groups file on the linux server</description>
   </property>
 
   <property>
     <name>ranger.usersync.unix.password.file</name>
     <display-name>Password File</display-name>
     <value>/etc/passwd</value>
+    <description>Location of the password file on the linux server</description>
   </property>
 
   <property>
@@ -165,28 +167,28 @@
     <name>ranger.usersync.filesource.file</name>
     <display-name>File Name</display-name>
     <value>/tmp/usergroup.txt</value>
-    <description>/tmp/usergroup.json or /tmp/usergroup.csv or /tmp/usergroup.txt</description>
+    <description>Path to the file with the users and groups information. Example: /tmp/usergroup.json or /tmp/usergroup.csv or /tmp/usergroup.txt</description>
   </property>
 
   <property>
     <name>ranger.usersync.filesource.text.delimiter</name>
-    <display-name>Delimeter</display-name>
+    <display-name>Delimiter</display-name>
     <value>,</value>
     <description>Delimiter used in file, if File based user sync is used</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.url</name>
-    <display-name>LDAP (AD) URL</display-name>
+    <display-name>LDAP/AD URL</display-name>
     <value></value>
-    <description>LDAP server URL. Example value = ldap://localhost:389</description>
+    <description>LDAP server URL. Example: value = ldap://localhost:389 or ldaps//localhost:636</description>
   </property>
 
   <property>
     <name>ranger.usersync.ldap.binddn</name>
     <display-name>​Bind User</display-name>
     <value></value>
-    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. Example: cn=admin,dc=xasecure,dc=net</description>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. This user is used for searching the users. This could be read-only LDAP user. Example: cn=admin,dc=example,dc=com</description>
   </property>
 
   <property>
@@ -194,7 +196,7 @@
     <display-name>Bind User Password</display-name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <description>Password for the account that can search for users.</description>
+    <description>Password for the LDAP bind user used for searching users.</description>
   </property>
 
   <property>
@@ -244,7 +246,7 @@
     <name>ranger.usersync.ldap.user.objectclass</name>
     <display-name>User Object Class​</display-name>
     <value>person</value>
-    <description>LDAP User Object Class</description>
+    <description>LDAP User Object Class. Example: person or user</description>
   </property>
 
   <property>
@@ -264,7 +266,7 @@
     <name>ranger.usersync.ldap.user.nameattribute</name>
     <display-name>Username Attribute</display-name>
     <value></value>
-    <description>LDAP user name attribute</description>
+    <description>LDAP user name attribute. Example: sAMAccountName in AD, uid or cn in OpenLDAP</description>
   </property>
 
   <property>
@@ -280,7 +282,7 @@
     <name>ranger.usersync.ldap.user.groupnameattribute</name>
     <display-name>User Group Name Attribute</display-name>
     <value>memberof, ismemberof</value>
-    <description>LDAP user group name attribute</description>
+    <description>LDAP user group name attribute. Generally it is the same as username attribute. Example: sAMAccountName in AD, uid or cn in OpenLDAP</description>
   </property>
 
   <property>
@@ -331,7 +333,7 @@
     <name>ranger.usersync.group.usermapsyncenabled</name>
     <value>false</value>
     <display-name>Group User Map Sync</display-name>
-    <description>User map sync enabled?</description>
+    <description>Sync specific groups for users?</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
       <type>value-list</type>
@@ -376,7 +378,7 @@
     <name>ranger.usersync.group.objectclass</name>
     <display-name>Group Object Class</display-name>
     <value></value>
-    <description></description>
+    <description>LDAP Group object class. Example: group</description>
   </property>
 
   <property>
@@ -393,14 +395,14 @@
     <name>ranger.usersync.group.nameattribute</name>
     <display-name>Group Name Attribute</display-name>
     <value></value>
-    <description>LDAP group name attribute</description>
+    <description>LDAP group name attribute. Example: cn</description>
   </property>
 
   <property>
     <name>ranger.usersync.group.memberattributename</name>
     <display-name>Group Member Attribute</display-name>
     <value></value>
-    <description>LDAP group member attribute name</description>
+    <description>LDAP group member attribute name. Example: member</description>
   </property>
 
   <property>

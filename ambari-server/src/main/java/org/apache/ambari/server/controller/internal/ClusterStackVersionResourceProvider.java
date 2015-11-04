@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -84,6 +85,7 @@ import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for cluster stack versions resources.
@@ -101,6 +103,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   protected static final String CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID = PropertyHelper.getPropertyId("ClusterStackVersions", "host_states");
   protected static final String CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID  = PropertyHelper.getPropertyId("ClusterStackVersions", "repository_version");
   protected static final String CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR  = PropertyHelper.getPropertyId("ClusterStackVersions", "success_factor");
+  protected static final String CLUSTER_STACK_VERSION_FORCE = "ClusterStackVersions/force";
 
   protected static final String INSTALL_PACKAGES_ACTION = "install_packages";
   protected static final String INSTALL_PACKAGES_FULL_NAME = "Install version";
@@ -140,6 +143,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       add(CLUSTER_STACK_VERSION_STATE_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID);
       add(CLUSTER_STACK_VERSION_STAGE_SUCCESS_FACTOR);
+      add(CLUSTER_STACK_VERSION_FORCE);
     }
   };
 
@@ -182,6 +186,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static Injector injector;
+
+  @Inject
+  private static HostComponentStateDAO hostComponentStateDAO;
 
   /**
    * We have to include such a hack here, because if we
@@ -375,10 +382,10 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       // Create next stage
       String stageName;
       if (batchCount > 1) {
-        stageName = INSTALL_PACKAGES_FULL_NAME;
-      } else {
         stageName = String.format(INSTALL_PACKAGES_FULL_NAME + ". Batch %d of %d", batchId,
             batchCount);
+      } else {
+        stageName = INSTALL_PACKAGES_FULL_NAME;
       }
 
       Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
@@ -420,7 +427,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         } else {
           directTransitions.add(host);
         }
-
       }
     }
 
@@ -569,8 +575,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
         componentInfo = ami.getComponent(stackId.getStackName(),
                 stackId.getStackVersion(), component.getServiceName(), component.getServiceComponentName());
       } catch (AmbariException e) {
-        throw new SystemException(String.format("Exception while accessing component %s of service %s for stack %s",
-                component.getServiceName(), component.getServiceComponentName(), stackId));
+        // It is possible that the component has been removed from the new stack
+        // (example: STORM_REST_API has been removed from HDP-2.2)
+        LOG.warn(String.format("Exception while accessing component %s of service %s for stack %s",
+            component.getServiceComponentName(), component.getServiceName(), stackId));
+        continue;
       }
       if (componentInfo.isVersionAdvertised()) {
         return true;
@@ -661,54 +670,72 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       Cluster cluster = getManagementController().getClusters().getCluster(clName);
       cluster.setDesiredStackVersion(stackId);
 
-      Map<String, String> args = new HashMap<String, String>();
-      if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
-        // Finalize upgrade workflow
-        args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
-      } else if (newStateStr.equals(RepositoryVersionState.INSTALLED.toString())) {
-        // Finalize downgrade workflow
-        args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
-      } else {
-        throw new IllegalArgumentException(
-          String.format("Invalid desired state %s. Should be either CURRENT or INSTALLED",
-                  newStateStr));
+      String forceCurrent = (String) propertyMap.get(CLUSTER_STACK_VERSION_FORCE);
+      boolean force = false;
+      if (null != forceCurrent) {
+        force = Boolean.parseBoolean(forceCurrent);
       }
 
-      // Get a host name to populate the hostrolecommand table's hostEntity.
-      String defaultHostName;
-      ArrayList<Host> hosts = new ArrayList<Host>(cluster.getHosts());
-      if (!hosts.isEmpty()) {
-        Collections.sort(hosts);
-        defaultHostName = hosts.get(0).getHostName();
+      if (!force) {
+        Map<String, String> args = new HashMap<String, String>();
+        if (newStateStr.equals(RepositoryVersionState.CURRENT.toString())) {
+          // Finalize upgrade workflow
+          args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "upgrade");
+        } else if (newStateStr.equals(RepositoryVersionState.INSTALLED.toString())) {
+          // Finalize downgrade workflow
+          args.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
+        } else {
+          throw new IllegalArgumentException(
+            String.format("Invalid desired state %s. Should be either CURRENT or INSTALLED",
+                    newStateStr));
+        }
+
+        // Get a host name to populate the hostrolecommand table's hostEntity.
+        String defaultHostName;
+        ArrayList<Host> hosts = new ArrayList<Host>(cluster.getHosts());
+        if (!hosts.isEmpty()) {
+          Collections.sort(hosts);
+          defaultHostName = hosts.get(0).getHostName();
+        } else {
+          throw new AmbariException("Could not find at least one host to set the command for");
+        }
+
+        args.put(FinalizeUpgradeAction.VERSION_KEY, desiredRepoVersion);
+        args.put(FinalizeUpgradeAction.CLUSTER_NAME_KEY, clName);
+
+        ExecutionCommand command = new ExecutionCommand();
+        command.setCommandParams(args);
+        command.setClusterName(clName);
+        finalizeUpgradeAction.setExecutionCommand(command);
+
+        HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(defaultHostName,
+                Role.AMBARI_SERVER_ACTION, null, null);
+        finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
+
+        CommandReport report = finalizeUpgradeAction.execute(null);
+
+        LOG.info("Finalize output:");
+        LOG.info("STDOUT: {}", report.getStdOut());
+        LOG.info("STDERR: {}", report.getStdErr());
+
+        if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
+          return getRequestStatus(null);
+        } else {
+          String detailedOutput = "Finalization failed. More details: \n" +
+                  "STDOUT: " + report.getStdOut() + "\n" +
+                  "STDERR: " + report.getStdErr();
+          throw new SystemException(detailedOutput);
+        }
       } else {
-        throw new AmbariException("Could not find at least one host to set the command for");
-      }
+        // !!! revisit for PU
+        ClusterVersionEntity current = cluster.getCurrentClusterVersion();
 
-      args.put(FinalizeUpgradeAction.VERSION_KEY, desiredRepoVersion);
-      args.put(FinalizeUpgradeAction.CLUSTER_NAME_KEY, clName);
+        if (!current.getRepositoryVersion().equals(rve)) {
+          updateVersionStates(current.getClusterId(), current.getRepositoryVersion(), rve);
+        }
 
-      ExecutionCommand command = new ExecutionCommand();
-      command.setCommandParams(args);
-      command.setClusterName(clName);
-      finalizeUpgradeAction.setExecutionCommand(command);
 
-      HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(defaultHostName,
-              Role.AMBARI_SERVER_ACTION, null, null);
-      finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
-
-      CommandReport report = finalizeUpgradeAction.execute(null);
-
-      LOG.info("Finalize output:");
-      LOG.info("STDOUT: {}", report.getStdOut());
-      LOG.info("STDERR: {}", report.getStdErr());
-
-      if (report.getStatus().equals(HostRoleStatus.COMPLETED.toString())) {
         return getRequestStatus(null);
-      } else {
-        String detailedOutput = "Finalization failed. More details: \n" +
-                "STDOUT: " + report.getStdOut() + "\n" +
-                "STDERR: " + report.getStdErr();
-        throw new SystemException(detailedOutput);
       }
     } catch (AmbariException e) {
       throw new SystemException("Cannot perform request", e);
@@ -751,4 +778,20 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
     return healthyHosts;
   }
+
+  /**
+   * Updates the version states.  Transactional to ensure only one transaction for all updates
+   * @param clusterId the cluster
+   * @param current   the repository that is current for the cluster
+   * @param target    the target repository
+   */
+  @Transactional
+  protected void updateVersionStates(Long clusterId, RepositoryVersionEntity current,
+      RepositoryVersionEntity target) {
+
+    hostComponentStateDAO.updateVersions(target.getVersion());
+    hostVersionDAO.updateVersions(target, current);
+    clusterVersionDAO.updateVersions(clusterId, target, current);
+  }
+
 }

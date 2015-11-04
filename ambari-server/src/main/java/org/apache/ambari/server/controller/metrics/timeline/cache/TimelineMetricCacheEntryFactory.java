@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 @Singleton
@@ -94,16 +95,10 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
     TimelineMetricsCacheValue value = null;
 
     if (timelineMetrics != null && !timelineMetrics.getMetrics().isEmpty()) {
-      Map<String, TimelineMetric> cacheValue =
-        new HashMap<String, TimelineMetric>(timelineMetrics.getMetrics().size());
-      for (TimelineMetric metric : timelineMetrics.getMetrics()) {
-        cacheValue.put(metric.getMetricName(), metric);
-      }
-
       value = new TimelineMetricsCacheValue(
         metricCacheKey.getTemporalInfo().getStartTime(),
         metricCacheKey.getTemporalInfo().getEndTime(),
-        cacheValue, // Null or empty should prompt a refresh
+        timelineMetrics, // Null or empty should prompt a refresh
         Precision.getPrecision(metricCacheKey.getTemporalInfo().getStartTimeMillis(),
           metricCacheKey.getTemporalInfo().getEndTimeMillis()) //Initial Precision
       );
@@ -210,55 +205,62 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       TimelineMetricsCacheValue timelineMetricsCacheValue,
       Long requestedStartTime, Long requestedEndTime, boolean removeAll) {
 
-    Map<String, TimelineMetric> existingTimelineMetricMap = timelineMetricsCacheValue.getTimelineMetrics();
+    TimelineMetrics existingTimelineMetrics = timelineMetricsCacheValue.getTimelineMetrics();
 
-    // NOTE: Metrics names so far are unique, the Map optimization avoids
-    // multiple iterations of the List
-    for (TimelineMetric timelineMetric : newMetrics.getMetrics()) {
-      if (LOG.isTraceEnabled()) {
-        TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(timelineMetric.getMetricValues());
+    // Remove values that do not fit before adding new data
+    updateExistingMetricValues(existingTimelineMetrics, requestedStartTime,
+      requestedEndTime, removeAll);
 
-        LOG.trace("New metric: " + timelineMetric.getMetricName() +
-          " # " + timelineMetric.getMetricValues().size() + ", startTime = " +
-          sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
-      }
+    if (newMetrics != null && !newMetrics.getMetrics().isEmpty()) {
+      for (TimelineMetric timelineMetric : newMetrics.getMetrics()) {
+        if (LOG.isTraceEnabled()) {
+          TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(timelineMetric.getMetricValues());
 
-
-      TimelineMetric existingMetric = existingTimelineMetricMap.get(timelineMetric.getMetricName());
-
-      if (existingMetric != null) {
-
-        if(removeAll) {
-          existingMetric.setMetricValues(new TreeMap<Long, Double>());
+          LOG.trace("New metric: " + timelineMetric.getMetricName() +
+            " # " + timelineMetric.getMetricValues().size() + ", startTime = " +
+            sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
         }
 
-        Map<Long, Double> existingMetricValues = existingMetric.getMetricValues();
-        LOG.trace("Existing metric: " + timelineMetric.getMetricName() +
-          " # " + existingMetricValues.size());
+        TimelineMetric existingMetric = null;
 
-        Iterator<Map.Entry<Long, Double>> valueIterator = existingMetricValues.entrySet().iterator();
-
-        // Remove old values
-        // Assumption: All return value are millis
-        while (valueIterator.hasNext()) {
-          Map.Entry<Long, Double> metricEntry = valueIterator.next();
-          if (metricEntry.getKey() < requestedStartTime
-              || metricEntry.getKey() > requestedEndTime) {
-            valueIterator.remove();
+        for (TimelineMetric metric : existingTimelineMetrics.getMetrics()) {
+          if (metric.equalsExceptTime(timelineMetric)) {
+            existingMetric = metric;
           }
         }
 
-        // Add new ones
-        existingMetricValues.putAll(timelineMetric.getMetricValues());
+        if (existingMetric != null) {
+          // Add new ones
+          existingMetric.getMetricValues().putAll(timelineMetric.getMetricValues());
 
-        if (LOG.isTraceEnabled()) {
-          TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(existingMetricValues);
-          LOG.trace("Merged metric: " + timelineMetric.getMetricName() + ", " +
-            "Final size: " + existingMetricValues.size() + ", startTime = " +
-            sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
+          if (LOG.isTraceEnabled()) {
+            TreeMap<Long, Double> sortedMetrics = new TreeMap<Long, Double>(existingMetric.getMetricValues());
+            LOG.trace("Merged metric: " + timelineMetric.getMetricName() + ", " +
+              "Final size: " + existingMetric.getMetricValues().size() + ", startTime = " +
+              sortedMetrics.firstKey() + ", endTime = " + sortedMetrics.lastKey());
+          }
+        } else {
+          existingTimelineMetrics.getMetrics().add(timelineMetric);
         }
+      }
+    }
+  }
+
+  // Remove out of band data from the cache
+  private void updateExistingMetricValues(TimelineMetrics existingMetrics,
+      Long requestedStartTime, Long requestedEndTime, boolean removeAll) {
+
+    for (TimelineMetric existingMetric : existingMetrics.getMetrics()) {
+      if (removeAll) {
+        existingMetric.setMetricValues(new TreeMap<Long, Double>());
       } else {
-        existingTimelineMetricMap.put(timelineMetric.getMetricName(), timelineMetric);
+        TreeMap<Long, Double> existingMetricValues = existingMetric.getMetricValues();
+        LOG.trace("Existing metric: " + existingMetric.getMetricName() +
+          " # " + existingMetricValues.size());
+
+        // Retain only the values that are within the [requestStartTime, requestedEndTime] window
+        existingMetricValues.headMap(requestedStartTime,false).clear();
+        existingMetricValues.tailMap(requestedEndTime, false).clear();
       }
     }
   }

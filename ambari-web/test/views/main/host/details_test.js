@@ -134,7 +134,6 @@ describe('App.MainHostDetailsView', function () {
 
     it('should get only clients with configs', function() {
       expect(view.get('clientsWithConfigs')).to.have.length(1);
-      console.log(view.get('content.hostComponents'));
       view.get('content.hostComponents').pushObject(Em.Object.create({
         isClient: true,
         service: Em.Object.create({

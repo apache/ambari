@@ -46,7 +46,6 @@ App.WizardStep10Controller = Em.Controller.extend({
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step10: Summary Page");
     this.clearStep();
     this.loadInstalledHosts(this.loadRegisteredHosts());
     var installFlag = true;
@@ -178,7 +177,6 @@ App.WizardStep10Controller = Em.Controller.extend({
       }));
     }
 
-    console.log('STEP10 master components:  ' + JSON.stringify(components));
     components.forEach(function (_component) {
       var component = Em.Object.create(_component);
       if (['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'HISTORYSERVER', 'RESOURCEMANAGER', 'HBASE_MASTER',

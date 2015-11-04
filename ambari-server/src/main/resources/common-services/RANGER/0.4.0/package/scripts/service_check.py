@@ -37,7 +37,7 @@ class RangerServiceCheck(Script):
 
   def check_ranger_admin_service(self, ranger_external_url):
     if (self.is_ru_rangeradmin_in_progress()):
-      Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
+      Logger.info('Ranger admin process not running - skipping as stack upgrade is in progress')
     else:
       Execute(format("curl -s -o /dev/null -w'%{{http_code}}' --negotiate -u: -k {ranger_external_url}/login.jsp | grep 200"),
         tries = 10,

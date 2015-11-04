@@ -63,8 +63,6 @@ App.MainViewsDetailsView = Em.View.extend({
     var headerHeight = header != null ? header.outerHeight() : 0;
 
     var defaultHeight = bodyHeight - footerHeight - headerHeight;
-    console.debug("IFrame default Height = " + defaultHeight + " ("
-        + bodyHeight + " - " + headerHeight + " - " + footerHeight + ")");
 
     if (iframe != null && iframe.length > 0) {
       var childrenHeight = 0;
@@ -77,10 +75,8 @@ App.MainViewsDetailsView = Em.View.extend({
           && iframeElement.contentWindow.document.body != null) {
         var iFrameContentBody = iframeElement.contentWindow.document.body;
         childrenHeight = iFrameContentBody.scrollHeight;
-        console.debug("IFrame content Height = " + childrenHeight);
       }
       var iFrameHeight = Math.max(childrenHeight, defaultHeight);
-      console.debug("IFrame final height = ", iFrameHeight);
       iframe.css('height', iFrameHeight);
       $(window).scrollTop(pageScrollTop);
     }

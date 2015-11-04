@@ -42,8 +42,8 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
  * Aggregates a metric across all hosts in the cluster. Reads metrics from
  * the precision table and saves into the aggregate.
  */
-public class TimelineMetricClusterAggregatorMinute extends AbstractTimelineAggregator {
-  private static final Log LOG = LogFactory.getLog(TimelineMetricClusterAggregatorMinute.class);
+public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggregator {
+  private static final Log LOG = LogFactory.getLog(TimelineMetricClusterAggregatorSecond.class);
   public Long timeSliceIntervalMillis;
   private TimelineMetricReadHelper timelineMetricReadHelper = new TimelineMetricReadHelper(true);
   // Aggregator to perform app-level aggregates for host metrics
@@ -51,7 +51,7 @@ public class TimelineMetricClusterAggregatorMinute extends AbstractTimelineAggre
   // 1 minute client side buffering adjustment
   private final Long serverTimeShiftAdjustment;
 
-  public TimelineMetricClusterAggregatorMinute(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricClusterAggregatorSecond(PhoenixHBaseAccessor hBaseAccessor,
                                                Configuration metricsConf,
                                                String checkpointLocation,
                                                Long sleepIntervalMillis,

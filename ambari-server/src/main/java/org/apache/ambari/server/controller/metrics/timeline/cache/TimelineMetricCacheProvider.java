@@ -64,9 +64,11 @@ public class TimelineMetricCacheProvider {
     }
 
     System.setProperty("net.sf.ehcache.skipUpdateCheck", "true");
-    // Use custom sizing engine to speed cache sizing calculations
-    System.setProperty("net.sf.ehcache.sizeofengine." + TIMELINE_METRIC_CACHE_MANAGER_NAME,
-      "org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricsCacheSizeOfEngine");
+    if (configuration.useMetricsCacheCustomSizingEngine()) {
+      // Use custom sizing engine to speed cache sizing calculations
+      System.setProperty("net.sf.ehcache.sizeofengine." + TIMELINE_METRIC_CACHE_MANAGER_NAME,
+        "org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricsCacheSizeOfEngine");
+    }
 
     net.sf.ehcache.config.Configuration managerConfig =
       new net.sf.ehcache.config.Configuration();

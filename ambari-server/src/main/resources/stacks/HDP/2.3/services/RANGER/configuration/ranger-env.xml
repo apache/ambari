@@ -30,7 +30,7 @@
     <name>create_db_dbuser</name>
     <value>true</value>
     <display-name>Setup Database and Databse User</display-name>
-    <description>If set to Yes, Ranger will Setup Database and Databse User. This will require to specify Database root user and password</description>
+    <description>If set to Yes, Ambari will create and setup Ranger Database and Database User. This will require to specify Database Admin user and password</description>
     <value-attributes>
       <type>value-list</type>
       <overridable>false</overridable>
@@ -51,28 +51,6 @@
   <property>
     <name>oracle_home</name>
     <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>bind_anonymous</name>
-    <display-name>Bind Anonymous</display-name>
-    <value>false</value>
-    <value-attributes>
-      <type>value-list</type>
-      <overridable>false</overridable>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>Yes</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>No</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
 
   <property>
@@ -140,30 +118,8 @@
   </property>
 
   <property>
-    <name>xasecure.audit.destination.db</name>
-    <value>false</value>
-    <display-name>Audit to DB</display-name>
-    <description>Enable Audit to DB for all ranger supported services. This property is overridable at service level</description>
-    <value-attributes>
-      <overridable>false</overridable>
-      <type>value-list</type>
-      <entries>
-        <entry>
-          <value>true</value>
-          <label>ON</label>
-        </entry>
-        <entry>
-          <value>false</value>
-          <label>OFF</label>
-        </entry>
-      </entries>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>xasecure.audit.destination.solr</name>
-    <value>false</value>
+    <value>true</value>
     <display-name>Audit to Solr</display-name>
     <description>Enable Audit to Solr for all ranger supported services. This property is overridable at service level</description>
     <value-attributes>
@@ -208,7 +164,7 @@
 
   <property>
     <name>xasecure.audit.destination.hdfs</name>
-    <value>false</value>
+    <value>true</value>
     <display-name>Audit to HDFS</display-name>
     <description>Enable Audit to HDFS for all ranger supported services. This property is overridable at service level</description>
     <value-attributes>
@@ -239,6 +195,28 @@
         <name>fs.defaultFS</name>
       </property>
     </depends-on>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.db</name>
+    <value>false</value>
+    <display-name>Audit to DB</display-name>
+    <description>Enable Audit to DB for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
 </configuration>

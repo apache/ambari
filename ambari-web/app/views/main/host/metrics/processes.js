@@ -38,27 +38,14 @@ App.ChartHostMetricsProcesses = App.ChartLinearTimeView.extend({
     fields: ['metrics/process/proc_total', 'metrics/process/proc_run']
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.process) {
-      for ( var name in jsonData.metrics.process) {
-        var displayName;
-        var seriesData = jsonData.metrics.process[name];
-        switch (name) {
-          case "proc_total":
-            displayName = Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_total');
-            break;
-          case "proc_run":
-            displayName = Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_run');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.process',
+    displayName: function (name) {
+      var displayNameMap = {
+        proc_total: Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_total'),
+        proc_run: Em.I18n.t('hosts.host.metrics.processes.displayNames.proc_run')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
   }
 });

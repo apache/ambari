@@ -21,6 +21,7 @@ limitations under the License.
 import os
 import time
 
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from resource_management.libraries.functions.format import format
@@ -35,7 +36,7 @@ from ambari_commons import OSConst
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def hive_service(name, action='start', rolling_restart=False):
+def hive_service(name, action='start', upgrade_type=None):
   import params
   if name == 'metastore':
     if action == 'start' or action == 'stop':
@@ -47,7 +48,7 @@ def hive_service(name, action='start', rolling_restart=False):
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def hive_service(name, action='start', rolling_restart=False):
+def hive_service(name, action='start', upgrade_type=None):
 
   import params
 
@@ -72,10 +73,10 @@ def hive_service(name, action='start', rolling_restart=False):
     # upgrading hiveserver2 (rolling_restart) means that there is an existing,
     # de-registering hiveserver2; the pid will still exist, but the new
     # hiveserver is spinning up on a new port, so the pid will be re-written
-    if rolling_restart:
+    if upgrade_type == UPGRADE_TYPE_ROLLING:
       process_id_exists_command = None
 
-      if (params.version):
+      if params.version:
         import os
         hadoop_home = format("/usr/hdp/{version}/hadoop")
         hive_bin = os.path.join(params.hive_bin, hive_bin)

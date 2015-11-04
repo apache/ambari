@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -65,6 +66,11 @@ public class EmailDispatcher implements NotificationDispatcher {
   private static final Logger LOG = LoggerFactory.getLogger(EmailDispatcher.class);
 
   /**
+   * The JavaMail property for the {@code From:} header.
+   */
+  private static final String JAVAMAIL_FROM_PROPERTY = "mail.smtp.from";
+
+  /**
    * {@inheritDoc}
    */
   @Override
@@ -97,10 +103,19 @@ public class EmailDispatcher implements NotificationDispatcher {
       return;
     }
 
-    // convert properties to JavaMail properties
+    // convert properties to JavaMail properties, extracting certain properties for use later
+    String fromAddress = null;
     Properties properties = new Properties();
     for (Entry<String, String> entry : notification.DispatchProperties.entrySet()) {
-      properties.put(entry.getKey(), entry.getValue());
+      String key = entry.getKey();
+      String value = entry.getValue();
+
+      properties.put(key, value);
+
+      // this is needed later on for RFC 2822 compliance when setting headers
+      if (key.equals(JAVAMAIL_FROM_PROPERTY)) {
+        fromAddress = value;
+      }
     }
 
     // notifications must have recipients
@@ -133,8 +148,14 @@ public class EmailDispatcher implements NotificationDispatcher {
         message.addRecipient(RecipientType.TO, address);
       }
 
+      message.setSentDate(new Date());
       message.setSubject(notification.Subject);
       message.setText(notification.Body, "UTF-8", "html");
+
+      // RFC 2822 compliance
+      if (null != fromAddress) {
+        message.setFrom(fromAddress);
+      }
 
       Transport.send(message);
 

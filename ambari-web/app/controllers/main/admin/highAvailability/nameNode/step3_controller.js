@@ -79,6 +79,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       urlParams.push('(type=accumulo-site&tag=' + accumuloSiteTag + ')');
       this.set("accumuloSiteTag", {name : "accumuloSiteTag", value : accumuloSiteTag});
     }
+    if (App.Service.find().someProperty('serviceName', 'AMBARI_METRICS')) {
+      var amsHbaseSiteTag = data.Clusters.desired_configs['ams-hbase-site'].tag;
+      urlParams.push('(type=ams-hbase-site&tag=' + amsHbaseSiteTag + ')');
+      this.set("amsHbaseSiteTag", {name : "amsHbaseSiteTag", value : amsHbaseSiteTag});
+    }
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -120,10 +125,12 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   tweakServiceConfigValues: function(configs,nameServiceId) {
-    var currentNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
-    var newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
-    var journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
-    var zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
+    var
+      value = "",
+      currentNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName,
+      newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName,
+      journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName'),
+      zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
     
     var nnHttpPort = 50070;
     if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.http-address'])
@@ -154,23 +161,30 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     this.setConfigInitialValue(config,'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/' + nameServiceId);
     config = configs.findProperty('name','ha.zookeeper.quorum');
     this.setConfigInitialValue(config,zooKeeperHosts[0] + ':' + zkClientPort + ',' + zooKeeperHosts[1] + ':' + zkClientPort + ',' + zooKeeperHosts[2] + ':'+ zkClientPort  );
-    config = configs.findProperty('name','hbase.rootdir');
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
-     var value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
+      config = configs.filterProperty('filename', 'hbase-site').findProperty('name','hbase.rootdir');
+      value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
      this.setConfigInitialValue(config,value);
     }
+    if (App.Service.find().someProperty('serviceName', 'AMBARI_METRICS')) {
+      config = configs.filterProperty('filename', 'ams-hbase-site').findProperty('name','hbase.rootdir');
+      value = this.get('serverConfigData.items').findProperty('type', 'ams-hbase-site').properties['hbase.rootdir'];
+      value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + nameServiceId : value;
+      config.isVisible = config.value != value ;
+      this.setConfigInitialValue(config,value);
+    }
     config = configs.findProperty('name','instance.volumes');
-    var config2 = configs.findProperty('name','instance.volumes.replacements');
+    config2 = configs.findProperty('name','instance.volumes.replacements');
     if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
       var oldValue = this.get('serverConfigData.items').findProperty('type', 'accumulo-site').properties['instance.volumes'];
-      var value = oldValue.replace(/\/\/[^\/]*/, '//' + nameServiceId);
+      value = oldValue.replace(/\/\/[^\/]*/, '//' + nameServiceId);
       var replacements = oldValue + " " + value;
       this.setConfigInitialValue(config,value);
       this.setConfigInitialValue(config2,replacements)
     }
     config = configs.findProperty('name','dfs.journalnode.edits.dir');
     if (App.get('isHadoopWindowsStack') && App.Service.find().someProperty('serviceName', 'HDFS')) {
-     var value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
+     value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
      this.setConfigInitialValue(config, value);
     }
   },

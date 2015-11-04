@@ -30,13 +30,13 @@ class TezPreUpgrade(Script):
 
   def prepare(self, env):
     """
-    During the "Upgrade" direction of a Rolling Upgrade, it is necessary to ensure that the older tez tarball
+    During the "Upgrade" direction of a Stack Upgrade, it is necessary to ensure that the older tez tarball
     has been copied to HDFS. This is an additional check for added robustness.
     """
     import params
     env.set_params(params)
 
-    Logger.info("Before starting Rolling Upgrade, check if tez tarball has been copied to HDFS.")
+    Logger.info("Before starting Stack Upgrade, check if tez tarball has been copied to HDFS.")
 
     if params.hdp_stack_version and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0:
       Logger.info("Stack version {0} is sufficient to check if need to copy tez.tar.gz to HDFS.".format(params.hdp_stack_version))

@@ -71,6 +71,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
    */
   data: [],
 
+  exportTargetView: function () {
+    return this.get('childViews.lastObject');
+  }.property(),
+
   drawWidget: function () {
     if (this.get('isLoaded')) {
       this.set('data', this.calculateValues());
@@ -228,10 +232,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       return this.get('parentView.content.properties.display_unit');
     }.property('parentView.content.properties.display_unit'),
     setYAxisFormatter: function () {
-      var self = this;
-      if (this.get('displayUnit')) {
-        this.set('yAxisFormatter',  function (value) {
-          return App.ChartLinearTimeView.DisplayUnitFormatter(value, self.get('displayUnit'));
+      var displayUnit = this.get('displayUnit');
+      if (displayUnit) {
+        this.set('yAxisFormatter', function (value) {
+          return App.ChartLinearTimeView.DisplayUnitFormatter(value, displayUnit);
         });
       }
     }.observes('displayUnit'),
@@ -308,7 +312,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
   }),
 
   exportGraphData: function (event) {
-    this._super();
+    this.set('isExportMenuHidden', true);
     var data,
       isCSV = !!event.context,
       fileType = isCSV ? 'csv' : 'json',
@@ -318,7 +322,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
         return Em.isArray(item.data);
       });
     if (hasData) {
-      data = isCSV ? this.prepareCSV(metrics) : this.prepareJSON(metrics);
+      data = isCSV ? this.prepareCSV(metrics) : JSON.stringify(metrics, this.jsonReplacer(), 4);
       fileUtils.downloadTextFile(data, fileType, fileName);
     } else {
       App.showAlertPopup(Em.I18n.t('graphs.noData.title'), Em.I18n.t('graphs.noData.tooltip.title'));

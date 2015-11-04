@@ -29,6 +29,8 @@ class ECSClient(Script):
   def configure(self, env):
     self.setup_config(env)
     self.setup_hadoop_env(env)
+
+  def createdirs(self, env):
     self.create_dirs(env)
 
   def status(self, env):

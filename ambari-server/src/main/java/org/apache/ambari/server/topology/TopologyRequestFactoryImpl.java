@@ -28,7 +28,8 @@ import java.util.Map;
  */
 public class TopologyRequestFactoryImpl implements TopologyRequestFactory {
   @Override
-  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    return new ProvisionClusterRequest(properties);
+  public ProvisionClusterRequest createProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws InvalidTopologyTemplateException {
+    return new ProvisionClusterRequest(properties, securityConfiguration);
+
   }
 }

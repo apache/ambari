@@ -145,7 +145,7 @@ describe('App.WizardController', function () {
 
     wizardController.setProperties({
       content: {},
-      name: 'wizard'
+      name: 'wizardController'
     });
 
     beforeEach(function () {

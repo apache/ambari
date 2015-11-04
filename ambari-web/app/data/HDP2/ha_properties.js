@@ -24,9 +24,10 @@ module.exports =
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
       App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'}),
-      App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'})
+      App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'}),
+      App.ServiceConfigCategory.create({ name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'})
     ],
-    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site'],
+    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site'],
     configs: [
     /**********************************************HDFS***************************************/
       {
@@ -236,6 +237,18 @@ module.exports =
         "value": "/hadoop/hdfs/journal",
         "category": "ACCUMULO",
         "filename": "accumulo-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "name": "hbase.rootdir",
+        "displayName": "hbase.rootdir",
+        "description": "Ambari Metrics service uses HBase as default storage backend. Set the rootdir for HBase to either local filesystem path if using Ambari Metrics in embedded mode or to a HDFS dir, example: hdfs://namenode.example.org:8020/amshbase.",
+        "isReconfigurable": false,
+        "recommendedValue": "file:///var/lib/ambari-metrics-collector/hbase",
+        "value": "file:///var/lib/ambari-metrics-collector/hbase",
+        "category": "AMBARI_METRICS",
+        "isVisible": false,
+        "filename": "ams-hbase-site",
         "serviceName": 'MISC'
       }
     ]

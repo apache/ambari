@@ -31,24 +31,13 @@ App.ChartServiceMetricsFlume_IncommingMMA = App.ChartLinearTimeView.extend({
   title: Em.I18n.t('services.service.info.metrics.flume.incoming.mma'),
 
   ajaxIndex: 'service.metrics.flume.incoming_event_put_successCount.mma',
-  yAxisFormatter: App.ChartLinearTimeView.CreateRateFormatter('',
-      App.ChartLinearTimeView.DefaultFormatter),
+  displayUnit: '/s',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    var data = Em.get(jsonData, 'metrics.flume.flume.CHANNEL.EventPutSuccessCount.rate');
-
-    if (data) {
-      for (var cname in data) {
-        var seriesName = Em.I18n.t('services.service.info.metrics.flume.incoming_mma').format(cname);
-        var seriesData = data[cname];
-        if (seriesData) {
-          seriesArray.push(self.transformData(seriesData, seriesName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.flume.flume.CHANNEL.EventPutSuccessCount.rate',
+    displayName: function (name) {
+      return Em.I18n.t('services.service.info.metrics.flume.incoming_mma').format(name);
     }
-    return seriesArray;
   },
 
   colorForSeries: function (series) {

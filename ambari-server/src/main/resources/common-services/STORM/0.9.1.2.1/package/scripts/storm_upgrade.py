@@ -30,9 +30,13 @@ from resource_management.libraries.functions.default import default
 
 class StormUpgrade(Script):
   """
+  Applies to Rolling/Express Upgrade from HDP 2.1 or 2.2 to 2.3 or higher.
+
+  Requirements: Needs to run from a host with ZooKeeper Client.
+
   This class helps perform some of the upgrade tasks needed for Storm during
-  a non-rolling upgrade. Storm writes data to disk locally and to ZooKeeper.
-  If any HDP 2.2 bits exist in these directories when an HDP 2.3 instance
+  a Rolling or Express upgrade. Storm writes data to disk locally and to ZooKeeper.
+  If any HDP 2.1 or 2.2 bits exist in these directories when an HDP 2.3 instance
   starts up, it will fail to start properly. Because the upgrade framework in
   Ambari doesn't yet have a mechanism to say "stop all" before starting to
   upgrade each component, we need to rely on a Storm trick to bring down
@@ -54,16 +58,16 @@ class StormUpgrade(Script):
     if storm_zookeeper_root_dir is None:
       raise Fail("The storm ZooKeeper directory specified by storm-site/storm.zookeeper.root must be specified")
 
-    # the zookeeper client must be given a zookeeper host to contact
+    # The zookeeper client must be given a zookeeper host to contact. Guaranteed to have at least one host.
     storm_zookeeper_server_list = yaml_utils.get_values_from_yaml_array(params.storm_zookeeper_servers)
     if storm_zookeeper_server_list is None:
       Logger.info("Unable to extract ZooKeeper hosts from '{0}', assuming localhost").format(params.storm_zookeeper_servers)
       storm_zookeeper_server_list = ["localhost"]
 
-    # for every zk server, try to remove /storm
+    # For every zk server, try to remove /storm
     zookeeper_data_cleared = False
     for storm_zookeeper_server in storm_zookeeper_server_list:
-      # determine where the zkCli.sh shell script is
+      # Determine where the zkCli.sh shell script is
       zk_command_location = "/usr/hdp/current/zookeeper-client/bin/zkCli.sh"
       if params.version is not None:
         zk_command_location = "/usr/hdp/{0}/zookeeper/bin/zkCli.sh".format(params.version)
@@ -135,28 +139,27 @@ class StormUpgrade(Script):
           existing_json_map = json.load(file_pointer)
 
         if cmp(json_map, existing_json_map) == 0:
-          Logger.info("The storm upgrade has already removed the local directories for {0}-{1} for request {2} and stage {3}".format(
-            stack_name, stack_version, request_id, stage_id))
+          Logger.info("The storm upgrade has already removed the local directories for {0}-{1} for "
+                      "request {2} and stage {3}. Nothing else to do.".format(stack_name, stack_version, request_id, stage_id))
 
-          # nothing else to do here for this as it appears to have already been
+          # Nothing else to do here for this as it appears to have already been
           # removed by another component being upgraded
           return
-
-      except:
-        Logger.error("The upgrade file {0} appears to be corrupt; removing...".format(upgrade_file))
+      except Exception, e:
+        Logger.error("The upgrade file {0} appears to be corrupt; removing it. Error: {1}".format(upgrade_file, str(e)))
         File(upgrade_file, action="delete")
     else:
-      # delete the upgrade file since it does not match
-      File(upgrade_file, action="delete")
+      Logger.info('The upgrade file {0} does not exist, so will attempt to delete local Storm directory if it exists.')
 
-    # delete from local directory
-    Directory(storm_local_directory, action="delete", recursive=True)
+    # Delete from local directory
+    if os.path.isdir(storm_local_directory):
+      Directory(storm_local_directory, action="delete", recursive=True)
 
-    # recreate storm local directory
-    Directory(storm_local_directory, mode=0755, owner = params.storm_user,
-      group = params.user_group, recursive = True)
+    # Recreate storm local directory
+    Directory(storm_local_directory, mode=0755, owner=params.storm_user,
+      group=params.user_group, recursive=True)
 
-    # the file doesn't exist, so create it
+    # The file doesn't exist, so create it
     with open(upgrade_file, 'w') as file_pointer:
       json.dump(json_map, file_pointer, indent=2)
 

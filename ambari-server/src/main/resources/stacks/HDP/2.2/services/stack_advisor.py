@@ -38,7 +38,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "AMBARI_METRICS": self.recommendAmsConfigurations,
       "YARN": self.recommendYARNConfigurations,
       "STORM": self.recommendStormConfigurations,
-      "KNOX": self.recommendKnoxConfigurations
+      "KNOX": self.recommendKnoxConfigurations,
+      "RANGER": self.recommendRangerConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -428,6 +429,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
               ("hiveserver2-site" not in services["configurations"]) or \
               ("hiveserver2-site" in services["configurations"] and "hive.security.authenticator.manager" in services["configurations"]["hiveserver2-site"]["properties"]):
         putHiveServerPropertyAttribute("hive.security.authenticator.manager", "delete", "true")
+      if ("hive.conf.restricted.list" in configurations["hiveserver2-site"]["properties"]) or \
+              ("hiveserver2-site" not in services["configurations"]) or \
+              ("hiveserver2-site" in services["configurations"] and "hive.conf.restricted.list" in services["configurations"]["hiveserver2-site"]["properties"]):
+        putHiveServerPropertyAttribute("hive.conf.restricted.list", "delete", "true")
       if "KERBEROS" not in servicesList: # Kerberos security depends on this property
         putHiveSiteProperty("hive.security.authorization.enabled", "false")
     else:
@@ -449,6 +454,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authenticator.manager,hive.security.authorization.manager,hive.users.in.admin.role")
       putHiveSiteProperty("hive.security.authorization.manager", "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdConfOnlyAuthorizerFactory")
       if sqlstdauth_class not in auth_manager_values:
         auth_manager_values.append(sqlstdauth_class)
@@ -464,6 +470,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveServerProperty("hive.security.authorization.enabled", "true")
       putHiveServerProperty("hive.security.authorization.manager", "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory")
       putHiveServerProperty("hive.security.authenticator.manager", "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator")
+      putHiveServerProperty("hive.conf.restricted.list", "hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager")
 
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
@@ -677,10 +684,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     uniqueCoprocessorRegionClassList = []
     [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    rangerServiceVersion=''
+    if 'RANGER' in servicesList:
+      rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
 
-    stackVersion = services["Versions"]["stack_version"]
-
-    if stackVersion == '2.2':
+    if rangerServiceVersion and rangerServiceVersion == '0.4.0':
       rangerClass = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     else:
       rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
@@ -689,27 +698,28 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hbaseClassConfigs = ['hbase.coprocessor.master.classes', 'hbase.coprocessor.region.classes']
 
     for item in range(len(hbaseClassConfigs)):
-      if hbaseClassConfigs[item] in services['configurations']['hbase-site']['properties']:
-        if 'hbase-site' in configurations and hbaseClassConfigs[item] in configurations['hbase-site']['properties']:
-          coprocessorConfig = configurations['hbase-site']['properties'][hbaseClassConfigs[item]]
-        else:
-          coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
-        coprocessorClasses = coprocessorConfig.split(",")
-        coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
-        if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
-          if nonRangerClass in coprocessorClasses:
-            coprocessorClasses.remove(nonRangerClass)
-          if not rangerClass in coprocessorClasses:
-            coprocessorClasses.append(rangerClass)
-          putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
-        elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'No'.lower():
-          if rangerClass in coprocessorClasses:
-            coprocessorClasses.remove(rangerClass)
-            if not nonRangerClass in coprocessorClasses:
-              coprocessorClasses.append(nonRangerClass)
+      if 'hbase-site' in services['configurations']:
+        if hbaseClassConfigs[item] in services['configurations']['hbase-site']['properties']:
+          if 'hbase-site' in configurations and hbaseClassConfigs[item] in configurations['hbase-site']['properties']:
+            coprocessorConfig = configurations['hbase-site']['properties'][hbaseClassConfigs[item]]
+          else:
+            coprocessorConfig = services['configurations']['hbase-site']['properties'][hbaseClassConfigs[item]]
+          coprocessorClasses = coprocessorConfig.split(",")
+          coprocessorClasses = filter(None, coprocessorClasses) # Removes empty string elements from array
+          if rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+            if nonRangerClass in coprocessorClasses:
+              coprocessorClasses.remove(nonRangerClass)
+            if not rangerClass in coprocessorClasses:
+              coprocessorClasses.append(rangerClass)
             putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
-      elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
-        putHbaseSiteProperty(hbaseClassConfigs[item], rangerClass)
+          elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'No'.lower():
+            if rangerClass in coprocessorClasses:
+              coprocessorClasses.remove(rangerClass)
+              if not nonRangerClass in coprocessorClasses:
+                coprocessorClasses.append(nonRangerClass)
+              putHbaseSiteProperty(hbaseClassConfigs[item], ','.join(coprocessorClasses))
+        elif rangerPluginEnabled and rangerPluginEnabled.lower() == 'Yes'.lower():
+          putHbaseSiteProperty(hbaseClassConfigs[item], rangerClass)
 
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
@@ -769,7 +779,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
-    core_site = services["configurations"]["core-site"]["properties"]
+    if "core-site" in services["configurations"]:
+      core_site = services["configurations"]["core-site"]["properties"]
     stackVersion = services["Versions"]["stack_version"]
     if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
         "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
@@ -784,12 +795,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerPluginEnabled = services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled']
 
     nonRangerClass = 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer'
-    if stackVersion == '2.2':
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    rangerServiceVersion=''
+    if 'RANGER' in servicesList:
+      rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
+
+    if rangerServiceVersion and rangerServiceVersion == '0.4.0':
       rangerClass = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
     else:
       rangerClass = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
     # Cluster is kerberized
-    if ('hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos'):
+    if "core-site" in services["configurations"] and \
+          ('hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos'):
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',rangerClass)
       elif (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == rangerClass):
@@ -829,6 +846,15 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putKnoxTopologyContent('content', newTopologyXmlContent)
 
 
+  def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
+    putRangerEnvProperty = self.putProperty(configurations, "ranger-env")
+    cluster_env = getServicesSiteProperties(services, "cluster-env")
+    security_enabled = cluster_env is not None and "security_enabled" in cluster_env and \
+                       cluster_env["security_enabled"].lower() == "true"
+    if "ranger-env" in configurations and not security_enabled:
+      putRangerEnvProperty("ranger-storm-plugin-enabled", "No")
+
   def getServiceConfigurationValidators(self):
     parentValidators = super(HDP22StackAdvisor, self).getServiceConfigurationValidators()
     childValidators = {
@@ -847,7 +873,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "KAFKA": {"ranger-kafka-plugin-properties": self.validateKafkaRangerPluginConfigurations},
       "STORM": {"ranger-storm-plugin-properties": self.validateStormRangerPluginConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
-      "TEZ": {"tez-site": self.validateTezConfigurations}
+      "TEZ": {"tez-site": self.validateTezConfigurations},
+      "RANGER": {"ranger-env": self.validateRangerConfigurationsEnv}
     }
     self.mergeValidators(parentValidators, childValidators)
     return parentValidators
@@ -1136,6 +1163,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled."\
                                   " {0} under hiveserver2-site needs to be set to {1}".format(prop_name, prop_val))})
+        prop_name = 'hive.conf.restricted.list'
+        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
+        current_vals = []
+        missing_vals = []
+        if hive_server2 and prop_name in hive_server2:
+          current_vals = hive_server2[prop_name].split(',')
+          current_vals = [x.strip() for x in current_vals]
+
+        for val in prop_vals:
+          if not val in current_vals:
+            missing_vals.append(val)
+
+        if missing_vals:
+          validationItems.append({"config-name": prop_name,
+            "item": self.getWarnItem("If Ranger Hive Plugin is enabled."\
+            " {0} under hiveserver2-site needs to contain missing value {1}".format(prop_name, ','.join(missing_vals)))})
       ##Add stack validations for  Ranger plugin disabled.
       elif not ranger_plugin_enabled:
         prop_name = 'hive.security.authorization.manager'
@@ -1378,6 +1421,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                 "item": self.getWarnItem(
                                   "ranger-yarn-plugin-properties/ranger-yarn-plugin-enabled must correspond ranger-env/ranger-yarn-plugin-enabled")})
     return self.toConfigurationValidationProblems(validationItems, "ranger-yarn-plugin-properties")
+
+  def validateRangerConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    if "ranger-storm-plugin-enabled" in properties and "ranger-storm-plugin-enabled" in recommendedDefaults and \
+      properties["ranger-storm-plugin-enabled"] != recommendedDefaults["ranger-storm-plugin-enabled"]:
+        validationItems.append({"config-name": "ranger-storm-plugin-enabled",
+                                "item": self.getWarnItem(
+                                  "Ranger Storm plugin should not be enabled in non-kerberos environment.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "ranger-env")
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()

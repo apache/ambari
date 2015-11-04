@@ -24,7 +24,10 @@ import java.util.Map;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.cluster.Cluster;
+import org.apache.ambari.view.tez.exceptions.ATSUrlFetchException;
+import org.apache.ambari.view.tez.exceptions.ActiveRMFetchException;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
+import org.apache.ambari.view.utils.ambari.AmbariApiException;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -38,7 +41,6 @@ import com.google.inject.Singleton;
 public class ViewControllerImpl implements ViewController {
 
   private AmbariApi ambariApi;
-
 
   @Inject
   public ViewControllerImpl(ViewContext viewContext) {
@@ -54,13 +56,31 @@ public class ViewControllerImpl implements ViewController {
    */
   @Override
   public ViewStatus getViewStatus() {
+
     ViewStatus status = new ViewStatus();
     Map<String, String> parameters = new HashMap<String, String>();
-    parameters.put(ViewController.PARAM_YARN_ATS_URL, ambariApi.getServices().getTimelineServerUrl());
-    parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, ambariApi.getServices().getRMUrl());
+    parameters.put(ViewController.PARAM_YARN_ATS_URL, getActiveATSUrl());
+    parameters.put(ViewController.PARAM_YARN_RESOURCEMANAGER_URL, getActiveRMUrl());
     status.setParameters(parameters);
     return status;
   }
 
+  @Override
+  public String getActiveATSUrl() {
+    try {
+      return ambariApi.getServices().getTimelineServerUrl();
+    } catch (AmbariApiException ex) {
+      throw new ATSUrlFetchException(ex);
+    }
+  }
+
+  @Override
+  public String getActiveRMUrl() {
+    try {
+      return ambariApi.getServices().getRMUrl();
+    } catch (AmbariApiException ex) {
+      throw new ActiveRMFetchException(ex);
+    }
+  }
 }
 

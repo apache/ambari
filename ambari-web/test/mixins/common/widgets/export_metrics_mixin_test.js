@@ -57,19 +57,50 @@ describe('App.ExportMetricsMixin', function () {
     var cases = [
       {
         isExportMenuHidden: true,
-        title: 'menu should remain hidden'
+        event: {
+          context: true
+        },
+        isCSV: true,
+        title: 'CSV, menu should remain hidden'
       },
       {
         isExportMenuHidden: false,
-        title: 'menu should become hidden'
+        event: {},
+        isCSV: false,
+        title: 'JSON, menu should become hidden'
       }
     ];
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+      obj.reopen({
+        targetView: {
+          ajaxIndex: 'index',
+          getDataForAjaxRequest: function () {
+            return {
+              p: 'v'
+            };
+          }
+        }
+      });
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
 
     cases.forEach(function (item) {
       it(item.title, function () {
         obj.set('isExportMenuHidden', item.isExportMenuHidden);
-        obj.exportGraphData();
+        obj.exportGraphData(item.event);
+        var ajaxParams = App.ajax.send.firstCall.args[0];
         expect(obj.get('isExportMenuHidden')).to.be.true;
+        expect(App.ajax.send.calledOnce).to.be.true;
+        expect(ajaxParams.name).to.equal('index');
+        expect(ajaxParams.data).to.eql({
+          p: 'v',
+          isCSV: item.isCSV
+        });
       });
     });
 
@@ -81,8 +112,6 @@ describe('App.ExportMetricsMixin', function () {
       {
         response: null,
         showAlertPopupCallCount: 1,
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         title: 'no response'
       },
@@ -91,8 +120,6 @@ describe('App.ExportMetricsMixin', function () {
           metrics: null
         },
         showAlertPopupCallCount: 1,
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         title: 'no metrics object in response'
       },
@@ -101,8 +128,6 @@ describe('App.ExportMetricsMixin', function () {
           metrics: {}
         },
         showAlertPopupCallCount: 1,
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         title: 'empty metrics object'
       },
@@ -116,9 +141,8 @@ describe('App.ExportMetricsMixin', function () {
           isCSV: true
         },
         showAlertPopupCallCount: 0,
-        prepareCSVCallCount: 1,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 1,
+        data: '0,1',
         fileType: 'csv',
         fileName: 'data.csv',
         title: 'export to CSV'
@@ -133,9 +157,8 @@ describe('App.ExportMetricsMixin', function () {
           isCSV: false
         },
         showAlertPopupCallCount: 0,
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 1,
         downloadTextFileCallCount: 1,
+        data: '[{"name":"m0","data":[0,1]}]',
         fileType: 'json',
         fileName: 'data.json',
         title: 'export to JSON'
@@ -145,24 +168,40 @@ describe('App.ExportMetricsMixin', function () {
     beforeEach(function () {
       sinon.stub(App, 'showAlertPopup', Em.K);
       sinon.stub(fileUtils, 'downloadTextFile', Em.K);
-      sinon.stub(obj, 'prepareCSV', Em.K);
-      sinon.stub(obj, 'prepareJSON', Em.K);
+      sinon.stub(obj, 'prepareCSV').returns('0,1');
+      obj.reopen({
+        targetView: {
+          getData: function (response) {
+            var data = [];
+            if (response && response.metrics) {
+              var name = Em.keys(response.metrics)[0];
+              if (name && response.metrics[name]) {
+                data = [
+                  {
+                    name: name,
+                    data: response.metrics[name]
+                  }
+                ];
+              }
+            }
+            return data;
+          }
+        }
+      });
     });
 
     afterEach(function () {
       App.showAlertPopup.restore();
       fileUtils.downloadTextFile.restore();
       obj.prepareCSV.restore();
-      obj.prepareJSON.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
         obj.exportGraphDataSuccessCallback(item.response, null, item.params);
-        expect(obj.prepareCSV.callCount).to.equal(item.prepareCSVCallCount);
-        expect(obj.prepareJSON.callCount).to.equal(item.prepareJSONCallCount);
         expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
         if (item.downloadTextFileCallCount) {
+          expect(fileUtils.downloadTextFile.firstCall.args[0].replace(/\s/g, '')).to.equal(item.data);
           expect(fileUtils.downloadTextFile.firstCall.args[1]).to.equal(item.fileType);
           expect(fileUtils.downloadTextFile.firstCall.args[2]).to.equal(item.fileName);
         }
@@ -196,94 +235,38 @@ describe('App.ExportMetricsMixin', function () {
 
   });
 
-  describe('#setMetricsArrays', function () {
-
-    var metrics = [],
-      titles = [],
-      data = {
-        key0: {
-          key1: {
-            key2: [[0, 1], [2, 3]],
-            key3: [[4, 5], [6, 7]]
-          }
-        }
-      };
-
-    it('should construct arrays with metrics info', function () {
-      obj.setMetricsArrays(data, metrics, titles);
-      expect(metrics).to.eql([[[0, 1], [2, 3]], [[4, 5], [6, 7]]]);
-      expect(titles).to.eql(['key2', 'key3']);
-    })
-
-  });
-
   describe('#prepareCSV', function () {
 
     var cases = [
-      {
-        data: {
-          metrics: {
-            key0: [[0, 1], [2, 3]],
-            key1: [[4, 1], [5, 3]]
-          }
+        {
+          displayUnit: 'B',
+          result: 'Timestamp,n0 (B),n1 (B)\n1,0,4\n3,2,5\n',
+          title: 'display unit set'
         },
-        result: 'Timestamp,key0,key1\n1,0,4\n3,2,5\n',
-        title: 'old style widget metrics'
-      },
-      {
-        data: [
-          {
-            data: [[6, 7], [8, 9]]
-          },
-          {
-            data: [[10, 7], [11, 9]]
-          }
-        ],
-        result: 'Timestamp,,\n7,6,10\n9,8,11\n',
-        title: 'enhanced widget metrics'
-      }
-    ];
+        {
+          result: 'Timestamp,n0,n1\n1,0,4\n3,2,5\n',
+          title: 'display unit not set'
+        }
+      ],
+      data = [
+        {
+          name: 'n0',
+          data: [[0, 1], [2, 3]]
+        },
+        {
+          name: 'n1',
+          data: [[4, 1], [5, 3]]
+        }
+      ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        expect(obj.prepareCSV(item.data)).to.equal(item.result);
-      });
-    });
-
-  });
-
-  describe('#prepareJSON', function () {
-
-    var cases = [
-      {
-        data: {
-          metrics: {
-            key0: [[0, 1], [2, 3]],
-            key1: [[4, 1], [5, 3]]
+        obj.reopen({
+          targetView: {
+            displayUnit: item.displayUnit
           }
-        },
-        result: "{\"key0\":[[0,1],[2,3]],\"key1\":[[4,1],[5,3]]}",
-        title: 'old style widget metrics'
-      },
-      {
-        data: [
-          {
-            name: 'n0',
-            data: [[6, 7], [8, 9]]
-          },
-          {
-            name: 'n1',
-            data: [[10, 7], [11, 9]]
-          }
-        ],
-        result: "[{\"name\":\"n0\",\"data\":[[6,7],[8,9]]},{\"name\":\"n1\",\"data\":[[10,7],[11,9]]}]",
-        title: 'enhanced widget metrics'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        expect(obj.prepareJSON(item.data).replace(/\s/g, '')).to.equal(item.result);
+        });
+        expect(obj.prepareCSV(data)).to.equal(item.result);
       });
     });
 
@@ -311,6 +294,58 @@ describe('App.ExportMetricsMixin', function () {
           isExportMenuHidden: false
         });
         expect(obj.get('isExportMenuHidden')).to.equal(item.isExportMenuHidden);
+      });
+    });
+
+  });
+
+  describe('#jsonReplacer', function () {
+
+    var cases = [
+      {
+        json: [
+          {
+            name: 'n0',
+            data: [
+              [0, 1],
+              [1, 2]
+            ]
+          }
+        ],
+        result: '[{"name":"n0","data":[[0,1],[1,2]]}]',
+        title: 'valid object'
+      },
+      {
+        json: [
+          {
+            name: 'n1',
+            data: [
+              [0, 1],
+              [1, 2]
+            ],
+            p1: 'v1'
+          }
+        ],
+        result: '[{"name":"n1","data":[[0,1],[1,2]]}]',
+        title: 'object with redundant property'
+      },
+      {
+        json: [
+          {
+            name: 'n1',
+            data: {
+              p2: 'v2'
+            }
+          }
+        ],
+        result: '[{"name":"n1","data":{}}]',
+        title: 'object with malformed data'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(JSON.stringify(item.json, obj.jsonReplacer())).to.equal(item.result);
       });
     });
 

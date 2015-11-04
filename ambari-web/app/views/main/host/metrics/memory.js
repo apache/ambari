@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
   id: "host-metrics-memory",
   title: Em.I18n.t('hosts.host.metrics.memory'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'host.metrics.memory',
@@ -45,41 +45,18 @@ App.ChartHostMetricsMemory = App.ChartLinearTimeView.extend({
     ]
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var KB = Math.pow(2, 10);
-    if (jsonData && jsonData.metrics && jsonData.metrics.memory) {
-      for ( var name in jsonData.metrics.memory) {
-        var displayName;
-        var seriesData = jsonData.metrics.memory[name];
-        switch (name) {
-          case "mem_shared":
-            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_shared');
-            break;
-          case "swap_free":
-            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.swap_free');
-            break;
-          case "mem_buffers":
-            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_buffers');
-            break;
-          case "mem_free":
-            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_free');
-            break;
-          case "mem_cached":
-            displayName = Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_cached');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          var s = this.transformData(seriesData, displayName);
-          for (var i = 0; i < s.data.length; i++) {
-            s.data[i].y *= KB;
-          }
-          seriesArray.push(s);
-        }
-      }
-    }
-    return seriesArray;
+  seriesTemplate: {
+    path: 'metrics.memory',
+    displayName: function (name) {
+      var displayNameMap = {
+        mem_shared: Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_shared'),
+        swap_free: Em.I18n.t('hosts.host.metrics.memory.displayNames.swap_free'),
+        mem_buffers: Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_buffers'),
+        mem_free: Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_free'),
+        mem_cached: Em.I18n.t('hosts.host.metrics.memory.displayNames.mem_cached')
+      };
+      return displayNameMap[name];
+    },
+    factor: Math.pow(2, 10)
   }
 });

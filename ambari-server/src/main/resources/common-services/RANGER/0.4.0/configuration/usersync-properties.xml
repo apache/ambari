@@ -23,10 +23,31 @@
   <property>
     <name>SYNC_SOURCE</name>
     <value>unix</value>
-    <description></description>
+    <display-name>Sync Source</display-name>
+    <description>Sync Source</description>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>unix</value>
+          <label>UNIX</label>
+        </entry>
+        <entry>
+          <value>file</value>
+          <label>FILE</label>
+        </entry>
+        <entry>
+          <value>ldap</value>
+          <label>LDAP/AD</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>MIN_UNIX_USER_ID_TO_SYNC</name>
+    <display-name>Minimum User ID</display-name>
     <value>1000</value>
     <description></description>
   </property>
@@ -42,17 +63,20 @@
   </property>
   <property>
     <name>SYNC_LDAP_URL</name>
-    <value>ldap://localhost:389</value>
-    <description>a sample value would be:  ldap://ldap.example.com:389</description>
+    <display-name>LDAP (AD) URL</display-name>
+    <value></value>
+    <description>LDAP server URL. Example value = ldap://localhost:389</description>
   </property>
   <property>
     <name>SYNC_LDAP_BIND_DN</name>
-    <value>cn=admin,dc=xasecure,dc=net</value>
-    <description>a sample value would be cn=admin,ou=users,dc=hadoop,dc=apache,dc-org</description>
+    <display-name>​Bind User</display-name>
+    <value></value>
+    <description>Full distinguished name (DN), including common name (CN), of an LDAP user account that has privileges to search for users. Example: cn=admin,ou=users,dc=hadoop,dc=apache,dc-org</description>
   </property>
   <property>
     <name>SYNC_LDAP_BIND_PASSWORD</name>
-    <value>admin321</value>
+    <display-name>Bind User Password</display-name>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>
@@ -63,34 +87,37 @@
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_BASE</name>
-    <value>ou=users,dc=xasecure,dc=net</value>
+    <display-name>User Search Base</display-name>
+    <value></value>
     <description>sample value would be ou=users,dc=hadoop,dc=apache,dc=org</description>
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_SCOPE</name>
+    <display-name>User Search Scope</display-name>
     <value>sub</value>
     <description>default value: sub</description>
   </property>
   <property>
     <name>SYNC_LDAP_USER_OBJECT_CLASS</name>
+    <display-name>User Object Class​</display-name>
     <value>person</value>
     <description>default value: person</description>
   </property>
   <property>
     <name>SYNC_LDAP_USER_SEARCH_FILTER</name>
+    <display-name>​User Search Filter</display-name>
     <value></value>
     <description>default value is empty</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
   </property>
   <property>
     <name>SYNC_LDAP_USER_NAME_ATTRIBUTE</name>
+    <display-name>Username Attribute</display-name>
     <value>cn</value>
     <description>default value: cn</description>
   </property>
   <property>
     <name>SYNC_LDAP_USER_GROUP_NAME_ATTRIBUTE</name>
+    <display-name>User Group Name Attribute</display-name>
     <value>memberof,ismemberof</value>
     <description></description>
   </property>

@@ -153,7 +153,6 @@ App.TableView = Em.View.extend(App.UserPref, {
    * @returns {*}
    */
   getUserPrefSuccessCallback: function (response, request, data) {
-    console.log('Got DisplayLength value from server with key ' + data.key + '. Value is: ' + response);
     this.set('displayLength', response);
     return response;
   },
@@ -164,7 +163,6 @@ App.TableView = Em.View.extend(App.UserPref, {
    */
   getUserPrefErrorCallback: function () {
     // this user is first time login
-    console.log('Persist did NOT find the key');
     var displayLengthDefault = this.get('defaultDisplayLength');
     this.set('displayLength', displayLengthDefault);
     if (App.isAccessible('upgrade_ADMIN')) {

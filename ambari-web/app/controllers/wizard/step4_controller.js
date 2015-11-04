@@ -262,7 +262,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
     var availableServices = this.filterProperty('isInstalled',false);
     availableServices.forEach(function(service){
       if (dfsServices.contains(service.get('serviceName')) || service.get('serviceType') == 'HCFS' ) {
-        console.log("found DFS " + service.get('serviceName'));
         bDFSStack=true;
       }
     },this);

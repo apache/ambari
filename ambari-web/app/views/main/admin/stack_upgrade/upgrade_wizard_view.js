@@ -69,8 +69,8 @@ App.upgradeWizardView = Em.View.extend({
    * @type {boolean}
    */
   isDowngradeAvailable: function () {
-    return !this.get('controller.isDowngrade');
-  }.property('controller.isDowngrade'),
+    return !this.get('controller.isDowngrade') && this.get('controller.downgradeAllowed');
+  }.property('controller.isDowngrade', 'controller.downgradeAllowed'),
 
   /**
    * progress value is rounded to floor

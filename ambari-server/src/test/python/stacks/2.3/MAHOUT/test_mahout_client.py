@@ -62,7 +62,7 @@ class TestMahoutClient(RMFTestCase):
 
     self.assertNoMoreResources()
 
-  def test_pre_rolling_restart(self):
+  def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -71,7 +71,7 @@ class TestMahoutClient(RMFTestCase):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
       classname = "MahoutClient",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
@@ -79,7 +79,7 @@ class TestMahoutClient(RMFTestCase):
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'mahout-client', '2.2.1.0-3242'), sudo=True)
     self.assertNoMoreResources()
 
-  def test_pre_rolling_restart_23(self):
+  def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder() + "/test/python/stacks/2.2/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -96,7 +96,7 @@ class TestMahoutClient(RMFTestCase):
     self.executeScript(
       self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
       classname = "MahoutClient",
-      command = "pre_rolling_restart",
+      command = "pre_upgrade_restart",
       config_dict = json_content,
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES,

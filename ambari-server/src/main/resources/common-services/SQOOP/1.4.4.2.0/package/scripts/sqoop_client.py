@@ -47,7 +47,7 @@ class SqoopClientDefault(SqoopClient):
   def get_stack_to_component(self):
     return {"HDP": "sqoop-client"}
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

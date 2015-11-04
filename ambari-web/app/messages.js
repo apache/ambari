@@ -896,6 +896,8 @@ Em.I18n.translations = {
   'installer.step9.serviceStatus.abort.completed':' aborted successfully',
   'installer.step9.serviceStatus.abort.failed':' failed to abort',
   'installer.step9.components.install.failed': 'Installation Failure',
+  'installer.step9.service.start.failed': 'There were issues starting installed services. Please go to individual service pages to start them.',
+  'installer.step9.service.start.header': 'Start Services',
 
   'installer.step10.header':'Summary',
   'installer.step10.body':'Here is the summary of the install process.',
@@ -1775,8 +1777,8 @@ Em.I18n.translations = {
   'services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesInPerSec': 'Bytes In',
   'services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsMessagesInPerSec': 'Messages In',
   'services.service.info.metrics.kafka.server.ReplicaManager.title': 'Replica Manager',
-  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.PartitionCount': 'Partiotions count',
-  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.UnderReplicatedPartitions': 'Under Replicated Partiotions',
+  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.PartitionCount': 'Partitions count',
+  'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.UnderReplicatedPartitions': 'Under Replicated Partitions',
   'services.service.info.metrics.kafka.server.ReplicaManager.displayNames.LeaderCount': 'Leader Count',
   'services.service.info.metrics.kafka.controller.ControllerStats.title': 'Controller Status',
   'services.service.info.metrics.kafka.controller.ControllerStats.displayNames.LeaderElectionRateAndTimeMs': 'Leader Election Rate And Time',
@@ -1931,6 +1933,7 @@ Em.I18n.translations = {
   'services.reassign.step4.tasks.configureMySqlServer.title':'Configure MYSQL Server',
   'services.reassign.step4.tasks.startMySqlServer.title':'Start MYSQL Server',
   'services.reassign.step4.tasks.restartMySqlServer.title':'Restart MYSQL Server',
+  'services.reassign.step4.tasks.startServices.title':'Start Services',
   'services.reassign.step4.tasks.testDBConnection.title':'Test DB Connection',
   'services.reassign.step4.tasks.testDBConnection.tooltip':'Database Host: {0}\n' +
   'Database Type: {1}\n' +

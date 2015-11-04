@@ -168,7 +168,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   sendComponentCommandSuccessCallback: function (data, opt, params) {
     var running = (params.HostRoles.state === App.HostComponentStatus.stopped) ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
-    console.log('Send request for ' + running + ' successfully');
     params.component.set('workStatus', running);
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, running, params.HostRoles.state);
@@ -456,9 +455,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method _doDeleteHostComponentErrorCallback
    */
   _doDeleteHostComponentErrorCallback: function (xhr, textStatus, errorThrown, data) {
-    console.log('Error deleting host component');
-    console.log(textStatus);
-    console.log(errorThrown);
     this.set('_deletedHostComponentResult', {xhr: xhr, url: data.url, method: 'DELETE'});
   },
 
@@ -517,8 +513,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method upgradeComponentSuccessCallback
    */
   upgradeComponentSuccessCallback: function (data, opt, params) {
-    console.log('Send request for UPGRADE successfully');
-
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.starting, App.HostComponentStatus.started);
     }
@@ -681,7 +675,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return false;
     }
     var self = this;
-    console.log('Send request for INSTALLING NEW COMPONENT successfully');
 
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
@@ -1116,7 +1109,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method refreshComponentConfigsSuccessCallback
    */
   refreshComponentConfigsSuccessCallback: function () {
-    console.log('Send request for refresh configs successfully');
     this.showBackgroundOperationsPopup();
   },
 
@@ -1396,7 +1388,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method installComponentSuccessCallback
    */
   installComponentSuccessCallback: function (data, opt, params) {
-    console.log('Send request for REINSTALL COMPONENT successfully');
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, App.HostComponentStatus.installing, App.HostComponentStatus.stopped);
     }
@@ -1684,7 +1675,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method decommissionErrorCallback
    */
   decommissionErrorCallback: function (request, ajaxOptions, error) {
-    console.log('ERROR: ' + error);
   },
 
   /**
@@ -1698,7 +1688,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       this.showBackgroundOperationsPopup();
       return true;
     } else {
-      console.log('cannot get request id from ', data);
       return false;
     }
   },
@@ -2210,9 +2199,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.router.get('clusterController').getAllHostNames();
   },
   deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
-    console.log('Error deleting host.');
-    console.log(textStatus);
-    console.log(errorThrown);
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
     var self = this;
     var callback =   function () {
@@ -2414,8 +2400,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   executeCustomCommandSuccessCallback  : function(data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
     }
   },
   executeCustomCommandErrorCallback : function(data) {
@@ -2427,7 +2411,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       } catch (err) {}
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
-    console.warn('Error during executing custom command');
   },
 
   /**

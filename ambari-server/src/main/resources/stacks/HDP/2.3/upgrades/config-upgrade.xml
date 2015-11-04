@@ -494,7 +494,7 @@
             <replace key="hive.security.authorization.manager" find="com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory" replace-with="org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory" />
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentification" summary="Configuring hive authentication">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication" summary="Configuring hive authentication">
             <type>hive-site</type>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.url" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
             <transfer operation="delete" delete-key="hive.server2.authentication.ldap.baseDN" if-key="hive.server2.authentication" if-type="hive-site" if-value="NONE"/>
@@ -811,6 +811,18 @@
             <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME" />
             <transfer operation="delete" delete-key="REPOSITORY_NAME" />
             <transfer operation="delete" delete-key="POLICY_MGR_URL" />
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+
+    <service name="KAFKA">
+      <component name="KAFKA_BROKER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_3_0_0_kafka_broker_listeners">
+            <type>kafka-broker</type>
+            <set key="listeners" value="PLAINTEXT://localhost:6667"/>
           </definition>
         </changes>
       </component>

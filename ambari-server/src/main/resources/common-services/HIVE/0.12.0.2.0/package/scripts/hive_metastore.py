@@ -48,16 +48,22 @@ class HiveMetastore(Script):
     import params
     self.install_packages(env, exclude_packages = params.hive_exclude_packages)
 
-  def start(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    self.configure(env)  # FOR SECURITY
-    hive_service('metastore', action='start', rolling_restart=rolling_restart)
 
-  def stop(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    hive_service('metastore', action='stop')
+
+    # writing configurations on start required for securtity
+    self.configure(env)
+
+    hive_service('metastore', action='start', upgrade_type=upgrade_type)
+
+
+  def stop(self, env, upgrade_type=None):
+    import params
+    env.set_params(params)
+    hive_service('metastore', action='stop', upgrade_type=upgrade_type)
+
 
   def configure(self, env):
     import params
@@ -78,6 +84,7 @@ class HiveMetastoreDefault(HiveMetastore):
   def get_stack_to_component(self):
     return {"HDP": "hive-metastore"}
 
+
   def status(self, env):
     import status_params
     from resource_management.libraries.functions import check_process_status
@@ -87,17 +94,22 @@ class HiveMetastoreDefault(HiveMetastore):
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Metastore Rolling Upgrade pre-restart")
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Metastore Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
     if Script.is_hdp_stack_greater_or_equal("2.3"):
+      # ensure that configurations are written out before trying to upgrade the schema
+      # since the schematool needs configs and doesn't know how to use the hive conf override
+      self.configure(env)
       self.upgrade_schema(env)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
       hdp_select.select("hive-metastore", params.version)
+
 
   def security_status(self, env):
     import status_params
@@ -160,7 +172,7 @@ class HiveMetastoreDefault(HiveMetastore):
     databases. During an upgrade, it's possible that the library is not present,
     so this will also attempt to copy/download the appropriate driver.
     """
-    Logger.info("Upgrading Hive Metastore")
+    Logger.info("Upgrading Hive Metastore Schema")
     import params
     env.set_params(params)
 
@@ -173,16 +185,11 @@ class HiveMetastoreDefault(HiveMetastore):
     if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
       target_directory = format("/usr/hdp/{version}/hive/lib")
 
-      # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
-      # but if hdp-select is called and the restart fails, then this means that current pointer
-      # is now pointing to the upgraded version location; that's bad for the cp command
-      source_jdbc_file = format(params.target.replace("/usr/hdp/current", "/usr/hdp/{current_version}"))
-
       # download it if it does not exist
-      if not os.path.exists(source_jdbc_file):
+      if not os.path.exists(params.source_jdbc_file):
         jdbc_connector()
 
-      target_directory_and_filename = os.path.join(target_directory, os.path.basename(source_jdbc_file))
+      target_directory_and_filename = os.path.join(target_directory, os.path.basename(params.source_jdbc_file))
 
       if params.sqla_db_used:
         target_native_libs_directory = format("{target_directory}/native/lib64")
@@ -198,7 +205,7 @@ class HiveMetastoreDefault(HiveMetastore):
         # copy the JDBC driver from the older metastore location to the new location only
         # if it does not already exist
         if not os.path.exists(target_directory_and_filename):
-          Execute(('cp', source_jdbc_file, target_directory),
+          Execute(('cp', params.source_jdbc_file, target_directory),
             path=["/bin", "/usr/bin/"], sudo = True)
 
       File(target_directory_and_filename, mode = 0644)

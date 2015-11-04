@@ -32,4 +32,11 @@ import java.lang.annotation.Target;
     ElementType.ANNOTATION_TYPE, ElementType.PACKAGE, ElementType.FIELD,
     ElementType.LOCAL_VARIABLE })
 public @interface Experimental {
+
+  /**
+   * The logical feature set that an experimental area of code belongs to.
+   *
+   * @return
+   */
+  ExperimentalFeature feature();
 }

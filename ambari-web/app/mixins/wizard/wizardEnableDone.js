@@ -25,11 +25,10 @@ var App = require('app');
  */
 App.WizardEnableDone = Em.Mixin.create({
   statusChangeCallback: function (data) {
+    var wizardController = App.router.get(this.get('content.controllerName'));
     this._super(data);
-    if (this.get('tasks.lastObject.id') === this.get('currentTaskId')) {
-      if (this.get('tasks.lastObject.status') === 'FAILED') {
-        this.set('isSubmitDisabled', false);
-      }
+    if (wizardController.get('totalSteps') == wizardController.get('currentStep') && this.get('tasks.lastObject.status') === 'FAILED') {
+      this.set('isSubmitDisabled', false);
     }
   }
 });

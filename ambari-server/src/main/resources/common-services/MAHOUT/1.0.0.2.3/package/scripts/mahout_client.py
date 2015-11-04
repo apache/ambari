@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ClientComponentHasNoStatus
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import conf_select
@@ -31,7 +32,8 @@ class MahoutClient(Script):
     return {"HDP": "mahout-client"}
 
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 

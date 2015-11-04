@@ -123,9 +123,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           var self = this;
           var dfd = $.Deferred();
           this.loadKerberosDescriptorConfigs().done(function() {
-            var serviceNames = App.StackService.find().filter(function(s) {
-              return s.get('isSelected') || s.get('isInstalled');
-            }).mapProperty('serviceName');
             self.loadConfigThemes().then(function() {
               dfd.resolve();
             });
@@ -213,7 +210,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       return !services.installedServices.contains(serviceName);
     }));
     this.setDBProperty('services', services);
-    console.log('AddServiceController.saveServices: saved data', stepController.get('content'));
 
     this.set('content.selectedServiceNames', selectedServiceNames);
     this.setDBProperty('selectedServiceNames', selectedServiceNames);
@@ -241,7 +237,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       });
     });
 
-    console.log("AddServiceController.saveMasterComponentHosts: saved hosts ", masterComponentHosts);
     this.setDBProperty('masterComponentHosts', masterComponentHosts);
     this.set('content.masterComponentHosts', masterComponentHosts);
 
@@ -343,7 +338,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       slaveComponentHosts = this.getSlaveComponentHosts();
     }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
-    console.log("AddServiceController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
 
   /**
@@ -445,7 +439,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
     this.setDBProperty('clientInfo', clients);
     this.set('content.clients', clients);
-    console.log("AddServiceController.saveClients: saved list ", clients);
   },
 
   /**

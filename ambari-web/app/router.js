@@ -114,11 +114,9 @@ App.Router = Em.Router.extend({
   getWizardCurrentStep: function (wizardType) {
     var loginName = this.getLoginName();
     var currentStep = App.db.getWizardCurrentStep(wizardType);
-    console.log('getWizardCurrentStep: loginName=' + loginName + ", currentStep=" + currentStep);
     if (!currentStep) {
       currentStep = wizardType === 'installer' ? '0' : '1';
     }
-    console.log('returning currentStep=' + currentStep);
     return currentStep;
   },
 
@@ -191,13 +189,10 @@ App.Router = Em.Router.extend({
   onAuthenticationError: function (data) {
     if (data.status === 403) {
       this.setAuthenticated(false);
-    } else {
-      console.log('error in getAuthenticated');
     }
   },
 
   setAuthenticated: function (authenticated) {
-    console.log("TRACE: Entering router:setAuthenticated function");
     App.db.setAuthenticated(authenticated);
     this.set('loggedIn', authenticated);
   },
@@ -276,7 +271,6 @@ App.Router = Em.Router.extend({
   },
 
   loginSuccessCallback: function(data, opt, params) {
-    console.log('login success');
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(decodeURIComponent(params.loginName));
     var requestData = {
@@ -299,7 +293,6 @@ App.Router = Em.Router.extend({
 
   loginErrorCallback: function(request, ajaxOptions, error, opt) {
     var controller = this.get('loginController');
-    console.log("login error: " + error);
     this.setAuthenticated(false);
     if (request.status == 403) {
       var responseMessage = request.responseText;
@@ -460,7 +453,6 @@ App.Router = Em.Router.extend({
     });
     this.set('loggedIn', false);
     this.clearAllSteps();
-    console.log("Log off: " + App.router.getClusterName());
     this.set('loginController.loginName', '');
     this.set('loginController.password', '');
     // When logOff is called by Sign Out button, context contains event object. As it is only case we should send logoff request, we are checking context below.
@@ -479,13 +471,12 @@ App.Router = Em.Router.extend({
   },
 
   logOffSuccessCallback: function () {
-    console.log("invoked logout on the server successfully");
     var applicationController = App.router.get('applicationController');
     applicationController.set('isPollerRunning', false);
   },
 
   logOffErrorCallback: function () {
-    console.log("failed to invoke logout on the server");
+
   },
 
   /**
@@ -529,11 +520,8 @@ App.Router = Em.Router.extend({
       // If the path is not relative, silently ignore it - if the path is an absolute URL, the user
       // may be routed to a different server where the possibility exists for a phishing attack.
       if ((preferredPath.startsWith('/') || preferredPath.startsWith('#')) && !preferredPath.contains('#/login')) {
-        console.log("INFO: Routing to preferred path: " + preferredPath);
         window.location = preferredPath;
         isRestored = true;
-      } else {
-        console.log("WARNING: Ignoring preferred path since it is not a relative URL: " + preferredPath);
       }
       // Unset preferedPath
       this.set('preferedPath', null);
@@ -551,7 +539,6 @@ App.Router = Em.Router.extend({
       if (user) {
         if (user.admin) {
           App.set('isAdmin', true);
-          console.log('Administrator logged in');
         }
         if (user.operator) {
           App.set('isOperator', true);
@@ -582,7 +569,6 @@ App.Router = Em.Router.extend({
         router.getAuthenticated().done(function (loggedIn) {
           if (loggedIn) {
             Ember.run.next(function () {
-              console.log(router.getLoginName() + ' already authenticated.  Redirecting...');
               router.getSection(function (route) {
                 router.transitionTo(route, context);
               });
@@ -596,8 +582,6 @@ App.Router = Em.Router.extend({
 
       connectOutlets: function (router, context) {
         $('title').text(Em.I18n.t('app.name'));
-        console.log('/login:connectOutlet');
-        console.log('currentStep is: ' + router.getInstallerCurrentStep());
         router.get('applicationController').connectOutlet('login');
       }
     }),
@@ -644,7 +628,6 @@ App.Router = Em.Router.extend({
         if (App.isAccessible('upgrade_ONLY_ADMIN')) {
           App.router.get('experimentalController').loadSupports().complete(function () {
             $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
-            console.log('/experimental:connectOutlet');
             router.get('applicationController').connectOutlet('experimental');
           });
         }

@@ -103,6 +103,7 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -315,7 +316,8 @@ public class ControllerModule extends AbstractModule {
     bind(Clusters.class).to(ClustersImpl.class);
     bind(AmbariCustomCommandExecutionHelper.class);
     bind(ActionDBAccessor.class).to(ActionDBAccessorImpl.class);
-    bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(1000L);
+    bindConstant().annotatedWith(Names.named("schedulerSleeptime")).to(
+      configuration.getExecutionSchedulerWait());
 
     // This time is added to summary timeout time of all tasks in stage
     // So it's an "additional time", given to stage to finish execution before
@@ -331,13 +333,14 @@ public class ControllerModule extends AbstractModule {
         to(configuration.getExecutionCommandsCacheSize());
 
     bind(AmbariManagementController.class).to(
-        AmbariManagementControllerImpl.class);
+      AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
     bind(TimelineMetricCacheProvider.class);
     bind(TimelineMetricCacheEntryFactory.class);
+    bind(SecurityConfigurationFactory.class).in(Scopes.SINGLETON);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);

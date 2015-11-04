@@ -102,6 +102,30 @@ describe('#App.ManageCredentialsFormView', function() {
     });
   });
 
+  describe('fields validation', function() {
+    it('should flow validation', function() {
+      var t = Em.I18n.t;
+      assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled on initial state');
+      view.set('principal', ' a');
+      assert.equal(view.get('principalError'), t('host.spacesValidation'), 'principal contains spaces, appropriate message shown');
+      assert.isTrue(view.get('isPrincipalDirty'), 'principal name modified');
+      assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because principal not valid');
+      view.set('principal', '');
+      assert.equal(view.get('principalError'), t('admin.users.editError.requiredField'), 'principal is empty, appropriate message shown');
+      view.set('principal', 'some_name');
+      assert.isFalse(view.get('principalError'), 'principal name valid no message shown');
+      assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because password field not modified');
+      view.set('password', '1');
+      view.set('password', '');
+      assert.equal(view.get('passwordError'), t('admin.users.editError.requiredField'), 'password is empty, appropriate message shown');
+      assert.isTrue(view.get('isPasswordDirty'), 'password modified');
+      assert.isTrue(view.get('isSubmitDisabled'), 'submit disabled because password field is empty');
+      view.set('password', 'some_pass');
+      assert.isFalse(view.get('passwordError'), 'password valid no message shown');
+      assert.isFalse(view.get('isSubmitDisabled'), 'submit enabled all fields are valid');
+    });
+  });
+
   describe('#removeKDCCredentials', function() {
     it('should show confirmation popup', function() {
       var popup = view.removeKDCCredentials().popup;

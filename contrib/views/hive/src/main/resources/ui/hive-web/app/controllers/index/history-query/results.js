@@ -142,6 +142,33 @@ export default Ember.ObjectController.extend({
     return defer.promise;
   },
 
+  getResult : function(url){
+    var promise = new Ember.RSVP.Promise(function(resolve,reject){
+      var getData =  function(){
+        //console.log("getData called.");
+        Ember.$.getJSON(url).done(function(data){
+          console.log('results.js : getResult : got success data');
+          resolve(data);
+        }).fail(function(err){
+          if(err.status == 503 && err.getResponseHeader('Retry-After')){
+            var time = Number(err.getResponseHeader('Retry-After'));
+            console.log("results.js : getResult : got error : " + err.status + " with retry.");
+            Ember.run.later(this,
+            function(){
+              getData();
+            },time*1000);
+          }else{
+            console.log("results.js : getResult : rejected. ");
+            reject(err);
+          }
+        });
+      };
+      getData();
+    });
+
+    return promise;
+  },
+
   actions: {
     getNextPage: function (firstPage, job) {
       var self = this;
@@ -164,7 +191,9 @@ export default Ember.ObjectController.extend({
         }
       }
 
-      Ember.$.getJSON(url).then(function (results) {
+      this.getResult(url)
+      .then(function (results) {
+        //console.log("inside then : ", results);
         if (existingJob) {
           existingJob.results.pushObject(results);
           existingJob.set('offset', results.offset);

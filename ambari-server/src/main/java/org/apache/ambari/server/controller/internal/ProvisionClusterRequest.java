@@ -17,22 +17,31 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.base.Enums;
+import com.google.common.base.Strings;
+import com.google.common.base.Optional;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
+import org.apache.ambari.server.topology.Credential;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.RequiredPasswordValidator;
+import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.TopologyValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Request for provisioning a cluster.
@@ -80,6 +89,11 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String DEFAULT_PASSWORD_PROPERTY = "default_password";
 
   /**
+   * configuration recommendation strategy property name
+   */
+  public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
+
+  /**
    * configuration factory
    */
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
@@ -94,16 +108,25 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   private String defaultPassword;
 
+  private Map<String, Credential> credentialsMap;
+
+  /**
+   * configuration recommendation strategy
+   */
+  private final ConfigRecommendationStrategy configRecommendationStrategy;
+
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
   /**
    * Constructor.
    *
    * @param properties  request properties
+   * @param securityConfiguration  security config related properties
    */
-  public ProvisionClusterRequest(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+  public ProvisionClusterRequest(Map<String, Object> properties, SecurityConfiguration securityConfiguration) throws
+    InvalidTopologyTemplateException {
     setClusterName(String.valueOf(properties.get(
-        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
+      ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 
     if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
       defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
@@ -117,12 +140,54 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       throw new InvalidTopologyTemplateException("The specified blueprint doesn't exist: " + e, e);
     }
 
+    this.securityConfiguration = securityConfiguration;
+
     Configuration configuration = configurationFactory.getConfiguration(
         (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
     parseHostGroupInfo(properties);
+
+    this.credentialsMap = parseCredentials(properties);
+
+    this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
+  }
+
+  private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
+    InvalidTopologyTemplateException {
+    HashMap<String, Credential> credentialHashMap = new HashMap<>();
+    Set<Map<String, String>> credentialsSet = (Set<Map<String, String>>) properties.get(ClusterResourceProvider.CREDENTIALS_PROPERTY_ID);
+    if (credentialsSet != null) {
+      for (Map<String, String> credentialMap : credentialsSet) {
+        String alias = Strings.emptyToNull(credentialMap.get("alias"));
+        if (alias == null) {
+          throw new InvalidTopologyTemplateException("credential.alias property is missing.");
+        }
+        String principal = Strings.emptyToNull(credentialMap.get("principal"));
+        if (principal == null) {
+          throw new InvalidTopologyTemplateException("credential.principal property is missing.");
+        }
+        String key = Strings.emptyToNull(credentialMap.get("key"));
+        if (key == null) {
+          throw new InvalidTopologyTemplateException("credential.key is missing.");
+        }
+        String typeString = Strings.emptyToNull(credentialMap.get("type"));
+        if (typeString == null) {
+          throw new InvalidTopologyTemplateException("credential.type is missing.");
+        }
+        CredentialStoreType type = Enums.getIfPresent(CredentialStoreType.class, typeString.toUpperCase()).orNull();
+        if (type == null) {
+          throw new InvalidTopologyTemplateException("credential.type is invalid.");
+        }
+        credentialHashMap.put(alias, new Credential(alias, principal, key, type));
+      }
+    }
+    return credentialHashMap;
+  }
+
+  public Map<String, Credential> getCredentialsMap() {
+    return credentialsMap;
   }
 
   public String getClusterName() {
@@ -131,6 +196,10 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
 
   public void setClusterName(String clusterName) {
     this.clusterName = clusterName;
+  }
+
+  public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
+    return configRecommendationStrategy;
   }
 
   @Override
@@ -291,6 +360,29 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     if (hostGroupInfo.getRequestedHostCount() == 0) {
       throw new InvalidTopologyTemplateException(String.format(
           "Host group '%s' must contain at least one 'hosts/fqdn' or a 'host_count' value", name));
+    }
+  }
+
+  /**
+   * Parse config recommendation strategy. Throws exception in case of the value is not correct.
+   * The default value is {@link ConfigRecommendationStrategy#NEVER_APPLY}
+   * @param properties request properties
+   * @throws InvalidTopologyTemplateException specified config recommendation strategy property fail validation
+   */
+  private ConfigRecommendationStrategy parseConfigRecommendationStrategy(Map<String, Object> properties)
+    throws InvalidTopologyTemplateException {
+    if (properties.containsKey(CONFIG_RECOMMENDATION_STRATEGY)) {
+      String configRecommendationStrategy = String.valueOf(properties.get(CONFIG_RECOMMENDATION_STRATEGY));
+      Optional<ConfigRecommendationStrategy> configRecommendationStrategyOpt =
+        Enums.getIfPresent(ConfigRecommendationStrategy.class, configRecommendationStrategy);
+      if (!configRecommendationStrategyOpt.isPresent()) {
+        throw new InvalidTopologyTemplateException(String.format(
+          "Config recommendation stratagy is not supported: %s", configRecommendationStrategy));
+      }
+      return configRecommendationStrategyOpt.get();
+    } else {
+      // default
+      return ConfigRecommendationStrategy.NEVER_APPLY;
     }
   }
 }

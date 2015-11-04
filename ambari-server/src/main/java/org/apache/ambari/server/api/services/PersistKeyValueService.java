@@ -70,14 +70,14 @@ public class PersistKeyValueService {
   @PUT
   @Produces("text/plain")
   public String store(String values) throws IOException, JAXBException {
-    LOG.info("Received message from UI " + values);
+    LOG.debug("Received message from UI " + values);
     Collection<String> valueCollection = StageUtils.fromJson(values, Collection.class);
     Collection<String> keys = new ArrayList<String>(valueCollection.size());
     for (String s : valueCollection) {
       keys.add(persistKeyVal.put(s));
     }
     String stringRet = StageUtils.jaxbToString(keys);
-    LOG.info("Returning " + stringRet);
+    LOG.debug("Returning " + stringRet);
     return stringRet;
   }
 
@@ -85,9 +85,7 @@ public class PersistKeyValueService {
   @Produces("text/plain")
   @Path("{keyName}")
   public String getKey( @PathParam("keyName") String keyName) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Looking for keyName " + keyName);
-    }
+    LOG.debug("Looking for keyName " + keyName);
     return persistKeyVal.getValue(keyName);
   }
 

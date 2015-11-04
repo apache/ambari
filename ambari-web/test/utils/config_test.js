@@ -1005,7 +1005,8 @@ describe('App.config', function () {
       dependentConfigPattern: null,
       options: null,
       radioName: null,
-      belongsToService: []
+      belongsToService: [],
+      widget: null
     };
     it('create default config object', function () {
       expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);

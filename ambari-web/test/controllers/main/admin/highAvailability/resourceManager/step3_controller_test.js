@@ -197,7 +197,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       controller.loadConfigsSuccessCallback({}, {}, {}, {}, {
         serviceConfig: {}
       });
-      console.error("test_alex!!!!!",controller.setDynamicConfigValues.args[0]);
       expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, '2181', ':8088', ':8090']);
       expect(controller.get('selectedService')).to.eql({});
       expect(controller.get('isLoaded')).to.be.true;

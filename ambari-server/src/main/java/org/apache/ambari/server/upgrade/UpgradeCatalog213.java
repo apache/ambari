@@ -18,20 +18,11 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -69,11 +60,19 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -86,9 +85,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
+  private static final String AMS_SITE = "ams-site";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String HIVE_SITE_CONFIG = "hive-site";
+  private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
+  private static final String HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY = "hive.server2.logging.operation.log.location";
   private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String CONTENT_PROPERTY = "content";
   private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
@@ -112,6 +115,17 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String KERBEROS_DESCRIPTOR_TABLE = "kerberos_descriptor";
   private static final String KERBEROS_DESCRIPTOR_NAME_COLUMN = "kerberos_descriptor_name";
   private static final String KERBEROS_DESCRIPTOR_COLUMN = "kerberos_descriptor";
+  private static final String RANGER_HDFS_PLUGIN_ENABLED_PROPERTY = "ranger-hdfs-plugin-enabled";
+  private static final String RANGER_HIVE_PLUGIN_ENABLED_PROPERTY = "ranger-hive-plugin-enabled";
+  private static final String RANGER_HBASE_PLUGIN_ENABLED_PROPERTY = "ranger-hbase-plugin-enabled";
+  private static final String RANGER_STORM_PLUGIN_ENABLED_PROPERTY = "ranger-storm-plugin-enabled";
+  private static final String RANGER_KNOX_PLUGIN_ENABLED_PROPERTY = "ranger-knox-plugin-enabled";
+  private static final String RANGER_YARN_PLUGIN_ENABLED_PROPERTY = "ranger-yarn-plugin-enabled";
+  private static final String RANGER_KAFKA_PLUGIN_ENABLED_PROPERTY = "ranger-kafka-plugin-enabled";
+
+  private static final String BLUEPRINT_TABLE = "blueprint";
+  private static final String SECURITY_TYPE_COLUMN = "security_type";
+  private static final String SECURITY_DESCRIPTOR_REF_COLUMN = "security_descriptor_reference";
 
   /**
    * Logger.
@@ -171,6 +185,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
 
     addKerberosDescriptorTable();
+    executeBlueprintDDLUpdates();
   }
 
   protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
@@ -186,9 +201,16 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     dbAccessor.createTable(KERBEROS_DESCRIPTOR_TABLE, columns, KERBEROS_DESCRIPTOR_NAME_COLUMN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void executeBlueprintDDLUpdates() throws AmbariException, SQLException {
+    dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_TYPE_COLUMN,
+        String.class, 32, "NONE", false));
+    dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_DESCRIPTOR_REF_COLUMN,
+        String.class, null, null, true));
+  }
+
+    /**
+     * {@inheritDoc}
+     */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
     // execute DDL updates
@@ -249,7 +271,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateHbaseEnvConfig();
     updateHadoopEnv();
     updateKafkaConfigs();
+    updateRangerEnvConfig();
     updateZookeeperLog4j();
+    updateHiveConfig();
   }
 
   /**
@@ -605,19 +629,33 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
-      final AlertDefinitionEntity alertDefinitionEntity = alertDefinitionDAO.findByName(
-        cluster.getClusterId(), "journalnode_process");
+      long clusterID = cluster.getClusterId();
 
-      if (alertDefinitionEntity != null) {
-        String source = alertDefinitionEntity.getSource();
+      final AlertDefinitionEntity journalNodeProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "journalnode_process");
+      final AlertDefinitionEntity hostDiskUsageAlertDefinitionEntity = alertDefinitionDAO.findByName(
+          clusterID, "ambari_agent_disk_usage");
 
-        alertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
-        alertDefinitionEntity.setSourceType(SourceType.WEB);
-        alertDefinitionEntity.setHash(UUID.randomUUID().toString());
+      if (journalNodeProcessAlertDefinitionEntity != null) {
+        String source = journalNodeProcessAlertDefinitionEntity.getSource();
 
-        alertDefinitionDAO.merge(alertDefinitionEntity);
+        journalNodeProcessAlertDefinitionEntity.setSource(modifyJournalnodeProcessAlertSource(source));
+        journalNodeProcessAlertDefinitionEntity.setSourceType(SourceType.WEB);
+        journalNodeProcessAlertDefinitionEntity.setHash(UUID.randomUUID().toString());
+
+        alertDefinitionDAO.merge(journalNodeProcessAlertDefinitionEntity);
         LOG.info("journalnode_process alert definition was updated.");
       }
+
+      if (hostDiskUsageAlertDefinitionEntity != null) {
+        hostDiskUsageAlertDefinitionEntity.setDescription("This host-level alert is triggered if the amount of disk space " +
+            "used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL.");
+        hostDiskUsageAlertDefinitionEntity.setLabel("Host Disk Usage");
+
+        alertDefinitionDAO.merge(hostDiskUsageAlertDefinitionEntity);
+        LOG.info("ambari_agent_disk_usage alert definition was updated.");
+      }
+
     }
   }
 
@@ -723,6 +761,20 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateHiveConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config hiveSiteConfig = cluster.getDesiredConfigByType(HIVE_SITE_CONFIG);
+      if (hiveSiteConfig != null) {
+        String hiveServer2OperationLogLocation = hiveSiteConfig.getProperties().get(HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY);
+        if (hiveServer2OperationLogLocation != null && hiveServer2OperationLogLocation.equals("${system:java.io.tmpdir}/${system:user.name}/operation_logs")) {
+          Map<String, String> updates = Collections.singletonMap(HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY, "/tmp/hive/operation_logs");
+          updateConfigurationPropertiesForCluster(cluster, HIVE_SITE_CONFIG, updates, true, false);
+        }
+      }
+    }
+  }
+
   protected void updateHbaseEnvConfig() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
 
@@ -783,6 +835,27 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             newProperties.put("content", updateAmsHbaseEnvContent(content));
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_ENV, newProperties, true, true);
           }
+          Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
+          if (amsSite != null) {
+            Map<String, String> newProperties = new HashMap<>();
+
+            //Interval
+            newProperties.put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
+            newProperties.put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
+            newProperties.put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+
+            //ttl
+            newProperties.put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
+            newProperties.put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
+
+            //checkpoint
+            newProperties.put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
+
+            //disabled
+            newProperties.put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
+
+            updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
+          }
         }
       }
     }
@@ -820,6 +893,47 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             }
           }
         }
+      }
+    }
+  }
+
+  protected void updateRangerEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Map<String, String> newRangerEnvProps = new HashMap<>();
+      Config rangerHdfsPluginProperties = cluster.getDesiredConfigByType("ranger-hdfs-plugin-properties");
+      if (rangerHdfsPluginProperties != null && rangerHdfsPluginProperties.getProperties().containsKey(RANGER_HDFS_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_HDFS_PLUGIN_ENABLED_PROPERTY, rangerHdfsPluginProperties.getProperties().get(RANGER_HDFS_PLUGIN_ENABLED_PROPERTY));
+      }
+      Config hiveEnvProperties = cluster.getDesiredConfigByType("hive-env");
+      if (hiveEnvProperties != null && hiveEnvProperties.getProperties().containsKey("hive_security_authorization")
+              && hiveEnvProperties.getProperties().get("hive_security_authorization").toLowerCase().equals("ranger")) {
+        newRangerEnvProps.put(RANGER_HIVE_PLUGIN_ENABLED_PROPERTY, "Yes");
+      }
+      Config rangerHbasePluginProperties = cluster.getDesiredConfigByType("ranger-hbase-plugin-properties");
+      if (rangerHbasePluginProperties != null && rangerHbasePluginProperties.getProperties().containsKey(RANGER_HBASE_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_HBASE_PLUGIN_ENABLED_PROPERTY, rangerHbasePluginProperties.getProperties().get(RANGER_HBASE_PLUGIN_ENABLED_PROPERTY));
+      }
+
+      Config rangerStormPluginProperties = cluster.getDesiredConfigByType("ranger-storm-plugin-properties");
+      if (rangerStormPluginProperties != null && rangerStormPluginProperties.getProperties().containsKey(RANGER_STORM_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_STORM_PLUGIN_ENABLED_PROPERTY, rangerStormPluginProperties.getProperties().get(RANGER_STORM_PLUGIN_ENABLED_PROPERTY));
+      }
+      Config rangerKnoxPluginProperties = cluster.getDesiredConfigByType("ranger-knox-plugin-properties");
+      if (rangerKnoxPluginProperties != null && rangerKnoxPluginProperties.getProperties().containsKey(RANGER_KNOX_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_KNOX_PLUGIN_ENABLED_PROPERTY, rangerKnoxPluginProperties.getProperties().get(RANGER_KNOX_PLUGIN_ENABLED_PROPERTY));
+      }
+      Config rangerYarnPluginProperties = cluster.getDesiredConfigByType("ranger-yarn-plugin-properties");
+      if (rangerYarnPluginProperties != null && rangerYarnPluginProperties.getProperties().containsKey(RANGER_YARN_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_YARN_PLUGIN_ENABLED_PROPERTY, rangerYarnPluginProperties.getProperties().get(RANGER_YARN_PLUGIN_ENABLED_PROPERTY));
+      }
+      Config rangerKafkaPluginProperties = cluster.getDesiredConfigByType("ranger-kafka-plugin-properties");
+      if (rangerKafkaPluginProperties != null && rangerKafkaPluginProperties.getProperties().containsKey(RANGER_KAFKA_PLUGIN_ENABLED_PROPERTY)) {
+        newRangerEnvProps.put(RANGER_KAFKA_PLUGIN_ENABLED_PROPERTY, rangerKafkaPluginProperties.getProperties().get(RANGER_KAFKA_PLUGIN_ENABLED_PROPERTY));
+      }
+      if (!newRangerEnvProps.isEmpty()) {
+        updateConfigurationPropertiesForCluster(cluster, RANGER_ENV_CONFIG, newRangerEnvProps, true, true);
       }
     }
   }

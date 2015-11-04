@@ -29,6 +29,7 @@ import platform
 import inspect
 import tarfile
 from ambari_commons import OSCheck, OSConst
+from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from resource_management.libraries.resources import XmlConfig
 from resource_management.libraries.resources import PropertiesFile
@@ -468,9 +469,9 @@ class Script(object):
 
     upgrade_type = None
     if restart_type.lower() == "rolling_upgrade":
-      upgrade_type = "rolling"
+      upgrade_type = UPGRADE_TYPE_ROLLING
     elif restart_type.lower() == "nonrolling_upgrade":
-      upgrade_type = "nonrolling"
+      upgrade_type = UPGRADE_TYPE_NON_ROLLING
 
     is_stack_upgrade = upgrade_type is not None
 

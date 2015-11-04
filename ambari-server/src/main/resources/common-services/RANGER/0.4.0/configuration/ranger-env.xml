@@ -24,7 +24,7 @@
     <name>ranger_user</name>
     <value>ranger</value>
     <property-type>USER</property-type>
-    <display-name>Used to create user and assign permission</display-name>
+    <display-name>Ranger User</display-name>
     <description>Ranger username</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -35,7 +35,7 @@
     <name>ranger_group</name>
     <value>ranger</value>
     <property-type>GROUP</property-type>
-    <display-name>Used to create group and assign permission</display-name>
+    <display-name>Ranger Group</display-name>
     <description>Ranger group</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -214,4 +214,84 @@
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
+
+  <property>
+    <name>bind_anonymous</name>
+    <display-name>Bind Anonymous</display-name>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <overridable>false</overridable>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Yes</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>No</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.hdfs</name>
+    <value>false</value>
+    <display-name>Audit to HDFS</display-name>
+    <description>Enable Audit to HDFS for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.hdfs.dir</name>
+    <value>hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%</value>
+    <display-name>Destination HDFS Directory</display-name>
+    <description>HDFS folder to write audit to, make sure all service user has required permissions. This property is overridable at service level</description>
+    <depends-on>
+      <property>
+        <type>core-site</type>
+        <name>fs.defaultFS</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>xasecure.audit.destination.db</name>
+    <value>true</value>
+    <display-name>Audit to DB</display-name>
+    <description>Enable Audit to DB for all ranger supported services. This property is overridable at service level</description>
+    <value-attributes>
+      <overridable>false</overridable>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>ON</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>OFF</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
 </configuration>

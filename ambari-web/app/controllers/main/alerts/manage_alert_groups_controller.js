@@ -429,7 +429,6 @@ App.ManageAlertGroupsController = Em.Controller.extend({
           return;
         }
         callback(arrayOfSelectedDefs);
-        console.debug('(new-selectedDefs)=', arrayOfSelectedDefs);
         this.hide();
       },
 
@@ -517,7 +516,6 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         if (callback) {
           callback(xhr, text, errorThrown);
         }
-        console.error('Error in creating new Alert Group');
       }
     };
     sendData.sender = sendData;

@@ -70,6 +70,12 @@ public class KerberosDescriptorResourceProvider extends AbstractControllerResour
   }
 
   @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    LOGGER.debug("Skipping property id validation for kerberos descriptor resources");
+    return Collections.emptySet();
+  }
+
+  @Override
   public RequestStatus createResources(Request request) throws SystemException, UnsupportedPropertyException,
       ResourceAlreadyExistsException, NoSuchParentResourceException {
 

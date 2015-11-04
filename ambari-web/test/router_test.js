@@ -212,10 +212,10 @@ describe('App.Router', function () {
   describe("#loginGetClustersSuccessCallback()", function () {
     var mock = {dataLoading: Em.K};
     beforeEach(function () {
-      sinon.stub(router, 'setClusterInstalled');
-      sinon.stub(router, 'transitionToApp');
-      sinon.stub(router, 'transitionToViews');
-      sinon.stub(router, 'transitionToAdminView');
+      sinon.stub(router, 'setClusterInstalled', Em.K);
+      sinon.stub(router, 'transitionToApp', Em.K);
+      sinon.stub(router, 'transitionToViews', Em.K);
+      sinon.stub(router, 'transitionToAdminView', Em.K);
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'dataLoading');
       App.setProperties({

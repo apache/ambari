@@ -169,7 +169,6 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
    * @returns {App.ServiceConfigProperty[]}
    */
   prepareConfigProperties: function(configs) {
-    console.log("call prepare");
     var self = this;
     var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));

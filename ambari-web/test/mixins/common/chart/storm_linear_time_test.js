@@ -60,17 +60,20 @@ describe('App.StormLinearTimeChartMixin', function () {
     });
   });
 
-  describe('#transformToSeries', function () {
+  describe('#getData', function () {
     it('should be empty', function () {
-      expect(slt.transformToSeries(jsonDataFalse)).to.be.empty;
+      expect(slt.getData(jsonDataFalse)).to.be.empty;
     });
     it('should take one element from data', function () {
       slt.set('transformData', function (data, name) {
         return name + ': ' + JSON.stringify(data);
       });
-      series = slt.transformToSeries(jsonDataTrue);
+      series = slt.getData(jsonDataTrue);
       expect(series).to.have.length(1);
-      expect(series[0]).to.equal('nimbus: "nimbus"');
+      expect(series[0]).to.eql({
+        name: 'nimbus',
+        data: 'nimbus'
+      });
     });
   });
 

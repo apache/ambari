@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
   id: "host-metrics-cpu",
   title: Em.I18n.t('hosts.host.metrics.cpu'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
 
   ajaxIndex: 'host.metrics.cpu',
 
@@ -38,48 +38,45 @@ App.ChartHostMetricsCPU = App.ChartLinearTimeView.extend({
     fields: ['metrics/cpu/cpu_user', 'metrics/cpu/cpu_wio', 'metrics/cpu/cpu_nice', 'metrics/cpu/cpu_aidle', 'metrics/cpu/cpu_system', 'metrics/cpu/cpu_idle']
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.cpu) {
-      var cpu_idle;
-      for ( var name in jsonData.metrics.cpu) {
-        var displayName;
-        var seriesData = jsonData.metrics.cpu[name];
-        switch (name) {
-          case "cpu_wio":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_wio');
-            break;
-          case "cpu_idle":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle');
-            break;
-          case "cpu_nice":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_nice');
-            break;
-          case "cpu_aidle":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_aidle');
-            break;
-          case "cpu_system":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_system');
-            break;
-          case "cpu_user":
-            displayName = Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_user');
-            break;
-          default:
-            break;
-        }
+  seriesTemplate: {
+    path: 'metrics.cpu',
+    displayName: function (name) {
+      var displayNameMap = {
+        cpu_wio: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_wio'),
+        cpu_idle: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle'),
+        cpu_nice: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_nice'),
+        cpu_aidle: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_aidle'),
+        cpu_system: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_system'),
+        cpu_user: Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_user')
+      };
+      return displayNameMap[name];
+    }
+  },
+
+  getData: function (jsonData) {
+    var dataArray = [],
+      cpu_idle,
+      template = this.get('seriesTemplate'),
+      data = Em.get(jsonData, template.path);
+    if (data) {
+      for (var name in data) {
+        var displayName = template.displayName(name),
+          seriesData = data[name];
         if (seriesData) {
-          var s = this.transformData(seriesData, displayName);
-          if (Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle') == s.name) {
+          var s = {
+            name: displayName,
+            data: seriesData
+          };
+          if (Em.I18n.t('hosts.host.metrics.cpu.displayNames.cpu_idle') == displayName) {
             cpu_idle = s;
-          }
-          else {
-            seriesArray.push(s);
+          } else {
+            dataArray.push(s);
           }
         }
       }
-      seriesArray.push(cpu_idle);
+      dataArray.push(cpu_idle);
     }
-    return seriesArray;
+    return dataArray;
   },
 
   colorForSeries: function (series) {

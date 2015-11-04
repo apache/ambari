@@ -32,7 +32,7 @@
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
           <commandScript>
-            <script>scripts/pxfservice.py</script>
+            <script>scripts/pxf.py</script>
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>

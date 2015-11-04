@@ -42,8 +42,6 @@ module.exports = App.WizardRoute.extend({
   },
 
   enter: function (router) {
-    console.log('in /host/add:enter');
-
     var self = this;
 
     Ember.run.next(function () {
@@ -109,7 +107,6 @@ module.exports = App.WizardRoute.extend({
   step1: Em.Route.extend({
     route: '/step1',
     connectOutlets: function (router) {
-      console.log('in addHost.step1:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('1');
       controller.set('hideBackButton', true);
@@ -130,7 +127,6 @@ module.exports = App.WizardRoute.extend({
       controller.setDBProperty('bootStatus', false);
     },
     evaluateStep: function (router) {
-      console.log('in addHost.step1:evaluateStep');
       var addHostController = router.get('addHostController');
       var wizardStep2Controller = router.get('wizardStep2Controller');
 
@@ -145,7 +141,6 @@ module.exports = App.WizardRoute.extend({
   step2: Em.Route.extend({
     route: '/step2',
     connectOutlets: function (router) {
-      console.log('in addHost.step2:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
@@ -182,7 +177,6 @@ module.exports = App.WizardRoute.extend({
      * @param context Array of hosts to delete
      */
     removeHosts: function (router, context) {
-      console.log('in addHost.step2.removeHosts:hosts to delete ', context);
       var controller = router.get('addHostController');
       controller.removeHosts(context);
     }
@@ -191,7 +185,6 @@ module.exports = App.WizardRoute.extend({
   step3: Em.Route.extend({
     route: '/step3',
     connectOutlets: function (router, context) {
-      console.log('in addHost.step3:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
@@ -224,7 +217,6 @@ module.exports = App.WizardRoute.extend({
   step4: Em.Route.extend({
     route: '/step4',
     connectOutlets: function (router, context) {
-      console.log('in addHost.step4:connectOutlets');
       var controller = router.get('addHostController');
       var addHostStep4Controller = router.get('addHostStep4Controller');
       controller.setCurrentStep('4');
@@ -252,7 +244,6 @@ module.exports = App.WizardRoute.extend({
   step5: Em.Route.extend({
     route: '/step5',
     connectOutlets: function (router, context) {
-      console.log('in addHost.step5:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('5');
       controller.dataLoading().done(function () {
@@ -291,7 +282,6 @@ module.exports = App.WizardRoute.extend({
   step6: Em.Route.extend({
     route: '/step6',
     connectOutlets: function (router, context) {
-      console.log('in addHost.step6:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
@@ -342,7 +332,6 @@ module.exports = App.WizardRoute.extend({
   step7: Em.Route.extend({
     route: '/step7',
     connectOutlets: function (router, context) {
-      console.log('in addHost.step7:connectOutlets');
       var controller = router.get('addHostController');
       controller.setCurrentStep('7');
       controller.dataLoading().done(function () {
@@ -363,7 +352,7 @@ module.exports = App.WizardRoute.extend({
         'Hosts/host_status,Hosts/last_heartbeat_time,Hosts/os_arch,Hosts/os_type,Hosts/ip,host_components,' +
         'metrics/disk,metrics/load/load_one,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free';
       router.get('clusterController').requestHosts(hostsUrl, function () {
-        console.log('Request for hosts, with immutable parameters');
+
       });
       router.get('updateController').updateAll();
       $(context.currentTarget).parents("#modal").find(".close").trigger('click');

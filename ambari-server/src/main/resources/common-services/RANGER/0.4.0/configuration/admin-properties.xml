@@ -72,8 +72,8 @@
   <property>
     <name>db_root_user</name>
     <value>root</value>
-    <display-name>Ranger DB root user</display-name>
-    <description>Database admin user</description>
+    <display-name>Database Admintrator (DBA) username</display-name>
+    <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -83,8 +83,8 @@
     <name>db_root_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <display-name>Ranger DB root password</display-name>
-    <description>Database password for the database admin user-id</description>
+    <display-name>Database Admintrator (DBA) password</display-name>
+    <description>Database password for the database admin username</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -114,7 +114,7 @@
     <name>db_user</name>
     <value>rangeradmin</value>
     <display-name>Ranger DB username</display-name>
-    <description>Database user-id used for the Ranger schema</description>
+    <description>Database username used for the Ranger schema</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -170,6 +170,20 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ranger-site</type>
+        <name>http.enabled</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>http.service.port</name>
+      </property>
+      <property>
+        <type>ranger-site</type>
+        <name>https.service.port</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -190,6 +204,12 @@
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>usersync-properties</type>
+        <name>SYNC_SOURCE</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -261,8 +281,9 @@
 
   <property>
     <name>xa_ldap_ad_domain</name>
-    <value>"xasecure.net"</value>
-    <description></description>
+    <display-name>Domain Name (AD specific)</display-name>
+    <value></value>
+    <description>AD domain, only used if Authentication method is AD</description>
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
@@ -270,7 +291,7 @@
 
   <property>
     <name>xa_ldap_ad_url</name>
-    <value>"ldap://ad.xasecure.net:389"</value>
+    <value></value>
     <description></description>
     <value-attributes>
       <overridable>false</overridable>

@@ -224,14 +224,14 @@ else:
   hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
 
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
-hive_http_endpoint = default('/confiurations/hive-site/hive.server2.thrift.http.path', "cliservice")
+hive_http_endpoint = default('/configurations/hive-site/hive.server2.thrift.http.path', "cliservice")
 hive_server_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
 hive_server2_authentication = config['configurations']['hive-site']['hive.server2.authentication']
 
 # ssl options
-hive_ssl = default('/confiurations/hive-site/hive.server2.use.SSL', False)
-hive_ssl_keystore_path = default('/confiurations/hive-site/hive.server2.keystore.path', None)
-hive_ssl_keystore_password = default('/confiurations/hive-site/hive.server2.keystore.password', None)
+hive_ssl = default('/configurations/hive-site/hive.server2.use.SSL', False)
+hive_ssl_keystore_path = default('/configurations/hive-site/hive.server2.keystore.path', None)
+hive_ssl_keystore_password = default('/configurations/hive-site/hive.server2.keystore.password', None)
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smoke_test_sql = format("{tmp_dir}/hiveserver2.sql")
@@ -280,6 +280,15 @@ yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix'
 
 target = format("{hive_lib}/{jdbc_jar_name}")
 jars_in_hive_lib = format("{hive_lib}/*.jar")
+
+
+if Script.is_hdp_stack_less_than("2.2"):
+  source_jdbc_file = target
+else:
+  # normally, the JDBC driver would be referenced by /usr/hdp/current/.../foo.jar
+  # but in RU if hdp-select is called and the restart fails, then this means that current pointer
+  # is now pointing to the upgraded version location; that's bad for the cp command
+  source_jdbc_file = format("/usr/hdp/{current_version}/hive/lib/{jdbc_jar_name}")
 
 jdk_location = config['hostLevelParams']['jdk_location']
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")

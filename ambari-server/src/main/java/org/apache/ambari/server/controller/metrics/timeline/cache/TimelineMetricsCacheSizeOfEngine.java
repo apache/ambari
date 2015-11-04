@@ -23,6 +23,7 @@ import net.sf.ehcache.pool.impl.DefaultSizeOfEngine;
 import net.sf.ehcache.pool.sizeof.ReflectionSizeOf;
 import net.sf.ehcache.pool.sizeof.SizeOf;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
@@ -43,12 +44,17 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
   // Optimizations
   private volatile long timelineMetricPrimitivesApproximation = 0;
 
+  private long sizeOfMapEntry;
+
   private TimelineMetricsCacheSizeOfEngine(SizeOfEngine underlying) {
     this.underlying = underlying;
   }
 
   public TimelineMetricsCacheSizeOfEngine() {
     this(new DefaultSizeOfEngine(DEFAULT_MAX_DEPTH, DEFAULT_ABORT_WHEN_MAX_DEPTH_EXCEEDED));
+
+    this.sizeOfMapEntry = reflectionSizeOf.sizeOf(new Long(1)) +
+      reflectionSizeOf.sizeOf(new Double(2.0));
 
     LOG.info("Creating custom sizeof engine for TimelineMetrics.");
   }
@@ -89,14 +95,11 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
 
   private long getTimelineMetricCacheValueSize(TimelineMetricsCacheValue value) {
     long size = 16; // startTime + endTime
-    Map<String, TimelineMetric> metrics = value.getTimelineMetrics();
+    TimelineMetrics metrics = value.getTimelineMetrics();
     size += 8; // Object reference
 
     if (metrics != null) {
-      for (Map.Entry<String, TimelineMetric> metricEntry : metrics.entrySet()) {
-        size += reflectionSizeOf.sizeOf(metricEntry.getKey());
-
-        TimelineMetric metric = metricEntry.getValue();
+      for (TimelineMetric metric : metrics.getMetrics()) {
 
         if (timelineMetricPrimitivesApproximation == 0) {
           timelineMetricPrimitivesApproximation += reflectionSizeOf.sizeOf(metric.getMetricName());
@@ -116,8 +119,8 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
         if (metricValues != null && !metricValues.isEmpty()) {
           // Numeric wrapper: 12 bytes + 8 bytes Data type + 4 bytes alignment = 48 (Long, Double)
           // Tree Map: 12 bytes for header + 20 bytes for 5 object fields : pointers + 1 byte for flag = 40
-          LOG.debug("Size of metric value: " + (48 + 40) * metricValues.size());
-          size += (48 + 40) * metricValues.size(); // Treemap size is O(1)
+          LOG.debug("Size of metric value: " + (sizeOfMapEntry + 40) * metricValues.size());
+          size += (sizeOfMapEntry + 40) * metricValues.size(); // Treemap size is O(1)
         }
       }
       LOG.debug("Total Size of metric values in cache: " + size);

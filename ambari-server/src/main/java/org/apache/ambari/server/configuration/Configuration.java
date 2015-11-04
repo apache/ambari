@@ -17,21 +17,16 @@
  */
 package org.apache.ambari.server.configuration;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
-
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.annotations.Experimental;
+import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.orm.JPATableGenerationStrategy;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.entities.StageEntity;
@@ -47,8 +42,18 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 
 /**
@@ -197,6 +202,12 @@ public class Configuration {
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = "server.jdbc.connection-pool.acquisition-retry-attempts";
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = "server.jdbc.connection-pool.acquisition-retry-delay";
 
+  public static final String API_OPERATIONS_RETRY_ATTEMPTS_KEY = "api.operations.retry-attempts";
+  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY = "blueprints.operations.retry-attempts";
+  public static final String API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
+  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
+  public static final int RETRY_ATTEMPTS_LIMIT = 10;
+
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
   public static final String SERVER_JDBC_RCA_USER_PASSWD_KEY = "server.jdbc.rca.user.passwd";
   public static final String SERVER_JDBC_RCA_DRIVER_KEY = "server.jdbc.rca.driver";
@@ -265,15 +276,17 @@ public class Configuration {
   public static final String REPO_SUFFIX_KEY_UBUNTU = "repo.validation.suffixes.ubuntu";
   public static final String REPO_SUFFIX_KEY_DEFAULT = "repo.validation.suffixes.default";
 
-  public static final String EXECUTION_SCHEDULER_CLUSTERED = "server.execution.scheduler.isClustered";
-  public static final String EXECUTION_SCHEDULER_THREADS = "server.execution.scheduler.maxThreads";
-  public static final String EXECUTION_SCHEDULER_CONNECTIONS = "server.execution.scheduler.maxDbConnections";
-  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "server.execution.scheduler.misfire.toleration.minutes";
-  public static final String EXECUTION_SCHEDULER_START_DELAY = "server.execution.scheduler.start.delay.seconds";
+  public static final String EXECUTION_SCHEDULER_CLUSTERED_KEY = "server.execution.scheduler.isClustered";
+  public static final String EXECUTION_SCHEDULER_THREADS_KEY = "server.execution.scheduler.maxThreads";
+  public static final String EXECUTION_SCHEDULER_CONNECTIONS_KEY = "server.execution.scheduler.maxDbConnections";
+  public static final String EXECUTION_SCHEDULER_MISFIRE_TOLERATION_KEY = "server.execution.scheduler.misfire.toleration.minutes";
+  public static final String EXECUTION_SCHEDULER_START_DELAY_KEY = "server.execution.scheduler.start.delay.seconds";
+  public static final String EXECUTION_SCHEDULER_WAIT_KEY = "server.execution.scheduler.wait";
   public static final String DEFAULT_SCHEDULER_THREAD_COUNT = "5";
   public static final String DEFAULT_SCHEDULER_MAX_CONNECTIONS = "5";
   public static final String DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION = "480";
   public static final String DEFAULT_SCHEDULER_START_DELAY_SECONDS = "120";
+  public static final String DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS = "1";
   public static final String SERVER_TMP_DIR_KEY = "server.tmp.dir";
   public static final String SERVER_TMP_DIR_DEFAULT = "/var/lib/ambari-server/tmp";
   public static final String EXTERNAL_SCRIPT_TIMEOUT_KEY = "server.script.timeout";
@@ -446,8 +459,7 @@ public class Configuration {
   private static final String DEFAULT_TIMELINE_METRICS_REQUEST_CATCHUP_INTERVAL = "300000";
   private static final String TIMELINE_METRICS_CACHE_HEAP_PERCENT = "server.timeline.metrics.cache.heap.percent";
   private static final String DEFAULT_TIMELINE_METRICS_CACHE_HEAP_PERCENT = "15%";
-
-  // experimental options
+  private static final String TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE = "server.timeline.metrics.cache.use.custom.sizing.engine";
 
   /**
    * Governs the use of {@link Parallel} to process {@link StageEntity}
@@ -460,11 +472,45 @@ public class Configuration {
    */
   private static final String ALERT_TEMPLATE_FILE = "alerts.template.file";
 
+  /**
+   * The maximum number of threads which will handle published alert events.
+   */
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_KEY = "alerts.execution.scheduler.maxThreads";
+
+  /**
+   * The default core threads for handling published alert events
+   */
   public static final String ALERTS_EXECUTION_SCHEDULER_THREADS_DEFAULT = "2";
 
   /**
-   *   For HTTP Response header configuration for Ambari Server UI
+   * If {@code true} then alert information is cached and not immediately
+   * persisted in the database.
+   */
+  public static final String ALERTS_CACHE_ENABLED = "alerts.cache.enabled";
+
+  /**
+   * The time after which cached alert information is flushed to the database.
+   */
+  public static final String ALERTS_CACHE_FLUSH_INTERVAL = "alerts.cache.flush.interval";
+
+  /**
+   * The default time, in minutes, that cached alert information is flushed to
+   * the database.
+   */
+  public static final String ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT = "10";
+
+  /**
+   * The size of the alert cache.
+   */
+  public static final String ALERTS_CACHE_SIZE = "alerts.cache.size";
+
+  /**
+   * The default size of the alerts cache.
+   */
+  public static final String ALERTS_CACHE_SIZE_DEFAULT = "50000";
+
+  /**
+   * For HTTP Response header configuration for Ambari Server UI
    */
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_KEY = "http.strict-transport-security";
   public static final String HTTP_STRICT_TRANSPORT_HEADER_VALUE_DEFAULT = "max-age=31536000";
@@ -487,6 +533,7 @@ public class Configuration {
       Configuration.class);
 
   private Properties properties;
+  private JsonObject hostChangesJson;
   private Map<String, String> configsMap;
   private Map<String, String> agentConfigsMap;
   private CredentialProvider credentialProvider = null;
@@ -832,6 +879,31 @@ public class Configuration {
     }
 
     return properties;
+  }
+
+  public JsonObject getHostChangesJson(String hostChangesFile) {
+    if (hostChangesJson == null) {
+      hostChangesJson = readFileToJSON(hostChangesFile);
+    }
+    return hostChangesJson;
+  }
+
+  private JsonObject readFileToJSON (String file) {
+
+    // Read from File to String
+    JsonObject jsonObject = new JsonObject();
+
+    try {
+      JsonParser parser = new JsonParser();
+      JsonElement jsonElement = parser.parse(new FileReader(file));
+      jsonObject = jsonElement.getAsJsonObject();
+    } catch (FileNotFoundException e) {
+      throw new IllegalArgumentException("No file " + file, e);
+    } catch (IOException ioe){
+      throw new IllegalArgumentException("Can't read file " + file, ioe);
+    }
+
+    return jsonObject;
   }
 
   /**
@@ -1187,8 +1259,8 @@ public class Configuration {
    */
   public boolean isAgentApiGzipped() {
     return "true".equalsIgnoreCase(properties.getProperty(
-        AGENT_API_GZIP_COMPRESSION_ENABLED_KEY,
-        API_GZIP_COMPRESSION_ENABLED_DEFAULT));
+      AGENT_API_GZIP_COMPRESSION_ENABLED_KEY,
+      API_GZIP_COMPRESSION_ENABLED_DEFAULT));
   }
 
   /**
@@ -1684,17 +1756,17 @@ public class Configuration {
 
 
   public String isExecutionSchedulerClusterd() {
-    return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED, "false");
+    return properties.getProperty(EXECUTION_SCHEDULER_CLUSTERED_KEY, "false");
   }
 
   public String getExecutionSchedulerThreads() {
-    return properties.getProperty(EXECUTION_SCHEDULER_THREADS,
+    return properties.getProperty(EXECUTION_SCHEDULER_THREADS_KEY,
                                   DEFAULT_SCHEDULER_THREAD_COUNT);
   }
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-                                                   REQUEST_READ_TIMEOUT_DEFAULT));
+      REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
@@ -1703,21 +1775,46 @@ public class Configuration {
   }
 
   public String getExecutionSchedulerConnections() {
-    return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+    return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS_KEY,
+      DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
     String limit = properties.getProperty
-      (EXECUTION_SCHEDULER_MISFIRE_TOLERATION,
+      (EXECUTION_SCHEDULER_MISFIRE_TOLERATION_KEY,
         DEFAULT_EXECUTION_SCHEDULER_MISFIRE_TOLERATION);
     return Long.parseLong(limit);
   }
 
   public Integer getExecutionSchedulerStartDelay() {
-    String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY,
+    String delay = properties.getProperty(EXECUTION_SCHEDULER_START_DELAY_KEY,
                                           DEFAULT_SCHEDULER_START_DELAY_SECONDS);
     return Integer.parseInt(delay);
+  }
+
+  public Long getExecutionSchedulerWait() {
+
+    String stringValue = properties.getProperty(
+      EXECUTION_SCHEDULER_WAIT_KEY, DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+    Long sleepTime = Long.parseLong(DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+    if (stringValue != null) {
+      try {
+        sleepTime = Long.valueOf(stringValue);
+      } catch (NumberFormatException ignored) {
+        LOG.warn("Value of {} ({}) should be a number, " +
+          "falling back to default value ({})", EXECUTION_SCHEDULER_WAIT_KEY,
+          stringValue, DEFAULT_EXECUTION_SCHEDULER_WAIT_SECONDS);
+      }
+
+    }
+
+    if (sleepTime > 60) {
+      LOG.warn("Value of {} ({}) should be a number between 1 adn 60, " +
+          "falling back to maximum value ({})",
+        EXECUTION_SCHEDULER_WAIT_KEY, sleepTime, 60);
+      sleepTime = 60L;
+    }
+    return sleepTime*1000;
   }
 
   public Integer getExternalScriptTimeout() {
@@ -2200,6 +2297,14 @@ public class Configuration {
   }
 
   /**
+   * Allow disabling custom sizing engine.
+   */
+  public boolean useMetricsCacheCustomSizingEngine() {
+    return Boolean.parseBoolean(properties
+      .getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE, "true"));
+  }
+
+  /**
    * Gets whether to use experiemental concurrent processing to convert
    * {@link StageEntity} instances into {@link Stage} instances. The default is
    * {@code false}.
@@ -2207,9 +2312,86 @@ public class Configuration {
    * @return {code true} if the experimental feature is enabled, {@code false}
    *         otherwise.
    */
-  @Experimental
+  @Experimental(feature = ExperimentalFeature.PARALLEL_PROCESSING)
   public boolean isExperimentalConcurrentStageProcessingEnabled() {
     return Boolean.parseBoolean(properties.getProperty(
         EXPERIMENTAL_CONCURRENCY_STAGE_PROCESSING_ENABLED, Boolean.FALSE.toString()));
+  }
+
+  /**
+   * If {@code true}, then alerts processed by the {@link AlertReceivedListener}
+   * will not write alert data to the database on every event. Instead, data
+   * like timestamps and text will be kept in a cache and flushed out
+   * periodically to the database.
+   * <p/>
+   * The default value is {@code false}.
+   *
+   * @return {@code true} if the cache is enabled, {@code false} otherwise.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public boolean isAlertCacheEnabled() {
+    return Boolean.parseBoolean(
+        properties.getProperty(ALERTS_CACHE_ENABLED, Boolean.FALSE.toString()));
+  }
+
+  /**
+   * Gets the interval at which cached alert data is written out to the
+   * database, if enabled.
+   *
+   * @return the cache flush interval, or
+   *         {@value #ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT} if not set.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public int getAlertCacheFlushInterval() {
+    return Integer.parseInt(
+        properties.getProperty(ALERTS_CACHE_FLUSH_INTERVAL, ALERTS_CACHE_FLUSH_INTERVAL_DEFAULT));
+  }
+
+  /**
+   * Gets the size of the alerts cache, if enabled.
+   *
+   * @return the cache flush interval, or {@value #ALERTS_CACHE_SIZE_DEFAULT} if
+   *         not set.
+   */
+  @Experimental(feature = ExperimentalFeature.ALERT_CACHING)
+  public int getAlertCacheSize() {
+    return Integer.parseInt(properties.getProperty(ALERTS_CACHE_SIZE, ALERTS_CACHE_SIZE_DEFAULT));
+  }
+
+  /**
+   * @return number of retry attempts for API update requests
+   */
+  public int getApiOperationsRetryAttempts() {
+    String property = properties.getProperty(API_OPERATIONS_RETRY_ATTEMPTS_KEY, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+    Integer attempts = Integer.valueOf(property);
+    if (attempts < 0) {
+      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value reset to default {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      attempts = Integer.valueOf(API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+    } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
+      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value set to {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
+      attempts = RETRY_ATTEMPTS_LIMIT;
+    }
+    return attempts;
+  }
+
+  /**
+   * @return number of retry attempts for blueprints operations
+   */
+  public int getBlueprintsOperationsRetryAttempts() {
+    String property = properties.getProperty(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY,
+            BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+    Integer attempts = Integer.valueOf(property);
+    if (attempts < 0) {
+      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      attempts = Integer.valueOf(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+    } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
+      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value set to {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
+      attempts = RETRY_ATTEMPTS_LIMIT;
+    }
+    return attempts;
   }
 }

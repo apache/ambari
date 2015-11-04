@@ -16,6 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import json
 import os
 import socket
 from unittest import TestCase
@@ -51,6 +52,12 @@ class TestHDP23StackAdvisor(TestCase):
     self.get_system_min_uid_real = self.stackAdvisor.get_system_min_uid
     self.stackAdvisor.get_system_min_uid = self.get_system_min_uid_magic
 
+  def load_json(self, filename):
+    file = os.path.join(self.testDirectory, filename)
+    with open(file, 'rb') as f:
+      data = json.load(f)
+    return data    
+
   @patch('__builtin__.open')
   @patch('os.path.exists')
   def get_system_min_uid_magic(self, exists_mock, open_mock):
@@ -71,6 +78,174 @@ class TestHDP23StackAdvisor(TestCase):
     open_mock.return_value = MagicFile()
     return self.get_system_min_uid_real()
 
+
+  def test_createComponentLayoutRecommendations_hawq_1_Host(self):
+    """ Test that HAWQSTANDBY is not recommended on a single node cluster """
+    
+    services = self.load_json("services-hawq-1-host.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
+    self.assertTrue('HAWQSTANDBY' in componentNames)
+    
+    hosts = self.load_json("hosts-1-host.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 1)
+
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+
+    recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
+    recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
+    self.assertTrue('HAWQMASTER' in recommendedComponents) 
+    self.assertFalse('HAWQSTANDBY' in recommendedComponents) 
+    self.assertTrue('HAWQSEGMENT' in recommendedComponents) 
+
+
+  def test_createComponentLayoutRecommendations_hawq_3_Hosts(self):
+    """ Test that HAWQSTANDBY is recommended on a 3-node cluster """
+
+    services = self.load_json("services-hawq-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
+    self.assertTrue('HAWQSTANDBY' in componentNames)
+    
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    
+    recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
+    recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
+    self.assertTrue('HAWQMASTER' in recommendedComponents) 
+    self.assertTrue('HAWQSTANDBY' in recommendedComponents) 
+    self.assertTrue('HAWQSEGMENT' in recommendedComponents)
+    
+    # make sure master components are not collocated
+    for sublist in recommendedComponentsListList:
+      hostComponents = [item["name"] for item in sublist]
+      self.assertFalse(set(['HAWQMASTER', 'HAWQSTANDBY']).issubset(hostComponents))
+
+
+  def test_createComponentLayoutRecommendations_no_hawq_3_Hosts(self):
+    """ Test no failures when there are no HAWQ components """
+
+    services = self.load_json("services-nohawq-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
+    self.assertFalse('HAWQMASTER' in componentNames) 
+    self.assertFalse('HAWQSTANDBY' in componentNames) 
+    self.assertFalse('HAWQSEGMENT' in componentNames)
+    
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+    
+    recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
+    recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
+    self.assertFalse('HAWQMASTER' in recommendedComponents) 
+    self.assertFalse('HAWQSTANDBY' in recommendedComponents) 
+    self.assertFalse('HAWQSEGMENT' in recommendedComponents)
+      
+
+  def fqdn_mock_result(value=None):
+      return 'c6401.ambari.apache.org' if value is None else value
+
+      
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)  
+  def test_getComponentLayoutValidations_hawq_3_Hosts(self, socket_mock):
+    """ Test layout validations for HAWQ components on a 3-node cluster """
+
+    # case-1: normal placement, no warnings
+    services = self.load_json("services-normal-hawq-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    self.assertEquals(len(hawqMasterHosts[0]), 1)
+    self.assertEquals(len(hawqStandbyHosts[0]), 1)
+    self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
+    
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 0)
+    
+    # case-2: HAWQ masters are collocated
+    services = self.load_json("services-master_standby_colo-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    self.assertEquals(len(hawqMasterHosts[0]), 1)
+    self.assertEquals(len(hawqStandbyHosts[0]), 1)
+    self.assertEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
+    
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 1)
+    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and HAWQ Master should not be deployed on the same host.', 'type': 'host-component', 'host': 'c6403.ambari.apache.org', 'level': 'ERROR'}
+    self.assertEquals(validations[0], expected)
+    
+    # case-3: HAWQ Master and Ambari Server are collocated
+    services = self.load_json("services-master_ambari_colo-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    self.assertEquals(len(hawqMasterHosts[0]), 1)
+    self.assertEquals(len(hawqStandbyHosts[0]), 1)
+    self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
+    self.assertEquals(hawqMasterHosts[0][0], "c6401.ambari.apache.org")
+    
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 1)
+    expected={'component-name': 'HAWQMASTER', 'message': 'HAWQ Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    self.assertEquals(validations[0], expected)
+
+    # case-4: HAWQ Standby and Ambari Server are collocated
+    services = self.load_json("services-standby_ambari_colo-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    self.assertEquals(len(hawqMasterHosts[0]), 1)
+    self.assertEquals(len(hawqStandbyHosts[0]), 1)
+    self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
+    self.assertEquals(hawqStandbyHosts[0][0], "c6401.ambari.apache.org")
+    
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 1)
+    expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
+    self.assertEquals(validations[0], expected)
+
+
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)  
+  def test_getComponentLayoutValidations_nohawq_3_Hosts(self, socket_mock):
+    """ Test no failures when there are no HAWQ components on a 3-node cluster """
+
+    # normal placement, no warnings
+    services = self.load_json("services-normal-nohawq-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    self.assertEquals(len(hawqMasterHosts), 0)
+    self.assertEquals(len(hawqStandbyHosts), 0)
+    
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 0)
+
+                           
   def test_recommendHDFSConfigurations(self):
     configurations = {}
     clusterData = {
@@ -202,6 +377,24 @@ class TestHDP23StackAdvisor(TestCase):
               "service_name" : "KAFKA",
               "service_version" : "2.6.0.2.2"
             }
+          },
+          {
+            "StackServices": {
+              "service_name": "AMBARI_METRICS"
+            },
+            "components": [{
+              "StackServiceComponents": {
+                "component_name": "METRICS_COLLECTOR",
+                "hostnames": ["host1"]
+              }
+
+            }, {
+              "StackServiceComponents": {
+                "component_name": "METRICS_MONITOR",
+                "hostnames": ["host1"]
+              }
+
+            }]
           }
         ],
       "Versions": {
@@ -271,6 +464,10 @@ class TestHDP23StackAdvisor(TestCase):
     expectedLog4jContent = log4jContent + newRangerLog4content
     self.assertEquals(configurations['kafka-log4j']['properties']['content'], expectedLog4jContent, "Test kafka-log4j content when Ranger plugin for Kafka is enabled")
 
+    # Test kafka.metrics.reporters when AMBARI_METRICS is present in services
+    self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
+    self.assertEqual(configurations['kafka-broker']['properties']['kafka.metrics.reporters'],
+                                              'org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter')
 
   def test_recommendHBASEConfigurations(self):
     configurations = {}
@@ -1028,7 +1225,8 @@ class TestHDP23StackAdvisor(TestCase):
       "services":  [
         {
           "StackServices": {
-            "service_name": "RANGER"
+            "service_name": "RANGER",
+            "service_version": "0.5.0.2.3"
           },
           "components": [
             {
@@ -1095,7 +1293,9 @@ class TestHDP23StackAdvisor(TestCase):
         }
       },
       'ranger-env': {
-        'properties': {}
+        'properties': {
+          'ranger-storm-plugin-enabled': 'No',
+        }
       }
     }
 

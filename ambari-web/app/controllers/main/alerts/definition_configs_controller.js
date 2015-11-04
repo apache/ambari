@@ -156,7 +156,6 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       	configs = this.renderServerConfigs();
       	break;
       default:
-        console.error('Incorrect Alert Definition Type: ', alertDefinitionType);
     }
 
     configs.setEach('isDisabled', !this.get('canEdit'));

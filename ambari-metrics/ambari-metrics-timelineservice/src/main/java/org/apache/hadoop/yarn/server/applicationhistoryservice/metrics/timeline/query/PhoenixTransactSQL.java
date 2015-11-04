@@ -86,7 +86,7 @@ public class PhoenixTransactSQL {
       "TTL=%s, COMPRESSION='%s'";
 
   // HOSTS_COUNT vs METRIC_COUNT
-  public static final String CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL =
+  public static final String CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
       "APP_ID VARCHAR, " +
@@ -165,7 +165,7 @@ public class PhoenixTransactSQL {
    * Different queries for a number and a single hosts are used due to bug
    * in Apache Phoenix
    */
-  public static final String GET_LATEST_METRIC_SQL = "SELECT " +
+  public static final String GET_LATEST_METRIC_SQL = "SELECT %s " +
     "E.METRIC_NAME AS METRIC_NAME, E.HOSTNAME AS HOSTNAME, " +
     "E.APP_ID AS APP_ID, E.INSTANCE_ID AS INSTANCE_ID, " +
     "E.SERVER_TIME AS SERVER_TIME, E.START_TIME AS START_TIME, " +
@@ -248,6 +248,8 @@ public class PhoenixTransactSQL {
     "METRIC_RECORD_DAILY";
   public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME =
     "METRIC_AGGREGATE";
+  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME =
+    "METRIC_AGGREGATE_MINUTE";
   public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_AGGREGATE_HOURLY";
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
@@ -257,6 +259,7 @@ public class PhoenixTransactSQL {
   public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
   public static final long HOUR = 3600000; // 1 hour
   public static final long DAY = 86400000; // 1 day
+  private static boolean sortMergeJoinEnabled = false;
 
   /**
    * Filter to optimize HBase scan by using file timestamps. This prevents
@@ -266,6 +269,22 @@ public class PhoenixTransactSQL {
    */
   public static String getNaiveTimeRangeHint(Long startTime, Long delta) {
     return String.format("/*+ NATIVE_TIME_RANGE(%s) */", (startTime - delta));
+  }
+
+  /**
+   * Falling back to sort merge join algorithm if default queries fail.
+   *
+   * @return Phoenix Hint String
+   */
+  public static String getLatestMetricsHints() {
+    if (sortMergeJoinEnabled) {
+      return "/*+ USE_SORT_MERGE_JOIN NO_CACHE */";
+    }
+    return "";
+  }
+
+  public static void setSortMergeJoinEnabled(boolean sortMergeJoinEnabled) {
+    PhoenixTransactSQL.sortMergeJoinEnabled = sortMergeJoinEnabled;
   }
 
   public static PreparedStatement prepareGetMetricsSqlStmt(Connection connection,
@@ -448,6 +467,7 @@ public class PhoenixTransactSQL {
       stmtStr = condition.getStatement();
     } else {
       stmtStr = String.format(GET_LATEST_METRIC_SQL,
+        getLatestMetricsHints(),
         METRICS_RECORD_TABLE_NAME,
         METRICS_RECORD_TABLE_NAME,
         condition.getConditionClause());
@@ -537,7 +557,10 @@ public class PhoenixTransactSQL {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         break;
-      //TODO : Include MINUTE case after introducing CLUSTER_AGGREGATOR_MINUTE
+      case MINUTES:
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+        queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
+        break;
       default:
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_SQL;

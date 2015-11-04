@@ -45,7 +45,6 @@
 
   <property>
     <name>yarn.authorization-provider</name>
-    <value>org.apache.ranger.authorization.yarn.authorizer.RangerYarnAuthorizer</value>
     <description> Yarn authorization provider class. </description>
     <depends-on>
       <property>

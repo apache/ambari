@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,6 +15,10 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+
+"""
 
 AMBARI_SUDO_BINARY = "ambari-sudo.sh"
+
+UPGRADE_TYPE_ROLLING = "rolling"
+UPGRADE_TYPE_NON_ROLLING = "nonrolling"

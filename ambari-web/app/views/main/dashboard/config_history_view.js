@@ -40,6 +40,19 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     return this.t('tableView.filters.filteredConfigVersionInfo').format(this.get('filteredCount'), this.get('totalCount'));
   }.property('filteredCount', 'totalCount'),
 
+  willInsertElement: function () {
+    var
+      controllerName = this.get('controller.name'),
+      savedSortConditions = App.db.getSortingStatuses(controllerName) || [];
+
+    if (savedSortConditions.everyProperty('status', 'sorting')) {
+      savedSortConditions.push({
+        name: "createTime",
+        status: "sorting_desc"
+      });
+      App.db.setSortingStatuses(controllerName, savedSortConditions);
+    }
+  },
   didInsertElement: function () {
     this.addObserver('startIndex', this, 'updatePagination');
     this.addObserver('displayLength', this, 'updatePagination');
@@ -78,7 +91,6 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   modifiedSort: sort.fieldView.extend({
     column: 3,
     name: 'createTime',
-    status: 'sorting_desc',
     displayName: Em.I18n.t('dashboard.configHistory.table.created.title')
   }),
   authorSort: sort.fieldView.extend({

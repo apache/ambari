@@ -140,8 +140,6 @@ pidPathVars = [
 ]
 
 
-
-
 class AmbariConfig:
   TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
   AMBARI_PROPERTIES_CATEGORY = 'agentConfig'
@@ -159,7 +157,7 @@ class AmbariConfig:
 
   def get(self, section, value, default=None):
     try:
-      return self.config.get(section, value)
+      return str(self.config.get(section, value)).strip()
     except ConfigParser.Error, err:
       if default != None:
         return default

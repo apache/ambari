@@ -18,10 +18,13 @@ limitations under the License.
 
 """
 
+import os
+
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import get_user_call_output
 import time
 
 
@@ -75,14 +78,15 @@ def service(name, action = 'start'):
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
-    pid = '`' + as_user(format("cat {pid_file}"), user=params.storm_user) + '`'
+    if os.path.exists(pid_file):
+      pid = get_user_call_output.get_user_call_output(format("! test -f {pid_file} ||  cat {pid_file}"), user=params.storm_user)[1]
 
-    Execute(format("{sudo} kill {pid}"),
-      not_if = process_dont_exist)
+      Execute(format("{sudo} kill {pid}"),
+        not_if = process_dont_exist)
 
-    Execute(format("{sudo} kill -9 {pid}"),
-      not_if = format(
-        "sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
-      ignore_failures = True)
+      Execute(format("{sudo} kill -9 {pid}"),
+        not_if = format(
+          "sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
+        ignore_failures = True)
 
-    File(pid_file, action = "delete")
+      File(pid_file, action = "delete")

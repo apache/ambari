@@ -81,7 +81,7 @@ def slider():
          mode=0644
     )
   if Script.is_hdp_stack_greater_or_equal("2.2"): 
-    Execute(('tar', '-czvf', params.slider_tar_gz, '--exclude=slider-core*.jar', params.slider_lib_dir),
-            not_if = format('test -f {slider_tar_gz}'),
-            sudo = True,
+    File(params.slider_tar_gz,
+         owner=params.hdfs_user,
+         group=params.user_group,
     )

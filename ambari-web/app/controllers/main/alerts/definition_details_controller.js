@@ -219,8 +219,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @method deleteAlertDefinitionError
    */
   deleteAlertDefinitionError: function (xhr, textStatus, errorThrown, opt) {
-    console.log(textStatus);
-    console.log(errorThrown);
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
     App.ajax.defaultErrorHandler(xhr, opt.url, 'DELETE', xhr.status);
   },

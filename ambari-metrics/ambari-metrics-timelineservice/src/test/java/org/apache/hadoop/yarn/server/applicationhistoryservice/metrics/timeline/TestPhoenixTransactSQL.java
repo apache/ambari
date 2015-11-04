@@ -382,6 +382,30 @@ public class TestPhoenixTransactSQL {
   }
 
   @Test
+  public void testPrepareGetLatestMetricSqlStmtSortMergeJoinAlgorithm()
+    throws SQLException {
+    Condition condition = new DefaultCondition(
+      Arrays.asList("cpu_user", "mem_free"), Arrays.asList("h1"),
+      "a1", "i1", null, null, null, null, false);
+    Connection connection = createNiceMock(Connection.class);
+    PreparedStatement preparedStatement = createNiceMock(PreparedStatement.class);
+    ParameterMetaData parameterMetaData = createNiceMock(ParameterMetaData.class);
+    Capture<String> stmtCapture = new Capture<String>();
+    expect(connection.prepareStatement(EasyMock.and(EasyMock.anyString(), EasyMock.capture(stmtCapture))))
+        .andReturn(preparedStatement);
+    expect(preparedStatement.getParameterMetaData())
+      .andReturn(parameterMetaData).anyTimes();
+    expect(parameterMetaData.getParameterCount())
+      .andReturn(6).anyTimes();
+
+    replay(connection, preparedStatement, parameterMetaData);
+    PhoenixTransactSQL.setSortMergeJoinEnabled(true);
+    PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(connection, condition);
+    String stmt = stmtCapture.getValue();
+    Assert.assertTrue(stmt.contains("/*+ USE_SORT_MERGE_JOIN NO_CACHE */"));
+  }
+
+  @Test
   public void testPrepareGetMetricsPrecisionHours() throws SQLException {
     Condition condition = new DefaultCondition(
       Arrays.asList("cpu_user", "mem_free"), Collections.singletonList("h1"),

@@ -27,7 +27,7 @@ import ast
 
 metric_filename_ext = '.txt'
 # 5 regions for higher order aggregate tables
-other_region_static_count = 5
+other_region_static_count = 6
 # Max equidistant points to return per service
 max_equidistant_points = 50
 

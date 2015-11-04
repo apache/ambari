@@ -48,7 +48,7 @@ Current alerts can be exposed on the following resource endpoints:
             "host_name" : "<host>",
             "id" : 2,
             "instance" : null,
-            "label" : "Ambari Agent Disk Usage",
+            "label" : "Host Disk Usage",
             "latest_timestamp" : 1425704842163,
             "maintenance_state" : "OFF",
             "original_timestamp" : 1425600467615,

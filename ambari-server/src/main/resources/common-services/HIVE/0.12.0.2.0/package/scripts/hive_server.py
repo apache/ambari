@@ -36,6 +36,7 @@ if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons.constants import UPGRADE_TYPE_ROLLING
 from resource_management.core.logger import Logger
 
 import hive_server_upgrade
@@ -77,25 +78,30 @@ class HiveServerDefault(HiveServer):
   def get_stack_to_component(self):
     return {"HDP": "hive-server2"}
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
 
-    setup_ranger_hive(rolling_upgrade=rolling_restart)
-    hive_service( 'hiveserver2', action = 'start', rolling_restart=rolling_restart)
-    if rolling_restart:
+    setup_ranger_hive(upgrade_type=upgrade_type)
+    hive_service('hiveserver2', action = 'start', upgrade_type=upgrade_type)
+
+    # only perform this if upgrading and rolling; a non-rolling upgrade doesn't need
+    # to do this since hive is already down
+    if upgrade_type == UPGRADE_TYPE_ROLLING:
       hive_server_upgrade.post_upgrade_deregister()
 
-  def stop(self, env, rolling_restart=False):
+
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
     # During rolling upgrade, HiveServer2 should not be stopped before new server is available.
     # Once new server is started, old one is stopped by the --deregister command which is 
     # invoked by the 'hive_server_upgrade.post_upgrade_deregister()' method
-    if not rolling_restart:
+    if upgrade_type != UPGRADE_TYPE_ROLLING:
       hive_service( 'hiveserver2', action = 'stop' )
+
 
   def status(self, env):
     import status_params
@@ -105,8 +111,9 @@ class HiveServerDefault(HiveServer):
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
 
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing HiveServer2 Rolling Upgrade pre-restart")
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    Logger.info("Executing Hive Server Stack Upgrade pre-restart")
     import params
     env.set_params(params)
 
@@ -120,13 +127,16 @@ class HiveServerDefault(HiveServer):
         params.user_group,
         params.hdfs_user,
         host_sys_prepped=params.host_sys_prepped)
+
       resource_created = copy_to_hdfs(
         "tez",
         params.user_group,
         params.hdfs_user,
         host_sys_prepped=params.host_sys_prepped) or resource_created
+
       if resource_created:
         params.HdfsResource(None, action="execute")
+
 
   def security_status(self, env):
     import status_params

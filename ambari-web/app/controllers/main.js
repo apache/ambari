@@ -188,7 +188,6 @@ App.MainController = Em.Controller.extend({
     App.set('isManagedMySQLForHiveEnabled', App.config.isManagedMySQLForHiveAllowed(data.RootServiceComponents.properties['server.os_family']));
   },
   getServerVersionErrorCallback: function () {
-    console.log('ERROR: Cannot load Ambari server version');
   },
 
   monitorInactivity: function() {

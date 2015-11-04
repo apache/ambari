@@ -334,7 +334,6 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @private
    */
   _loadHostsFromServerErrorCallback: function () {
-    console.warn('ERROR: request to fetch all hosts failed');
     this.set('clusterHosts', []);
   },
 

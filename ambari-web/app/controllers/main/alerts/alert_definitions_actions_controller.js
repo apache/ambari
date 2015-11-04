@@ -58,7 +58,7 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
       this[action]();
     }
     else {
-      console.error('Invalid action provided - ', action);
+      Em.assert('Invalid action provided - ' + action, false);
     }
   },
 
@@ -97,7 +97,6 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
         };
         var showSuccessPopup = dataForSuccessPopup.created + dataForSuccessPopup.deleted + dataForSuccessPopup.updated > 0;
         // Save modified Alert-groups
-        console.log("manageAlertGroups(): Saving modified Alert groups: ", modifiedAlertGroups);
         var self = this;
         var errors = [];
         var deleteQueriesCounter = modifiedAlertGroups.toDelete.length;
@@ -128,7 +127,6 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
               error += json.message;
             } catch (err) {
             }
-            console.error('Error updating Alert Group:', error);
             errors.push(error);
           }
           if (createQueriesRun) {
@@ -138,7 +136,6 @@ App.MainAlertDefinitionActionsController = Em.ArrayController.extend({
           }
           if (deleteQueriesCounter + createQueriesCounter < 1) {
             if (errors.length > 0) {
-              console.log(errors);
               self.get('subViewController').set('errorMessage', errors.join(". "));
             }
             else {

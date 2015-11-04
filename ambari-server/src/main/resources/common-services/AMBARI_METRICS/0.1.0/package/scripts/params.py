@@ -94,7 +94,7 @@ hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
 regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regionserver_heapsize']
 
-regionserver_xmn_max = default('configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
+regionserver_xmn_max = default('/configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
 if regionserver_xmn_max:
   regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
   regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)

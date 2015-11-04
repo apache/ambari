@@ -33,17 +33,17 @@ from resource_management.core.shell import as_sudo
 # This file contains functions used for setup/configure of Ranger Admin and Ranger Usersync.
 # The design is to mimic what is done by the setup.sh script bundled by Ranger component currently.
 
-def ranger(name=None, rolling_upgrade=False):
+def ranger(name=None, upgrade_type=None):
   """
   parameter name: name of ranger service component
   """
   if name == 'ranger_admin':
-    setup_ranger_admin(rolling_upgrade=rolling_upgrade)
+    setup_ranger_admin(upgrade_type=upgrade_type)
 
   if name == 'ranger_usersync':
-    setup_usersync(rolling_upgrade=rolling_upgrade)
+    setup_usersync(upgrade_type=upgrade_type)
 
-def setup_ranger_admin(rolling_upgrade=False):
+def setup_ranger_admin(upgrade_type=None):
   import params
 
   ranger_home = params.ranger_home
@@ -55,7 +55,7 @@ def setup_ranger_admin(rolling_upgrade=False):
     recursive = True
   )
 
-  if rolling_upgrade:
+  if upgrade_type is not None:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
     ranger_conf = format("/usr/hdp/{version}/ranger-admin/conf")
 
@@ -85,7 +85,7 @@ def setup_ranger_admin(rolling_upgrade=False):
     only_if=format("ls {ranger_home}/ews/webapp/WEB-INF/classes/conf"),
     sudo=True)
 
-  if rolling_upgrade:
+  if upgrade_type is not None:
     src_file = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml')
     dst_file = format('{ranger_home}/conf/ranger-admin-default-site.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
@@ -127,10 +127,10 @@ def setup_ranger_admin(rolling_upgrade=False):
     group=params.unix_group,
   )
 
-  do_keystore_setup(rolling_upgrade=rolling_upgrade)
+  do_keystore_setup(upgrade_type=upgrade_type)
 
 
-def setup_ranger_db(rolling_upgrade=False):
+def setup_ranger_db(upgrade_type=None):
   import params
   
   File(params.downloaded_custom_connector,
@@ -152,7 +152,7 @@ def setup_ranger_db(rolling_upgrade=False):
     File(params.driver_curl_target, mode=0644)
 
   ranger_home = params.ranger_home
-  if rolling_upgrade:
+  if upgrade_type is not None:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
   if params.db_flavor.lower() == 'sqla':
@@ -210,11 +210,11 @@ def setup_ranger_db(rolling_upgrade=False):
   )
 
 
-def setup_java_patch(rolling_upgrade=False):
+def setup_java_patch(upgrade_type=None):
   import params
 
   ranger_home = params.ranger_home
-  if rolling_upgrade:
+  if upgrade_type is not None:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
 
   env_dict = {'RANGER_ADMIN_HOME':ranger_home, 'JAVA_HOME':params.java_home}
@@ -229,14 +229,14 @@ def setup_java_patch(rolling_upgrade=False):
   )
 
 
-def do_keystore_setup(rolling_upgrade=False): 
+def do_keystore_setup(upgrade_type=None):
   import params
 
   ranger_home = params.ranger_home
   cred_lib_path = params.cred_lib_path
   cred_setup_prefix = params.cred_setup_prefix
 
-  if rolling_upgrade:
+  if upgrade_type is not None:
     ranger_home = format("/usr/hdp/{version}/ranger-admin")
     cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
     cred_setup_prefix = (format('{ranger_home}/ranger_credential_helper.py'), '-l', cred_lib_path)
@@ -280,7 +280,7 @@ def password_validation(password):
   else:
     Logger.info("password validated")
  
-def setup_usersync(rolling_upgrade=False):
+def setup_usersync(upgrade_type=None):
   import params
 
   usersync_home = params.usersync_home
@@ -289,7 +289,7 @@ def setup_usersync(rolling_upgrade=False):
   if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
     password_validation(params.ranger_usersync_ldap_ldapbindpassword)
 
-  if rolling_upgrade:
+  if upgrade_type is not None:
     usersync_home = format("/usr/hdp/{version}/ranger-usersync")
     ranger_ugsync_conf = format("/usr/hdp/{version}/ranger-usersync/conf")
 
@@ -308,7 +308,7 @@ def setup_usersync(rolling_upgrade=False):
        owner = params.unix_user
   )
 
-  if rolling_upgrade:
+  if upgrade_type is not None:
     src_file = format('{usersync_home}/conf.dist/ranger-ugsync-default.xml')
     dst_file = format('{usersync_home}/conf/ranger-ugsync-default.xml')
     Execute(('cp', '-f', src_file, dst_file), sudo=True)

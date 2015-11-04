@@ -51,7 +51,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
+# New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
 
 # TODO! FIXME! Version check is not working as of today :
@@ -161,9 +161,12 @@ if security_enabled:
 
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
+spark_thrift_cmd_opts_properties = ''
 if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 \
     and 'spark-thrift-sparkconf' in config['configurations']:
   spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
+  spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
+
   if is_hive_installed:
       spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
 

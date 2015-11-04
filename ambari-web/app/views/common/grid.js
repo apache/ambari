@@ -46,13 +46,11 @@ App.GridHeader = Em.View.extend({
   },
   _filters:[],
   doFilter:function () {
-    console.log(this.get('grid'));
   },
   toggleFilter:function () {
     this.set('showFilter', 1 - this.get('showFilter'));
   },
   applyFilter:function () {
-    console.warn('APPLYING FILTERS');
 
     var filters = this.get('_filters');
     var filterValues = [];
@@ -186,7 +184,6 @@ App.Grid = Em.View.extend({
   templateName:require('templates/main/admin/audit'),
 
   init:function () {
-    console.warn("  Grid INIT  ");
     this._super();
     this.prepareColumns(); // should be the 1
     this.prepareCollection();
@@ -285,7 +282,6 @@ App.Grid = Em.View.extend({
     var collection = this.get('collection');
     var thisGrid = this;
     this.clearRows();
-    console.warn("PREPARE ROWS LEN:", collection.get('length'));
     var i=1;
 
     if (collection && collection.content) {

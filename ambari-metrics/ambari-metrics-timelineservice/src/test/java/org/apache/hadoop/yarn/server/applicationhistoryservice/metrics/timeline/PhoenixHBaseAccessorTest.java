@@ -18,6 +18,7 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
@@ -25,6 +26,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
+import org.apache.phoenix.exception.PhoenixIOException;
 import org.easymock.EasyMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,10 +45,8 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
-/**
- * Created by user on 9/7/15.
- */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(PhoenixTransactSQL.class)
 public class PhoenixHBaseAccessorTest {
@@ -96,7 +96,8 @@ public class PhoenixHBaseAccessorTest {
   }
 
   @Test
-  public void testGetMetricRecordsException() throws SQLException, IOException {
+  public void testGetMetricRecordsIOException()
+    throws SQLException, IOException {
 
     Configuration hbaseConf = new Configuration();
     hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
@@ -137,6 +138,55 @@ public class PhoenixHBaseAccessorTest {
 
     PowerMock.verifyAll();
     EasyMock.verify(preparedStatementMock, rsMock, io, runtimeException);
+  }
+
+  @Test
+  public void testGetMetricRecordsPhoenixIOExceptionDoNotRetryException()
+    throws SQLException, IOException {
+
+    Configuration hbaseConf = new Configuration();
+    hbaseConf.setStrings(ZOOKEEPER_QUORUM, "quorum");
+    Configuration metricsConf = new Configuration();
+
+    ConnectionProvider connectionProvider = new ConnectionProvider() {
+      @Override
+      public Connection getConnection() throws SQLException {
+        return null;
+      }
+    };
+
+    PhoenixHBaseAccessor accessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf, connectionProvider);
+
+    List<String> metricNames = new LinkedList<>();
+    List<String> hostnames = new LinkedList<>();
+    Map<String, List<Function>> metricFunctions = new HashMap<>();
+
+    PowerMock.mockStatic(PhoenixTransactSQL.class);
+    PreparedStatement preparedStatementMock = EasyMock.createNiceMock(PreparedStatement.class);
+    Condition condition = new DefaultCondition(metricNames, hostnames, "appid", "instanceid", null, null, Precision.SECONDS, 10, true);
+    EasyMock.expect(PhoenixTransactSQL.prepareGetLatestMetricSqlStmt(null, condition)).andReturn(preparedStatementMock).once();
+    PhoenixTransactSQL.setSortMergeJoinEnabled(true);
+    EasyMock.expectLastCall();
+    ResultSet rsMock = EasyMock.createNiceMock(ResultSet.class);
+    PhoenixIOException pioe1 = EasyMock.createNiceMock(PhoenixIOException.class);
+    PhoenixIOException pioe2 = EasyMock.createNiceMock(PhoenixIOException.class);
+    DoNotRetryIOException dnrioe = EasyMock.createNiceMock(DoNotRetryIOException.class);
+    EasyMock.expect(preparedStatementMock.executeQuery()).andThrow(pioe1);
+    EasyMock.expect(pioe1.getCause()).andReturn(pioe2).atLeastOnce();
+    EasyMock.expect(pioe2.getCause()).andReturn(dnrioe).atLeastOnce();
+    StackTraceElement stackTrace[] = new StackTraceElement[]{new StackTraceElement("HashJoinRegionScanner","method","file",1)};
+    EasyMock.expect(dnrioe.getStackTrace()).andReturn(stackTrace).atLeastOnce();
+
+
+    PowerMock.replayAll();
+    EasyMock.replay(preparedStatementMock, rsMock, pioe1, pioe2, dnrioe);
+    try {
+      TimelineMetrics tml = accessor.getMetricRecords(condition, metricFunctions);
+      fail();
+    } catch (Exception e) {
+      //NOP
+    }
+    PowerMock.verifyAll();
   }
 
 }

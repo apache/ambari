@@ -270,7 +270,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }
     var needPolling = false;
     var clusterStatus = this.get('content.cluster.status');
-    console.log('navigateStep: clusterStatus = ' + clusterStatus);
     if (this.get('content.cluster.isCompleted') === false) {
       if (clusterStatus !== 'INSTALL FAILED' && clusterStatus !== 'START FAILED') {
         needPolling = true;
@@ -303,7 +302,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method loadStep
    */
   loadStep: function () {
-    console.log("TRACE: Loading step9: Install, Start and Test");
     this.clearStep();
     this.loadHosts();
   },
@@ -525,10 +523,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   launchStartServicesSuccessCallback: function (jsonData) {
     var clusterStatus = {};
     if (jsonData) {
-      console.log("TRACE: Step9 -> In success function for the startService call");
-      console.log("TRACE: Step9 -> value of the received data is: " + jsonData);
       var requestId = jsonData.Requests.id;
-      console.log('requestId is: ' + requestId);
       clusterStatus = {
         status: 'INSTALLED',
         requestId: requestId,
@@ -539,7 +534,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       this.saveClusterStatus(clusterStatus);
     }
     else {
-      console.log('ERROR: Error occurred in parsing JSON data');
       this.hostHasClientsOnly(true);
       clusterStatus = {
         status: 'STARTED',
@@ -593,7 +587,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method launchStartServicesErrorCallback
    */
   launchStartServicesErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    console.log("ERROR");
     this.set('startCallFailed', true);
     var clusterStatus = {
       status: 'INSTALL FAILED',
@@ -606,7 +599,17 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     });
     this.set('progress', '100');
 
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    console.log("Error starting installed services: ", jqXHR, ajaxOptions, error, opt);
+    App.ModalPopup.show({
+      encodeBody: false,
+      primary: Em.I18n.t('ok'),
+      header: Em.I18n.t('installer.step9.service.start.header'),
+      secondaryClass: "hide",
+      body: Em.I18n.t('installer.step9.service.start.failed'),
+      primaryClass: 'btn-success',
+      onPrimary: function() { this.hide(); },
+      onClose: function() { this.hide(); }
+    });
   },
 
   /**
@@ -906,11 +909,9 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @method setParseHostInfo
    */
   setParseHostInfo: function (polledData) {
-    console.log('TRACE: Entering host info function');
     var self = this;
     var totalProgress = 0;
     var tasksData = polledData.tasks || [];
-    console.log("The value of tasksData is: ", tasksData);
     var requestId = this.get('content.cluster.requestId');
     tasksData.setEach('Tasks.request_id', requestId);
     if (polledData.Requests && polledData.Requests.id && polledData.Requests.id != requestId) {
@@ -943,7 +944,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           _host.set('progress', '100');
           _host.set('status', 'success');
         }
-        console.log("INFO: No task is hosted on the host");
       } else {
         _host.set('isNoTasksForInstall', false);
       }
@@ -960,7 +960,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     this.set('logTasksChangesCounter', this.get('logTasksChangesCounter') + 1);
     totalProgress = Math.floor(totalProgress / this.get('hosts.length'));
     this.set('progress', totalProgress.toString());
-    console.log("INFO: right now the progress is: " + this.get('progress'));
     this.setFinishState(tasksData);
   },
 
@@ -994,7 +993,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     var requestId = this.get('currentOpenTaskRequestId');
     var clusterName = this.get('content.cluster.name');
     if (!taskId) {
-      console.log('taskId is null.');
       return;
     }
     App.ajax.send({
@@ -1076,8 +1074,6 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   reloadSuccessCallback: function (data, opt, params) {
     var parsedData = jQuery.parseJSON(data);
     this._super();
-    console.log("TRACE: In success function for the GET logs data");
-    console.log("TRACE: Step9 -> The value is: ", parsedData);
     this.set('isPolling', params.polling);
     this.setParseHostInfo(parsedData);
   },

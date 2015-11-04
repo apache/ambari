@@ -54,7 +54,7 @@ public class CreateHandler extends BaseManagementHandler {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
     } catch (SystemException e) {
       if (LOG.isErrorEnabled()) {
-        LOG.error("Caught a system exception while attempting to create a resource", e.getMessage());
+        LOG.error("Caught a system exception while attempting to create a resource: {}", e.getMessage());
       }
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
     } catch (ResourceAlreadyExistsException e) {

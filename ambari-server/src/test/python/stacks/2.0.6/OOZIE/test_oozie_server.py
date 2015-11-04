@@ -1162,7 +1162,7 @@ class TestOozieServer(RMFTestCase):
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
-     classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
+     classname = "OozieServer", command = "pre_upgrade_restart", config_file = "oozie-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)])
@@ -1229,7 +1229,7 @@ class TestOozieServer(RMFTestCase):
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
-     classname = "OozieServer", command = "pre_rolling_restart", config_dict = json_content,
+     classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, None), (0, prepare_war_stdout)],
@@ -1292,7 +1292,7 @@ class TestOozieServer(RMFTestCase):
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
-     classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-downgrade.json",
+     classname = "OozieServer", command = "pre_upgrade_restart", config_file = "oozie-downgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, prepare_war_stdout)])
@@ -1487,7 +1487,7 @@ class TestOozieServer(RMFTestCase):
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
-     classname = "OozieServer", command = "pre_rolling_restart", config_dict = json_content,
+     classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
      call_mocks = [(0, None), (0, prepare_war_stdout)],

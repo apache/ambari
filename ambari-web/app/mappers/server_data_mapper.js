@@ -133,7 +133,6 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
     item.deleteRecord();
     App.store.commit();
     item.get('stateManager').transitionTo('loading');
-    console.log('Record with id:' + item.get('id') + ' was deleted from model');
   },
   /**
    * check mutable fields whether they have been changed and if positive

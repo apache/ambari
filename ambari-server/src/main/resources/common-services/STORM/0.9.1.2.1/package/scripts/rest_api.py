@@ -33,6 +33,11 @@ from service_check import ServiceCheck
 
 
 class StormRestApi(Script):
+  """
+  Storm REST API.
+  It was available in HDP 2.0 and 2.1.
+  In HDP 2.2, it was removed since the functionality was moved to Storm UI Server.
+  """
 
   def get_stack_to_component(self):
     return {"HDP": "storm-client"}
@@ -47,22 +52,14 @@ class StormRestApi(Script):
 
     storm()
 
-  def pre_rolling_restart(self, env):
-    import params
-    env.set_params(params)
-
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "storm", params.version)
-      hdp_select.select("storm-client", params.version)
-
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
 
     service("rest_api", action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

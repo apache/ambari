@@ -30,9 +30,6 @@ App.ReloadPopupMixin = Em.Mixin.create({
 
   reloadErrorCallback: function (jqXHR, ajaxOptions, error, opt, params) {
     if (jqXHR.status) {
-      if (params.errorLogMessage) {
-        console.log(params.errorLogMessage);
-      }
       this.closeReloadPopup();
       if (params.shouldUseDefaultHandler) {
         App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);

@@ -71,6 +71,11 @@ public abstract class KerberosServerAction extends AbstractServerAction {
   public static final String SERVICE_COMPONENT_FILTER = "service_component_filter";
 
   /**
+   * A (command parameter) property name used to hold the (serialized) host filter list.
+   */
+  public static final String HOST_FILTER = "host_filter";
+
+  /**
    * A (command parameter) property name used to hold the (serialized) identity filter list.
    */
   public static final String IDENTITY_FILTER = "identity_filter";

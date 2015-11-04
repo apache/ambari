@@ -31,14 +31,10 @@ App.ChartServiceMetricsFlume_IncommingSum = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'service.metrics.flume.incoming_event_put_successCount.sum',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    var seriesData = Em.get(jsonData, 'metrics.flume.flume.CHANNEL.EventPutSuccessCount.rate.sum');
-    if (seriesData) {
-      var seriesName = Em.I18n.t('services.service.info.metrics.flume.incoming.sum');
-      seriesArray.push(self.transformData(seriesData, seriesName));
+  seriesTemplate: {
+    path: 'metrics.flume.flume.CHANNEL.EventPutSuccessCount.rate',
+    displayName: function () {
+      return Em.I18n.t('services.service.info.metrics.flume.incoming.sum');
     }
-    return seriesArray;
   }
 });

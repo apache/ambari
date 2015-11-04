@@ -26,13 +26,15 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class SliderClient(Script):
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
 
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class SliderClientLinux(SliderClient):
   def get_stack_to_component(self):
     return {"HDP": "slider-client"}
 
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env,  upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -46,27 +48,22 @@ class SliderClient(Script):
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-client", params.version)
 
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
 
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def install(self, env):
-    import params
-    if params.slider_home is None:
-      self.install_packages(env)
-    self.configure(env)
-
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def configure(self, env):
     import params
     env.set_params(params)
     slider()
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class SliderClientWindows(SliderClient):
+  def install(self, env):
+    import params
+    if params.slider_home is None:
+      self.install_packages(env)
+    self.configure(env)
 
 if __name__ == "__main__":
   SliderClient().execute()

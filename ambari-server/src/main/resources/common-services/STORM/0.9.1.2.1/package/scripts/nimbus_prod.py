@@ -43,7 +43,7 @@ class Nimbus(Script):
 
     storm()
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -52,14 +52,14 @@ class Nimbus(Script):
       hdp_select.select("storm-client", params.version)
       hdp_select.select("storm-nimbus", params.version)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
 
     supervisord_service("nimbus", action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 

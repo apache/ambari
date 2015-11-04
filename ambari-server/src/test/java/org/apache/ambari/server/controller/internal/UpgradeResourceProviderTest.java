@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
@@ -1126,6 +1127,80 @@ public class UpgradeResourceProviderTest {
     }
     return status;
   }
+
+  @Test
+  public void testUpdateSkipFailures() throws Exception {
+    testCreateResourcesWithAutoSkipFailures();
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(1);
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity entity = upgrades.get(0);
+
+    HostRoleCommandDAO dao = injector.getInstance(HostRoleCommandDAO.class);
+
+    List<HostRoleCommandEntity> tasks = dao.findByRequest(entity.getRequestId());
+    for (HostRoleCommandEntity task : tasks) {
+      assertTrue(task.isFailureAutoSkipped());
+    }
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+    Request request = PropertyHelper.getUpdateRequest(requestProps, null);
+    upgradeResourceProvider.updateResources(request, null);
+
+    tasks = dao.findByRequest(entity.getRequestId());
+    for (HostRoleCommandEntity task : tasks) {
+      if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
+        assertFalse(task.isFailureAutoSkipped());
+      } else {
+        assertTrue(task.isFailureAutoSkipped());
+      }
+    }
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.TRUE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    upgradeResourceProvider.updateResources(request, null);
+
+    tasks = dao.findByRequest(entity.getRequestId());
+    for (HostRoleCommandEntity task : tasks) {
+      if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
+        assertTrue(task.isFailureAutoSkipped());
+      } else {
+        assertFalse(task.isFailureAutoSkipped());
+      }
+    }
+
+    requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_FAILURES, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES, Boolean.FALSE.toString());
+    requestProps.put(UpgradeResourceProvider.UPGRADE_REQUEST_ID, "" + entity.getRequestId());
+
+    request = PropertyHelper.getUpdateRequest(requestProps, null);
+    upgradeResourceProvider.updateResources(request, null);
+
+    tasks = dao.findByRequest(entity.getRequestId());
+    for (HostRoleCommandEntity task : tasks) {
+      assertFalse(task.isFailureAutoSkipped());
+    }
+
+
+  }
+
 
   /**
    *

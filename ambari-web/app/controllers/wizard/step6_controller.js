@@ -36,6 +36,8 @@ var validationUtils = require('utils/validator');
  */
 App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
 
+  name: 'wizardStep6Controller',
+
   /**
    * List of hosts
    * @type {object[]}
@@ -296,8 +298,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method loadStep
    */
   loadStep: function () {
-
-    console.log("WizardStep6Controller: Loading step6: Assign Slaves");
     this.clearStep();
     var selectedServices = App.StackService.find().filterProperty('isSelected');
     var installedServices = App.StackService.find().filterProperty('isInstalled');
@@ -499,7 +499,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   selectMasterComponents: function (hostsObj) {
     var masterComponentHosts = this.get('content.masterComponentHosts');
-    console.log('Master components selected on:', masterComponentHosts.mapProperty('hostName').uniq().join(", "));
 
     if (masterComponentHosts) {
       masterComponentHosts.forEach(function (item) {
@@ -698,7 +697,6 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method updateValidationsErrorCallback
    */
   updateValidationsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    console.error('Config validation failed: ', jqXHR, ajaxOptions, error, opt);
   },
 
   /**

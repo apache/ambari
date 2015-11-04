@@ -123,7 +123,7 @@ public class ClusterGrouping extends Grouping {
         return stageWrappers;
       }
 
-      List<StageWrapper> results = new ArrayList<StageWrapper>(stageWrappers);
+      List<StageWrapper> results = new ArrayList<>(stageWrappers);
 
       if (executionStages != null) {
         for (ExecuteStage execution : executionStages) {
@@ -138,14 +138,9 @@ public class ClusterGrouping extends Grouping {
 
           switch (task.getType()) {
             case MANUAL:
-              wrapper = getManualStageWrapper(upgradeContext, execution);
-              break;
-
             case SERVER_ACTION:
-              wrapper = new StageWrapper(
-                  StageWrapper.Type.SERVER_SIDE_ACTION,
-                  execution.title,
-                  new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+            case CONFIGURE:
+              wrapper = getServerActionStageWrapper(upgradeContext, execution);
               break;
 
             case EXECUTE:
@@ -167,20 +162,19 @@ public class ClusterGrouping extends Grouping {
   }
 
   /**
-   * Return a Stage Wrapper for a manual task that runs on the server.
+   * Return a Stage Wrapper for a server side action that runs on the server.
    * @param ctx Upgrade Context
    * @param execution Execution Stage
    * @return Returns a Stage Wrapper
    */
-  private StageWrapper getManualStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
+  private StageWrapper getServerActionStageWrapper(UpgradeContext ctx, ExecuteStage execution) {
 
     String service   = execution.service;
     String component = execution.component;
     String id        = execution.id;
     Task task        = execution.task;
 
-    if (null != id && id.equals("unhealthy-hosts")) {
-
+    if ( Task.Type.MANUAL == task.getType() &&  null != id && id.equals("unhealthy-hosts")) {
       // !!! this specific task is used ONLY when there are unhealthy
       if (ctx.getUnhealthy().isEmpty()) {
         return null;
@@ -197,17 +191,24 @@ public class ClusterGrouping extends Grouping {
 
       HostsType hosts = ctx.getResolver().getMasterAndHosts(service, component);
 
-      if (null == hosts) {
+      if (null == hosts || hosts.hosts.isEmpty()) {
         return null;
       } else {
         realHosts = new LinkedHashSet<String>(hosts.hosts);
       }
     }
 
-    return new StageWrapper(
-        StageWrapper.Type.SERVER_SIDE_ACTION,
-        execution.title,
-        new TaskWrapper(service, component, realHosts, task));
+    if (Task.Type.MANUAL == task.getType()) {
+      return new StageWrapper(
+          StageWrapper.Type.SERVER_SIDE_ACTION,
+          execution.title,
+          new TaskWrapper(service, component, realHosts, task));
+    } else {
+      return new StageWrapper(
+          StageWrapper.Type.SERVER_SIDE_ACTION,
+          execution.title,
+          new TaskWrapper(null, null, Collections.<String>emptySet(), task));
+    }
   }
 
   /**

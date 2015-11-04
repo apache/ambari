@@ -19,9 +19,15 @@
 package org.apache.ambari.server.controller.internal;
 
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.ValueAttributesInfo;
+import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.commons.lang.StringUtils;
@@ -206,6 +212,8 @@ public class BlueprintConfigurationProcessor {
     Configuration clusterConfig = clusterTopology.getConfiguration();
     Map<String, HostGroupInfo> groupInfoMap = clusterTopology.getHostGroupInfo();
 
+    doRecommendConfigurations(clusterConfig, configTypesUpdated);
+
     // filter out any properties that should not be included, based on the dependencies
     // specified in the stacks, and the filters defined in this class
     doFilterPriorToClusterUpdate(clusterConfig, configTypesUpdated);
@@ -376,6 +384,95 @@ public class BlueprintConfigurationProcessor {
         String propName = propertyEntry.getKey();
         if (shouldPropertyBeExcludedForClusterUpdate(propName, propertyEntry.getValue(), configType, clusterTopology)) {
           configuration.removeProperty(configType, propName);
+          configTypesUpdated.add(configType);
+        }
+      }
+    }
+  }
+
+  /**
+   * Update configuration properties from recommended configurations of the stack advisor based on
+   * {@link ConfigRecommendationStrategy}
+   * @param configuration configuration being processed
+   * @param configTypesUpdated updated config types
+   */
+  private void doRecommendConfigurations(Configuration configuration, Set<String> configTypesUpdated) {
+    ConfigRecommendationStrategy configRecommendationStrategy = clusterTopology.getConfigRecommendationStrategy();
+    Map<String, AdvisedConfiguration> advisedConfigurations = clusterTopology.getAdvisedConfigurations();
+    if (ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY.equals(configRecommendationStrategy)) {
+      LOG.debug("Filter out recommended configurations. Keep only the stack defaults.");
+      doFilterStackDefaults(configuration, advisedConfigurations);
+    }
+    if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(configRecommendationStrategy)) {
+      for (Map.Entry<String, AdvisedConfiguration> advConfEntry : advisedConfigurations.entrySet()) {
+        String configType = advConfEntry.getKey();
+        AdvisedConfiguration advisedConfig = advConfEntry.getValue();
+        LOG.debug("Update '{}' configurations with recommended configurations provided by the stack advisor.", configType);
+        doReplaceProperties(configuration, configType, advisedConfig, configTypesUpdated);
+        doRemovePropertiesIfNeeded(configuration, configType, advisedConfig, configTypesUpdated);
+      }
+    } else {
+      LOG.debug("No any recommended configuration applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
+    }
+  }
+
+  /**
+   * Drop every configuration property from advised configuration that is not found in the stack defaults.
+   * @param configuration configuration being processed
+   * @param advisedConfigurations advised configuration instance
+   */
+  private void doFilterStackDefaults(Configuration configuration, Map<String, AdvisedConfiguration> advisedConfigurations) {
+    Blueprint blueprint = clusterTopology.getBlueprint();
+    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
+    Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
+    for (Map.Entry<String, AdvisedConfiguration> adConfEntry : advisedConfigurations.entrySet()) {
+      AdvisedConfiguration advisedConfiguration = adConfEntry.getValue();
+      if (stackDefaultProps.containsKey(adConfEntry.getKey())) {
+        Map<String, String> defaultProps = stackDefaultProps.get(adConfEntry.getKey());
+        Map<String, String> outFilteredProps = Maps.filterKeys(advisedConfiguration.getProperties(),
+          Predicates.not(Predicates.in(defaultProps.keySet())));
+        advisedConfiguration.getProperties().keySet().removeAll(outFilteredProps.keySet());
+
+        if (advisedConfiguration.getPropertyValueAttributes() != null) {
+          Map<String, ValueAttributesInfo> outFilteredValueAttrs = Maps.filterKeys(advisedConfiguration.getPropertyValueAttributes(),
+            Predicates.not(Predicates.in(defaultProps.keySet())));
+          advisedConfiguration.getPropertyValueAttributes().keySet().removeAll(outFilteredValueAttrs.keySet());
+        }
+      } else {
+        advisedConfiguration.getProperties().clear();
+      }
+    }
+  }
+
+  /**
+   * Update configuration properties based on advised configuration properties.
+   * @param configuration configuration being processed
+   * @param configType type of configuration. e.g.: yarn-site
+   * @param advisedConfig advised configuration instance
+   * @param configTypesUpdated updated config types
+   */
+  private void doReplaceProperties(Configuration configuration, String configType,
+                                   AdvisedConfiguration advisedConfig, Set<String> configTypesUpdated) {
+    for (Map.Entry<String, String> propEntry : advisedConfig.getProperties().entrySet()) {
+      configuration.setProperty(configType, propEntry.getKey(), propEntry.getValue());
+      configTypesUpdated.add(configType);
+    }
+  }
+
+  /**
+   * Remove properties that are flagged with 'delete' value attribute.
+   * @param configuration configuration being processed
+   * @param configType type of configuration. e.g.: yarn-site
+   * @param advisedConfig advised configuration instance
+   * @param configTypesUpdated updated config types
+   */
+  private void doRemovePropertiesIfNeeded(Configuration configuration,
+                                          String configType, AdvisedConfiguration advisedConfig, Set<String> configTypesUpdated) {
+    if (advisedConfig.getPropertyValueAttributes() != null) {
+      for (Map.Entry<String, ValueAttributesInfo> valueAttrEntry :
+        advisedConfig.getPropertyValueAttributes().entrySet()) {
+        if ("true".equalsIgnoreCase(valueAttrEntry.getValue().getDelete())) {
+          configuration.removeProperty(configType, valueAttrEntry.getKey());
           configTypesUpdated.add(configType);
         }
       }
@@ -2200,6 +2297,11 @@ public class BlueprintConfigurationProcessor {
                   ".  This may be caused by an error in the blueprint configuration.");
       }
 
+    }
+
+    if(clusterTopology.isClusterKerberosEnabled()) {
+      configuration.setProperty(CLUSTER_ENV_CONFIG_TYPE_NAME, "security_enabled", "true");
+      configTypesUpdated.add(CLUSTER_ENV_CONFIG_TYPE_NAME);
     }
   }
 

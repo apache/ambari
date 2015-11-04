@@ -21,6 +21,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hbase.DoNotRetryIOException;
 import org.apache.hadoop.hbase.util.RetryCounter;
 import org.apache.hadoop.hbase.util.RetryCounterFactory;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
@@ -39,6 +40,7 @@ import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.SplitByMetricNamesCondition;
 import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
+import org.apache.phoenix.exception.PhoenixIOException;
 import org.apache.phoenix.exception.SQLExceptionCode;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
@@ -49,8 +51,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -61,6 +61,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_MINUTE_TABLE_TTL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_SECOND_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.GLOBAL_MAX_RETRIES;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.GLOBAL_RESULT_LIMIT;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.GLOBAL_RETRY_INTERVAL;
@@ -74,7 +75,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.PRECISION_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.ALTER_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_AGGREGATE_TABLE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.CREATE_METRICS_TABLE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.DEFAULT_ENCODING;
@@ -84,6 +85,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_AGGREGATE_RECORD_SQL;
@@ -240,13 +242,14 @@ public class PhoenixHBaseAccessor {
 
     String encoding = metricsConf.get(HBASE_ENCODING_SCHEME, DEFAULT_ENCODING);
     String compression = metricsConf.get(HBASE_COMPRESSION_SCHEME, DEFAULT_TABLE_COMPRESSION);
-    String precisionTtl = metricsConf.get(PRECISION_TABLE_TTL, "86400");
-    String hostMinTtl = metricsConf.get(HOST_MINUTE_TABLE_TTL, "604800");
-    String hostHourTtl = metricsConf.get(HOST_HOUR_TABLE_TTL, "2592000");
-    String hostDailyTtl = metricsConf.get(HOST_DAILY_TABLE_TTL, "31536000");
-    String clusterMinTtl = metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, "2592000");
-    String clusterHourTtl = metricsConf.get(CLUSTER_HOUR_TABLE_TTL, "31536000");
-    String clusterDailyTtl = metricsConf.get(CLUSTER_DAILY_TABLE_TTL, "31536000");
+    String precisionTtl = metricsConf.get(PRECISION_TABLE_TTL, "86400");           //1 day
+    String hostMinTtl = metricsConf.get(HOST_MINUTE_TABLE_TTL, "604800");          //7 days
+    String hostHourTtl = metricsConf.get(HOST_HOUR_TABLE_TTL, "2592000");          //30 days
+    String hostDailyTtl = metricsConf.get(HOST_DAILY_TABLE_TTL, "31536000");       //1 year
+    String clusterSecTtl = metricsConf.get(CLUSTER_SECOND_TABLE_TTL, "2592000");     //7 days
+    String clusterMinTtl = metricsConf.get(CLUSTER_MINUTE_TABLE_TTL, "7776000");   //30 days
+    String clusterHourTtl = metricsConf.get(CLUSTER_HOUR_TABLE_TTL, "31536000");   //1 year
+    String clusterDailyTtl = metricsConf.get(CLUSTER_DAILY_TABLE_TTL, "63072000"); //2 years
 
     try {
       LOG.info("Initializing metrics schema...");
@@ -276,9 +279,11 @@ public class PhoenixHBaseAccessor {
         aggregateSql += getSplitPointsStr(splitPoints);
       }
       stmt.executeUpdate(aggregateSql);
-      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL,
+      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
+        METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME, encoding, clusterHourTtl, compression));
+      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
         METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME, encoding, clusterHourTtl, compression));
-      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL,
+      stmt.executeUpdate(String.format(CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL,
         METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME, encoding, clusterDailyTtl, compression));
 
       //alter TTL options to update tables
@@ -296,6 +301,9 @@ public class PhoenixHBaseAccessor {
         hostDailyTtl));
       stmt.executeUpdate(String.format(ALTER_SQL,
         METRICS_CLUSTER_AGGREGATE_TABLE_NAME,
+        clusterSecTtl));
+      stmt.executeUpdate(String.format(ALTER_SQL,
+        METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME,
         clusterMinTtl));
       stmt.executeUpdate(String.format(ALTER_SQL,
         METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME,
@@ -463,6 +471,26 @@ public class PhoenixHBaseAccessor {
         }
       }
 
+    } catch (PhoenixIOException pioe) {
+      Throwable pioe2 = pioe.getCause();
+      // Need to find out if this is exception "Could not find hash cache
+      // for joinId" or another PhoenixIOException
+      if (pioe2 instanceof PhoenixIOException &&
+        pioe2.getCause() instanceof DoNotRetryIOException) {
+        String className = null;
+        for (StackTraceElement ste : pioe2.getCause().getStackTrace()) {
+          className = ste.getClassName();
+        }
+
+        if (className != null && className.equals("HashJoinRegionScanner")) {
+          LOG.error("The cache might have expired and have been removed. Try to" +
+            " increase the cache size by setting bigger value for " +
+            "phoenix.coprocessor.maxMetaDataCacheSize in ams-hbase-site config." +
+            " Falling back to sort-merge join algorithm.");
+          PhoenixTransactSQL.setSortMergeJoinEnabled(true);
+        }
+      }
+      throw pioe;
     } catch (RuntimeException ex) {
       // We need to find out if this is a real IO exception
       // or exception "maxStamp is smaller than minStamp"
@@ -642,7 +670,8 @@ public class PhoenixHBaseAccessor {
     for (Function aggregateFunction : functions) {
       SingleValuedTimelineMetric metric;
 
-      if (condition.getPrecision() == Precision.HOURS
+      if (condition.getPrecision() == Precision.MINUTES
+          || condition.getPrecision() == Precision.HOURS
           || condition.getPrecision() == Precision.DAYS) {
         metric = getAggregateTimelineMetricFromResultSet(rs, aggregateFunction, false);
       } else {

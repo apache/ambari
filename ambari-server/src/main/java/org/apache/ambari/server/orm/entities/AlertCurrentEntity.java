@@ -252,4 +252,25 @@ public class AlertCurrentEntity {
     int result = null != alertId ? alertId.hashCode() : 0;
     return result;
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String toString() {
+    StringBuilder buffer = new StringBuilder("AlertCurrentEntity{");
+    buffer.append("alertId=").append(alertId);
+    if( null != alertDefinition) {
+      buffer.append(", name=").append(alertDefinition.getDefinitionName());
+    }
+
+    if (null != alertHistory) {
+      buffer.append(", state=").append(alertHistory.getAlertState());
+    }
+
+    buffer.append(", latestTimestamp=").append(latestTimestamp);
+
+    buffer.append("}");
+    return buffer.toString();
+  }
 }

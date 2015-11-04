@@ -208,7 +208,7 @@
           "hive.server2.authentication.spnego.keytab": "HTTP/_HOST@EXAMPLE.COM",
           "hive.server2.authentication.spnego.principal": "/etc/security/keytabs/spnego.service.keytab",
           "hive.server2.logging.operation.enabled": "true",
-          "hive.server2.logging.operation.log.location": "${system:java.io.tmpdir}/${system:user.name}/operation_logs",
+          "hive.server2.logging.operation.log.location": "/tmp/hive/operation_logs",
           "hive.server2.table.type.mapping": "CLASSIC",
           "hive.server2.tez.default.queues": "default",
           "hive.server2.tez.sessions.per.default.queue": "1",

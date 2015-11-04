@@ -18,45 +18,37 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.ConfigurationResponse;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -82,14 +74,32 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
-import java.lang.reflect.Field;
+import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -201,6 +211,8 @@ public class UpgradeCatalog213Test {
     Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method updateHadoopEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
+    Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
+    Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
       .addMockedMethod(updateAMSConfigs)
@@ -212,6 +224,8 @@ public class UpgradeCatalog213Test {
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateZookeeperLog4j)
       .addMockedMethod(updateHadoopEnvConfig)
+      .addMockedMethod(updateRangerEnvConfig)
+      .addMockedMethod(updateHiveConfig)
       .createMock();
 
     upgradeCatalog213.updateHbaseEnvConfig();
@@ -231,6 +245,10 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateHDFSConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateZookeeperLog4j();
+    expectLastCall().once();
+    upgradeCatalog213.updateRangerEnvConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateHiveConfig();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -586,22 +604,131 @@ public class UpgradeCatalog213Test {
   }
 
   @Test
-  public void testModifyJournalnodeProcessAlertSource() throws Exception {
+  public void testAmsSiteUpdateConfigs() throws Exception{
+
+    Map<String, String> oldPropertiesAmsSite = new HashMap<String, String>() {
+      {
+        //Including only those properties that might be present in an older version.
+        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(1000));
+      }
+    };
+    Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
+        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
+        put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
+        put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).times(1);
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAmsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<ConfigurationRequest> configurationRequestCapture = EasyMock.newCapture();
+    ConfigurationResponse configurationResponseMock = easyMockSupport.createMock(ConfigurationResponse.class);
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock).once();
+
+    replay(controller, injector2, configurationResponseMock);
+    new UpgradeCatalog213(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    ConfigurationRequest configurationRequest = configurationRequestCapture.getValue();
+    Map<String, String> updatedProperties = configurationRequest.getProperties();
+    assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
+
+  }
+
+  @Test
+  public void testUpdateAlertDefinitions() {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
     UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
-    String alertSource = "{\"uri\":\"{{hdfs-site/dfs.journalnode.http-address}}\",\"default_port\":8480," +
-      "\"type\":\"PORT\",\"reporting\":{\"ok\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\"}," +
-      "\"warning\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\",\"value\":1.5}," +
-      "\"critical\":{\"text\":\"Connection failed: {0} to {1}:{2}\",\"value\":5.0}}}";
-    String expected = "{\"reporting\":{\"ok\":{\"text\":\"HTTP {0} response in {2:.3f}s\"}," +
-      "\"warning\":{\"text\":\"HTTP {0} response from {1} in {2:.3f}s ({3})\"}," +
-      "\"critical\":{\"text\":\"Connection failed to {1} ({3})\"}},\"type\":\"WEB\"," +
-      "\"uri\":{\"http\":\"{{hdfs-site/dfs.journalnode.http-address}}\"," +
-      "\"https\":\"{{hdfs-site/dfs.journalnode.https-address}}\"," +
-      "\"kerberos_keytab\":\"{{hdfs-site/dfs.web.authentication.kerberos.keytab}}\"," +
-      "\"kerberos_principal\":\"{{hdfs-site/dfs.web.authentication.kerberos.principal}}\"," +
-      "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
-      "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
-    Assert.assertEquals(expected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(alertSource));
+    long clusterId = 1;
+
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final AlertDefinitionDAO mockAlertDefinitionDAO = easyMockSupport.createNiceMock(AlertDefinitionDAO.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final AlertDefinitionEntity mockJournalNodeProcessAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+    final AlertDefinitionEntity mockHostDiskUsageAlertDefinitionEntity = easyMockSupport.createNiceMock(AlertDefinitionEntity.class);
+
+    final String journalNodeProcessAlertSource = "{\"uri\":\"{{hdfs-site/dfs.journalnode.http-address}}\",\"default_port\":8480," +
+        "\"type\":\"PORT\",\"reporting\":{\"ok\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\"}," +
+        "\"warning\":{\"text\":\"TCP OK - {0:.3f}s response on port {1}\",\"value\":1.5}," +
+        "\"critical\":{\"text\":\"Connection failed: {0} to {1}:{2}\",\"value\":5.0}}}";
+    final String journalNodeProcessAlertSourceExpected = "{\"reporting\":{\"ok\":{\"text\":\"HTTP {0} response in {2:.3f}s\"}," +
+        "\"warning\":{\"text\":\"HTTP {0} response from {1} in {2:.3f}s ({3})\"}," +
+        "\"critical\":{\"text\":\"Connection failed to {1} ({3})\"}},\"type\":\"WEB\"," +
+        "\"uri\":{\"http\":\"{{hdfs-site/dfs.journalnode.http-address}}\"," +
+        "\"https\":\"{{hdfs-site/dfs.journalnode.https-address}}\"," +
+        "\"kerberos_keytab\":\"{{hdfs-site/dfs.web.authentication.kerberos.keytab}}\","+
+        "\"kerberos_principal\":\"{{hdfs-site/dfs.web.authentication.kerberos.principal}}\"," +
+        "\"https_property\":\"{{hdfs-site/dfs.http.policy}}\"," +
+        "\"https_property_value\":\"HTTPS_ONLY\",\"connection_timeout\":5.0}}";
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+        bind(AlertDefinitionDAO.class).toInstance(mockAlertDefinitionDAO);
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getClusterId()).andReturn(clusterId).anyTimes();
+
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("journalnode_process"))).andReturn(mockJournalNodeProcessAlertDefinitionEntity).atLeastOnce();
+    expect(mockAlertDefinitionDAO.findByName(eq(clusterId), eq("ambari_agent_disk_usage"))).andReturn(mockHostDiskUsageAlertDefinitionEntity).atLeastOnce();
+
+    expect(mockJournalNodeProcessAlertDefinitionEntity.getSource()).andReturn(journalNodeProcessAlertSource).atLeastOnce();
+    Assert.assertEquals(journalNodeProcessAlertSourceExpected, upgradeCatalog213.modifyJournalnodeProcessAlertSource(journalNodeProcessAlertSource));
+
+    mockHostDiskUsageAlertDefinitionEntity.setDescription(eq("This host-level alert is triggered if the amount of disk space " +
+        "used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL."));
+    expectLastCall().atLeastOnce();
+    mockHostDiskUsageAlertDefinitionEntity.setLabel(eq("Host Disk Usage"));
+    expectLastCall().atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateAlertDefinitions();
+    easyMockSupport.verifyAll();
   }
 
   @Test
@@ -723,10 +850,72 @@ public class UpgradeCatalog213Test {
 
   }
 
+  @Test
+  public void testUpdateRangerEnvConfig() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesHiveEnv = new HashMap<String, String>() {{
+        put("hive_security_authorization", "Ranger");
+    }};
+    final Map<String, String> propertiesRangerHdfsPlugin = new HashMap<String, String>() {{
+      put("ranger-hdfs-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerHbasePlugin = new HashMap<String, String>() {{
+      put("ranger-hbase-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerKafkaPlugin = new HashMap<String, String>() {{
+      put("ranger-kafka-plugin-enabled", "Yes");
+    }};
+    final Map<String, String> propertiesRangerYarnPlugin = new HashMap<String, String>() {{
+      put("ranger-yarn-plugin-enabled", "No");
+    }};
+
+    final Config mockHiveEnvConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerHdfsPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerHbasePluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerKafkaPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Config mockRangerYarnPluginConf = easyMockSupport.createNiceMock(Config.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(mockHiveEnvConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-hdfs-plugin-properties")).andReturn(mockRangerHdfsPluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-hbase-plugin-properties")).andReturn(mockRangerHbasePluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-kafka-plugin-properties")).andReturn(mockRangerKafkaPluginConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-yarn-plugin-properties")).andReturn(mockRangerYarnPluginConf).atLeastOnce();
+
+    expect(mockHiveEnvConf.getProperties()).andReturn(propertiesHiveEnv).times(2);
+    expect(mockRangerHdfsPluginConf.getProperties()).andReturn(propertiesRangerHdfsPlugin).times(2);
+    expect(mockRangerHbasePluginConf.getProperties()).andReturn(propertiesRangerHbasePlugin).times(2);
+    expect(mockRangerKafkaPluginConf.getProperties()).andReturn(propertiesRangerKafkaPlugin).times(2);
+    expect(mockRangerYarnPluginConf.getProperties()).andReturn(propertiesRangerYarnPlugin).times(2);
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateRangerEnvConfig();
+    easyMockSupport.verifyAll();
+
+  }
+
+  @Test
   public void testGetSourceVersion() {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
-    Assert.assertEquals("2.1.2", upgradeCatalog.getSourceVersion());
+    Assert.assertEquals("2.1.2.1", upgradeCatalog.getSourceVersion());
   }
 
   @Test
@@ -789,6 +978,11 @@ public class UpgradeCatalog213Test {
     Capture<DBAccessor.DBColumnInfo> capturedColumn = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedHostRoleCommandColumn = EasyMock.newCapture();
 
+    Capture<String> capturedBlueprintTableName = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn1 = EasyMock.newCapture();
+    Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn2 = EasyMock.newCapture();
+
+
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
     EasyMock.expect(mockedConfiguration.getDatabaseType()).andReturn(Configuration.DatabaseType.POSTGRES).anyTimes();
@@ -808,6 +1002,9 @@ public class UpgradeCatalog213Test {
     mockedDbAccessor.createTable(capture(capturedTableName), capture(capturedColumns), capture(capturedPKColumn));
     mockedDbAccessor.alterColumn(eq("host_role_command"), capture(capturedHostRoleCommandColumn));
 
+    mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn1));
+    mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn2));
+
     mocksControl.replay();
 
     UpgradeCatalog213 testSubject = new UpgradeCatalog213(mockedInjector);
@@ -825,6 +1022,62 @@ public class UpgradeCatalog213Test {
     Assert.assertEquals("The table name is wrong!", "kerberos_descriptor", capturedTableName.getValue());
     Assert.assertEquals("The primary key is wrong!", "kerberos_descriptor_name", capturedPKColumn.getValue());
     Assert.assertTrue("Ther number of columns is wrong!", capturedColumns.getValue().size() == 2);
+
+    Assert.assertEquals("The table name is wrong!", "blueprint", capturedBlueprintTableName.getValue());
+
+    Assert.assertEquals("The column name is wrong!", "security_type", capturedNewBlueprintColumn1.getValue().getName());
+    Assert.assertEquals("The column name is wrong!", "security_descriptor_reference", capturedNewBlueprintColumn2
+      .getValue().getName());
+
+
+  }
+
+  @Test
+  public void testUpdateHiveConfig() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesHiveSite = new HashMap<String, String>() {{
+      put("hive.server2.logging.operation.log.location", "${system:java.io.tmpdir}/${system:user.name}/operation_logs");
+    }};
+    final Map<String, String> propertiesHiveSiteExpected = new HashMap<String, String>() {{
+      put("hive.server2.logging.operation.log.location", "/tmp/hive/operation_logs");
+    }};
+    final Config hiveSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(hiveSiteConf).atLeastOnce();
+
+    expect(hiveSiteConf.getProperties()).andReturn(propertiesHiveSite).once();
+
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+                    Map.class, boolean.class, boolean.class)
+            .createMock();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "hive-site", propertiesHiveSiteExpected, true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog213);
+    upgradeCatalog213.updateHiveConfig();
+    easyMockSupport.verifyAll();
 
   }
 

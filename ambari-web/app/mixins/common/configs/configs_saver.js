@@ -296,11 +296,12 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     if (serviceName === 'YARN') {
       configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
     }
-    /**
-     * generates list of properties that was changed
-     * @type {Array}
-     */
+
+    //generates list of properties that was changed
     var modifiedConfigs = this.getModifiedConfigs(configs);
+    var serviceFilenames = Object.keys(App.StackService.find(serviceName).get('configTypes')).map(function (type) {
+      return App.config.getOriginalFileName(type);
+    });
 
     // save modified original configs that have no group
     modifiedConfigs = this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
@@ -309,7 +310,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
     if (!Em.isArray(modifiedConfigs) || modifiedConfigs.length == 0) return null;
 
-    var fileNamesToSave = modifiedConfigs.mapProperty('filename').concat(this.get('modifiedFileNames')).uniq();
+    var fileNamesToSave = modifiedConfigs.mapProperty('filename').concat(this.get('modifiedFileNames')).filter(function(filename) {
+      return serviceFilenames.contains(filename);
+    }).uniq();
 
     var configsToSave = this.generateDesiredConfigsJSON(modifiedConfigs, fileNamesToSave, this.get('serviceConfigVersionNote'));
 

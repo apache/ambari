@@ -381,11 +381,13 @@ describe('App.upgradeWizardView', function () {
   describe("#isDowngradeAvailable", function () {
     it("downgrade available", function () {
       view.set('controller.isDowngrade', false);
+      view.set('controller.downgradeAllowed', true);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.true;
     });
     it("downgrade unavailable", function () {
       view.set('controller.isDowngrade', true);
+      view.set('controller.downgradeAllowed', true);
       view.propertyDidChange('isDowngradeAvailable');
       expect(view.get('isDowngradeAvailable')).to.be.false;
     });

@@ -156,91 +156,10 @@ hdp22properties.push(
     "index": 2
   },
   {
-    "name": "DB_FLAVOR",
-    "options": [
-      {
-        displayName: 'MYSQL'
-      },
-      {
-        displayName: 'ORACLE'
-      }
-    ],
-    "displayType": "radio button",
-    "radioName": "RANGER DB_FLAVOR",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 1
-  },
-  {
     "name": "SQL_COMMAND_INVOKER",
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings"
-  },
-  {
-    "name": "db_host",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 2
-  },
-  {
-    "name": "db_root_user",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 5
-  },
-  {
-    "name": "db_root_password",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 6
-  },
-  {
-    "name": "db_name",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 7
-  },
-
-  {
-    "name": "db_user",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 3
-  },
-  {
-    "name": "db_password",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 4
-  },
-  {
-    "name": "audit_db_name",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 11
-  },
-  {
-    "name": "audit_db_user",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 12
-  },
-  {
-    "name": "audit_db_password",
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings",
-    "index": 13
   },
   {
     "name": "policymgr_external_url",

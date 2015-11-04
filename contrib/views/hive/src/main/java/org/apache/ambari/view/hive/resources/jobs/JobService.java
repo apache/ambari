@@ -273,6 +273,14 @@ public class JobService extends BaseService {
                              @QueryParam("columns") final String requestedColumns) {
     try {
       final JobController jobController = getResourceManager().readController(jobId);
+      LOG.info("jobController.getStatus().status : " + jobController.getStatus().status + " for job : " + jobController.getJob().getId());
+      if(jobController.getStatus().status.equals(Job.JOB_STATE_INITIALIZED)
+         || jobController.getStatus().status.equals(Job.JOB_STATE_PENDING)
+         || jobController.getStatus().status.equals(Job.JOB_STATE_RUNNING)
+         || jobController.getStatus().status.equals(Job.JOB_STATE_UNKNOWN)){
+
+         return Response.status(Response.Status.SERVICE_UNAVAILABLE).header("Retry-After","1").build();
+      }
       if (!jobController.hasResults()) {
         return ResultsPaginationController.emptyResponse().build();
       }

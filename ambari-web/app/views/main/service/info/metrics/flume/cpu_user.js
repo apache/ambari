@@ -29,30 +29,19 @@ var App = require('app');
 App.ChartServiceMetricsFlume_CPUUser = App.ChartLinearTimeView.extend({
   id: "service-metrics-flume-cpu-user",
   title: Em.I18n.t('services.service.info.metrics.flume.cpu.user'),
-  yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
+  displayUnit: '%',
   renderer: 'line',
   
   ajaxIndex: 'service.metrics.flume.cpu_user',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    var self = this;
-    if (jsonData && jsonData.host_components) {
-      jsonData.host_components.forEach(function (hc) {
-        var hostName = hc.HostRoles.host_name;
-        var host = App.Host.find(hostName);
-        if (host && host.get('publicHostName')) {
-          hostName = host.get('publicHostName');
-        }
-        if (hc.metrics && hc.metrics.cpu && hc.metrics.cpu.cpu_user) {
-          var seriesName = Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
-          var seriesData = hc.metrics.cpu.cpu_user;
-          if (seriesData) {
-            seriesArray.push(self.transformData(seriesData, seriesName));
-          }
-        }
-      });
+  seriesTemplate: {
+    path: 'metrics.cpu.cpu_user',
+    displayName: function (name, hostName) {
+      return Em.I18n.t('services.service.info.metrics.flume.hostName').format(hostName);
     }
-    return seriesArray;
+  },
+
+  getData: function (jsonData) {
+    return this.getFlumeData(jsonData);
   }
 });

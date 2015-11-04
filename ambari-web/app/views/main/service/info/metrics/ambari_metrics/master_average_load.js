@@ -36,24 +36,13 @@ App.ChartServiceMetricsAMS_MasterAverageLoad = App.ChartLinearTimeView.extend({
     fields: ['metrics/hbase/master/AverageLoad']
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.hbase && jsonData.metrics.hbase.master) {
-      for ( var name in jsonData.metrics.hbase.master) {
-        var displayName;
-        var seriesData = jsonData.metrics.hbase.master[name];
-        switch (name) {
-          case "AverageLoad":
-            displayName = Em.I18n.t('services.service.info.metrics.ambariMetrics.master.displayNames.averageLoad');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.hbase.master',
+    displayName: function (name) {
+      var displayNameMap = {
+        AverageLoad: Em.I18n.t('services.service.info.metrics.ambariMetrics.master.displayNames.averageLoad')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
   }
 });

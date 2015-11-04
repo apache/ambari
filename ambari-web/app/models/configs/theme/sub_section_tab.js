@@ -76,7 +76,9 @@ App.SubSectionTab = DS.Model.extend({
    * @type {boolean}
    */
   isHiddenByFilter: function () {
-    var configs = this.get('configs');
+    var configs = this.get('configs').filter(function(c) {
+      return !c.get('hiddenBySection') && c.get('isVisible');
+    });
     return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
   }.property('configs.@each.isHiddenByFilter'),
 

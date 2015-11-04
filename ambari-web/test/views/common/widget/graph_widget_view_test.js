@@ -132,16 +132,12 @@ describe('App.GraphWidgetView', function () {
     var cases = [
       {
         data: null,
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         showAlertPopupCallCount: 1,
         title: 'no data'
       },
       {
         data: {},
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         showAlertPopupCallCount: 1,
         title: 'invalid data'
@@ -152,8 +148,6 @@ describe('App.GraphWidgetView', function () {
             data: null
           }
         ],
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         showAlertPopupCallCount: 1,
         title: 'empty data'
@@ -164,8 +158,6 @@ describe('App.GraphWidgetView', function () {
             data: {}
           }
         ],
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 0,
         showAlertPopupCallCount: 1,
         title: 'malformed data'
@@ -173,17 +165,13 @@ describe('App.GraphWidgetView', function () {
       {
         data: [
           {
-            data: [
-              {
-                key: 'value'
-              }
-            ]
+            name: 'name',
+            data: [0,1]
           }
         ],
-        prepareCSVCallCount: 0,
-        prepareJSONCallCount: 1,
         downloadTextFileCallCount: 1,
         showAlertPopupCallCount: 0,
+        fileData: '[{"name":"name","data":[0,1]}]',
         title: 'JSON export'
       },
       {
@@ -199,24 +187,21 @@ describe('App.GraphWidgetView', function () {
         event: {
           context: true
         },
-        prepareCSVCallCount: 1,
-        prepareJSONCallCount: 0,
         downloadTextFileCallCount: 1,
         showAlertPopupCallCount: 0,
+        fileData: 'key,value',
         title: 'CSV export'
       }
     ];
 
     beforeEach(function () {
-      sinon.stub(view, 'prepareCSV').returns([]);
-      sinon.stub(view, 'prepareJSON').returns([]);
+      sinon.stub(view, 'prepareCSV').returns('key,value');
       sinon.stub(fileUtils, 'downloadTextFile', Em.K);
       sinon.stub(App, 'showAlertPopup', Em.K);
     });
 
     afterEach(function () {
       view.prepareCSV.restore();
-      view.prepareJSON.restore();
       fileUtils.downloadTextFile.restore();
       App.showAlertPopup.restore();
     });
@@ -225,17 +210,41 @@ describe('App.GraphWidgetView', function () {
       it(item.title, function () {
         view.set('data', item.data);
         view.exportGraphData(item.event || {});
-        expect(view.prepareCSV.callCount).to.equal(item.prepareCSVCallCount);
-        expect(view.prepareJSON.callCount).to.equal(item.prepareJSONCallCount);
+        expect(view.get('isExportMenuHidden')).to.be.true;
         expect(fileUtils.downloadTextFile.callCount).to.equal(item.downloadTextFileCallCount);
         expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
         if (item.downloadTextFileCallCount) {
-          var fileType = item.event && item.event.context ? 'csv' : 'json';
-          expect(fileUtils.downloadTextFile.calledWith([], fileType, 'data.' + fileType)).to.be.true;
+          var fileType = item.event && item.event.context ? 'csv' : 'json',
+            downloadArgs = fileUtils.downloadTextFile.firstCall.args;
+          expect(downloadArgs[0].replace(/\s/g, '')).to.equal(item.fileData);
+          expect(downloadArgs[1]).to.equal(fileType);
+          expect(downloadArgs[2]).to.equal('data.' + fileType);
         }
       });
     });
 
+  });
+
+  describe('#exportTargetView', function () {
+
+    var childViews = [
+        {
+          p0: 'v0'
+        },
+        {
+          p1: 'v1'
+        }
+      ],
+      title = 'should take last child view';
+
+    beforeEach(function () {
+      view.get('childViews').pushObjects(childViews);
+      view.propertyDidChange('exportTargetView');
+    });
+
+    it(title, function () {
+      expect(view.get('exportTargetView')).to.eql(childViews[1]);
+    });
   });
 
 });

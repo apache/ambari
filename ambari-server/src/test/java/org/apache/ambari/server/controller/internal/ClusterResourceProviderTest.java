@@ -18,27 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ClusterResponse;
@@ -56,8 +36,9 @@ import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.SecurityConfiguration;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -65,6 +46,29 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -80,41 +84,108 @@ public class ClusterResourceProviderTest {
   private static final Request request = createNiceMock(Request.class);
   private static final TopologyManager topologyManager = createStrictMock(TopologyManager.class);
   private static final TopologyRequestFactory topologyFactory = createStrictMock(TopologyRequestFactory.class);
+  private final static SecurityConfigurationFactory securityFactory = createMock(SecurityConfigurationFactory.class);
   private static final ProvisionClusterRequest topologyRequest = createNiceMock(ProvisionClusterRequest.class);
   private static final BlueprintFactory blueprintFactory = createStrictMock(BlueprintFactory.class);
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
   private static final RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
+  private static final Gson gson = new Gson();
 
   @Before
   public void setup() throws Exception{
-    ClusterResourceProvider.init(topologyManager, topologyFactory);
+    ClusterResourceProvider.init(topologyManager, topologyFactory, securityFactory, gson);
     ProvisionClusterRequest.init(blueprintFactory);
     provider = new ClusterResourceProvider(controller);
 
     expect(blueprintFactory.getBlueprint(BLUEPRINT_NAME)).andReturn(blueprint).anyTimes();
+    expect(securityFactory.createSecurityConfigurationFromRequest(null, false)).andReturn(null).anyTimes();
   }
 
   @After
   public void tearDown() {
-    reset(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, requestStatusResponse, blueprint);
+    reset(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, securityFactory,
+      requestStatusResponse, blueprint);
   }
 
   private void replayAll() {
-    replay(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, requestStatusResponse, blueprint);
+    replay(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, securityFactory,
+      requestStatusResponse, blueprint);
   }
 
   private void verifyAll() {
-    verify(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, requestStatusResponse, blueprint);
+    verify(request, topologyManager, topologyFactory, topologyRequest, blueprintFactory, securityFactory,
+      requestStatusResponse, blueprint);
   }
 
   @Test
   public void testCreateResource_blueprint() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
     Map<String, Object> properties = requestProperties.iterator().next();
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
 
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
-    expect(topologyFactory.createProvisionClusterRequest(properties)).andReturn(topologyRequest).once();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
+
+    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+      .once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
+    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
+
+    replayAll();
+    RequestStatus requestStatus = provider.createResources(request);
+    assertEquals(5150L, requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "id")));
+    assertEquals(Resource.Type.Request, requestStatus.getRequestResource().getType());
+    assertEquals("Accepted", requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
+
+    verifyAll();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateResource_blueprint_withInvalidSecurityConfiguration() throws Exception {
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Map<String, Object> properties = requestProperties.iterator().next();
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"NONE\"," +
+      "\n\"kerberos_descriptor_reference\" : " + "\"testRef\"\n}}");
+    SecurityConfiguration blueprintSecurityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef",
+      null);
+    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.NONE, null, null);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
+
+    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn
+      (securityConfiguration).once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
+    expect(topologyRequest.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(blueprint.getSecurity()).andReturn(blueprintSecurityConfiguration).anyTimes();
+    expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
+
+    replayAll();
+    RequestStatus requestStatus = provider.createResources(request);
+  }
+
+  @Test
+  public void testCreateResource_blueprint_withSecurityConfiguration() throws Exception {
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Map<String, Object> properties = requestProperties.iterator().next();
+    SecurityConfiguration securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, "testRef", null);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"security\" : {\n\"type\" : \"KERBEROS\",\n\"kerberos_descriptor_reference\" : " +
+      "\"testRef\"\n}}");
+
+        // set expectations
+    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
+
+    expect(topologyFactory.createProvisionClusterRequest(properties, securityConfiguration)).andReturn(topologyRequest).once();
+    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn
+      (securityConfiguration).once();
     expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
@@ -135,7 +206,8 @@ public class ClusterResourceProviderTest {
     // set expectations
     expect(request.getProperties()).andReturn(requestProperties).anyTimes();
     // throw exception from topology request factory an assert that the correct exception is thrown from resource provider
-    expect(topologyFactory.createProvisionClusterRequest(properties)).andThrow(new InvalidTopologyException("test"));
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andThrow(new InvalidTopologyException
+      ("test"));
 
     replayAll();
     provider.createResources(request);

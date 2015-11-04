@@ -41,7 +41,8 @@
 
   <property>
     <name>https.attrib.keystorePass</name>
-    <value>ranger</value>
+    <value>xasecure</value>
+    <property-type>PASSWORD</property-type>
     <description>The keystore pass to be used </description>
   </property>
 

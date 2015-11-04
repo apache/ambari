@@ -19,11 +19,11 @@ package org.apache.ambari.server.orm.dao;
 
 import java.util.List;
 
+import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
@@ -32,6 +32,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link ClusterVersionDAO} class manages the {@link ClusterVersionEntity} instances associated with a cluster.
@@ -176,4 +177,40 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
     this.create(clusterVersionEntity);
     return clusterVersionEntity;
   }
+
+  /**
+   * Updates the cluster version's existing CURRENT record to the INSTALLED, and the target
+   * becomes CURRENT.  This method invokes {@code clear()} on the entity manager to force entities to be refreshed.
+   * @param clusterId the cluster
+   * @param target    the repo version that will be marked as CURRENT
+   * @param current   the cluster's current record to be marked INSTALLED
+   */
+  @Transactional
+  public void updateVersions(Long clusterId, RepositoryVersionEntity target, RepositoryVersionEntity current) {
+    // !!! first update target to be current
+    StringBuilder sb = new StringBuilder("UPDATE ClusterVersionEntity cve");
+    sb.append(" SET cve.state = ?1 ");
+    sb.append(" WHERE cve.clusterId = ?2");
+    sb.append(" AND cve.repositoryVersion = ?3");
+
+    EntityManager em = entityManagerProvider.get();
+
+    TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
+    daoUtils.executeUpdate(query, RepositoryVersionState.CURRENT, clusterId, target);
+
+    // !!! then move existing current to installed
+    sb = new StringBuilder("UPDATE ClusterVersionEntity cve");
+    sb.append(" SET cve.state = ?1 ");
+    sb.append(" WHERE cve.clusterId = ?2");
+    sb.append(" AND cve.repositoryVersion = ?3");
+    sb.append(" AND cve.state = ?4");
+
+    query = em.createQuery(sb.toString(), Long.class);
+    daoUtils.executeUpdate(query, RepositoryVersionState.INSTALLED, clusterId, current,
+        RepositoryVersionState.CURRENT);
+
+    em.clear();
+  }
+
+
 }

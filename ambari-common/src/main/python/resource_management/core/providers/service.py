@@ -67,7 +67,7 @@ class ServiceProvider(Provider):
       else:
         ret,out = shell.call(custom_cmd)
     else:
-      ret = self._init_cmd(command)
+      ret,out = self._init_cmd(command)
 
     if expect is not None and expect != ret:
       raise Fail("%r command %s for service %s failed with return code: %d. %s" % (
@@ -84,7 +84,7 @@ class ServiceProvider(Provider):
         ret,out = shell.call(["/sbin/" + command, self.resource.service_name])
     else:
       ret,out = shell.call(["/etc/init.d/%s" % self.resource.service_name, command])
-    return ret
+    return ret,out
 
   @property
   def _upstart(self):

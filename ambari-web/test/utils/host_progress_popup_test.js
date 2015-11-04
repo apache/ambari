@@ -476,4 +476,116 @@ describe('App.HostPopup', function () {
     });
   });
 
+  describe('#_getHostsMap', function () {
+
+    Em.A([
+      {
+        inputData: [
+          {name: 's1', hostsMap: {h1: {}, h2: {}}},
+          {name: 's2'}
+        ],
+        isBackgroundOperations: true,
+        currentServiceId: null,
+        serviceName: 's1',
+        m: '`currentServiceId` is null, `serviceName` exists, `isBackgroundOperations` true, `hostsMap` exists',
+        e: {h1: {}, h2: {}}
+      },
+      {
+        inputData: [
+          {name: 's1', hosts: [
+            {name: 'h1'},
+            {name: 'h2'}
+          ]},
+          {name: 's2'}
+        ],
+        isBackgroundOperations: true,
+        currentServiceId: null,
+        serviceName: 's1',
+        m: '`currentServiceId` is null, `serviceName` exists, `isBackgroundOperations` true, `hosts` exists',
+        e: {h1: {name: 'h1'}, h2: {name: 'h2'}}
+      },
+      {
+        inputData: [
+          {id: 1, hostsMap: {h1: {}, h2: {}}},
+          {id: 2}
+        ],
+        isBackgroundOperations: true,
+        currentServiceId: 1,
+        serviceName: 's1',
+        m: '`currentServiceId` is 1, `serviceName` exists, `isBackgroundOperations` true, `hostsMap` exists',
+        e: {h1: {}, h2: {}}
+      },
+      {
+        inputData: [
+          {id: 1, hosts: [
+            {name: 'h1'},
+            {name: 'h2'}
+          ]},
+          {id: 2}
+        ],
+        isBackgroundOperations: true,
+        currentServiceId: 1,
+        serviceName: 's1',
+        m: '`currentServiceId` is 1, `serviceName` exists, `isBackgroundOperations` true, `hosts` exists',
+        e: {h1: {name: 'h1'}, h2: {name: 'h2'}}
+      },
+
+      {
+        inputData: [
+          {name: 's1', hostsMap: {h1: {}, h2: {}}},
+          {name: 's2'}
+        ],
+        isBackgroundOperations: false,
+        currentServiceId: null,
+        serviceName: 's1',
+        m: '`currentServiceId` is null, `serviceName` exists, `isBackgroundOperations` false, `hostsMap` exists',
+        e: {h1: {}, h2: {}}
+      },
+      {
+        inputData: [
+          {name: 's1', hosts: [
+            {name: 'h1'},
+            {name: 'h2'}
+          ]},
+          {name: 's2'}
+        ],
+        isBackgroundOperations: false,
+        currentServiceId: null,
+        serviceName: 's1',
+        m: '`currentServiceId` is null, `serviceName` exists, `isBackgroundOperations` false, `hosts` exists',
+        e: {h1: {name: 'h1'}, h2: {name: 'h2'}}
+      },
+      {
+        inputData: [
+          {name: 's1', hostsMap: {h1: {}, h2: {}}}
+        ],
+        isBackgroundOperations: false,
+        currentServiceId: 1,
+        serviceName: 's1',
+        m: '`currentServiceId` is 1, `serviceName` exists, `isBackgroundOperations` false, `hostsMap` exists',
+        e: {h1: {}, h2: {}}
+      },
+      {
+        inputData: [
+          {name: 's1', hostsMap: {h1: {}, h2: {}}}
+        ],
+        isBackgroundOperations: false,
+        currentServiceId: 1,
+        serviceName: 's1',
+        m: '`currentServiceId` is 1, `serviceName` exists, `isBackgroundOperations` false, `hosts` exists',
+        e: {h1: {}, h2: {}}
+      }
+    ]).forEach(function (test) {
+
+      it(test.m, function () {
+        App.HostPopup.setProperties(test);
+        expect(App.HostPopup._getHostsMap()).to.eql(test.e);
+      });
+
+    });
+
+  });
+
+
+
 });

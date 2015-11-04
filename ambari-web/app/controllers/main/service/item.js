@@ -123,7 +123,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       params.query.set('status', 'SUCCESS');
       var config = this.get('callBackConfig')[(JSON.parse(ajaxOptions.data)).Body.ServiceInfo.state];
       var self = this;
-      console.log('Send request for ' + config.c + ' successfully');
       if (App.get('testMode')) {
         self.set('content.workStatus', App.Service.Health[config.f]);
         self.get('content.hostComponents').setEach('workStatus', App.HostComponentStatus[config.f]);
@@ -140,7 +139,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else {
       params.query.set('status', 'FAIL');
-      console.log('cannot get request id from ', data);
     }
   },
   startStopPopupErrorCallback: function(request, ajaxOptions, error, opt, params){
@@ -297,20 +295,16 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     if(serviceHealth == 'INSTALLED'){
       //To stop a service, display dependencies message...
       var currentService = this.get('content.serviceName');
-      console.debug("Service to be stopped:", currentService);
 
       var stackServices = App.StackService.find();
       stackServices.forEach(function(service){
         if(service.get('isInstalled') || service.get('isSelected')){ //only care about services installed...
           var stackServiceDisplayName = service.get("displayName");
-          console.debug("Checking service dependencies for " + stackServiceDisplayName);
           var requiredServices = service.get('requiredServices'); //services required in order to have the current service be functional...
           if (!!requiredServices && requiredServices.length) { //only care about services with a non-empty requiredServices list.
-            console.debug("Service dependencies for " + stackServiceDisplayName, requiredServices);
 
             requiredServices.forEach(function(_requiredService){
               if (currentService === _requiredService) { //the service to be stopped is a required service by some other services...
-                console.debug(currentService + " is a service dependency for " + stackServiceDisplayName);
                 if(servicesAffected.indexOf(service) == -1 ) {
                   servicesAffected.push(service);
                   servicesAffectedDisplayNames.push(stackServiceDisplayName);
@@ -435,8 +429,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   refreshYarnQueuesSuccessCallback  : function(data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during refreshYarnQueues');
     }
   },
   refreshYarnQueuesErrorCallback : function(data) {
@@ -448,7 +440,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       } catch (err) {}
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
-    console.warn('Error during refreshYarnQueues:'+error);
   },
 
   startLdapKnox: function(event) {
@@ -484,8 +475,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   startStopLdapKnoxSuccessCallback  : function(data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during startStopLdapKnox');
     }
   },
   startStopLdapKnoxErrorCallback : function(data) {
@@ -497,7 +486,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       } catch (err) {}
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.yarnRefreshQueues.error'), error);
-    console.warn('Error during refreshYarnQueues:'+ error);
   },
 
   /**
@@ -550,8 +538,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   rebalanceHdfsNodesSuccessCallback: function (data) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during runRebalanceHdfsNodes');
     }
   },
   rebalanceHdfsNodesErrorCallback : function(data) {
@@ -564,7 +550,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.error'), error);
-    console.warn('Error during runRebalanceHdfsNodes:'+error);
   },
 
   /**
@@ -675,7 +660,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
     else {
       params.query.set('status', 'FAIL');
-      console.warn('error during runSmokeTestSuccessCallBack');
     }
   },
   runSmokeTestErrorCallBack: function (request, ajaxOptions, error, opt, params) {
@@ -688,7 +672,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   reassignMaster: function (hostComponent) {
     var component = App.HostComponent.find().findProperty('componentName', hostComponent);
-    console.log('In Reassign Master', hostComponent);
     if (component) {
       var reassignMasterController = App.router.get('reassignMasterController');
       reassignMasterController.saveComponentToReassign(component);
@@ -921,8 +904,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   executeCustomCommandSuccessCallback  : function(data, ajaxOptions, params) {
     if (data.Requests.id) {
       App.router.get('backgroundOperationsController').showPopup();
-    } else {
-      console.warn('Error during execution of ' + params.command + ' custom command on' + params.componentName);
     }
   },
 
@@ -935,7 +916,6 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
       } catch (err) {}
     }
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
-    console.warn('Error during executing custom command');
   },
 
   isPending:true

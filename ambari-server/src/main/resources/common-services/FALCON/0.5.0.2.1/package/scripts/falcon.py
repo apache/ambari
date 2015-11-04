@@ -35,7 +35,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family = OsFamilyImpl.DEFAULT)
-def falcon(type, action = None):
+def falcon(type, action = None, upgrade_type=None):
   import params
 
   if action == 'config':
@@ -180,7 +180,7 @@ def falcon(type, action = None):
 
 
 @OsFamilyFuncImpl(os_family = OSConst.WINSRV_FAMILY)
-def falcon(type, action = None):
+def falcon(type, action = None, upgrade_type=None):
   import params
 
   if action == 'config':

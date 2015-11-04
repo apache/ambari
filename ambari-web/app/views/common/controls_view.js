@@ -515,7 +515,6 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.serviceName', 'serviceConfig.value'),
 
   onOptionsChange: function () {
-    this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     if (this.get('hostNameProperty') && !this.get('nonDBRadioButtons').contains(this.get('serviceConfig.name'))) {
       /** if new db is selected host name must be same as master of selected service (and can't be changed)**/
       if (this.get('isNewDb')) {
@@ -750,25 +749,22 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   }.property('serviceConfig.options')
 });
 
-App.ServiceConfigRadioButton = Ember.Checkbox.extend({
+App.ServiceConfigRadioButton = Ember.Checkbox.extend(App.SupportsDependentConfigs, {
   tagName: 'input',
   attributeBindings: ['type', 'name', 'value', 'checked', 'disabled'],
   checked: false,
+  clicked: false,
   type: 'radio',
   name: null,
   value: null,
 
   didInsertElement: function () {
-    console.debug('App.ServiceConfigRadioButton.didInsertElement');
-    if (this.get('parentView.serviceConfig.value') === this.get('value')) {
-      console.debug(this.get('name') + ":" + this.get('value') + ' is checked');
-      this.set('checked', true);
-    }
+    this.set('checked', this.get('parentView.serviceConfig.value') === this.get('value'));
   },
 
   click: function () {
+    this.set('clicked', true);
     this.set('checked', true);
-    console.debug('App.ServiceConfigRadioButton.click');
     this.onChecked();
   },
 
@@ -776,15 +772,30 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
     // Wrapping the call with Ember.run.next prevents a problem where setting isVisible on component
     // causes JS error due to re-rendering.  For example, this occurs when switching the Config Group
     // in Service Config page
-    Em.run.next(this, function() {
-      console.debug('App.ServiceConfigRadioButton.onChecked');
-      this.set('parentView.serviceConfig.value', this.get('value'));
-      var components = this.get('parentView.serviceConfig.options');
-      if (components && components.someProperty('foreignKeys')) {
-        this.get('controller.stepConfigs').findProperty('serviceName', this.get('parentView.serviceConfig.serviceName')).propertyDidChange('errorCount');
-      }
-    });
+    if (this.get('clicked')) {
+      this.sendRequestRorDependentConfigs(this.get('parentView.serviceConfig'));
+      Em.run.next(this, function() {
+        this.set('parentView.serviceConfig.value', this.get('value'));
+        this.set('clicked', false);
+        this.updateForeignKeys();
+      });
+    }
   }.observes('checked'),
+
+  updateCheck: function() {
+    if (!this.get('clicked')) {
+      this.set('checked', this.get('parentView.serviceConfig.value') === this.get('value'));
+      this.updateForeignKeys();
+    }
+  }.observes('parentView.serviceConfig.value'),
+
+  updateForeignKeys: function() {
+    var components = this.get('parentView.serviceConfig.options');
+    if (components && components.someProperty('foreignKeys')) {
+      this.get('controller.stepConfigs').findProperty('serviceName', this.get('parentView.serviceConfig.serviceName')).propertyDidChange('errorCount');
+    }
+  },
+
 
   disabled: function () {
     return !this.get('parentView.serviceConfig.isEditable') ||
@@ -873,8 +884,6 @@ App.ServiceConfigLabelView = Ember.View.extend(App.ServiceConfigHostPopoverSuppo
 App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHostPopoverSupport, App.ServiceConfigCalculateId, {
 
   hasNoHosts: function () {
-    console.log('view', this.get('viewName')); //to know which View cause errors
-    console.log('controller', this.get('controller').name); //should be slaveComponentGroupsController
     if (!this.get('value')) {
       return true;
     }

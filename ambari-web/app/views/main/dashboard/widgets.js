@@ -479,7 +479,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
-      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
       var initPrefObject = this.get('initPrefObject');
       initPrefObject.get('threshold');
       for(var k in response.threshold) {
@@ -494,10 +493,6 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   },
 
   getUserPrefErrorCallback: function (request) {
-    // this user is first time login
-    if (request.status == 404) {
-      console.log('Persist did NOT find the key');
-    }
   },
 
   /**

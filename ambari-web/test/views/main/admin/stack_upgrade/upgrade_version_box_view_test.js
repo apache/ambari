@@ -25,7 +25,10 @@ describe('App.UpgradeVersionBoxView', function () {
   var view;
 
   beforeEach(function () {
+    sinon.stub(App.db, 'setFilterConditions', Em.K);
+    sinon.stub(App.db, 'getFilterConditions', function () {return [];});
     view = App.UpgradeVersionBoxView.create({
+      initFilters: Em.K,
       controller: Em.Object.create({
         upgrade: Em.K
       }),
@@ -34,6 +37,11 @@ describe('App.UpgradeVersionBoxView', function () {
         repoVersions: []
       })
     });
+  });
+
+  afterEach(function () {
+    App.db.setFilterConditions.restore();
+    App.db.getFilterConditions.restore();
   });
 
   describe("#isUpgrading", function () {
@@ -173,6 +181,7 @@ describe('App.UpgradeVersionBoxView', function () {
     });
     it("link parent element is disabled", function () {
       jQueryMock.returns({
+        height: Em.K,
         hasClass: Em.K,
         parent: function () {
           return {

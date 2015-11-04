@@ -77,7 +77,7 @@ App.supports = {
   enhancedConfigs: true,
   showPageLoadTime: false,
   skipComponentStartAfterInstall: false,
-  storeKDCCredentials: false,
+  storeKDCCredentials: true,
   preInstallChecks: false
 };
 

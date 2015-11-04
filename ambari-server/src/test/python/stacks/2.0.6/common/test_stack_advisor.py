@@ -682,12 +682,13 @@ class TestHDP206StackAdvisor(TestCase):
     # Recommend for not existing DB_FLAVOR and http enabled, HDP-2.3
     services = {
       "Versions" : {
-        "stack_version" : "2.2",
+        "stack_version" : "2.3",
       },
       "services":  [
         {
           "StackServices": {
-            "service_name": "RANGER"
+            "service_name": "RANGER",
+            "service_version": "0.5.0"
           },
           "components": [
             {
@@ -698,6 +699,19 @@ class TestHDP206StackAdvisor(TestCase):
             }
           ]
         },
+        {
+          "StackServices": {
+            "service_name": "HDFS"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "NAMENODE",
+                "hostnames": ["host1"]
+              }
+            }
+          ]
+        }
       ],
       "configurations": {
         "admin-properties": {
@@ -719,11 +733,11 @@ class TestHDP206StackAdvisor(TestCase):
           "SQL_CONNECTOR_JAR": "/usr/share/java/mysql-connector-java.jar",
           "policymgr_external_url": "http://host1:7777",
         }
-      },
+      }
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEquals(recommendedConfigurations, expected, "Test for not existing DB_FLAVOR and http enabled, HDP-2.3")
 
     # Recommend for DB_FLAVOR POSTGRES and https enabled, HDP-2.3
     configurations = {
@@ -747,11 +761,11 @@ class TestHDP206StackAdvisor(TestCase):
           "SQL_CONNECTOR_JAR": "/usr/share/java/postgresql.jar",
           "policymgr_external_url": "https://host1:7777",
           }
-      },
       }
+    }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEquals(recommendedConfigurations, expected, "Test for DB_FLAVOR POSTGRES and https enabled, HDP-2.3")
 
     # Recommend for DB_FLAVOR ORACLE and https enabled, HDP-2.2
     configurations = {
@@ -775,11 +789,13 @@ class TestHDP206StackAdvisor(TestCase):
           "policymgr_external_url": "https://host1:8888",
           }
       },
+      "ranger-env": {"properties": {}}
     }
 
     recommendedConfigurations = {}
+    services['services'][0]['StackServices']['service_version'] = "0.4.0"
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEquals(recommendedConfigurations, expected, "Test for DB_FLAVOR ORACLE and https enabled, HDP-2.2")
 
     # Test Recommend LDAP values
     services["ambari-server-properties"] = {
@@ -805,6 +821,7 @@ class TestHDP206StackAdvisor(TestCase):
           'policymgr_external_url': 'http://host1:6080',
         }
       },
+      'ranger-env': {'properties': {}},
       'usersync-properties': {
         'properties': {
           'SYNC_LDAP_URL': 'c6403.ambari.apache.org:389',
@@ -816,7 +833,51 @@ class TestHDP206StackAdvisor(TestCase):
     }
     recommendedConfigurations = {}
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
-    self.assertEquals(recommendedConfigurations, expected)
+    self.assertEquals(recommendedConfigurations, expected, "Test Recommend LDAP values")
+
+    # Test Ranger Audit properties
+    del services["ambari-server-properties"]
+    services["configurations"] = {
+      "core-site": {
+        "properties": {
+          "fs.defaultFS": "hdfs://host1:8080",
+        }
+      },
+      "ranger-env": {
+        "properties": {
+          "xasecure.audit.destination.db": "true",
+          "xasecure.audit.destination.hdfs":"false",
+          "xasecure.audit.destination.hdfs.dir":"hdfs://localhost:8020/ranger/audit/%app-type%/%time:yyyyMMdd%"
+        }
+      },
+      "ranger-hdfs-plugin-properties": {
+        "properties": {}
+      }
+    }
+    expected = {
+      'admin-properties': {
+        'properties': {
+          'policymgr_external_url': 'http://host1:6080'
+        }
+      },
+      'ranger-hdfs-plugin-properties': {
+        'properties': {
+          'XAAUDIT.HDFS.IS_ENABLED': 'false',
+          'XAAUDIT.HDFS.DESTINATION_DIRECTORY': 'hdfs://host1:8080/ranger/audit/%app-type%/%time:yyyyMMdd%',
+          'XAAUDIT.DB.IS_ENABLED': 'true'
+        }
+      },
+      'ranger-env': {
+        'properties': {
+          'xasecure.audit.destination.hdfs.dir': 'hdfs://host1:8080/ranger/audit/%app-type%/%time:yyyyMMdd%'
+        }
+      }
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations, expected, "Test Ranger Audit properties")
+
 
 
   def test_recommendHDFSConfigurations(self):

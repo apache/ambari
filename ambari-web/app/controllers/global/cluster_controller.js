@@ -164,10 +164,8 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
     serverClock = serverClock.length < 13 ? serverClock + '000' : serverClock;
     App.set('clockDistance', serverClock - clientClock);
     App.set('currentServerTime', parseInt(serverClock));
-    console.log('loading ambari server clock distance');
   },
   getServerClockErrorCallback: function () {
-    console.log('Cannot load ambari server clock');
   },
 
   getUrl: function (testUrl, url) {
@@ -306,7 +304,13 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
         upgradeController.setDBProperties({
           upgradeId: lastUpgradeData.Upgrade.request_id,
           isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
-          upgradeState: lastUpgradeData.Upgrade.request_status
+          upgradeState: lastUpgradeData.Upgrade.request_status,
+          upgradeType: lastUpgradeData.Upgrade.upgrade_type,
+          downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
+          failuresTolerance: Em.Object.create({
+            skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
+            skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
+          })
         });
         upgradeController.loadRepoVersionsToModel().done(function () {
           upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
@@ -367,7 +371,6 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAmbariPropertiesSuccess: function (data) {
-    console.log('loading ambari properties');
     this.set('ambariProperties', data.RootServiceComponents.properties);
     // Absence of 'jdk.name' and 'jce.name' properties says that ambari configured with custom jdk.
     this.set('isCustomJDK', App.isEmptyObject(App.permit(data.RootServiceComponents.properties, ['jdk.name', 'jce.name'])));
@@ -375,7 +378,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   loadAmbariPropertiesError: function () {
-    console.warn('can\'t get ambari properties');
+
   },
 
   updateClusterData: function () {
@@ -405,7 +408,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
   },
 
   getHostNamesError: function () {
-    console.error('failed to load hostNames');
+
   },
 
 

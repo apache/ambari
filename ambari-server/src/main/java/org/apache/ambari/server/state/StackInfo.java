@@ -71,6 +71,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private ConfigUpgradePack configUpgradePack;
   private StackRoleCommandOrder roleCommandOrder;
   private boolean valid = true;
+  private Map<String, Map<PropertyInfo.PropertyType, Set<String>>> propertiesTypesCache =
+      Collections.synchronizedMap(new HashMap<String, Map<PropertyInfo.PropertyType, Set<String>>>());
 
   /**
    * 
@@ -436,4 +438,26 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     }
     return result;
   }
+
+  public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType) {
+    if(!propertiesTypesCache.containsKey(configType)) {
+      Map<PropertyInfo.PropertyType, Set<String>> propertiesTypes = new HashMap<>();
+      Collection<ServiceInfo> services = getServices();
+      for (ServiceInfo serviceInfo : services) {
+        for (PropertyInfo propertyInfo : serviceInfo.getProperties()) {
+          if (propertyInfo.getFilename().contains(configType) && !propertyInfo.getPropertyTypes().isEmpty()) {
+            Set<PropertyInfo.PropertyType> types = propertyInfo.getPropertyTypes();
+            for (PropertyInfo.PropertyType propertyType : types) {
+              if (!propertiesTypes.containsKey(propertyType))
+                propertiesTypes.put(propertyType, new HashSet<String>());
+              propertiesTypes.get(propertyType).add(propertyInfo.getName());
+            }
+          }
+        }
+      }
+      propertiesTypesCache.put(configType, propertiesTypes);
+    }
+    return propertiesTypesCache.get(configType);
+  }
+
 }

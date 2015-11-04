@@ -39,6 +39,10 @@ from resource_management.core.resources.service import Service
 
 
 class UiServer(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "storm-client"}
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -70,24 +74,22 @@ class UiServerWindows(UiServer):
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class UiServerDefault(UiServer):
-  def get_stack_to_component(self):
-    return {"HDP": "storm-client"}
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "storm", params.version)
       hdp_select.select("storm-client", params.version)
 
-  def start(self, env, rolling_restart=False):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
-    setup_ranger_storm(rolling_upgrade=rolling_restart)
+    setup_ranger_storm(upgrade_type=upgrade_type)
     service("ui", action="start")
 
-  def stop(self, env, rolling_restart=False):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     service("ui", action="stop")

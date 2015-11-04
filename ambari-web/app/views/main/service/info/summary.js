@@ -415,14 +415,12 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
-      console.log('Got persist value from server with key ' + data.key + '. Value is: ' + response);
       this.set('currentTimeRangeIndex', response);
     }
   },
 
   getUserPrefErrorCallback: function (request) {
     if (request.status == 404) {
-      console.log('Persist did NOT find the key');
       this.postUserPref(this.get('persistKey'), 0);
       this.set('currentTimeRangeIndex', 0);
     }

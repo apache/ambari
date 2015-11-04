@@ -34,12 +34,13 @@ var dateUtils = require('utils/date/date');
  * <li>url - from where the data can be retrieved
  * <li>title - Title to be displayed when showing the chart
  * <li>id - which uniquely identifies this chart in any page
- * <li>#transformToSeries(jsonData) - function to map server data into graph
- * series
+ * <li>seriesTemplate - template used by getData method to process server data
  * </ul>
  *
  * Extending classes could optionally override the following:
  * <ul>
+ * <li>#getData(jsonData) - function to map server data into series format
+ * ready for export to graph and JSON formats
  * <li>#colorForSeries(series) - function to get custom colors per series
  * </ul>
  *
@@ -152,6 +153,20 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    */
   displayUnit: null,
 
+  /**
+   * Object containing information to get metrics data from API response
+   * Supported properties:
+   * <ul>
+   * <li>path - exact path to metrics data in response JSON (required)
+   * <li>displayName(name, hostName) - returns display name for metrics
+   * depending on property name in response JSON and host name for Flume Agents
+   * <li>factor - number that metrics values should be multiplied by
+   * <li>flumePropertyName - property name to access certain Flume metrics
+   * </ul>
+   * @type {Object}
+   */
+  seriesTemplate: null,
+
   _containerSelector: function () {
     return '#' + this.get('id') + '-container';
   }.property('id'),
@@ -162,6 +177,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
 
   didInsertElement: function () {
     var self = this;
+    this.setYAxisFormatter();
     this.loadData();
     this.registerGraph();
     this.$().parent().on('mouseleave', function () {
@@ -171,6 +187,113 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       placement: 'left',
       template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner graph-tooltip"></div></div>'
     });
+  },
+
+  /**
+   * Maps server data into series format ready for export to graph and JSON formats
+   * @param jsonData
+   * @returns {Array}
+   */
+  getData: function (jsonData) {
+    var dataArray = [],
+      template = this.get('seriesTemplate'),
+      data = Em.get(jsonData, template.path);
+    if (data) {
+      for (var name in data) {
+        var currentData = data[name];
+        if (currentData) {
+          var factor = template.factor,
+            displayName = template.displayName ? template.displayName(name) : name;
+          if (!Em.isNone(factor)) {
+            var dataLength = currentData.length;
+            for (var i = dataLength; i--;) {
+              currentData[i][0] *= factor;
+            }
+          }
+          dataArray.push({
+            name: displayName,
+            data: currentData
+          });
+        }
+      }
+    }
+    return dataArray;
+  },
+
+  /**
+   * Maps server data for certain Flume metrics into series format ready for export
+   * to graph and JSON formats
+   * @param jsonData
+   * @returns {Array}
+   */
+  getFlumeData: function (jsonData) {
+    var dataArray = [];
+    if (jsonData && jsonData.host_components) {
+      jsonData.host_components.forEach(function (hc) {
+        var hostName = hc.HostRoles.host_name,
+          host = App.Host.find(hostName),
+          template = this.get('template'),
+          data = Em.get(hc, template.path);
+        if (host && host.get('publicHostName')) {
+          hostName = host.get('publicHostName');
+        }
+        if (data) {
+          for (var cname in data) {
+            var seriesName = template.displayName ? template.displayName(cname, hostName) : cname,
+              seriesData = template.flumePropertyName ? data[cname][template.flumePropertyName] : data[cname];
+            if (seriesData) {
+              var factor = template.factor;
+              if (!Em.isNone(factor)) {
+                var dataLength = seriesData.length;
+                for (var i = dataLength; i--;) {
+                  seriesData[i][0] *= factor;
+                }
+              }
+              dataArray.push({
+                name: seriesName,
+                data: seriesData
+              });
+            }
+          }
+        }
+      }, this);
+    }
+    return dataArray;
+  },
+
+  /**
+   * Maps server data for Kafka Broker Topic and Controller Status metrics
+   * into series format ready for export to graph and JSON formats
+   * @param jsonData
+   * @returns {Array}
+   */
+  getKafkaData: function (jsonData) {
+    var dataArray = [],
+      template = this.get('seriesTemplate'),
+      data = Em.get(jsonData, template.path);
+    for (var name in data) {
+      var displayName = template.displayName(name);
+      dataArray.push({
+        name: displayName,
+        data: Em.get(data, name + '.1MinuteRate')
+      });
+    }
+    return dataArray;
+  },
+
+  /**
+   * Function to map data into graph series
+   * @param jsonData
+   * @returns {Array}
+   */
+  transformToSeries: function (jsonData) {
+    var seriesArray = [],
+      seriesData = this.getData(jsonData),
+      dataLength = seriesData.length;
+    for (var i = 0; i < dataLength; i++) {
+      seriesArray.push(this.transformData(seriesData[i].data, seriesData[i].name));
+    }
+    return seriesArray;
   },
 
   setExportTooltip: function () {
@@ -347,13 +470,35 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   /**
    * Provides the formatter to use in displaying Y axis.
    *
-   * Uses the App.ChartLinearTimeView.DefaultFormatter which shows 10K,
+   * By default, uses the App.ChartLinearTimeView.DefaultFormatter which shows 10K,
    * 300M etc.
    *
    * @type Function
    */
   yAxisFormatter: function (y) {
     return App.ChartLinearTimeView.DefaultFormatter(y);
+  },
+
+  /**
+   * Sets the formatter to use in displaying Y axis depending on graph unit.
+   *
+   * @type Function
+   */
+  setYAxisFormatter: function () {
+    var method,
+      formatterMap = {
+        '%': 'PercentageFormatter',
+        '/s': 'CreateRateFormatter',
+        'B': 'BytesFormatter',
+        'ms': 'TimeElapsedFormatter'
+      },
+      methodName = formatterMap[this.get('displayUnit')];
+    if (methodName) {
+      method = (methodName == 'CreateRateFormatter') ?
+        App.ChartLinearTimeView.CreateRateFormatter('', App.ChartLinearTimeView.DefaultFormatter) :
+        App.ChartLinearTimeView[methodName];
+      this.set('yAxisFormatter', method);
+    }
   },
 
   /**
@@ -506,26 +651,30 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       }
       series.color = seriesColor;
       series.stroke = 'rgba(0,0,0,0.3)';
-      if (self.get('isPopup')) {
-        // calculate statistic data for popup legend
-        var avg = 0;
-        var min = Number.MAX_VALUE;
-        var max = Number.MIN_VALUE;
-        var numberOfNotNullValues = 0;
-        for (var i = 0; i < series.data.length; i++) {
-          avg += series.data[i]['y'];
-          if (series.data[i]['y'] !== null) {
-            numberOfNotNullValues++;
-          }
-          if (!Em.isNone(series.data[i]['y'])) {
-            if (series.data[i]['y'] < min) {
-              min = series.data[i]['y'];
-            }
-          }
-          if (series.data[i]['y'] > max) {
-            max = series.data[i]['y'];
+      // calculate statistic data for popup legend
+      var avg = 0;
+      var min = Number.MAX_VALUE;
+      var max = Number.MIN_VALUE;
+      var numberOfNotNullValues = 0;
+      series.isZero = true;
+      for (var i = 0; i < series.data.length; i++) {
+        avg += series.data[i]['y'];
+        if (series.data[i]['y'] !== null) {
+          numberOfNotNullValues++;
+        }
+        if (!Em.isNone(series.data[i]['y'])) {
+          if (series.data[i]['y'] < min) {
+            min = series.data[i]['y'];
           }
         }
+        if (series.data[i]['y'] > max) {
+          max = series.data[i]['y'];
+        }
+        if (series.data[i]['y'] > 1) {
+          series.isZero = false;
+        }
+      }
+      if (self.get('isPopup')) {
         series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
           string_utils.pad('min', 5, '&nbsp;', 3) +
           string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
@@ -533,6 +682,9 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           string_utils.pad(self.get('yAxisFormatter')(avg / numberOfNotNullValues), 12, '&nbsp;', 3) +
           string_utils.pad('max', 12, '&nbsp;', 3) +
           string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+      }
+      if (series.isZero) {
+        series.stroke = series.color;
       }
       if (series.data.length < series_min_length) {
         series_min_length = series.data.length;
@@ -570,7 +722,8 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       interpolation: 'step-after',
       stroke: true,
       renderer: this.get('renderer'),
-      strokeWidth: 'area' === this.get('renderer') ? 1 : 2
+      strokeWidth: 'area' === this.get('renderer') ? 1 : 2,
+      max: seriesData.everyProperty('isZero') ? 1 : null
     });
 
     if ('area' === this.get('renderer')) {
@@ -811,13 +964,12 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         }.property('isReady', 'parentView.currentTimeIndex'),
 
         exportGraphData: function (event) {
-          this._super();
+          this.set('isExportMenuHidden', true);
           var ajaxIndex = this.get('parentView.graph.ajaxIndex'),
-            isCSV = !!event.context,
             targetView = ajaxIndex ? this.get('parentView.graph') : self.get('parentView');
-            targetView.exportGraphData({
-              context: event.context
-            });
+          targetView.exportGraphData({
+            context: event.context
+          });
         }
       }),
       header: this.get('title'),
@@ -902,21 +1054,8 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex'),
   timeUnitSeconds: function () {
     return this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
-  }.property('currentTimeIndex'),
+  }.property('currentTimeIndex')
 
-  exportGraphData: function (event) {
-    this._super();
-    var ajaxIndex = this.get('ajaxIndex');
-    App.ajax.send({
-      name: ajaxIndex,
-      data: $.extend(this.getDataForAjaxRequest(), {
-        isCSV: !!event.context
-      }),
-      sender: this,
-      success: 'exportGraphDataSuccessCallback',
-      error: 'exportGraphDataErrorCallback'
-    });
-  }
 });
 
 /**

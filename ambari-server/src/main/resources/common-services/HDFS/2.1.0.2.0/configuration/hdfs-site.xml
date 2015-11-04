@@ -263,6 +263,7 @@
   <property>
     <name>dfs.namenode.rpc-address</name>
     <value>localhost:8020</value>
+    <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <description>RPC address that handles all clients requests.</description>
   </property>
 

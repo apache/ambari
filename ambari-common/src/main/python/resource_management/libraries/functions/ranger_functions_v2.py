@@ -60,7 +60,7 @@ class RangeradminV2:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response) > 0:
@@ -136,7 +136,7 @@ class RangeradminV2:
       }
       request = urllib2.Request(search_repo_url, data, headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
 
@@ -163,7 +163,7 @@ class RangeradminV2:
     :return: Returns login check response 
     """
     try:
-      response = urllib2.urlopen(url)
+      response = urllib2.urlopen(url, timeout=20)
       response_code = response.getcode()
       return response_code
     except urllib2.URLError, e:
@@ -193,7 +193,7 @@ class RangeradminV2:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request)
+      result = urllib2.urlopen(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXUsers']) >= 0:
@@ -225,7 +225,7 @@ class RangeradminV2:
           }
           request = urllib2.Request(url, data, headers)
           request.add_header("Authorization", "Basic {0}".format(base_64_string))
-          result = urllib2.urlopen(request)
+          result = urllib2.urlopen(request, timeout=20)
           response_code =  result.getcode()
           response = json.loads(json.JSONEncoder().encode(result.read()))
           if response_code == 200 and response is not None:

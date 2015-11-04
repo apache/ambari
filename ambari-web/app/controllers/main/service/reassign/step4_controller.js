@@ -18,7 +18,9 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
+App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
+
+  name: "reassignMasterWizardStep4Controller",
 
   commands: [
     'stopRequiredServices',
@@ -547,6 +549,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       case 'OOZIE_SERVER':
         urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
         urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+        urlParams.push('(type=oozie-env&tag=' + data.Clusters.desired_configs['oozie-env'].tag + ')');
         break;
       case 'HIVE_SERVER':
       case 'HIVE_METASTORE':
@@ -589,16 +592,19 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     this.setAdditionalConfigs(configs, componentName, targetHostName);
     this.setSecureConfigs(secureConfigs, configs, componentName);
 
-    if (componentName === 'NAMENODE') {
-      this.setSpecificNamenodeConfigs(configs, targetHostName);
-    }
-
-    if (componentName === 'RESOURCEMANAGER') {
-      this.setSpecificResourceMangerConfigs(configs, targetHostName);
-    }
-
-    if (componentName === 'HIVE_METASTORE' || componentName === 'HIVE_SERVER') {
-      this.setSpecificHiveConfigs(configs, targetHostName);
+    switch (componentName) {
+      case 'NAMENODE':
+        this.setSpecificNamenodeConfigs(configs, targetHostName);
+        break;
+      case 'RESOURCEMANAGER':
+        this.setSpecificResourceMangerConfigs(configs, targetHostName);
+        break;
+      case 'HIVE_METASTORE':
+      case 'HIVE_SERVER':
+        this.setSpecificHiveConfigs(configs, targetHostName);
+        break;
+      case 'OOZIE_SERVER':
+        this.setSpecificOozieConfigs(configs, targetHostName);
     }
 
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
@@ -743,6 +749,20 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       return result;
     else
       return null;
+  },
+
+  /**
+   * set specific configs which applies only to Oozie related configs
+   * @param configs
+   * @param targetHostName
+   */
+  setSpecificOozieConfigs: function (configs, targetHostName) {
+    var sourceHostName = this.get('content.reassignHosts.source'),
+      oozieServerHosts = App.HostComponent.find().filterProperty('componentName', 'OOZIE_SERVER')
+        .mapProperty('hostName').removeObject(sourceHostName).addObject(targetHostName).uniq().join(','),
+      oozieUser = configs['oozie-env']['oozie_user'];
+
+    configs['core-site']['hadoop.proxyuser.' + oozieUser + '.hosts'] = oozieServerHosts;
   },
 
   /**
@@ -1006,7 +1026,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
   testDBConnection: function() {
     this.prepareDBCheckAction();
-    // this.onTaskCompleted();
   },
 
   isComponentWithDB: function() {
@@ -1073,8 +1092,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   }.property(),
 
   prepareDBCheckAction: function() {
-    var ambariProperties = null;
-    var properties = this.get('content.serviceProperties');
     var params = this.get('preparedDBProperties');
 
     ambariProperties = App.router.get('clusterController.ambariProperties');

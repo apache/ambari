@@ -48,7 +48,7 @@ class AccumuloClient(Script):
     raise ClientComponentHasNoStatus()
 
 
-  def pre_rolling_restart(self, env):
+  def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
 
@@ -57,7 +57,7 @@ class AccumuloClient(Script):
     if Script.is_hdp_stack_less_than("2.2"):
       return
 
-    Logger.info("Executing Accumulo Client Rolling Upgrade pre-restart")
+    Logger.info("Executing Accumulo Client Upgrade pre-restart")
     conf_select.select(params.stack_name, "accumulo", params.version)
     hdp_select.select("accumulo-client", params.version)
 

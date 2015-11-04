@@ -32,30 +32,19 @@ App.ChartServiceMetricsKafka_BrokerTopicMetrics = App.ChartLinearTimeView.extend
   renderer: 'line',
   ajaxIndex: 'service.metrics.kafka.broker.topic',
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (Em.get(jsonData, 'metrics.kafka.server.BrokerTopicMetrics')) {
-      for (var name in Em.get(jsonData, 'metrics.kafka.server.BrokerTopicMetrics')) {
-        var displayName = null;
-        var seriesData = Em.get(jsonData, 'metrics.kafka.server.BrokerTopicMetrics.' + name + '.1MinuteRate');
-        switch (name) {
-          case "AllTopicsBytesOutPerSec":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesOutPerSec');
-            break;
-          case "AllTopicsBytesInPerSec":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesInPerSec');
-            break;
-          case "AllTopicsMessagesInPerSec":
-            displayName = Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsMessagesInPerSec');
-            break;
-          default:
-            break;
-        }
-        if (seriesData != null && displayName) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.kafka.server.BrokerTopicMetrics',
+    displayName: function (name) {
+      var displayNameMap = {
+        AllTopicsBytesOutPerSec: Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesOutPerSec'),
+        AllTopicsBytesInPerSec: Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsBytesInPerSec'),
+        AllTopicsMessagesInPerSec: Em.I18n.t('services.service.info.metrics.kafka.server.brokerTopic.displayNames.AllTopicsMessagesInPerSec')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
+  },
+
+  getData: function (jsonData) {
+    return this.getKafkaData(jsonData);
   }
 });

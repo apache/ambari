@@ -38,30 +38,15 @@ App.ChartHostMetricsLoad = App.ChartLinearTimeView.extend({
     fields: ['metrics/load/load_fifteen', 'metrics/load/load_one', 'metrics/load/load_five']
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.load) {
-      for ( var name in jsonData.metrics.load) {
-        var displayName;
-        var seriesData = jsonData.metrics.load[name];
-        switch (name) {
-          case "load_fifteen":
-            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_fifteen');
-            break;
-          case "load_one":
-            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_one');
-            break;
-          case "load_five":
-            displayName = Em.I18n.t('hosts.host.metrics.load.displayNames.load_five');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.load',
+    displayName: function (name) {
+      var displayNameMap = {
+        load_fifteen: Em.I18n.t('hosts.host.metrics.load.displayNames.load_fifteen'),
+        load_one: Em.I18n.t('hosts.host.metrics.load.displayNames.load_one'),
+        load_five: Em.I18n.t('hosts.host.metrics.load.displayNames.load_five')
+      };
+      return displayNameMap[name]
     }
-    return seriesArray;
   }
 });

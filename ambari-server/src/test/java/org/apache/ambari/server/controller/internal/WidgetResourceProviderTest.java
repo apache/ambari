@@ -22,16 +22,17 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
-import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.easymock.Capture;
@@ -510,6 +511,9 @@ public class WidgetResourceProviderTest {
           EasyMock.createNiceMock(Clusters.class));
       binder.bind(Cluster.class).toInstance(
               EasyMock.createNiceMock(Cluster.class));
+      binder.bind(CredentialStoreService.class).toInstance(
+        EasyMock.createNiceMock(CredentialStoreService.class)
+      );
     }
   }
 }

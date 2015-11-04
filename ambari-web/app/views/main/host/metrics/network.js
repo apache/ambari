@@ -29,7 +29,7 @@ var App = require('app');
 App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
   id: "host-metrics-network",
   title: Em.I18n.t('hosts.host.metrics.network'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
 
   ajaxIndex: 'host.metrics.network',
@@ -44,33 +44,16 @@ App.ChartHostMetricsNetwork = App.ChartLinearTimeView.extend({
     ]
   },
 
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.network) {
-      for ( var name in jsonData.metrics.network) {
-        var displayName;
-        var seriesData = jsonData.metrics.network[name];
-        switch (name) {
-          case "pkts_out":
-            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_out');
-            break;
-          case "bytes_in":
-            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_in');
-            break;
-          case "bytes_out":
-            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_out');
-            break;
-          case "pkts_in":
-            displayName = Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_in');
-            break;
-          default:
-            break;
-        }
-        if (seriesData) {
-          seriesArray.push(this.transformData(seriesData, displayName));
-        }
-      }
+  seriesTemplate: {
+    path: 'metrics.network',
+    displayName: function (name) {
+      var displayNameMap = {
+        pkts_out: Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_out'),
+        bytes_in: Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_in'),
+        bytes_out: Em.I18n.t('hosts.host.metrics.network.displayNames.bytes_out'),
+        pkts_in: Em.I18n.t('hosts.host.metrics.network.displayNames.pkts_in')
+      };
+      return displayNameMap[name];
     }
-    return seriesArray;
   }
 });

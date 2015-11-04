@@ -33,24 +33,10 @@ App.ChartClusterMetricsMemory = App.ChartLinearTimeView.extend({
 
   isTimePagingDisable: false,
   title: Em.I18n.t('dashboard.clusterMetrics.memory'),
-  yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
+  displayUnit: 'B',
   renderer: 'line',
-  transformToSeries: function (jsonData) {
-    var seriesArray = [];
-    if (jsonData && jsonData.metrics && jsonData.metrics.memory) {
-      var KB = Math.pow(2, 10);
-      for ( var name in jsonData.metrics.memory) {
-        var displayName = name;
-        var seriesData = jsonData.metrics.memory[name];
-        if (seriesData) {
-          var s = this.transformData(seriesData, displayName);
-          for (var i = 0; i < s.data.length; i++) {
-            s.data[i].y *= KB;
-          }
-          seriesArray.push(s);
-        }
-      }
-    }
-    return seriesArray;
+  seriesTemplate: {
+    path: 'metrics.memory',
+    factor: Math.pow(2, 10)
   }
 });

@@ -100,7 +100,7 @@ App.ThemesMappingMixin = Em.Mixin.create({
    * @method _loadConfigThemeForServicesError
    */
   _loadConfigThemeForServicesError: function(request, ajaxOptions, error, opt, params) {
-    console.log('ERROR: failed to load theme configs for', params.serviceNames);
+
   }
 
 });

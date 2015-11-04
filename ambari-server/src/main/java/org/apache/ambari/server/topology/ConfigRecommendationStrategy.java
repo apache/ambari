@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,15 +16,22 @@
  * limitations under the License.
  */
 
-var App = require('app');
+package org.apache.ambari.server.topology;
 
-//mock App.router object
-App.router = Em.Object.create({
-  transitionTo: Em.K,
-  configurationController: Em.Object.create({
-    getConfigsByTags: Em.K
-  }),
-  backgroundOperationsController: Em.Object.create({
-    services: []
-  })
-});
+public enum ConfigRecommendationStrategy {
+  /**
+   *  Configuration recommendations are always applied, overriding stack defaults and
+   *  configuration defined by the user in the Blueprint and/or Cluster Creation Template.
+   */
+  ALWAYS_APPLY,
+  /**
+   * Configuration recommendations are ignored with this option, both for stack defaults
+   * and configuration defined by the user in the Blueprint and/or Cluster Creation Template.
+   */
+  NEVER_APPLY,
+  /**
+   *  Configuration recommendations are always applied for properties listed as stack defaults,
+   *  but not for configurations defined by the user in the Blueprint and/or Cluster Creation Template.
+   */
+  ONLY_STACK_DEFAULTS_APPLY;
+}
