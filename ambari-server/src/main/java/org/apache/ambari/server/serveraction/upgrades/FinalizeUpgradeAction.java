@@ -83,7 +83,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
    * The Cluster that this ServerAction implementation is executing on
    */
   @Inject
-  private Clusters clusters;
+  protected Clusters clusters;
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
@@ -217,7 +217,22 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       // iterate through all host components and make sure that they are on the
       // correct version; if they are not, then this will throw an exception
-      checkHostComponentVersions(cluster, version, clusterDesiredStackId);
+      List<InfoTuple> errors = checkHostComponentVersions(cluster, version, clusterDesiredStackId);
+      if (! errors.isEmpty()) {
+        StrBuilder messageBuff = new StrBuilder(
+            String.format(
+                "The following %d host component(s) "
+                    + "have not been upgraded to version %s. Please install and upgrade "
+                    + "the Stack Version on those hosts and try again.\nHost components:\n",
+                errors.size(), version));
+
+        for (InfoTuple error : errors) {
+          messageBuff.append(String.format("%s on host %s\n", error.componentName, error.hostName));
+        }
+
+        throw new AmbariException(messageBuff.toString());
+      }
+
 
       // we're guaranteed to be ready transition to UPGRADED now; ensure that
       // the transition will be allowed if the cluster state is not UPGRADED
@@ -385,26 +400,16 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   /**
    * Confirms that all host components that are able to provide hdp version,
    * have been upgraded to the target version.
-   * @param cluster     the cluster the upgrade is for
-   * @param desiredVersion     the target version of the upgrade
-   * @throws AmbariException if any host component has not been updated yet
+   * @param cluster         the cluster the upgrade is for
+   * @param desiredVersion  the target version of the upgrade
+   * @param targetStack     the target stack id for meta-info lookup
+   * @return the list of {@link InfoTuple} objects of host components in error
    */
-  private void checkHostComponentVersions(Cluster cluster, String desiredVersion, StackId targetStackId)
+  protected List<InfoTuple> checkHostComponentVersions(Cluster cluster, String desiredVersion, StackId targetStackId)
           throws AmbariException {
 
-    class InfoTuple {
-      public final String serviceName;
-      public final String componentName;
-      public final String hostName;
-
-      public InfoTuple(String serviceName, String componentName, String hostName) {
-        this.serviceName = serviceName;
-        this.componentName = componentName;
-        this.hostName = hostName;
-      }
-    }
-
     ArrayList<InfoTuple> errors = new ArrayList<InfoTuple>();
+
     for (Service service : cluster.getServices().values()) {
       for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
         for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
@@ -420,25 +425,29 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           } else if (componentInfo.isVersionAdvertised()
               && !serviceComponentHost.getVersion().equals(desiredVersion)) {
             errors.add(new InfoTuple(
-                    service.getName(), serviceComponent.getName(), serviceComponentHost.getHostName()));
+                service.getName(), serviceComponent.getName(),
+                serviceComponentHost.getHostName(), serviceComponentHost.getVersion()));
           }
         }
       }
     }
 
-    if (! errors.isEmpty()) {
-      StrBuilder messageBuff = new StrBuilder(
-          String.format(
-              "The following %d host component(s) "
-                  + "have not been upgraded to version %s. Please install and upgrade "
-                  + "the Stack Version on those hosts and try again.\nHost components:\n",
-              errors.size(), desiredVersion));
-
-      for (InfoTuple error : errors) {
-        messageBuff.append(String.format("%s on host %s\n", error.componentName, error.hostName));
-      }
-
-      throw new AmbariException(messageBuff.toString());
-    }
+    return errors;
   }
+
+  protected static class InfoTuple {
+    protected final String serviceName;
+    protected final String componentName;
+    protected final String hostName;
+    protected final String currentVersion;
+
+    protected InfoTuple(String service, String component, String host, String version) {
+      serviceName = service;
+      componentName = component;
+      hostName = host;
+      currentVersion = version;
+    }
+
+  }
+
 }

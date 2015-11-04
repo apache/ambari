@@ -457,6 +457,15 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
+      <skippable>false</skippable>
+      <direction>UPGRADE</direction>
+      
+      <execute-stage title="Check Component Versions">
+        <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
+      </execute-stage>
+    </group>
+
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
