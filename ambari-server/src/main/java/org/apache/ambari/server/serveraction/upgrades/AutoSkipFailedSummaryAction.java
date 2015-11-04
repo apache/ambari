@@ -18,25 +18,28 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.ServiceComponentHostEventWrapper;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,6 +70,11 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
    */
   private static final String MIDDLE_ELLIPSIZE_MARKER = "\n\u2026\n";
 
+  private static final String SKIPPED_SERVICE_CHECK = "service_check";
+  private static final String SKIPPED_HOST_COMPONENT = "host_component";
+  private static final String SKIPPED = "skipped";
+  private static final String FAILURES = "failures";
+
   /**
    * Used to lookup the {@link UpgradeGroupEntity}.
    */
@@ -87,9 +95,21 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
   private Gson m_gson;
 
   /**
+   * Used to look up service check name -> service name bindings
+   */
+  @Inject
+  private ActionMetadata actionMetadata;
+
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
+
+  @Inject
+  private Clusters clusters;
+
+  /**
    * A mapping of host -> Map<key,info> for each failure.
    */
-  private Map<String, Map<String, Object>> m_structuredFailures = new HashMap<>();
+  private Map<String, Object> m_structuredFailures = new HashMap<>();
 
   /**
    * {@inheritDoc}
@@ -101,6 +121,10 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
     HostRoleCommand hostRoleCommand = getHostRoleCommand();
     long requestId = hostRoleCommand.getRequestId();
     long stageId = hostRoleCommand.getStageId();
+
+    String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
+    Cluster cluster = clusters.getCluster(clusterName);
+    StackId stackId = cluster.getDesiredStackVersion();
 
     // use the host role command to get to the parent upgrade group
     UpgradeItemEntity upgradeItem = m_upgradeDAO.findUpgradeItemByRequestAndStage(requestId,stageId);
@@ -131,37 +155,63 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
           "There were no skipped failures", null);
     }
 
-    StringBuilder buffer = new StringBuilder("The following steps failed and were automatically skipped:\n");
+    StringBuilder buffer = new StringBuilder("The following steps failed but were automatically skipped:\n");
+    Set<String> skippedCategories = new HashSet<>();
+    Map<String, Object> skippedFailures = new HashMap<>();
+
+    Set<String> skippedServiceChecks = new HashSet<>();
+    Map<String, Object> hostComponents= new HashMap<>();
+
+    // Internal representation for failed host components
+    // To avoid duplicates
+    // Format: <hostname, Set<Role>>
+    Map<String, Set<Role>> publishedHostComponents= new HashMap<>();
 
     for (HostRoleCommandEntity skippedTask : skippedTasks) {
-      try{
+      try {
+        String skippedCategory;
+        if (skippedTask.getRoleCommand().equals(RoleCommand.SERVICE_CHECK)) {
+          skippedCategory = SKIPPED_SERVICE_CHECK;
+
+          String serviceCheckActionName = skippedTask.getRole().toString();
+          String service = actionMetadata.getServiceNameByServiceCheckAction(serviceCheckActionName);
+          skippedServiceChecks.add(service);
+
+          skippedFailures.put(SKIPPED_SERVICE_CHECK, skippedServiceChecks);
+          m_structuredFailures.put(FAILURES, skippedFailures);
+        } else {
+          skippedCategory = SKIPPED_HOST_COMPONENT;
+
+          String hostName = skippedTask.getHostName();
+          if (null != hostName) {
+            List<Object> failures = (List<Object>) hostComponents.get(hostName);
+            if (null == failures) {
+              failures = new ArrayList<>();
+              hostComponents.put(hostName, failures);
+
+              publishedHostComponents.put(hostName, new HashSet<Role>());
+            }
+            Set<Role> publishedHostComponentsOnHost = publishedHostComponents.get(hostName);
+            Role role = skippedTask.getRole();
+            if (! publishedHostComponentsOnHost.contains(role)) {
+              HashMap<String, String> details = new HashMap<>();
+              String service = ambariMetaInfo.getComponentToService(
+                stackId.getStackName(), stackId.getStackVersion(), role.toString());
+
+              details.put("service", service);
+              details.put("component", role.toString());
+              failures.add(details);
+            }
+          }
+          skippedFailures.put(SKIPPED_HOST_COMPONENT, hostComponents);
+          m_structuredFailures.put(FAILURES, skippedFailures);
+        }
+        skippedCategories.add(skippedCategory);
+
         ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(
-            skippedTask.getEvent());
+          skippedTask.getEvent());
 
         ServiceComponentHostEvent event = eventWrapper.getEvent();
-
-        String hostName = skippedTask.getHostName();
-        if(null != hostName){
-          Map<String, Object> failures = m_structuredFailures.get(hostName);
-          if( null == failures ){
-            failures = new HashMap<>();
-            m_structuredFailures.put(hostName, failures);
-          }
-
-          failures.put("id", skippedTask.getTaskId());
-          failures.put("exit_code", skippedTask.getExitcode());
-          failures.put("output_log", skippedTask.getOutputLog());
-          failures.put("error_log", skippedTask.getErrorLog());
-
-          String stdOut = StringUtils.abbreviateMiddle(new String(skippedTask.getStdOut()),
-              MIDDLE_ELLIPSIZE_MARKER, 1000);
-
-          String stderr = StringUtils.abbreviateMiddle(new String(skippedTask.getStdError()),
-              MIDDLE_ELLIPSIZE_MARKER, 1000);
-
-          failures.put("stdout", stdOut);
-          failures.put("stderr", stderr);
-        }
 
         buffer.append(event.getServiceComponentName());
         if (null != event.getHostName()) {
@@ -178,6 +228,8 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
         buffer.append(skippedTask);
       }
     }
+
+    m_structuredFailures.put(SKIPPED, skippedCategories);
 
     String structuredOutput = m_gson.toJson(m_structuredFailures);
     String standardOutput = MessageFormat.format(FAILURE_STD_OUT_TEMPLATE, skippedTasks.size());
