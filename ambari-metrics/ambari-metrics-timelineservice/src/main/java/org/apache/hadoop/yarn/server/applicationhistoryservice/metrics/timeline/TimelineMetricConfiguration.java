@@ -64,6 +64,9 @@ public class TimelineMetricConfiguration {
   public static final String HOST_HOUR_TABLE_TTL =
     "timeline.metrics.host.aggregator.hourly.ttl";
 
+  public static final String CLUSTER_SECOND_TABLE_TTL =
+    "timeline.metrics.cluster.aggregator.second.ttl";
+
   public static final String CLUSTER_MINUTE_TABLE_TTL =
     "timeline.metrics.cluster.aggregator.minute.ttl";
 
@@ -74,7 +77,7 @@ public class TimelineMetricConfiguration {
     "timeline.metrics.cluster.aggregator.daily.ttl";
 
   public static final String CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL =
-    "timeline.metrics.cluster.aggregator.minute.timeslice.interval";
+    "timeline.metrics.cluster.aggregator.second.timeslice.interval";
 
   public static final String AGGREGATOR_CHECKPOINT_DELAY =
     "timeline.metrics.service.checkpointDelay";
@@ -90,6 +93,9 @@ public class TimelineMetricConfiguration {
 
   public static final String HOST_AGGREGATOR_DAILY_SLEEP_INTERVAL =
     "timeline.metrics.host.aggregator.daily.interval";
+
+  public static final String CLUSTER_AGGREGATOR_SECOND_SLEEP_INTERVAL =
+    "timeline.metrics.cluster.aggregator.second.interval";
 
   public static final String CLUSTER_AGGREGATOR_MINUTE_SLEEP_INTERVAL =
     "timeline.metrics.cluster.aggregator.minute.interval";
@@ -108,6 +114,9 @@ public class TimelineMetricConfiguration {
 
   public static final String HOST_AGGREGATOR_DAILY_CHECKPOINT_CUTOFF_MULTIPLIER =
     "timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier";
+
+  public static final String CLUSTER_AGGREGATOR_SECOND_CHECKPOINT_CUTOFF_MULTIPLIER =
+    "timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier";
 
   public static final String CLUSTER_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER =
     "timeline.metrics.cluster.aggregator.minute.checkpointCutOffMultiplier";
@@ -135,6 +144,9 @@ public class TimelineMetricConfiguration {
 
   public static final String HOST_AGGREGATOR_DAILY_DISABLED =
     "timeline.metrics.host.aggregator.hourly.disabled";
+
+  public static final String CLUSTER_AGGREGATOR_SECOND_DISABLED =
+    "timeline.metrics.cluster.aggregator.second.disabled";
 
   public static final String CLUSTER_AGGREGATOR_MINUTE_DISABLED =
     "timeline.metrics.cluster.aggregator.minute.disabled";

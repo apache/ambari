@@ -76,7 +76,15 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         LOG.info("Using group by aggregators for aggregating host and cluster metrics.");
       }
 
-      // Start the cluster aggregator minute
+      // Start the cluster aggregator second
+      TimelineMetricAggregator secondClusterAggregator =
+        TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hBaseAccessor, metricsConf);
+      if (!secondClusterAggregator.isDisabled()) {
+        Thread aggregatorThread = new Thread(secondClusterAggregator);
+        aggregatorThread.start();
+      }
+
+      // Start the minute cluster aggregator
       TimelineMetricAggregator minuteClusterAggregator =
         TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
       if (!minuteClusterAggregator.isDisabled()) {

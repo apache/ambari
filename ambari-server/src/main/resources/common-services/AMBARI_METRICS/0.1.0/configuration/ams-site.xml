@@ -59,11 +59,11 @@
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.interval</name>
-    <value>120</value>
+    <value>300</value>
     <display-name>Minute host aggregator interval</display-name>
     <description>
       Time in seconds to sleep for the minute resolution host based
-      aggregator. Default resolution is 2 minutes.
+      aggregator. Default resolution is 5 minutes.
     </description>
     <value-attributes>
       <type>int</type>
@@ -111,10 +111,22 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.interval</name>
-    <value>120</value>
+    <value>300</value>
     <display-name>Minute cluster aggregator interval</display-name>
     <description>
       Time in seconds to sleep for the minute resolution cluster wide
+      aggregator. Default resolution is 5 minutes.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.interval</name>
+    <value>120</value>
+    <display-name>Second cluster aggregator interval</display-name>
+    <description>
+      Time in seconds to sleep for the second resolution cluster wide
       aggregator. Default resolution is 2 minutes.
     </description>
     <value-attributes>
@@ -160,6 +172,19 @@
     <name>timeline.metrics.cluster.aggregator.hourly.checkpointCutOffMultiplier</name>
     <value>2</value>
     <display-name>Hourly cluster aggregator checkpoint cutOff multiplier</display-name>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier</name>
+    <value>2</value>
+    <display-name>Second cluster aggregator checkpoint cutOff multiplier</display-name>
     <description>
       Multiplier value * interval = Max allowed checkpoint lag. Effectively
       if aggregator checkpoint is greater than max allowed checkpoint delay,
@@ -238,11 +263,19 @@
     </description>
   </property>
   <property>
-    <name>timeline.metrics.cluster.aggregator.minute.timeslice.interval</name>
-    <value>30</value>
-    <display-name>Minute cluster aggregator timeslice interval</display-name>
+    <name>timeline.metrics.cluster.aggregator.second.disabled</name>
+    <value>false</value>
+    <display-name>Disable second cluster aggregator</display-name>
     <description>
-      Lowest resolution of desired data for cluster level minute aggregates.
+      Disable cluster based second aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.second.timeslice.interval</name>
+    <value>30</value>
+    <display-name>Second cluster aggregator timeslice interval</display-name>
+    <description>
+      Lowest resolution of desired data for cluster level second aggregates.
     </description>
     <value-attributes>
       <type>int</type>
@@ -270,8 +303,15 @@
     </description>
   </property>
   <property>
-    <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
+    <name>timeline.metrics.cluster.aggregator.second.ttl</name>
     <value>2592000</value>
+    <description>
+      Cluster wide second resolution data purge interval. Default is 7 days.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.minute.ttl</name>
+    <value>7776000</value>
     <description>
       Cluster wide minute resolution data purge interval. Default is 30 days.
     </description>

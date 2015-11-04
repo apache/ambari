@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 @Singleton
@@ -250,24 +251,16 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       Long requestedStartTime, Long requestedEndTime, boolean removeAll) {
 
     for (TimelineMetric existingMetric : existingMetrics.getMetrics()) {
-      if(removeAll) {
+      if (removeAll) {
         existingMetric.setMetricValues(new TreeMap<Long, Double>());
       } else {
-        Map<Long, Double> existingMetricValues = existingMetric.getMetricValues();
+        TreeMap<Long, Double> existingMetricValues = existingMetric.getMetricValues();
         LOG.trace("Existing metric: " + existingMetric.getMetricName() +
           " # " + existingMetricValues.size());
 
-        Iterator<Map.Entry<Long, Double>> valueIterator = existingMetricValues.entrySet().iterator();
-
-        // Remove old values
-        // Assumption: All return value are millis
-        while (valueIterator.hasNext()) {
-          Map.Entry<Long, Double> metricEntry = valueIterator.next();
-          if (metricEntry.getKey() < requestedStartTime
-            || metricEntry.getKey() > requestedEndTime) {
-            valueIterator.remove();
-          }
-        }
+        // Retain only the values that are within the [requestStartTime, requestedEndTime] window
+        existingMetricValues.headMap(requestedStartTime,false).clear();
+        existingMetricValues.tailMap(requestedEndTime, false).clear();
       }
     }
   }

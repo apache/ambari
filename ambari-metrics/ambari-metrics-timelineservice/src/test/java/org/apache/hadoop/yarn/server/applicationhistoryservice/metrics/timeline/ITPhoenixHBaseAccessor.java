@@ -48,7 +48,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 
 
 public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
@@ -205,7 +204,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordsSeconds() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb, new Configuration());
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;
@@ -236,7 +235,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     TimelineMetric metric = timelineMetrics.getMetrics().get(0);
 
     assertEquals("disk_free", metric.getMetricName());
-    assertEquals(8, metric.getMetricValues().size());
+    assertEquals(5, metric.getMetricValues().size());
     assertEquals(1.5, metric.getMetricValues().values().iterator().next(), 0.00001);
   }
 
@@ -244,7 +243,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
   public void testGetClusterMetricRecordLatestWithFunction() throws Exception {
     // GIVEN
     TimelineMetricAggregator agg =
-      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorSecond(hdb, new Configuration());
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime + 1;

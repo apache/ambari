@@ -86,7 +86,7 @@ public class PhoenixTransactSQL {
       "TTL=%s, COMPRESSION='%s'";
 
   // HOSTS_COUNT vs METRIC_COUNT
-  public static final String CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL =
+  public static final String CREATE_METRICS_CLUSTER_AGGREGATE_GROUPED_TABLE_SQL =
     "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
       "APP_ID VARCHAR, " +
@@ -248,6 +248,8 @@ public class PhoenixTransactSQL {
     "METRIC_RECORD_DAILY";
   public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME =
     "METRIC_AGGREGATE";
+  public static final String METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME =
+    "METRIC_AGGREGATE_MINUTE";
   public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_AGGREGATE_HOURLY";
   public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
@@ -555,7 +557,10 @@ public class PhoenixTransactSQL {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         break;
-      //TODO : Include MINUTE case after introducing CLUSTER_AGGREGATOR_MINUTE
+      case MINUTES:
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_MINUTE_TABLE_NAME;
+        queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
+        break;
       default:
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
         queryStmt = GET_CLUSTER_AGGREGATE_SQL;

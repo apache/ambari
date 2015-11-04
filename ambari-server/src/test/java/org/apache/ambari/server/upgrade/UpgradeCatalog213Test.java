@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -26,9 +28,15 @@ import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.ConfigurationResponse;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -76,6 +84,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
@@ -89,6 +98,8 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -590,6 +601,71 @@ public class UpgradeCatalog213Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateAMSConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testAmsSiteUpdateConfigs() throws Exception{
+
+    Map<String, String> oldPropertiesAmsSite = new HashMap<String, String>() {
+      {
+        //Including only those properties that might be present in an older version.
+        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(1000));
+      }
+    };
+    Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
+      {
+        put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
+        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
+        put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
+        put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
+        put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
+      }
+    };
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsSite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+    expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
+    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).times(1);
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAmsSite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<ConfigurationRequest> configurationRequestCapture = EasyMock.newCapture();
+    ConfigurationResponse configurationResponseMock = easyMockSupport.createMock(ConfigurationResponse.class);
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock).once();
+
+    replay(controller, injector2, configurationResponseMock);
+    new UpgradeCatalog213(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    ConfigurationRequest configurationRequest = configurationRequestCapture.getValue();
+    Map<String, String> updatedProperties = configurationRequest.getProperties();
+    assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
+
   }
 
   @Test
