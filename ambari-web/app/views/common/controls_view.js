@@ -162,7 +162,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
-  placeholderBinding: 'serviceConfig.savedValue',
+  placeholderBinding: 'serviceConfig.placeholder',
 
   onValueUpdate: function () {
     if ($(this.get('element')).is(':focus')) {

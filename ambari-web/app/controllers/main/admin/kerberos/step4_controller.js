@@ -153,6 +153,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         }
       }, this);
     }
+    configProperties = App.config.sortConfigs(configProperties);
     this.get('stepConfigs').pushObjects(this.createServiceConfig(configProperties));
     this.set('selectedService', this.get('stepConfigs')[0]);
   },
