@@ -55,11 +55,11 @@ App.ManageAlertNotificationsView = Em.View.extend({
 
   email: function () {
     return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];
-  }.property('controller.selectedAlertNotification'),
+  }.property('controller.selectedAlertNotification.properties'),
 
   severities: function () {
     return this.get('controller.selectedAlertNotification.alertStates').join(', ');
-  }.property('controller.selectedAlertNotification'),
+  }.property('controller.selectedAlertNotification.alertStates'),
 
   /**
    * Enable/disable "edit"/"remove"/"duplicate" buttons basing on <code>controller.selectedAlertNotification</code>
