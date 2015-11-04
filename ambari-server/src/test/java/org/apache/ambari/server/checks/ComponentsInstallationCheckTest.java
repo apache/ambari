@@ -30,6 +30,8 @@ import org.apache.ambari.server.orm.models.HostComponentSummary;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.StackId;
@@ -102,6 +104,9 @@ public class ComponentsInstallationCheckTest {
     final Service hdfsService = Mockito.mock(Service.class);
     final Service tezService = Mockito.mock(Service.class);
     final Service amsService = Mockito.mock(Service.class);
+    Mockito.when(hdfsService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    Mockito.when(amsService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
 
     HashMap<String, Service> clusterServices = new HashMap<String, Service>();
     clusterServices.put("HDFS", hdfsService);
@@ -210,6 +215,25 @@ public class ComponentsInstallationCheckTest {
     allHostComponentSummaries.add(hcsMetricsCollector);
     allHostComponentSummaries.add(hcsMetricsMonitor);
 
+    final Map<String, Host> hosts = new HashMap<String, Host>();
+    final Host host1 = Mockito.mock(Host.class);
+    final Host host2 = Mockito.mock(Host.class);
+    final Host host3 = Mockito.mock(Host.class);
+    Mockito.when(host1.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host3.getMaintenanceState(1L)).thenReturn(MaintenanceState.OFF);
+    hosts.put("host1", host1);
+    hosts.put("host2", host2);
+    hosts.put("host3", host3);
+    Mockito.when(hcsNameNode.getHostName()).thenReturn("host1");
+    Mockito.when(hcsDataNode1.getHostName()).thenReturn("host1");
+    Mockito.when(hcsDataNode2.getHostName()).thenReturn("host2");
+    Mockito.when(hcsDataNode3.getHostName()).thenReturn("host3");
+    Mockito.when(hcsZKFC.getHostName()).thenReturn("host1");
+    Mockito.when(hcsTezClient.getHostName()).thenReturn("host2");
+    Mockito.when(hcsMetricsCollector.getHostName()).thenReturn("host3");
+    Mockito.when(hcsMetricsMonitor.getHostName()).thenReturn("host3");
+
     // Mock the static method
     Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "NAMENODE")).thenReturn(Arrays.asList(hcsNameNode));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("HDFS", "DATANODE")).thenReturn(Arrays.asList(hcsDataNode1, hcsDataNode2, hcsDataNode3));
@@ -217,6 +241,9 @@ public class ComponentsInstallationCheckTest {
     Mockito.when(HostComponentSummary.getHostComponentSummaries("TEZ", "TEZ_CLIENT")).thenReturn(Arrays.asList(hcsTezClient));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_COLLECTOR")).thenReturn(Arrays.asList(hcsMetricsCollector));
     Mockito.when(HostComponentSummary.getHostComponentSummaries("AMBARI_METRICS", "METRICS_MONITOR")).thenReturn(Arrays.asList(hcsMetricsMonitor));
+    for (String hostName : hosts.keySet()) {
+      Mockito.when(clusters.getHost(hostName)).thenReturn(hosts.get(hostName));
+    }
 
     // Case 1. Initialize with good values
     for (HostComponentSummary hcs : allHostComponentSummaries) {
@@ -241,5 +268,20 @@ public class ComponentsInstallationCheckTest {
     componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
     Assert.assertTrue(check.getFailReason().indexOf("Service components in INSTALL_FAILED state") > -1);
+
+    // Case 4: Change TEZ client state to INSTALL_FAILED and place TEZ in Maintenance mode, should succeed
+    Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.ON);
+    Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
+    check = new PrerequisiteCheck(null, null);
+    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
+
+    // Case 5: Change TEZ client state to INSTALL_FAILED and place host2 in Maintenance mode, should succeed
+    Mockito.when(tezService.getMaintenanceState()).thenReturn(MaintenanceState.OFF);
+    Mockito.when(host2.getMaintenanceState(1L)).thenReturn(MaintenanceState.ON);
+    Mockito.when(hcsTezClient.getCurrentState()).thenReturn(State.INSTALL_FAILED);
+    check = new PrerequisiteCheck(null, null);
+    componentsInstallationCheck.perform(check, new PrereqCheckRequest("cluster"));
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
   }
 }
