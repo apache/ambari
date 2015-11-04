@@ -100,7 +100,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
                                     "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
                                     "  ulimit -l {{datanode_max_locked_memory}}\n" +
                                     "fi\n" +
-                                    "{% endif %};\n";
+                                    "{% endif %}\n";
 
   private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
   private static final String UPGRADE_SKIP_FAILURE_COLUMN = "skip_failures";
