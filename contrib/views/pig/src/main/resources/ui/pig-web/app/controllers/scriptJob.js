@@ -42,12 +42,24 @@ App.ScriptJobController = Em.ObjectController.extend(App.FileHandler,{
     });
   }.property('content'),
 
+
+
+  jobResultsHidden:true,
+
   jobResults:function (output) {
     var jobId = this.get('content.id');
     var url = ['jobs', jobId, 'results', 'stdout'].join('/');
 
     return this.fileProxy(url);
   }.property('content'),
+
+  showJobResults:function () {
+    if (!Em.isEmpty(this.get('jobResults.content.fileContent'))) {
+      this.set('jobResultsHidden',false);
+    }
+  }.observes('jobResults.content.fileContent'),
+
+  jobLogsHidden:true,
 
   jobLogs:function (output) {
     var jobId = this.get('content.id');
@@ -56,9 +68,29 @@ App.ScriptJobController = Em.ObjectController.extend(App.FileHandler,{
     return this.fileProxy(url);
   }.property('content'),
 
+  showJobLogs:function () {
+    if (!Em.isEmpty(this.get('jobLogs.content.fileContent')) && this.get('jobResults.isFulfilled') && Em.isEmpty(this.get('jobResults.content.fileContent'))) {
+      this.set('jobLogsHidden',false);
+    }
+  }.observes('jobLogs.content.fileContent','jobResults.isFulfilled','jobResults.content.fileContent'),
+
+  hasErrorInLogs:false,
+
+  resetLogsErrors:function () {
+    if (this.get('jobLogs.isPending')) this.set('hasErrorInLogs',false);
+  }.observes('jobLogs.isPending'),
+
   suggestedFilenamePrefix: function() {
     return this.get("content.jobId").toLowerCase().replace(/\W+/g, "_");
   }.property("content.jobId"),
+
+  reloadOutputs: function(){
+    Em.run.later(this,function () {
+      if (this.get('content.jobInProgress')) {
+        Em.run.debounce(this,'notifyPropertyChange','content',5000);
+      };
+    },10000);
+   }.observes('content'),
 
   actions:{
     download:function (opt) {

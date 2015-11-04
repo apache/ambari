@@ -18,6 +18,7 @@
 <div class="job-container">
   <h3>
     {{title}} - <span {{bind-attr class=":label jobSuccess:label-success jobError:label-danger jobInProgress:label-warning "}}>{{status}}</span>
+    {{#if hasErrorInLogs}} <span class="label label-danger"><i class="fa fa-exclamation"></i></span> {{/if}}
   </h3>
 
     <div class="row">
@@ -35,8 +36,8 @@
           {{/if}}
         </div>
       {{/if}}
-    </div>
-
+    </d
+iv>
   <table class="table job-info">
     <tbody>
       <tr>
@@ -50,20 +51,21 @@
     </tbody>
   </table>
 
-  {{#unless jobInProgress}}
-    <div class="panel panel-default">
+    {{#view view.collapsePanel class="panel panel-default" collapsed=jobResultsHidden}}
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" href="#scriptResults">
-            <i class="toggle-icon fa fa-fw fa-chevron-right fa-rotate-90"></i>
+          <a {{action 'toggleCollapse' target="view"}} href="#">
+            <i {{bind-attr class=":toggle-icon :fa :fa-fw :fa-chevron-right view.collapsed::fa-rotate-90"}}></i>
             {{t 'job.results'}}
           </a>
-          {{#if jobResults.isFulfilled }}
-          <p class="pull-right" ><a href="#" {{action 'download' 'results'}}><i class="fa fa-download"></i> {{t 'common.download'}}</a></p>
-          {{/if}}
+          {{#unless jobInProgress}}
+            {{#if jobResults.isFulfilled }}
+              <p class="pull-right" ><a href="#" {{action 'download' 'results'}}><i class="fa fa-download"></i> {{t 'common.download'}}</a></p>
+            {{/if}}
+          {{/unless}}
         </h4>
       </div>
-      {{#view view.collapsePanel id="scriptResults" class="panel-collapse collapse in" }}
+      <div id="scriptResults" class="panel-collapse collapse">
         <div class="panel-body">
         {{#if jobResults.isPending}}
           <div class="spinner-sm"></div>
@@ -71,53 +73,64 @@
           {{#if jobResults.isFulfilled }}
           <pre>{{jobResults.content.fileContent}}</pre>
           {{/if}}
-          {{#if jobResults.isRejected}}
-            {{jobResults.reason}}
-          {{/if}}
+          {{#unless jobInProgress}}
+            {{#if jobResults.isRejected}}
+              <div class="alert alert-danger" role="alert">
+                {{jobResults.reason}}
+              </div>
+            {{/if}}
+          {{/unless}}
         {{/if}}
         </div>
-      {{/view}}
-    </div>
+      </div>
+    {{/view}}
 
-    <div class="panel panel-default">
+
+    {{#view view.collapsePanel classBinding=":panel :panel-default" collapsed=jobLogsHidden}}
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" href="#scriptLogs">
-            <i class="toggle-icon fa fa-fw fa-chevron-right"></i>
-            {{t 'job.logs'}}
+          <a  {{action 'toggleCollapse' target="view"}} href="#">
+            <i {{bind-attr class=":toggle-icon :fa :fa-fw :fa-chevron-right view.collapsed::fa-rotate-90"}} ></i>
+            {{t 'job.logs'}} {{#if hasErrorInLogs}} <span class="label label-danger"><i class="fa fa-exclamation"></i></span> {{/if}}
           </a>
-          {{#if jobLogs.isFulfilled}}
-          <p class="pull-right" ><a href="#" {{action 'download' 'logs'}}><i class="fa fa-download"></i> {{t 'common.download'}}</a></p>
-          {{/if}}
+          {{#unless jobInProgress}}
+            {{#if jobLogs.isFulfilled}}
+              <p class="pull-right" ><a href="#" {{action 'download' 'logs'}}><i class="fa fa-download"></i> {{t 'common.download'}}</a></p>
+            {{/if}}
+          {{/unless}}
         </h4>
       </div>
-      {{#view view.collapsePanel id="scriptLogs" class="panel-collapse collapse"}}
+      <div id="scriptLogs" class="panel-collapse collapse">
         <div class="panel-body">
         {{#if jobLogs.isPending}}
           <div class="spinner-sm"></div>
         {{else}}
           {{#if jobLogs.isFulfilled}}
-          <pre>{{jobLogs.content.fileContent}}</pre>
+            {{highlight-errors text=jobLogs.content.fileContent hasErrors=hasErrorInLogs}}
           {{/if}}
-          {{#if jobLogs.isRejected}}
-            {{jobLogs.reason}}
-          {{/if}}
+          {{#unless jobInProgress}}
+            {{#if jobLogs.isRejected}}
+              <div class="alert alert-danger" role="alert">
+                {{jobLogs.reason}}
+              </div>
+            {{/if}}
+          {{/unless}}
         {{/if}}
         </div>
-      {{/view}}
-    </div>
-  {{/unless}}
+      </div>
+    {{/view}}
 
-    <div class="panel panel-default">
+
+    {{#view view.collapsePanel class="panel panel-default" hasEditor=true}}
       <div class="panel-heading">
         <h4 class="panel-title">
-          <a data-toggle="collapse" href="#scriptDetails">
-            <i class="toggle-icon fa fa-fw fa-chevron-right"></i>
+          <a  {{action 'toggleCollapse' target="view"}} href="#">
+            <i {{bind-attr class=":toggle-icon :fa :fa-fw :fa-chevron-right view.collapsed::fa-rotate-90"}}></i>
             {{t 'job.script_details'}}
           </a>
         </h4>
       </div>
-      {{#view view.collapsePanel id="scriptDetails" class="panel-collapse collapse" }}
+      <div id="scriptDetails" class="panel-collapse collapse">
         <div {{bind-attr class=":panel-body :body-title :body-title-contents fullscreen:fullscreen "}} >
           {{t 'job.script_contents'}}:
           <div class="fullscreen-toggle pull-right" {{action 'fullscreen'}} data-toggle="tooltip" data-placement="bottom" {{translateAttr title="editor.toggle_fullscreen"}}><i {{bind-attr class=":fa :fa-lg fullscreen:fa-compress:fa-expand"}} ></i></div>
@@ -154,7 +167,7 @@
             </div>
           {{/if}}
         </div>
-      {{/view}}
-    </div>
+      </div>
+    {{/view}}
 
 </div>
