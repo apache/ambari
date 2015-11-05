@@ -19,6 +19,9 @@
 var App = require('app');
 var validator = require('utils/validator');
 
+/**
+ * @class ServiceConfigProperty
+ */
 App.ServiceConfigProperty = Em.Object.extend({
 
   name: '',

@@ -78,7 +78,6 @@ var serviceConfig,
   masters = components.filterProperty('master'),
   slaves = components.filterProperty('slave');
 
-
 describe('configPropertyHelper', function () {
 
   beforeEach(function () {
@@ -92,7 +91,6 @@ describe('configPropertyHelper', function () {
       expect(serviceConfigProperty.get('recommendedValue')).to.equal('value1');
     });
   });
-
 
   describe('#initialValue', function () {
 
@@ -428,6 +426,395 @@ describe('configPropertyHelper', function () {
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
 
+    function getLocalDBForSingleComponent(component) {
+      return {
+        masterComponentHosts: [
+          {
+            component: component,
+            hostName: 'h1'
+          },
+          {
+            component: 'FAKE_COMPONENT',
+            hostName: 'FAKE_HOST'
+          }
+        ]
+      };
+    }
+
+    function getLocalDBForMultipleComponents(component, count) {
+      var ret = {
+        masterComponentHosts: [{
+          component: 'FAKE_COMPONENT',
+          hostName: 'FAKE_HOST'
+        }]
+      };
+      for (var i = 1; i <= count; i++) {
+        ret.masterComponentHosts.push({
+          component: component,
+          hostName: 'h' + i
+        })
+      }
+      return ret;
+    }
+
+    Em.A([
+      {
+        config: 'dfs.namenode.rpc-address',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:8020',
+        expectedValue: 'h1:8020'
+      },
+      {
+        config: 'dfs.http.address',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:8020',
+        expectedValue: 'h1:8020'
+      },
+      {
+        config: 'dfs.namenode.http-address',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:8020',
+        expectedValue: 'h1:8020'
+      },
+      {
+        config: 'dfs.https.address',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:8020',
+        expectedValue: 'h1:8020'
+      },
+      {
+        config: 'dfs.namenode.https-address',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:8020',
+        expectedValue: 'h1:8020'
+      },
+      {
+        config: 'fs.default.name',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'hdfs://c6401.ambari.apache.org:8020',
+        expectedValue: 'hdfs://h1:8020'
+      },
+      {
+        config: 'fs.defaultFS',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'hdfs://c6401.ambari.apache.org:8020',
+        expectedValue: 'hdfs://h1:8020'
+      },
+      {
+        config: 'hbase.rootdir',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'hdfs://c6401.ambari.apache.org:8020',
+        expectedValue: 'hdfs://h1:8020'
+      },
+      {
+        config: 'instance.volumes',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'hdfs://c6401.ambari.apache.org:8020',
+        expectedValue: 'hdfs://h1:8020'
+      },
+      {
+        config: 'dfs.secondary.http.address',
+        localDB: getLocalDBForSingleComponent('SECONDARY_NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:50090',
+        expectedValue: 'h1:50090'
+      },
+      {
+        config: 'dfs.namenode.secondary.http-address',
+        localDB: getLocalDBForSingleComponent('SECONDARY_NAMENODE'),
+        rValue: 'c6401.ambari.apache.org:50090',
+        expectedValue: 'h1:50090'
+      },
+      {
+        config: 'yarn.log.server.url',
+        localDB: getLocalDBForSingleComponent('HISTORYSERVER'),
+        rValue: 'http://localhost:19888/jobhistory/logs',
+        expectedValue: 'http://h1:19888/jobhistory/logs'
+      },
+      {
+        config: 'mapreduce.jobhistory.webapp.address',
+        localDB: getLocalDBForSingleComponent('HISTORYSERVER'),
+        rValue: 'c6407.ambari.apache.org:19888',
+        expectedValue: 'h1:19888'
+      },
+      {
+        config: 'mapreduce.jobhistory.address',
+        localDB: getLocalDBForSingleComponent('HISTORYSERVER'),
+        rValue: 'c6407.ambari.apache.org:19888',
+        expectedValue: 'h1:19888'
+      },
+      {
+        config: 'yarn.resourcemanager.hostname',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'yarn.resourcemanager.resource-tracker.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.resourcemanager.webapp.https.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.resourcemanager.webapp.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.resourcemanager.scheduler.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.resourcemanager.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.resourcemanager.admin.address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'c6407.ambari.apache.org:123',
+        expectedValue: 'h1:123'
+      },
+      {
+        config: 'yarn.timeline-service.webapp.address',
+        localDB: getLocalDBForSingleComponent('APP_TIMELINE_SERVER'),
+        rValue: 'c6407.ambari.apache.org:432',
+        expectedValue: 'h1:432'
+      },
+      {
+        config: 'yarn.timeline-service.address',
+        localDB: getLocalDBForSingleComponent('APP_TIMELINE_SERVER'),
+        rValue: 'c6407.ambari.apache.org:432',
+        expectedValue: 'h1:432'
+      },
+      {
+        config: 'yarn.timeline-service.webapp.https.address',
+        localDB: getLocalDBForSingleComponent('APP_TIMELINE_SERVER'),
+        rValue: 'c6407.ambari.apache.org:432',
+        expectedValue: 'h1:432'
+      },
+      {
+        config: 'mapred.job.tracker',
+        localDB: getLocalDBForSingleComponent('JOBTRACKER'),
+        rValue: 'c6407.ambari.apache.org:111',
+        expectedValue: 'h1:111'
+      },
+      {
+        config: 'mapred.job.tracker.http.address',
+        localDB: getLocalDBForSingleComponent('JOBTRACKER'),
+        rValue: 'c6407.ambari.apache.org:111',
+        expectedValue: 'h1:111'
+      },
+      {
+        config: 'mapreduce.history.server.http.address',
+        localDB: getLocalDBForSingleComponent('HISTORYSERVER'),
+        rValue: 'c6407.ambari.apache.org:555',
+        expectedValue: 'h1:555'
+      },
+      {
+        config: 'hive_hostname',
+        localDB: getLocalDBForSingleComponent('HIVE_SERVER'),
+        rValue: 'c6407.ambari.apache.org',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'oozie_hostname',
+        localDB: getLocalDBForSingleComponent('OOZIE_SERVER'),
+        rValue: 'c6407.ambari.apache.org',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'oozie.base.url',
+        localDB: getLocalDBForSingleComponent('OOZIE_SERVER'),
+        rValue: 'http://localhost:11000/oozie',
+        expectedValue: 'http://h1:11000/oozie'
+      },
+      {
+        config: 'nimbus.host',
+        localDB: getLocalDBForSingleComponent('NIMBUS'),
+        rValue: 'localhost',
+        expectedValue: 'h1'
+      },
+      {
+        config: '*.broker.url',
+        localDB: getLocalDBForSingleComponent('FALCON_SERVER'),
+        rValue: 'tcp://localhost:61616',
+        expectedValue: 'tcp://h1:61616'
+      },
+      {
+        config: 'storm.zookeeper.servers',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: "['c6401.ambari.apache.org','c6402.ambari.apache.org']",
+        expectedValue: ['h1', 'h2', 'h3']
+      },
+      {
+        config: 'nimbus.seeds',
+        localDB: getLocalDBForMultipleComponents('NIMBUS', 3),
+        rValue: "['c6401.ambari.apache.org','c6402.ambari.apache.org']",
+        expectedValue: ['h1', 'h2', 'h3']
+      },
+      {
+        config: 'hawq_master_address_host',
+        localDB: getLocalDBForSingleComponent('HAWQMASTER'),
+        rValue: 'localhost',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'hawq_standby_address_host',
+        localDB: getLocalDBForSingleComponent('HAWQSTANDBY'),
+        rValue: 'localhost',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'hawq_dfs_url',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'localhost:8020/hawq_default',
+        expectedValue: 'h1:8020/hawq_default'
+      },
+      {
+        config: 'hawq_rm_yarn_address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'localhost:8032',
+        expectedValue: 'h1:8032'
+      },
+      {
+        config: 'hawq_rm_yarn_scheduler_address',
+        localDB: getLocalDBForSingleComponent('RESOURCEMANAGER'),
+        rValue: 'localhost:8030',
+        expectedValue: 'h1:8030'
+      },
+      {
+        config: 'hadoop_host',
+        localDB: getLocalDBForSingleComponent('NAMENODE'),
+        rValue: 'localhost',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'hive_master_hosts',
+        localDB: getLocalDBForMultipleComponents('HIVE_METASTORE', 3),
+        rValue: '',
+        expectedValue: 'h1,h2,h3'
+      },
+      {
+        config: 'hive_master_hosts',
+        localDB: getLocalDBForMultipleComponents('HIVE_SERVER', 3),
+        rValue: '',
+        expectedValue: 'h1,h2,h3'
+      },
+      {
+        config: 'zookeeper.connect',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'hive.zookeeper.quorum',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'templeton.zookeeper.hosts',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'hadoop.registry.zk.quorum',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'hive.cluster.delegation.token.store.zookeeper.connectString',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'instance.zookeeper.host',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        expectedValue: 'h1:2181,h2:2181,h3:2181'
+      },
+      {
+        config: 'templeton.hive.properties',
+        localDB: getLocalDBForMultipleComponents('HIVE_METASTORE', 2),
+        rValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false',
+        dependencies: {
+          'hive.metastore.uris': 'thrift://localhost:9083'
+        },
+        expectedValue: 'hive.metastore.local=false,hive.metastore.uris=thrift://h1:9083\\,thrift://h2:9083,hive.metastore.sasl.enabled=false'
+      },
+      {
+        config: 'hbase.zookeeper.quorum',
+        m: 'hbase.zookeeper.quorum hbase-site.xml',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'c6401.ambari.apache.org,c6402.ambari.apache.org',
+        expectedValue: 'h1,h2,h3',
+        filename: 'hbase-site.xml'
+      },
+      {
+        config: 'hbase.zookeeper.quorum',
+        m: 'hbase.zookeeper.quorum not-hbase-site.xml',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost',
+        expectedValue: '',
+        expectedRValue: 'localhost',
+        filename: 'not-hbase-site.xml'
+      },
+      {
+        config: 'yarn.resourcemanager.zk-address',
+        localDB: getLocalDBForMultipleComponents('ZOOKEEPER_SERVER', 3),
+        rValue: 'localhost:2181',
+        dependencies: {
+          'clientPort': '3333'
+        },
+        expectedValue: 'h1:3333,h2:3333,h3:3333'
+      },
+      {
+        config: 'RANGER_HOST',
+        localDB: getLocalDBForSingleComponent('RANGER_ADMIN'),
+        rValue: 'locahost',
+        expectedValue: 'h1'
+      },
+      {
+        config: 'hive.metastore.uris',
+        localDB: getLocalDBForMultipleComponents('HIVE_METASTORE', 2),
+        dependencies: {
+          'hive.metastore.uris': 'thrift://localhost:9083'
+        },
+        rValue: 'thrift://localhost:9083',
+        expectedValue: 'thrift://h1:9083,thrift://h2:9083'
+      }
+    ]).forEach(function (test) {
+      it(test.m || test.config, function () {
+        serviceConfigProperty.setProperties({
+          name: test.config,
+          recommendedValue: test.rValue,
+          filename: test.filename
+        });
+        configPropertyHelper.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
+        expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
+        if (Em.isNone(test.expectedRValue)) {
+          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
+        }
+        else {
+          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedRValue);
+        }
+
+      });
+    });
+
   });
 
   describe('#getHiveMetastoreUris', function () {
@@ -510,7 +897,7 @@ describe('configPropertyHelper', function () {
 
   });
 
-  describe('#unionAllMountPoints', function () {
+  describe('config with mount points', function () {
 
     var localDB = {
         masterComponentHosts: [
@@ -808,11 +1195,77 @@ describe('configPropertyHelper', function () {
           name: item.name,
           recommendedValue: '/default'
         });
-        configPropertyHelper.unionAllMountPoints(serviceConfigProperty, item.isOnlyFirstOneNeeded, localDB);
+        configPropertyHelper.initialValue(serviceConfigProperty, localDB, {});
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('recommendedValue')).to.equal(item.value);
       });
     });
 
   });
+
+  describe('initializerTypes', function () {
+    var types = configPropertyHelper.__testGetInitializerTypes();
+    Em.keys(types).forEach(function(type) {
+      it(type, function() {
+        var methodName = types[type].method;
+        expect(methodName).to.be.a.string;
+        expect(methodName).to.have.length.above(0);
+        expect(configPropertyHelper[methodName]).to.be.a.function;
+      });
+    });
+  });
+
+  describe('initializers', function () {
+
+    var initializers = configPropertyHelper.__testGetInitializers();
+    var types = configPropertyHelper.__testGetInitializerTypes();
+    var typeNames = Em.keys(types);
+
+    Em.keys(initializers).forEach(function (configName) {
+      it(configName, function () {
+        var type = initializers[configName].type;
+        expect(typeNames).to.contain(type);
+      });
+    });
+
+  });
+
+  describe('uniqueInitializers', function () {
+
+    var uniqueInitializers = configPropertyHelper.__testGetUniqueInitializers();
+    var uniqueInitializersNames = Em.keys(uniqueInitializers).map(function (key) {
+      return uniqueInitializers[key];
+    });
+
+    it('should contains only unique methods', function () {
+      expect(uniqueInitializersNames.length).to.equal(uniqueInitializersNames.uniq().length);
+    });
+
+    uniqueInitializersNames.forEach(function (name) {
+      it(name, function () {
+        expect(configPropertyHelper[name]).to.be.a.function;
+      });
+    });
+
+  });
+
+  describe('winReplacersMap', function () {
+
+    var winReplacersMap = configPropertyHelper.__testGetWinReplacersMap();
+    var winReplacerNames = Em.keys(winReplacersMap).map(function (key) {
+      return winReplacersMap[key];
+    });
+
+    it('should contains only unique methods', function () {
+      expect(winReplacerNames.length).to.equal(winReplacerNames.uniq().length);
+    });
+
+    winReplacerNames.forEach(function (name) {
+      it(name, function () {
+        expect(configPropertyHelper[name]).to.be.a.function;
+      });
+    });
+
+  });
+
 });

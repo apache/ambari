@@ -28,6 +28,14 @@ var configPropertyHelper = require('utils/configs/config_property_helper');
  *
  */
 
+/**
+ * @typedef {object} topologyLocalDB
+ * @property {object[]} hosts
+ * @property {object[]} masterComponentHosts
+ * @property {object[]} slaveComponentHosts
+ *
+ */
+
 App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, {
 
   name: 'wizardStep7Controller',
