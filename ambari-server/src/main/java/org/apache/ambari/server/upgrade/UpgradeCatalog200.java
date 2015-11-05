@@ -78,6 +78,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   private static final String KERBEROS_PRINCIPAL_TABLE = "kerberos_principal";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
   private static final String TEZ_USE_CLUSTER_HADOOP_LIBS_PROPERTY = "tez.use.cluster.hadoop-libs";
+  private static final String FLUME_ENV_CONFIG = "flume-env";
+  private static final String CONTENT_PROPERTY = "content";
 
   /**
    * {@inheritDoc}
@@ -332,6 +334,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateHiveDatabaseType();
     updateTezConfiguration();
+    updateFlumeEnvConfig();
     addMissingConfigs();
     persistHDPRepo();
     updateClusterEnvConfiguration();
@@ -367,6 +370,28 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
 
   protected void updateTezConfiguration() throws AmbariException {
     updateConfigurationProperties("tez-site", Collections.singletonMap(TEZ_USE_CLUSTER_HADOOP_LIBS_PROPERTY, String.valueOf(false)), false, false);
+  }
+
+  protected void updateFlumeEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config flumeEnvConfig = cluster.getDesiredConfigByType(FLUME_ENV_CONFIG);
+      if (flumeEnvConfig != null) {
+        String content = flumeEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null && !content.contains("/usr/lib/flume/lib/ambari-metrics-flume-sink.jar")) {
+          String newPartOfContent = "\n\n" +
+            "# Note that the Flume conf directory is always included in the classpath.\n" +
+            "# Add flume sink to classpath\n" +
+            "if [ -e \"/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\" ]; then\n" +
+            "  export FLUME_CLASSPATH=$FLUME_CLASSPATH:/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\n" +
+            "fi\n";
+          content += newPartOfContent;
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, FLUME_ENV_CONFIG, updates, true, false);
+        }
+      }
+    }
   }
 
   protected void updateHiveDatabaseType() throws AmbariException {

@@ -87,6 +87,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String AMS_SITE = "ams-site";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
   private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
@@ -269,6 +270,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateHDFSConfigs();
     updateHbaseEnvConfig();
+    updateFlumeEnvConfig();
     updateAlertDefinitions();
     updateKafkaConfigs();
     updateRangerEnvConfig();
@@ -789,6 +791,28 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
             updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
           }
+        }
+      }
+    }
+  }
+
+  protected void updateFlumeEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config flumeEnvConfig = cluster.getDesiredConfigByType(FLUME_ENV_CONFIG);
+      if (flumeEnvConfig != null) {
+        String content = flumeEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null && !content.contains("/usr/lib/flume/lib/ambari-metrics-flume-sink.jar")) {
+          String newPartOfContent = "\n\n" +
+            "# Note that the Flume conf directory is always included in the classpath.\n" +
+            "# Add flume sink to classpath\n" +
+            "if [ -e \"/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\" ]; then\n" +
+            "  export FLUME_CLASSPATH=$FLUME_CLASSPATH:/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\n" +
+            "fi\n";
+          content += newPartOfContent;
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, FLUME_ENV_CONFIG, updates, true, false);
         }
       }
     }

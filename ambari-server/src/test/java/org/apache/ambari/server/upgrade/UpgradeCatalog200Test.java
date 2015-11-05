@@ -50,6 +50,7 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -362,6 +363,7 @@ public class UpgradeCatalog200Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod
         ("addNewConfigurationsFromXml");
     Method updateTezConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateTezConfiguration");
+    Method updateFlumeEnvConfig = UpgradeCatalog200.class.getDeclaredMethod("updateFlumeEnvConfig");
     Method updateClusterEnvConfiguration = UpgradeCatalog200.class.getDeclaredMethod("updateClusterEnvConfiguration");
     Method updateConfigurationProperties = AbstractUpgradeCatalog.class.getDeclaredMethod
             ("updateConfigurationProperties", String.class, Map.class, boolean.class, boolean.class);
@@ -372,6 +374,7 @@ public class UpgradeCatalog200Test {
         .addMockedMethod(updateHiveDatabaseType)
         .addMockedMethod(addNewConfigurationsFromXml)
         .addMockedMethod(updateTezConfiguration)
+        .addMockedMethod(updateFlumeEnvConfig)
         .addMockedMethod(updateConfigurationProperties)
         .addMockedMethod(updateClusterEnvConfiguration)
         .addMockedMethod(persistHDPRepo)
@@ -386,6 +389,9 @@ public class UpgradeCatalog200Test {
     expectLastCall().once();
 
     upgradeCatalog.updateTezConfiguration();
+    expectLastCall().once();
+
+    upgradeCatalog.updateFlumeEnvConfig();
     expectLastCall().once();
 
     upgradeCatalog.updateConfigurationProperties("hive-site",
@@ -403,6 +409,46 @@ public class UpgradeCatalog200Test {
     upgradeCatalog.executeDMLUpdates();
 
     verify(upgradeCatalog);
+  }
+
+  @Test
+  public void testUpdateFlumeEnvConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesFlumeEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+
+    final Config mockFlumeEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getDesiredConfigByType("flume-env")).andReturn(mockFlumeEnv).atLeastOnce();
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateFlumeEnvConfig();
+    easyMockSupport.verifyAll();
   }
 
   @Test

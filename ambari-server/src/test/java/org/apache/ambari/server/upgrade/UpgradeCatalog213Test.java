@@ -75,7 +75,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -234,12 +233,12 @@ public class UpgradeCatalog213Test {
     Method updateHDFSConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateHDFSConfigs");
     Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
+    Method updateFlumeEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateFlumeEnvConfig");
     Method updateHadoopEnv = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
     Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
     Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
-
 
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
@@ -249,6 +248,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateAlertDefinitions)
         .addMockedMethod(updateStormConfigs)
         .addMockedMethod(updateHbaseEnvConfig)
+        .addMockedMethod(updateFlumeEnvConfig)
         .addMockedMethod(updateKafkaConfigs)
         .addMockedMethod(updateHadoopEnv)
         .addMockedMethod(updateZookeeperLog4j)
@@ -261,6 +261,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateStormConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateHbaseEnvConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateFlumeEnvConfig();
     expectLastCall().once();
     upgradeCatalog213.updateHadoopEnv();
     expectLastCall().once();
@@ -331,6 +333,46 @@ public class UpgradeCatalog213Test {
     mockInjector.getInstance(UpgradeCatalog213.class).updateHbaseEnvConfig();
     easyMockSupport.verifyAll();
 
+  }
+
+  @Test
+  public void testUpdateFlumeEnvConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesFlumeEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+
+    final Config mockFlumeEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getDesiredConfigByType("flume-env")).andReturn(mockFlumeEnv).atLeastOnce();
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateFlumeEnvConfig();
+    easyMockSupport.verifyAll();
   }
 
   /**
