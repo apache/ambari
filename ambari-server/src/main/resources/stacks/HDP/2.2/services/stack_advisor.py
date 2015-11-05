@@ -779,9 +779,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
-    if "core-site" in services["configurations"]:
-      core_site = services["configurations"]["core-site"]["properties"]
-    stackVersion = services["Versions"]["stack_version"]
+    storm_site = getServicesSiteProperties(services, "storm-site")
+    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
     if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
         "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
@@ -805,8 +804,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     else:
       rangerClass = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
     # Cluster is kerberized
-    if "core-site" in services["configurations"] and \
-          ('hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos'):
+    if security_enabled:
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',rangerClass)
       elif (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == rangerClass):
