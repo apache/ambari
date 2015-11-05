@@ -32,6 +32,7 @@ import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
+import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -61,6 +62,9 @@ public class Grouping {
   @XmlElement(name="direction")
   public Direction intendedDirection = null;
 
+  @XmlElement(name="parallel-scheduler")
+  public ParallelScheduler parallelScheduler;
+
   /**
    * Gets the default builder.
    */
@@ -89,7 +93,7 @@ public class Grouping {
      */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-       boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
+       boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
 
       boolean forUpgrade = ctx.getDirection().isUpgrade();
 
@@ -112,14 +116,18 @@ public class Grouping {
       // Add the processing component
       if (null != pc.tasks && 1 == pc.tasks.size()) {
         Task t = pc.tasks.get(0);
-        if(scheduleInParallel) {
-          // Create single stage for all
-          StageWrapper stage = new StageWrapper(
-              t.getStageWrapperType(),
-              getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), hostsType.hosts),
-              params,
-              new TaskWrapper(service, pc.name, hostsType.hosts, params, t));
-          m_stages.add(stage);
+        if(m_grouping.parallelScheduler != null) {
+          List<Set<String>> hostSets = SetUtils.split(hostsType.hosts, m_grouping.parallelScheduler.maxDegreeOfParallelism);
+          int batchNum = 1;
+          for(Set<String> hosts : hostSets) {
+            // Create single stage for all
+            StageWrapper stage = new StageWrapper(
+                t.getStageWrapperType(),
+                getStageText(t.getActionVerb(), ctx.getComponentDisplay(service, pc.name), hosts, batchNum++, hostSets.size()),
+                params,
+                new TaskWrapper(service, pc.name, hosts, params, t));
+            m_stages.add(stage);
+          }
         } else {
           for (String hostName : hostsType.hosts) {
             StageWrapper stage = new StageWrapper(

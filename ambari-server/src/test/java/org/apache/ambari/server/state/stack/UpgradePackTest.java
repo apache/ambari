@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
+import org.apache.ambari.server.state.stack.upgrade.ParallelScheduler;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
 import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
@@ -339,51 +340,65 @@ public class UpgradePackTest {
     assertEquals(ClusterGrouping.class, group.getClass());
     clusterGroup = (ClusterGrouping) group;
     assertEquals("Prepare Upgrade", clusterGroup.title);
+    assertNull(clusterGroup.parallelScheduler);
 
     group = groups.get(1);
     assertEquals(StopGrouping.class, group.getClass());
     stopGroup = (StopGrouping) group;
     assertEquals("Stop Daemons for High-Level Services", stopGroup.title);
+    assertNotNull(stopGroup.parallelScheduler);
+    assertEquals(ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM, stopGroup.parallelScheduler.maxDegreeOfParallelism);
 
     group = groups.get(2);
     assertEquals(ClusterGrouping.class, group.getClass());
     clusterGroup = (ClusterGrouping) group;
     assertEquals("Take Backups", clusterGroup.title);
+    assertNull(clusterGroup.parallelScheduler);
 
     group = groups.get(3);
     assertEquals(StopGrouping.class, group.getClass());
     stopGroup = (StopGrouping) group;
     assertEquals("Stop Daemons for Low-Level Services", stopGroup.title);
+    assertNotNull(stopGroup.parallelScheduler);
+    assertEquals(ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM, stopGroup.parallelScheduler.maxDegreeOfParallelism);
 
     group = groups.get(4);
     assertEquals(UpdateStackGrouping.class, group.getClass());
     updateStackGroup = (UpdateStackGrouping) group;
     assertEquals("Update Desired Stack Id", updateStackGroup.title);
+    assertNull(updateStackGroup.parallelScheduler);
 
     group = groups.get(5);
     assertEquals(ClusterGrouping.class, group.getClass());
     clusterGroup = (ClusterGrouping) group;
     assertEquals("Set Version On All Hosts", clusterGroup.title);
+    assertNull(clusterGroup.parallelScheduler);
 
     group = groups.get(6);
     assertEquals(RestartGrouping.class, group.getClass());
     restartGroup = (RestartGrouping) group;
     assertEquals("Zookeeper", restartGroup.title);
+    assertNull(restartGroup.parallelScheduler);
 
     group = groups.get(7);
     assertEquals(RestartGrouping.class, group.getClass());
     restartGroup = (RestartGrouping) group;
     assertEquals("HDFS", restartGroup.title);
+    assertNotNull(restartGroup.parallelScheduler);
+    assertEquals(2, restartGroup.parallelScheduler.maxDegreeOfParallelism);
 
     group = groups.get(8);
     assertEquals(RestartGrouping.class, group.getClass());
     restartGroup = (RestartGrouping) group;
     assertEquals("MR and YARN", restartGroup.title);
+    assertNotNull(restartGroup.parallelScheduler);
+    assertEquals(ParallelScheduler.DEFAULT_MAX_DEGREE_OF_PARALLELISM, restartGroup.parallelScheduler.maxDegreeOfParallelism);
 
     group = groups.get(9);
     assertEquals(ClusterGrouping.class, group.getClass());
     clusterGroup = (ClusterGrouping) group;
     assertEquals("Finalize {{direction.text.proper}}", clusterGroup.title);
+    assertNull(clusterGroup.parallelScheduler);
   }
 
   private int indexOf(Map<String, ?> map, String keyToFind) {

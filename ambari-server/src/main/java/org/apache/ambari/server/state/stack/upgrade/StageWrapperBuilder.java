@@ -71,7 +71,7 @@ public abstract class StageWrapperBuilder {
    *          additional parameters
    */
   public abstract void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
-      boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel);
+      boolean clientOnly, ProcessingComponent pc, Map<String, String> params);
 
   /**
    * Builds the stage wrappers, including any pre- and post-procesing that needs
@@ -160,6 +160,19 @@ public abstract class StageWrapperBuilder {
     return stageWrappers;
   }
 
+  /**
+   * Consistently formats a string.
+   * @param prefix
+   * @param component
+   * @param batchNum
+   * @param totalBatches
+   * @return the prepared string
+   */
+  protected String getStageText(String prefix, String component, Set<String> hosts, int batchNum, int totalBatches) {
+    String stageText = getStageText(prefix, component, hosts);
+    String batchText = 1 == totalBatches? "" : String.format(" ( Batch %s of %s )", batchNum, totalBatches);
+    return stageText + batchText;
+  }
 
   /**
    * Consistently formats a string.
