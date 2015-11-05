@@ -259,6 +259,7 @@ require('views/main/service/info/metrics/ambari_metrics/regionserver_block_cache
 require('views/main/service/info/metrics/ambari_metrics/regionserver_compaction_queue_size');
 require('views/main/service/info/metrics/flume/channel_sum');
 require('views/main/service/info/metrics/flume/channel_size_mma');
+require('views/main/service/info/metrics/flume/flume_agent_metrics_section');
 require('views/main/service/info/metrics/flume/flume_incoming_sum');
 require('views/main/service/info/metrics/flume/flume_incoming_mma');
 require('views/main/service/info/metrics/flume/flume_outgoing_sum');
