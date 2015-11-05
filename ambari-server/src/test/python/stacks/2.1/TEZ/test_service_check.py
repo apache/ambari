@@ -37,6 +37,7 @@ class TestTezServiceCheck(RMFTestCase):
         content = 'foo\nbar\nfoo\nbar\nfoo',
         mode = 0755,
     )
+
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
       security_enabled = False,
       hadoop_bin_dir = '/usr/bin',
