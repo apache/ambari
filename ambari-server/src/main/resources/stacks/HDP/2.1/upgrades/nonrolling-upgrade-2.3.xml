@@ -59,6 +59,7 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
+      <parallel-scheduler></parallel-scheduler>
 
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
@@ -131,6 +132,7 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
+      <parallel-scheduler></parallel-scheduler>
 
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
@@ -329,6 +331,7 @@
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="ZOOKEEPER">
         <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
@@ -339,6 +342,7 @@
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="HDFS">
         <component>JOURNALNODE</component>
         <component>ZKFC</component>
@@ -365,6 +369,7 @@
     <group xsi:type="restart" name="YARN and MapReduce2" title="YARN and MapReduce2">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="MAPREDUCE2">
         <component>HISTORYSERVER</component>
         <component>MAPREDUCE2_CLIENT</component>
@@ -380,6 +385,7 @@
     <group xsi:type="restart" name="HBASE" title="HBASE">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="HBASE">
         <component>HBASE_MASTER</component>
         <component>HBASE_REGIONSERVER</component>
@@ -390,6 +396,7 @@
     <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="TEZ">
         <component>TEZ_CLIENT</component>
       </service>
@@ -417,6 +424,7 @@
     <group xsi:type="restart" name="HIVE" title="Hive">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
@@ -429,6 +437,7 @@
     <group xsi:type="restart" name="OOZIE" title="Oozie">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
         <component>OOZIE_CLIENT</component>
@@ -438,6 +447,7 @@
     <group xsi:type="restart" name="FALCON" title="Falcon">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
         <component>FALCON_CLIENT</component>
@@ -447,6 +457,7 @@
     <group xsi:type="restart" name="STORM" title="Storm">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="STORM">
         <component>NIMBUS</component>
         <component>STORM_REST_API</component>
@@ -465,6 +476,7 @@
     <group xsi:type="restart" name="FLUME" title="Flume">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
       </service>

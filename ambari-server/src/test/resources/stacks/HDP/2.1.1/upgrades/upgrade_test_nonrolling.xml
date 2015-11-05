@@ -48,6 +48,7 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
+      <parallel-scheduler></parallel-scheduler>
 
       <service name="YARN">
         <component>NODEMANAGER</component>
@@ -76,6 +77,7 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <service-check>false</service-check>
+      <parallel-scheduler></parallel-scheduler>
 
       <service name="HDFS">
         <component>DATANODE</component>
@@ -133,6 +135,9 @@
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler>
+        <max-degree-of-parallelism>2</max-degree-of-parallelism>
+      </parallel-scheduler>
       <service name="HDFS">
         <component>JOURNALNODE</component>
         <component>ZKFC</component>
@@ -146,6 +151,7 @@
     <group xsi:type="restart" name="MR and YARN" title="MR and YARN">
       <service-check>false</service-check>
       <skippable>true</skippable>
+      <parallel-scheduler></parallel-scheduler>
       <service name="MAPREDUCE2">
         <component>HISTORYSERVER</component>
         <component>MAPREDUCE2_CLIENT</component>

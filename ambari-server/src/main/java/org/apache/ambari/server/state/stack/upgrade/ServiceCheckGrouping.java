@@ -103,7 +103,7 @@ public class ServiceCheckGrouping extends Grouping {
      */
     @Override
     public void add(UpgradeContext ctx, HostsType hostsType, String service,
-        boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
+        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
       // !!! nothing to do here
     }
 

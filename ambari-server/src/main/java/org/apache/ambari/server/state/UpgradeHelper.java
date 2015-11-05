@@ -289,7 +289,6 @@ public class UpgradeHelper {
 
       // Attempt to get the function of the group, during a NonRolling Upgrade
       Task.Type functionName = null;
-      boolean scheduleInParallel = false;
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
       if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
@@ -297,15 +296,12 @@ public class UpgradeHelper {
 
         if (RestartGrouping.class.isInstance(group)) {
           functionName = ((RestartGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
         if (StartGrouping.class.isInstance(group)) {
           functionName = ((StartGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
         if (StopGrouping.class.isInstance(group)) {
           functionName = ((StopGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
       }
 
@@ -410,7 +406,7 @@ public class UpgradeHelper {
                   hostsType.hosts = order;
 
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null, false);
+                      svc.isClientOnlyService(), pc, null);
                 }
                 break;
               case NON_ROLLING:
@@ -435,21 +431,21 @@ public class UpgradeHelper {
 
 
                   builder.add(context, ht1, service.serviceName,
-                      svc.isClientOnlyService(), pc, h1Params, false);
+                      svc.isClientOnlyService(), pc, h1Params);
 
                   builder.add(context, ht2, service.serviceName,
-                      svc.isClientOnlyService(), pc, h2Params, false);
+                      svc.isClientOnlyService(), pc, h2Params);
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null, false);
+                      svc.isClientOnlyService(), pc, null);
                 }
 
                 break;
             }
           } else {
             builder.add(context, hostsType, service.serviceName,
-                svc.isClientOnlyService(), pc, null, scheduleInParallel);
+                svc.isClientOnlyService(), pc, null);
           }
         }
       }
