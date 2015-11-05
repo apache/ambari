@@ -37,15 +37,17 @@ class TestTezServiceCheck(RMFTestCase):
         content = 'foo\nbar\nfoo\nbar\nfoo',
         mode = 0755,
     )
+
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeoutput',
-      security_enabled = False,
-      hadoop_bin_dir = '/usr/bin',
-      keytab = UnknownConfigurationMock(),
-      kinit_path_local = '/usr/bin/kinit',
-      user = 'hdfs',
-      hadoop_conf_dir = '/etc/hadoop/conf',
-      type = 'directory',
-      action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        dfs_type = '',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['delete_on_execute'], hdfs_site=self.getConfig()['configurations']['hdfs-site'], principal_name=UnknownConfigurationMock(), default_fs='hdfs://c6401.ambari.apache.org:8020',
     )
 
     self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput',

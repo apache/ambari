@@ -2152,7 +2152,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Embedded mode, 4096m master heapsize, some splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = \
-      'jvm.JvmMetrics.MemHeapCommittedM,regionserver.Server.Increment_median'
+      'master.Server.numDeadRegionServers'
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = ' '
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2162,7 +2162,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
+    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 9)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
 
     # Test splitpoints, AMS distributed mode
@@ -2193,7 +2193,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
+    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 9)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
 
   def test_recommendHbaseConfigurations(self):
