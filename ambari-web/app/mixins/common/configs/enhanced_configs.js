@@ -182,26 +182,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param {App.ServiceConfig[]} stepConfigs
    */
   clearDependenciesForInstalledServices: function(installedServices, stepConfigs) {
-    var allConfigs = stepConfigs.mapProperty('configs').filter(function(item) {
-      return item.length;
-    }).reduce(function(p, c) {
-      if (p) {
-        return p.concat(c);
-      }
+    var allConfigs = stepConfigs.mapProperty('configs').filterProperty('length').reduce(function(p, c) {
+      return p && p.concat(c);
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
       if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
-        var stackProperty = App.StackConfigProperty.find().findProperty("name", item.propertyName);
+        var stackProperty = App.StackConfigProperty.find(App.config.configId(item.propertyName, item.fileName));
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
         if (!parentConfigs || !parentConfigs.length) {
           return true;
-        } else {
-          parentConfigs = parentConfigs.mapProperty('name');
         }
         // check that all parent properties from installed service
-        return !parentConfigs.reject(function(parentConfigName) {
-          var property = allConfigs.findProperty('name', parentConfigName);
+        return !parentConfigs.reject(function(parentConfig) {
+          var property = allConfigs.filterProperty('filename', App.config.getOriginalFileName(parentConfig.type))
+                                   .findProperty('name', parentConfig.name);
           if (!property) {
             return false;
           }
