@@ -70,10 +70,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @type {string}
    */
   dependenciesMessage: function() {
-    var changedServices = this.get('changedProperties').filterProperty('saveRecommended', true).mapProperty('serviceName').uniq();
-    var cfgLen = this.get('changedProperties').filterProperty('saveRecommended', true).length === 1 ? 'singular' : 'plural';
+    var changedServices = this.get('changedProperties').filterProperty('saveRecommended').mapProperty('serviceName').uniq();
+    var changedProperties = this.get('changedProperties').filterProperty('saveRecommended');
+    var cfgLen = changedProperties.length === 1 ? 'singular' : 'plural';
     var sLen = changedServices.length === 1 ? 'singular' : 'plural';
-    return Em.I18n.t('popup.dependent.configs.dependencies.config.' + cfgLen).format(this.get('changedProperties.length'))
+    return Em.I18n.t('popup.dependent.configs.dependencies.config.' + cfgLen).format(changedProperties.length)
       + Em.I18n.t('popup.dependent.configs.dependencies.service.' + sLen).format(changedServices.length);
   }.property('changedProperties.length'),
 
