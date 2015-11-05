@@ -1,0 +1,40 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div {{bindAttr class=":accordion view.toggleIndex"}}>
+  <div class="accordion-group box">
+    <div class="accordion-heading box-header">
+      <span class="pull-left accordion-toggle metrics-header"
+            data-toggle="collapse" {{bindAttr dataParent="view.toggleIndex" href="view.toggleIndex"}}>
+        <i class="pull-left icon-caret-toggle"></i>
+        <span>{{view.header}}</span>
+      </span>
+        {{#if showTimeRangeControl}}
+          {{view view.timeRangeListView}}
+        {{/if}}
+      <div class="clearfix"></div>
+    </div>
+    <div class="accordion-body collapse in" {{bindAttr id="view.id"}}>
+      <div class="accordion-inner">
+        {{#if view.metricView}}
+          {{view view.metricView viewDataBinding="view.metricViewData"}}
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</div>

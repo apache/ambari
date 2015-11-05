@@ -258,6 +258,7 @@ var files = [
   'test/views/main/service/info/config_test',
   'test/views/main/service/info/summary_test',
   'test/views/main/service/info/metrics/ambari_metrics/regionserver_base_test',
+  'test/views/main/service/info/metrics/flume/flume_agent_metrics_section_test',
   'test/views/main/service/services/ranger_test',
   'test/views/main/service/widgets/create/expression_view_test',
   'test/views/main/admin/highAvailability/nameNode/step1_view_test',
