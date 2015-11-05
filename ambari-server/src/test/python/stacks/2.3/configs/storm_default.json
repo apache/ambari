@@ -32,7 +32,7 @@
         "stack_version": "2.3", 
         "host_sys_prepped": "false", 
         "db_name": "ambari", 
-        "jdk_name": "jdk-8u40-linux-x64.tar.gz", 
+        "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "current_version": "2.3.0.0-1889", 
         "ambari_db_rca_username": "mapred", 
