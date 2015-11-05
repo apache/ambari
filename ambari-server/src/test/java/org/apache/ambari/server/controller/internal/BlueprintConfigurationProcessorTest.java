@@ -18,20 +18,24 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertNotNull;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static junit.framework.Assert.fail;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
+import org.apache.ambari.server.topology.AmbariContext;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupImpl;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,21 +47,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.state.PropertyDependencyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.topology.AmbariContext;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.Cardinality;
-import org.apache.ambari.server.topology.ClusterTopology;
-import org.apache.ambari.server.topology.ClusterTopologyImpl;
-import org.apache.ambari.server.topology.Configuration;
-import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupImpl;
-import org.apache.ambari.server.topology.HostGroupInfo;
-import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 
 /**
  * BlueprintConfigurationProcessor unit tests.
@@ -198,6 +198,56 @@ public class BlueprintConfigurationProcessorTest {
 
     String updatedVal = properties.get("yarn-site").get("yarn.resourcemanager.hostname");
     assertEquals("%HOSTGROUP::group1%", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExport_FilterProperties() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> kerberosEnvProps = new HashMap<String, String>();
+    kerberosEnvProps.put("admin_server_host", "test");
+    kerberosEnvProps.put("kdc_host", "test");
+    kerberosEnvProps.put("realm", "test");
+    kerberosEnvProps.put("kdc_type", "test");
+    kerberosEnvProps.put("ldap-url", "test");
+    kerberosEnvProps.put("container_dn", "test");
+    properties.put("kerberos-env", kerberosEnvProps);
+
+    Map<String, String> krb5ConfProps = new HashMap<String, String>();
+    krb5ConfProps.put("domains", "test");
+    properties.put("krb5-conf", krb5ConfProps);
+
+    Map<String, String> tezSiteConfProps = new HashMap<String, String>();
+    tezSiteConfProps.put("tez.tez-ui.history-url.base", "test");
+    properties.put("tez-site", tezSiteConfProps);
+
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+    assertEquals(properties.size(), 3);
+    assertEquals(((Map) properties.get("kerberos-env")).size(), 0);
+    assertEquals(((Map) properties.get("krb5-conf")).size(), 0);
+    assertEquals(((Map) properties.get("tez-site")).size(), 0);
   }
 
   @Test

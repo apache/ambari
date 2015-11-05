@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.query.render;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
@@ -28,11 +29,23 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
+import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
@@ -41,6 +54,7 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,6 +63,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -173,6 +188,23 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
     blueprintResource.setProperty("Blueprints/stack_version", stack.getVersion());
 
+    if (topology.isClusterKerberosEnabled()) {
+      Map<String, Object> securityConfigMap = new LinkedHashMap<>();
+      securityConfigMap.put(SecurityConfigurationFactory.TYPE_PROPERTY_ID, SecurityType.KERBEROS.name());
+
+      try {
+        String clusterName = topology.getAmbariContext().getClusterName(topology.getClusterId());
+        Map<String, Object> kerberosDescriptor = getKerberosDescriptor(topology.getAmbariContext()
+          .getClusterController(), clusterName);
+        if (kerberosDescriptor != null) {
+          securityConfigMap.put(SecurityConfigurationFactory.KERBEROS_DESCRIPTOR_PROPERTY_ID, kerberosDescriptor);
+        }
+      } catch (AmbariException e) {
+        LOG.info("Unable to retrieve kerberos_descriptor: ", e.getMessage());
+      }
+      blueprintResource.setProperty(BlueprintResourceProvider.BLUEPRINT_SECURITY_PROPERTY_ID, securityConfigMap);
+    }
+
     List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);
 
@@ -182,6 +214,48 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     blueprintResource.setProperty("configurations", processConfigurations(topology));
 
     return blueprintResource;
+  }
+
+  private Map<String, Object> getKerberosDescriptor(ClusterController clusterController, String clusterName) throws AmbariException {
+    PredicateBuilder pb = new PredicateBuilder();
+    Predicate predicate = pb.begin().property("Artifacts/cluster_name").equals(clusterName).and().
+      property(ArtifactResourceProvider.ARTIFACT_NAME_PROPERTY).equals("kerberos_descriptor").
+      end().toPredicate();
+
+    ResourceProvider artifactProvider =
+       clusterController.ensureResourceProvider(Resource.Type.Artifact);
+
+    org.apache.ambari.server.controller.spi.Request request = new RequestImpl(Collections.<String>emptySet(),
+      Collections.<Map<String, Object>>emptySet(), Collections.<String, String>emptyMap(), null);
+
+    Set<Resource> response = null;
+    try {
+      response = artifactProvider.getResources(request, predicate);
+    } catch (SystemException | UnsupportedPropertyException | NoSuchResourceException | NoSuchParentResourceException
+      e) {
+      throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);
+    }
+
+    if (response != null && !response.isEmpty()) {
+      Resource descriptorResource = response.iterator().next();
+      Map<String, Map<String, Object>> propertyMap = descriptorResource.getPropertiesMap();
+
+      if (propertyMap != null) {
+        Map<String, Object> artifactData = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY);
+        Map<String, Object> artifactDataProperties = propertyMap.get(ArtifactResourceProvider.ARTIFACT_DATA_PROPERTY + "/properties");
+        HashMap<String, Object> data = new HashMap<String, Object>();
+
+        if (artifactData != null) {
+          data.putAll(artifactData);
+        }
+
+        if (artifactDataProperties != null) {
+          data.put("properties", artifactDataProperties);
+        }
+        return data;
+      }
+    }
+    return null;
   }
 
   /**
