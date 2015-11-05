@@ -40,8 +40,10 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
+import org.apache.ambari.server.utils.RetryHelper;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.eclipse.persistence.exceptions.DatabaseException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -65,6 +67,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -277,6 +280,64 @@ public class ClusterResourceProviderTest {
 
     // verify
     verify(managementController, response);
+  }
+
+  @Test
+  public void testCreateResourcesWithRetry() throws Exception {
+    RetryHelper.init(3);
+    Resource.Type type = Resource.Type.Cluster;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    managementController.createCluster(
+        AbstractResourceProviderTest.Matcher.getClusterRequest(null, "Cluster100", "HDP-0.1", null));
+    expectLastCall().andThrow(new DatabaseException("test"){}).once().andVoid().atLeastOnce();
+
+    // replay
+    replay(managementController, response);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    // Cluster 1: create a map of properties for the request
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    // add the cluster name to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+
+    // add the version to the properties map
+    properties.put(ClusterResourceProvider.CLUSTER_VERSION_PROPERTY_ID, "HDP-0.1");
+
+    propertySet.add(properties);
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, null);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    Assert.assertNotNull(lastEvent);
+    Assert.assertEquals(Resource.Type.Cluster, lastEvent.getResourceType());
+    Assert.assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    Assert.assertEquals(request, lastEvent.getRequest());
+    Assert.assertNull(lastEvent.getPredicate());
+
+    // verify
+    verify(managementController, response);
+
+    RetryHelper.init(0);
+
   }
 
   @Test

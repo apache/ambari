@@ -17,19 +17,24 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.Cluster;
 import org.eclipse.persistence.exceptions.DatabaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 /**
  * Provides utility methods to support operations retry
  * TODO injection as Guice singleon, static for now to avoid major modifications
  */
 public class RetryHelper {
+  protected final static Logger LOG = LoggerFactory.getLogger(RetryHelper.class);
+
   private static ThreadLocal<Set<Cluster>> affectedClusters = new ThreadLocal<Set<Cluster>>(){
     @Override
     protected Set<Cluster> initialValue() {
@@ -37,16 +42,14 @@ public class RetryHelper {
     }
   };
 
-  private static int apiRetryAttempts = 0;
-  private static int blueprintsRetryAttempts = 0;
+  private static int operationsRetryAttempts = 0;
 
-  public static void init(int apiOperationsRetryAttempts, int blueprintOperationsRetryAttempts) {
-    apiRetryAttempts = apiOperationsRetryAttempts;
-    blueprintsRetryAttempts = blueprintOperationsRetryAttempts;
+  public static void init(int operationsRetryAttempts) {
+    RetryHelper.operationsRetryAttempts = operationsRetryAttempts;
   }
 
   public static void addAffectedCluster(Cluster cluster) {
-    if (apiRetryAttempts > 0 || blueprintsRetryAttempts > 0) {
+    if (operationsRetryAttempts > 0 ) {
       affectedClusters.get().add(cluster);
     }
   }
@@ -56,13 +59,13 @@ public class RetryHelper {
   }
 
   public static void clearAffectedClusters() {
-    if (apiRetryAttempts > 0 || blueprintsRetryAttempts > 0) {
+    if (operationsRetryAttempts > 0) {
       affectedClusters.get().clear();
     }
   }
 
-  public static int getApiOperationsRetryAttempts() {
-    return apiRetryAttempts;
+  public static int getOperationsRetryAttempts() {
+    return operationsRetryAttempts;
   }
 
   public static boolean isDatabaseException(Throwable ex) {
@@ -81,5 +84,33 @@ public class RetryHelper {
     for (Cluster cluster : affectedClusters.get()) {
       cluster.invalidateData();
     }
+  }
+
+  public static <T> T executeWithRetry(Callable<T> command) throws AmbariException {
+    RetryHelper.clearAffectedClusters();
+    int retryAttempts = RetryHelper.getOperationsRetryAttempts();
+    do {
+
+      try {
+        return command.call();
+      } catch (Exception e) {
+        if (RetryHelper.isDatabaseException(e)) {
+
+          RetryHelper.invalidateAffectedClusters();
+
+          if (retryAttempts > 0) {
+            LOG.error("Ignoring database exception to perform operation retry, attempts remaining: " + retryAttempts, e);
+            retryAttempts--;
+          } else {
+            RetryHelper.clearAffectedClusters();
+            throw new AmbariException(e.getMessage(), e);
+          }
+        } else {
+          RetryHelper.clearAffectedClusters();
+          throw new AmbariException(e.getMessage(), e);
+        }
+      }
+
+    } while (true);
   }
 }

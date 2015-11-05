@@ -202,10 +202,8 @@ public class Configuration {
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = "server.jdbc.connection-pool.acquisition-retry-attempts";
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = "server.jdbc.connection-pool.acquisition-retry-delay";
 
-  public static final String API_OPERATIONS_RETRY_ATTEMPTS_KEY = "api.operations.retry-attempts";
-  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY = "blueprints.operations.retry-attempts";
-  public static final String API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
-  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
+  public static final String OPERATIONS_RETRY_ATTEMPTS_KEY = "server.operations.retry-attempts";
+  public static final String OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
   public static final int RETRY_ATTEMPTS_LIMIT = 10;
 
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
@@ -2359,38 +2357,22 @@ public class Configuration {
   }
 
   /**
-   * @return number of retry attempts for API update requests
+   * @return number of retry attempts for api and blueprint operations
    */
-  public int getApiOperationsRetryAttempts() {
-    String property = properties.getProperty(API_OPERATIONS_RETRY_ATTEMPTS_KEY, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+  public int getOperationsRetryAttempts() {
+    String property = properties.getProperty(OPERATIONS_RETRY_ATTEMPTS_KEY, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
     Integer attempts = Integer.valueOf(property);
     if (attempts < 0) {
-      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value reset to default {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-      attempts = Integer.valueOf(API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      attempts = Integer.valueOf(OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
     } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
-      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value set to {}",
+      LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value set to {}",
           attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
       attempts = RETRY_ATTEMPTS_LIMIT;
     }
-    return attempts;
-  }
-
-  /**
-   * @return number of retry attempts for blueprints operations
-   */
-  public int getBlueprintsOperationsRetryAttempts() {
-    String property = properties.getProperty(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY,
-            BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-    Integer attempts = Integer.valueOf(property);
-    if (attempts < 0) {
-      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-      attempts = Integer.valueOf(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-    } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
-      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value set to {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
-      attempts = RETRY_ATTEMPTS_LIMIT;
+    if (attempts > 0) {
+      LOG.info("Operations retry enabled. Number of retry attempts: {}", attempts);
     }
     return attempts;
   }

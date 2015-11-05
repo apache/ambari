@@ -443,7 +443,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   //invoke command with retry support in case of database fail
   private <T> T invokeWithRetry(Command<T> command) throws AmbariException {
     RetryHelper.clearAffectedClusters();
-    int retryAttempts = RetryHelper.getApiOperationsRetryAttempts();
+    int retryAttempts = RetryHelper.getOperationsRetryAttempts();
     do {
 
       try {
