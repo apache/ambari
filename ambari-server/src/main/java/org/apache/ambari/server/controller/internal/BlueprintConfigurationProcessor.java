@@ -139,7 +139,13 @@ public class BlueprintConfigurationProcessor {
     { new PasswordPropertyFilter(),
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
-      new SimplePropertyNameExportFilter("kdc_host", "kerberos-env")};
+      new SimplePropertyNameExportFilter("kdc_host", "kerberos-env"),
+      new SimplePropertyNameExportFilter("realm", "kerberos-env"),
+      new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
+      new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
+      new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
+      new SimplePropertyNameExportFilter("domains", "krb5-conf")
+    };
 
   /**
    * Statically-defined list of filters to apply on cluster config
