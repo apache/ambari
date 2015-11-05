@@ -711,7 +711,7 @@ public class AmbariServer {
     TopologyManager.init(injector.getInstance(StackAdvisorBlueprintProcessor.class));
     StackAdvisorBlueprintProcessor.init(injector.getInstance(StackAdvisorHelper.class));
 
-    RetryHelper.init(configs.getApiOperationsRetryAttempts(), configs.getBlueprintsOperationsRetryAttempts());
+    RetryHelper.init(configs.getOperationsRetryAttempts());
   }
 
   /**

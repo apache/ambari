@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,6 +67,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -144,9 +146,16 @@ public class AmbariContext {
 
   public void createAmbariClusterResource(String clusterName, String stackName, String stackVersion, SecurityType securityType) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
-    ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
+    final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, null, securityType, stackInfo, null);
     try {
-      getController().createCluster(clusterRequest);
+      RetryHelper.executeWithRetry(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          getController().createCluster(clusterRequest);
+          return null;
+        }
+      });
+
     } catch (AmbariException e) {
       e.printStackTrace();
       throw new RuntimeException("Failed to create Cluster resource: " + e, e);
@@ -229,7 +238,7 @@ public class AmbariContext {
           hostName, e.toString()), e);
     }
 
-    Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map.Entry<String, Collection<String>> entry : components.entrySet()) {
       String service = entry.getKey();
       for (String component : entry.getValue()) {
@@ -240,7 +249,13 @@ public class AmbariContext {
       }
     }
     try {
-      getController().createHostComponents(requests);
+      RetryHelper.executeWithRetry(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          getController().createHostComponents(requests);
+          return null;
+        }
+      });
     } catch (AmbariException e) {
       e.printStackTrace();
       throw new RuntimeException(String.format("Unable to create host component resource for host '%s': %s",
@@ -286,9 +301,15 @@ public class AmbariContext {
     hostRoleCommandFactory = factory;
   }
 
-  public void registerHostWithConfigGroup(String hostName, ClusterTopology topology, String groupName) {
+  public void registerHostWithConfigGroup(final String hostName, final ClusterTopology topology, final String groupName) {
     try {
-      if (!addHostToExistingConfigGroups(hostName, topology, groupName)) {
+      boolean hostAdded = RetryHelper.executeWithRetry(new Callable<Boolean>() {
+        @Override
+        public Boolean call() throws Exception {
+          return addHostToExistingConfigGroups(hostName, topology, groupName);
+        }
+      });
+      if (!hostAdded) {
         createConfigGroupsAndRegisterHost(topology, groupName);
       }
     } catch (Exception e) {
@@ -325,10 +346,16 @@ public class AmbariContext {
    */
   public void persistInstallStateForUI(String clusterName, String stackName, String stackVersion) {
     String stackInfo = String.format("%s-%s", stackName, stackVersion);
-    ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, "INSTALLED", null, stackInfo, null);
+    final ClusterRequest clusterRequest = new ClusterRequest(null, clusterName, "INSTALLED", null, stackInfo, null);
 
     try {
-      getController().updateClusters(Collections.singleton(clusterRequest), null);
+      RetryHelper.executeWithRetry(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          getController().updateClusters(Collections.singleton(clusterRequest), null);
+          return null;
+        }
+      });
     } catch (AmbariException e) {
       LOG.error("Unable to set install state for UI", e);
     }
@@ -339,9 +366,15 @@ public class AmbariContext {
     return AbstractResourceProvider.getConfigurationRequests("Clusters", clusterProperties);
   }
 
-  public void setConfigurationOnCluster(ClusterRequest clusterRequest) {
+  public void setConfigurationOnCluster(final ClusterRequest clusterRequest) {
     try {
-      getController().updateClusters(Collections.singleton(clusterRequest), null);
+      RetryHelper.executeWithRetry(new Callable<Object>() {
+        @Override
+        public Object call() throws Exception {
+          getController().updateClusters(Collections.singleton(clusterRequest), null);
+          return null;
+        }
+      });
     } catch (AmbariException e) {
       e.printStackTrace();
       throw new RuntimeException("Failed to set configurations on cluster: " + e, e);
