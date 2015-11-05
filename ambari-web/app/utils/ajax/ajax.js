@@ -1565,7 +1565,6 @@ var urls = {
     'upgrade_groups/upgrade_items/UpgradeItem/request_id,' +
     'upgrade_groups/upgrade_items/UpgradeItem/skippable,' +
     'upgrade_groups/upgrade_items/UpgradeItem/stage_id,' +
-    'upgrade_groups/upgrade_items/UpgradeItem/status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/text&' +
     'minimal_response=true',
     'mock': '/data/stack_versions/upgrade.json'

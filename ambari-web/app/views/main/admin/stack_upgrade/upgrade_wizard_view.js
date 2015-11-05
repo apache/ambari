@@ -170,7 +170,35 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
-   * indicate whether the step is Finalize
+   * Context for Slave component failures manual item
+   * @type {string}
+   */
+  slaveFailuresContext: "Check Component Versions",
+
+  /**
+   * Context for Service check (may include slave component) failures manual item
+   * @type {string}
+   */
+  serviceCheckFailuresContext: "Verifying Skipped Failures",
+
+  /**
+   * manualItem: indicate whether the step is "Slave component failures", a dialog with instructions will show up for manual steps
+   * @type {boolean}
+   */
+  isSlaveComponentFailuresItem: function () {
+    return this.get('manualItem.context') === this.get("slaveFailuresContext");
+  }.property('manualItem.context'),
+
+  /**
+   * manualItem: indicate whether the step is "Service check failures", a dialog with instructions will show up for manual steps
+   * @type {boolean}
+   */
+  isServiceCheckFailuresItem: function () {
+    return this.get('manualItem.context') === this.get("serviceCheckFailuresContext");
+  }.property('manualItem.context'),
+
+  /**
+   * manualItem: indicate whether the step is Finalize
    * @type {boolean}
    */
   isFinalizeItem: function () {
@@ -283,6 +311,86 @@ App.upgradeWizardView = Em.View.extend({
         this.set('controller.skippedServiceChecks', skippedServiceChecks);
       }
     }
+  },
+
+  getSlaveComponentFailureHosts: function() {
+    if (this.get('isSlaveComponentFailuresItem')) {
+      if (!this.get('controller.areSlaveComponentFailuresHostsLoaded')) {
+        var self = this;
+        var item = this.get('manualItem');
+        App.ajax.send({
+          name: 'admin.upgrade.upgrade_item',
+          sender: this,
+          data: {
+            upgradeId: item.get('request_id'),
+            groupId: item.get('group_id'),
+            stageId: item.get('stage_id')
+          },
+          success: 'getSlaveComponentFailureHostsSuccessCallback'
+        }).complete(function () {
+            self.set('controller.areSlaveComponentFailuresHostsLoaded', true);
+          });
+      }
+    } else {
+      this.set('controller.areSlaveComponentFailuresHostsLoaded', false);
+    }
+  }.observes('isSlaveComponentFailuresItem'),
+
+  getSlaveComponentFailureHostsSuccessCallback: function(data) {
+    var hostsNames = [];
+    if (data.tasks && data.tasks.length) {
+      data.tasks.forEach(function(task) {
+        if(task.Tasks && task.Tasks.structured_out) {
+          hostsNames = task.Tasks.structured_out.hosts;
+        }
+      });
+    }
+    this.set('controller.slaveComponentFailuresHosts', hostsNames.uniq());
+  },
+
+  getServiceCheckFailureServicenames: function() {
+    if (this.get('isServiceCheckFailuresItem')) {
+      if (!this.get('controller.areServiceCheckFailuresServicenamesLoaded')) {
+        var self = this;
+        var item = this.get('manualItem');
+        App.ajax.send({
+          name: 'admin.upgrade.upgrade_item',
+          sender: this,
+          data: {
+            upgradeId: item.get('request_id'),
+            groupId: item.get('group_id'),
+            stageId: item.get('stage_id')
+          },
+          success: 'getServiceCheckFailureServicenamesSuccessCallback'
+        }).complete(function () {
+            self.set('controller.areServiceCheckFailuresServicenamesLoaded', true);
+          });
+      }
+    } else {
+      this.set('controller.areServiceCheckFailuresServicenamesLoaded', false);
+    }
+  }.observes('isServiceCheckFailuresItem'),
+
+
+  /**
+   * Failures info may includes service_check and host_component failures. These two types should be displayed separately.
+   */
+  getServiceCheckFailureServicenamesSuccessCallback: function(data) {
+    var hostsNames = [], serviceNames = [];
+    if (data.tasks && data.tasks.length) {
+      data.tasks.forEach(function(task) {
+        if(task.Tasks && task.Tasks.structured_out && task.Tasks.structured_out.failures) {
+          serviceNames = task.Tasks.structured_out.failures.service_check || [];
+          if (task.Tasks.structured_out.failures.host_component) {
+            for (var hostname in task.Tasks.structured_out.failures.host_component){
+              hostsNames.push(hostname);
+            }
+          }
+        }
+      });
+    }
+    this.set('controller.serviceCheckFailuresServicenames', serviceNames.uniq());
+    this.set('controller.slaveComponentFailuresHosts', hostsNames.uniq());
   },
 
   /**
