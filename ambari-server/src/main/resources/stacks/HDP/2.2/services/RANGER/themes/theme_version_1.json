@@ -597,12 +597,6 @@
         }
       },
       {
-        "config": "admin-properties/xa_ldap_ad_domain",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
         "config": "ranger-env/bind_anonymous",
         "widget": {
           "type": "toggle"
