@@ -24,6 +24,7 @@ import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -34,7 +35,8 @@ def zookeeper(type = None, upgrade_type=None):
   if type == 'server':
     # This path may be missing after Ambari upgrade. We need to create it. We need to do this before any configs will
     # be applied.
-    if upgrade_type is None and not os.path.exists("/usr/hdp/current/zookeeper-server") and params.current_version:
+    if upgrade_type is None and not os.path.exists("/usr/hdp/current/zookeeper-server") and params.current_version\
+      and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "zookeeper", params.current_version)
       hdp_select.select("zookeeper-server", params.version)
 
