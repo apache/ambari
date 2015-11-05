@@ -23,6 +23,7 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import status_params
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -38,6 +39,7 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
+upgrade_direction = default("/commandParams/upgrade_direction", Direction.UPGRADE)
 version = default("/commandParams/version", None)
 
 storm_component_home_dir = status_params.storm_component_home_dir

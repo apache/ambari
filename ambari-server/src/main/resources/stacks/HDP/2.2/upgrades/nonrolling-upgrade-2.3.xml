@@ -154,7 +154,7 @@
       <!--TODO(dlysnichenko): This step is missing in 2.3->2.3+ RU pack -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /etc/knox/data/security ~/knox_backup" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/ ~/knox_backup" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -447,6 +447,10 @@
       </execute-stage>
 
       <!--STORM-->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment"/>
+      </execute-stage>
+
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
       </execute-stage>
@@ -1012,27 +1016,93 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+        
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DRPC_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+          </task>
+        </post-upgrade>
       </component>
     </service>
 
