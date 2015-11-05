@@ -120,47 +120,56 @@ class StormUpgrade(Script):
       raise Fail("The storm local directory specified by storm-site/storm.local.dir must be specified")
 
     request_id = default("/requestId", None)
-    stage_id = default("/stageId", None)
-    stack_version = params.version
+
     stack_name = params.stack_name
+    stack_version = params.version
+    upgrade_direction = params.upgrade_direction
 
     json_map = {}
     json_map["requestId"] = request_id
-    json_map["stageId"] = stage_id
-    json_map["stackVersion"] = stack_version
     json_map["stackName"] = stack_name
+    json_map["stackVersion"] = stack_version
+    json_map["direction"] = upgrade_direction
 
     temp_directory = params.tmp_dir
-    upgrade_file = os.path.join(temp_directory, "storm-upgrade-{0}.json".format(stack_version))
+    marker_file = os.path.join(temp_directory, "storm-upgrade-{0}.json".format(stack_version))
+    Logger.info("Marker file for upgrade/downgrade of Storm, {0}".format(marker_file))
 
-    if os.path.exists(upgrade_file):
+    if os.path.exists(marker_file):
+      Logger.info("The marker file exists.")
       try:
-        with open(upgrade_file) as file_pointer:
+        with open(marker_file) as file_pointer:
           existing_json_map = json.load(file_pointer)
 
         if cmp(json_map, existing_json_map) == 0:
           Logger.info("The storm upgrade has already removed the local directories for {0}-{1} for "
-                      "request {2} and stage {3}. Nothing else to do.".format(stack_name, stack_version, request_id, stage_id))
+                      "request {2} and direction {3}. Nothing else to do.".format(stack_name, stack_version, request_id, upgrade_direction))
 
           # Nothing else to do here for this as it appears to have already been
           # removed by another component being upgraded
           return
+        else:
+          Logger.info("The marker file differs from the new value. Will proceed to delete Storm local dir, "
+                      "and generate new file. Current marker file: {0}".format(str(existing_json_map)))
       except Exception, e:
-        Logger.error("The upgrade file {0} appears to be corrupt; removing it. Error: {1}".format(upgrade_file, str(e)))
-        File(upgrade_file, action="delete")
+        Logger.error("The marker file {0} appears to be corrupt; removing it. Error: {1}".format(marker_file, str(e)))
+        File(marker_file, action="delete")
     else:
-      Logger.info('The upgrade file {0} does not exist, so will attempt to delete local Storm directory if it exists.')
+      Logger.info('The marker file {0} does not exist; will attempt to delete local Storm directory if it exists.'.format(marker_file))
 
     # Delete from local directory
     if os.path.isdir(storm_local_directory):
+      Logger.info("Deleting storm local directory, {0}".format(storm_local_directory))
       Directory(storm_local_directory, action="delete", recursive=True)
 
     # Recreate storm local directory
+    Logger.info("Recreating storm local directory, {0}".format(storm_local_directory))
     Directory(storm_local_directory, mode=0755, owner=params.storm_user,
       group=params.user_group, recursive=True)
 
     # The file doesn't exist, so create it
-    with open(upgrade_file, 'w') as file_pointer:
+    Logger.info("Saving marker file to {0} with contents: {1}".format(marker_file, str(json_map)))
+    with open(marker_file, 'w') as file_pointer:
       json.dump(json_map, file_pointer, indent=2)
 
 if __name__ == "__main__":

@@ -769,10 +769,6 @@
     <service name="STORM">
       <component name="NIMBUS">
         <pre-downgrade>
-          <task xsi:type="manual">
-            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
-          </task>
-        
           <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
             <script>scripts/storm_upgrade.py</script>
             <function>delete_storm_zookeeper_data</function>
@@ -829,6 +825,18 @@
             <function>delete_storm_local_data</function>
           </task>
         </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
