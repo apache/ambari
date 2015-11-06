@@ -252,6 +252,7 @@ var files = [
   'test/views/main/host/details/host_component_views/nodemanager_view_test',
   'test/views/main/host/details/host_component_views/regionserver_view_test',
   'test/views/main/host/details/host_component_views/tasktracker_view_test',
+  'test/views/main/host/metrics/disk_test',
   'test/views/main/charts/heatmap_test',
   'test/views/main/charts/heatmap/heatmap_host_test',
   'test/views/main/service/item_test',
