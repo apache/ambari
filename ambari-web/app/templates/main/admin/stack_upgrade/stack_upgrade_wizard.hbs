@@ -216,7 +216,7 @@
                 {{#if isDowngrade}}
                   <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
                 {{else}}
-                    <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                    <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
                 {{/if}}
                   <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                     {{t common.proceed}}
@@ -264,7 +264,7 @@
                 {{#if isDowngrade}}
                   <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
                 {{else}}
-                  <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                  <button class="btn" {{action pauseUpgrade target="view"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
                 {{/if}}
                   <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
                     {{t common.proceed}}

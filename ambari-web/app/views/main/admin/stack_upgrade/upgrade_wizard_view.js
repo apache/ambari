@@ -515,9 +515,7 @@ App.upgradeWizardView = Em.View.extend({
   },
 
   pauseUpgrade: function() {
-    if (this.get('isFinalizeItem') || this.get('isResolveHostsItem')) {
-      this.get('controller').suspendUpgrade();
-    }
+    this.get('controller').suspendUpgrade();
     this.get('parentView').closeWizard();
   },
 
