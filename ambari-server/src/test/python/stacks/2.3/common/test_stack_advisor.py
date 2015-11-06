@@ -1290,6 +1290,7 @@ class TestHDP23StackAdvisor(TestCase):
       },
       'ranger-admin-site': {
         'properties': {
+          "ranger.audit.solr.zookeepers": "NONE"
         }
       },
       'ranger-env': {
@@ -1303,3 +1304,13 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
 
+    # Recommend ranger.audit.solr.zookeepers when solrCloud is disabled
+    services['configurations']['ranger-env'] = {
+      "properties": {
+        "is_solrCloud_enabled": "false"
+      }
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')

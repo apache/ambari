@@ -477,12 +477,21 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerSqlConnectorProperty = authMap.get(rangerUserSyncClass)
         putRangerAdminProperty('ranger.authentication.method', rangerSqlConnectorProperty)
 
+
+    if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
+      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
+    else:
+      isSolrCloudEnabled = False
+
+    if isSolrCloudEnabled:
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        putRangerAdminProperty('ranger.audit.solr.zookeepers', zookeeper_host_port)
+    else:
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
+
     # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
     include_hdfs = "HDFS" in servicesList
-    zookeeper_host_port = self.getZKHostPortString(services)
-    if zookeeper_host_port:
-      putRangerAdminProperty('ranger.audit.solr.zookeepers', zookeeper_host_port)
-
     if include_hdfs:
       if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
         default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
