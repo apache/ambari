@@ -10590,6 +10590,7 @@ public class AmbariManagementControllerTest {
         "version1",
         new HashMap<String, String>(){{
           put("test.password", "first");
+          put("test.password.empty", "");
         }},
         new HashMap<String, Map<String, String>>()
     );
@@ -10691,6 +10692,9 @@ public class AmbariManagementControllerTest {
       String secretName = "SECRET:hdfs-site:"+resp.getVersion().toString()+":test.password";
       if(resp.getConfigs().containsKey("test.password")) {
         assertEquals(resp.getConfigs().get("test.password"), secretName);
+      }
+      if(resp.getConfigs().containsKey("test.password.empty")) {
+        assertEquals(resp.getConfigs().get("test.password.empty"), "");
       }
     }
   }

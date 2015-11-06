@@ -108,8 +108,10 @@ public class SecretReference {
     if(propertiesTypes != null && propertiesTypes.containsKey(PropertyInfo.PropertyType.PASSWORD)) {
       for(String pwdPropertyName: propertiesTypes.get(PropertyInfo.PropertyType.PASSWORD)) {
         if(propertiesMap.containsKey(pwdPropertyName)){
-          String stub = SecretReference.generateStub(configType, configVersion, pwdPropertyName);
-          propertiesMap.put(pwdPropertyName, stub);
+          if(!propertiesMap.get(pwdPropertyName).equals("")) {
+            String stub = SecretReference.generateStub(configType, configVersion, pwdPropertyName);
+            propertiesMap.put(pwdPropertyName, stub);
+          }
         }
       }
     }
