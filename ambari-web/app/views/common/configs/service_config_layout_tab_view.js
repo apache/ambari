@@ -110,12 +110,12 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       if (!configProperty) return;
 
       containerObject.get('configs').pushObject(configProperty);
-      var configWidgetType = config.get('widget.type');
-      var widget = self.get('widgetTypeMap')[configWidgetType];
-      Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
+      var configWidgetType = config.get('widgetType');
+      var widgetView = self.get('widgetTypeMap')[configWidgetType];
+      Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widgetView);
 
       var additionalProperties = {
-        widget: widget,
+        widget: widgetView,
         stackConfigProperty: config
       };
 

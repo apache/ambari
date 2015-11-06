@@ -1981,8 +1981,8 @@ describe('App.InstallerStep7Controller', function () {
 
       installerStep7Controller.reopen({selectedService: {
         configs: [
-          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
-          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
+          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
           Em.Object.create({isVisible: true, isValid: true}),
           Em.Object.create({isVisible: true, isValid: false})
         ]
@@ -1996,8 +1996,8 @@ describe('App.InstallerStep7Controller', function () {
 
       installerStep7Controller.reopen({selectedService: {
         configs: [
-          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
-          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
+          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
           Em.Object.create({isVisible: false, isValid: false}),
           Em.Object.create({isVisible: true, isValid: true}),
           Em.Object.create({isVisible: true, isValid: false})

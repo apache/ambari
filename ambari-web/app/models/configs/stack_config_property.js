@@ -107,6 +107,12 @@ App.StackConfigProperty = DS.Model.extend({
   widget: DS.attr('object', {defaultValue: null}),
 
   /**
+   * widget type
+   * @property {string}
+   */
+  widgetType: DS.attr('string', {defaultValue: null}),
+
+  /**
    * this property contains array of properties which value
    * is dependent from current property
    * @property {array}

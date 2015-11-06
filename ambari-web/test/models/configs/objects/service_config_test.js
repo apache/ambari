@@ -146,25 +146,25 @@ describe('App.ServiceConfig', function () {
         configs: [
           Em.Object.create({
             isValid: false,
-            widget: Em.View,
+            widgetType: 'type',
             isVisible: true,
             category: 'some1'
           }),
           Em.Object.create({
             isValid: false,
-            widget: Em.View,
+            widgetType: 'type',
             isVisible: true,
             category: 'some2'
           }),
           Em.Object.create({
             isValid: false,
-            widget: null,
+            widgetType: null,
             isVisible: true,
             category: 'some2'
           }),
           Em.Object.create({
             isValid: false,
-            widget: Em.View,
+            widgetType: 'type',
             isVisible: true
           })
         ],

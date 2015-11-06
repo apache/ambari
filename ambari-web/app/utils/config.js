@@ -336,7 +336,7 @@ App.config = Em.Object.create({
       options: null,
       radioName: null,
       belongsToService: [],
-      widget: null
+      widgetType: null
     };
     return Object.keys(coreObject|| {}).length ?
       $.extend(tpl, coreObject) : tpl;
@@ -640,7 +640,7 @@ App.config = Em.Object.create({
         if (advanced.get('id')) {
           configData = this.mergeStaticProperties(configData, advanced, null, ['name', 'filename']);
           configData.value = this.formatPropertyValue(advanced, advanced.get('value'));
-          configData.widget = advanced.get('widget');
+          configData.widgetType = advanced.get('widget.type');
         }
 
         mergedConfigs.push(configData);

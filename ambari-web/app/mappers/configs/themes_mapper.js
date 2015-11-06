@@ -299,6 +299,7 @@ App.themesMapper = App.QuickDataMapper.create({
 
       if (configProperty.get('id')) {
         configProperty.set('widget', widget.widget);
+        configProperty.set('widgetType', Em.get(widget, 'widget.type'));
       } else {
         var split = widget.config.split("/");
         var fileName =  split[0] + '.xml';
@@ -306,6 +307,7 @@ App.themesMapper = App.QuickDataMapper.create({
         var uiOnlyProperty = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename',fileName).findProperty('name',configName);
         if (uiOnlyProperty) {
           uiOnlyProperty.set('widget', widget.widget);
+          uiOnlyProperty.set('widgetType', Em.get(widget, 'widget.type'));
         } else {
           console.warn('there is no such property: ' + configId);
         }
