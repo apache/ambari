@@ -455,18 +455,11 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * properties with these names don'use handleDBConnectionProperty method
    */
   dontUseHandleDbConnection: function () {
-    var version = App.get('currentStackVersion').match(/(\d+)[\.,]?(\d+)?/),
-      majorVersion = version?version[1]: 0,
-      minorVersion = version? version[2]: 0;
-    // functionality added in HDP 2.3
+    // functionality added in Ranger 0.5
     // remove DB_FLAVOR so it can handle DB Connection checks
-    // PHD-2.3 and SAPHD-1.0 is based on HDP-2.3
-    var supportFromMap = {
-      'HDP': 2.3,
-      'PHD': 3.3,
-      'SAPHD': 1.0
-    };
-    if (Number(majorVersion + '.' + minorVersion) < supportFromMap[App.get('currentStackName')]){
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    var rangerVersion = rangerService ? rangerService.get('serviceVersion') : '';
+    if (rangerVersion && rangerVersion.split('.')[0] < 1 && rangerVersion.split('.')[1] < 5) {
       return ['DB_FLAVOR', 'authentication_method'];
     }
     return ['ranger.authentication.method'];
