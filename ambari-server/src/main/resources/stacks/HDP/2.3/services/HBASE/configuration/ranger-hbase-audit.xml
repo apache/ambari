@@ -146,7 +146,7 @@
 
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
-    <value>localhost:2181</value>
+    <value>NONE</value>
     <description>Solr Zookeeper string</description>
     <depends-on>
       <property>
