@@ -508,6 +508,14 @@ describe('App.ServiceConfigProperty', function () {
       expect(subd).to.not.contain(extraMessage);
     });
 
+    it('should add extra-message to the description if description is not defined', function () {
+
+      serviceConfigProperty.set('description', undefined);
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      serviceConfigProperty.updateDescription();
+      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
+    });
+
   });
 
 });
