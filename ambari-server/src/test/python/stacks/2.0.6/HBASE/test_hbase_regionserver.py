@@ -51,7 +51,7 @@ class TestHbaseRegionServer(RMFTestCase):
     
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase'
     )
     self.assertNoMoreResources()
@@ -66,8 +66,8 @@ class TestHbaseRegionServer(RMFTestCase):
     )
     
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
-        only_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
+        only_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+        on_timeout = '! ( ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
         timeout = 30,
         user = 'hbase',
     )
@@ -100,7 +100,7 @@ class TestHbaseRegionServer(RMFTestCase):
     
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase',
     )
     self.assertNoMoreResources()
@@ -115,8 +115,8 @@ class TestHbaseRegionServer(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop regionserver',
-        only_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
+        only_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+        on_timeout = '! ( ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-regionserver.pid`',
         timeout = 30,
         user = 'hbase',
     )
@@ -407,7 +407,7 @@ class TestHbaseRegionServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2')
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase')
 
     self.assertNoMoreResources()
@@ -516,7 +516,7 @@ class TestHbaseRegionServer(RMFTestCase):
     self.assertResourceCalled('Package', 'phoenix_2_2_*')
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver',
-      not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-regionserver.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase')
 
     self.assertNoMoreResources()
