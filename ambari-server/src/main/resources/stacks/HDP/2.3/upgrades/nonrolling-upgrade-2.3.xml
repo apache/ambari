@@ -144,14 +144,14 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>take_snapshot</function>        <!-- TODO (Alejandro), this function used to be called just "snapshot" -->
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
-        <task xsi:type="execute" hosts="master">  <!-- TODO (Alejandro), this can be any NameNode, not just the active. -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Prepare HDFS">
+        <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
-          <function>prepare_non_rolling_upgrade</function>
+          <function>prepare_express_upgrade</function>
         </task>
       </execute-stage>
 
@@ -183,9 +183,9 @@
       <service name="HDFS">
         <component>DATANODE</component>
         <component>NAMENODE</component>
-        <component>SECONDARY_NAMENODE</component>   <!-- TODO (Alejandro), may not be present. -->
-        <component>ZKFC</component>                 <!-- TODO (Alejandro), may not be present. -->
-        <component>JOURNALNODE</component>          <!-- TODO (Alejandro), may not be present. -->
+        <component>SECONDARY_NAMENODE</component>
+        <component>ZKFC</component>
+        <component>JOURNALNODE</component>
         <component>NFS_GATEWAY</component>
       </service>
 
@@ -228,20 +228,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="HBASE" component="HBASE_MASTER" title="Restore HBASE Snapshot">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/hbase_upgrade.py</script>
-          <function>restore_snapshot</function>   <!-- TODO (Alejandro), this function name is new. -->
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HDFS" component="NAMENODE" title="Restore HDFS Snapshot">
-        <task xsi:type="execute" hosts="master">  <!-- TODO (Alejandro), this can be any NameNode, not just the active. -->
-          <script>scripts/namenode.py</script>
-          <function>restore_snapshot</function>    <!-- TODO (Alejandro), this function doesn't exist yet. -->
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
@@ -270,7 +256,7 @@
       <skippable>true</skippable>
       <parallel-scheduler></parallel-scheduler>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>        <!-- TODO (Alejandro), enable service-check once done testing -->
+        <service-check>true</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -488,7 +474,6 @@
         <component>DRPC_SERVER</component>
       </service>
 
-      <!-- TODO (Alejandro), does this work? -->
       <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
         <task xsi:type="manual">
           <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
@@ -567,7 +552,7 @@
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
-        <task xsi:type="execute" hosts="master">      <!-- TODO (Alejandro), what happens if there's no HA. -->
+        <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>finalize_non_rolling_upgrade</function>
         </task>

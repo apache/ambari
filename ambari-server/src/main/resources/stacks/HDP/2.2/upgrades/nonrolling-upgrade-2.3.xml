@@ -166,10 +166,10 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
+      <execute-stage service="HDFS" component="NAMENODE" title="Prepare HDFS">
         <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
-          <function>prepare_non_rolling_upgrade</function>
+          <function>prepare_express_upgrade</function>
         </task>
       </execute-stage>
 
@@ -232,20 +232,6 @@
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /etc/knox/data/security/" on the following host(s): {{hosts.all}}.</message>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HBASE" component="HBASE_MASTER" title="Restore HBASE Snapshot">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/hbase_upgrade.py</script>
-          <function>restore_snapshot</function>
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HDFS" component="NAMENODE" title="Restore HDFS Snapshot">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/namenode.py</script>
-          <function>restore_snapshot</function>
         </task>
       </execute-stage>
 
@@ -616,7 +602,7 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
-        <component>SPARK_CLIENT</component>         <!-- TODO, parallelize -->
+        <component>SPARK_CLIENT</component>
       </service>
     </group>
 

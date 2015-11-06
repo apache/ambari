@@ -26,6 +26,7 @@ from resource_management.core.resources.service import Service
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
+from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
@@ -85,26 +86,27 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
 
     options = ""
     if upgrade_type == "rolling":
-      options = "-rollingUpgrade started"
+      if params.upgrade_direction == Direction.UPGRADE:
+        options = "-rollingUpgrade started"
+      elif params.upgrade_direction == Direction.DOWNGRADE:
+        options = "-rollingUpgrade downgrade"
+        
     elif upgrade_type == "nonrolling":
       is_previous_image_dir = is_previous_fs_image()
       Logger.info(format("Previous file system image dir present is {is_previous_image_dir}"))
 
-      if params.dfs_ha_enabled:
-        if params.desired_namenode_role is None:
-          raise Fail("Did not receive parameter \"desired_namenode_role\" to indicate the role that this NameNode should have.")
+      if params.upgrade_direction == Direction.UPGRADE:
+        if params.dfs_ha_enabled:
+          if params.desired_namenode_role is None:
+            raise Fail("Did not receive parameter \"desired_namenode_role\" to indicate the role that this NameNode should have.")
 
-        if params.desired_namenode_role == "active":
-          # The "-upgrade" command can only be used exactly once. If used more than once during a retry, it will cause problems.
-          options = "" if is_previous_image_dir else "-upgrade"
+          # Both Active and Standby can use the same command
+          options = "-rollingUpgrade started"
+        else:
+          options = "-rollingUpgrade started"
+      elif params.upgrade_direction == Direction.DOWNGRADE:
+        options = "-rollingUpgrade downgrade"
 
-        if params.desired_namenode_role == "standby":
-          # bootstrap NN separately before starting the daemon
-          bootstrap_standby_namenode(params, use_path=True)
-
-      else:
-        # Both Primary and Secondary NameNode can use the same command.
-        options = "" if is_previous_image_dir else "-upgrade"
     Logger.info(format("Option for start command: {options}"))
 
     service(

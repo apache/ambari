@@ -72,11 +72,12 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
   import params
 
   safe_mode_enter_cmd = format("{hdfs_binary} dfsadmin -safemode enter")
-  safe_mode_enter_and_check_for_on = format("{safe_mode_enter_cmd} | grep 'Safe mode is ON'")
   try:
     # Safe to call if already in Safe Mode
-    Logger.info("Enter SafeMode if not already in it.")
-    as_user(safe_mode_enter_and_check_for_on, params.hdfs_user, env={'PATH': params.hadoop_bin_dir})
+    desired_state = SafeMode.ON
+    safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, desired_state, params.dfs_ha_enabled, hdfs_binary)
+    if not safemode_transition_successful:
+      raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(desired_state))
   except Exception, e:
     message = format("Could not enter safemode. As the HDFS user, call this command: {safe_mode_enter_cmd}")
     Logger.error(message)
@@ -198,11 +199,11 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
 
 def prepare_rolling_upgrade(hdfs_binary):
   """
-  Perform either an upgrade or a downgrade.
+  This can be called during either Rolling Upgrade or Express Upgrade (aka nonrolling)
 
   Rolling Upgrade for HDFS Namenode requires the following.
   0. Namenode must be up
-  1. Leave safemode if the safemode status is not OFF
+  1. If HA: leave safemode if the safemode status is not OFF
   2. Execute a rolling upgrade "prepare"
   3. Execute a rolling upgrade "query"
   :param hdfs_binary: name/path of the HDFS binary to use
@@ -217,11 +218,13 @@ def prepare_rolling_upgrade(hdfs_binary):
     kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}") 
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
-
   if params.upgrade_direction == Direction.UPGRADE:
-    safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, SafeMode.OFF, True, hdfs_binary)
-    if not safemode_transition_successful:
-      raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(SafeMode.OFF))
+    if params.dfs_ha_enabled:
+      Logger.info('High Availability is enabled, must leave safemode before calling "-rollingUpgrade prepare"')
+      desired_state = SafeMode.OFF
+      safemode_transition_successful, original_state = reach_safemode_state(params.hdfs_user, desired_state, True, hdfs_binary)
+      if not safemode_transition_successful:
+        raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(desired_state))
 
     prepare = format("{hdfs_binary} dfsadmin -rollingUpgrade prepare")
     query = format("{hdfs_binary} dfsadmin -rollingUpgrade query")
@@ -231,8 +234,6 @@ def prepare_rolling_upgrade(hdfs_binary):
     Execute(query,
             user=params.hdfs_user,
             logoutput=True)
-  elif params.upgrade_direction == Direction.DOWNGRADE:
-    pass
 
 def finalize_upgrade(upgrade_type, hdfs_binary):
   """

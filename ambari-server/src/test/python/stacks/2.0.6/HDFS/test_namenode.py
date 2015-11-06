@@ -1279,14 +1279,10 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        mocks_dict=mocks_dict)
-
-    # for now, just make sure hdfs bootstrap standby is called
-    found = False
-    for ca in mocks_dict['call'].call_args_list:
-      if str(ca[0][0]).startswith("/usr/hdp/2.3.2.0-2844/hadoop/bin/hdfs namenode -bootstrapStandby -nonInteractive"):
-        found = True
-
-    self.assertTrue(found)
+    
+    calls = mocks_dict['call'].call_args_list
+    self.assertTrue(len(calls) >= 1)
+    self.assertTrue(calls[0].startsWith("conf-select create-conf-dir --package hadoop --stack-version 2.3.2.0-2844 --conf-version 0"))
 
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
