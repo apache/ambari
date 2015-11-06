@@ -222,7 +222,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
  * Password control
  * @type {*}
  */
-App.ServiceConfigPasswordField = Ember.TextField.extend({
+App.ServiceConfigPasswordField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
 
   serviceConfig: null,
   type: 'password',

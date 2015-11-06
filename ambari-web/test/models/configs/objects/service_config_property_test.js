@@ -649,6 +649,36 @@ describe('App.ServiceConfigProperty', function () {
     it('should be defined as empty array', function () {
       expect(serviceConfigProperty.get('overrideIsFinalValues')).to.eql([]);
     });
-  })
+  });
+
+  describe('#updateDescription', function () {
+
+    beforeEach(function () {
+      serviceConfigProperty.setProperties({
+        displayType: 'password',
+        description: ''
+      });
+    });
+
+    it('should add extra-message to the description for `password`-configs', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      serviceConfigProperty.updateDescription();
+      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
+
+    });
+
+    it('should not add extra-message to the description if it already contains it', function () {
+
+      var extraMessage = Em.I18n.t('services.service.config.password.additionalDescription');
+      serviceConfigProperty.updateDescription();
+      serviceConfigProperty.updateDescription();
+      serviceConfigProperty.updateDescription();
+      expect(serviceConfigProperty.get('description')).to.contain(extraMessage);
+      var subd = serviceConfigProperty.get('description').replace(extraMessage, '');
+      expect(subd).to.not.contain(extraMessage);
+    });
+
+  });
 
 });

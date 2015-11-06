@@ -228,6 +228,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   }.property('propertyFilters', 'isCompareMode'),
 
   /**
+   * Detects of some of the `password`-configs has not default value
+   *
+   * @type {boolean}
+   */
+  passwordConfigsAreChanged: function () {
+    return this.get('stepConfigs')
+      .findProperty('serviceName', this.get('selectedService.serviceName'))
+      .get('configs')
+      .filterProperty('displayType', 'password')
+      .someProperty('isNotDefaultValue');
+  }.property('stepConfigs.[].configs', 'selectedService.serviceName'),
+
+  /**
    * indicate whether service config version belongs to default config group
    * @param {object} version
    * @return {Boolean}

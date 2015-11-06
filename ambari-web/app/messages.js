@@ -1835,6 +1835,7 @@ Em.I18n.translations = {
 
   'services.service.config.nothing.to.display': 'No properties to display.',
   'services.service.config.final':'Final',
+  'services.service.config.password.additionalDescription': 'For security purposes, password changes will not be shown in configuration version comparisons',
   'services.service.config.saved':'Save Configuration Changes',
   'services.service.config.notSaved':'Unable to Save Configuration Changes',
   'services.service.config.restartService.TooltipMessage':'<b>Restart Service</b><br>Stale configuration used by {0} components on {1} hosts:{2}',
@@ -2626,6 +2627,8 @@ Em.I18n.translations = {
   'dashboard.configHistory.info-bar.save.popup.title': 'Save Configuration',
   'dashboard.configHistory.info-bar.makeCurrent.popup.title': 'Make Current Confirmation',
   'dashboard.configHistory.info-bar.save.popup.placeholder': 'What did you change?',
+  'dashboard.configHistory.info-bar.save.popup.warningForPasswordChange': 'This configuration change includes a password change. The password change will be saved but for security purposes, password changes will not be shown in configuration version comparisons.',
+  'dashboard.configHistory.info-bar.save.popup.notesForPasswordChange': 'Password change',
   'dashboard.configHistory.info-bar.revert.button': 'Make Current',
   'dashboard.configHistory.info-bar.revert.versionButton': 'Make {0} Current',
   'dashboard.configHistory.info-bar.view.button.disabled': 'You are currently viewing this version.',

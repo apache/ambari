@@ -116,6 +116,9 @@ describe("App.MainServiceInfoConfigsController", function () {
     ];
 
     beforeEach(function () {
+      mainServiceInfoConfigsController.reopen({
+        passwordConfigsAreChanged: false
+      });
       sinon.stub(mainServiceInfoConfigsController, "get", function(key) {
         return key == 'isSubmitDisabled' ?  false : Em.get(mainServiceInfoConfigsController, key);
       });
@@ -817,6 +820,17 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(mainServiceInfoConfigsController.get('dataIsLoaded')).to.be.true;
       expect(mainServiceInfoConfigsController.get('versionLoaded')).to.be.true;
       expect(mainServiceInfoConfigsController.get('isInit')).to.be.false;
+
+    });
+
+  });
+
+  describe('#hasCompareDiffs', function () {
+
+    it('should return false for `password`-configs', function () {
+
+      var hasCompareDiffs = mainServiceInfoConfigsController.hasCompareDiffs({displayType: 'password'}, {});
+      expect(hasCompareDiffs).to.be.false;
 
     });
 

@@ -263,6 +263,8 @@ App.ConfigsComparator = Em.Mixin.create({
 
   /**
    * check value and final attribute of original and compare config for differences
+   * if config is password, it won't be shown in the comparison
+   *
    * @param originalConfig
    * @param compareConfig
    * @return {Boolean}
@@ -270,6 +272,11 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
+    var displayType = Em.get(originalConfig, 'displayType');
+    var notShownTypes = ['password'];
+    if (notShownTypes.contains(displayType)) {
+      return false;
+    }
     var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'string' });
     var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'string' });
 
