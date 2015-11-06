@@ -615,8 +615,14 @@ App.ServiceConfigProperty = Em.Object.extend({
     var description = this.get('description');
     var displayType = this.get('displayType');
     var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
-    if ('password' === displayType && !description.contains(additionalDescription)) {
-      description += '<br />' + additionalDescription;
+    if ('password' === displayType) {
+      if (description) {
+        if (!description.contains(additionalDescription)) {
+          description += '<br />' + additionalDescription;
+        }
+      } else {
+        description = additionalDescription;
+      }
     }
     this.set('description', description);
   }
