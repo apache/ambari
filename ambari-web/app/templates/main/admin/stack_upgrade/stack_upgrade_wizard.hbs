@@ -134,7 +134,6 @@
             {{else}}
               <div class="spinner"></div>
             {{/if}}
-
             <label class="message">
               {{view Em.Checkbox checkedBinding="view.isManualDone"}}
               {{t admin.stackUpgrade.dialog.manualDone}}
@@ -185,6 +184,92 @@
                 {{t common.proceed}}
               </button>
             </div>
+          </div>
+        {{/if}}
+        {{#if view.isSlaveComponentFailuresItem}}
+          <div class="box details-box">
+              <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+              <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
+
+            {{#if areSlaveComponentFailuresHostsLoaded}}
+              {{#if slaveComponentFailuresHosts.length}}
+                <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg1}}</div>
+                <ul class="failed-info-list">
+                  {{#each hostName in slaveComponentFailuresHosts}}
+                    <li>{{hostName}}</li>
+                  {{/each}}
+                </ul>
+                <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg2}}</div>
+              {{/if}}
+            {{else}}
+                <div class="spinner"></div>
+            {{/if}}
+
+              <label class="message">
+                {{view Em.Checkbox checkedBinding="view.isManualDone"}}
+                {{t admin.stackUpgrade.dialog.manualDone}}
+              </label>
+              <div class="button-row">
+                {{#if view.isDowngradeAvailable}}
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                {{/if}}
+                {{#if isDowngrade}}
+                  <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                {{else}}
+                    <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                {{/if}}
+                  <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
+                    {{t common.proceed}}
+                  </button>
+              </div>
+          </div>
+        {{/if}}
+        {{#if view.isServiceCheckFailuresItem}}
+          <div class="box details-box">
+              <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+
+            {{#if areServiceCheckFailuresServicenamesLoaded}}
+              {{#if serviceCheckFailuresServicenames.length}}
+                <p><strong>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.title}}</strong></p>
+                <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg1}}</div>
+                <ul class="failed-info-list">
+                  {{#each serviceName in serviceCheckFailuresServicenames}}
+                    <li>{{serviceName}}</li>
+                  {{/each}}
+                </ul>
+                <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg2}}</div>
+              {{/if}}
+              {{#if slaveComponentFailuresHosts.length}}
+                <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
+                <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg1}}</div>
+                <ul class="failed-info-list">
+                  {{#each hostName in slaveComponentFailuresHosts}}
+                    <li>{{hostName}}</li>
+                  {{/each}}
+                </ul>
+                <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg2}}</div>
+              {{/if}}
+            {{else}}
+                <div class="spinner"></div>
+            {{/if}}
+
+              <label class="message">
+                {{view Em.Checkbox checkedBinding="view.isManualDone"}}
+                {{t admin.stackUpgrade.dialog.manualDone}}
+              </label>
+              <div class="button-row">
+                {{#if view.isDowngradeAvailable}}
+                  <button class="btn btn-danger" {{bindAttr disabled="controller.requestInProgress"}} {{action confirmDowngrade view.manualItem target="controller"}}>{{t common.downgrade}}</button>
+                {{/if}}
+                {{#if isDowngrade}}
+                  <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseDowngrade}}</button>
+                {{else}}
+                  <button class="btn" {{action closeWizard target="view.parentView"}}>{{t admin.stackUpgrade.pauseUpgrade}}</button>
+                {{/if}}
+                  <button class="btn btn-success" {{bindAttr disabled="view.isManualProceedDisabled"}} {{action complete view.manualItem target="view"}}>
+                    {{t common.proceed}}
+                  </button>
+              </div>
           </div>
         {{/if}}
         {{#if view.noActiveItem}}
