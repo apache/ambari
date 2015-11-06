@@ -59,6 +59,11 @@ def hive_service(name, action='start', upgrade_type=None):
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
+    if params.security_enabled and params.current_version != None and (params.current_version.startswith("2.2.4") or
+          params.current_version.startswith("2.2.3")):
+      hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
+      Execute(hive_kinit_cmd, user=params.hive_user)
+
   pid_expression = "`" + as_user(format("cat {pid_file}"), user=params.hive_user) + "`"
   process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
 

@@ -273,6 +273,10 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_secured()
+    self.assertResourceCalled('Execute',
+                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
+                              user = 'hive',
+                              )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
@@ -302,7 +306,11 @@ class TestHiveServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    
+    self.assertResourceCalled('Execute',
+                              '/usr/bin/kinit -kt /etc/security/keytabs/hive.service.keytab hive/c6401.ambari.apache.org@EXAMPLE.COM; ',
+                              user = 'hive',
+                              )
+
     self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'`",
         not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1)",
     )
