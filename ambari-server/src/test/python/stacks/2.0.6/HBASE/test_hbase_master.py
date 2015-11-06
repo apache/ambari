@@ -78,7 +78,7 @@ class TestHBaseMaster(RMFTestCase):
     
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start master',
-      not_if = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
       user = 'hbase'
     )
     self.assertNoMoreResources()
@@ -93,8 +93,8 @@ class TestHBaseMaster(RMFTestCase):
     )
     
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop master',
-        only_if = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
+        only_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+        on_timeout = '! ( ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
         timeout = 30,
         user = 'hbase',
     )
@@ -177,7 +177,7 @@ class TestHBaseMaster(RMFTestCase):
     
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf start master',
-      not_if = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
       user = 'hbase',
     )
     self.assertNoMoreResources()
@@ -192,8 +192,8 @@ class TestHBaseMaster(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/lib/hbase/bin/hbase-daemon.sh --config /etc/hbase/conf stop master',
-        only_if = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
-        on_timeout = '! ( ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
+        only_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+        on_timeout = '! ( ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1 ) || ambari-sudo.sh -H -E kill -9 `cat /var/run/hbase/hbase-hbase-master.pid`',
         timeout = 30,
         user = 'hbase',
     )
@@ -628,7 +628,7 @@ class TestHBaseMaster(RMFTestCase):
     )
 
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-master/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-master/conf start master',
-      not_if = 'ls /var/run/hbase/hbase-hbase-master.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
+      not_if = 'ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hbase/hbase-hbase-master.pid && ps -p `ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E cat /var/run/hbase/hbase-hbase-master.pid` >/dev/null 2>&1',
       user = 'hbase')
 
     self.assertNoMoreResources()
