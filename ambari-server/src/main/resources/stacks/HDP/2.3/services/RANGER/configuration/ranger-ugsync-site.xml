@@ -65,7 +65,7 @@
   <property>
     <name>ranger.usersync.enabled</name>
     <display-name>Enable User Sync</display-name>
-    <value>false</value>
+    <value>true</value>
     <description>Should users and groups be synchronized to Ranger Database? Required to setup Ranger policies</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>

@@ -35,11 +35,23 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
+import re
+
+def password_validation(password, key):
+  import params
+  if password.strip() == "":
+    raise Fail("Blank password is not allowed for {0} property. Please enter valid password.".format(key))
+  if re.search("[\\\`'\"]",password):
+    raise Fail("{0} password contains one of the unsupported special characters like \" ' \ `".format(key))
+  else:
+    Logger.info("Password validated")
 
 def setup_kms_db():
   import params
 
   if params.has_ranger_admin:
+
+    password_validation(params.kms_master_key_password, 'KMS master key')
 
     File(params.downloaded_custom_connector,
       content = DownloadSource(params.driver_curl_source),

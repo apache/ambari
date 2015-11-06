@@ -416,7 +416,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if isSolrCloudEnabled:
       zookeeper_host_port = self.getZKHostPortString(services)
       if zookeeper_host_port:
-        putRangerAdminProperty('ranger.audit.solr.zookeepers', zookeeper_host_port)
+        ranger_audit_zk_port = []
+        zk_hosts = zookeeper_host_port.split(',')
+        for zk_host in zk_hosts:
+          ranger_audit_zk_port.append('{0}/{1}'.format(zk_host,'ranger_audits'))
+        ranger_audit_zk_port = ','.join(ranger_audit_zk_port)
+        putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
 
@@ -425,7 +430,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     if include_hdfs:
       if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
         default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
-        putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', default_fs)
+        putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', '{0}/{1}/{2}'.format(default_fs,'ranger','audit'))
 
     # Recommend Ranger supported service's audit properties
     ranger_services = [
