@@ -103,6 +103,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   placeholderText: '',
 
   /**
+   * type of widget View
+   * @type {string}
+   * @default null
+   */
+  widgetType: null,
+
+  /**
    * Placeholder used for configs with input type text
    */
   placeholder: function () {

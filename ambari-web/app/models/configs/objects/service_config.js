@@ -57,11 +57,11 @@ App.ServiceConfig = Ember.Object.extend({
     });
     configs.forEach(function (item) {
       var category = configCategories.findProperty('name', item.get('category'));
-      if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widget')) {
+      if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widgetType')) {
         category.incrementProperty('nonSlaveErrorCount');
         masterErrors++;
       }
-      if (!item.get('isValid') && item.get('widget') && item.get('isVisible') && !item.get('hiddenBySection')) {
+      if (!item.get('isValid') && item.get('widgetType') && item.get('isVisible') && !item.get('hiddenBySection')) {
         enhancedConfigsErrors++;
       }
       if (item.get('overrides')) {

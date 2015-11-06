@@ -131,7 +131,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   errorsCount: function () {
     return this.get('selectedService.configs').filter(function (config) {
-      return Em.isNone(config.get('widget'));
+      return Em.isNone(config.get('widgetType'));
     }).filter(function(config) {
       return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
     }).filterProperty('isVisible').length;
@@ -447,7 +447,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
           serviceName: advanced.get('serviceName'),
           supportsFinal: advanced.get('supportsFinal'),
           category: 'Advanced ' + App.config.getConfigTagFromFileName(advanced.get('fileName')),
-          widget: advanced.get('widget')
+          widget: advanced.get('widget'),
+          widgetType: advanced.get('widgetType')
         }));
       }
     });
