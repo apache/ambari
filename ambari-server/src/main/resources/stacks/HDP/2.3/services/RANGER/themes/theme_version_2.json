@@ -561,12 +561,12 @@
               "if": "${ranger-env/bind_anonymous}",
               "then": {
                 "property_value_attributes": {
-                  "visible": true
+                  "visible": false
                 }
               },
               "else": {
                 "property_value_attributes": {
-                  "visible": false
+                  "visible": true
                 }
               }
             }
@@ -584,12 +584,12 @@
               "if": "${ranger-env/bind_anonymous}",
               "then": {
                 "property_value_attributes": {
-                  "visible": true
+                  "visible": false
                 }
               },
               "else": {
                 "property_value_attributes": {
-                  "visible": false
+                  "visible": true
                 }
               }
             }
