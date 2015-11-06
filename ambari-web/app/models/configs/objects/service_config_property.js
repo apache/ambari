@@ -244,6 +244,7 @@ App.ServiceConfigProperty = Em.Object.extend({
       this.set('recommendedValue', '');
     }
     this.set('initialValue', this.get('value'));
+    this.updateDescription();
   },
 
   /**
@@ -477,6 +478,22 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       return false;
     }
-  }.property('displayType', 'name', 'App.isHadoop22Stack')
+  }.property('displayType', 'name', 'App.isHadoop22Stack'),
+
+  /**
+   * Update description for `password`-config
+   * Add extra-message about their comparison
+   *
+   * @method updateDescription
+   */
+  updateDescription: function () {
+    var description = this.get('description');
+    var displayType = this.get('displayType');
+    var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
+    if ('password' === displayType && !description.contains(additionalDescription)) {
+      description += '<br />' + additionalDescription;
+    }
+    this.set('description', description);
+  }
 
 });

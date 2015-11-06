@@ -450,20 +450,28 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   save: function () {
     var self = this;
+    var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
       serviceConfigNote: '',
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/save_configuration'),
+        showPasswordChangeWarning: passwordWasChanged,
         notesArea: Em.TextArea.extend({
           classNames: ['full-width'],
+          value: passwordWasChanged ? Em.I18n.t('dashboard.configHistory.info-bar.save.popup.notesForPasswordChange') : '',
           placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          didInsertElement: function () {
+            if (this.get('value')) {
+              this.onChangeValue();
+            }
+          },
           onChangeValue: function() {
             this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
           }.observes('value')
         })
       }),
-      footerClass: Ember.View.extend({
+      footerClass: Em.View.extend({
         templateName: require('templates/main/service/info/save_popup_footer')
       }),
       primary: Em.I18n.t('common.save'),

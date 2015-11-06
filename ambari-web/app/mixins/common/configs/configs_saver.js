@@ -818,20 +818,28 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    */
   showSavePopup: function (path, callback) {
     var self = this;
+    var passwordWasChanged = this.get('passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/save_configuration'),
         showSaveWarning: true,
+        showPasswordChangeWarning: passwordWasChanged,
         notesArea: Em.TextArea.extend({
+          value: passwordWasChanged ? Em.I18n.t('dashboard.configHistory.info-bar.save.popup.notesForPasswordChange') : '',
           classNames: ['full-width'],
           placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          didInsertElement: function () {
+            if (this.get('value')) {
+              this.onChangeValue();
+            }
+          },
           onChangeValue: function() {
             this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
           }.observes('value')
         })
       }),
-      footerClass: Ember.View.extend({
+      footerClass: Em.View.extend({
         templateName: require('templates/main/service/info/save_popup_footer'),
         isSaveDisabled: function() {
           return self.get('isSubmitDisabled');
