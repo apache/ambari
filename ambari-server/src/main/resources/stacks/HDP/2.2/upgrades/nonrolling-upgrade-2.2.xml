@@ -97,7 +97,7 @@
       </service>
 
       <service name="YARN">
-        <component>NODEMANAGER</component>        <!-- TODO, parallelize -->
+        <component>NODEMANAGER</component>
         <component>RESOURCEMANAGER</component>
         <component>APP_TIMELINE_SERVER</component>
       </service>
@@ -131,14 +131,14 @@
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Snapshot HBASE">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
-          <function>take_snapshot</function>        <!-- TODO, this function used to be called just "snapshot" -->
+          <function>take_snapshot</function>
         </task>
       </execute-stage>
 
-      <execute-stage service="HDFS" component="NAMENODE" title="Snapshot HDFS">
-        <task xsi:type="execute" hosts="master">  <!-- TODO, this can be any NameNode, not just the active. -->
+      <execute-stage service="HDFS" component="NAMENODE" title="Prepare HDFS">
+        <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
-          <function>prepare_non_rolling_upgrade</function>
+          <function>prepare_express_upgrade</function>
         </task>
       </execute-stage>
 
@@ -163,9 +163,9 @@
       <service name="HDFS">
         <component>DATANODE</component>
         <component>NAMENODE</component>
-        <component>SECONDARY_NAMENODE</component>   <!-- TODO, may not be present. -->
-        <component>ZKFC</component>                 <!-- TODO, may not be present. -->
-        <component>JOURNALNODE</component>          <!-- TODO, may not be present. -->
+        <component>SECONDARY_NAMENODE</component>
+        <component>ZKFC</component>
+        <component>JOURNALNODE</component>
       </service>
 
       <service name="RANGER">
@@ -204,20 +204,6 @@
         </task>
       </execute-stage>
 
-      <execute-stage service="HBASE" component="HBASE_MASTER" title="Restore HBASE Snapshot">
-        <task xsi:type="execute" hosts="master">
-          <script>scripts/hbase_upgrade.py</script>
-          <function>restore_snapshot</function>   <!-- TODO, this function name is new. -->
-        </task>
-      </execute-stage>
-
-      <execute-stage service="HDFS" component="NAMENODE" title="Restore HDFS Snapshot">
-        <task xsi:type="execute" hosts="master">  <!-- TODO, this can be any NameNode, not just the active. -->
-          <script>scripts/namenode.py</script>
-          <function>restore_snapshot</function>    <!-- TODO, this function doesn't exist yet. -->
-        </task>
-      </execute-stage>
-
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
@@ -239,9 +225,9 @@
       <skippable>true</skippable>
       <parallel-scheduler></parallel-scheduler>
       <service name="ZOOKEEPER">
-        <service-check>false</service-check>        <!-- TODO, enable service-check once done testing -->
+        <service-check>true</service-check>
         <component>ZOOKEEPER_SERVER</component>
-        <component>ZOOKEEPER_CLIENT</component>     <!-- TODO, parallelize -->
+        <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
 
@@ -263,9 +249,9 @@
         <component>JOURNALNODE</component>
         <component>ZKFC</component>
         <component>NAMENODE</component>
-        <component>SECONDARY_NAMENODE</component>   <!-- TODO, may not be present -->
-        <component>DATANODE</component>             <!-- TODO, parallelize -->
-        <component>HDFS_CLIENT</component>          <!-- TODO, parallelize -->
+        <component>SECONDARY_NAMENODE</component>
+        <component>DATANODE</component>
+        <component>HDFS_CLIENT</component>
       </service>
     </group>
 
@@ -288,13 +274,13 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="MAPREDUCE2">
         <component>HISTORYSERVER</component>
-        <component>MAPREDUCE2_CLIENT</component>    <!-- TODO, parallelize -->
+        <component>MAPREDUCE2_CLIENT</component>
       </service>
       <service name="YARN">
         <component>APP_TIMELINE_SERVER</component>
         <component>RESOURCEMANAGER</component>
-        <component>NODEMANAGER</component>          <!-- TODO, parallelize -->
-        <component>YARN_CLIENT</component>          <!-- TODO, parallelize -->
+        <component>NODEMANAGER</component>
+        <component>YARN_CLIENT</component>
       </service>
     </group>
 
@@ -304,12 +290,12 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="HBASE">
         <component>HBASE_MASTER</component>
-        <component>HBASE_REGIONSERVER</component>   <!-- TODO, parallelize -->
-        <component>HBASE_CLIENT</component>         <!-- TODO, parallelize -->
+        <component>HBASE_REGIONSERVER</component>
+        <component>HBASE_CLIENT</component>
       </service>
     </group>
 
-    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">  <!-- TODO, parallelize -->
+    <group xsi:type="restart" name="CLIENTS" title="Tez, Pig, Sqoop Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <parallel-scheduler></parallel-scheduler>
@@ -346,8 +332,8 @@
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
         <component>WEBHCAT_SERVER</component>
-        <component>HIVE_CLIENT</component>          <!-- TODO, parallelize -->
-        <component>HCAT</component>                 <!-- TODO, parallelize -->
+        <component>HIVE_CLIENT</component>
+        <component>HCAT</component>
       </service>
     </group>
 
@@ -357,7 +343,7 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
-        <component>SPARK_CLIENT</component>         <!-- TODO, parallelize -->
+        <component>SPARK_CLIENT</component>
       </service>
     </group>
 
@@ -391,7 +377,7 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
-        <component>OOZIE_CLIENT</component>         <!-- TODO, parallelize -->
+        <component>OOZIE_CLIENT</component>
       </service>
     </group>
 
@@ -401,7 +387,7 @@
       <parallel-scheduler></parallel-scheduler>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
-        <component>FALCON_CLIENT</component>        <!-- TODO, parallelize -->
+        <component>FALCON_CLIENT</component>
       </service>
     </group>
 
@@ -434,7 +420,6 @@
         <component>DRPC_SERVER</component>
       </service>
 
-      <!-- TODO, does this work? -->
       <execute-stage service="STORM" component="DRPC_SERVER" title="Rebuild Storm Topology">
         <task xsi:type="manual">
           <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
@@ -499,7 +484,7 @@
       </execute-stage>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Execute HDFS Finalize">
-        <task xsi:type="execute" hosts="master">      <!-- TODO, what happens if there's no HA. -->
+        <task xsi:type="execute" hosts="master">
           <script>scripts/namenode.py</script>
           <function>finalize_non_rolling_upgrade</function>
         </task>
