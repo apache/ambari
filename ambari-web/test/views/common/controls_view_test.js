@@ -109,6 +109,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.2',
+          rangerVersion: '0.4.0',
           propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
           propertyAppendTo2: 'hive_database',
           isAdditionalView1Null: true,
@@ -138,6 +139,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.2',
+          rangerVersion: '0.4.0',
           propertyAppendTo1: 'javax.jdo.option.ConnectionURL',
           propertyAppendTo2: 'hive_database',
           isAdditionalView1Null: false,
@@ -167,6 +169,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.2',
+          rangerVersion: '0.4.0',
           propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
           propertyAppendTo2: 'oozie_database',
           isAdditionalView1Null: true,
@@ -196,6 +199,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.2',
+          rangerVersion: '0.4.0',
           propertyAppendTo1: 'oozie.service.JPAService.jdbc.url',
           propertyAppendTo2: 'oozie_database',
           isAdditionalView1Null: false,
@@ -223,6 +227,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.2',
+          rangerVersion: '0.4.0',
           propertyAppendTo1: 'ranger.jpa.jdbc.url',
           propertyAppendTo2: 'DB_FLAVOR',
           isAdditionalView1Null: true,
@@ -250,6 +255,7 @@ describe('App.ServiceConfigRadioButtons', function () {
             }
           }),
           currentStackVersion: 'HDP-2.3',
+          rangerVersion: '0.5.0',
           propertyAppendTo1: 'ranger.jpa.jdbc.url',
           propertyAppendTo2: 'DB_FLAVOR',
           isAdditionalView1Null: false,
@@ -266,6 +272,7 @@ describe('App.ServiceConfigRadioButtons', function () {
 
     afterEach(function () {
       App.get.restore();
+      App.StackService.find.restore();
       view.sendRequestRorDependentConfigs.restore();
     });
 
@@ -276,6 +283,12 @@ describe('App.ServiceConfigRadioButtons', function () {
     cases.forEach(function (item) {
       it(item.title, function () {
         sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersion').returns(item.currentStackVersion);
+        sinon.stub(App.StackService, 'find', function() {
+          return [Em.Object.create({
+            serviceName: 'RANGER',
+            serviceVersion: item.rangerVersion || ''
+          })];
+        });
         view.reopen({controller: item.controller});
         sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
         view.setProperties({
@@ -403,6 +416,62 @@ describe('App.ServiceConfigRadioButtons', function () {
     });
 
   });
+
+  describe('#dontUseHandleDbConnection', function () {
+    var rangerService = Em.Object.create({
+      serviceName: 'RANGER'
+    });
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find', function () {
+        return [rangerService];
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+    });
+
+    var cases = [
+      {
+        title: 'Should return properties for old version of Ranger',
+        version: '0.1',
+        result: ['DB_FLAVOR', 'authentication_method']
+      },
+      {
+        title: 'Should return properties for old version of Ranger',
+        version: '0.4.0',
+        result: ['DB_FLAVOR', 'authentication_method']
+      },
+      {
+        title: 'Should return properties for old version of Ranger',
+        version: '0.4.9',
+        result: ['DB_FLAVOR', 'authentication_method']
+      },
+      {
+        title: 'Should return properties for new version of Ranger',
+        version: '0.5.0',
+        result: ['ranger.authentication.method']
+      },
+      {
+        title: 'Should return properties for new version of Ranger',
+        version: '1.0.0',
+        result: ['ranger.authentication.method']
+      },
+      {
+        title: 'Should return properties for new version of Ranger',
+        version: '0.5.0.1',
+        result: ['ranger.authentication.method']
+      }
+    ];
+
+    cases.forEach(function (test) {
+      it(test.title, function () {
+        rangerService.set('serviceVersion', test.version);
+        expect(view.get('dontUseHandleDbConnection')).to.eql(test.result);
+      });
+    });
+  });
+
 });
 
 describe('App.ServiceConfigRadioButton', function () {
