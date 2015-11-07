@@ -19,6 +19,24 @@
 package org.apache.ambari.view.hive.client;
 
 public interface ColumnDescription {
+  enum DataTypes {
+    TINYINT, //
+    SMALLINT, //
+    INT, //
+    BIGINT, //
+    BOOLEAN, //
+    FLOAT, //
+    DOUBLE, //
+    STRING, //
+    BINARY, // -- (Note: Available in Hive 0.8.0 and later)
+    TIMESTAMP, // -- (Note: Available in Hive 0.8.0 and later)
+    DECIMAL, // -- (Note: Available in Hive 0.11.0 and later)
+    // DECIMAL,(precision, scale)  -- (Note: Available in Hive 0.13.0 and later) Not included.
+    DATE, // -- (Note: Available in Hive 0.12.0 and later)
+    VARCHAR, // -- (Note: Available in Hive 0.12.0 and later)
+    CHAR, // -- (Note: Available in Hive 0.13.0 and later)
+  }
+
   public abstract String getName();
   public abstract void setName(String name);
 

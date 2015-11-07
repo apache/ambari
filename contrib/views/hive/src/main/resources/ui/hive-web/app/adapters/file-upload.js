@@ -16,27 +16,16 @@
  * limitations under the License.
  */
 
+import EmberUploader from 'ember-uploader';
 import Ember from 'ember';
-import constants from 'hive/utils/constants';
 
-export default Ember.Component.extend({
-  tagName: 'navigation-bar',
-  title: constants.appTitle,
+export default EmberUploader.Uploader.extend({
+  headers: {},
 
-  items: Ember.A([
-    Ember.Object.create({text: 'menus.query',
-                         path: constants.namingConventions.routes.index}),
-
-    Ember.Object.create({text: 'menus.savedQueries',
-                         path: constants.namingConventions.routes.queries}),
-
-    Ember.Object.create({text: 'menus.history',
-                         path: constants.namingConventions.routes.history}),
-
-    Ember.Object.create({text: 'menus.udfs',
-                         path: constants.namingConventions.routes.udfs}),
-
-    Ember.Object.create({text: 'menus.uploadTable',
-      path: constants.namingConventions.routes.uploadTable})
-  ])
+  // Override
+  _ajax: function(settings) {
+    settings = Ember.merge(settings, this.getProperties('headers'));
+    console.log("_ajax : settings: " + JSON.stringify(settings));
+    return this._super(settings);
+  }
 });
