@@ -17,6 +17,7 @@
  */
 
 import Ember from 'ember';
+import utils from 'hive/utils/functions';
 
 export default Ember.Component.extend({
   didInsertElement: function () {
@@ -26,6 +27,9 @@ export default Ember.Component.extend({
     if (!numberRange.get('from') && !numberRange.get('to')) {
       numberRange.set('from', numberRange.get('min'));
       numberRange.set('to', numberRange.get('max'));
+      numberRange.set('fromDuration',utils.secondsToHHMMSS(numberRange.get('min')));
+      numberRange.set('toDuration',utils.secondsToHHMMSS(numberRange.get('max')));
+
     }
 
     this.$('.slider').slider({
@@ -38,6 +42,9 @@ export default Ember.Component.extend({
       slide: function (event, ui) {
         numberRange.set('from', ui.values[0]);
         numberRange.set('to', ui.values[1]);
+        numberRange.set('fromDuration', utils.secondsToHHMMSS(ui.values[0]));
+        numberRange.set('toDuration', utils.secondsToHHMMSS(ui.values[1]));
+
       },
 
       change: function () {
