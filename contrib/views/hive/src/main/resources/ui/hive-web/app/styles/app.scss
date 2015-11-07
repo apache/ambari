@@ -550,11 +550,10 @@ tree-view ul li {
   margin: 0 0 10px;
 }
 
-#query-results {
+#query-results, #upload-table  {
   .table {
     display: inline-block;
     overflow: auto;
-    max-width: 830px;
   }
 
   .query-results-tools {

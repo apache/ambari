@@ -31,6 +31,7 @@ Router.map(function () {
   this.route(constants.namingConventions.routes.queries);
   this.route(constants.namingConventions.routes.history);
   this.route(constants.namingConventions.routes.udfs);
+  this.route(constants.namingConventions.routes.uploadTable);
 
   this.resource(constants.namingConventions.routes.index, { path: '/' }, function () {
     this.route(constants.namingConventions.routes.savedQuery, { path: savedQueryPath});

@@ -1,0 +1,92 @@
+{{!
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+}}
+
+<div class="pull-right">
+  <i class="query-menu-tab fa queries-icon query-context-tab fa-envelope" {{ action 'toggleErrors'}}></i>
+</div>
+
+<div style="width : 90%">
+<div class="main-content">
+  {{#if showErrors}}
+    {{render 'messages'}}
+  {{/if}}
+</div>
+</div>
+
+{{#unless showErrors}}
+<div>
+  {{file-upload filesUploaded="filesUploaded"}}
+</div>
+<div id="upload-table">
+  <!--<div class='fa query-menu-tab fa queries-icon query-context-tab fa-envelope'></div>-->
+
+  {{#if rows}}
+  <div class="query-results-tools">
+    <div class="pull-right">
+      <button type="button" {{action
+      "createTableAndUploadFile"}}
+      {{bind-attr class=":btn :btn-sm :btn-default"}}>{{t "buttons.uploadTable"}}</button>
+    </div>
+  </div>
+
+  <div>
+    <div class="col-md-3">Database :
+      {{typeahead-widget
+      content=controllers.databases.databases
+      optionValuePath="id"
+      optionLabelPath="name"
+      selection=selectedDatabase
+      placeholder="Select a Database"
+      }}
+    </div>
+    <div class="col-md-3">Table Name : {{input type="text" class="form-control" placeHolder="Table Name" value=tableName }}
+    </div>
+    <div class="col-md-3">Is First Row Header? :{{input type="checkbox" class="form-control" checked=isFirstRowHeader }}
+    </div>
+  </div>
+
+  <table class="table table-expandable">
+    <thead>
+    <tr>
+      {{#each column in header}}
+      <th> {{input type="text" class="form-control" value=column.name}}</th>
+      {{/each}}
+    </tr>
+    <tr>
+      {{#each column in header}}
+      <th> {{typeahead-widget
+        content=dataTypes
+        selection=column.type
+        }}
+      </th>
+      {{/each}}
+    </tr>
+    </thead>
+    <tbody>
+    {{#each row in rows}}
+    <tr>
+      {{#each item in row.row}}
+      <td>{{item}}</td>
+      {{/each}}
+    </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  {{/if}}
+</div>
+{{/unless}}

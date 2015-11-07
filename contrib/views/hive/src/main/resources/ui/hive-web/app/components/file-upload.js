@@ -16,27 +16,10 @@
  * limitations under the License.
  */
 
-import Ember from 'ember';
-import constants from 'hive/utils/constants';
+import EmberUploader from 'ember-uploader';
 
-export default Ember.Component.extend({
-  tagName: 'navigation-bar',
-  title: constants.appTitle,
-
-  items: Ember.A([
-    Ember.Object.create({text: 'menus.query',
-                         path: constants.namingConventions.routes.index}),
-
-    Ember.Object.create({text: 'menus.savedQueries',
-                         path: constants.namingConventions.routes.queries}),
-
-    Ember.Object.create({text: 'menus.history',
-                         path: constants.namingConventions.routes.history}),
-
-    Ember.Object.create({text: 'menus.udfs',
-                         path: constants.namingConventions.routes.udfs}),
-
-    Ember.Object.create({text: 'menus.uploadTable',
-      path: constants.namingConventions.routes.uploadTable})
-  ])
+export default EmberUploader.FileField.extend({
+  filesDidChange: function(files) {
+    this.sendAction('filesUploaded',files); // sends this action to controller.
+  }
 });

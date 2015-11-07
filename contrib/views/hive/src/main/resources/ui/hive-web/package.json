@@ -38,6 +38,7 @@
     "ember-cli-qunit": "0.3.14",
     "ember-cli-selectize": "0.0.19",
     "ember-cli-uglify": "1.0.1",
+    "ember-cli-uploader": "^0.3.9",
     "ember-data": "1.0.0-beta.16.1",
     "ember-dynamic-component": "0.0.1",
     "ember-export-application-global": "^1.0.0",
