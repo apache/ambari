@@ -37,6 +37,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -1919,9 +1921,8 @@ public class ClusterImpl implements Cluster {
       }
 
       for (Service service : services.values()) {
-        service.delete();
+        deleteService(service);
       }
-
       services.clear();
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -1943,10 +1944,38 @@ public class ClusterImpl implements Cluster {
           + ", clusterName=" + getClusterName()
           + ", serviceName=" + service.getName());
       }
-      service.delete();
+      deleteService(service);
       services.remove(serviceName);
+
     } finally {
       clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  /**
+   * Deletes the specified service also removes references to it from {@link this.serviceComponentHosts}
+   * and references to ServiceComponentHost objects that belong to the service from {@link this.serviceComponentHostsByHost}
+   * <p>
+   *   Note: This method must be called only with write lock acquired.
+   * </p>
+   * @param service the service to be deleted
+   * @throws AmbariException
+   * @see   ServiceComponentHost
+   */
+  private void deleteService(Service service) throws AmbariException {
+    final String serviceName = service.getName();
+
+    service.delete();
+
+    serviceComponentHosts.remove(serviceName);
+
+    for (List<ServiceComponentHost> serviceComponents: serviceComponentHostsByHost.values()){
+      Iterables.removeIf(serviceComponents, new Predicate<ServiceComponentHost>() {
+        @Override
+        public boolean apply(ServiceComponentHost serviceComponentHost) {
+          return serviceComponentHost.getServiceName().equals(serviceName);
+        }
+      });
     }
   }
 
