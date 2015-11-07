@@ -1373,6 +1373,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       try {
         if (persisted) {
           removeEntities();
+
+          // host must be re-loaded from db to refresh the cached JPA HostEntity
+          // that references HostComponentDesiredStateEntity
+          // and HostComponentStateEntity JPA entities
+          host.refresh();
+
           persisted = false;
           fireRemovalEvent = true;
         }

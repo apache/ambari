@@ -52,7 +52,7 @@ public class ClusterServiceEntity {
   @OneToOne(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
 
-  @OneToMany(mappedBy = "clusterServiceEntity")
+  @OneToMany(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
   public Long getClusterId() {
