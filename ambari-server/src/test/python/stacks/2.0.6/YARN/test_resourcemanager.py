@@ -434,12 +434,6 @@ class TestResourceManager(RMFTestCase):
       owner = 'yarn',
       group = 'hadoop',
     )
-    self.assertResourceCalled('Execute', 'yarn resourcemanager -format-state-store',
-                              user = 'yarn',
-    )
-    self.assertResourceCalled('File', '/var/lib/hadoop-yarn/rm_security_enabled',
-                              content = 'Marker file to track first start after enabling/disabling security. During first start ResourceManager state store is formatted',
-    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
       owner = 'yarn',
       group = 'hadoop',

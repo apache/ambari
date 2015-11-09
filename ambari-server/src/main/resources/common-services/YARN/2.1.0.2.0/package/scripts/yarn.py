@@ -229,18 +229,6 @@ def yarn(name = None):
                            mode=0700
       )
       params.HdfsResource(None, action="execute")
-    if params.toggle_rm_security:
-      Execute('yarn resourcemanager -format-state-store', user = params.yarn_user,
-      )
-      # Setting RM marker file
-      if params.security_enabled:
-        File(params.rm_security_marker,
-             content="Marker file to track first start after enabling/disabling security. "
-                     "During first start ResourceManager state store is formatted"
-        )
-      elif not params.security_enabled:
-        File(params.rm_security_marker, action="delete")
-
 
 
   elif name == 'apptimelineserver':
