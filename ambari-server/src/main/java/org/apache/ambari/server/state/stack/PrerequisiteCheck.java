@@ -24,8 +24,9 @@ import java.util.List;
 import org.apache.ambari.server.checks.CheckDescription;
 
 /**
- * Contains information about performed prerequisite check.
- *
+ * Contains information about performed prerequisite check. Newly initialized
+ * {@link PrerequisiteCheck} instances are always set to
+ * {@link PrereqCheckStatus#PASS}.
  */
 public class PrerequisiteCheck {
   private final CheckDescription m_description;
