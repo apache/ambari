@@ -20,6 +20,7 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.SQLException;
 
+import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
@@ -29,13 +30,18 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import javax.persistence.EntityManager;
+
 
 /**
  * Upgrade catalog for version 2.2.0.
  */
 public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   private static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  private static final String USERS_TABLE = "users";
+
   private static final String HOST_ID_COL = "host_id";
+  private static final String USER_TYPE_COL = "user_type";
 
   @Inject
   DaoUtils daoUtils;
@@ -85,6 +91,12 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
 
     dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
+    dbAccessor.addColumn(USERS_TABLE, new DBColumnInfo(USER_TYPE_COL, String.class, null, "LOCAL", true));
+
+    dbAccessor.executeQuery("UPDATE users SET user_type='LDAP' WHERE ldap_user=1");
+
+    dbAccessor.addUniqueConstraint(USERS_TABLE, "UNQ_users_0", "user_name", "user_type");
+
   }
 
   @Override

@@ -41,6 +41,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
   protected static final String USER_PASSWORD_PROPERTY_ID     = PropertyHelper.getPropertyId("Users", "password");
   protected static final String USER_OLD_PASSWORD_PROPERTY_ID = PropertyHelper.getPropertyId("Users", "old_password");
   protected static final String USER_LDAP_USER_PROPERTY_ID    = PropertyHelper.getPropertyId("Users", "ldap_user");
+  protected static final String USER_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("Users", "user_type");
   protected static final String USER_ACTIVE_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "active");
   protected static final String USER_GROUPS_PROPERTY_ID       = PropertyHelper.getPropertyId("Users", "groups");
   protected static final String USER_ADMIN_PROPERTY_ID        = PropertyHelper.getPropertyId("Users", "admin");
@@ -118,6 +119,9 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
       setResourceProperty(resource, USER_LDAP_USER_PROPERTY_ID,
           userResponse.isLdapUser(), requestedIds);
+
+      setResourceProperty(resource, USER_TYPE_PROPERTY_ID,
+          userResponse.getUserType(), requestedIds);
 
       setResourceProperty(resource, USER_ACTIVE_PROPERTY_ID,
           userResponse.isActive(), requestedIds);
