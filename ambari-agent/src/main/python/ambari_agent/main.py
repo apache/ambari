@@ -45,6 +45,7 @@ from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core.logger import Logger
 logger = logging.getLogger()
 
 formatstr = "%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s"
@@ -58,20 +59,15 @@ SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s 
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
 
-def setup_logging(verbose):
+def setup_logging(logging_level):
   formatter = logging.Formatter(formatstr)
   rotateLog = logging.handlers.RotatingFileHandler(AmbariConfig.AmbariConfig.getLogFile(), "a", 10000000, 25)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
       
-  if verbose:
-    logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=AmbariConfig.AmbariConfig.getLogFile())
-    logger.setLevel(logging.DEBUG)
-    logger.info("loglevel=logging.DEBUG")
-  else:
-    logging.basicConfig(format=formatstr, level=logging.INFO, filename=AmbariConfig.AmbariConfig.getLogFile())
-    logger.setLevel(logging.INFO)
-    logger.info("loglevel=logging.INFO")
+  logging.basicConfig(format=formatstr, level=logging_level, filename=AmbariConfig.AmbariConfig.getLogFile())
+  logger.setLevel(logging_level)
+  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
     
   global is_logger_setup
   is_logger_setup = True
@@ -237,8 +233,10 @@ def main(heartbeat_stop_callback=None):
   expected_hostname = options.expected_hostname
 
   current_user = getpass.getuser()
-
-  setup_logging(options.verbose)
+  
+  logging_level = logging.DEBUG if options.verbose else logging.INFO
+  setup_logging(logging_level)
+  Logger.initialize_logger('resource_management', logging_level=logging_level)
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)
