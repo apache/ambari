@@ -112,7 +112,6 @@
 
   <property>
     <name>nimbus.authorizer</name>
-    <value>backtype.storm.security.auth.authorizer.SimpleACLAuthorizer</value>
     <description>Log directory for Storm.</description>
     <depends-on>
       <property>
