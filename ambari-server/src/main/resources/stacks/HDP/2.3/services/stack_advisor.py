@@ -323,7 +323,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
 
   def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
-    core_site = services["configurations"]["core-site"]["properties"]
+    kafka_broker = getServicesSiteProperties(services, "kafka-broker")
+
+    # kerberos security for kafka is decided from `security.inter.broker.protocol` property value
+    security_enabled = (kafka_broker is not None and 'security.inter.broker.protocol' in  kafka_broker
+                        and 'SASL' in kafka_broker['security.inter.broker.protocol'])
     putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
     putKafkaLog4jProperty = self.putProperty(configurations, "kafka-log4j", services)
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
@@ -385,20 +389,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
       else:
-      # Cluster is kerberized
-        if 'hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos' and \
+        # Kerberized Cluster with Ranger plugin disabled
+        if security_enabled and \
           services['configurations']['kafka-broker']['properties']['authorizer.class.name'] == 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer':
           putKafkaBrokerProperty("authorizer.class.name", 'kafka.security.auth.SimpleAclAuthorizer')
+        # Non-kerberos Cluster with Ranger plugin disabled
         else:
           putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
-      # Cluster with Ranger is not kerberized
-    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
-      putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
-
-
-    # Cluster without Ranger is not kerberized
-    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
+    # Non-Kerberos Cluster without Ranger
+    elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
 

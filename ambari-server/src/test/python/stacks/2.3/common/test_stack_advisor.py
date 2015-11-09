@@ -430,7 +430,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
@@ -438,7 +438,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin enabled in non-kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    del services['configurations']['core-site']['properties']['hadoop.security.authentication']
+    del services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol']
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
@@ -447,7 +447,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
