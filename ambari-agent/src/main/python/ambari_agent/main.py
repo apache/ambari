@@ -45,6 +45,7 @@ from ambari_commons import shell
 import HeartbeatHandlers
 from HeartbeatHandlers import bind_signal_handlers
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.core.logger import Logger
 logger = logging.getLogger()
 alerts_logger = logging.getLogger('ambari_alerts')
 
@@ -58,20 +59,16 @@ IS_LINUX = platform.system() == "Linux"
 SYSLOG_FORMAT_STRING = ' ambari_agent - %(filename)s - [%(process)d] - %(name)s - %(levelname)s - %(message)s'
 SYSLOG_FORMATTER = logging.Formatter(SYSLOG_FORMAT_STRING)
 
-def setup_logging(logger, filename, verbose):
+def setup_logging(logger, filename, logging_level):
   formatter = logging.Formatter(formatstr)
   rotateLog = logging.handlers.RotatingFileHandler(filename, "a", 10000000, 25)
   rotateLog.setFormatter(formatter)
   logger.addHandler(rotateLog)
       
-  if verbose:
-    logging.basicConfig(format=formatstr, level=logging.DEBUG, filename=filename)
-    logger.setLevel(logging.DEBUG)
-    logger.info("loglevel=logging.DEBUG")
-  else:
-    logging.basicConfig(format=formatstr, level=logging.INFO, filename=filename)
-    logger.setLevel(logging.INFO)
-    logger.info("loglevel=logging.INFO")
+  logging.basicConfig(format=formatstr, level=logging_level, filename=filename)
+  logger.setLevel(logging_level)
+  logger.info("loglevel=logging.{0}".format(logging._levelNames[logging_level]))
+
 
 def add_syslog_handler(logger):
     
@@ -235,10 +232,13 @@ def main(heartbeat_stop_callback=None):
 
   expected_hostname = options.expected_hostname
 
-  setup_logging(logger, AmbariConfig.AmbariConfig.getLogFile(), options.verbose)
+  logging_level = logging.DEBUG if options.verbose else logging.INFO
+
+  setup_logging(logger, AmbariConfig.AmbariConfig.getLogFile(), logging_level)
   global is_logger_setup
   is_logger_setup = True
-  setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), options.verbose)
+  setup_logging(alerts_logger, AmbariConfig.AmbariConfig.getAlertsLogFile(), logging_level)
+  Logger.initialize_logger('resource_management', logging_level=logging_level)
 
   default_cfg = {'agent': {'prefix': '/home/ambari'}}
   config.load(default_cfg)

@@ -21,6 +21,8 @@ limitations under the License.
 import os.path
 import logging
 import subprocess
+from resource_management.core.shell import call
+from resource_management.core.exceptions import ExecuteTimeoutException
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.shell import shellRunner
 from Facter import Facter
@@ -99,11 +101,12 @@ class Hardware:
 
   @staticmethod
   def _chk_mount(mountpoint):
-    if subprocess.call("{0} test -w '{1}'".format(AMBARI_SUDO_BINARY, mountpoint), shell=True) == 0:
-      return True
-    else:
+    try:
+      return call(['test', '-w', mountpoint], sudo=True, timeout=int(Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_DEFAULT)/2)[0] == 0
+    except ExecuteTimeoutException:
+      logger.exception("Exception happened while checking mount {0}".format(mountpoint))
       return False
-
+    
   @staticmethod
   @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
   def osdisks(config = None):
