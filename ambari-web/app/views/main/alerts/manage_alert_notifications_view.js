@@ -31,6 +31,8 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.groups').toArray().mapProperty('displayName').join(', ');
   }.property('controller.selectedAlertNotification', 'controller.selectedAlertNotification.groups.@each', 'controller.isLoaded'),
 
+  isAddButtonDisabled: true,
+
   isEditButtonDisabled: true,
 
   isRemoveButtonDisabled: true,
@@ -67,9 +69,10 @@ App.ManageAlertNotificationsView = Em.View.extend({
    */
   buttonObserver: function () {
     var selectedAlertNotification = this.get('controller.selectedAlertNotification');
-    this.set('isEditButtonDisabled', !selectedAlertNotification);
-    this.set('isRemoveButtonDisabled', !selectedAlertNotification);
-    this.set('isDuplicateButtonDisabled', !selectedAlertNotification);
+    this.set('isAddButtonDisabled', (!selectedAlertNotification || App.isOperator));
+    this.set('isEditButtonDisabled', (!selectedAlertNotification || App.isOperator));
+    this.set('isRemoveButtonDisabled', (!selectedAlertNotification || App.isOperator));
+    this.set('isDuplicateButtonDisabled', (!selectedAlertNotification || App.isOperator));
   }.observes('controller.selectedAlertNotification'),
 
   /**
@@ -98,6 +101,10 @@ App.ManageAlertNotificationsView = Em.View.extend({
         this.set('selectedAlertNotification', this.get('controller.selectedAlertNotification') || notifications[0]);
         this.buttonObserver();
       }  else {
+        if(!App.isOperator)
+	 {
+	    this.set('isAddButtonDisabled',false);
+	 }
         this.set('selectedAlertNotification', null);
       }
       Em.run.later(this, function () {
