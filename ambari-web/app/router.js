@@ -271,6 +271,7 @@ App.Router = Em.Router.extend({
   },
 
   loginSuccessCallback: function(data, opt, params) {
+    App.router.set('loginController.isSubmitDisabled', false);
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(decodeURIComponent(params.loginName));
     var requestData = {
