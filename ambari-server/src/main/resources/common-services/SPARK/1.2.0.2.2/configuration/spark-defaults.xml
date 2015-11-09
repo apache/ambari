@@ -42,15 +42,6 @@
   </property>
 
   <property>
-    <name>spark.yarn.applicationMaster.waitTries</name>
-    <value>10</value>
-    <description>
-      Set the number of times the ApplicationMaster waits for the the Spark master and then
-      also the number of tries it waits for the SparkContext to be initialized.
-    </description>
-  </property>
-
-  <property>
     <name>spark.yarn.scheduler.heartbeat.interval-ms</name>
     <value>5000</value>
     <description>
@@ -95,7 +86,7 @@
     <name>spark.yarn.preserve.staging.files</name>
     <value>false</value>
     <description>
-      Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the 
+      Set to true to preserve the staged files (Spark jar, app jar, distributed cache files) at the
       end of the job rather then delete them.
     </description>
   </property>
@@ -161,19 +152,19 @@
       Location of the kerberos keytab file for the Spark History Server.
     </description>
   </property>
-  
+
   <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
     <description>Name of history provider class</description>
   </property>
-  
+
   <property>
     <name>spark.yarn.historyServer.address</name>
     <value>{{spark_history_server_host}}:{{spark_history_ui_port}}</value>
     <description>The address of the Spark history server (i.e. host.com:18080). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
   </property>
-  
+
   <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
