@@ -35,7 +35,6 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.security.authorization.UserType;
 
 @Singleton
 public class UserDAO {
@@ -60,19 +59,6 @@ public class UserDAO {
   public UserEntity findUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());
-    try {
-      return query.getSingleResult();
-    } catch (NoResultException e) {
-      return null;
-    }
-  }
-
-  @RequiresSession
-  public UserEntity findUserByNameAndType(String userName, UserType userType) {
-    TypedQuery<UserEntity> query = entityManagerProvider.get().createQuery("SELECT user FROM UserEntity user WHERE " +
-        "user.userType=:type AND user.userName=:name", UserEntity.class);
-    query.setParameter("type", userType);
-    query.setParameter("name", userName);
     try {
       return query.getSingleResult();
     } catch (NoResultException e) {

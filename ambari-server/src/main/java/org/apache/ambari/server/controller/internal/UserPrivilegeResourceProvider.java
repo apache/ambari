@@ -42,7 +42,6 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
-import org.apache.ambari.server.security.authorization.UserType;
 
 /**
  * Resource provider for user privilege resources.
@@ -158,9 +157,6 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         UserEntity userEntity = userDAO.findLocalUserByName(userName);
         if (userEntity == null) {
           userEntity = userDAO.findLdapUserByName(userName);
-        }
-        if (userEntity == null) {
-          userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
         }
         if (userEntity == null) {
           throw new SystemException("User " + userName + " was not found");

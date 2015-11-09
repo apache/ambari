@@ -32,10 +32,8 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
-import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.stack.OsFamily;
-import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
@@ -56,9 +54,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-
-import java.security.cert.CertificateException;
-import java.security.interfaces.RSAPublicKey;
 
 
 /**
@@ -195,14 +190,6 @@ public class Configuration {
   public static final String ROLLING_UPGRADE_MIN_STACK_DEFAULT = "HDP-2.2";
   public static final String ROLLING_UPGRADE_MAX_STACK_DEFAULT = "";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
-  public static final String JWT_AUTH_ENBABLED = "authentication.jwt.enabled";
-  public static final String JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl";
-  public static final String JWT_PUBLIC_KEY = "authentication.jwt.publicKey";
-  public static final String JWT_AUDIENCES = "authentication.jwt.audiences";
-  public static final String JWT_COOKIE_NAME = "authentication.jwt.cookieName";
-  public static final String JWT_ORIGINAL_URL_QUERY_PARAM = "authentication.jwt.originalUrlParamName";
-  public static final String JWT_COOKIE_NAME_DEFAULT = "hadoop-jwt";
-  public static final String JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT = "originalUrl";
 
   public static final String SERVER_JDBC_CONNECTION_POOL = "server.jdbc.connection-pool";
   public static final String SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = "server.jdbc.connection-pool.min-size";
@@ -2313,46 +2300,6 @@ public class Configuration {
   public boolean useMetricsCacheCustomSizingEngine() {
     return Boolean.parseBoolean(properties
       .getProperty(TIMELINE_METRICS_CACHE_USE_CUSTOM_SIZING_ENGINE, "true"));
-  }
-
-  public JwtAuthenticationProperties getJwtProperties() {
-    boolean enableJwt = Boolean.valueOf(properties.getProperty(JWT_AUTH_ENBABLED, "false"));
-
-    if (enableJwt) {
-      String providerUrl = properties.getProperty(JWT_AUTH_PROVIDER_URL);
-      if (providerUrl == null) {
-        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      String publicKeyPath = properties.getProperty(JWT_PUBLIC_KEY);
-      if (publicKeyPath == null) {
-        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
-        return null;
-      }
-      try {
-        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
-        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
-        jwtProperties.setAuthenticationProviderUrl(providerUrl);
-        jwtProperties.setPublicKey(publicKey);
-
-        jwtProperties.setCookieName(properties.getProperty(JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT));
-        jwtProperties.setAudiencesString(properties.getProperty(JWT_AUDIENCES));
-        jwtProperties.setOriginalUrlQueryParam(
-          properties.getProperty(JWT_ORIGINAL_URL_QUERY_PARAM, JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT));
-
-        return jwtProperties;
-
-      } catch (IOException e) {
-        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
-        return null;
-      } catch (CertificateException e) {
-        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
   }
 
   /**

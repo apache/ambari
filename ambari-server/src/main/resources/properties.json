@@ -165,7 +165,6 @@
         "Users/password",
         "Users/old_password",
         "Users/ldap_user",
-        "Users/user_type",
         "Users/active",
         "Users/groups",
         "Users/admin",
