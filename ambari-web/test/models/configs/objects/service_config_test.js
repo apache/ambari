@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var configPropertyHelper = require('utils/configs/config_property_helper');
 
 require('models/configs/objects/service_config');
 

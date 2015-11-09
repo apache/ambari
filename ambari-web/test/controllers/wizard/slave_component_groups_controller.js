@@ -21,7 +21,6 @@ var App = require('app');
 require('utils/helper');
 require('controllers/wizard/slave_component_groups_controller');
 
-var configPropertyHelper = require('utils/configs/config_property_helper');
 var controller;
 describe('App.SlaveComponentGroupsController', function () {
 
@@ -228,12 +227,12 @@ describe('App.SlaveComponentGroupsController', function () {
           });
         }
       });
-      sinon.stub(configPropertyHelper, 'initialValue', Em.K);
+      sinon.stub(App.ConfigInitializer, 'initialValue', Em.K);
     });
     afterEach(function () {
       App.ServiceConfigProperty.create.restore();
       App.config.get.restore();
-      configPropertyHelper.initialValue.restore();
+      App.ConfigInitializer.initialValue.restore();
     });
     it('should return created config', function () {
       var res = JSON.parse(JSON.stringify(controller.componentProperties('HBASE')));

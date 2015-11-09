@@ -17,9 +17,9 @@
  */
 
 var App = require('app');
-var configPropertyHelper = require('utils/configs/config_property_helper');
 
 require('models/configs/objects/service_config_property');
+require('utils/configs/config_initializer');
 
 var serviceConfig,
   group,
@@ -78,7 +78,7 @@ var serviceConfig,
   masters = components.filterProperty('master'),
   slaves = components.filterProperty('slave');
 
-describe('configPropertyHelper', function () {
+describe('App.ConfigInitializer', function () {
 
   beforeEach(function () {
     serviceConfigProperty = App.ServiceConfigProperty.create();
@@ -87,7 +87,7 @@ describe('configPropertyHelper', function () {
   describe('#setRecommendedValue', function () {
     it('should change the recommended value', function () {
       serviceConfigProperty.set('recommendedValue', 'value0');
-      configPropertyHelper.setRecommendedValue(serviceConfigProperty, /\d/, '1');
+      App.ConfigInitializer.setRecommendedValue(serviceConfigProperty, /\d/, '1');
       expect(serviceConfigProperty.get('recommendedValue')).to.equal('value1');
     });
   });
@@ -342,7 +342,7 @@ describe('configPropertyHelper', function () {
           name: 'kafka.ganglia.metrics.host',
           value: 'localhost'
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, item.localDB, []);
+        App.ConfigInitializer.initialValue(serviceConfigProperty, item.localDB, []);
         expect(serviceConfigProperty.get('value')).to.equal(item.expected);
       });
     });
@@ -359,7 +359,7 @@ describe('configPropertyHelper', function () {
           value: item.receivedValue,
           options: item.options
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, {}, []);
+        App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
         App.get.restore();
@@ -373,7 +373,7 @@ describe('configPropertyHelper', function () {
           value: 'localhost',
           'filename': item.filename
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, {
+        App.ConfigInitializer.initialValue(serviceConfigProperty, {
           masterComponentHosts: {
             filterProperty: function () {
               return {
@@ -391,7 +391,7 @@ describe('configPropertyHelper', function () {
 
     it(cases['hive_master_hosts'].title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
     });
 
@@ -400,7 +400,7 @@ describe('configPropertyHelper', function () {
         name: 'hive.metastore.uris',
         recommendedValue: cases['hive.metastore.uris'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, {'hive.metastore.uris': cases['hive.metastore.uris'].recommendedValue});
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, {'hive.metastore.uris': cases['hive.metastore.uris'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['hive.metastore.uris'].value);
     });
@@ -411,7 +411,7 @@ describe('configPropertyHelper', function () {
         recommendedValue: cases['templeton.hive.properties'].recommendedValue,
         value: cases['templeton.hive.properties'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -421,7 +421,7 @@ describe('configPropertyHelper', function () {
         name: 'yarn.resourcemanager.zk-address',
         recommendedValue: cases['yarn.resourcemanager.zk-address'].recommendedValue
       });
-      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  cases['yarn.resourcemanager.zk-address'].dependencies);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
@@ -803,7 +803,7 @@ describe('configPropertyHelper', function () {
           recommendedValue: test.rValue,
           filename: test.filename
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
+        App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
         expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
         if (Em.isNone(test.expectedRValue)) {
           expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
@@ -891,7 +891,7 @@ describe('configPropertyHelper', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        expect(configPropertyHelper.getHiveMetastoreUris(item.hosts, item.recommendedValue)).to.equal(item.expected);
+        expect(App.ConfigInitializer.getHiveMetastoreUris(item.hosts, item.recommendedValue)).to.equal(item.expected);
       });
     });
 
@@ -1195,7 +1195,7 @@ describe('configPropertyHelper', function () {
           name: item.name,
           recommendedValue: '/default'
         });
-        configPropertyHelper.initialValue(serviceConfigProperty, localDB, {});
+        App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, {});
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('recommendedValue')).to.equal(item.value);
       });
@@ -1204,21 +1204,21 @@ describe('configPropertyHelper', function () {
   });
 
   describe('initializerTypes', function () {
-    var types = configPropertyHelper.__testGetInitializerTypes();
+    var types = App.ConfigInitializer.__testGetInitializerTypes();
     Em.keys(types).forEach(function(type) {
       it(type, function() {
         var methodName = types[type].method;
         expect(methodName).to.be.a.string;
         expect(methodName).to.have.length.above(0);
-        expect(configPropertyHelper[methodName]).to.be.a.function;
+        expect(App.ConfigInitializer[methodName]).to.be.a.function;
       });
     });
   });
 
   describe('initializers', function () {
 
-    var initializers = configPropertyHelper.__testGetInitializers();
-    var types = configPropertyHelper.__testGetInitializerTypes();
+    var initializers = App.ConfigInitializer.__testGetInitializers();
+    var types = App.ConfigInitializer.__testGetInitializerTypes();
     var typeNames = Em.keys(types);
 
     Em.keys(initializers).forEach(function (configName) {
@@ -1232,7 +1232,7 @@ describe('configPropertyHelper', function () {
 
   describe('uniqueInitializers', function () {
 
-    var uniqueInitializers = configPropertyHelper.__testGetUniqueInitializers();
+    var uniqueInitializers = App.ConfigInitializer.__testGetUniqueInitializers();
     var uniqueInitializersNames = Em.keys(uniqueInitializers).map(function (key) {
       return uniqueInitializers[key];
     });
@@ -1243,7 +1243,7 @@ describe('configPropertyHelper', function () {
 
     uniqueInitializersNames.forEach(function (name) {
       it(name, function () {
-        expect(configPropertyHelper[name]).to.be.a.function;
+        expect(App.ConfigInitializer[name]).to.be.a.function;
       });
     });
 
@@ -1251,7 +1251,7 @@ describe('configPropertyHelper', function () {
 
   describe('winReplacersMap', function () {
 
-    var winReplacersMap = configPropertyHelper.__testGetWinReplacersMap();
+    var winReplacersMap = App.ConfigInitializer.__testGetWinReplacersMap();
     var winReplacerNames = Em.keys(winReplacersMap).map(function (key) {
       return winReplacersMap[key];
     });
@@ -1262,7 +1262,7 @@ describe('configPropertyHelper', function () {
 
     winReplacerNames.forEach(function (name) {
       it(name, function () {
-        expect(configPropertyHelper[name]).to.be.a.function;
+        expect(App.ConfigInitializer[name]).to.be.a.function;
       });
     });
 

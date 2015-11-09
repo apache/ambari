@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var configPropertyHelper = require('utils/configs/config_property_helper');
+
 /**
  * By Step 7, we have the following information stored in App.db and set on this
  * controller by the router.
@@ -864,7 +864,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
         if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
-          configPropertyHelper.initialValue(serviceConfigProperty, localDB, dependencies);
+          App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
         }
         serviceConfigProperty.validate();
         configsByService.pushObject(serviceConfigProperty);

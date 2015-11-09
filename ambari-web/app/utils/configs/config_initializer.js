@@ -211,7 +211,7 @@ function getMultipleMountPointsConfig(components, winReplacer) {
  * Map with configurations for config initializers
  * It's used only for initializers which are common for some configs (if not - use <code>uniqueInitializers</code>-map)
  * Key {string} configProperty-name
- * Value {object} settings for initializer
+ * Value {object|object[]} settings for initializer
  *
  * @type {object}
  */
@@ -328,7 +328,7 @@ var uniqueInitializers = {
  *
  * @type {object}
  */
-module.exports = {
+App.ConfigInitializer = Em.Object.create({
 
   /**
    * Wrapper for common initializers
@@ -342,14 +342,17 @@ module.exports = {
    */
   _defaultInitializer: function (configProperty, localDB, dependencies) {
     var args = [].slice.call(arguments);
+    var self = this;
     var initializer = initializers[configProperty.get('name')];
     if (initializer) {
-      var type = initializerTypes[initializer.type];
-      // add initializer-settings
-      args.push(initializer);
-      var methodName = type.method;
-      Em.assert('method-initializer is not a function ' + methodName, 'function' === Em.typeOf(this[methodName]));
-      configProperty = this[methodName].apply(this, args);
+      Em.makeArray(initializer).forEach(function (init) {
+        var type = initializerTypes[init.type];
+        // add initializer-settings
+        args.push(init);
+        var methodName = type.method;
+        Em.assert('method-initializer is not a function ' + methodName, 'function' === Em.typeOf(self[methodName]));
+        configProperty = self[methodName].apply(self, args);
+      });
     }
     return configProperty;
   },
@@ -902,4 +905,4 @@ module.exports = {
     Em.assert('Available only for testing', false);
   }
 
-};
+});
