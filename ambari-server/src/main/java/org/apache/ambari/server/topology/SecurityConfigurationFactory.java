@@ -99,12 +99,6 @@ public class SecurityConfigurationFactory {
 
       Object descriptorJsonMap = securityProperties.get(KERBEROS_DESCRIPTOR_PROPERTY_ID);
 
-      if (descriptorReference == null && descriptorJsonMap == null) {
-        LOGGER.error("Both kerberos descriptor and kerberos descriptor reference are null in the security configuration!");
-        throw new IllegalArgumentException(KERBEROS_DESCRIPTOR_PROPERTY_ID + " or "
-            + KERBEROS_DESCRIPTOR_REFERENCE_PROPERTY_ID + " is required for KERBEROS security setup.");
-      }
-
       if (descriptorReference != null && descriptorJsonMap != null) {
         LOGGER.error("Both kerberos descriptor and kerberos descriptor reference are set in the security configuration!");
         throw new IllegalArgumentException("Usage of properties : " + KERBEROS_DESCRIPTOR_PROPERTY_ID + " and "
@@ -120,9 +114,12 @@ public class SecurityConfigurationFactory {
           descriptorReference = persistKerberosDescriptor(descriptorText);
         }
         securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS, descriptorReference, descriptorText);
-      } else { // this means the reference is not null
+      } else if (descriptorReference != null) { // this means the reference is not null
         LOGGER.debug("Found descriptor reference: {}", descriptorReference);
         securityConfiguration = loadSecurityConfigurationByReference(descriptorReference);
+      } else {
+        LOGGER.debug("There is no security descriptor found in the request");
+        securityConfiguration = new SecurityConfiguration(SecurityType.KERBEROS);
       }
     } else {
       LOGGER.debug("There is no security configuration found in the request");

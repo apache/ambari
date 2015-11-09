@@ -139,7 +139,10 @@ public class TopologyManager {
       // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
       // upon host install task execution
       ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType());
-      submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
+      if (securityConfiguration.getDescriptor() != null) {
+        submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
+      }
+
       Credential credential = request.getCredentialsMap().get(KDC_ADMIN_CREDENTIAL);
       if (credential == null) {
         throw new InvalidTopologyException(KDC_ADMIN_CREDENTIAL + " is missing from request.");
@@ -219,7 +222,8 @@ public class TopologyManager {
       // todo - perform this logic at request creation instead!
       LOG.debug("There's no security configuration in the request, retrieving it from the associated blueprint");
       securityConfiguration = request.getBlueprint().getSecurity();
-      if (securityConfiguration.getType() == SecurityType.KERBEROS) {
+      if (securityConfiguration.getType() == SecurityType.KERBEROS &&
+        securityConfiguration.getDescriptorReference() != null) {
         securityConfiguration = securityConfigurationFactory.loadSecurityConfigurationByReference
           (securityConfiguration.getDescriptorReference());
       }
