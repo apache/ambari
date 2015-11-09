@@ -2558,7 +2558,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         StageUtils.getClusterHostInfo(cluster));
 
     // Hack - Remove passwords from configs
-    if (ec.getRole().equals(Role.HIVE_CLIENT.toString()) &&
+    if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
+            ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
+            ec.getRole().equals(Role.HCAT.toString())) &&
         ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
       ec.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
     }

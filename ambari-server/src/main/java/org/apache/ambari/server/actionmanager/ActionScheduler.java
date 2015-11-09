@@ -329,7 +329,9 @@ class ActionScheduler implements Runnable {
         for (ExecutionCommand cmd : commandsToSchedule) {
 
           // Hack - Remove passwords from configs
-          if (cmd.getRole().equals(Role.HIVE_CLIENT.toString()) &&
+          if ((cmd.getRole().equals(Role.HIVE_CLIENT.toString()) ||
+                  cmd.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
+                  cmd.getRole().equals(Role.HCAT.toString())) &&
                   cmd.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
             cmd.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
           }
