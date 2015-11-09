@@ -92,6 +92,10 @@ function enable_normalization
     command="$command \n alter_async '$table', {NORMALIZATION_ENABLED => 'true'}"
   done
   echo -e ${command} | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "WARNING: Failed to enable Ambari Metrics data model normalization."
+     >&2 echo "WARNING: Failed to enable Ambari Metrics data model normalization."
+  fi
 }
 
 function hadoop_java_setup
@@ -224,11 +228,12 @@ function start()
     sleep 5
   done
   if [ $? -ne 0 ]; then
-    echo "Ambari Metrics data model initialization failed."
-    exit -1
+    echo "WARNING: Ambari Metrics data model initialization failed."
+     >&2 echo "WARNING: Ambari Metrics data model initialization failed."
+  else
+    enable_normalization
   fi
 
-  enable_normalization
   }
 
 function stop()
