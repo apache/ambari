@@ -241,7 +241,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   initDBProperties: function () {
     var props = this.getDBProperties(this.get('wizardStorageProperties'));
     Em.keys(props).forEach(function (k) {
-      if (props[k]) {
+      if (!Em.isNone(props[k])) {
         this.set(k, props[k]);
       }
     }, this);

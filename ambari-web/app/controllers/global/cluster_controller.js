@@ -286,6 +286,7 @@ App.ClusterController = Em.Controller.extend({
       var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
       var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
       var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
+      var fromVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.from_version);
 
       if (!Em.isNone(dbUpgradeState)) {
         App.set('upgradeState', dbUpgradeState);
@@ -298,6 +299,7 @@ App.ClusterController = Em.Controller.extend({
           upgradeState: lastUpgradeData.Upgrade.request_status,
           upgradeType: lastUpgradeData.Upgrade.upgrade_type,
           downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
+          upgradeTypeDisplayName: fromVersion && fromVersion.get('displayName'),
           failuresTolerance: Em.Object.create({
             skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
             skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
