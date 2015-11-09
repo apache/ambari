@@ -199,6 +199,18 @@ Em.View.reopen({
     } else {
       console.debug('Calling set on destroyed view');
     }
+  },
+
+  /**
+   * overwritten setProperties method of Ember.View to avoid uncaught errors
+   * when trying to set multiple properties of destroyed view
+   */
+  setProperties: function(hash){
+    if(!this.get('isDestroyed') && !this.get('isDestroying')){
+      this._super(hash);
+    } else {
+      console.debug('Calling setProperties on destroyed view');
+    }
   }
 });
 
