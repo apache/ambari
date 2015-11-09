@@ -95,6 +95,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   private static final String PROPERTY_HDFS_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
 
   private static final String COLLECTOR_DEFAULT_PORT = "6188";
+  private static boolean vipHostConfigPresent = false;
 
   private static final Map<String, Map<String, String[]>> jmxDesiredProperties = new HashMap<String, Map<String, String[]>>();
   private volatile Map<String, String> clusterHdfsSiteConfigVersionMap = new HashMap<String, String>();
@@ -290,6 +291,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
       String currentConfigVersion = getDesiredConfigVersion(clusterName, configType);
       String oldConfigVersion = serviceConfigVersions.get(configType);
       if (!currentConfigVersion.equals(oldConfigVersion)) {
+        vipHostConfigPresent = false;
         serviceConfigVersions.put(configType, currentConfigVersion);
         Map<String, String> configProperties = getDesiredConfigMap
           (clusterName, currentConfigVersion, configType,
@@ -300,6 +302,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
           clusterMetricserverVipHost = configProperties.get("METRICS_COLLECTOR");
           if (clusterMetricserverVipHost != null) {
             clusterMetricCollectorMap.put(clusterName, clusterMetricserverVipHost);
+            vipHostConfigPresent = true;
           }
         }
         // updating the port value, because both vip properties are stored in
@@ -315,6 +318,26 @@ public abstract class AbstractProviderModule implements ProviderModule,
       }
     } catch (NoSuchParentResourceException | UnsupportedPropertyException e) {
       LOG.warn("Failed to retrieve collector hostname.", e);
+    }
+
+    //If vip config not present
+    //  If current collector host is null or if the host or the host component not live
+    //    Update clusterMetricCollectorMap with a live metric collector host.
+    if (!vipHostConfigPresent) {
+      String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
+      if(! (isHostLive(clusterName, currentCollectorHost) &&
+        isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name())) ) {
+        for (String hostname : metricServerHosts) {
+          if (isHostLive(clusterName, hostname)
+            && isHostComponentLive(clusterName, hostname, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name())) {
+            clusterMetricCollectorMap.put(clusterName, hostname);
+            LOG.debug("New Metrics Collector Host : " + hostname);
+            break;
+          } else {
+            LOG.debug("Metrics Collector Host or host component not live : " + hostname);
+          }
+        }
+      }
     }
     return clusterMetricCollectorMap.get(clusterName);
   }
@@ -767,7 +790,20 @@ public abstract class AbstractProviderModule implements ProviderModule,
             clusterGangliaCollectorMap.put(clusterName, hostName);
           }
           if (componentName.equals(METRIC_SERVER)) {
-            clusterMetricCollectorMap.put(clusterName, hostName);
+            //If vip config not present
+            //  If current collector host is null or if the host or the host component not live
+            //    Update clusterMetricCollectorMap.
+            if (!vipHostConfigPresent) {
+              String currentCollectorHost = clusterMetricCollectorMap.get(clusterName);
+              LOG.debug("Current Metrics collector Host : " + currentCollectorHost);
+              if ((currentCollectorHost == null) ||
+                !(isHostLive(clusterName, currentCollectorHost) &&
+                  isHostComponentLive(clusterName, currentCollectorHost, "AMBARI_METRICS", Role.METRICS_COLLECTOR.name()))
+                ) {
+                LOG.debug("New Metrics collector Host : " + hostName);
+                clusterMetricCollectorMap.put(clusterName, hostName);
+              }
+            }
             metricServerHosts.add(hostName);
           }
         }
