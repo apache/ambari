@@ -470,5 +470,36 @@ App.upgradeWizardView = Em.View.extend({
   pauseUpgrade: function() {
     this.get('controller').suspendUpgrade();
     this.get('parentView').closeWizard();
+  },
+
+  /**
+   * hosts failed to be upgraded
+   * @type {Array}
+   */
+  failedHosts: function() {
+    if (this.get('isSlaveComponentFailuresItem') && this.get('controller.areSlaveComponentFailuresHostsLoaded')) {
+      return this.get('controller.slaveComponentFailuresHosts');
+    }
+    if (this.get('isServiceCheckFailuresItem') && this.get('controller.areServiceCheckFailuresServicenamesLoaded')) {
+      return this.get('controller.slaveComponentFailuresHosts');
+    }
+    return [];
+  }.property('controller.areSlaveComponentFailuresHostsLoaded', 'isSlaveComponentFailuresItem',
+    'isServiceCheckFailuresItem', 'controller.areServiceCheckFailuresServicenamesLoaded'),
+
+  /**
+   * @type {string}
+   */
+  failedHostsMessage: function() {
+    return Em.I18n.t('admin.stackUpgrade.failedHosts.showHosts').format(this.get('failedHosts.length'));
+  }.property('failedHosts'),
+
+  showFailedHosts: function() {
+    return App.ModalPopup.show({
+      content: this.get('failedHosts').join(", "),
+      header: Em.I18n.t('common.hosts'),
+      bodyClass: App.SelectablePopupBodyView,
+      secondary: null
+    });
   }
 });

@@ -92,20 +92,21 @@
             <div class="box details-box">
               <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
               <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
-
-              {{#if areSlaveComponentFailuresHostsLoaded}}
-                {{#if slaveComponentFailuresHosts.length}}
-                  <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg1}}</div>
-                  <ul class="failed-info-list">
-                    {{#each hostName in slaveComponentFailuresHosts}}
-                      <li>{{hostName}}</li>
-                    {{/each}}
-                  </ul>
-                  <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg2}}</div>
-                {{/if}}
-              {{else}}
+              <p>
+                {{#if areSlaveComponentFailuresHostsLoaded}}
+                  {{t admin.stackUpgrade.failedHosts.message}}
+                    <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
+                {{else}}
                   <div class="spinner"></div>
-              {{/if}}
+                {{/if}}
+              </p>
+              <p>
+                {{t admin.stackUpgrade.failedHosts.options}}
+                <ul>
+                  <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
+                  <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                </ul>
+              </p>
 
               <label class="message">
                 {{view Em.Checkbox checkedBinding="view.isManualDone"}}
@@ -143,13 +144,17 @@
                   {{/if}}
                   {{#if slaveComponentFailuresHosts.length}}
                     <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
-                    <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg1}}</div>
-                    <ul class="failed-info-list">
-                      {{#each hostName in slaveComponentFailuresHosts}}
-                        <li>{{hostName}}</li>
-                      {{/each}}
-                    </ul>
-                    <div>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.msg2}}</div>
+                    <p>
+                      {{t admin.stackUpgrade.failedHosts.message}}
+                      <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
+                    </p>
+                    <p>
+                      {{t admin.stackUpgrade.failedHosts.options}}
+                      <ul>
+                        <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
+                        <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                      </ul>
+                    </p>
                   {{/if}}
                 {{else}}
                     <div class="spinner"></div>
