@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
  * Enum that wraps the various type, text and failure messages for the checks
  * done for Rolling Upgrades.
  */
+@SuppressWarnings("serial")
 public enum CheckDescription {
 
   CLIENT_RETRY(PrereqCheckType.SERVICE,
@@ -38,12 +39,17 @@ public enum CheckDescription {
       }}),
 
   HOSTS_HEARTBEAT(PrereqCheckType.HOST,
-      "All hosts must be heartbeating with the Ambari Server unless they are in Maintenance Mode",
+      "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-            "The following hosts must be heartbeating to the Ambari Server or be put into maintenance mode.");
-        put(HostsHeartbeatCheck.KEY_HOSTS_IN_MM_WARNING,
-            "The following hosts are in maintenance mode and will not be a part of the upgrade.");
+            "There are hosts which are not communicating with Ambari.");
+      }}),
+
+  HOSTS_MAINTENANCE_MODE(PrereqCheckType.HOST,
+      "Hosts in Maintenance Mode will be excluded from the upgrade.",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There are hosts in Maintenance Mode which excludes them from being upgraded.");
       }}),
 
   HOSTS_MASTER_MAINTENANCE(PrereqCheckType.HOST,
