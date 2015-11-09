@@ -89,6 +89,7 @@ import org.apache.ambari.server.security.authorization.AmbariLdapAuthenticationP
 import org.apache.ambari.server.security.authorization.AmbariLocalUserDetailsService;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.AmbariInternalAuthenticationProvider;
+import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationFilter;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
@@ -275,6 +276,8 @@ public class AmbariServer {
           injector.getInstance(AmbariAuthorizationFilter.class));
       factory.registerSingleton("ambariInternalAuthenticationProvider",
           injector.getInstance(AmbariInternalAuthenticationProvider.class));
+      factory.registerSingleton("ambariJwtAuthenticationFilter",
+          injector.getInstance(JwtAuthenticationFilter.class));
 
       //Spring Security xml config depends on this Bean
 

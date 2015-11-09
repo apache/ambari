@@ -17,13 +17,7 @@
  */
 package org.apache.ambari.server.security.authorization;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import javax.persistence.EntityManager;
 
 import org.apache.ambari.server.AmbariException;
@@ -50,6 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -105,6 +100,11 @@ public class Users {
 
   public User getAnyUser(String userName) {
     UserEntity userEntity = userDAO.findUserByName(userName);
+    return (null == userEntity) ? null : new User(userEntity);
+  }
+
+  public User getUser(String userName, UserType userType) {
+    UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
     return (null == userEntity) ? null : new User(userEntity);
   }
 
@@ -238,7 +238,6 @@ public class Users {
    * @param ldapUser is user LDAP
    * @throws AmbariException if user already exists
    */
-  @Transactional
   public synchronized void createUser(String userName, String password, Boolean active, Boolean admin, Boolean ldapUser) throws AmbariException {
 
     if (getAnyUser(userName) != null) {
@@ -275,7 +274,44 @@ public class Users {
     }
   }
 
-  @Transactional
+  public synchronized void createUser(String userName, String password, UserType userType, Boolean active, Boolean
+      admin) throws AmbariException {
+    if (getUser(userName, userType) != null) {
+      throw new AmbariException("User " + userName + " already exists");
+    }
+
+    PrincipalTypeEntity principalTypeEntity = principalTypeDAO.findById(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+    if (principalTypeEntity == null) {
+      principalTypeEntity = new PrincipalTypeEntity();
+      principalTypeEntity.setId(PrincipalTypeEntity.USER_PRINCIPAL_TYPE);
+      principalTypeEntity.setName(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME);
+      principalTypeDAO.create(principalTypeEntity);
+    }
+    PrincipalEntity principalEntity = new PrincipalEntity();
+    principalEntity.setPrincipalType(principalTypeEntity);
+    principalDAO.create(principalEntity);
+
+    UserEntity userEntity = new UserEntity();
+    userEntity.setUserName(userName);
+    if (userType == null || userType == UserType.LOCAL) {
+      //passwords should be stored for local users only
+      userEntity.setUserPassword(passwordEncoder.encode(password));
+    }
+    userEntity.setPrincipal(principalEntity);
+    if (active != null) {
+      userEntity.setActive(active);
+    }
+    if (userType != null) {
+      userEntity.setUserType(userType);
+    }
+
+    userDAO.create(userEntity);
+
+    if (admin != null && admin) {
+      grantAdminPrivilege(userEntity.getUserId());
+    }
+  }
+
   public synchronized void removeUser(User user) throws AmbariException {
     UserEntity userEntity = userDAO.findByPK(user.getUserId());
     if (userEntity != null) {
@@ -652,6 +688,34 @@ public class Users {
 
     // clear cached entities
     entityManagerProvider.get().getEntityManagerFactory().getCache().evictAll();
+  }
+
+  public Collection<AmbariGrantedAuthority> getUserAuthorities(String userName, UserType userType) {
+    UserEntity userEntity = userDAO.findUserByNameAndType(userName, userType);
+    if (userEntity == null) {
+      return Collections.emptyList();
+    }
+
+    // get all of the privileges for the user
+    List<PrincipalEntity> principalEntities = new LinkedList<PrincipalEntity>();
+
+    principalEntities.add(userEntity.getPrincipal());
+
+    List<MemberEntity> memberEntities = memberDAO.findAllMembersByUser(userEntity);
+
+    for (MemberEntity memberEntity : memberEntities) {
+      principalEntities.add(memberEntity.getGroup().getPrincipal());
+    }
+
+    List<PrivilegeEntity> privilegeEntities = privilegeDAO.findAllByPrincipal(principalEntities);
+
+    Set<AmbariGrantedAuthority> authorities = new HashSet<>(privilegeEntities.size());
+
+    for (PrivilegeEntity privilegeEntity : privilegeEntities) {
+      authorities.add(new AmbariGrantedAuthority(privilegeEntity));
+    }
+
+    return authorities;
   }
 
 }

@@ -24,9 +24,10 @@
 
   <http use-expressions="true"
         disable-url-rewriting="true" entry-point-ref="ambariEntryPoint">
-    <http-basic entry-point-ref="ambariEntryPoint"/>
+    <http-basic/>
     <intercept-url pattern="/**" access="isAuthenticated()"/>
-    <custom-filter ref="ambariAuthorizationFilter" after="BASIC_AUTH_FILTER"/>
+    <custom-filter ref="ambariJwtAuthenticationFilter" after="BASIC_AUTH_FILTER" />
+    <custom-filter ref="ambariAuthorizationFilter" before="FILTER_SECURITY_INTERCEPTOR"/>
   </http>
 
   <!--<ldap-server id="ldapServer" root="dc=ambari,dc=apache,dc=org"/>-->

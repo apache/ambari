@@ -65,6 +65,7 @@ import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.scheduler.ExecutionScheduler;
 import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
+import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -119,6 +120,7 @@ import org.springframework.core.type.filter.AnnotationTypeFilter;
 import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
@@ -345,6 +347,8 @@ public class ControllerModule extends AbstractModule {
     bind(SecurityConfigurationFactory.class).in(Scopes.SINGLETON);
 
     bind(PersistedState.class).to(PersistedStateImpl.class);
+
+    bind(AuthenticationEntryPoint.class).to(AmbariEntryPoint.class).in(Scopes.SINGLETON);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);

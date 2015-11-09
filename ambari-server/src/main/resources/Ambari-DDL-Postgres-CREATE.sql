@@ -195,12 +195,12 @@ CREATE TABLE users (
   principal_id BIGINT NOT NULL,
   ldap_user INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL,
+  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   create_time TIMESTAMP DEFAULT NOW(),
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
-  PRIMARY KEY (user_id),
-  UNIQUE (ldap_user, user_name));
+  PRIMARY KEY (user_id));
 
 CREATE TABLE groups (
   group_id INTEGER,
@@ -643,6 +643,7 @@ CREATE TABLE topology_logical_task (
 );
 
 --------altering tables by creating unique constraints----------
+ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type);
 ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
 ALTER TABLE hosts ADD CONSTRAINT UQ_hosts_host_name UNIQUE (host_name);

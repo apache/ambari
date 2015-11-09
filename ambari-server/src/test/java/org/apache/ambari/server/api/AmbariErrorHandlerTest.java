@@ -21,6 +21,7 @@ package org.apache.ambari.server.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.sun.jersey.api.client.*;
+import org.apache.ambari.server.configuration.Configuration;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -51,13 +52,14 @@ public class AmbariErrorHandlerTest {
   @Test
   public void testErrorWithJetty() throws Exception {
     Server server = new Server(0);
+    Configuration configuration = new Configuration();
 
     ServletContextHandler root = new ServletContextHandler(server, "/",
       ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
 
     root.addServlet(HelloServlet.class, "/hello");
     root.addServlet(DefaultServlet.class, "/");
-    root.setErrorHandler(new AmbariErrorHandler(gson));
+    root.setErrorHandler(new AmbariErrorHandler(gson, configuration));
 
     server.start();
 

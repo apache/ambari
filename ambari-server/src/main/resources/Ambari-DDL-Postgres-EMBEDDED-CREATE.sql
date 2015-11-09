@@ -222,12 +222,12 @@ CREATE TABLE ambari.users (
   principal_id BIGINT NOT NULL,
   ldap_user INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL,
+  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   create_time TIMESTAMP DEFAULT NOW(),
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
-  PRIMARY KEY (user_id),
-  UNIQUE (ldap_user, user_name));
+  PRIMARY KEY (user_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;
 
 CREATE TABLE ambari.groups (
@@ -722,6 +722,7 @@ CREATE TABLE ambari.topology_logical_task (
 GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_task TO :username;
 
 --------altering tables by creating unique constraints----------
+ALTER TABLE ambari.users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
 ALTER TABLE ambari.hosts ADD CONSTRAINT UQ_hosts_host_name UNIQUE (host_name);

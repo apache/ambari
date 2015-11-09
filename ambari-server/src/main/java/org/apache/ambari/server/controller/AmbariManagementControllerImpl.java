@@ -3202,7 +3202,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // get them all
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
+          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
+              .isAdmin());
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }
@@ -3217,7 +3218,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 + r.getUsername() + "'");
           }
         } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
+          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
+              .isAdmin());
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }

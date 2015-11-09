@@ -17,18 +17,25 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import org.apache.ambari.server.security.authorization.UserType;
+
 import javax.persistence.*;
 
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-@Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "ldap_user"})})
+@Table(name = "users", uniqueConstraints = {@UniqueConstraint(columnNames = {"user_name", "user_type"})})
 @Entity
 @NamedQueries({
-    @NamedQuery(name = "userByName", query = "SELECT user_entity from UserEntity user_entity where lower(user_entity.userName)=:username"),
-    @NamedQuery(name = "localUserByName", query = "SELECT user_entity FROM UserEntity user_entity where lower(user_entity.userName)=:username AND user_entity.ldapUser=false"),
-    @NamedQuery(name = "ldapUserByName", query = "SELECT user_entity FROM UserEntity user_entity where lower(user_entity.userName)=:username AND user_entity.ldapUser=true")
+    @NamedQuery(name = "userByName", query = "SELECT user_entity from UserEntity user_entity " +
+        "where lower(user_entity.userName)=:username"),
+    @NamedQuery(name = "localUserByName", query = "SELECT user_entity FROM UserEntity user_entity " +
+        "where lower(user_entity.userName)=:username AND " +
+        "user_entity.userType=org.apache.ambari.server.security.authorization.UserType.LOCAL"),
+    @NamedQuery(name = "ldapUserByName", query = "SELECT user_entity FROM UserEntity user_entity " +
+        "where lower(user_entity.userName)=:username AND " +
+        "user_entity.userType=org.apache.ambari.server.security.authorization.UserType.LDAP")
 })
 @TableGenerator(name = "user_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
@@ -48,6 +55,11 @@ public class UserEntity {
 
   @Column(name = "ldap_user")
   private Integer ldapUser = 0;
+
+  @Column(name = "user_type")
+  @Enumerated(EnumType.STRING)
+  @Basic
+  private UserType userType = UserType.LOCAL;
 
   @Column(name = "user_password")
   @Basic
@@ -99,7 +111,16 @@ public class UserEntity {
       this.ldapUser = null;
     } else {
       this.ldapUser = ldapUser ? 1 : 0;
+      this.userType = ldapUser ? UserType.LDAP : UserType.LOCAL;
     }
+  }
+
+  public UserType getUserType() {
+    return userType;
+  }
+
+  public void setUserType(UserType userType) {
+    this.userType = userType;
   }
 
   public String getUserPassword() {
@@ -176,6 +197,7 @@ public class UserEntity {
     if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
     if (createTime != null ? !createTime.equals(that.createTime) : that.createTime != null) return false;
     if (ldapUser != null ? !ldapUser.equals(that.ldapUser) : that.ldapUser != null) return false;
+    if (userType != null ? !userType.equals(that.userType) : that.userType != null) return false;
     if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
     if (userPassword != null ? !userPassword.equals(that.userPassword) : that.userPassword != null) return false;
     if (active != null ? !active.equals(that.active) : that.active != null) return false;
@@ -189,6 +211,7 @@ public class UserEntity {
     result = 31 * result + (userName != null ? userName.hashCode() : 0);
     result = 31 * result + (userPassword != null ? userPassword.hashCode() : 0);
     result = 31 * result + (ldapUser != null ? ldapUser.hashCode() : 0);
+    result = 31 * result + (userType != null ? userType.hashCode() : 0);
     result = 31 * result + (createTime != null ? createTime.hashCode() : 0);
     result = 31 * result + (active != null ? active.hashCode() : 0);
     return result;
