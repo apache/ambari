@@ -101,7 +101,7 @@
 
   <property>
     <name>spark.history.provider</name>
-    <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
+    <value>org.apache.spark.deploy.history.yarn.server.YarnHistoryProvider</value>
     <description>
       Name of the class implementing the application history backend which publishes to YARN Application Timeline Service.
     </description>
