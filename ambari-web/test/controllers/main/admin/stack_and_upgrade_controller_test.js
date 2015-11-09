@@ -444,21 +444,37 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#initDBProperties()", function() {
     before(function () {
-      sinon.stub(controller, 'getDBProperties', function (prop) {
-        var ret = {};
-        prop.forEach(function (k) {
-          ret[k] = k;
-        });
-        return ret;
-      });
+      this.mock = sinon.stub(controller, 'getDBProperties');
     });
     after(function () {
-      controller.getDBProperties.restore();
+      this.mock.restore();
     });
-    it("set properties", function () {
-      controller.set('wizardStorageProperties', ['prop1']);
+    it("set string properties", function () {
+      this.mock.returns({prop: 'string'});
       controller.initDBProperties();
-      expect(controller.get('prop1')).to.equal('prop1');
+      expect(controller.get('prop')).to.equal('string');
+    });
+    it("set number properties", function () {
+      this.mock.returns({prop: 0});
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal(0);
+    });
+    it("set boolean properties", function () {
+      this.mock.returns({prop: false});
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.be.false;
+    });
+    it("set undefined properties", function () {
+      this.mock.returns({prop: undefined});
+      controller.set('prop', 'value');
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal('value');
+    });
+    it("set null properties", function () {
+      this.mock.returns({prop: null});
+      controller.set('prop', 'value');
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal('value');
     });
   });
 

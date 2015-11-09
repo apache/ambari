@@ -207,11 +207,12 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var currentRequestIds = [];
     var countIssued = this.get('operationsCount');
     var countGot = data.itemTotal;
+    var restoreUpgradeState = false;
 
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
         if (!App.get('upgradeIsRunning') && !App.get('testMode')) {
-          App.router.get('clusterController').restoreUpgradeState();
+          restoreUpgradeState = true;
         }
         return;
       }
@@ -252,6 +253,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
       }
       runningServices += ~~isRunning;
     }, this);
+    if (restoreUpgradeState) {
+      App.router.get('clusterController').restoreUpgradeState();
+    }
     this.removeOldRequests(currentRequestIds);
     this.set("allOperationsCount", runningServices);
     this.set('isShowMoreAvailable', countGot >= countIssued);
