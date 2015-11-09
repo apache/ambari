@@ -204,9 +204,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   private void executeBlueprintDDLUpdates() throws AmbariException, SQLException {
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_TYPE_COLUMN,
-      String.class, 32, "NONE", false));
+        String.class, 32, "NONE", false));
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_DESCRIPTOR_REF_COLUMN,
-      String.class, null, null, true));
+        String.class, null, null, true));
   }
 
     /**
@@ -777,19 +777,29 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   protected void updateHbaseEnvConfig() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    boolean updateConfig = false;
 
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
       StackId stackId = cluster.getCurrentStackVersion();
-      if (stackId != null && stackId.getStackName().equals("HDP") &&
-               VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
-        Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
-        if (hbaseEnvConfig != null) {
-          String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
-          if (content != null && content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
-            String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
-            content += newPartOfContent;
-            Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
-            updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
+      Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
+      if (hbaseEnvConfig != null) {
+        String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          if (!content.contains("-Djava.io.tmpdir")) {
+            content += "\n\nexport HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"";
+            updateConfig = true;
+          }
+          if (stackId != null && stackId.getStackName().equals("HDP") &&
+              VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
+            if (content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
+              String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
+              content += newPartOfContent;
+              updateConfig = true;
+            }
+            if (updateConfig) {
+              Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+              updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
+            }
           }
         }
       }

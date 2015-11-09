@@ -103,6 +103,7 @@ java64_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
 log_dir = config['configurations']['hbase-env']['hbase_log_dir']
+java_io_tmpdir = config['configurations']['hbase-env']['hbase_java_io_tmpdir']
 master_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_master_heapsize'])
 
 regionserver_heapsize = ensure_unit_for_memory(config['configurations']['hbase-env']['hbase_regionserver_heapsize'])

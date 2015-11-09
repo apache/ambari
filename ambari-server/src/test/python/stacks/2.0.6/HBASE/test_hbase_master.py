@@ -235,6 +235,12 @@ class TestHBaseMaster(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
+    )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
                               cd_access = 'a',
@@ -358,6 +364,12 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
@@ -492,7 +504,12 @@ class TestHBaseMaster(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       recursive = True)
-
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
+    )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
                               cd_access = 'a',
