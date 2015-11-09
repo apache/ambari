@@ -230,8 +230,16 @@ App.upgradeWizardView = Em.View.extend({
       var version = App.RepositoryVersion.find().findProperty('displayName', this.get('controller.upgradeVersion'));
       return version ? version.get('notInstalledHosts') : [];
     }
+    if (this.get('isSlaveComponentFailuresItem') && this.get('controller.areSlaveComponentFailuresHostsLoaded')) {
+      return this.get('controller.slaveComponentFailuresHosts');
+    }
+    if (this.get('isServiceCheckFailuresItem') && this.get('controller.areServiceCheckFailuresServicenamesLoaded')) {
+      return this.get('controller.slaveComponentFailuresHosts');
+    }
     return [];
-  }.property('isResolveHostsItem', 'controller.upgradeVersion', 'controller.isLoaded'),
+  }.property('isResolveHostsItem', 'controller.upgradeVersion', 'controller.isLoaded',
+    'controller.areSlaveComponentFailuresHostsLoaded', 'isSlaveComponentFailuresItem',
+    'isServiceCheckFailuresItem', 'controller.areServiceCheckFailuresServicenamesLoaded'),
 
   /**
    * @type {string}
