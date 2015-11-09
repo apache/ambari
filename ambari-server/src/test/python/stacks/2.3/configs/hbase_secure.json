@@ -524,7 +524,8 @@
             "hbase_regionserver_heapsize": "1024m", 
             "hbase_log_dir": "/var/log/hbase", 
             "hbase_max_direct_memory_size": "", 
-            "hbase_principal_name": "hbase@EXAMPLE.COM"
+            "hbase_principal_name": "hbase@EXAMPLE.COM",
+            "hbase_java_io_tmpdir" : "/tmp"
         }, 
         "zookeeper-env": {
             "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab", 

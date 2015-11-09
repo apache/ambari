@@ -217,6 +217,12 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
+    )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
                               cd_access = 'a',
@@ -317,6 +323,12 @@ class TestPhoenixQueryServer(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,

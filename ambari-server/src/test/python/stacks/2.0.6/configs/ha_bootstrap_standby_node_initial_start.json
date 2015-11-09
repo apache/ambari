@@ -415,7 +415,8 @@
             "hbase_regionserver_heapsize": "1024m",
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "hbase_java_io_tmpdir" : "/tmp"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 

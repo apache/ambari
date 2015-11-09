@@ -249,7 +249,8 @@
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
             "hbase_log_dir": "/var/log/hbase",
-            "phoenix_sql_enabled": "false"
+            "phoenix_sql_enabled": "false",
+            "hbase_java_io_tmpdir" : "/tmp"
         },
         "zookeeper-env": {
           "zk_user": "zookeeper",
