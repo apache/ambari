@@ -33,6 +33,7 @@ from resource_management.core.logger import Logger
 
 @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
 @patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
+@patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0,'123','')))
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -80,7 +81,7 @@ class TestHiveServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -112,7 +113,7 @@ class TestHiveServer(RMFTestCase):
                               environment = {'HADOOP_HOME': '/usr',
                                              'HIVE_BIN': 'hive',
                                              'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-                              not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+                              not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
                               user = 'hive',
                               path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
                               )
@@ -144,7 +145,7 @@ class TestHiveServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -176,7 +177,7 @@ class TestHiveServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -208,7 +209,7 @@ class TestHiveServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -228,13 +229,13 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'`",
-        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1)",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'`",
-        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1) )",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) )",
     )
-    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1)",
+    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
         tries = 20,
         try_sleep = 3,
     )
@@ -281,7 +282,7 @@ class TestHiveServer(RMFTestCase):
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1",
+        not_if = "ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1",
         user = 'hive',
         path = ['/bin:/usr/lib/hive/bin:/usr/bin'],
     )
@@ -311,13 +312,13 @@ class TestHiveServer(RMFTestCase):
                               user = 'hive',
                               )
 
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'`",
-        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1)",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
     )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'`",
-        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1) )",
+    self.assertResourceCalled('Execute', "ambari-sudo.sh kill -9 123",
+        not_if = "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) || ( sleep 5 && ! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1) )",
     )
-    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `ambari-sudo.sh su hive -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]cat /var/run/hive/hive-server.pid'` >/dev/null 2>&1)",
+    self.assertResourceCalled('Execute', "! (ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p 123 >/dev/null 2>&1)",
         tries = 20,
         try_sleep = 3,
     )
