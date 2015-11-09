@@ -18,14 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -40,10 +34,13 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
 
 
 /**
@@ -87,6 +84,9 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
     super(injector);
 
     daoUtils = injector.getInstance(DaoUtils.class);
+  }
+
+  protected UpgradeCatalog212() {
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------
@@ -133,8 +133,13 @@ public class UpgradeCatalog212 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
-    addClusterIdToTopology();
-    finilizeTopologyDDL();
+    if (dbAccessor.tableHasColumn(TOPOLOGY_REQUEST_TABLE, TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN)) {
+      addClusterIdToTopology();
+      finilizeTopologyDDL();
+    } else {
+      LOG.debug("The column: [ {} ] has already been dropped from table: [ {} ]. Skipping preDMLUpdate logic.",
+          TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN, TOPOLOGY_REQUEST_TABLE);
+    }
   }
 
   protected void finilizeTopologyDDL() throws AmbariException, SQLException {

@@ -18,30 +18,13 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static junit.framework.Assert.assertEquals;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.persistence.EntityManager;
-
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -58,35 +41,88 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
+import org.easymock.Mock;
+import org.easymock.MockType;
+import org.easymock.TestSubject;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog212} unit tests.
  */
 public class UpgradeCatalog212Test {
+
+  private static final String TOPOLOGY_REQUEST_TABLE = "topology_request";
+  private static final String TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN = "cluster_name";
+
   private Injector injector;
-  private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
-  private EntityManager entityManager = createNiceMock(EntityManager.class);
+
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
+  @Mock(type = MockType.STRICT)
+  private Provider<EntityManager> entityManagerProvider;
+
+  @Mock(type = MockType.NICE)
+  private EntityManager entityManager;
+
+  @Mock(type = MockType.NICE)
+  private DBAccessor dbAccessor;
+
+  @Mock
+  private Injector mockedInjector;
+
+  @Mock(type = MockType.NICE)
+  private Connection connection;
+
+  @Mock
+  private Statement statement;
+
+  @Mock
+  private ResultSet resultSet;
+
+  @TestSubject
+  private UpgradeCatalog212 testSubject = new UpgradeCatalog212();
+
+
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
 
-  @Before
-  public void init() {
+
+  // This method to be called only when an IOC is needed - typically by functional tests
+  public void setupIoCContext() {
     reset(entityManagerProvider);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
     replay(entityManagerProvider);
+
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
@@ -100,34 +136,15 @@ public class UpgradeCatalog212Test {
 
   @After
   public void tearDown() {
-    injector.getInstance(PersistService.class).stop();
+    if (injector != null) {
+      injector.getInstance(PersistService.class).stop();
+    }
   }
 
-  @Test
-  public void testExecutePreDMLUpdates() throws Exception {
-    Method addClusterIdToTopology = UpgradeCatalog212.class.getDeclaredMethod("addClusterIdToTopology");
-    Method finilizeTopologyDDL = UpgradeCatalog212.class.getDeclaredMethod("finilizeTopologyDDL");
-
-    UpgradeCatalog212 upgradeCatalog212 = createMockBuilder(UpgradeCatalog212.class)
-            .addMockedMethod(addClusterIdToTopology)
-            .addMockedMethod(finilizeTopologyDDL)
-            .createMock();
-
-    upgradeCatalog212.addClusterIdToTopology();
-    expectLastCall().once();
-
-    upgradeCatalog212.finilizeTopologyDDL();
-    expectLastCall().once();
-
-    replay(upgradeCatalog212);
-
-    upgradeCatalog212.executePreDMLUpdates();
-
-    verify(upgradeCatalog212);
-  }
 
   @Test
   public void testFinilizeTopologyDDL() throws Exception {
+    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     dbAccessor.dropColumn(eq("topology_request"), eq("cluster_name"));
     dbAccessor.setColumnNullable(eq("topology_request"), eq("cluster_id"), eq(false));
@@ -152,6 +169,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDDLUpdates() throws Exception {
+    setupIoCContext();
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     Configuration configuration = createNiceMock(Configuration.class);
     Connection connection = createNiceMock(Connection.class);
@@ -189,6 +207,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testExecuteDMLUpdates() throws Exception {
+    setupIoCContext();
     Method addMissingConfigs = UpgradeCatalog212.class.getDeclaredMethod("addMissingConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
 
@@ -212,6 +231,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHBaseAdnClusterConfigs() throws Exception {
+    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -279,6 +299,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveConfigs() throws Exception {
+    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -325,6 +346,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateOozieConfigs() throws Exception {
+    setupIoCContext();
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
@@ -365,6 +387,7 @@ public class UpgradeCatalog212Test {
 
   @Test
   public void testUpdateHiveEnvContent() throws Exception {
+    setupIoCContext();
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -473,4 +496,64 @@ public class UpgradeCatalog212Test {
       Assert.assertEquals("auto_skip_on_failure", clusterIdColumn.getName());
     }
   }
+
+  @Test
+  public void testShouldSkipPreDMLLogicIfClusterNameColumnDoesNotExist() throws Exception {
+    // GIVEN
+    reset(dbAccessor);
+    Capture<String> tableNameCaptor = newCapture();
+    Capture<String> columnNameCaptor = newCapture();
+
+    // the column used by the logic is already deleted
+    // this could happen as a result of previously running the update
+    expect(dbAccessor.tableHasColumn(capture(tableNameCaptor), capture(columnNameCaptor))).andReturn(false);
+    replay(dbAccessor);
+
+    // WHEN
+    testSubject.executePreDMLUpdates();
+
+    // THEN
+    Assert.assertNotNull("The table name hasn't been captured", tableNameCaptor.getValue());
+    Assert.assertEquals("The table name is not as expected", TOPOLOGY_REQUEST_TABLE, tableNameCaptor.getValue());
+
+    Assert.assertNotNull("The column name hasn't been captured", columnNameCaptor.getValue());
+    Assert.assertEquals("The column name is not as expected", TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN,
+        columnNameCaptor.getValue());
+  }
+
+
+  @Test
+  public void testShouldPerformPreDMLLogicIfClusterNameColumnExists() throws Exception {
+    // GIVEN
+    reset(dbAccessor);
+    expect(dbAccessor.getConnection()).andReturn(connection).anyTimes();
+    expect(connection.createStatement()).andReturn(statement);
+
+    Capture<String> tableNameCaptor = newCapture();
+    Capture<String> columnNameCaptor = newCapture();
+
+    expect(dbAccessor.tableHasColumn(capture(tableNameCaptor), capture(columnNameCaptor))).andReturn(true);
+
+    expect(statement.executeQuery(anyString())).andReturn(resultSet);
+    statement.close();
+
+    expect(resultSet.next()).andReturn(false);
+    resultSet.close();
+
+    replay(dbAccessor, connection, statement, resultSet);
+
+    // WHEN
+    testSubject.executePreDMLUpdates();
+
+    // THEN
+    Assert.assertNotNull("The table name hasn't been captured", tableNameCaptor.getValue());
+    Assert.assertEquals("The table name is not as expected", TOPOLOGY_REQUEST_TABLE, tableNameCaptor.getValue());
+
+    Assert.assertNotNull("The column name hasn't been captured", columnNameCaptor.getValue());
+    Assert.assertEquals("The column name is not as expected", TOPOLOGY_REQUEST_CLUSTER_NAME_COLUMN,
+        columnNameCaptor.getValue());
+
+    verify(dbAccessor, statement, resultSet);
+  }
+
 }
