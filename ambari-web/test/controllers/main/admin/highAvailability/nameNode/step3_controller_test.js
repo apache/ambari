@@ -18,8 +18,53 @@
 
 var App = require('app');
 
+var controller;
+
 describe('App.HighAvailabilityWizardStep3Controller', function() {
-  
+
+  var serverConfigData = {
+    items: [
+      {
+        type: 'hdfs-site',
+        properties: {
+          'dfs.namenode.http-address': 'h1:1234',
+          'dfs.namenode.https-address': 'h1:4321',
+          'dfs.namenode.rpc-address': 'h1:1111',
+          'dfs.journalnode.edits.dir': '/hadoop/hdfs/journalnode123'
+        }
+      },
+      {
+        type: 'zoo.cfg',
+        properties: {
+          clientPort: '4444'
+        }
+      },
+      {
+        type: 'hbase-site',
+        properties: {
+          'hbase.rootdir': 'hdfs://h34:8020/apps/hbase/data'
+        }
+      },
+      {
+        type: 'ams-hbase-site',
+        properties: {
+          'hbase.rootdir': 'file:///var/lib/ambari-metrics-collector/hbase'
+        }
+      },
+      {
+        type: 'accumulo-site',
+        properties: {
+          'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data'
+        }
+      }
+    ]
+  };
+
+  beforeEach(function () {
+    controller = App.HighAvailabilityWizardStep3Controller.create();
+    controller.set('serverConfigData', serverConfigData);
+  });
+
   describe('#removeConfigs', function() {
 
     var tests = [
@@ -144,5 +189,143 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       });
     });
   });
+
+  describe('#tweakServiceConfigs', function () {
+
+    var nameServiceId = 'tdk';
+
+    var masterComponentHosts = [
+      {component: 'NAMENODE', isInstalled: true, hostName: 'h1'},
+      {component: 'NAMENODE', isInstalled: false, hostName: 'h2'},
+      {component: 'JOURNALNODE', hostName: 'h1'},
+      {component: 'JOURNALNODE', hostName: 'h2'},
+      {component: 'JOURNALNODE', hostName: 'h3'},
+      {component: 'ZOOKEEPER_SERVER', hostName: 'h1'},
+      {component: 'ZOOKEEPER_SERVER', hostName: 'h2'},
+      {component: 'ZOOKEEPER_SERVER', hostName: 'h3'}
+    ];
+
+    beforeEach(function () {
+      controller.set('content', Em.Object.create({
+        masterComponentHosts: masterComponentHosts,
+        slaveComponentHosts: [],
+        hosts: {},
+        nameServiceId: nameServiceId
+      }));
+      var get = sinon.stub(App, 'get');
+      get.withArgs('isHadoopWindowsStack').returns(true);
+      sinon.stub(App.Service, 'find', function () {
+        return [{serviceName: 'HDFS'}, {serviceName: 'HBASE'}, {serviceName: 'AMBARI_METRICS'}, {serviceName: 'ACCUMULO'}]
+      });
+    });
+
+    afterEach(function () {
+      App.Service.find.restore();
+      App.get.restore();
+    });
+
+    Em.A([
+      {
+        config: {
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn1'
+        },
+        value: 'h1:1111',
+        name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn1'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.rpc-address.${dfs.nameservices}.nn2'
+        },
+        value: 'h2:8020',
+        name: 'dfs.namenode.rpc-address.' + nameServiceId + '.nn2'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn1'
+        },
+        value: 'h1:1234',
+        name: 'dfs.namenode.http-address.' + nameServiceId + '.nn1'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.http-address.${dfs.nameservices}.nn2'
+        },
+        value: 'h2:50070',
+        name: 'dfs.namenode.http-address.' + nameServiceId + '.nn2'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn1'
+        },
+        value: 'h1:4321',
+        name: 'dfs.namenode.https-address.' + nameServiceId + '.nn1'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.https-address.${dfs.nameservices}.nn2'
+        },
+        value: 'h2:50470',
+        name: 'dfs.namenode.https-address.' + nameServiceId + '.nn2'
+      },
+      {
+        config: {
+          name: 'dfs.namenode.shared.edits.dir'
+        },
+        value: 'qjournal://h1:8485;h2:8485;h3:8485/' + nameServiceId
+      },
+      {
+        config: {
+          name: 'ha.zookeeper.quorum'
+        },
+        value: 'h1:4444,h2:4444,h3:4444'
+      },
+      {
+        config: {
+          name: 'hbase.rootdir',
+          filename: 'hbase-site'
+        },
+        value: 'hdfs://' + nameServiceId + '/apps/hbase/data'
+      },
+      {
+        config: {
+          name: 'hbase.rootdir',
+          filename: 'ams-hbase-site'
+        },
+        value: 'file:///var/lib/ambari-metrics-collector/hbase'
+      },
+      {
+        config: {
+          name: 'instance.volumes'
+        },
+        value: 'hdfs://' + nameServiceId + '/apps/accumulo/data'
+      },
+      {
+        config: {
+          name: 'instance.volumes.replacements'
+        },
+        value: 'hdfs://localhost:8020/apps/accumulo/data hdfs://' + nameServiceId + '/apps/accumulo/data'
+      },
+      {
+        config: {
+          name: 'dfs.journalnode.edits.dir'
+        },
+        value: '/hadoop/hdfs/journalnode123'
+      }
+    ]).forEach(function (test) {
+      it(test.config.name, function () {
+        test.config.displayName = test.config.name;
+        var configs = [test.config];
+        configs = controller.tweakServiceConfigs(configs);
+        expect(configs[0].value).to.equal(test.value);
+        expect(configs[0].recommendedValue).to.equal(test.value);
+        if(test.name) {
+          expect(configs[0].name).to.equal(test.name);
+          expect(configs[0].displayName).to.equal(test.name);
+        }
+      });
+    });
+
+  });
+
 });
 

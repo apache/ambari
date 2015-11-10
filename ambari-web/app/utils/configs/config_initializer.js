@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+require('utils/configs/config_initializer_class');
 
 /**
  * Regexp for host with port ('hostName:1234')
@@ -38,48 +39,6 @@ var hostWithPrefix = ":\/\/" + hostWithPort;
  * @type {RegExp}
  */
 var winRegex = /^([a-z]):\\?$/;
-
-/**
- * Map with initializers types
- * Doesn't contain unique initializes, only common are included
- * Key: id
- * Value: object with method-name (prefer to start method-name with '_init' or '_initAs')
- * Each method here is called with arguments equal to <code>initialValue</code>-call args
- * Initializer-settings are added as last argument
- *
- * @type {object}
- */
-var initializerTypes = {
-  host_with_component: {
-    method: '_initAsHostWithComponent'
-  },
-  hosts_with_components: {
-    method: '_initAsHostsWithComponents'
-  },
-  zookeeper_based: {
-    method: '_initAsZookeeperServersList'
-  },
-  single_mountpoint: {
-    method: '_initAsSingleMountPoint'
-  },
-  multiple_mountpoints: {
-    method: '_initAsMultipleMountPoints'
-  }
-};
-
-/**
- * Map for methods used as value-modifiers for configProperties with values as mount point(s)
- * Used if mount point is win-like (@see winRegex)
- * Key: id
- * Value: method-name
- *
- * @type {{default: string, file: string, slashes: string}}
- */
-var winReplacersMap = {
-  default: '_defaultWinReplace',
-  file: '_winReplaceWithFile',
-  slashes: '_defaultWinReplaceWithAdditionalSlashes'
-};
 
 /**
  * Settings for <code>host_with_component</code>-initializer
@@ -180,10 +139,9 @@ function getComponentsHostsConfig(components, asArray) {
  */
 function getSingleMountPointConfig(components, winReplacer) {
   winReplacer = winReplacer || 'default';
-  Em.assert('Invalid `winReplacer` selected - `' + winReplacer + '`! See winReplacersMap for available replacers.', !!winReplacersMap[winReplacer]);
   return {
     components: Em.makeArray(components),
-    winReplacer: winReplacersMap[winReplacer],
+    winReplacer: winReplacer,
     type: 'single_mountpoint'
   }
 }
@@ -199,124 +157,19 @@ function getSingleMountPointConfig(components, winReplacer) {
  */
 function getMultipleMountPointsConfig(components, winReplacer) {
   winReplacer = winReplacer || 'default';
-  Em.assert('Invalid `winReplacer` selected - `' + winReplacer + '`! See winReplacersMap for available replacers.', !!winReplacersMap[winReplacer]);
   return {
     components: Em.makeArray(components),
-    winReplacer: winReplacersMap[winReplacer],
+    winReplacer: winReplacer,
     type: 'multiple_mountpoints'
   }
 }
-
-/**
- * Map with configurations for config initializers
- * It's used only for initializers which are common for some configs (if not - use <code>uniqueInitializers</code>-map)
- * Key {string} configProperty-name
- * Value {object|object[]} settings for initializer
- *
- * @type {object}
- */
-var initializers = {
-  'dfs.namenode.rpc-address': getSimpleComponentConfig('NAMENODE'),
-  'dfs.http.address': getSimpleComponentConfig('NAMENODE'),
-  'dfs.namenode.http-address': getSimpleComponentConfig('NAMENODE'),
-  'dfs.https.address': getSimpleComponentConfig('NAMENODE'),
-  'dfs.namenode.https-address': getSimpleComponentConfig('NAMENODE'),
-  'dfs.secondary.http.address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
-  'dfs.namenode.secondary.http-address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
-  'yarn.resourcemanager.hostname': getSimpleComponentConfig('RESOURCEMANAGER', false),
-  'yarn.resourcemanager.resource-tracker.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.resourcemanager.webapp.https.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.resourcemanager.webapp.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.resourcemanager.scheduler.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.resourcemanager.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.resourcemanager.admin.address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'yarn.timeline-service.webapp.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-  'yarn.timeline-service.webapp.https.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-  'yarn.timeline-service.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
-  'mapred.job.tracker': getSimpleComponentConfig('JOBTRACKER'),
-  'mapred.job.tracker.http.address': getSimpleComponentConfig('JOBTRACKER'),
-  'mapreduce.history.server.http.address': getSimpleComponentConfig('HISTORYSERVER'),
-  'hive_hostname': getSimpleComponentConfig('HIVE_SERVER', false),
-  'oozie_hostname': getSimpleComponentConfig('OOZIE_SERVER', false),
-  'oozie.base.url': getComponentConfigWithAffixes('OOZIE_SERVER', '://'),
-  'hawq_dfs_url': getSimpleComponentConfig('NAMENODE'),
-  'hawq_rm_yarn_address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'hawq_rm_yarn_scheduler_address': getSimpleComponentConfig('RESOURCEMANAGER'),
-  'fs.default.name': getComponentConfigWithAffixes('NAMENODE', '://'),
-  'fs.defaultFS': getComponentConfigWithAffixes('NAMENODE', '://'),
-  'hbase.rootdir': getComponentConfigWithAffixes('NAMENODE', '://'),
-  'instance.volumes': getComponentConfigWithAffixes('NAMENODE', '://'),
-  'yarn.log.server.url': getComponentConfigWithAffixes('HISTORYSERVER', '://'),
-  'mapreduce.jobhistory.webapp.address': getSimpleComponentConfig('HISTORYSERVER'),
-  'mapreduce.jobhistory.address': getSimpleComponentConfig('HISTORYSERVER'),
-  'kafka.ganglia.metrics.host': getSimpleComponentConfig('GANGLIA_SERVER', false),
-  'hive_master_hosts': getComponentsHostsConfig(['HIVE_METASTORE', 'HIVE_SERVER']),
-  'hadoop_host': getSimpleComponentConfig('NAMENODE', false),
-  'nimbus.host': getSimpleComponentConfig('NIMBUS', false),
-  'nimbus.seeds': getComponentsHostsConfig('NIMBUS', true),
-  'storm.zookeeper.servers': getComponentsHostsConfig('ZOOKEEPER_SERVER', true),
-  'hawq_master_address_host': getSimpleComponentConfig('HAWQMASTER', false),
-  'hawq_standby_address_host': getSimpleComponentConfig('HAWQSTANDBY', false),
-
-  '*.broker.url': {
-    type: 'host_with_component',
-    component: 'FALCON_SERVER',
-    modifier: {
-      type: 'regexp',
-      regex: 'localhost'
-    }
-  },
-
-  'zookeeper.connect': getZKBasedConfig(),
-  'hive.zookeeper.quorum': getZKBasedConfig(),
-  'templeton.zookeeper.hosts': getZKBasedConfig(),
-  'hadoop.registry.zk.quorum': getZKBasedConfig(),
-  'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
-  'instance.zookeeper.host': getZKBasedConfig(),
-
-  'dfs.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
-  'dfs.namenode.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
-  'dfs.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
-  'dfs.datanode.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
-  'yarn.nodemanager.local-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
-  'yarn.nodemanager.log-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
-  'mapred.local.dir': getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
-  'log.dirs': getMultipleMountPointsConfig('KAFKA_BROKER'),
-
-  'fs.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-  'dfs.namenode.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
-  'yarn.timeline-service.leveldb-timeline-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-  'yarn.timeline-service.leveldb-state-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
-  'dataDir': getSingleMountPointConfig('ZOOKEEPER_SERVER'),
-  'oozie_data_dir': getSingleMountPointConfig('OOZIE_SERVER'),
-  'storm.local.dir': getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
-  '*.falcon.graph.storage.directory': getSingleMountPointConfig('FALCON_SERVER'),
-  '*.falcon.graph.serialize.path': getSingleMountPointConfig('FALCON_SERVER')
-};
-
-/**
- * Map with initializers that are used only for one config (are unique)
- * Key: configProperty-name
- * Value: method-name
- * Every method from this map is called with same arguments as <code>initialValue</code> is (prefer to start method-name with '_init' or '_initAs')
- *
- * @type {object}
- */
-var uniqueInitializers = {
-  'hive_database': '_initHiveDatabaseValue',
-  'templeton.hive.properties': '_initTempletonHiveProperties',
-  'hbase.zookeeper.quorum': '_initHBaseZookeeperQuorum',
-  'yarn.resourcemanager.zk-address': '_initYarnRMzkAddress',
-  'RANGER_HOST': '_initRangerHost',
-  'hive.metastore.uris': '_initHiveMetastoreUris'
-};
 
 /**
  * Helper-object used to set initial value for some configs
  *
  * Usage:
  * <pre>
- *   var configProperty = App.ServiceConfigProperty.create({});
+ *   var configProperty = Object.create({});
  *   var localDB = {
  *    hosts: [],
  *    masterComponentHosts: [],
@@ -326,46 +179,139 @@ var uniqueInitializers = {
  *   configPropertyHelper.initialValue(configProperty, localDB, dependencies);
  * </pre>
  *
- * @type {object}
+ * @type {Em.Object}
  */
-App.ConfigInitializer = Em.Object.create({
+App.ConfigInitializer = App.ConfigInitializerClass.create({
+
+  initializers: {
+    'dfs.namenode.rpc-address': getSimpleComponentConfig('NAMENODE'),
+    'dfs.http.address': getSimpleComponentConfig('NAMENODE'),
+    'dfs.namenode.http-address': getSimpleComponentConfig('NAMENODE'),
+    'dfs.https.address': getSimpleComponentConfig('NAMENODE'),
+    'dfs.namenode.https-address': getSimpleComponentConfig('NAMENODE'),
+    'dfs.secondary.http.address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
+    'dfs.namenode.secondary.http-address': getSimpleComponentConfig('SECONDARY_NAMENODE'),
+    'yarn.resourcemanager.hostname': getSimpleComponentConfig('RESOURCEMANAGER', false),
+    'yarn.resourcemanager.resource-tracker.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.resourcemanager.webapp.https.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.resourcemanager.webapp.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.resourcemanager.scheduler.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.resourcemanager.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.resourcemanager.admin.address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'yarn.timeline-service.webapp.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+    'yarn.timeline-service.webapp.https.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+    'yarn.timeline-service.address': getSimpleComponentConfig('APP_TIMELINE_SERVER'),
+    'mapred.job.tracker': getSimpleComponentConfig('JOBTRACKER'),
+    'mapred.job.tracker.http.address': getSimpleComponentConfig('JOBTRACKER'),
+    'mapreduce.history.server.http.address': getSimpleComponentConfig('HISTORYSERVER'),
+    'hive_hostname': getSimpleComponentConfig('HIVE_SERVER', false),
+    'oozie_hostname': getSimpleComponentConfig('OOZIE_SERVER', false),
+    'oozie.base.url': getComponentConfigWithAffixes('OOZIE_SERVER', '://'),
+    'hawq_dfs_url': getSimpleComponentConfig('NAMENODE'),
+    'hawq_rm_yarn_address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'hawq_rm_yarn_scheduler_address': getSimpleComponentConfig('RESOURCEMANAGER'),
+    'fs.default.name': getComponentConfigWithAffixes('NAMENODE', '://'),
+    'fs.defaultFS': getComponentConfigWithAffixes('NAMENODE', '://'),
+    'hbase.rootdir': getComponentConfigWithAffixes('NAMENODE', '://'),
+    'instance.volumes': getComponentConfigWithAffixes('NAMENODE', '://'),
+    'yarn.log.server.url': getComponentConfigWithAffixes('HISTORYSERVER', '://'),
+    'mapreduce.jobhistory.webapp.address': getSimpleComponentConfig('HISTORYSERVER'),
+    'mapreduce.jobhistory.address': getSimpleComponentConfig('HISTORYSERVER'),
+    'kafka.ganglia.metrics.host': getSimpleComponentConfig('GANGLIA_SERVER', false),
+    'hive_master_hosts': getComponentsHostsConfig(['HIVE_METASTORE', 'HIVE_SERVER']),
+    'hadoop_host': getSimpleComponentConfig('NAMENODE', false),
+    'nimbus.host': getSimpleComponentConfig('NIMBUS', false),
+    'nimbus.seeds': getComponentsHostsConfig('NIMBUS', true),
+    'storm.zookeeper.servers': getComponentsHostsConfig('ZOOKEEPER_SERVER', true),
+    'hawq_master_address_host': getSimpleComponentConfig('HAWQMASTER', false),
+    'hawq_standby_address_host': getSimpleComponentConfig('HAWQSTANDBY', false),
+
+    '*.broker.url': {
+      type: 'host_with_component',
+      component: 'FALCON_SERVER',
+      modifier: {
+        type: 'regexp',
+        regex: 'localhost'
+      }
+    },
+
+    'zookeeper.connect': getZKBasedConfig(),
+    'hive.zookeeper.quorum': getZKBasedConfig(),
+    'templeton.zookeeper.hosts': getZKBasedConfig(),
+    'hadoop.registry.zk.quorum': getZKBasedConfig(),
+    'hive.cluster.delegation.token.store.zookeeper.connectString': getZKBasedConfig(),
+    'instance.zookeeper.host': getZKBasedConfig(),
+
+    'dfs.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
+    'dfs.namenode.name.dir': getMultipleMountPointsConfig('NAMENODE', 'file'),
+    'dfs.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
+    'dfs.datanode.data.dir': getMultipleMountPointsConfig('DATANODE', 'file'),
+    'yarn.nodemanager.local-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
+    'yarn.nodemanager.log-dirs': getMultipleMountPointsConfig('NODEMANAGER'),
+    'mapred.local.dir': getMultipleMountPointsConfig(['TASKTRACKER', 'NODEMANAGER']),
+    'log.dirs': getMultipleMountPointsConfig('KAFKA_BROKER'),
+
+    'fs.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
+    'dfs.namenode.checkpoint.dir': getSingleMountPointConfig('SECONDARY_NAMENODE', 'file'),
+    'yarn.timeline-service.leveldb-timeline-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
+    'yarn.timeline-service.leveldb-state-store.path': getSingleMountPointConfig('APP_TIMELINE_SERVER'),
+    'dataDir': getSingleMountPointConfig('ZOOKEEPER_SERVER'),
+    'oozie_data_dir': getSingleMountPointConfig('OOZIE_SERVER'),
+    'storm.local.dir': getSingleMountPointConfig(['NODEMANAGER', 'NIMBUS']),
+    '*.falcon.graph.storage.directory': getSingleMountPointConfig('FALCON_SERVER'),
+    '*.falcon.graph.serialize.path': getSingleMountPointConfig('FALCON_SERVER')
+  },
+
+  uniqueInitializers: {
+    'hive_database': '_initHiveDatabaseValue',
+    'templeton.hive.properties': '_initTempletonHiveProperties',
+    'hbase.zookeeper.quorum': '_initHBaseZookeeperQuorum',
+    'yarn.resourcemanager.zk-address': '_initYarnRMzkAddress',
+    'RANGER_HOST': '_initRangerHost',
+    'hive.metastore.uris': '_initHiveMetastoreUris'
+  },
+
+  initializerTypes: {
+    host_with_component: {
+      method: '_initAsHostWithComponent'
+    },
+    hosts_with_components: {
+      method: '_initAsHostsWithComponents'
+    },
+    zookeeper_based: {
+      method: '_initAsZookeeperServersList'
+    },
+    single_mountpoint: {
+      method: '_initAsSingleMountPoint'
+    },
+    multiple_mountpoints: {
+      method: '_initAsMultipleMountPoints'
+    }
+  },
 
   /**
-   * Wrapper for common initializers
-   * Execute initializer if it is a function or throw an error otherwise
+   * Map for methods used as value-modifiers for configProperties with values as mount point(s)
+   * Used if mount point is win-like (@see winRegex)
+   * Key: id
+   * Value: method-name
    *
-   * @param {App.ServiceConfigProperty} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @returns {App.ServiceConfigProperty}
-   * @private
+   * @type {{default: string, file: string, slashes: string}}
    */
-  _defaultInitializer: function (configProperty, localDB, dependencies) {
-    var args = [].slice.call(arguments);
-    var self = this;
-    var initializer = initializers[configProperty.get('name')];
-    if (initializer) {
-      Em.makeArray(initializer).forEach(function (init) {
-        var type = initializerTypes[init.type];
-        // add initializer-settings
-        args.push(init);
-        var methodName = type.method;
-        Em.assert('method-initializer is not a function ' + methodName, 'function' === Em.typeOf(self[methodName]));
-        configProperty = self[methodName].apply(self, args);
-      });
-    }
-    return configProperty;
+  winReplacersMap: {
+    default: '_defaultWinReplace',
+    file: '_winReplaceWithFile',
+    slashes: '_defaultWinReplaceWithAdditionalSlashes'
   },
 
   /**
    * Initializer for configs with value equal to hostName with needed component
    * Value example: 'hostName'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initAsHostWithComponent: function (configProperty, localDB, dependencies, initializer) {
@@ -395,11 +341,11 @@ App.ConfigInitializer = Em.Object.create({
    * Depends on <code>initializer.asArray</code> (true - array, false - string)
    * Value example: 'hostName1,hostName2,hostName3' or ['hostName1', 'hostName2', 'hostName3']
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
-   * @return {App.ServiceConfigProperty}
+   * @return {Object}
    * @private
    */
   _initAsHostsWithComponents: function (configProperty, localDB, dependencies, initializer) {
@@ -419,8 +365,8 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Unique initializer for <code>hive_database</code>-config
    *
-   * @param {App.ServiceConfigProperty} configProperty
-   * @returns {App.ServiceConfigProperty}
+   * @param {Object} configProperty
+   * @returns {Object}
    * @private
    */
   _initHiveDatabaseValue: function (configProperty) {
@@ -440,9 +386,9 @@ App.ConfigInitializer = Em.Object.create({
    * Initializer for configs with value equal to hostNames-list where ZOOKEEPER_SERVER is installed
    * Value example: 'host1:2020,host2:2020,host3:2020'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initAsZookeeperServersList: function (configProperty, localDB) {
@@ -465,10 +411,10 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Unique initializer for <code>templeton.hive.properties</code>
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initTempletonHiveProperties: function (configProperty, localDB, dependencies) {
@@ -483,9 +429,9 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Unique initializer for <code>hbase.zookeeper.quorum</code>
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initHBaseZookeeperQuorum: function (configProperty, localDB) {
@@ -501,9 +447,9 @@ App.ConfigInitializer = Em.Object.create({
    * If RANGER_ADMIN-component isn't installed, this config becomes unneeded (isVisible - false, isRequired - false)
    * Value example: 'hostName'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initRangerHost: function (configProperty, localDB) {
@@ -529,10 +475,10 @@ App.ConfigInitializer = Em.Object.create({
    * Port is taken from <code>dependencies.clientPort</code>
    * Value example: 'host1:111,host2:111,host3:111'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initYarnRMzkAddress: function (configProperty, localDB, dependencies) {
@@ -549,10 +495,10 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Unique initializer for <code>hive.metastore.uris</code>
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
-   * @returns {App.ServiceConfigProperty}
+   * @returns {Object}
    * @private
    */
   _initHiveMetastoreUris: function (configProperty, localDB, dependencies) {
@@ -560,33 +506,6 @@ App.ConfigInitializer = Em.Object.create({
     if (hiveMSUris) {
       this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
     }
-    return configProperty;
-  },
-
-  /**
-   * Entry-point for any config's value initializing
-   * Before calling it, be sure that <code>initializers</code> or <code>uniqueInitializers</code>
-   * contains record about needed config
-   *
-   * @param {App.ServiceConfigProperty} configProperty
-   * @param {topologyLocalDB} localDB
-   * @param {object} dependencies
-   * @returns {App.ServiceConfigProperty}
-   */
-  initialValue: function (configProperty, localDB, dependencies) {
-    var configName = configProperty.get('name');
-
-    var initializer = initializers[configName];
-    if (initializer) {
-      return this._defaultInitializer(configProperty, localDB, dependencies);
-    }
-
-    var uniqueInitializer = uniqueInitializers[configName];
-    if (uniqueInitializer) {
-      var args = [].slice.call(arguments);
-      return this[uniqueInitializer].apply(this, args);
-    }
-
     return configProperty;
   },
 
@@ -618,10 +537,10 @@ App.ConfigInitializer = Em.Object.create({
    * Set <code>value</code> and <code>recommendedValue</code> for <code>configProperty</code>
    * basing on <code>recommendedValue</code> with replacing <code>regex</code> for <code>replaceWith</code>
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {string} regex
    * @param {string} replaceWith
-   * @return {App.ServiceConfigProperty}
+   * @return {Object}
    */
   setRecommendedValue: function (configProperty, regex, replaceWith) {
     var recommendedValue = Em.isNone(configProperty.get('recommendedValue')) ? '' : configProperty.get('recommendedValue');
@@ -638,15 +557,16 @@ App.ConfigInitializer = Em.Object.create({
    * Hosts with Windows needs additional processing (@see winReplacersMap)
    * Value example: '/', '/some/cool/dir'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
-   * @return {App.ServiceConfigProperty}
+   * @return {Object}
    */
   _initAsSingleMountPoint: function (configProperty, localDB, dependencies, initializer) {
     var hostsInfo = this._updateHostInfo(localDB.hosts);
     var setOfHostNames = this._getSetOfHostNames(localDB, initializer);
+    var winReplacersMap = this.get('winReplacersMap');
     // In Add Host Wizard, if we did not select this slave component for any host, then we don't process any further.
     if (!setOfHostNames.length) {
       return configProperty;
@@ -660,7 +580,7 @@ App.ConfigInitializer = Em.Object.create({
     else {
       var mp = mPoint.toLowerCase();
       if (winRegex.test(mp)) {
-        var methodName = initializer.winReplacer;
+        var methodName = winReplacersMap[initializer.winReplacer];
         mPoint = this[methodName].call(this, configProperty, mp);
       }
       else {
@@ -681,16 +601,17 @@ App.ConfigInitializer = Em.Object.create({
    * Hosts with Windows needs additional processing (@see winReplacersMap)
    * Value example: '/\n/some/cool/dir' (`\n` - is divider)
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
-   * @return {App.ServiceConfigProperty}
+   * @return {Object}
    */
   _initAsMultipleMountPoints: function (configProperty, localDB, dependencies, initializer) {
     var hostsInfo = this._updateHostInfo(localDB.hosts);
     var self = this;
     var setOfHostNames = this._getSetOfHostNames(localDB, initializer);
+    var winReplacersMap = this.get('winReplacersMap');
     // In Add Host Wizard, if we did not select this slave component for any host, then we don't process any further.
     if (!setOfHostNames.length) {
       return configProperty;
@@ -706,7 +627,7 @@ App.ConfigInitializer = Em.Object.create({
       else {
         var mp = eachDrive.mountpoint.toLowerCase();
         if (winRegex.test(mp)) {
-          var methodName = initializer.winReplacer;
+          var methodName = winReplacersMap[initializer.winReplacer];
           mPoint += self[methodName].call(this, configProperty, mp);
         }
         else {
@@ -726,7 +647,7 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Replace drive-based windows-path with 'file:///'
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
@@ -739,7 +660,7 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Replace drive-based windows-path
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
@@ -753,7 +674,7 @@ App.ConfigInitializer = Em.Object.create({
   /**
    * Same to <code>_defaultWinReplace</code>, but with extra-slash in the end
    *
-   * @param {App.ServiceConfigProperty} configProperty
+   * @param {Object} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
@@ -874,35 +795,6 @@ App.ConfigInitializer = Em.Object.create({
       allMountPoints.push(mountPointAsRoot);
     }
     return allMountPoints;
-  },
-
-
-  __testGetInitializers: function () {
-    if ($.mocho) {
-      return initializers;
-    }
-    Em.assert('Available only for testing', false);
-  },
-
-  __testGetUniqueInitializers: function () {
-    if ($.mocho) {
-      return uniqueInitializers;
-    }
-    Em.assert('Available only for testing', false);
-  },
-
-  __testGetInitializerTypes: function () {
-    if ($.mocho) {
-      return initializerTypes;
-    }
-    Em.assert('Available only for testing', false);
-  },
-
-  __testGetWinReplacersMap: function () {
-    if ($.mocho) {
-      return winReplacersMap;
-    }
-    Em.assert('Available only for testing', false);
   }
 
 });

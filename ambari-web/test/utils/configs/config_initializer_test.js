@@ -1204,7 +1204,7 @@ describe('App.ConfigInitializer', function () {
   });
 
   describe('initializerTypes', function () {
-    var types = App.ConfigInitializer.__testGetInitializerTypes();
+    var types = App.ConfigInitializer.get('initializerTypes');
     Em.keys(types).forEach(function(type) {
       it(type, function() {
         var methodName = types[type].method;
@@ -1217,8 +1217,8 @@ describe('App.ConfigInitializer', function () {
 
   describe('initializers', function () {
 
-    var initializers = App.ConfigInitializer.__testGetInitializers();
-    var types = App.ConfigInitializer.__testGetInitializerTypes();
+    var initializers = App.ConfigInitializer.get('initializers');
+    var types = App.ConfigInitializer.get('initializerTypes');
     var typeNames = Em.keys(types);
 
     Em.keys(initializers).forEach(function (configName) {
@@ -1232,7 +1232,7 @@ describe('App.ConfigInitializer', function () {
 
   describe('uniqueInitializers', function () {
 
-    var uniqueInitializers = App.ConfigInitializer.__testGetUniqueInitializers();
+    var uniqueInitializers = App.ConfigInitializer.get('uniqueInitializers');
     var uniqueInitializersNames = Em.keys(uniqueInitializers).map(function (key) {
       return uniqueInitializers[key];
     });
@@ -1251,7 +1251,7 @@ describe('App.ConfigInitializer', function () {
 
   describe('winReplacersMap', function () {
 
-    var winReplacersMap = App.ConfigInitializer.__testGetWinReplacersMap();
+    var winReplacersMap = App.ConfigInitializer.get('winReplacersMap');
     var winReplacerNames = Em.keys(winReplacersMap).map(function (key) {
       return winReplacersMap[key];
     });
