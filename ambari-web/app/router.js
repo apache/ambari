@@ -56,6 +56,7 @@ App.Router = Em.Router.extend({
   backBtnForHigherStep: false,
   transitionInProgress: false,
 
+  localUserAuthUrl: '/login/local',
 
   /**
    * Is true, if cluster.provisioning_state is equal to 'INSTALLED'
@@ -112,7 +113,6 @@ App.Router = Em.Router.extend({
    * @param wizardType one of <code>installer</code>, <code>addHost</code>, <code>addServices</code>
    */
   getWizardCurrentStep: function (wizardType) {
-    var loginName = this.getLoginName();
     var currentStep = App.db.getWizardCurrentStep(wizardType);
     if (!currentStep) {
       currentStep = wizardType === 'installer' ? '0' : '1';
@@ -186,9 +186,24 @@ App.Router = Em.Router.extend({
     }
   },
 
+  /**
+
+   * If authentication failed, need to check for jwt auth url
+   * and redirect user if current location is not <code>localUserAuthUrl</code>
+   *
+   * @param {?object} data
+   */
   onAuthenticationError: function (data) {
     if (data.status === 403) {
-      this.setAuthenticated(false);
+      try {
+        var responseJson = JSON.parse(data.responseText);
+        if (responseJson.jwtProviderUrl && this.get('location.lastSetURL') !== this.get('localUserAuthUrl')) {
+          this.redirectByURL(responseJson.jwtProviderUrl + encodeURIComponent(this.getCurrentLocationUrl()));
+        }
+      } catch (e) {
+      } finally {
+        this.setAuthenticated(false);
+      }
     }
   },
 
@@ -549,6 +564,14 @@ App.Router = Em.Router.extend({
     }
   },
 
+  redirectByURL: function(url) {
+    window.location.href = url;
+  },
+
+  getCurrentLocationUrl: function() {
+    return window.location.href;
+  },
+
   root: Em.Route.extend({
     index: Em.Route.extend({
       route: '/',
@@ -560,7 +583,7 @@ App.Router = Em.Router.extend({
     },
 
     login: Em.Route.extend({
-      route: '/login',
+      route: '/login:suffix',
 
       /**
        *  If the user is already logged in, redirect to where the user was previously
@@ -584,6 +607,14 @@ App.Router = Em.Router.extend({
       connectOutlets: function (router, context) {
         $('title').text(Em.I18n.t('app.name'));
         router.get('applicationController').connectOutlet('login');
+      },
+
+      serialize: function(router, context) {
+        // check for login/local hash
+        var location = router.get('location.location.hash');
+        return {
+          suffix: location === '#' + router.get('localUserAuthUrl') ? '/local' : ''
+        };
       }
     }),
 

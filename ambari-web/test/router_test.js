@@ -446,4 +446,65 @@ describe('App.Router', function () {
       expect(router.transitionToViews.calledOnce).to.be.true;
     });
   });
+
+  describe("#getAuthenticated", function() {
+    [
+      {
+        lastSetURL: '/login/local',
+        isResolved: false,
+        responseData: {
+          responseText: "",
+          status: 403
+        },
+        redirectCalled: false,
+        m: 'no jwtProviderUrl in auth response, no redirect'
+      },
+      {
+        lastSetURL: '/main/dashboard',
+        isResolved: false,
+        responseData: {
+          responseText: JSON.stringify({ jwtProviderUrl: 'http://some.com?originalUrl=' }),
+          status: 403
+        },
+        redirectCalled: true,
+        m: 'jwtProviderUrl is present, current location not local login url, redirect according to jwtProviderUrl value'
+      },
+      {
+        lastSetURL: '/login/local',
+        isResolved: false,
+        responseData: {
+          responseText: JSON.stringify({ jwtProviderUrl: 'http://some.com?originalUrl=' }),
+          status: 403
+        },
+        redirectCalled: false,
+        m: 'jwtProviderUrl is present, current location is local login url, no redirect'
+      }
+    ].forEach(function(test) {
+      it(test.m, function() {
+        var router = App.Router.create();
+        var mockCurrentUrl = 'http://localhost:3333/#/some/hash';
+        router.set('location.lastSetURL', test.lastSetURL);
+        sinon.stub(App.ajax, 'send', function() {
+          if (!test.isResolved) {
+            router.onAuthenticationError(test.responseData);
+          }
+          return {
+            complete: function() {}
+          };
+        });
+        sinon.stub(router, 'getCurrentLocationUrl').returns(mockCurrentUrl);
+        sinon.stub(router, 'redirectByURL', Em.K);
+        router.getAuthenticated();
+        expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
+        if (test.redirectCalled) {
+          expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
+        }
+        App.ajax.send.restore();
+        router.getCurrentLocationUrl.restore();
+        router.redirectByURL.restore();
+      });
+    });
+
+  });
+
 });
