@@ -50,12 +50,19 @@ public class UploadService extends HdfsService {
 
   private void uploadFile(final String filePath, InputStream uploadedInputStream)
       throws IOException, InterruptedException {
+    int read;
     byte[] chunk = new byte[1024];
-    FSDataOutputStream out = getApi(context).create(filePath, false);
-    while (uploadedInputStream.read(chunk) != -1) {
-      out.write(chunk);
+    FSDataOutputStream out = null;
+    try {
+      out = getApi(context).create(filePath, false);
+      while ((read = uploadedInputStream.read(chunk)) != -1) {
+        out.write(chunk, 0, read);
+      }
+    } finally {
+      if (out != null) {
+        out.close();
+      }
     }
-    out.close();
   }
 
   /**
