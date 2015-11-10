@@ -248,7 +248,8 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True
+              recursive=True,
+              mode=0755,
     )
 
     # Hack to allow native HBase libs to be included for embedded hbase
@@ -333,12 +334,14 @@ def ams(name=None):
     Directory(params.ams_monitor_log_dir,
               owner=params.ams_user,
               group=params.user_group,
+              mode=0755,
               recursive=True
     )
 
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
+              mode=0755,
               recursive=True
     )
 

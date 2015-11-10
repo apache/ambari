@@ -62,17 +62,20 @@ class TestZookeeperClient(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode = 0755,
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',
@@ -122,17 +125,20 @@ class TestZookeeperClient(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode = 0755
     )
     self.assertResourceCalled('File',
                               '/etc/zookeeper/conf/log4j.properties',

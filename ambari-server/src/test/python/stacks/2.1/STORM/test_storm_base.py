@@ -40,13 +40,15 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode=0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode=0755,
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
@@ -81,13 +83,15 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode=0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/storm',
       owner = 'storm',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode=0755,
     )
     self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
