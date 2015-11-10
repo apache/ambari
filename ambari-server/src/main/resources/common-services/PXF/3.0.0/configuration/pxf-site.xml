@@ -16,4 +16,9 @@
    limitations under the License.
 -->
 <configuration> 
+	<property>
+		<name>pxf.service.kerberos.keytab</name>
+		<value>/etc/security/keytabs/pxf.service.keytab</value>
+		<description>Path to keytab file owned by pxf service with permissions 0400</description>
+	</property>
 </configuration>
