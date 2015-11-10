@@ -345,7 +345,6 @@
     </group>
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
-      <skippable>false</skippable>
       <direction>UPGRADE</direction>
       
       <execute-stage title="Check Component Versions">
