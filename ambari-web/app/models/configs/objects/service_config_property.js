@@ -518,7 +518,6 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       this.set('error', true);
     }
-<<<<<<< HEAD
   }.observes('value', 'isFinal', 'retypedPassword'),
 
   /**
