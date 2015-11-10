@@ -4636,9 +4636,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                   "java.home=/usr/jdk64/jdk1.6.0_31\n",
                   "server.jdbc.database_name=ambari\n",
                   "ambari-server.user=ambari\n",
-                  "agent.fqdn.service.url=URL\n"]
+                  "agent.fqdn.service.url=URL\n",
+                  "java.releases=jdk1.7,jdk1.6\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
+    JAVA_RELEASES_NEW_PROPERTY = 'java.releases=jdk1.8,jdk1.7\n'
     CHANGED_VALUE_PROPERTY = 'server.jdbc.database_name=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
@@ -4651,6 +4653,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     with open(serverConfiguration.AMBARI_PROPERTIES_FILE, "w") as f:
       f.write(NEW_PROPERTY)
       f.write(CHANGED_VALUE_PROPERTY)
+      f.write(JAVA_RELEASES_NEW_PROPERTY)
       f.close()
 
     with open(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
@@ -4675,6 +4678,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       if (line == "agent.fqdn.service.url=URL\n"):
         if (not GET_FQDN_SERVICE_URL + "=URL\n" in ambari_properties_content) and (
           line in ambari_properties_content):
+          self.fail()
+      elif line == "java.releases=jdk1.7,jdk1.6\n":
+        if not "java.releases=jdk1.8,jdk1.7\n" in ambari_properties_content:
           self.fail()
       else:
         if not line in ambari_properties_content:
