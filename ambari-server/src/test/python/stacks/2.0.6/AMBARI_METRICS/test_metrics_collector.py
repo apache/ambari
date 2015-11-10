@@ -108,7 +108,8 @@ class TestOozieClient(RMFTestCase):
                               owner = 'ams',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True
+                              recursive = True,
+                              mode=0755,
     )
     self.assertResourceCalled('File', '/usr/lib/ams-hbase/bin/hadoop',
                               owner = 'ams',

@@ -300,10 +300,14 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
@@ -412,10 +416,14 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',

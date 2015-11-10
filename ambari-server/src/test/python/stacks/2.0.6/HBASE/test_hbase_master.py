@@ -307,10 +307,14 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
@@ -441,10 +445,14 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
                               '/etc/hbase/conf/log4j.properties',
@@ -580,11 +588,17 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True)
+      recursive = True,
+      mode = 0755,
+      cd_access = 'a',
+    )
 
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True)
+      recursive = True,
+      mode = 0755,
+      cd_access = 'a',
+    )
 
     self.assertResourceCalled('File',
                               '/usr/hdp/current/hbase-master/conf/log4j.properties',

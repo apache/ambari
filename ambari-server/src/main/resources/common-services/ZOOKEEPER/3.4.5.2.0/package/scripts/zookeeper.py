@@ -59,20 +59,23 @@ def zookeeper(type = None, upgrade_type=None):
   Directory(params.zk_pid_dir,
             owner=params.zk_user,
             recursive=True,
-            group=params.user_group
+            group=params.user_group,
+            mode=0755,
   )
 
   Directory(params.zk_log_dir,
             owner=params.zk_user,
             recursive=True,
-            group=params.user_group
+            group=params.user_group,
+            mode=0755,
   )
 
   Directory(params.zk_data_dir,
             owner=params.zk_user,
             recursive=True,
             cd_access="a",
-            group=params.user_group
+            group=params.user_group,
+            mode=0755,
   )
 
   if type == 'server':

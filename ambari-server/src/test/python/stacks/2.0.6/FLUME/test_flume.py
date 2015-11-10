@@ -222,7 +222,10 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
-                              owner = 'flume')
+                              owner = 'flume',
+                              cd_access = 'a', 
+                              mode=0755
+    )
 
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf/a1',
@@ -265,7 +268,7 @@ class TestFlumeHandler(RMFTestCase):
                               owner='flume',
                               recursive=True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume', cd_access = 'a', mode=0755)
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
@@ -430,7 +433,9 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
-                              owner = 'flume')
+                              owner = 'flume',
+                              cd_access = 'a',
+                              mode=0755)
 
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf/a1',
@@ -479,7 +484,9 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
-                              owner = 'flume')
+                              owner = 'flume', 
+                              cd_access = 'a', 
+                              mode=0755)
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/flume-server/conf/a1',

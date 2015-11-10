@@ -154,12 +154,16 @@ def hbase(name=None):
   if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
-      recursive = True
+      recursive = True,
+      cd_access = "a",
+      mode = 0755,
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
-      recursive = True
+      recursive = True,
+      cd_access = "a",
+      mode = 0755,
     )
 
   if (params.log4j_props != None):

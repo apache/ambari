@@ -142,17 +142,20 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode = 0755,
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',
@@ -197,17 +200,20 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
+      mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
       recursive = True,
-      cd_access='a'
+      cd_access='a',
+      mode = 0755,
     )
     self.assertResourceCalled('File', '/hadoop/zookeeper/myid',
       content = '1',

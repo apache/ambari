@@ -85,14 +85,18 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     Directory( params.pid_dir,
                owner = params.accumulo_user,
                group = params.user_group,
-               recursive = True
+               recursive = True,
+               cd_access = "a",
+               mode = 0755,
     )
 
     # create log dir
     Directory (params.log_dir,
                owner = params.accumulo_user,
                group = params.user_group,
-               recursive = True
+               recursive = True,
+               cd_access = "a",
+               mode = 0755,
     )
 
     # create env file
