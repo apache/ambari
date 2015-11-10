@@ -277,6 +277,7 @@ public class ComponentVersionCheckActionTest {
     CommandReport report = action.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+    assertEquals(0, report.getExitCode());
 
   }
 
@@ -350,10 +351,8 @@ public class ComponentVersionCheckActionTest {
 
     CommandReport report = action.execute(null);
     assertNotNull(report);
-    assertEquals(HostRoleStatus.HOLDING.name(), report.getStatus());
-
-
-
+    assertEquals(HostRoleStatus.FAILED.name(), report.getStatus());
+    assertEquals(-1, report.getExitCode());
   }
 
   private ServiceComponentHost createNewServiceComponentHost(Cluster cluster, String svc,
