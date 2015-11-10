@@ -390,15 +390,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
       else:
         # Kerberized Cluster with Ranger plugin disabled
-        if security_enabled and \
+        if security_enabled and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties'] and \
           services['configurations']['kafka-broker']['properties']['authorizer.class.name'] == 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer':
           putKafkaBrokerProperty("authorizer.class.name", 'kafka.security.auth.SimpleAclAuthorizer')
         # Non-kerberos Cluster with Ranger plugin disabled
-        else:
+        elif 'authorizer.class.name' in services['configurations']['kafka-broker']['properties']:
           putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
     # Non-Kerberos Cluster without Ranger
-    elif not security_enabled:
+    elif not security_enabled and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties']:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
 
@@ -576,7 +576,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
-      if hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
+      if 'dfs.namenode.inode.attributes.provider.class' not in hdfs_site or \
+        hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
