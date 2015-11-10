@@ -17,8 +17,6 @@
  */
 package org.apache.ambari.server.controller;
 
-import org.apache.ambari.server.security.authorization.UserType;
-
 import java.util.Collections;
 import java.util.Set;
 
@@ -28,26 +26,16 @@ import java.util.Set;
 public class UserResponse {
 
   private final String userName;
-  private final UserType userType;
   private final boolean isLdapUser;
   private final boolean isActive;
   private final boolean isAdmin;
   private Set<String> groups = Collections.emptySet();
-
-  public UserResponse(String userName, UserType userType, boolean isLdapUser, boolean isActive, boolean isAdmin) {
-    this.userName = userName;
-    this.userType = userType;
-    this.isLdapUser = isLdapUser;
-    this.isActive = isActive;
-    this.isAdmin = isAdmin;
-  }
 
   public UserResponse(String name, boolean isLdapUser, boolean isActive, boolean isAdmin) {
     this.userName = name;
     this.isLdapUser = isLdapUser;
     this.isActive = isActive;
     this.isAdmin = isAdmin;
-    this.userType = UserType.LOCAL;
   }
 
   public String getUsername() {
@@ -69,15 +57,17 @@ public class UserResponse {
 
     UserResponse that = (UserResponse) o;
 
-    if (userName != null ? !userName.equals(that.userName) : that.userName != null) return false;
-    return userType == that.userType;
+    if (userName != null ?
+        !userName.equals(that.userName) : that.userName != null) {
+      return false;
+    }
 
+    return true;
   }
 
   @Override
   public int hashCode() {
     int result = userName != null ? userName.hashCode() : 0;
-    result = 31 * result + (userType != null ? userType.hashCode() : 0);
     return result;
   }
 
@@ -94,9 +84,5 @@ public class UserResponse {
 
   public boolean isAdmin() {
     return isAdmin;
-  }
-
-  public UserType getUserType() {
-    return userType;
   }
 }

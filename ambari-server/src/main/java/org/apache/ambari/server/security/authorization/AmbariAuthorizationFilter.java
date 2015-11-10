@@ -95,15 +95,13 @@ public class AmbariAuthorizationFilter implements Filter {
         context.setAuthentication(new InternalAuthenticationToken(token));
       } else {
         // for view access, we should redirect to the Ambari login
-        if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
-          String queryString = httpRequest.getQueryString();
+        if(requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
+          String queryString  = httpRequest.getQueryString();
           String requestedURL = queryString == null ? requestURI : (requestURI + '?' + queryString);
-          String redirectURL = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
+          String redirectURL  = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
 
           httpResponse.sendRedirect(redirectURL);
           return;
-        } else {
-          httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
         }
       }
     } else {

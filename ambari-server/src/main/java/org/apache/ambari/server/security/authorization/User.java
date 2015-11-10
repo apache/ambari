@@ -20,13 +20,11 @@ package org.apache.ambari.server.security.authorization;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
-import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Describes user of web-services
@@ -35,18 +33,15 @@ public class User {
   final int userId;
   final String userName;
   final boolean ldapUser;
-  final UserType userType;
   final Date createTime;
   final boolean active;
   final Collection<String> groups = new ArrayList<String>();
   boolean admin = false;
-  final List<GrantedAuthority> authorities = new ArrayList<>();
 
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
-    userType = userEntity.getUserType();
     ldapUser = userEntity.getLdapUser();
     active = userEntity.getActive();
     for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
@@ -72,10 +67,6 @@ public class User {
     return ldapUser;
   }
 
-  public UserType getUserType() {
-    return userType;
-  }
-
   public Date getCreateTime() {
     return createTime;
   }
@@ -94,6 +85,6 @@ public class User {
 
   @Override
   public String toString() {
-    return "[" + getUserType() + "]" + userName;
+    return (ldapUser ? "[LDAP]" : "[LOCAL]") + userName;
   }
 }
