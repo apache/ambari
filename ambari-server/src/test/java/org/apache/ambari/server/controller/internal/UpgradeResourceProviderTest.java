@@ -117,6 +117,7 @@ public class UpgradeResourceProviderTest {
   private ConfigHelper configHelper;
   private StackDAO stackDAO;
   private AmbariMetaInfo ambariMetaInfo;
+  private TopologyManager topologyManager;
 
   @Before
   public void before() throws Exception {
@@ -224,7 +225,7 @@ public class UpgradeResourceProviderTest {
     sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
 
-    TopologyManager topologyManager = new TopologyManager();
+    topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
   }

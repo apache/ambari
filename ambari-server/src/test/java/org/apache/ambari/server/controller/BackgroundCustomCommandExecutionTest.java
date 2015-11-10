@@ -70,7 +70,7 @@ public class BackgroundCustomCommandExecutionTest {
   private AmbariMetaInfo ambariMetaInfo;
   private Configuration configuration;
   private Clusters clusters;
-  
+  private TopologyManager topologyManager;
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
   
@@ -96,11 +96,12 @@ public class BackgroundCustomCommandExecutionTest {
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     configuration = injector.getInstance(Configuration.class);
+    topologyManager = injector.getInstance(TopologyManager.class);
     
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
     
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    StageUtils.setTopologyManager(new TopologyManager());
+    StageUtils.setTopologyManager(topologyManager);
   }
   @After
   public void teardown() {
