@@ -1408,5 +1408,33 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         localdb: App.db.data
       });
     });
+  },
+
+  /**
+   * restore last Upgrade data
+   * @param {object} lastUpgradeData
+   */
+  restoreLastUpgrade: function(lastUpgradeData) {
+    var self = this;
+    var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
+    var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
+
+    this.setDBProperties({
+      upgradeId: lastUpgradeData.Upgrade.request_id,
+      isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
+      upgradeState: lastUpgradeData.Upgrade.request_status,
+      upgradeType: lastUpgradeData.Upgrade.upgrade_type,
+      downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
+      upgradeTypeDisplayName: upgradeType.get('displayName'),
+      failuresTolerance: Em.Object.create({
+        skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
+        skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
+      })
+    });
+    this.loadRepoVersionsToModel().done(function () {
+      self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
+      self.initDBProperties();
+      self.loadUpgradeData(true);
+    });
   }
 });

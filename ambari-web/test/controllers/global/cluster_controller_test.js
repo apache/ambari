@@ -405,4 +405,63 @@ describe('App.clusterController', function () {
 
   });
 
+  describe("#restoreUpgradeState()", function() {
+    var data = {upgradeData: {}};
+    var mock = {done: function(callback) {
+      callback(data.upgradeData);
+    }};
+    var upgradeController = Em.Object.create({
+      restoreLastUpgrade: Em.K,
+      initDBProperties: Em.K,
+      loadUpgradeData: Em.K,
+      loadStackVersionsToModel: function(){return {done: Em.K};}
+    });
+
+    beforeEach(function () {
+      sinon.stub(controller, 'getAllUpgrades').returns(mock);
+      sinon.spy(mock, 'done');
+      sinon.stub(App.router, 'get').returns(upgradeController);
+      sinon.stub(App.db, 'get').returns('PENDING');
+      sinon.spy(upgradeController, 'restoreLastUpgrade');
+      sinon.spy(upgradeController, 'initDBProperties');
+      sinon.spy(upgradeController, 'loadUpgradeData');
+      sinon.spy(upgradeController, 'loadStackVersionsToModel');
+    });
+    afterEach(function () {
+      mock.done.restore();
+      controller.getAllUpgrades.restore();
+      App.router.get.restore();
+      App.db.get.restore();
+      upgradeController.restoreLastUpgrade.restore();
+      upgradeController.initDBProperties.restore();
+      upgradeController.loadUpgradeData.restore();
+      upgradeController.loadStackVersionsToModel.restore();
+    });
+    it("has upgrade request", function() {
+      data.upgradeData = {items: [
+        {
+          Upgrade: {
+            request_id: 1
+          }
+        }
+      ]};
+      controller.restoreUpgradeState();
+      expect(controller.getAllUpgrades.calledOnce).to.be.true;
+      expect(App.get('upgradeState')).to.equal('PENDING');
+      expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
+      expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      expect(upgradeController.initDBProperties.called).to.be.false;
+      expect(upgradeController.loadUpgradeData.called).to.be.false;
+    });
+    it("does not have upgrade request", function() {
+      data.upgradeData = {items: []};
+      controller.restoreUpgradeState();
+      expect(controller.getAllUpgrades.calledOnce).to.be.true;
+      expect(App.get('upgradeState')).to.equal('PENDING');
+      expect(upgradeController.restoreLastUpgrade.called).to.be.false;
+      expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      expect(upgradeController.initDBProperties.calledOnce).to.be.true;
+      expect(upgradeController.loadUpgradeData.calledWith(true)).to.be.true;
+    });
+  });
 });

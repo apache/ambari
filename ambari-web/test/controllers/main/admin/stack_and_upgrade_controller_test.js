@@ -542,16 +542,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       };
-      controller.upgradeMethods = [
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
-          type: 'ROLLING'
-        }),
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON_ROLLING'
-        })
-      ];
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
       expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
@@ -801,30 +791,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
       this.mock.restore();
+      controller.get('upgradeMethods').setEach('selected', false);
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
       this.mock.returns({
         done: function(callback) {callback([1]);}
       });
-      controller.upgradeMethods = [
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
-          type: 'ROLLING',
-          icon: "icon-dashboard",
-          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
-          selected: true,
-          allowed: true
-        }),
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON_ROLLING',
-          icon: "icon-bolt",
-          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
-          selected: false,
-          allowed: true
-        })
-      ];
+      controller.get('upgradeMethods')[0].set('selected', true);
       controller.set('isDowngrade', false);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.true;
@@ -1382,19 +1356,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     afterEach(function () {
       controller.runPreUpgradeCheckOnly.restore();
+      controller.get('upgradeMethods').setEach('allowed', true);
     });
     it("no allowed upgrade methods", function () {
-      controller.set('upgradeMethods', [Em.Object.create({
-        allowed: false
-      })]);
+      controller.get('upgradeMethods').setEach('allowed', false);
       controller.runUpgradeMethodChecks();
       expect(controller.runPreUpgradeCheckOnly.called).to.be.false;
     });
     it("Rolling method allowed", function () {
-      controller.set('upgradeMethods', [Em.Object.create({
-        allowed: true,
-        type: 'ROLLING'
-      })]);
+      controller.get('upgradeMethods').setEach('allowed', true);
       controller.runUpgradeMethodChecks(Em.Object.create({
         repositoryVersion: 'v1',
         displayName: 'V1'
@@ -1404,6 +1374,65 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         label: 'V1',
         type: 'ROLLING'
       })).to.be.true;
+    });
+  });
+
+  describe("#restoreLastUpgrade()", function () {
+    beforeEach(function () {
+      sinon.stub(App.RepositoryVersion, 'find').returns([Em.Object.create({
+        repositoryVersion: '1',
+        displayName: 'HDP-1'
+      })]);
+      sinon.stub(controller, 'setDBProperties');
+      sinon.stub(controller, 'loadRepoVersionsToModel', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
+      sinon.stub(controller, 'setDBProperty');
+      sinon.stub(controller, 'initDBProperties');
+      sinon.stub(controller, 'loadUpgradeData');
+    });
+    afterEach(function () {
+      App.RepositoryVersion.find.restore();
+      controller.setDBProperties.restore();
+      controller.loadRepoVersionsToModel.restore();
+      controller.setDBProperty.restore();
+      controller.initDBProperties.restore();
+      controller.loadUpgradeData.restore();
+    });
+    it("", function () {
+      var data = {
+        Upgrade: {
+          request_id: 1,
+          direction: 'UPGRADE',
+          request_status: 'PENDING',
+          upgrade_type: 'ROLLING',
+          downgrade_allowed: true,
+          skip_failures: true,
+          skip_service_check_failures: true,
+          to_version: '1'
+        }
+      };
+      controller.restoreLastUpgrade(data);
+      expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
+        upgradeId: 1,
+        isDowngrade: false,
+        upgradeState: 'PENDING',
+        upgradeType: "ROLLING",
+        downgradeAllowed: true,
+        upgradeTypeDisplayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
+        failuresTolerance: Em.Object.create({
+          skipComponentFailures: true,
+          skipSCFailures: true
+        })
+      });
+      expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-1')).to.be.true;
+      expect(controller.initDBProperties.calledOnce).to.be.true;
+      expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
     });
   });
 });
