@@ -103,6 +103,7 @@ public class UpgradeResourceProviderHDP22Test {
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private StackDAO stackDAO;
+  private TopologyManager topologyManager;
 
   private static final String configTagVersion1 = "version1";
   private static final String configTagVersion2 = "version2";
@@ -221,7 +222,7 @@ public class UpgradeResourceProviderHDP22Test {
     component = service.addServiceComponent("HIVE_CLIENT");
     sch = component.addServiceComponentHost(s_serverHostName);
     sch.setVersion("2.2.0.0");
-    TopologyManager topologyManager = new TopologyManager();
+    topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
   }

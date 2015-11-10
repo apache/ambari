@@ -82,13 +82,16 @@ public class TopologyManager {
   //todo: currently only support a single cluster
   private Map<Long, ClusterTopology> clusterTopologyMap = new HashMap<Long, ClusterTopology>();
 
-  //todo: inject
-  private static LogicalRequestFactory logicalRequestFactory = new LogicalRequestFactory();
-  private static AmbariContext ambariContext = new AmbariContext();
-  private static StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
+  @Inject
+  private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
+
+  @Inject
+  private LogicalRequestFactory logicalRequestFactory;
+
+  @Inject
+  private AmbariContext ambariContext;
 
   private final Object initializationLock = new Object();
-
 
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
@@ -106,6 +109,10 @@ public class TopologyManager {
   private final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
 
   public TopologyManager() {
+  }
+
+  @Inject
+  private void setPersistedState() {
     persistedState = ambariContext.getPersistedTopologyState();
   }
 
@@ -222,8 +229,8 @@ public class TopologyManager {
       // todo - perform this logic at request creation instead!
       LOG.debug("There's no security configuration in the request, retrieving it from the associated blueprint");
       securityConfiguration = request.getBlueprint().getSecurity();
-      if (securityConfiguration.getType() == SecurityType.KERBEROS &&
-        securityConfiguration.getDescriptorReference() != null) {
+      if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS &&
+          securityConfiguration.getDescriptorReference() != null) {
         securityConfiguration = securityConfigurationFactory.loadSecurityConfigurationByReference
           (securityConfiguration.getDescriptorReference());
       }
@@ -669,10 +676,6 @@ public class TopologyManager {
    */
   private void addClusterConfigRequest(ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
     executor.execute(new ConfigureClusterTask(topology, configurationRequest));
-  }
-
-  public static void init(StackAdvisorBlueprintProcessor instance) {
-    stackAdvisorBlueprintProcessor = instance;
   }
 
   private class ConfigureClusterTask implements Runnable {

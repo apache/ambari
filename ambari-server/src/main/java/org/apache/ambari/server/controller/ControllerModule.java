@@ -103,6 +103,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
 import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.PersistedState;
+import org.apache.ambari.server.topology.PersistedStateImpl;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
@@ -341,6 +343,8 @@ public class ControllerModule extends AbstractModule {
     bind(TimelineMetricCacheProvider.class);
     bind(TimelineMetricCacheEntryFactory.class);
     bind(SecurityConfigurationFactory.class).in(Scopes.SINGLETON);
+
+    bind(PersistedState.class).to(PersistedStateImpl.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);

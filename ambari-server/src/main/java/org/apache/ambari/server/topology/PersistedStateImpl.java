@@ -18,17 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
@@ -48,41 +40,49 @@ import org.apache.ambari.server.stack.NoSuchStackException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Implementation which uses Ambari Database DAO and Entity objects for persistence
  * of topology related information.
  */
-@StaticallyInject
+@Singleton
 public class PersistedStateImpl implements PersistedState {
 
   protected final static Logger LOG = LoggerFactory.getLogger(PersistedState.class);
 
   @Inject
-  private static TopologyRequestDAO topologyRequestDAO;
+  private TopologyRequestDAO topologyRequestDAO;
 
   @Inject
-  private static TopologyHostGroupDAO hostGroupDAO;
+  private TopologyHostGroupDAO hostGroupDAO;
 
   @Inject
-  private static TopologyHostRequestDAO hostRequestDAO;
+  private TopologyHostRequestDAO hostRequestDAO;
 
   @Inject
-  private static TopologyLogicalTaskDAO topologyLogicalTaskDAO;
+  private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
 
   @Inject
-  private static HostRoleCommandDAO hostRoleCommandDAO;
+  private HostRoleCommandDAO hostRoleCommandDAO;
 
   @Inject
-  private static HostRoleCommandDAO physicalTaskDAO;
+  private HostRoleCommandDAO physicalTaskDAO;
 
   @Inject
-  private static BlueprintFactory blueprintFactory;
+  private BlueprintFactory blueprintFactory;
 
   @Inject
-  private static LogicalRequestFactory logicalRequestFactory;
+  private LogicalRequestFactory logicalRequestFactory;
 
   @Inject
-  private static AmbariContext ambariContext;
+  private AmbariContext ambariContext;
 
   private static Gson jsonSerializer = new Gson();
 
@@ -133,7 +133,7 @@ public class PersistedStateImpl implements PersistedState {
 
     Map<Long, ClusterTopology> topologyRequests = new HashMap<Long, ClusterTopology>();
     for (TopologyRequestEntity entity : entities) {
-      TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity);
+      TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity, blueprintFactory);
       ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterId());
       if (clusterTopology == null) {
         try {
@@ -306,7 +306,7 @@ public class PersistedStateImpl implements PersistedState {
     private final Configuration configuration;
     private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
 
-    public ReplayedTopologyRequest(TopologyRequestEntity entity) {
+    public ReplayedTopologyRequest(TopologyRequestEntity entity, BlueprintFactory blueprintFactory) {
       clusterId = entity.getClusterId();
       type = Type.valueOf(entity.getAction());
       description = entity.getDescription();
