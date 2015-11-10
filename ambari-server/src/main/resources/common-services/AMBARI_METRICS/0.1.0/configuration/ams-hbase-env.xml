@@ -124,7 +124,7 @@
     <value>
 # Set environment variables here.
 
-# The java implementation to use. Java 1.6 required.
+# The java implementation to use. Java 1.6+ required.
 export JAVA_HOME={{java64_home}}
 
 # HBase Configuration directory

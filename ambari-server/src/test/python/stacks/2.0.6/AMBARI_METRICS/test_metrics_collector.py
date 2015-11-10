@@ -20,13 +20,13 @@ limitations under the License.
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
-
+@patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestOozieClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "AMBARI_METRICS/0.1.0/package"
   STACK_VERSION = "2.0.6"
 
-  def test_start_default(self):
+  def test_start_default_distributed(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metrics_collector.py",
                        classname = "AmsCollector",
                        command = "start",
@@ -35,9 +35,9 @@ class TestOozieClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.maxDiff=None
-    self.assert_hbase_configure('master')
-    self.assert_hbase_configure('regionserver')
-    self.assert_ams('collector')
+    self.assert_hbase_configure('master', distributed=True)
+    self.assert_hbase_configure('regionserver', distributed=True)
+    self.assert_ams('collector', distributed=True)
     self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf start zookeeper',
                               not_if = 'ls /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid` >/dev/null 2>&1',
                               user = 'ams'
@@ -57,7 +57,29 @@ class TestOozieClient(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  def assert_ams(self, name=None):
+  def test_start_default_embedded(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metrics_collector.py",
+                       classname = "AmsCollector",
+                       command = "start",
+                       config_file="default_ams_embedded.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.maxDiff=None
+    self.assert_hbase_configure('master')
+    self.assert_hbase_configure('regionserver')
+    self.assert_ams('collector')
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp',
+    )
+    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/zookeeper',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf start',
+                              user = 'ams'
+    )
+    self.assertNoMoreResources()
+
+  def assert_ams(self, name=None, distributed=False):
     self.assertResourceCalled('Directory', '/etc/ambari-metrics-collector/conf',
                               owner = 'ams',
                               group = 'hadoop',
@@ -126,40 +148,41 @@ class TestOozieClient(RMFTestCase):
                               mode=0644,
                               content=Template("ams.conf.j2")
     )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'ams',
-                              group = 'hadoop',
-                              mode=0644,
-                              conf_dir = '/etc/ambari-metrics-collector/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
-                              owner = 'ams',
-                              group = 'hadoop',
-                              mode=0644,
-                              conf_dir = '/etc/ams-hbase/conf',
-                              configurations = self.getConfig()['configurations']['hdfs-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'ams',
-                              group = 'hadoop',
-                              mode=0644,
-                              conf_dir = '/etc/ambari-metrics-collector/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
-    )
-    self.assertResourceCalled('XmlConfig', 'core-site.xml',
-                              owner = 'ams',
-                              group = 'hadoop',
-                              mode=0644,
-                              conf_dir = '/etc/ams-hbase/conf',
-                              configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
-    )
+    if distributed:
+      self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                                owner = 'ams',
+                                group = 'hadoop',
+                                mode=0644,
+                                conf_dir = '/etc/ambari-metrics-collector/conf',
+                                configurations = self.getConfig()['configurations']['hdfs-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      )
+      self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
+                                owner = 'ams',
+                                group = 'hadoop',
+                                mode=0644,
+                                conf_dir = '/etc/ams-hbase/conf',
+                                configurations = self.getConfig()['configurations']['hdfs-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['hdfs-site']
+      )
+      self.assertResourceCalled('XmlConfig', 'core-site.xml',
+                                owner = 'ams',
+                                group = 'hadoop',
+                                mode=0644,
+                                conf_dir = '/etc/ambari-metrics-collector/conf',
+                                configurations = self.getConfig()['configurations']['core-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      )
+      self.assertResourceCalled('XmlConfig', 'core-site.xml',
+                                owner = 'ams',
+                                group = 'hadoop',
+                                mode=0644,
+                                conf_dir = '/etc/ams-hbase/conf',
+                                configurations = self.getConfig()['configurations']['core-site'],
+                                configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
+      )
 
-  def assert_hbase_configure(self, name=None):
+  def assert_hbase_configure(self, name=None, distributed=False):
     self.assertResourceCalled('Directory', '/etc/ams-hbase/conf',
                               owner = 'ams',
                               group = 'hadoop',
@@ -184,13 +207,6 @@ class TestOozieClient(RMFTestCase):
                               configurations = self.getConfig()['configurations']['ams-hbase-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['ams-hbase-site']
                               )
-    self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/phoenix-spool',
-                              owner = 'ams',
-                              cd_access = 'a',
-                              group = 'hadoop',
-                              mode = 0755,
-                              recursive = True
-    )
     self.assertResourceCalled('XmlConfig', 'hbase-policy.xml',
                               owner = 'ams',
                               group = 'hadoop',
@@ -221,50 +237,61 @@ class TestOozieClient(RMFTestCase):
     )
 
     if name == 'master':
-      self.assertResourceCalled('HdfsResource', 'hdfs://localhost:8020/apps/hbase/data',
-                                security_enabled = False,
-                                hadoop_bin_dir = '/usr/bin',
-                                keytab = UnknownConfigurationMock(),
-                                kinit_path_local = '/usr/bin/kinit',
-                                user = 'hdfs',
-                                owner = 'ams',
-                                mode = 0775,
-                                hadoop_conf_dir = '/etc/hadoop/conf',
-                                type = 'directory',
-                                action = ['create_on_execute'],
-                                hdfs_site=self.getConfig()['configurations']['hdfs-site'],
-                                principal_name=UnknownConfigurationMock(),
-                                default_fs='hdfs://c6401.ambari.apache.org:8020',
-                                )
-      self.assertResourceCalled('HdfsResource', '/amshbase/staging',
-                                security_enabled = False,
-                                hadoop_bin_dir = '/usr/bin',
-                                keytab = UnknownConfigurationMock(),
-                                kinit_path_local = '/usr/bin/kinit',
-                                user = 'hdfs',
-                                owner = 'ams',
-                                mode = 0711,
-                                hadoop_conf_dir = '/etc/hadoop/conf',
-                                type = 'directory',
-                                action = ['create_on_execute'],
-                                hdfs_site=self.getConfig()['configurations']['hdfs-site'],
-                                principal_name=UnknownConfigurationMock(),
-                                default_fs='hdfs://c6401.ambari.apache.org:8020',
-                                )
-      self.assertResourceCalled('HdfsResource', None,
-                                security_enabled = False,
-                                hadoop_bin_dir = '/usr/bin',
-                                keytab = UnknownConfigurationMock(),
-                                kinit_path_local = '/usr/bin/kinit',
-                                user = 'hdfs',
-                                hadoop_conf_dir = '/etc/hadoop/conf',
-                                action = ['execute'],
-                                hdfs_site=self.getConfig()['configurations']['hdfs-site'],
-                                principal_name=UnknownConfigurationMock(),
-                                default_fs='hdfs://c6401.ambari.apache.org:8020',
-                                )
-      self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
-                                mode=0644, owner='ams')
+      if distributed:
+        self.assertResourceCalled('HdfsResource', 'hdfs://localhost:8020/apps/hbase/data',
+                                  security_enabled = False,
+                                  hadoop_bin_dir = '/usr/bin',
+                                  keytab = UnknownConfigurationMock(),
+                                  kinit_path_local = '/usr/bin/kinit',
+                                  user = 'hdfs',
+                                  owner = 'ams',
+                                  mode = 0775,
+                                  hadoop_conf_dir = '/etc/hadoop/conf',
+                                  type = 'directory',
+                                  action = ['create_on_execute'],
+                                  hdfs_site=self.getConfig()['configurations']['hdfs-site'],
+                                  principal_name=UnknownConfigurationMock(),
+                                  default_fs='hdfs://c6401.ambari.apache.org:8020',
+                                  )
+        self.assertResourceCalled('HdfsResource', '/amshbase/staging',
+                                  security_enabled = False,
+                                  hadoop_bin_dir = '/usr/bin',
+                                  keytab = UnknownConfigurationMock(),
+                                  kinit_path_local = '/usr/bin/kinit',
+                                  user = 'hdfs',
+                                  owner = 'ams',
+                                  mode = 0711,
+                                  hadoop_conf_dir = '/etc/hadoop/conf',
+                                  type = 'directory',
+                                  action = ['create_on_execute'],
+                                  hdfs_site=self.getConfig()['configurations']['hdfs-site'],
+                                  principal_name=UnknownConfigurationMock(),
+                                  default_fs='hdfs://c6401.ambari.apache.org:8020',
+                                  )
+        self.assertResourceCalled('HdfsResource', None,
+                                  security_enabled = False,
+                                  hadoop_bin_dir = '/usr/bin',
+                                  keytab = UnknownConfigurationMock(),
+                                  kinit_path_local = '/usr/bin/kinit',
+                                  user = 'hdfs',
+                                  hadoop_conf_dir = '/etc/hadoop/conf',
+                                  action = ['execute'],
+                                  hdfs_site=self.getConfig()['configurations']['hdfs-site'],
+                                  principal_name=UnknownConfigurationMock(),
+                                  default_fs='hdfs://c6401.ambari.apache.org:8020',
+                                  )
+        self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode', action=["create"],
+                                  mode=0644, owner='ams')
+      else:
+        self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase',
+                                  owner = 'ams',
+                                  cd_access="a",
+                                  recursive = True
+        )
+        self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode',
+                                  owner = 'ams',
+                                  action = ['delete']
+        )
     self.assertResourceCalled('File', '/etc/ams-hbase/conf/log4j.properties',
                               owner = 'ams',
                               group = 'hadoop',
