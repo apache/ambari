@@ -25,8 +25,11 @@
   </prechecks>
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
         <task xsi:type="manual">
           <message>Before continuing, please stop all YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
@@ -110,6 +113,8 @@
     <group xsi:type="cluster" name="Backups" title="Perform Backups">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Oozie Server database on {{oozie-env/oozie_hostname}}.</message>
@@ -152,6 +157,7 @@
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
+
       <parallel-scheduler></parallel-scheduler>
       <service-check>false</service-check>
 
@@ -451,6 +457,8 @@
     -->
     <group xsi:type="cluster" name="ALL_HOST_OPS" title="Set Version On All Hosts">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage title="Update stack to {{version}}">
         <task xsi:type="execute">
           <script>scripts/ru_set_all.py</script>
@@ -462,7 +470,7 @@
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
       <skippable>false</skippable>
       <direction>UPGRADE</direction>
-      
+
       <execute-stage title="Check Component Versions">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.ComponentVersionCheckAction" />
       </execute-stage>
@@ -470,6 +478,8 @@
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
         <task xsi:type="manual">
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>

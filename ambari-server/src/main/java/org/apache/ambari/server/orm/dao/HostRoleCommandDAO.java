@@ -478,10 +478,14 @@ public class HostRoleCommandDAO {
 
   /**
    * Updates the {@link HostRoleCommandEntity#isFailureAutoSkipped()} flag for
-   * all commands for the given request
+   * all commands for the given request.
    * <p/>
-   * This will update each entity to ensure that the cache is maintained in a correct
-   * state.  A batch update doesn't always reflect in JPA-managed entities
+   * This will update each entity to ensure that the cache is maintained in a
+   * correct state. A batch update doesn't always reflect in JPA-managed
+   * entities.
+   * <p/>
+   * Stages which do not support automatically skipped commands will be updated
+   * with a value of {@code false}.
    *
    * @param requestId
    *          the request ID of the commands to update
@@ -490,6 +494,8 @@ public class HostRoleCommandDAO {
    *          otherwise.
    * @param skipOnServiceCheckFailure
    *          {@code true} to skip service check failures
+   *
+   * @see StageEntity#isAutoSkipOnFailureSupported()
    */
   @Transactional
   public void updateAutomaticSkipOnFailure(long requestId,
@@ -497,14 +503,26 @@ public class HostRoleCommandDAO {
 
     List<HostRoleCommandEntity> tasks = findByRequest(requestId);
     for (HostRoleCommandEntity task : tasks) {
-      if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK ) {
-        task.setAutoSkipOnFailure(skipOnServiceCheckFailure);
-        merge(task);
+      // if the stage does not support automatically skipping its commands, then
+      // do nothing
+      StageEntity stage = task.getStage();
+
+      boolean isStageSkippable = stage.isSkippable();
+      boolean isAutoSkipSupportedOnStage = stage.isAutoSkipOnFailureSupported();
+
+      // if the stage is not skippable or it does not support auto skip
+      if (!isStageSkippable || !isAutoSkipSupportedOnStage) {
+        task.setAutoSkipOnFailure(false);
       } else {
-        task.setAutoSkipOnFailure(skipOnFailure);
-        merge(task);
+        if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
+          task.setAutoSkipOnFailure(skipOnServiceCheckFailure);
+        } else {
+          task.setAutoSkipOnFailure(skipOnFailure);
+        }
       }
+
+      // save changes
+      merge(task);
     }
   }
-
 }

@@ -789,6 +789,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     for (UpgradeGroupHolder group : groups) {
       boolean skippable = group.skippable;
+      boolean supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       boolean allowRetry = group.allowRetry;
 
       List<UpgradeItemEntity> itemEntities = new ArrayList<UpgradeItemEntity>();
@@ -821,7 +822,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
               injectVariables(configHelper, cluster, itemEntity);
               makeServerSideStage(ctx, req, itemEntity, (ServerSideActionTask) task, skippable,
-                  allowRetry, pack, configUpgradePack);
+                  supportsAutoSkipOnFailure, allowRetry, pack, configUpgradePack);
             }
           }
         } else {
@@ -834,7 +835,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           injectVariables(configHelper, cluster, itemEntity);
 
           // upgrade items match a stage
-          createStage(ctx, req, itemEntity, wrapper, skippable, allowRetry);
+          createStage(ctx, req, itemEntity, wrapper, skippable, supportsAutoSkipOnFailure,
+              allowRetry);
         }
       }
 
@@ -1088,20 +1090,24 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void createStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
+      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry)
           throws AmbariException {
 
     switch (wrapper.getType()) {
       case START:
       case STOP:
       case RESTART:
-        makeCommandStage(context, request, entity, wrapper, skippable, allowRetry);
+        makeCommandStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
+            allowRetry);
         break;
       case RU_TASKS:
-        makeActionStage(context, request, entity, wrapper, skippable, allowRetry);
+        makeActionStage(context, request, entity, wrapper, skippable, supportsAutoSkipOnFailure,
+            allowRetry);
         break;
       case SERVICE_CHECK:
-        makeServiceCheckStage(context, request, entity, wrapper, skippable, allowRetry);
+        makeServiceCheckStage(context, request, entity, wrapper, skippable,
+            supportsAutoSkipOnFailure, allowRetry);
         break;
       default:
         break;
@@ -1126,7 +1132,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeActionStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
+      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry)
           throws AmbariException {
 
     if (0 == wrapper.getHosts().size()) {
@@ -1186,6 +1193,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
+    stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -1218,7 +1226,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   private void makeCommandStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
+      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry)
           throws AmbariException {
 
     Cluster cluster = context.getCluster();
@@ -1278,6 +1287,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
+    stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -1296,7 +1306,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private void makeServiceCheckStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable, boolean allowRetry)
+      UpgradeItemEntity entity, StageWrapper wrapper, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry)
           throws AmbariException {
 
     List<RequestResourceFilter> filters = new ArrayList<RequestResourceFilter>();
@@ -1334,6 +1345,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
+    stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {
@@ -1363,7 +1375,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
-      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable, boolean allowRetry,
+      UpgradeItemEntity entity, ServerSideActionTask task, boolean skippable,
+      boolean supportsAutoSkipOnFailure, boolean allowRetry,
       UpgradePack upgradePack, ConfigUpgradePack configUpgradePack)
           throws AmbariException {
 
@@ -1446,6 +1459,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         jsons.getCommandParamsForStage(), jsons.getHostParamsForStage());
 
     stage.setSkippable(skippable);
+    stage.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
 
     long stageId = request.getLastStageId() + 1;
     if (0L == stageId) {

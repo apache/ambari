@@ -51,7 +51,6 @@ import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
@@ -280,6 +279,7 @@ public class UpgradeHelper {
       groupHolder.title = group.title;
       groupHolder.groupClass = group.getClass();
       groupHolder.skippable = group.skippable;
+      groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
 
       // !!! all downgrades are skippable
@@ -334,7 +334,7 @@ public class UpgradeHelper {
 
           // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
           // other tasks, and then Start on that Component.
-          
+
           HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
           if (null == hostsType) {
             continue;
@@ -622,6 +622,16 @@ public class UpgradeHelper {
      * stage is skippable, a failed result can be skipped without failing the entire upgrade.
      */
     public boolean skippable = false;
+
+    /**
+     * {@code true} if the upgrade group's tasks can be automatically skipped if
+     * they fail. This is used in conjunction with
+     * {@link UpgradePack#isComponentFailureAutoSkipped()}. If the upgrade pack
+     * (or the upgrade request) does support auto skipping failures, then this
+     * setting has no effect. It's used mainly as a way to ensure that some
+     * groupings never have their failed tasks automatically skipped.
+     */
+    public boolean supportsAutoSkipOnFailure = true;
 
     /**
      * List of stages for the group

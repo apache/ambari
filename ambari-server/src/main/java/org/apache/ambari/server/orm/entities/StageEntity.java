@@ -57,6 +57,9 @@ public class StageEntity {
   @Column(name = "skippable", nullable = false)
   private Integer skippable = Integer.valueOf(0);
 
+  @Column(name = "supports_auto_skip_failure", nullable = false)
+  private Integer supportsAutoSkipOnFailure = Integer.valueOf(0);
+
   @Column(name = "log_info")
   @Basic
   private String logInfo = "";
@@ -244,5 +247,28 @@ public class StageEntity {
    */
   public void setSkippable(boolean skippable) {
     this.skippable = skippable ? 1 : 0;
+  }
+
+  /**
+   * Determine whether this stage supports automatically skipping failures of
+   * its commands.
+   *
+   * @return {@code true} if this stage supports automatically skipping failures
+   *         of its commands.
+   */
+  public boolean isAutoSkipOnFailureSupported() {
+    return supportsAutoSkipOnFailure != 0;
+  }
+
+  /**
+   * Sets whether this stage supports automatically skipping failures of its
+   * commands.
+   *
+   * @param supportsAutoSkipOnFailure
+   *          {@code true} if this stage supports automatically skipping
+   *          failures of its commands.
+   */
+  public void setAutoSkipFailureSupported(boolean supportsAutoSkipOnFailure) {
+    this.supportsAutoSkipOnFailure = supportsAutoSkipOnFailure ? 1 : 0;
   }
 }

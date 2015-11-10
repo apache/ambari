@@ -77,6 +77,7 @@ public class Stage {
   private String hostParamsStage;
 
   private boolean skippable;
+  private boolean supportsAutoSkipOnFailure;
 
   private int stageTimeout = -1;
 
@@ -113,7 +114,10 @@ public class Stage {
     this.clusterHostInfo = clusterHostInfo;
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
+
     skippable = false;
+    supportsAutoSkipOnFailure = false;
+
     this.hostRoleCommandFactory = hostRoleCommandFactory;
   }
 
@@ -125,6 +129,7 @@ public class Stage {
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
     skippable = stageEntity.isSkippable();
+    supportsAutoSkipOnFailure = stageEntity.isAutoSkipOnFailureSupported();
     logDir = stageEntity.getLogInfo();
 
     long clusterId = stageEntity.getClusterId().longValue();
@@ -173,6 +178,7 @@ public class Stage {
     stageEntity.setStageId(getStageId());
     stageEntity.setLogInfo(logDir);
     stageEntity.setSkippable(skippable);
+    stageEntity.setAutoSkipFailureSupported(supportsAutoSkipOnFailure);
     stageEntity.setRequestContext(requestContext);
     stageEntity.setHostRoleCommands(new ArrayList<HostRoleCommandEntity>());
     stageEntity.setRoleSuccessCriterias(new ArrayList<RoleSuccessCriteriaEntity>());
@@ -274,9 +280,12 @@ public class Stage {
       String hostName, Role role, RoleCommand command, ServiceComponentHostEvent event,
       boolean retryAllowed, boolean autoSkipFailure) {
 
+    boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
+        && skippable;
+
     // used on stage creation only, no need to check if wrappers loaded
     HostRoleCommand hrc = hostRoleCommandFactory.create(hostName, role, event, command,
-        retryAllowed, autoSkipFailure);
+        retryAllowed, isHostRoleCommandAutoSkippable);
 
     return addGenericExecutionCommand(clusterName, hostName, role, command, event, hrc);
   }
@@ -284,8 +293,12 @@ public class Stage {
   private ExecutionCommandWrapper addGenericExecutionCommand(Cluster cluster, Host host, Role role,
       RoleCommand command, ServiceComponentHostEvent event, boolean retryAllowed,
       boolean autoSkipFailure) {
+
+    boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
+        && skippable;
+
     HostRoleCommand hrc = hostRoleCommandFactory.create(host, role, event, command, retryAllowed,
-        autoSkipFailure);
+        isHostRoleCommandAutoSkippable);
 
     return addGenericExecutionCommand(cluster.getClusterName(), host.getHostName(), role, command,
         event, hrc);
@@ -340,8 +353,11 @@ public class Stage {
       ServiceComponentHostEvent event, String clusterName, String serviceName, boolean retryAllowed,
       boolean autoSkipFailure) {
 
+    boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
+        && skippable;
+
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName, host, role,
-        command, event, retryAllowed, autoSkipFailure);
+        command, event, retryAllowed, isHostRoleCommandAutoSkippable);
 
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
@@ -355,8 +371,11 @@ public class Stage {
       ServiceComponentHostEvent event, Cluster cluster, String serviceName, boolean retryAllowed,
       boolean autoSkipFailure) {
 
+    boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
+        && skippable;
+
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(cluster, host, role,
-        command, event, retryAllowed, autoSkipFailure);
+        command, event, retryAllowed, isHostRoleCommandAutoSkippable);
 
     commandWrapper.getExecutionCommand().setServiceName(serviceName);
   }
@@ -405,8 +424,11 @@ public class Stage {
       @Nullable String commandDetail, @Nullable Map<String, Map<String, String>> configTags,
       @Nullable Integer timeout, boolean retryAllowed, boolean autoSkipFailure) {
 
+    boolean isHostRoleCommandAutoSkippable = autoSkipFailure && supportsAutoSkipOnFailure
+        && skippable;
+
     ExecutionCommandWrapper commandWrapper = addGenericExecutionCommand(clusterName,
-        INTERNAL_HOSTNAME, role, command, event, retryAllowed, autoSkipFailure);
+        INTERNAL_HOSTNAME, role, command, event, retryAllowed, isHostRoleCommandAutoSkippable);
 
     ExecutionCommand cmd = commandWrapper.getExecutionCommand();
 
@@ -797,6 +819,29 @@ public class Stage {
    */
   public void setSkippable(boolean skippable) {
     this.skippable = skippable;
+  }
+
+  /**
+   * Determine whether this stage supports automatically skipping failures of
+   * its commands.
+   *
+   * @return {@code true} if this stage supports automatically skipping failures
+   *         of its commands.
+   */
+  public boolean isAutoSkipOnFailureSupported() {
+    return supportsAutoSkipOnFailure;
+  }
+
+  /**
+   * Sets whether this stage supports automatically skipping failures of its
+   * commands.
+   *
+   * @param supportsAutoSkipOnFailure
+   *          {@code true} if this stage supports automatically skipping
+   *          failures of its commands.
+   */
+  public void setAutoSkipFailureSupported(boolean supportsAutoSkipOnFailure) {
+    this.supportsAutoSkipOnFailure = supportsAutoSkipOnFailure;
   }
 
   @Override //Object

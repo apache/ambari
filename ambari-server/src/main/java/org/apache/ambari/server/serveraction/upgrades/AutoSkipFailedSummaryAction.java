@@ -18,7 +18,13 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.text.MessageFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
@@ -64,11 +70,6 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
    * The standard output template message.
    */
   private static final String FAILURE_STD_OUT_TEMPLATE = "There were {0} skipped failure(s) that must be addressed before you can proceed. Please resolve each failure before continuing with the upgrade.";
-
-  /**
-   * ...
-   */
-  private static final String MIDDLE_ELLIPSIZE_MARKER = "\n\u2026\n";
 
   private static final String SKIPPED_SERVICE_CHECK = "service_check";
   private static final String SKIPPED_HOST_COMPONENT = "host_component";
@@ -191,6 +192,7 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
 
               publishedHostComponents.put(hostName, new HashSet<Role>());
             }
+
             Set<Role> publishedHostComponentsOnHost = publishedHostComponents.get(hostName);
             Role role = skippedTask.getRole();
             if (! publishedHostComponentsOnHost.contains(role)) {
@@ -203,9 +205,11 @@ public class AutoSkipFailedSummaryAction extends AbstractServerAction {
               failures.add(details);
             }
           }
+
           skippedFailures.put(SKIPPED_HOST_COMPONENT, hostComponents);
           m_structuredFailures.put(FAILURES, skippedFailures);
         }
+
         skippedCategories.add(skippedCategory);
 
         ServiceComponentHostEventWrapper eventWrapper = new ServiceComponentHostEventWrapper(

@@ -50,6 +50,9 @@ public class Grouping {
   @XmlElement(name="skippable", defaultValue="false")
   public boolean skippable = false;
 
+  @XmlElement(name = "supports-auto-skip-failure", defaultValue = "true")
+  public boolean supportsAutoSkipOnFailure = true;
+
   @XmlElement(name="allow-retry", defaultValue="true")
   public boolean allowRetry = true;
 
@@ -159,7 +162,7 @@ public class Grouping {
       }
 
       // Potentially add a service check
-      if (this.m_serviceCheck && !clientOnly) {
+      if (m_serviceCheck && !clientOnly) {
         m_servicesToCheck.add(service);
       }
     }

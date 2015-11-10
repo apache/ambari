@@ -141,7 +141,7 @@ public abstract class StageWrapperBuilder {
       autoSkipFailures = upgradeContext.isComponentFailureAutoSkipped();
     }
 
-    if (m_grouping.skippable && autoSkipFailures) {
+    if (m_grouping.supportsAutoSkipOnFailure && m_grouping.skippable && autoSkipFailures) {
       ServerActionTask skippedFailedCheck = new ServerActionTask();
       skippedFailedCheck.implClass = AutoSkipFailedSummaryAction.class.getName();
       skippedFailedCheck.summary = AUTO_SKIPPED_TASK_SUMMARY;

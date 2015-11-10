@@ -37,16 +37,14 @@ import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
-import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ParallelScheduler;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
 import org.apache.ambari.server.state.stack.upgrade.RestartTask;
-import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
+import org.apache.ambari.server.state.stack.upgrade.StopGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
-import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.apache.ambari.server.state.stack.upgrade.UpdateStackGrouping;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.junit.After;
@@ -317,7 +315,27 @@ public class UpgradePackTest {
     Assert.assertTrue(upgradePack.isComponentFailureAutoSkipped());
     Assert.assertTrue(upgradePack.isServiceCheckFailureAutoSkipped());
   }
-  
+
+  /**
+   * Tests that the XML for not auto skipping skippable failures works.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testNoAutoSkipFailure() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
+    UpgradePack upgradePack = upgrades.get("upgrade_test_skip_failures");
+
+    List<Grouping> groups = upgradePack.getGroups(Direction.UPGRADE);
+    for (Grouping grouping : groups) {
+      if (grouping.name.equals("SKIPPABLE_BUT_NOT_AUTO_SKIPPABLE")) {
+        Assert.assertFalse(grouping.supportsAutoSkipOnFailure);
+      } else {
+        Assert.assertTrue(grouping.supportsAutoSkipOnFailure);
+      }
+    }
+  }
+
   @Test
   public void testDirectionForNonRolling() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");

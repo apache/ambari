@@ -18,15 +18,33 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -74,33 +92,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -186,6 +186,29 @@ public class UpgradeCatalog213Test {
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog213 upgradeCatalog213 = injector.getInstance(UpgradeCatalog213.class);
     upgradeCatalog213.executeUpgradeDDLUpdates();
+    verify(dbAccessor);
+  }
+
+  @Test
+  public void testExecuteStageDDLUpdates() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+
+    dbAccessor.addColumn(eq("stage"), anyObject(DBAccessor.DBColumnInfo.class));
+    expectLastCall().times(1);
+
+    replay(dbAccessor);
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(EntityManager.class).toInstance(entityManager);
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog213 upgradeCatalog213 = injector.getInstance(UpgradeCatalog213.class);
+    upgradeCatalog213.executeStageDDLUpdates();
     verify(dbAccessor);
   }
 
@@ -1056,6 +1079,7 @@ public class UpgradeCatalog213Test {
     Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn1 = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn2 = EasyMock.newCapture();
 
+    Capture<DBAccessor.DBColumnInfo> stageSkipColumnCapture = EasyMock.newCapture();
 
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
@@ -1078,6 +1102,8 @@ public class UpgradeCatalog213Test {
 
     mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn1));
     mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn2));
+
+    mockedDbAccessor.addColumn(eq("stage"), capture(stageSkipColumnCapture));
 
     mocksControl.replay();
 
@@ -1103,7 +1129,8 @@ public class UpgradeCatalog213Test {
     Assert.assertEquals("The column name is wrong!", "security_descriptor_reference", capturedNewBlueprintColumn2
       .getValue().getName());
 
-
+    Assert.assertEquals("The column name is wrong!", "supports_auto_skip_failure",
+        stageSkipColumnCapture.getValue().getName());
   }
 
   @Test
