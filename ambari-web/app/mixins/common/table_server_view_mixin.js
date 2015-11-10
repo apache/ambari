@@ -80,7 +80,6 @@ App.TableServerViewMixin = Em.Mixin.create({
 
     var self = this;
     this.set('controller.resetStartIndex', false);
-    this.saveFilterConditions(iColumn, value, type, false);
     if (!this.get('filteringComplete')) {
       clearTimeout(this.get('timeOut'));
       this.set('timeOut', setTimeout(function () {
@@ -89,6 +88,8 @@ App.TableServerViewMixin = Em.Mixin.create({
     } else {
       clearTimeout(this.get('timeOut'));
       this.set('controller.resetStartIndex', true);
+      //save filter only when it's applied
+      this.saveFilterConditions(iColumn, value, type, false);
       this.refresh();
     }
   },
@@ -120,7 +121,6 @@ App.TableServerViewMixin = Em.Mixin.create({
    * success callback for updater request
    */
   updaterSuccessCb: function () {
-    clearTimeout(this.get('timeOut'));
     this.set('filteringComplete', true);
     this.propertyDidChange('pageContent');
     App.loadTimer.finish('Hosts Page');
