@@ -34,7 +34,7 @@ HBASE_CMD=${HBASE_DIR}/bin/hbase
 METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_DAILY METRIC_RECORD_HOURLY METRIC_RECORD_MINUTE)
 METRIC_COLLECTOR=ambari-metrics-collector
 
-AMS_LOG_DIR=/var/log/ambari-metrics-collector
+AMS_COLLECTOR_LOG_DIR=/var/log/ambari-metrics-collector
 
 STOP_TIMEOUT=5
 
@@ -218,7 +218,7 @@ function start()
   echo "Collector successfully started."
   echo "Initializing Ambari Metrics data model"
   # Wait until METRIC_* tables created
-  for retry in {1..10}
+  for retry in {1..5}
   do
     echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
     if [ $? -eq 0 ]; then

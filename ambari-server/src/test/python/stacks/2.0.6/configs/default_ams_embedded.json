@@ -550,8 +550,7 @@
             "hbase_regionserver_heapsize": "1024m",
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
-            "hbase_log_dir": "/var/log/hbase",
-            "hbase_java_io_tmpdir" : "/tmp"
+            "hbase_log_dir": "/var/log/hbase"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 
@@ -763,7 +762,7 @@
             "hbase.regionserver.global.memstore.lowerLimit": "0.3",
             "hbase.hregion.memstore.block.multiplier": "4",
             "hbase.hregion.memstore.flush.size": "134217728",
-            "hbase.rootdir": "hdfs://localhost:8020/apps/hbase/data",
+            "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
             "hbase.zookeeper.property.clientPort": "61181",
             "phoenix.spool.directory": "${hbase.tmp.dir}/phoenix-spool",
             "hbase.client.scanner.timeout.period": "900000",
@@ -788,7 +787,7 @@
             "hbase.regionserver.thread.compaction.large": "2",
             "phoenix.query.timeoutMs": "1200000",
             "hbase.local.dir": "${hbase.tmp.dir}/local",
-            "hbase.cluster.distributed": "true",
+            "hbase.cluster.distributed": "false",
             "zookeeper.session.timeout.localHBaseCluster": "20000",
             "hbase.client.scanner.caching": "10000",
             "phoenix.sequence.saltBuckets": "2",
