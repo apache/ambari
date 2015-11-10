@@ -32,8 +32,11 @@
 
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
-      <skippable>true</skippable>
       <direction>UPGRADE</direction>
+
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Stop YARN Queues">
         <task xsi:type="manual">
           <message>Before continuing, please stop all YARN queues. If yarn-site's yarn.resourcemanager.work-preserving-recovery.enabled is set to true, then you can skip this step since the clients will retry on their own.</message>
@@ -100,6 +103,8 @@
     <group xsi:type="cluster" name="Backups" title="Perform Backups">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
@@ -492,6 +497,8 @@
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
         <task xsi:type="manual">
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>

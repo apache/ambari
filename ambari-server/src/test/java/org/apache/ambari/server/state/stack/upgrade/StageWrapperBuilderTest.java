@@ -88,7 +88,6 @@ public class StageWrapperBuilderTest {
 
     ServerActionTask task = (ServerActionTask)(skipSummaryWrapper.getTasks().get(0).getTasks().get(0));
     Assert.assertEquals(AutoSkipFailedSummaryAction.class.getName(), task.implClass);
-
   }
 
   /**

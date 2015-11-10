@@ -106,6 +106,7 @@ import com.google.inject.util.Modules;
 /**
  * UpgradeResourceDefinition tests.
  */
+@SuppressWarnings("unchecked")
 public class UpgradeResourceProviderTest {
 
   private UpgradeDAO upgradeDao = null;
@@ -528,8 +529,9 @@ public class UpgradeResourceProviderTest {
     assertEquals(true, resource.getPropertyValue(UpgradeResourceProvider.UPGRADE_SKIP_SC_FAILURES));
   }
 
-  @Ignore
+
   @Test
+  @Ignore
   public void testCreatePartialDowngrade() throws Exception {
     clusters.addHost("h2");
     Host host = clusters.getHost("h2");
@@ -597,9 +599,9 @@ public class UpgradeResourceProviderTest {
 
   }
 
-  @Ignore
-  @SuppressWarnings("unchecked")
+
   @Test
+  @Ignore
   public void testDowngradeToBase() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
@@ -660,7 +662,7 @@ public class UpgradeResourceProviderTest {
 
   }
 
-  @Ignore
+
   @Test
   public void testAbort() throws Exception {
     RequestStatus status = testCreateResources();
@@ -683,7 +685,7 @@ public class UpgradeResourceProviderTest {
     urp.updateResources(req, null);
   }
 
-  @Ignore
+
   @Test
   public void testRetry() throws Exception {
     RequestStatus status = testCreateResources();
@@ -802,7 +804,7 @@ public class UpgradeResourceProviderTest {
   }
 
 
-  @Ignore
+
   @Test
   public void testPercents() throws Exception {
     RequestStatus status = testCreateResources();
@@ -851,8 +853,9 @@ public class UpgradeResourceProviderTest {
     assertEquals(100d, calc.getPercent(), 0.01d);
   }
 
-  @Ignore
+
   @Test
+  @Ignore
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
     StackId oldStack = cluster.getDesiredStackVersion();
@@ -1142,7 +1145,12 @@ public class UpgradeResourceProviderTest {
 
     List<HostRoleCommandEntity> tasks = dao.findByRequest(entity.getRequestId());
     for (HostRoleCommandEntity task : tasks) {
-      assertTrue(task.isFailureAutoSkipped());
+      StageEntity stage = task.getStage();
+      if (stage.isSkippable() && stage.isAutoSkipOnFailureSupported()) {
+        assertTrue(task.isFailureAutoSkipped());
+      } else {
+        assertFalse(task.isFailureAutoSkipped());
+      }
     }
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
@@ -1161,7 +1169,12 @@ public class UpgradeResourceProviderTest {
       if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
         assertFalse(task.isFailureAutoSkipped());
       } else {
-        assertTrue(task.isFailureAutoSkipped());
+        StageEntity stage = task.getStage();
+        if (stage.isSkippable() && stage.isAutoSkipOnFailureSupported()) {
+          assertTrue(task.isFailureAutoSkipped());
+        } else {
+          assertFalse(task.isFailureAutoSkipped());
+        }
       }
     }
 
@@ -1178,7 +1191,12 @@ public class UpgradeResourceProviderTest {
     tasks = dao.findByRequest(entity.getRequestId());
     for (HostRoleCommandEntity task : tasks) {
       if (task.getRoleCommand() == RoleCommand.SERVICE_CHECK) {
-        assertTrue(task.isFailureAutoSkipped());
+        StageEntity stage = task.getStage();
+        if (stage.isSkippable() && stage.isAutoSkipOnFailureSupported()) {
+          assertTrue(task.isFailureAutoSkipped());
+        } else {
+          assertFalse(task.isFailureAutoSkipped());
+        }
       } else {
         assertFalse(task.isFailureAutoSkipped());
       }
@@ -1198,8 +1216,6 @@ public class UpgradeResourceProviderTest {
     for (HostRoleCommandEntity task : tasks) {
       assertFalse(task.isFailureAutoSkipped());
     }
-
-
   }
 
 

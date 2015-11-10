@@ -29,7 +29,18 @@
         <component>ZOOKEEPER_CLIENT</component>
       </service>
     </group>
-  </order>  
+    
+    <group name="SKIPPABLE_BUT_NOT_AUTO_SKIPPABLE" title="Skippable But Not Auto Skippable">
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      
+      <allow-retry>false</allow-retry>
+      <service name="ZOOKEEPER">
+        <component>ZOOKEEPER_SERVER</component>
+        <component>ZOOKEEPER_CLIENT</component>
+      </service>
+    </group>    
+  </order>
 
   <processing>
     <service name="ZOOKEEPER">

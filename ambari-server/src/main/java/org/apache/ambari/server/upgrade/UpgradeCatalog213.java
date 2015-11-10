@@ -18,11 +18,20 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -60,19 +69,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -127,6 +128,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String BLUEPRINT_TABLE = "blueprint";
   private static final String SECURITY_TYPE_COLUMN = "security_type";
   private static final String SECURITY_DESCRIPTOR_REF_COLUMN = "security_descriptor_reference";
+
+  private static final String STAGE_TABLE = "stage";
 
   /**
    * Logger.
@@ -187,6 +190,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     addKerberosDescriptorTable();
     executeBlueprintDDLUpdates();
+    executeStageDDLUpdates();
   }
 
   protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
@@ -209,9 +213,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         String.class, null, null, true));
   }
 
-    /**
-     * {@inheritDoc}
-     */
+  /**
+   * Updates the {@code stage} table by:
+   * <ul>
+   * <li>Adding the {@code supports_auto_skip_failure} column</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void executeStageDDLUpdates() throws SQLException {
+    dbAccessor.addColumn(STAGE_TABLE,
+        new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
     // execute DDL updates

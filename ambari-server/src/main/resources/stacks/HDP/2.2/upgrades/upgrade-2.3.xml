@@ -37,6 +37,7 @@
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
         <task xsi:type="execute" hosts="master">
@@ -56,6 +57,8 @@
     <group xsi:type="cluster" name="PREPARE_BACKUPS" title="Prepare Backups">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase Backup">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
@@ -349,6 +352,7 @@
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
         <task xsi:type="manual">
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
