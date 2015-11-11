@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -1254,6 +1255,13 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
+            if (isRangerAdmin() && matchingGroupCount > 1) {
+              if (origValue != null && !origValue.contains("localhost")) {
+                // if this Ranger admin property is a FQDN then simply return it
+                return origValue;
+              }
+            }
+
             throw new IllegalArgumentException(
                 String.format("Unable to update configuration property '%s' with topology information. " +
                     "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
@@ -1358,6 +1366,17 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentHiveMetaStoreServer() {
       return component.equals("HIVE_METASTORE");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is Ranger Admin
+     *
+     * @return true if the component associated is Ranger Admin
+     *         false if the component is not Ranger Admin
+     */
+    private boolean isRangerAdmin() {
+      return component.equals("RANGER_ADMIN");
     }
 
     /**
@@ -2019,6 +2038,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerKmsSitePropsMap = new HashMap<String, PropertyUpdater>();
+
 
 
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -2035,6 +2057,9 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
+    singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
+    singleHostTopologyUpdaters.put("kms-site", rangerKmsSitePropsMap);
+
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -2069,7 +2094,9 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.encryption.key.provider.uri", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
+    coreSiteMap.put("hadoop.security.key.provider.path", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
@@ -2236,6 +2263,11 @@ public class BlueprintConfigurationProcessor {
     // ATLAS
     atlasPropsMap.put("atlas.server.bind.address", new SingleHostTopologyUpdater("ATLAS_SERVER"));
 
+    // RANGER_ADMIN
+    rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
+
+    // RANGER KMS
+    rangerKmsSitePropsMap.put("hadoop.kms.key.provider.uri", new SingleHostTopologyUpdater("RANGER_KMS_SERVER"));
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
