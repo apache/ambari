@@ -874,10 +874,19 @@ public class UpgradeCatalog213Test {
   public void testUpdateKafkaConfigs() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigurationResponse mockConfigurationResponse = easyMockSupport.createMock(ConfigurationResponse.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Map<String, String> propertiesKafkaEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+    Map<String, String> updates = Collections.singletonMap("content", "test\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}");
+
     final Map<String, String> propertiesAmsEnv = new HashMap<String, String>() {
       {
         put("kafka.metrics.reporters", "{{kafka_metrics_reporters}}");
@@ -891,6 +900,7 @@ public class UpgradeCatalog213Test {
     };
 
     final Config mockAmsEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockKafkaEnv = easyMockSupport.createNiceMock(Config.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -913,6 +923,22 @@ public class UpgradeCatalog213Test {
     expect(mockClusterExpected.getServices()).andReturn(installedServices).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(mockAmsEnv).atLeastOnce();
     expect(mockAmsEnv.getProperties()).andReturn(propertiesAmsEnv).atLeastOnce();
+
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3"));
+    expect(mockClusterExpected.getDesiredConfigByType("kafka-env")).andReturn(mockKafkaEnv).atLeastOnce();
+    expect(mockKafkaEnv.getProperties()).andReturn(propertiesKafkaEnv).atLeastOnce();
+
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+        "kafka-env", updates, true, false);
+    expectLastCall().once();
+
+    expect(mockAmbariManagementController.createConfiguration(EasyMock.<ConfigurationRequest>anyObject())).andReturn(mockConfigurationResponse);
 
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateKafkaConfigs();
