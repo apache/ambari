@@ -108,7 +108,7 @@ public class HostComponentStateEntity {
   @JoinColumn(name = "current_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
   private StackEntity currentStack;
 
-  @ManyToOne(cascade = CascadeType.PERSIST)
+  @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
       @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),
