@@ -30,6 +30,7 @@
     <property-type>PASSWORD</property-type>
     <description>password to use as the master secret</description>
     <value-attributes>
+      <type>password</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>

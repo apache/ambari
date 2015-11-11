@@ -33,6 +33,9 @@
         <value>bigdata</value>
         <property-type>PASSWORD</property-type>
         <description>Password to open the trust store file.</description>
+        <value-attributes>
+            <type>password</type>
+        </value-attributes>
     </property>
     <property>
         <name>ssl.server.truststore.reload.interval</name>
@@ -54,11 +57,17 @@
         <value>bigdata</value>
         <property-type>PASSWORD</property-type>
         <description>Password to open the keystore file.</description>
+        <value-attributes>
+            <type>password</type>
+        </value-attributes>
     </property>
     <property>
         <name>ssl.server.keystore.keypassword</name>
         <value>bigdata</value>
         <property-type>PASSWORD</property-type>
         <description>Password for private key in keystore file.</description>
+        <value-attributes>
+            <type>password</type>
+        </value-attributes>
     </property>
 </configuration>

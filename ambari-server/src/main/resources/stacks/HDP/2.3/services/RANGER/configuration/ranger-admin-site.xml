@@ -70,6 +70,9 @@
     <value>xasecure</value>
     <property-type>PASSWORD</property-type>
     <description>Password for keystore</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -140,6 +143,9 @@
     <value>_</value>
     <property-type>PASSWORD</property-type>
     <description>JDBC password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -260,6 +266,7 @@
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -316,6 +323,7 @@
     <property-type>PASSWORD</property-type>
     <description>Password for the account that can search for users</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -361,6 +369,9 @@
     <value>_</value>
     <property-type>PASSWORD</property-type>
     <description>JDBC password - audit</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -450,6 +461,9 @@
     <value>NONE</value>
     <property-type>PASSWORD</property-type>
     <description>Solr password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property> 
 
 </configuration>

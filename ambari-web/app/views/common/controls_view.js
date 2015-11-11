@@ -87,8 +87,8 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
-      var p = App.StackConfigProperty.find(App.config.configId(name, type));
-       if ((p && p.get('propertyDependedBy.length') > 0 || p.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
+      var p = App.configsCollection.getConfig(App.config.configId(name, type));
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || p.displayType === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
          return controller.getRecommendationsForDependencies([{

@@ -86,6 +86,7 @@
     <display-name>Database Admintrator (DBA) password</display-name>
     <description>Database password for the database admin username</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -127,6 +128,7 @@
     <display-name>Ranger DB password</display-name>
     <description>Database password for the Ranger schema</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -158,6 +160,7 @@
     <display-name>Ranger Audit DB password</display-name>
     <description>Database password for storing auditlog information</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

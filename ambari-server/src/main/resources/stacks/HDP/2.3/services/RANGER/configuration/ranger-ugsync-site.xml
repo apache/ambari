@@ -41,6 +41,9 @@
     <value>UnIx529p</value>
     <property-type>PASSWORD</property-type>
     <description>Keystore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -54,6 +57,9 @@
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
     <description>Truststore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -197,6 +203,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the LDAP bind user used for searching users.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>

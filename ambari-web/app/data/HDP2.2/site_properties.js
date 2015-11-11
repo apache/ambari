@@ -230,7 +230,6 @@ hdp22properties.push(
   },
   {
     "name": "xa_ldap_url",
-    "isOverridable": false,
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "LDAPSettings"

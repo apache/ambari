@@ -38,9 +38,9 @@ App.SubSectionTab = DS.Model.extend({
   subSection: DS.belongsTo('App.SubSection'),
 
   /**
-   * @type {App.StackConfigProperty[]}
+   * @type {String[]}
    */
-  configProperties: DS.hasMany('App.StackConfigProperty'),
+  configProperties: DS.attr('array', {defaultValue: []}),
 
   /**
    * @type {App.ServiceConfigProperty[]}

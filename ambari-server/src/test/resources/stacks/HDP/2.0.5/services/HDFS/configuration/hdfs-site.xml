@@ -34,6 +34,9 @@
     <property-type>PASSWORD</property-type>
     <value></value>
     <description>1</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>

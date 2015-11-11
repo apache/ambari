@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('config');
+require('utils/configs_collection');
 require('utils/config');
 require('models/service/hdfs');
 var setups = require('test/init_model_test');
@@ -379,13 +380,6 @@ describe('App.config', function () {
       var miscCategory = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'MISC');
       expect(Em.keys(miscCategory.get('configTypes'))).to.eql(['cluster-env', 'hadoop-env', 'oozie-env']);
     });
-
-    it('should not load configs for missed config types', function() {
-      var hdfsService = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'HDFS');
-      var rangerRelatedConfigs = hdfsService.get('configs').filterProperty('filename', 'ranger-hdfs-plugin-properties.xml');
-      expect(rangerRelatedConfigs.length).to.be.eql(0);
-      expect(hdfsService.get('configs.length') > 0).to.be.true;
-    });
   });
   
   describe('#isManagedMySQLForHiveAllowed', function () {
@@ -409,122 +403,6 @@ describe('App.config', function () {
     cases.forEach(function (item) {
       it(title.format(item.expected, item.osFamily), function () {
         expect(App.config.isManagedMySQLForHiveAllowed(item.osFamily)).to.equal(item.expected);
-      });
-    });
-
-  });
-
-
-  describe('#advancedConfigIdentityData', function () {
-
-    var configs = [
-      {
-        input: {
-          property_type: ['USER'],
-          property_name: 'hdfs_user'
-        },
-        output: {
-          category: 'Users and Groups',
-          isVisible: true,
-          serviceName: 'MISC',
-          displayType: 'user',
-          index: 30
-        },
-        title: 'user, no service name specified, default display name behaviour'
-      },
-      {
-        input: {
-          property_type: ['GROUP'],
-          property_name: 'knox_group',
-          service_name: 'KNOX'
-        },
-        output: {
-          category: 'Users and Groups',
-          isVisible: true,
-          serviceName: 'MISC',
-          displayType: 'user',
-          index: 0
-        },
-        title: 'group, service_name = KNOX, default display name behaviour'
-      },
-      {
-        input: {
-          property_type: ['USER']
-        },
-        output: {
-          isVisible: false
-        },
-        isHDPWIN: true,
-        title: 'HDPWIN stack'
-      },
-      {
-        input: {
-          property_type: ['USER'],
-          property_name: 'smokeuser',
-          service_name: 'MISC'
-        },
-        output: {
-          serviceName: 'MISC',
-          belongsToService: ['MISC'],
-          index: 30
-        },
-        title: 'smokeuser, service_name = MISC'
-      },
-      {
-        input: {
-          property_type: ['USER'],
-          property_name: 'ignore_groupsusers_create'
-        },
-        output: {
-          displayType: 'boolean'
-        },
-        title: 'ignore_groupsusers_create'
-      },
-      {
-        input: {
-          property_type: ['GROUP'],
-          property_name: 'proxyuser_group'
-        },
-        output: {
-          belongsToService: ['HIVE', 'OOZIE', 'FALCON']
-        },
-        title: 'proxyuser_group'
-      },
-      {
-        input: {
-          property_type: ['PASSWORD'],
-          property_name: 'javax.jdo.option.ConnectionPassword'
-        },
-        output: {
-          displayType: 'password'
-        },
-        title: 'password'
-      }
-    ];
-
-    before(function () {
-      sinon.stub(App.StackService, 'find').returns([
-        {
-          serviceName: 'KNOX'
-        }
-      ]);
-    });
-
-    afterEach(function () {
-      App.get.restore();
-    });
-
-    after(function () {
-      App.StackService.find.restore();
-    });
-
-    configs.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(Boolean(item.isHDPWIN));
-        var propertyData = App.config.advancedConfigIdentityData(item.input);
-        Em.keys(item.output).forEach(function (key) {
-          expect(propertyData[key]).to.eql(item.output[key]);
-        });
       });
     });
 
@@ -767,88 +645,17 @@ describe('App.config', function () {
 
   describe('#getDefaultDisplayType', function() {
     it('returns content displayType', function() {
-      sinon.stub(App.config, 'isContentProperty', function () {return true});
       expect(App.config.getDefaultDisplayType('content','f1','anything')).to.equal('content');
-      App.config.isContentProperty.restore();
     });
     it('returns singleLine displayType', function() {
-      sinon.stub(App.config, 'isContentProperty', function () {return false});
       expect(App.config.getDefaultDisplayType('n1','f1','v1')).to.equal('string');
-      App.config.isContentProperty.restore();
     });
     it('returns multiLine displayType', function() {
-      sinon.stub(App.config, 'isContentProperty', function () {return false});
       expect(App.config.getDefaultDisplayType('n2', 'f2', 'v1\nv2')).to.equal('multiLine');
-      App.config.isContentProperty.restore();
     });
     it('returns custom displayType for FALCON oozie-site properties', function() {
-      sinon.stub(App.config, 'isContentProperty', function () {return false});
       expect(App.config.getDefaultDisplayType('n2', 'oozie-site.xml', 'v1\nv2', 'FALCON')).to.equal('custom');
-      App.config.isContentProperty.restore();
     });
-  });
-
-  describe('#getDefaultDisplayName', function() {
-    beforeEach(function() {
-      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
-    });
-    afterEach(function() {
-      App.config.getConfigTagFromFileName.restore();
-    });
-
-    it('returns name', function() {
-      sinon.stub(App.config, 'isContentProperty', function() {return false} );
-      expect(App.config.getDefaultDisplayName('name')).to.equal('name');
-      App.config.isContentProperty.restore();
-    });
-    it('returns name for env content', function() {
-      sinon.stub(App.config, 'isContentProperty', function() {return true} );
-      expect(App.config.getDefaultDisplayName('name', 'fileName')).to.equal('fileName template');
-      App.config.isContentProperty.restore();
-    });
-  });
-
-  describe('#isContentProperty', function() {
-    beforeEach(function() {
-      sinon.stub(App.config, 'getConfigTagFromFileName', function(fName) {return fName} );
-    });
-    afterEach(function() {
-      App.config.getConfigTagFromFileName.restore();
-    });
-    var tests = [
-      {
-        name: 'content',
-        fileName: 'something-env',
-        tagEnds: null,
-        res: true,
-        m: 'returns true as it\'s content property'
-      },
-      {
-        name: 'content',
-        fileName: 'something-any-end',
-        tagEnds: ['-any-end'],
-        res: true,
-        m: 'returns true as it\'s content property with specific fileName ending'
-      },
-      {
-        name: 'notContent',
-        fileName: 'something-env',
-        tagEnds: ['-env'],
-        res: false,
-        m: 'returns false as name is not content'
-      },
-      {
-        name: 'content',
-        fileName: 'something-env1',
-        tagEnds: ['-env'],
-        res: false,
-        m: 'returns false as fileName is not correct'
-      }
-    ].forEach(function(t) {
-        it(t.m, function() {
-          expect(App.config.isContentProperty(t.name, t.fileName, t.tagEnds)).to.equal(t.res);
-        });
-      });
   });
 
   describe('#formatValue', function() {
@@ -948,9 +755,6 @@ describe('App.config', function () {
 
   describe('#createDefaultConfig', function() {
     before(function() {
-      sinon.stub(App.config, 'getDefaultDisplayName', function() {
-        return 'pDisplayName';
-      });
       sinon.stub(App.config, 'getDefaultDisplayType', function() {
         return 'pDisplayType';
       });
@@ -966,7 +770,6 @@ describe('App.config', function () {
     });
 
     after(function() {
-      App.config.getDefaultDisplayName.restore();
       App.config.getDefaultDisplayType.restore();
       App.config.getDefaultCategory.restore();
       App.config.getIsSecure.restore();
@@ -986,9 +789,9 @@ describe('App.config', function () {
       recommendedIsFinal: null,
       supportsFinal: true,
       serviceName: 'pServiceName',
-      displayName: 'pDisplayName',
+      displayName: 'pName',
       displayType: 'pDisplayType',
-      description: null,
+      description: '',
       category: 'pCategory',
       isSecureConfig: false,
       showLabel: true,
@@ -1005,14 +808,12 @@ describe('App.config', function () {
       dependentConfigPattern: null,
       options: null,
       radioName: null,
-      belongsToService: [],
       widgetType: null
     };
     it('create default config object', function () {
       expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
     });
     it('runs proper methods', function() {
-      expect(App.config.getDefaultDisplayName.calledWith('pName','pFileName')).to.be.true;
       expect(App.config.getDefaultDisplayType.calledWith('pName', 'pFileName', '')).to.be.true;
       expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
       expect(App.config.getIsSecure.calledWith('pName')).to.be.true;

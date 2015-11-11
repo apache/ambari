@@ -72,6 +72,9 @@
     <value>yarn</value>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property> 
 
 </configuration>

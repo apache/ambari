@@ -31,6 +31,9 @@
 		<value>myKeyFilePassword</value>
 		<property-type>PASSWORD</property-type>
 		<description>password for keystore</description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
 	<property>
@@ -44,6 +47,9 @@
 		<value>changeit</value>
 		<property-type>PASSWORD</property-type>
 		<description>java truststore password</description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
     <property>

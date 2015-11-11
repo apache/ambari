@@ -233,7 +233,7 @@ App.InstallerController = App.WizardController.extend({
   loadStacks: function () {
     var stacks = this.get('content.stacks');
     var dfd = $.Deferred();
-    App.StackConfigProperty.find().clear();
+    App.configsCollection.clearAll();
     App.Section.find().clear();
     App.SubSection.find().clear();
     App.SubSectionTab.find().clear();

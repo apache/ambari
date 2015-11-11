@@ -191,10 +191,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
    * @private
    */
   _getDisplayNameForConfig: function(name, fileName) {
-    var c = App.config.get('allPreDefinedSiteProperties').findProperty('name', name);
-    var dName = c ? Em.get(c, 'displayName') : '';
-    dName = Em.isEmpty(dName) ? name : dName;
-    return fileName == 'cluster-env' ? App.format.normalizeName(name) : dName;
+    return fileName == 'cluster-env' ? App.format.normalizeName(name) : name;
   },
 
   /**

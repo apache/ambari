@@ -59,6 +59,9 @@
     <value>crypted</value>
     <property-type>PASSWORD</property-type>
     <description>Audit DB JDBC Password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>

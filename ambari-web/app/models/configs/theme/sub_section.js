@@ -63,9 +63,9 @@ App.SubSection = DS.Model.extend({
   section: DS.belongsTo('App.Section'),
 
   /**
-   * @type {App.StackConfigProperty[]}
+   * @type {String[]}
    */
-  configProperties: DS.hasMany('App.StackConfigProperty'),
+  configProperties: DS.attr('array', {defaultValue: []}),
 
   /**
    * @type {App.SubSectionTab[]}

@@ -96,6 +96,7 @@
     <display-name>Ranger DB root password</display-name>
     <description>Database password for the database admin user-id</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

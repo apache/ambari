@@ -65,6 +65,9 @@
     <value>admin-password</value>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property> 
 
   <property>
@@ -175,6 +178,9 @@
     <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
     <value>10</value>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -201,6 +207,9 @@
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
   
   <property>
@@ -237,7 +246,10 @@
     <name>XAAUDIT.DB.PASSWORD</name>
     <value>{{xa_audit_db_password}}</value>
     <property-type>PASSWORD</property-type>
-    <description>Audit database password</description>    
+    <description>Audit database password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
   
   <property>

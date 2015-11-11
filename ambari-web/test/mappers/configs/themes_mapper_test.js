@@ -29,7 +29,6 @@ describe('App.themeMapper', function () {
     App.resetDsStoreTypeMap(App.Tab);
     App.resetDsStoreTypeMap(App.Section);
     App.resetDsStoreTypeMap(App.SubSection);
-    App.resetDsStoreTypeMap(App.StackConfigProperty);
     sinon.stub(App.store, 'commit', Em.K);
   });
 
@@ -143,9 +142,6 @@ describe('App.themeMapper', function () {
 
     it('should map theme data', function () {
 
-      App.StackConfigProperty.createRecord({id: 'p1__c1'});
-      App.StackConfigProperty.createRecord({id: 'p2__c1'});
-
       App.themesMapper.map(json);
 
       expect(App.Tab.find().get('length')).to.equal(1);
@@ -190,25 +186,10 @@ describe('App.themeMapper', function () {
         "row_span": "1",
         "column_index": "0",
         "depends_on": [],
+        "config_properties": [],
         "left_vertical_splitter": true,
         "column_span": "1",
         "section_id": "Section-1"
-      });
-
-      //checking stack config object
-      var config = App.Tab.find('HDFS_settings').get('sections').objectAt(0).get('subSections').objectAt(0).get('configProperties').objectAt(0);
-      expect(config.get('id')).to.eql("p1__c1");
-      expect(config.get('subSection.id')).to.eql("subsection1");
-      expect(config.get('widget')).to.eql({
-        "type": "slider",
-        "units": [
-          {
-            "unit-name": "MB"
-          },
-          {
-            "unit-name": "GB"
-          }
-        ]
       });
     });
   });

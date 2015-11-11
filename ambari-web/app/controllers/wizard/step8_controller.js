@@ -861,7 +861,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
         }
-        var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate');
+        var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate').uniq();
         if (fileNamesToUpdate && fileNamesToUpdate.length) {
           this.updateConfigurations(fileNamesToUpdate);
         }
@@ -1439,7 +1439,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       });
       groupData.desired_configs = this.buildGroupDesiredConfigs(groupConfigs, timeTag);
       // check for group from installed service
-      if (configGroup.isForInstalledService === true) {
+      if (configGroup.is_for_installed_service === true) {
         // if group is a new one, create it
         if (!configGroup.id) {
           sendData.push({"ConfigGroup": groupData});
@@ -1627,7 +1627,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
     if (createNotification !== 'yes') return;
-      var predefinedNotificationConfigNames = require('data/HDP2/site_properties').configProperties.filterProperty('filename', 'alert_notification').mapProperty('name'),
+      var predefinedNotificationConfigNames = require('data/HDP2/alert_notification').mapProperty('name'),
       configsForNotification = this.get('configs').filterProperty('filename', 'alert_notification');
     var properties = {},
       names = [

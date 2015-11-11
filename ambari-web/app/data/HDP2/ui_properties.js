@@ -1,0 +1,60 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+module.exports = [
+  {
+    "name": "oozie_hostname",
+    "displayName": "Database Host",
+    "displayType": "host",
+    "serviceName": "OOZIE",
+    "filename": "oozie-env.xml",
+    "category": "OOZIE_SERVER",
+    "index": 3
+  },
+  {
+    "name": "hive_hostname",
+    "displayName": "Database Host",
+    "description": "Specify the host on which the database is hosted",
+    "displayType": "host",
+    "isRequiredByAgent": false,
+    "serviceName": "HIVE",
+    "filename": "hive-env.xml",
+    "category": "HIVE_METASTORE",
+    "index": 3
+  },
+  {
+    "name": "admin_principal",
+    "displayName": "Admin principal",
+    "description": "Admin principal used to create principals and export key tabs (e.g. admin/admin@EXAMPLE.COM).",
+    "isRequiredByAgent": false,
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Kadmin",
+    "index": 1
+  },
+  {
+    "name": "admin_password",
+    "displayName": "Admin password",
+    "displayType": "password",
+    "isRequiredByAgent": false,
+    "serviceName": "KERBEROS",
+    "filename": "krb5-conf.xml",
+    "category": "Kadmin",
+    "index": 2
+  }
+];
