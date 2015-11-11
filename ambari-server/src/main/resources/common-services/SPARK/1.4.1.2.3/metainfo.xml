@@ -29,7 +29,7 @@
         <component>
           <name>SPARK_THRIFTSERVER</name>
           <displayName>Spark Thrift Server</displayName>
-          <category>MASTER</category>
+          <category>SLAVE</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <dependencies>
