@@ -811,7 +811,6 @@ public class UpgradeCatalog213Test {
     expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(mockAmsEnv).atLeastOnce();
     expect(mockAmsEnv.getProperties()).andReturn(propertiesAmsEnv).atLeastOnce();
 
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.3"));
     expect(mockClusterExpected.getDesiredConfigByType("kafka-env")).andReturn(mockKafkaEnv).atLeastOnce();
     expect(mockKafkaEnv.getProperties()).andReturn(propertiesKafkaEnv).atLeastOnce();
 
