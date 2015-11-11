@@ -24,8 +24,12 @@ import com.google.inject.Module;
 import junit.framework.Assert;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.CacheConfiguration;
+import net.sf.ehcache.config.PersistenceConfiguration;
+import net.sf.ehcache.config.SizeOfPolicyConfiguration;
 import net.sf.ehcache.constructs.blocking.UpdatingCacheEntryFactory;
 import net.sf.ehcache.constructs.blocking.UpdatingSelfPopulatingCache;
+import net.sf.ehcache.store.MemoryStoreEvictionPolicy;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.timeline.MetricsRequestHelper;
@@ -49,6 +53,7 @@ import java.util.TreeMap;
 import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_INSTANCE_NAME;
 import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_MANAGER_NAME;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -59,21 +64,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 public class TimelineMetricCacheTest {
-
-  private TimelineMetricCacheProvider getMetricCacheProvider(
-      final Configuration configuration,
-      final TimelineMetricCacheEntryFactory cacheEntryFactory) {
-
-    Injector injector = Guice.createInjector(new Module() {
-      @Override
-      public void configure(Binder binder) {
-        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-        binder.bind(Configuration.class).toInstance(configuration);
-        binder.bind(TimelineMetricCacheEntryFactory.class).toInstance(cacheEntryFactory);
-      }
-    });
-    return injector.getInstance(TimelineMetricCacheProvider.class);
-  }
 
   @After
   public void removeCacheInstance() {
@@ -121,12 +111,29 @@ public class TimelineMetricCacheTest {
     verify(cacheEntryFactory);
   }
 
+  private CacheConfiguration createTestCacheConfiguration(Configuration configuration) {
+
+    CacheConfiguration cacheConfiguration = new CacheConfiguration()
+      .name(TIMELINE_METRIC_CACHE_INSTANCE_NAME)
+      .timeToLiveSeconds(configuration.getMetricCacheTTLSeconds()) // 1 hour
+      .timeToIdleSeconds(configuration.getMetricCacheIdleSeconds()) // 5 minutes
+      .memoryStoreEvictionPolicy(MemoryStoreEvictionPolicy.LRU)
+      .sizeOfPolicy(new SizeOfPolicyConfiguration() // Set sizeOf policy to continue on max depth reached - avoid OOM
+        .maxDepth(10000)
+        .maxDepthExceededBehavior(SizeOfPolicyConfiguration.MaxDepthExceededBehavior.CONTINUE))
+      .eternal(false)
+      .persistence(new PersistenceConfiguration()
+        .strategy(PersistenceConfiguration.Strategy.NONE.name()));
+
+    cacheConfiguration.setMaxBytesLocalHeap(20*1024*1024l);
+    return cacheConfiguration;
+  }
   @Test
-  public void testTimlineMetricCacheProviderGets() throws Exception {
+  public void testTimelineMetricCacheProviderGets() throws Exception {
     Configuration configuration = createNiceMock(Configuration.class);
     expect(configuration.getMetricCacheTTLSeconds()).andReturn(3600);
     expect(configuration.getMetricCacheIdleSeconds()).andReturn(100);
-    expect(configuration.getMetricsCacheManagerHeapPercent()).andReturn("10%");
+    expect(configuration.getMetricsCacheManagerHeapPercent()).andReturn("10%").anyTimes();
 
     replay(configuration);
 
@@ -165,7 +172,14 @@ public class TimelineMetricCacheTest {
 
     replay(cacheEntryFactory);
 
-    TimelineMetricCacheProvider cacheProvider = getMetricCacheProvider(configuration, cacheEntryFactory);
+    TimelineMetricCacheProvider cacheProvider = createMockBuilder(TimelineMetricCacheProvider.class)
+      .addMockedMethod("createCacheConfiguration")
+      .withConstructor(configuration, cacheEntryFactory)
+      .createNiceMock();
+
+    expect(cacheProvider.createCacheConfiguration()).andReturn(createTestCacheConfiguration(configuration)).anyTimes();
+    replay(cacheProvider);
+
     TimelineMetricCache cache = cacheProvider.getTimelineMetricsCache();
 
     // call to get
@@ -396,7 +410,7 @@ public class TimelineMetricCacheTest {
     Configuration configuration = createNiceMock(Configuration.class);
     expect(configuration.getMetricCacheTTLSeconds()).andReturn(3600);
     expect(configuration.getMetricCacheIdleSeconds()).andReturn(100);
-    expect(configuration.getMetricsCacheManagerHeapPercent()).andReturn("10%");
+    expect(configuration.getMetricsCacheManagerHeapPercent()).andReturn("10%").anyTimes();
     expect(configuration.getMetricRequestBufferTimeCatchupInterval()).andReturn(1000l).anyTimes();
     replay(configuration);
 
@@ -478,7 +492,14 @@ public class TimelineMetricCacheTest {
 
     replay(cacheEntryFactory);
 
-    TimelineMetricCacheProvider cacheProvider = getMetricCacheProvider(configuration, cacheEntryFactory);
+    TimelineMetricCacheProvider cacheProvider = createMockBuilder(TimelineMetricCacheProvider.class)
+      .addMockedMethod("createCacheConfiguration")
+      .withConstructor(configuration, cacheEntryFactory)
+      .createNiceMock();
+
+    expect(cacheProvider.createCacheConfiguration()).andReturn(createTestCacheConfiguration(configuration)).anyTimes();
+    replay(cacheProvider);
+
     TimelineMetricCache cache = cacheProvider.getTimelineMetricsCache();
 
     // call to get
@@ -496,7 +517,7 @@ public class TimelineMetricCacheTest {
     Assert.assertEquals(1, metricsList.size());
     Assert.assertEquals("cpu_user", metric.getMetricName());
     Assert.assertEquals("app1", metric.getAppId());
-    Assert.assertEquals(newMetricValues,metric.getMetricValues());
+    Assert.assertEquals(newMetricValues, metric.getMetricValues());
 
     verify(configuration, metricsRequestHelperForGets, cacheEntryFactory);
   }
