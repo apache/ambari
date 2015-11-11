@@ -943,23 +943,19 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
               updateConfigurationPropertiesForCluster(cluster, KAFKA_BROKER, newProperties, true, true);
             }
           }
-
-          StackId stackId = cluster.getCurrentStackVersion();
-          if (stackId != null && stackId.getStackName().equals("HDP") &&
-              VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0) {
-            Config kafkaEnv = cluster.getDesiredConfigByType(KAFKA_ENV_CONFIG);
-            if (kafkaEnv != null) {
-              String kafkaEnvContent = kafkaEnv.getProperties().get(CONTENT_PROPERTY);
-              if (kafkaEnvContent != null && !kafkaEnvContent.contains(KAFKA_ENV_CONTENT_KERBEROS_PARAMS)) {
-                kafkaEnvContent += "\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}\"";
-                Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, kafkaEnvContent);
-                updateConfigurationPropertiesForCluster(cluster, KAFKA_ENV_CONFIG, updates, true, false);
-              }
+          Config kafkaEnv = cluster.getDesiredConfigByType(KAFKA_ENV_CONFIG);
+          if (kafkaEnv != null) {
+            String kafkaEnvContent = kafkaEnv.getProperties().get(CONTENT_PROPERTY);
+            if (kafkaEnvContent != null && !kafkaEnvContent.contains(KAFKA_ENV_CONTENT_KERBEROS_PARAMS)) {
+              kafkaEnvContent += "\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}\"";
+              Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, kafkaEnvContent);
+              updateConfigurationPropertiesForCluster(cluster, KAFKA_ENV_CONFIG, updates, true, false);
             }
           }
         }
       }
     }
+
   }
 
   protected void updateRangerEnvConfig() throws AmbariException {
