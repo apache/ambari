@@ -417,36 +417,42 @@ App.ServerValidatorMixin = Em.Mixin.create({
       });
     } else if (this.get('configValidationWarning') || this.get('configValidationError')) {
       // Motivation: for server-side validation warnings and EVEN errors allow user to continue wizard
-      return App.ModalPopup.show({
-        header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
-        classNames: ['sixty-percent-width-modal','modal-full-width'],
-        primary: Em.I18n.t('common.proceedAnyway'),
-        primaryClass: 'btn-danger',
-        marginBottom: 200,
-        onPrimary: function () {
-          this.hide();
-          deferred.resolve();
-        },
-        onSecondary: function () {
-          this.hide();
-          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
-        },
-        onClose: function () {
-          this.hide();
-          deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
-        },
-        bodyClass: Em.View.extend({
-          controller: self,
-          templateName: require('templates/common/modal_popups/config_recommendation_popup'),
-          serviceConfigs: function() {
-            if (this.get('controller.name') === 'mainServiceInfoConfigsController') {
-              return [this.get('controller.selectedService')];
-            } else {
-              return this.get('controller.stepConfigs');
-            }
-          }.property()
+      var stepConfigs = self.get('name') === 'mainServiceInfoConfigsController'
+        ? [self.get('selectedService')]
+        : self.get('stepConfigs');
+      var configsWithErrors = stepConfigs.some(function (step) {
+        return step.get('configs').some(function(c) {
+          return c.get('isVisible') && !c.get('hiddenBySection') && (c.get('warn') || c.get('error'));
         })
       });
+      if (configsWithErrors) {
+        return App.ModalPopup.show({
+          header: Em. I18n.t('installer.step7.popup.validation.warning.header'),
+          classNames: ['sixty-percent-width-modal','modal-full-width'],
+          primary: Em.I18n.t('common.proceedAnyway'),
+          primaryClass: 'btn-danger',
+          marginBottom: 200,
+          onPrimary: function () {
+            this.hide();
+            deferred.resolve();
+          },
+          onSecondary: function () {
+            this.hide();
+            deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+          },
+          onClose: function () {
+            this.hide();
+            deferred.reject("invalid_configs"); // message used to differentiate types of rejections.
+          },
+          bodyClass: Em.View.extend({
+            controller: self,
+            templateName: require('templates/common/modal_popups/config_recommendation_popup'),
+            serviceConfigs: stepConfigs
+          })
+        });
+      } else {
+        deferred.resolve();
+      }
     } else {
       deferred.resolve();
     }
