@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -44,6 +45,8 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
   static final String KEY_APP_CLASSPATH = "app_classpath";
   static final String KEY_FRAMEWORK_PATH = "framework_path";
   static final String KEY_NOT_DFS = "not_dfs";
+  static final String DFS_PROTOCOLS_REGEX_PROPERTY_NAME = "dfs-protocols-regex";
+  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs):.*";
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request)
@@ -70,6 +73,16 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    String dfsProtocolsRegex = DFS_PROTOCOLS_REGEX_DEFAULT;
+    PrerequisiteCheckConfig prerequisiteCheckConfig = request.getPrerequisiteCheckConfig();
+    Map<String, String> checkProperties = null;
+    if(prerequisiteCheckConfig != null) {
+      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+    }
+    if(checkProperties != null && checkProperties.containsKey(DFS_PROTOCOLS_REGEX_PROPERTY_NAME)) {
+      dfsProtocolsRegex = checkProperties.get(DFS_PROTOCOLS_REGEX_PROPERTY_NAME);
+    }
+
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final String mrConfigType = "mapred-site";
@@ -100,7 +113,7 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
       return;
     }
 
-    if (!frameworkPath.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
+    if (!frameworkPath.matches(dfsProtocolsRegex) && (defaultFS == null || !defaultFS.matches(dfsProtocolsRegex))) {
       prerequisiteCheck.getFailedOn().add("MAPREDUCE2");
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(KEY_NOT_DFS, prerequisiteCheck, request));

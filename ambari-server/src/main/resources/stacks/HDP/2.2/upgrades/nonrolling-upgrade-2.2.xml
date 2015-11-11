@@ -22,6 +22,12 @@
   <target-stack>HDP-2.2</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
+    <configuration>
+      <!-- Configuration properties for all pre-reqs including required pre-reqs -->
+      <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
+        <property name="min-failure-stack-version">HDP-2.3.0.0</property>
+      </check-properties>
+    </configuration>
   </prerequisite-checks>
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">

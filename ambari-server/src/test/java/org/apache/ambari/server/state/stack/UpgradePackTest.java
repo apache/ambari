@@ -33,6 +33,7 @@ import java.util.Set;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping.ExecuteStage;
@@ -166,6 +167,27 @@ public class UpgradePackTest {
     assertTrue(upgrades.size() > 0);
     assertTrue(upgrades.containsKey("upgrade_test_checks"));
     UpgradePack upgrade = upgrades.get("upgrade_test_checks");
+
+    PrerequisiteCheckConfig prerequisiteCheckConfig = upgrade.getPrerequisiteCheckConfig();
+    assertNotNull(prerequisiteCheckConfig);
+    assertNotNull(prerequisiteCheckConfig.globalProperties);
+    assertTrue(prerequisiteCheckConfig.getGlobalProperties().containsKey("global-property-1"));
+    assertEquals("global-value-1", prerequisiteCheckConfig.getGlobalProperties().get("global-property-1"));
+    assertNotNull(prerequisiteCheckConfig.prerequisiteCheckProperties);
+    assertEquals(2, prerequisiteCheckConfig.prerequisiteCheckProperties.size());
+    assertNotNull(prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck"));
+    assertTrue(prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck").containsKey("dfs-protocols-regex"));
+    assertEquals("^([^:]*dfs|wasb|ecs):.*", prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck").get("dfs-protocols-regex"));
+    assertNotNull(prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck"));
+    assertTrue(prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck").containsKey("dfs-protocols-regex"));
+    assertEquals("^([^:]*dfs|wasb|ecs):.*", prerequisiteCheckConfig.getCheckProperties(
+        "org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck").get("dfs-protocols-regex"));
+
 
     List<String> expected_up = Arrays.asList(
         "PRE_CLUSTER",

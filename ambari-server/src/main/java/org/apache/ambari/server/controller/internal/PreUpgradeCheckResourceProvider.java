@@ -187,6 +187,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       // ToDo: properly handle exceptions, i.e. create fake check with error description
 
       List<AbstractCheckDescriptor> upgradeChecksToRun = upgradeCheckRegistry.getFilteredUpgradeChecks(upgradePack);
+      upgradeCheckRequest.setPrerequisiteCheckConfig(upgradePack.getPrerequisiteCheckConfig());
 
       for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeChecksToRun)) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);

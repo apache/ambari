@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Singleton;
@@ -46,6 +47,8 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
   static final String KEY_LIB_NOT_DFS = "lib_not_dfs";
   static final String KEY_LIB_NOT_TARGZ = "lib_not_targz";
   static final String KEY_USE_HADOOP_LIBS_FALSE = "tez_use_hadoop_libs_false";
+  static final String DFS_PROTOCOLS_REGEX_PROPERTY_NAME = "dfs-protocols-regex";
+  static final String DFS_PROTOCOLS_REGEX_DEFAULT = "^([^:]*dfs|wasb|ecs):.*";
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
@@ -70,6 +73,16 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    String dfsProtocolsRegex = DFS_PROTOCOLS_REGEX_DEFAULT;
+    PrerequisiteCheckConfig prerequisiteCheckConfig = request.getPrerequisiteCheckConfig();
+    Map<String, String> checkProperties = null;
+    if(prerequisiteCheckConfig != null) {
+      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+    }
+    if(checkProperties != null && checkProperties.containsKey(DFS_PROTOCOLS_REGEX_PROPERTY_NAME)) {
+      dfsProtocolsRegex = checkProperties.get(DFS_PROTOCOLS_REGEX_PROPERTY_NAME);
+    }
+
     final String clusterName = request.getClusterName();
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final String tezConfigType = "tez-site";
@@ -100,7 +113,7 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
       return;
     }
 
-    if (!libUris.matches("^[^:]*dfs:.*") && (defaultFS == null || !defaultFS.matches("^[^:]*dfs:.*"))) {
+    if (!libUris.matches(dfsProtocolsRegex) && (defaultFS == null || !defaultFS.matches(dfsProtocolsRegex))) {
       errorMessages.add(getFailReason(KEY_LIB_NOT_DFS, prerequisiteCheck, request));
     }
 

@@ -30,6 +30,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,18 +91,6 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
     // MAPREDUCE2 installed
     services.put("MAPREDUCE2", Mockito.mock(Service.class));
     Assert.assertTrue(m_check.isApplicable(request));
-
-    // Should not be supported for any upgrade from version less than 2.3.0.0
-    request.setTargetStackId(new StackId("HDP", "2.2.0.1"));
-    Assert.assertFalse(m_check.isApplicable(request));
-
-    request.setSourceStackId(new StackId("HDP", "2.2.0.1"));
-    request.setTargetStackId(new StackId("HDP", "2.3.0.0"));
-    Assert.assertFalse(m_check.isApplicable(request));
-
-    request.setSourceStackId(new StackId("HDP", "2.2.0.1"));
-    request.setTargetStackId(new StackId("HDP", "2.2.1.0"));
-    Assert.assertFalse(m_check.isApplicable(request));
   }
 
   @Test

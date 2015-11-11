@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -78,8 +79,16 @@ public class HiveDynamicServiceDiscoveryCheckTest {
     Mockito.when(cluster.getConfig(Mockito.anyString(), Mockito.anyString())).thenReturn(config);
     final Map<String, String> properties = new HashMap<String, String>();
     Mockito.when(config.getProperties()).thenReturn(properties);
+
+    Map<String, String> checkProperties = new HashMap<String, String>();
+    checkProperties.put("min-failure-stack-version","HDP-2.3.0.0");
+    PrerequisiteCheckConfig prerequisiteCheckConfig = Mockito.mock(PrerequisiteCheckConfig.class);
+    Mockito.when(prerequisiteCheckConfig.getCheckProperties(
+        m_check.getClass().getName())).thenReturn(checkProperties);
+
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     PrereqCheckRequest request = new PrereqCheckRequest("cluster");
+    request.setPrerequisiteCheckConfig(prerequisiteCheckConfig);
 
     // Check HDP-2.2.x => HDP-2.2.y
     request.setSourceStackId(new StackId("HDP-2.2.4.2"));

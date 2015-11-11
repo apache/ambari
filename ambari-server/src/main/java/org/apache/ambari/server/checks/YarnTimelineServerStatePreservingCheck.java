@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -41,34 +42,7 @@ import com.google.inject.Singleton;
 public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescriptor {
 
   private final static String YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY = "yarn.timeline-service.recovery.enabled";
-
-  /**
-   * Due to the introduction of YARN Timeline state recovery only from certain
-   * stack-versions onwards, this check is not applicable to earlier versions
-   * of the stack.
-   *
-   * This enumeration lists the minimum stack-versions for which this check is applicable.
-   * If a stack is not specified in this enumeration, this check will be applicable.
-   */
-  private enum MinimumApplicableStackVersion {
-    HDP_STACK("HDP", "2.2.4.2");
-
-    private String stackName;
-    private String stackVersion;
-
-    private MinimumApplicableStackVersion(String stackName, String stackVersion) {
-      this.stackName = stackName;
-      this.stackVersion = stackVersion;
-    }
-
-    public String getStackName() {
-      return stackName;
-    }
-
-    public String getStackVersion() {
-      return stackVersion;
-    }
-  }
+  private final static String MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME = "min-applicable-stack-version";
 
   /**
    * Constructor.
@@ -88,13 +62,31 @@ public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescrip
 
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
 
-    // Applicable only if stack not defined in MinimumApplicableStackVersion, or
-    // version equals or exceeds the enumerated version.
-    for (MinimumApplicableStackVersion minimumStackVersion : MinimumApplicableStackVersion.values()) {
-      String stackName = cluster.getCurrentStackVersion().getStackName();
-      if (minimumStackVersion.getStackName().equals(stackName)){
-        String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
-        return VersionUtils.compareVersions(currentClusterRepositoryVersion, minimumStackVersion.getStackVersion()) >= 0;
+    String minApplicableStackVersion = null;
+    PrerequisiteCheckConfig prerequisiteCheckConfig = request.getPrerequisiteCheckConfig();
+    Map<String, String> checkProperties = null;
+    if(prerequisiteCheckConfig != null) {
+      checkProperties = prerequisiteCheckConfig.getCheckProperties(this.getClass().getName());
+    }
+    if(checkProperties != null && checkProperties.containsKey(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME)) {
+      minApplicableStackVersion = checkProperties.get(MIN_APPLICABLE_STACK_VERSION_PROPERTY_NAME);
+    }
+
+    // Due to the introduction of YARN Timeline state recovery only from certain
+    // stack-versions onwards, this check is not applicable to earlier versions
+    // of the stack.
+    // Applicable only if min-applicable-stack-version config property is not defined, or
+    // version equals or exceeds the configured version.
+    if(minApplicableStackVersion != null && !minApplicableStackVersion.isEmpty()) {
+      String[] minStack = minApplicableStackVersion.split("-");
+      if(minStack.length == 2) {
+        String minStackName = minStack[0];
+        String minStackVersion = minStack[1];
+        String stackName = cluster.getCurrentStackVersion().getStackName();
+        if (minStackName.equals(stackName)) {
+          String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
+          return VersionUtils.compareVersions(currentClusterRepositoryVersion, minStackVersion) >= 0;
+        }
       }
     }
 

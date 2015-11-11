@@ -23,8 +23,17 @@
   <type>NON_ROLLING</type>
   <downgrade-allowed>false</downgrade-allowed>
   <prerequisite-checks>
+    <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
     <check>org.apache.ambari.server.checks.StormRestAPIDeletedCheck</check>
+
+    <configuration>
+      <!-- Configuration properties for all pre-reqs including required pre-reqs -->
+      <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
+        <property name="min-failure-stack-version">HDP-2.3.0.0</property>
+      </check-properties>
+    </configuration>
   </prerequisite-checks>
+
   <upgrade-path>
     <intermediate-stack version="2.2"/>
     <intermediate-stack version="2.3"/>
