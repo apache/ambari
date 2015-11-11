@@ -1170,7 +1170,11 @@ public class UpgradeCatalog213Test {
     final Map<String, String> propertiesHiveSiteExpected = new HashMap<String, String>() {{
       put("hive.server2.logging.operation.log.location", "/tmp/hive/operation_logs");
     }};
+    final Map<String, String> propertiesHiveEnv = new HashMap<String, String>() {{
+      put("content", "test content");
+    }};
     final Config hiveSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Config hiveEnvConf = easyMockSupport.createNiceMock(Config.class);
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -1187,8 +1191,10 @@ public class UpgradeCatalog213Test {
       put("normal", mockClusterExpected);
     }}).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(hiveSiteConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(hiveEnvConf).atLeastOnce();
 
     expect(hiveSiteConf.getProperties()).andReturn(propertiesHiveSite).once();
+    expect(hiveEnvConf.getProperties()).andReturn(propertiesHiveEnv).once();
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
             .withConstructor(Injector.class)
@@ -1199,6 +1205,9 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
             "hive-site", propertiesHiveSiteExpected, true, false);
     expectLastCall().once();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "hive-env", propertiesHiveEnv, true, true);
+    expectLastCall().once();
 
     easyMockSupport.replayAll();
     replay(upgradeCatalog213);
@@ -1206,4 +1215,74 @@ public class UpgradeCatalog213Test {
     easyMockSupport.verifyAll();
 
   }
+
+  @Test
+  public void testUpdateHiveEnvContentHDP23() throws Exception {
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    String expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContentHDP23(testContent));
+  }
+
+
+  @Test
+  public void testUpdateHiveEnvContent() throws Exception {
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    // Test first case
+    String testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    String expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
+    // Test second case
+    testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "export SERVICE=$SERVICE\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n";
+    expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "export SERVICE=$SERVICE\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
+  }
+
 }

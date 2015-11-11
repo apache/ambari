@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -92,6 +93,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String HBASE_ENV_CONFIG = "hbase-env";
   private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
+  private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String HADOOP_ENV_CONFIG = "hadoop-env";
@@ -225,7 +227,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   protected void executeStageDDLUpdates() throws SQLException {
     dbAccessor.addColumn(STAGE_TABLE,
-        new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
+            new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
   }
 
   /**
@@ -791,6 +793,27 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, HIVE_SITE_CONFIG, updates, true, false);
         }
       }
+      StackId stackId = cluster.getCurrentStackVersion();
+      boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
+              VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
+
+      Config hiveEnvConfig = cluster.getDesiredConfigByType(HIVE_ENV_CONFIG);
+      if (hiveEnvConfig != null) {
+        Map<String, String> hiveEnvProps = new HashMap<String, String>();
+        String content = hiveEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        // For HDP-2.3 we need to add hive heap size management to content,
+        // for others we need to update content
+        if(content != null) {
+          if(isStackNotLess23) {
+            content = updateHiveEnvContentHDP23(content);
+          } else {
+            content = updateHiveEnvContent(content);
+          }
+          hiveEnvProps.put(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, HIVE_ENV_CONFIG, hiveEnvProps, true, true);
+        }
+      }
+
     }
   }
 
@@ -1030,6 +1053,47 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     content = content.replaceAll(regSearch, replacement);
     return content;
   }
+
+  protected String updateHiveEnvContent(String hiveEnvContent) {
+    if(hiveEnvContent == null) {
+      return null;
+    }
+    // There are two cases here
+    // We do not have "export HADOOP_CLIENT_OPTS" and we need to add it
+    // We have "export HADOOP_CLIENT_OPTS" with wrong order
+    String exportHadoopClientOpts = "(?s).*export\\s*HADOOP_CLIENT_OPTS.*";
+    if (hiveEnvContent.matches(exportHadoopClientOpts)) {
+      String oldHeapSizeRegex = "export\\s*HADOOP_CLIENT_OPTS=\"-Xmx\\$\\{HADOOP_HEAPSIZE\\}m\\s*\\$HADOOP_CLIENT_OPTS\"";
+      String newHeapSizeRegex = "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+      return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+    } else {
+      String oldHeapSizeRegex = "export\\s*HADOOP_HEAPSIZE\\s*=\\s*\"\\{\\{hive_heapsize\\}\\}\"\\.*\\n\\s*fi\\s*\\n";
+      String newHeapSizeRegex = "export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+              "fi\n" +
+              "\n" +
+              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+      return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+    }
+  }
+
+  protected String updateHiveEnvContentHDP23(String hiveEnvContent) {
+    if(hiveEnvContent == null) {
+      return null;
+    }
+    String oldHeapSizeRegex = "# The heap size of the jvm stared by hive shell script can be controlled via:\\s*\\n";
+    String newHeapSizeRegex = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n";
+    return hiveEnvContent.replaceFirst(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+  }
+
 
   private String memoryToIntMb(String memorySize) {
     if (memorySize == null) {

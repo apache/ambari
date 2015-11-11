@@ -182,12 +182,12 @@
 # The heap size of the jvm stared by hive shell script can be controlled via:
 
 if [ "$SERVICE" = "metastore" ]; then
-  export HADOOP_HEAPSIZE="{{hive_metastore_heapsize}}"
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
 else
-  export HADOOP_HEAPSIZE="{{hive_heapsize}}"
+  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client
 fi
 
-export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
 
 # Larger heap size may be required when running queries over large number of files or partitions.
 # By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
