@@ -132,7 +132,7 @@ App.QuickViewLinks = Em.View.extend({
     var self = this;
     var quickLinks = [];
     var hosts = this.setHost(response, this.get('content.serviceName'));
-    if (!hosts || !this.get('content.quickLinks')) {
+    if (hosts.length === 0 || !this.get('content.quickLinks')) {
       quickLinks = [{
           label: this.t('quick.links.error.label'),
           url: 'javascript:alert("' + this.t('contact.administrator') + '");return false;'
