@@ -320,15 +320,15 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
       else:
         # Kerberized Cluster with Ranger plugin disabled
-        if security_enabled and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties'] and \
+        if security_enabled and 'kafka-broker' in services['configurations'] and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties'] and \
           services['configurations']['kafka-broker']['properties']['authorizer.class.name'] == 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer':
           putKafkaBrokerProperty("authorizer.class.name", 'kafka.security.auth.SimpleAclAuthorizer')
         # Non-kerberos Cluster with Ranger plugin disabled
-        elif 'authorizer.class.name' in services['configurations']['kafka-broker']['properties']:
+        else:
           putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
     # Non-Kerberos Cluster without Ranger
-    elif not security_enabled and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties']:
+    elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
 
