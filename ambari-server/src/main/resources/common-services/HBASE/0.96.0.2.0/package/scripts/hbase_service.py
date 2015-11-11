@@ -47,7 +47,7 @@ def hbase_service(
         only_if = no_op_test,
         # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
         timeout = 30,
-        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `cat {pid_file}`"),
+        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `{pid_expression}`"),
       )
       File(pid_file,
            action = "delete",
