@@ -2311,7 +2311,7 @@ class TestHDP22StackAdvisor(TestCase):
             "hbase.bucketcache.size": "",
             "hbase.bucketcache.percentage.in.combinedcache": "",
             "hbase.coprocessor.regionserver.classes": "",
-            "hbase.coprocessor.region.classes": ""
+            "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}"
           }
         },
         "ranger-hbase-plugin-properties": {
