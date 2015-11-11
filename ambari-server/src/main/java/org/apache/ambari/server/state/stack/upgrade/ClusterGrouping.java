@@ -72,6 +72,10 @@ public class ClusterGrouping extends Grouping {
     @XmlAttribute(name="title")
     public String title;
 
+    /**
+     * An optional ID which can be used to uniquely identified any execution
+     * stage.
+     */
     @XmlAttribute(name="id")
     public String id;
 
@@ -171,18 +175,7 @@ public class ClusterGrouping extends Grouping {
 
     String service   = execution.service;
     String component = execution.component;
-    String id        = execution.id;
     Task task        = execution.task;
-
-    if ( Task.Type.MANUAL == task.getType() &&  null != id && id.equals("unhealthy-hosts")) {
-      // !!! this specific task is used ONLY when there are unhealthy
-      if (ctx.getUnhealthy().isEmpty()) {
-        return null;
-      }
-      ManualTask mt = (ManualTask) task;
-
-      fillHostDetails(mt, ctx.getUnhealthy());
-    }
 
     Set<String> realHosts = Collections.emptySet();
 

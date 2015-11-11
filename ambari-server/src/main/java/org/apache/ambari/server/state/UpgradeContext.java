@@ -232,22 +232,6 @@ public class UpgradeContext {
   }
 
   /**
-   * @return a map of host to list of components.
-   */
-  public Map<String, List<String>> getUnhealthy() {
-    Map<String, List<String>> results = new HashMap<String, List<String>>();
-
-    for (ServiceComponentHost sch : m_unhealthy) {
-      if (!results.containsKey(sch.getHostName())) {
-        results.put(sch.getHostName(), new ArrayList<String>());
-      }
-      results.get(sch.getHostName()).add(sch.getServiceComponentName());
-    }
-
-    return results;
-  }
-
-  /**
    * @return the service display name, or the service name if not set
    */
   public String getServiceDisplay(String service) {
