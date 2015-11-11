@@ -23,6 +23,7 @@ import java.util.Map;
 import org.apache.ambari.server.checks.CheckDescription;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
+import org.apache.ambari.server.state.stack.UpgradePack.PrerequisiteCheckConfig;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 
 /**
@@ -33,6 +34,7 @@ public class PrereqCheckRequest {
   private String m_repositoryVersion;
   private StackId m_sourceStackId;
   private StackId m_targetStackId;
+  private PrerequisiteCheckConfig m_prereqCheckConfig;
 
   private UpgradeType m_upgradeType;
 
@@ -125,4 +127,16 @@ public class PrereqCheckRequest {
   public void setTargetStackId(StackId targetStackId) {
     m_targetStackId = targetStackId;
   }
+
+  /**
+   * Gets the prerequisite check config
+   * @return the prereqCheckConfig
+   */
+  public PrerequisiteCheckConfig getPrerequisiteCheckConfig() { return m_prereqCheckConfig; }
+
+  /**
+   * Sets the prerequisite check config obtained from the upgrade pack
+   * @param prereqCheckConfig The prereqCheckConfig
+   */
+  public void setPrerequisiteCheckConfig(PrerequisiteCheckConfig prereqCheckConfig) { m_prereqCheckConfig = prereqCheckConfig;}
 }
