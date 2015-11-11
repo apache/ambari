@@ -520,6 +520,7 @@ CREATE TABLE adminpermission (
   permission_id NUMERIC(19) NOT NULL,
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
+  permission_label VARCHAR(255),
   PRIMARY KEY(permission_id));
 
 CREATE TABLE adminprivilege (
@@ -978,14 +979,14 @@ insert into adminprincipal (principal_id, principal_type_id)
 insert into users(user_id, principal_id, user_name, user_password)
   select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-insert into adminpermission(permission_id, permission_name, resource_type_id)
-  select 1, 'AMBARI.ADMIN', 1
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
+  select 1, 'AMBARI.ADMIN', 1, 'Administrator'
   union all
-  select 2, 'CLUSTER.READ', 2
+  select 2, 'CLUSTER.READ', 2, 'Read-Only'
   union all
-  select 3, 'CLUSTER.OPERATE', 2
+  select 3, 'CLUSTER.OPERATE', 2, 'Operator'
   union all
-  select 4, 'VIEW.USE', 3;
+  select 4, 'VIEW.USE', 3, 'Use View';
 
 insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   select 1, 1, 1, 1;

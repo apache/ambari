@@ -367,6 +367,11 @@ Credential resources are principal (or username) and password pairs that are tag
 
 [Credential Resources](credential-resources.md)
 
+#### permissions
+Permission resources are used to help determine authorization rights for a user.  A permission is assigned to a user by setting up a privilege relationship between a user and the permission to be projected onto some resource.  
+
+[Permission Resources](permission-resources.md)
+
 Partial Response
 ----
 

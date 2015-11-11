@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -55,8 +57,10 @@ public class UpgradeCatalog220Test {
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
     Capture<DBAccessor.DBColumnInfo> columnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> columnCapturePermissionLabel = EasyMock.newCapture();
 
     dbAccessor.alterColumn(eq("host_role_command"), capture(columnCapture));
+    dbAccessor.addColumn(eq("adminpermission"), capture(columnCapturePermissionLabel));
     expectLastCall();
 
 
@@ -71,6 +75,11 @@ public class UpgradeCatalog220Test {
     verify(dbAccessor, configuration);
 
     assertTrue(columnCapture.getValue().isNullable());
+
+    assertEquals(columnCapturePermissionLabel.getValue().getName(), "permission_label");
+    assertEquals(columnCapturePermissionLabel.getValue().getType(), String.class);
+    assertEquals(columnCapturePermissionLabel.getValue().getLength(), Integer.valueOf(255));
+    assertEquals(columnCapturePermissionLabel.getValue().isNullable(), true);
   }
 
   @Test
@@ -78,7 +87,18 @@ public class UpgradeCatalog220Test {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog220 upgradeCatalog = (UpgradeCatalog220) getUpgradeCatalog(dbAccessor);
 
+    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Administrator' WHERE permission_id=1"))
+    .andReturn(1).once();
+    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Read-Only' WHERE permission_id=2"))
+    .andReturn(1).once();
+    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Operator' WHERE permission_id=3"))
+    .andReturn(1).once();
+    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Use View' WHERE permission_id=4"))
+    .andReturn(1).once();
+
+    replay(dbAccessor);
     upgradeCatalog.executeDMLUpdates();
+    verify(dbAccessor);
   }
 
   @Test

@@ -73,6 +73,12 @@ public class PermissionEntity {
   @Column(name = "permission_name")
   private String permissionName;
 
+  /**
+   * The permission's (descriptive) label
+   */
+  @Column(name = "permission_label")
+  private String permissionLabel;
+
   @ManyToOne
   @JoinColumns({
       @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
@@ -119,6 +125,24 @@ public class PermissionEntity {
   }
 
   /**
+   * Get the permission's label.
+   *
+   * @return the permission's label
+   */
+  public String getPermissionLabel() {
+    return permissionLabel;
+  }
+
+  /**
+   * Set the permission's label.
+   *
+   * @param permissionLabel  the permission's label
+   */
+  public void setPermissionLabel(String permissionLabel) {
+    this.permissionLabel = permissionLabel;
+  }
+
+  /**
    * Get the resource type entity.
    *
    * @return  the resource type entity
@@ -148,6 +172,7 @@ public class PermissionEntity {
 
     return !(id != null ? !id.equals(that.id) : that.id != null) &&
         !(permissionName != null ? !permissionName.equals(that.permissionName) : that.permissionName != null) &&
+        !(permissionLabel != null ? !permissionLabel.equals(that.permissionLabel) : that.permissionLabel != null) &&
         !(resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null);
   }
 
@@ -155,6 +180,7 @@ public class PermissionEntity {
   public int hashCode() {
     int result = id != null ? id.hashCode() : 0;
     result = 31 * result + (permissionName != null ? permissionName.hashCode() : 0);
+    result = 31 * result + (permissionLabel != null ? permissionLabel.hashCode() : 0);
     result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
     return result;
   }

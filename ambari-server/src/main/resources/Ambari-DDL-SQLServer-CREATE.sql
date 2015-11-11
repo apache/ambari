@@ -617,6 +617,7 @@ CREATE TABLE adminpermission (
   permission_id BIGINT NOT NULL,
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
+  permission_label VARCHAR(255),
   PRIMARY KEY CLUSTERED (permission_id)
   );
 
@@ -1094,12 +1095,12 @@ BEGIN TRANSACTION
   insert into users(user_id, principal_id, user_name, user_password)
     select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-  insert into adminpermission(permission_id, permission_name, resource_type_id)
+  insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
   values
-    (1, 'AMBARI.ADMIN', 1),
-    (2, 'CLUSTER.READ', 2),
-    (3, 'CLUSTER.OPERATE', 2),
-    (4, 'VIEW.USE', 3);
+    (1, 'AMBARI.ADMIN', 1, 'Administrator'),
+    (2, 'CLUSTER.READ', 2, 'Read-Only'),
+    (3, 'CLUSTER.OPERATE', 2, 'Operator'),
+    (4, 'VIEW.USE', 3, 'Use View');
 
   insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
     select 1, 1, 1, 1;

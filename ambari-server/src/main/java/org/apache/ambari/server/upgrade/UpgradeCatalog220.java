@@ -43,6 +43,9 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   private static final String HOST_ID_COL = "host_id";
   private static final String USER_TYPE_COL = "user_type";
 
+  private static final String ADMIN_PERMISSION_TABLE = "adminpermission";
+  private static final String PERMISSION_LABEL_COL = "permission_label";
+
   @Inject
   DaoUtils daoUtils;
 
@@ -97,6 +100,8 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
     dbAccessor.addUniqueConstraint(USERS_TABLE, "UNQ_users_0", "user_name", "user_type");
 
+
+    updateAdminPermissionTable();
   }
 
   @Override
@@ -105,9 +110,26 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    setPermissionLabels();
   }
 
 
   // ----- UpgradeCatalog ----------------------------------------------------
+
+  private void updateAdminPermissionTable() throws SQLException {
+    // Add the permission_label column to the adminpermission table
+    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE, new DBColumnInfo(PERMISSION_LABEL_COL, String.class, 255, null, true));
+  }
+
+  private void setPermissionLabels() throws SQLException {
+    String updateStatement = "UPDATE " + ADMIN_PERMISSION_TABLE + " SET " + PERMISSION_LABEL_COL + "='%s' WHERE permission_id=%d";
+
+    dbAccessor.executeUpdate(String.format(updateStatement, "Administrator", 1));
+    dbAccessor.executeUpdate(String.format(updateStatement, "Read-Only", 2));
+    dbAccessor.executeUpdate(String.format(updateStatement, "Operator", 3));
+    dbAccessor.executeUpdate(String.format(updateStatement, "Use View", 4));
+  }
+
+
 
 }

@@ -584,6 +584,7 @@ CREATE TABLE ambari.adminpermission (
   permission_id BIGINT NOT NULL,
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
+  permission_label VARCHAR(255),
   PRIMARY KEY(permission_id));
 
 CREATE TABLE ambari.adminprivilege (
@@ -1122,14 +1123,14 @@ INSERT INTO ambari.adminprincipal (principal_id, principal_type_id)
 INSERT INTO ambari.Users (user_id, principal_id, user_name, user_password)
   SELECT 1, 1, 'admin', '538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-INSERT INTO ambari.adminpermission(permission_id, permission_name, resource_type_id)
-  SELECT 1, 'AMBARI.ADMIN', 1
+insert into ambari.adminpermission(permission_id, permission_name, resource_type_id, permission_label)
+  SELECT 1, 'AMBARI.ADMIN', 1, 'Administrator'
   UNION ALL
-  SELECT 2, 'CLUSTER.READ', 2
+  SELECT 2, 'CLUSTER.READ', 2, 'Read-Only'
   UNION ALL
-  SELECT 3, 'CLUSTER.OPERATE', 2
+  SELECT 3, 'CLUSTER.OPERATE', 2, 'Operator'
   UNION ALL
-  SELECT 4, 'VIEW.USE', 3;
+  SELECT 4, 'VIEW.USE', 3, 'Use View';
 
 INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   SELECT 1, 1, 1, 1;
