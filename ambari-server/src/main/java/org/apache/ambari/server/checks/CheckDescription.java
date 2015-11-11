@@ -207,6 +207,25 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
           "The following config types will have values overwritten: %s");
+      }}),
+
+  SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
+      "Verify Ambari and Ranger Password Synchronization",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There was a problem verifying Ranger and Ambari users");
+        put(RangerPasswordCheck.KEY_RANGER_PASSWORD_MISMATCH,
+            "Credentials for user '%s' in Ambari do not match Ranger.");
+        put(RangerPasswordCheck.KEY_RANGER_UNKNOWN_RESPONSE,
+            "Could not verify credentials for user '%s'.  Response code %s received from %s");
+        put(RangerPasswordCheck.KEY_RANGER_COULD_NOT_ACCESS,
+            "Could not access Ranger to verify user '%s' against %s. %s");
+        put(RangerPasswordCheck.KEY_RANGER_USERS_ELEMENT_MISSING,
+            "The response from Ranger received, but there is no users element.  Request: %s");
+        put(RangerPasswordCheck.KEY_RANGER_OTHER_ISSUE,
+            "The response from Ranger was malformed. %s. Request: %s");
+        put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
+            "Could not check credentials.  Missing property %s/%s");
       }});
 
 
