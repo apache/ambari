@@ -57,6 +57,16 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
     clearTimeout(this.get('controller.timeoutRef'));
   },
 
+  /**
+   * clear filters on initial loading
+   */
+  willInsertElement: function () {
+    if (!this.get('controller.showFilterConditionsFirstLoad')) {
+      this.clearFilterConditionsFromLocalStorage();
+    }
+    this._super();
+  },
+
   updateFilter: function (iColumn, value, type) {
     if (!this.get('isInitialRendering')) {
       this._super(iColumn, value, type);
