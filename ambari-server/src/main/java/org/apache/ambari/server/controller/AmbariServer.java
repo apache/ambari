@@ -335,47 +335,54 @@ public class AmbariServer {
         // root.addFilter(new FilterHolder(springSecurityFilter), "/proxy/*", DISPATCHER_TYPES);
       }
 
-
-      //Secured connector for 2-way auth
-      SslContextFactory contextFactoryTwoWay = new SslContextFactory();
-      disableInsecureProtocols(contextFactoryTwoWay);
-      SslSelectChannelConnector sslConnectorTwoWay = new
-          SslSelectChannelConnector(contextFactoryTwoWay);
-      sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
-
       Map<String, String> configsMap = configs.getConfigsMap();
-      String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
-          File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
-      String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
-          File.separator + configsMap.get(Configuration.TSTR_NAME_KEY);
-      String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
-      sslConnectorTwoWay.setKeystore(keystore);
-      sslConnectorTwoWay.setTruststore(truststore);
-      sslConnectorTwoWay.setPassword(srvrCrtPass);
-      sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
-      sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
-      sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-      sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
-      sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
 
-      //SSL Context Factory
-      SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
-      contextFactoryOneWay.setKeyStorePath(keystore);
-      contextFactoryOneWay.setTrustStore(truststore);
-      contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
-      contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
-      contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
-      contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
-      contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
-      contextFactoryOneWay.setNeedClientAuth(false);
-      disableInsecureProtocols(contextFactoryOneWay);
+      if (configs.getAgentSSLAuthentication()) {
+        //Secured connector for 2-way auth
+        SslContextFactory contextFactoryTwoWay = new SslContextFactory();
+        disableInsecureProtocols(contextFactoryTwoWay);
+        SslSelectChannelConnector sslConnectorTwoWay = new
+                SslSelectChannelConnector(contextFactoryTwoWay);
+        sslConnectorTwoWay.setPort(configs.getTwoWayAuthPort());
 
-      //Secured connector for 1-way auth
-      SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
-      sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
-      sslConnectorOneWay.setAcceptors(2);
-      sslConnectorTwoWay.setAcceptors(2);
-      serverForAgent.setConnectors(new Connector[]{sslConnectorOneWay, sslConnectorTwoWay});
+        String keystore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
+                File.separator + configsMap.get(Configuration.KSTR_NAME_KEY);
+        String truststore = configsMap.get(Configuration.SRVR_KSTR_DIR_KEY) +
+                File.separator + configsMap.get(Configuration.TSTR_NAME_KEY);
+        String srvrCrtPass = configsMap.get(Configuration.SRVR_CRT_PASS_KEY);
+        sslConnectorTwoWay.setKeystore(keystore);
+        sslConnectorTwoWay.setTruststore(truststore);
+        sslConnectorTwoWay.setPassword(srvrCrtPass);
+        sslConnectorTwoWay.setKeyPassword(srvrCrtPass);
+        sslConnectorTwoWay.setTrustPassword(srvrCrtPass);
+        sslConnectorTwoWay.setKeystoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
+        sslConnectorTwoWay.setTruststoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
+        sslConnectorTwoWay.setNeedClientAuth(configs.getTwoWaySsl());
+
+        //SSL Context Factory
+        SslContextFactory contextFactoryOneWay = new SslContextFactory(true);
+        contextFactoryOneWay.setKeyStorePath(keystore);
+        contextFactoryOneWay.setTrustStore(truststore);
+        contextFactoryOneWay.setKeyStorePassword(srvrCrtPass);
+        contextFactoryOneWay.setKeyManagerPassword(srvrCrtPass);
+        contextFactoryOneWay.setTrustStorePassword(srvrCrtPass);
+        contextFactoryOneWay.setKeyStoreType(configsMap.get(Configuration.KSTR_TYPE_KEY));
+        contextFactoryOneWay.setTrustStoreType(configsMap.get(Configuration.TSTR_TYPE_KEY));
+        contextFactoryOneWay.setNeedClientAuth(false);
+        disableInsecureProtocols(contextFactoryOneWay);
+
+        //Secured connector for 1-way auth
+        SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
+        sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
+        sslConnectorOneWay.setAcceptors(2);
+        sslConnectorTwoWay.setAcceptors(2);
+        serverForAgent.setConnectors(new Connector[]{sslConnectorOneWay, sslConnectorTwoWay});
+      } else {
+        SelectChannelConnector agentConnector = new SelectChannelConnector();
+        agentConnector.setPort(configs.getOneWayAuthPort());
+        agentConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
+        serverForAgent.addConnector(agentConnector);
+      }
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -713,11 +720,18 @@ public class AmbariServer {
   }
 
   /**
+   * Initialize the view registry singleton instance.
+   */
+  public void initViewRegistry() {
+    ViewRegistry.initInstance(this.viewRegistry);
+  }
+
+  /**
    * Sets up proxy authentication.  This must be done before the server is
    * initialized since <code>AmbariMetaInfo</code> requires potential URL
    * lookups that may need the proxy.
    */
-  static void setupProxyAuth() {
+  public static void setupProxyAuth() {
     final String proxyUser = System.getProperty("http.proxyUser");
     final String proxyPass = System.getProperty("http.proxyPassword");
 

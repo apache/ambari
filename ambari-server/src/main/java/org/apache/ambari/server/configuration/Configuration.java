@@ -100,6 +100,7 @@ public class Configuration {
   public static final String API_GZIP_COMPRESSION_ENABLED_KEY = "api.gzip.compression.enabled";
   public static final String API_GZIP_MIN_COMPRESSION_SIZE_KEY = "api.gzip.compression.min.size";
   public static final String AGENT_API_GZIP_COMPRESSION_ENABLED_KEY = "agent.api.gzip.compression.enabled";
+  public static final String AGENT_USE_SSL = "agent.ssl";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
@@ -1134,6 +1135,14 @@ public class Configuration {
    */
   public boolean getApiSSLAuthentication() {
     return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
+  }
+
+  /**
+   * Check to see if the Agent should be authenticated via ssl or not
+   * @return false if not, true if ssl needs to be used.
+   */
+  public boolean getAgentSSLAuthentication() {
+    return ("true".equals(properties.getProperty(AGENT_USE_SSL, "true")));
   }
 
   /**
