@@ -682,7 +682,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     #Remove duplicates
     uniqueCoprocessorRegionClassList = []
-    [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
+    [uniqueCoprocessorRegionClassList.append(i)
+     for i in coprocessorRegionClassList if
+     not i in uniqueCoprocessorRegionClassList and i != '{{hbase_coprocessor_region_classes}}']
     putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     rangerServiceVersion=''
