@@ -157,8 +157,8 @@ class NameNodeDefault(NameNode):
     Logger.info("Preparing the NameNodes for a NonRolling (aka Express) Upgrade.")
 
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-              user=params.hdfs_user)
+      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
+      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
     hdfs_binary = self.get_hdfs_binary()
     namenode_upgrade.prepare_upgrade_check_for_previous_dir()
@@ -182,6 +182,11 @@ class NameNodeDefault(NameNode):
     import params
 
     Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+
+    if params.security_enabled:
+      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
+      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
+
     try:
       hdfs_binary = self.get_hdfs_binary()
       # Note, this fails if namenode_address isn't prefixed with "params."

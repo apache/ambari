@@ -129,7 +129,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/ ~/knox_backup" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -206,7 +206,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /etc/knox/data/security/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /var/lib/knox/data/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 

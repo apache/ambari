@@ -56,28 +56,6 @@
       </execute-stage>
     </group>
 
-    <!--
-    On an HDP 2.3 to 2.2 downgrade, the /etc/component/conf must be turned back from a symlink
-    into a normal directory. This will avoid the circular symbolic link that will happen after
-    hdp-select sets /usr/hdp/current/component back to 2.2:
-
-    # new symlink created for 2.3
-    /etc/flume/conf -> /usr/hdp/current/flume-server/conf
-
-    # circular reference from 2.2 (current)
-    /usr/hdp/2.2.0.0-1234/flume/conf -> /etc/flume/conf
-    /usr/hdp/current/flume-server/conf -> /etc/flume/conf
-    -->
-    <group xsi:type="cluster" name="RESTORE_CONFIG_DIRS" title="Restore Configuration Directories">
-      <direction>DOWNGRADE</direction>
-      <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
-        <task xsi:type="execute">
-          <script>scripts/ru_set_all.py</script>
-          <function>unlink_all_configs</function>
-        </task>
-      </execute-stage>
-    </group>
-
     <group xsi:type="stop" name="STOP_HIGH_LEVEL_SERVICE_COMPONENTS" title="Stop Components for High-Level Services">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
@@ -157,10 +135,9 @@
         </task>
       </execute-stage>
 
-      <!--TODO(dlysnichenko): This step is missing in 2.3->2.3+ RU pack -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/ ~/knox_backup" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -236,13 +213,35 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /etc/knox/data/security/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /var/lib/knox/data/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Restore Ranger Database">
         <task xsi:type="manual">
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
+    </group>
+
+    <!--
+    On an HDP 2.3 to 2.2 downgrade, the /etc/component/conf must be turned back from a symlink
+    into a normal directory. This will avoid the circular symbolic link that will happen after
+    hdp-select sets /usr/hdp/current/component back to 2.2:
+
+    # new symlink created for 2.3
+    /etc/flume/conf -> /usr/hdp/current/flume-server/conf
+
+    # circular reference from 2.2 (current)
+    /usr/hdp/2.2.0.0-1234/flume/conf -> /etc/flume/conf
+    /usr/hdp/current/flume-server/conf -> /etc/flume/conf
+    -->
+    <group xsi:type="cluster" name="RESTORE_CONFIG_DIRS" title="Restore Configuration Directories">
+      <direction>DOWNGRADE</direction>
+      <execute-stage title="Restore configuration directories and remove HDP 2.3 symlinks">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>unlink_all_configs</function>
         </task>
       </execute-stage>
     </group>

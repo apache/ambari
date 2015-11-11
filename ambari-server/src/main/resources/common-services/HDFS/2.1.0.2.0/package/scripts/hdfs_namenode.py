@@ -96,14 +96,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
       Logger.info(format("Previous file system image dir present is {is_previous_image_dir}"))
 
       if params.upgrade_direction == Direction.UPGRADE:
-        if params.dfs_ha_enabled:
-          if params.desired_namenode_role is None:
-            raise Fail("Did not receive parameter \"desired_namenode_role\" to indicate the role that this NameNode should have.")
-
-          # Both Active and Standby can use the same command
-          options = "-rollingUpgrade started"
-        else:
-          options = "-rollingUpgrade started"
+        options = "-rollingUpgrade started"
       elif params.upgrade_direction == Direction.DOWNGRADE:
         options = "-rollingUpgrade downgrade"
 
