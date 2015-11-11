@@ -90,23 +90,25 @@
         {{#if view.manualItem}}
           {{#if view.isSlaveComponentFailuresItem}}
             <div class="box details-box">
-              <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
-              <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
-              <p>
-                {{#if areSlaveComponentFailuresHostsLoaded}}
-                  {{t admin.stackUpgrade.failedHosts.message}}
-                    <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
-                {{else}}
-                  <div class="spinner"></div>
-                {{/if}}
-              </p>
-              <p>
-                {{t admin.stackUpgrade.failedHosts.options}}
-                <ul>
-                  <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
-                  <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
-                </ul>
-              </p>
+              <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+              <div class="slave-failures-info">
+                <p class="slave-failures-title"><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
+                <p>
+                  {{#if areSlaveComponentFailuresHostsLoaded}}
+                    {{t admin.stackUpgrade.failedHosts.message}}
+                      <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
+                  {{else}}
+                    <div class="spinner"></div>
+                  {{/if}}
+                </p>
+                <p>
+                  {{t admin.stackUpgrade.failedHosts.options}}
+                  <ul>
+                    <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
+                    <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                  </ul>
+                </p>
+              </div>
 
               <label class="message">
                 {{view Em.Checkbox checkedBinding="view.isManualDone"}}
@@ -129,32 +131,36 @@
           {{else}}
             {{#if view.isServiceCheckFailuresItem}}
               <div class="box details-box">
-                <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+                <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
 
                 {{#if areServiceCheckFailuresServicenamesLoaded}}
                   {{#if serviceCheckFailuresServicenames.length}}
-                    <p><strong>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.title}}</strong></p>
-                    <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg1}}</div>
-                    <ul class="failed-info-list">
-                      {{#each serviceName in serviceCheckFailuresServicenames}}
-                        <li>{{serviceName}}</li>
-                      {{/each}}
-                    </ul>
-                    <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg2}}</div>
+                    <div class="service-check-failures-info">
+                      <p class="service-check-failures-title"><strong>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.title}}</strong></p>
+                      <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg1}}</div>
+                      <ul class="failed-info-list">
+                        {{#each serviceName in serviceCheckFailuresServicenames}}
+                          <li>{{serviceName}}</li>
+                        {{/each}}
+                      </ul>
+                      <div>{{t admin.stackUpgrade.dialog.manual.serviceCheckFailures.msg2}}</div>
+                    </div>
                   {{/if}}
                   {{#if slaveComponentFailuresHosts.length}}
-                    <p><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
-                    <p>
-                      {{t admin.stackUpgrade.failedHosts.message}}
-                      <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
-                    </p>
-                    <p>
-                      {{t admin.stackUpgrade.failedHosts.options}}
+                    <div class="slave-failures-info">
+                      <p class="slave-failures-title"><strong>{{t admin.stackUpgrade.dialog.manual.slaveComponentFailures.title}}</strong></p>
+                      <p>
+                        {{t admin.stackUpgrade.failedHosts.message}}
+                          <a href="#" {{action showFailedHosts target="view"}}>{{view.failedHostsMessage}}</a>
+                      </p>
+                      <p>
+                        {{t admin.stackUpgrade.failedHosts.options}}
                       <ul>
                         <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
                         <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
                       </ul>
-                    </p>
+                      </p>
+                    </div>
                   {{/if}}
                 {{else}}
                     <div class="spinner"></div>
@@ -181,11 +187,11 @@
             {{else}}
               {{#if view.isFinalizeItem}}
                 <div class="box details-box">
-                    <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+                    <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
                   {{#if isDowngrade}}
-                      <p>{{t admin.stackUpgrade.finalize.message.downgrade}}</p>
+                      <p class="manual-steps-content">{{t admin.stackUpgrade.finalize.message.downgrade}}</p>
                   {{else}}
-                      <p>{{t admin.stackUpgrade.finalize.message.upgrade}}</p>
+                      <p class="manual-steps-content">{{t admin.stackUpgrade.finalize.message.upgrade}}</p>
                   {{/if}}
 
                   {{#if areSkippedServiceChecksLoaded}}
@@ -218,8 +224,8 @@
                 </div>
               {{else}}
                 <div class="box details-box">
-                  <p><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
-                  <p>{{view.manualItem.text}}</p>
+                  <p class="manual-steps-title"><strong>{{t admin.stackUpgrade.dialog.manual}}</strong></p>
+                  <p class="manual-steps-content">{{view.manualItem.text}}</p>
 
                   <label class="message">
                     {{view Em.Checkbox checkedBinding="view.isManualDone"}}

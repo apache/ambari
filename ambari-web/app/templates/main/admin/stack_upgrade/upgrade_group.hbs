@@ -18,7 +18,7 @@
 
 
 <div class="row-fluid">
-  <div {{bindAttr class="view.content.isExpandableGroup::not-active-link :span8"}}>
+  <div {{bindAttr class="view.content.isExpandableGroup::not-active-link :span8 :upgrade-group-text"}}>
     {{statusIcon view.content.upgradeGroupStatus}}
     <a href="#" {{action toggleExpanded view.content controller.upgradeData.upgradeGroups target="view"}}>{{view.content.title}}</a>
   </div>
@@ -43,7 +43,7 @@
   {{#each item in view.content.upgradeItems}}
     {{#if item.isVisible}}
       <div class="row-fluid">
-        <div {{bindAttr class="item.isActive::not-active-link :span8"}}>
+        <div {{bindAttr class="item.isActive::not-active-link :span8 :upgrade-item-text"}}>
           {{statusIcon item.status}}
           <a href="#" {{action toggleExpanded item view.content.upgradeItems target="view"}}>{{item.context}}</a>
         </div>
