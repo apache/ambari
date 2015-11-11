@@ -150,11 +150,7 @@ public class UpgradeHelper {
     /**
      * The proper verbal noun of the {@link Direction} value.
      */
-    DIRECTION_VERB_PROPER("direction.verb.proper"),
-    /**
-     * Unhealthy hosts if they are specified.
-     */
-    UNHEALTHY_HOSTS("hosts.unhealthy");
+    DIRECTION_VERB_PROPER("direction.verb.proper");
 
     private String pattern;
     private Placeholder(String key) {
@@ -577,9 +573,6 @@ public class UpgradeHelper {
         case DIRECTION_TEXT:
         case DIRECTION_TEXT_PROPER:
           value = ctx.getDirection().getText(p == Placeholder.DIRECTION_TEXT_PROPER);
-          break;
-        case UNHEALTHY_HOSTS:
-          value = StringUtils.join(ctx.getUnhealthy().keySet(), ", ");
           break;
         default:
           value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(

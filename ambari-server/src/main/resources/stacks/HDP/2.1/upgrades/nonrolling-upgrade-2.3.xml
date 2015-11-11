@@ -498,12 +498,6 @@
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
-      <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
-        <task xsi:type="manual">
-          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
-        </task>
-      </execute-stage>
-
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
