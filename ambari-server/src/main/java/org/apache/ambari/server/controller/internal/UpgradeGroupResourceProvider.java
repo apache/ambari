@@ -59,6 +59,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
   protected static final String UPGRADE_GROUP_TITLE = "UpgradeGroup/title";
   protected static final String UPGRADE_GROUP_PROGRESS_PERCENT = "UpgradeGroup/progress_percent";
   protected static final String UPGRADE_GROUP_STATUS = "UpgradeGroup/status";
+  protected static final String UPGRADE_GROUP_DISPLAY_STATUS = "UpgradeGroup/display_status";
 
   protected static final String UPGRADE_GROUP_TOTAL_TASKS = "UpgradeGroup/total_task_count";
   protected static final String UPGRADE_GROUP_IN_PROGRESS_TASKS = "UpgradeGroup/in_progress_task_count";
@@ -85,6 +86,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     PROPERTY_IDS.add(UPGRADE_GROUP_TITLE);
     PROPERTY_IDS.add(UPGRADE_GROUP_PROGRESS_PERCENT);
     PROPERTY_IDS.add(UPGRADE_GROUP_STATUS);
+    PROPERTY_IDS.add(UPGRADE_GROUP_DISPLAY_STATUS);
     PROPERTY_IDS.add(UPGRADE_GROUP_TOTAL_TASKS);
     PROPERTY_IDS.add(UPGRADE_GROUP_IN_PROGRESS_TASKS);
     PROPERTY_IDS.add(UPGRADE_GROUP_COMPLETED_TASKS);
@@ -221,6 +223,7 @@ public class UpgradeGroupResourceProvider extends AbstractControllerResourceProv
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_COMPLETED_TASKS, completed, requestedIds);
 
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_STATUS, stageStatus.getStatus(), requestedIds);
+    setResourceProperty(upgradeGroup, UPGRADE_GROUP_DISPLAY_STATUS, stageStatus.getDisplayStatus(), requestedIds);
     setResourceProperty(upgradeGroup, UPGRADE_GROUP_PROGRESS_PERCENT, stageStatus.getPercent(), requestedIds);
   }
 }
