@@ -1179,6 +1179,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   finish: function () {
     if (App.get('upgradeState') === 'COMPLETED') {
+      var upgradeVersion = this.get('upgradeVersion') && this.get('upgradeVersion').match(/[a-zA-Z]+\-\d+\.\d+/);
       this.setDBProperties({
         upgradeId: undefined,
         upgradeState: 'INIT',
@@ -1193,6 +1194,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });
+      if (upgradeVersion && upgradeVersion[0]) {
+        App.set('currentStackVersion', upgradeVersion[0]);
+      }
       App.set('upgradeState', 'INIT');
     }
   }.observes('App.upgradeState'),
