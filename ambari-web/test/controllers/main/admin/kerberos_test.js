@@ -179,8 +179,120 @@ describe('App.MainAdminKerberosController', function() {
     });
   });
 
+  describe('#getKDCSessionState()', function () {
+
+    var mock = {callback: Em.K};
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.spy(mock, 'callback');
+      sinon.stub(controller, 'getSecurityType', function (c) {
+        c();
+      });
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+      mock.callback.restore();
+      controller.getSecurityType.restore();
+    });
+
+    [
+      {
+        m: 'Skip request, as securityEnabled and isKerberosEnabled are false',
+        securityEnabled: false,
+        isKerberosEnabled: false,
+        kdc_type: 'not_none',
+        result: false
+      },
+      {
+        m: 'Skip request, as isManualKerberos is true',
+        securityEnabled: true,
+        isKerberosEnabled: true,
+        kdc_type: 'none',
+        result: false
+      },
+      {
+        m: 'Make request',
+        securityEnabled: true,
+        isKerberosEnabled: true,
+        kdc_type: 'not_none',
+        result: true
+      }
+    ].forEach(function (test) {
+          it(test.m, function () {
+            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+            controller.set('securityEnabled', test.securityEnabled);
+            controller.set('kdc_type', test.kdc_type);
+            controller.getKDCSessionState(mock.callback);
+            App.get.restore();
+            if (test.result) {
+              expect(mock.callback.calledOnce).to.be.false;
+              expect(App.ajax.send.calledOnce).to.be.true;
+            } else {
+              expect(mock.callback.calledOnce).to.be.true;
+              expect(App.ajax.send.calledOnce).to.be.false;
+            }
+          });
+        });
+  });
+
+  describe('#getSecurityType()', function () {
+
+    var mock = {callback: Em.K};
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.spy(mock, 'callback');
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+      mock.callback.restore();
+    });
+
+    [
+      {
+        m: 'Skip request, as securityEnabled and isKerberosEnabled are false',
+        securityEnabled: false,
+        isKerberosEnabled: false,
+        kdc_type: '',
+        result: false
+      },
+      {
+        m: 'Skip request, as kdc_type exists',
+        securityEnabled: true,
+        isKerberosEnabled: true,
+        kdc_type: 'none',
+        result: false
+      },
+      {
+        m: 'Make request',
+        securityEnabled: true,
+        isKerberosEnabled: true,
+        kdc_type: '',
+        result: true
+      }
+    ].forEach(function (test) {
+          it(test.m, function () {
+            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+            controller.set('securityEnabled', test.securityEnabled);
+            controller.set('kdc_type', test.kdc_type);
+            controller.getSecurityType(mock.callback);
+            App.get.restore();
+            if (test.result) {
+              expect(mock.callback.calledOnce).to.be.false;
+              expect(App.ajax.send.calledOnce).to.be.true;
+            } else {
+              expect(mock.callback.calledOnce).to.be.true;
+              expect(App.ajax.send.calledOnce).to.be.false;
+            }
+          });
+        });
+  });
+
   describe('#getSecurityTypeSuccess', function() {
-    var tests = [
+    [
       {
         data: { },
         e: 'none'
