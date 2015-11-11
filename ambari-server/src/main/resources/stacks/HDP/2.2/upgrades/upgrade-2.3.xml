@@ -132,6 +132,7 @@
 
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="RANGER">
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
@@ -213,6 +214,7 @@
 
     <group name="HIVE" title="Hive">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
@@ -222,24 +224,48 @@
 
     <group name="SPARK" title="Spark">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+      </service>
+    </group>
+
+    <group name="SPARK_CLIENTS" title="Spark Clients">
+      <skippable>true</skippable>
+      <service name="SPARK">
         <component>SPARK_CLIENT</component>
       </service>
     </group>
 
     <group name="OOZIE" title="Oozie">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
+      </service>
+    </group>
+
+    <group name="OOZIE_CLIENTS" title="Oozie Clients">
+      <skippable>true</skippable>
+      <service name="OOZIE">
         <component>OOZIE_CLIENT</component>
       </service>
     </group>
 
     <group name="FALCON" title="Falcon">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
+      </service>
+    </group>
+
+    <group name="FALCON_CLIENTS" title="Falcon Clients">
+      <skippable>true</skippable>
+      <service name="FALCON">
         <component>FALCON_CLIENT</component>
       </service>
     </group>
