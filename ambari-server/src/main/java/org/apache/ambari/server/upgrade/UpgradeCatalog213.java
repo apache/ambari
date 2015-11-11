@@ -84,6 +84,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String STORM_SITE = "storm-site";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
   private static final String KAFKA_BROKER = "kafka-broker";
+  private static final String KAFKA_ENV_CONFIG = "kafka-env";
+  private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS = "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String AMS_SITE = "ams-site";
@@ -921,7 +923,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = clusters.getClusters();
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices =cluster.getServices().keySet();
+          Set<String> installedServices = cluster.getServices().keySet();
           Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER);
           if (kafkaBroker != null) {
             Map<String, String> newProperties = new HashMap<>();
@@ -941,6 +943,20 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             }
             if (!newProperties.isEmpty()) {
               updateConfigurationPropertiesForCluster(cluster, KAFKA_BROKER, newProperties, true, true);
+            }
+          }
+
+          StackId stackId = cluster.getCurrentStackVersion();
+          if (stackId != null && stackId.getStackName().equals("HDP") &&
+              VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0) {
+            Config kafkaEnv = cluster.getDesiredConfigByType(KAFKA_ENV_CONFIG);
+            if (kafkaEnv != null) {
+              String kafkaEnvContent = kafkaEnv.getProperties().get(CONTENT_PROPERTY);
+              if (kafkaEnvContent != null && !kafkaEnvContent.contains(KAFKA_ENV_CONTENT_KERBEROS_PARAMS)) {
+                kafkaEnvContent += "\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}\"";
+                Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, kafkaEnvContent);
+                updateConfigurationPropertiesForCluster(cluster, KAFKA_ENV_CONFIG, updates, true, false);
+              }
             }
           }
         }
