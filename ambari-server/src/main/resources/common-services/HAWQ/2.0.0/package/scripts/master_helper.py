@@ -66,7 +66,6 @@ def configure_master():
   common.setup_user()
   common.setup_common_configurations()
   __setup_master_specific_conf_files()
-  __setup_passwordless_ssh()
   __setup_hawq_user_profile()
   __create_local_dirs()
 
@@ -165,6 +164,10 @@ def start_master():
     Fail("Host should be either active Hawq master or Hawq standby.")
 
   is_active_master = __is_active_master()
+  # Exchange ssh keys from active hawq master before starting.
+  if is_active_master:
+    __setup_passwordless_ssh()
+
   if __is_local_initialized():
     __start_local_master()
 
