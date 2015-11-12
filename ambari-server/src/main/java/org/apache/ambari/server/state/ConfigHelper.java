@@ -686,9 +686,11 @@ public class ConfigHelper {
       } else {
         oldConfigProperties = oldConfig.getProperties();
         if (oldConfigProperties != null) {
-          properties.putAll(oldConfig.getProperties());
+          properties.putAll(oldConfigProperties);
         }
-        propertiesAttributes.putAll(oldConfig.getPropertiesAttributes());
+        if (oldConfig.getPropertiesAttributes() != null) {
+          propertiesAttributes.putAll(oldConfig.getPropertiesAttributes());
+        }
       }
 
       properties.putAll(updates);
