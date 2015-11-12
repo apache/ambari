@@ -24,13 +24,7 @@ App.User = DS.Model.extend({
   id:function(){
     return this.get('userName');
   }.property('userName'),
-  isLdap:DS.attr('boolean'),
-  type: function(){
-    if(this.get('isLdap')){
-      return 'LDAP';
-    }
-    return 'Local';
-  }.property('isLdap'),
+  userType: DS.attr('string'),
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin: DS.attr('boolean'),
   operator: DS.attr('boolean'),
@@ -43,7 +37,14 @@ App.User = DS.Model.extend({
    *    VIEW.USE
    * @property {Array} permissions
    **/
-  permissions: DS.attr('array')
+  permissions: DS.attr('array'),
+
+  /**
+   * @type {Boolean}
+   */
+  isLdap: function() {
+    return this.get('userType') === 'LDAP';
+  }.property('userType')
 });
 
 App.EditUserForm = App.Form.extend({
@@ -78,7 +79,6 @@ App.EditUserForm = App.Form.extend({
   isValid:function () {
 
     var isValid = this._super();
-    var thisForm = this;
 
     var newPass = this.get('field.new_password');
     var oldPass = this.get('field.old_password');

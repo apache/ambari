@@ -23,10 +23,10 @@ App.usersMapper = App.QuickDataMapper.create({
   config : {
     id : 'Users.user_name',
     user_name : 'Users.user_name',
-    is_ldap: 'Users.ldap_user',
     admin: 'Users.admin',
     operator: 'Users.operator',
-    permissions: 'permissions'
+    permissions: 'permissions',
+    user_type: 'Users.user_type'
   },
   map: function (json) {
     var self = this;
