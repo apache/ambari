@@ -483,16 +483,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     if hive_server2_auth == "ldap":
       putHiveSiteProperty("hive.server2.authentication.ldap.url", "")
-      putHiveSiteProperty("hive.server2.authentication.ldap.baseDN", " ")
     else:
       if ("hive.server2.authentication.ldap.url" in configurations["hive-site"]["properties"]) or \
               ("hive-site" not in services["configurations"]) or \
               ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.url" in services["configurations"]["hive-site"]["properties"]):
         putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
-      if ("hive.server2.authentication.ldap.baseDN" in configurations["hive-site"]["properties"]) or \
-              ("hive-site" not in services["configurations"]) or \
-              ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.baseDN" in services["configurations"]["hive-site"]["properties"]):
-        putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
 
     if hive_server2_auth == "kerberos":
       putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
@@ -1230,6 +1225,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                               "item": self.getWarnItem("Correct values are {0}".format(stripe_size_values))
                              }
       )
+    authentication_property = "hive.server2.authentication"
+    ldap_baseDN_property = "hive.server2.authentication.ldap.baseDN"
+    ldap_domain_property = "hive.server2.authentication.ldap.Domain"
+    if authentication_property in properties and properties[authentication_property].lower() == "ldap" \
+        and not (ldap_baseDN_property in properties or ldap_domain_property in properties):
+      validationItems.append({"config-name" : authentication_property, "item" :
+        self.getWarnItem("According to LDAP value for " + authentication_property + ", you should add " +
+            ldap_domain_property + " property, if you are using AD, if not, then " + ldap_baseDN_property + "!")})
+
+
     configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
     configurationValidationProblems.extend(parentValidationProblems)
     return configurationValidationProblems

@@ -590,7 +590,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     hive_env_properties = getSiteProperties(configurations, "hive-env")
     validationItems = []
@@ -609,8 +609,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "item": self.getWarnItem(
                                   "If Hive using SQL Anywhere db." \
                                   " {0} needs to be set to {1}".format(prop_name,prop_value))})
-    return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
+    configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
+    configurationValidationProblems.extend(parentValidationProblems)
+    return configurationValidationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP23StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)

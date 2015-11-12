@@ -1596,10 +1596,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
             }
             if (!"ldap".equalsIgnoreCase(hive_server2_auth)) {
               hiveSiteRemoveProps.add("hive.server2.authentication.ldap.url");
-              hiveSiteRemoveProps.add("hive.server2.authentication.ldap.baseDN");
             } else {
               hiveSiteAddProps.put("hive.server2.authentication.ldap.url", "");
-              hiveSiteAddProps.put("hive.server2.authentication.ldap.baseDN", "");
             }
             if (!"kerberos".equalsIgnoreCase(hive_server2_auth) && !cluster.getServices().containsKey("KERBEROS")) {
               hiveSiteRemoveProps.add("hive.server2.authentication.kerberos.keytab");
