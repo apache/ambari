@@ -61,6 +61,18 @@
         </changes>
       </component>
     </service>
+
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <changes>
+          <definition xsi:type="configure"
+              id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property">
+            <type>tez-site</type>
+            <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
   </services>
 
 </upgrade-config-changes>

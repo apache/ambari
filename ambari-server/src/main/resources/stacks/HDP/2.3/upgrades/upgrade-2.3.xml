@@ -538,6 +538,9 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

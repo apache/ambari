@@ -231,6 +231,15 @@
       </execute-stage>
     </group>
 
+    <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
+      <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
+      <skippable>true</skippable>  <!-- May fix configuration problems manually -->
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+    </group>
+
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
       <service-check>false</service-check>
