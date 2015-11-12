@@ -150,14 +150,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
-        putHbaseSiteProperty("hbase.security.authorization", 'true')
-        putHbaseSiteProperty("hbase.coprocessor.master.classes", 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor')
-        putHbaseSiteProperty("hbase.coprocessor.region.classes", 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor')
-
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
