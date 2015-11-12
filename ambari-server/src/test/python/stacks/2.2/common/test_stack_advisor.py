@@ -1035,8 +1035,7 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
-         'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
-         'hive.server2.authentication.kerberos.principal': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
@@ -3093,6 +3092,7 @@ class TestHDP22StackAdvisor(TestCase):
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
+                  "hive.server2.authentication": "LDAP",
                   "hive.exec.orc.default.stripe.size": "8388608",
                   'hive.tez.container.size': '2048',
                   'hive.tez.java.opts': '-Xmx300m',
@@ -3113,7 +3113,10 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Test for 'ranger-hive-plugin-properties' not being in configs
-    res_expected = []
+    res_expected = [{'config-type': 'hive-site', 'message': 'According to LDAP value for hive.server2.authentication, '
+                   'you should add hive.server2.authentication.ldap.Domain property, if you are using AD, if not, '
+                   'then hive.server2.authentication.ldap.baseDN!', 'type': 'configuration', 'config-name':
+                  'hive.server2.authentication', 'level': 'WARN'}]
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 

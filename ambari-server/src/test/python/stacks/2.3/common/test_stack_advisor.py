@@ -551,8 +551,7 @@ class TestHDP23StackAdvisor(TestCase):
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
-         'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
-         'hive.server2.authentication.kerberos.principal': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {

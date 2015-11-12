@@ -1744,7 +1744,6 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
-    <value></value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
