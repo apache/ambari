@@ -172,7 +172,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
    * List of available SNMP versions
    * @type {Array}
    */
-  SNMPVersions: ['SNMPv1', 'SNMPv2c', 'SNMPv3'],
+  SNMPVersions: ['SNMPv1', 'SNMPv2c'],
 
   /**
    * List of all Alert Notifications
