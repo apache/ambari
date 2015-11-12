@@ -469,6 +469,12 @@
             <set key="tez.am.view-acls" value="*"/>
             <set key="tez.task.generate.counters.per.io" value="true"/>
           </definition>
+
+          <definition xsi:type="configure"
+                id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property">
+            <type>tez-site</type>
+            <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
+          </definition>
         </changes>
       </component>
     </service>
