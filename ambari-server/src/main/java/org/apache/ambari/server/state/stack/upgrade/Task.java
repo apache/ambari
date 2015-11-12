@@ -24,7 +24,7 @@ import javax.xml.bind.annotation.XmlSeeAlso;
 /**
  * Base class to identify the items that could possibly occur during an upgrade
  */
-@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class})
+@XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, StartTask.class, StopTask.class, ServerActionTask.class, ConfigureFunction.class})
 public abstract class Task {
 
   /**
@@ -66,6 +66,10 @@ public abstract class Task {
      */
     CONFIGURE,
     /**
+     * Task that sets up the configuration for subsequent task
+     */
+    CONFIGURE_FUNCTION,
+    /**
      * Task that displays a message and must be confirmed before continuing
      */
     MANUAL,
@@ -101,7 +105,7 @@ public abstract class Task {
      * @return {@code true} if the task is a command type (as opposed to an action)
      */
     public boolean isCommand() {
-      return this == RESTART || this == START || this == STOP || this == SERVICE_CHECK;
+      return this == RESTART || this == START || this == CONFIGURE_FUNCTION || this == STOP || this == SERVICE_CHECK;
     }
   }
 }

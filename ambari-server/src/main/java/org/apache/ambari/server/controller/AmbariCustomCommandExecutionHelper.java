@@ -180,9 +180,40 @@ public class AmbariCustomCommandExecutionHelper {
         stackId.getStackName(), stackId.getStackVersion(),
         serviceName, componentName);
 
-    return !(!componentInfo.isCustomCommand(commandName) &&
-      !actionMetadata.isDefaultHostComponentCommand(commandName));
+    return actionMetadata.isDefaultHostComponentCommand(commandName);
   }
+
+  private Boolean isValidDefaultCommand(String clusterName,
+      String serviceName, String componentName, String commandName)
+      throws AmbariException {
+
+      Cluster cluster = clusters.getCluster(clusterName);
+      StackId stackId = cluster.getDesiredStackVersion();
+
+      if (componentName == null) {
+        return false;
+      }
+      ComponentInfo componentInfo = ambariMetaInfo.getComponent(
+        stackId.getStackName(), stackId.getStackVersion(),
+        serviceName, componentName);
+
+      return (actionMetadata.isDefaultHostComponentCommand(commandName));
+    }
+
+    private Boolean isValidDefaultCommand(ActionExecutionContext
+     actionExecutionContext, RequestResourceFilter resourceFilter)
+     throws AmbariException {
+      String clusterName = actionExecutionContext.getClusterName();
+      String serviceName = resourceFilter.getServiceName();
+      String componentName = resourceFilter.getComponentName();
+      String commandName = actionExecutionContext.getActionName();
+
+      if (componentName == null) {
+        return false;
+      }
+
+      return isValidCustomCommand(clusterName, serviceName, componentName, commandName);
+    }
 
   private Boolean isValidCustomCommand(ActionExecutionContext
       actionExecutionContext, RequestResourceFilter resourceFilter)
@@ -908,7 +939,7 @@ public class AmbariCustomCommandExecutionHelper {
         findHostAndAddServiceCheckAction(actionExecutionContext, resourceFilter, stage);
       } else if (actionName.equals(DECOMMISSION_COMMAND_NAME)) {
         addDecommissionAction(actionExecutionContext, resourceFilter, stage);
-      } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
+      } else if (isValidDefaultCommand(actionExecutionContext, resourceFilter)) {
 
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
 

@@ -224,14 +224,12 @@ def create(stack_name, package, version, dry_run = False):
 
 def select(stack_name, package, version, try_create=True):
   """
-  Selects a config version for the specified package.  Currently only works if the version is
-  for HDP-2.3 or higher
+  Selects a config version for the specified package.
   :stack_name: the name of the stack
   :package: the name of the package, as-used by conf-select
   :version: the version number to create
   :try_create: optional argument to attempt to create the directory before setting it
   """
-
   if not _valid(stack_name, package, version):
     return
 
@@ -240,6 +238,28 @@ def select(stack_name, package, version, try_create=True):
 
   shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
+  # Create the symbolic link using 'PACKAGE_DIRS' for the given package
+  # Starting with 2.3, we have sym links instead of flat directories.
+  # Eg: /etc/<service-name>/conf -> /etc/<service-name>/2.3.x.y-<version>/0
+  # But, in case of Express upgrade from HDP 2.1-> HDP 2.3 where we have
+  # deleted the /etc/<service-name>/conf directory, the above mentioned
+  # symlink needs to be created here.
+  if package in PACKAGE_DIRS:
+    conf_dirs = PACKAGE_DIRS[package]
+    Logger.info("For package : {0}, DIRS = {1}".format(package, conf_dirs))
+    for dirInfo in conf_dirs:
+      if "conf_dir" in dirInfo and "current_dir" in dirInfo:
+        conf_dir = dirInfo["conf_dir"]
+        current_dir = dirInfo["current_dir"]
+        Logger.info("For package : {0}, Source dir: {1}, Dest dir: {2}".format(package, conf_dir, current_dir))
+        if os.path.exists(current_dir):
+          real_path_of_current_dir = os.path.realpath(current_dir)
+          normalized_conf_dir = (os.path.normpath(conf_dir)).strip()
+          normalized_current_dir = (os.path.normpath(real_path_of_current_dir)).strip()
+          Logger.info("Normalized Conf Dir : {0}, Normalized Current Dir : {1}".format(normalized_conf_dir, normalized_current_dir))
+          if not os.path.isdir(normalized_conf_dir) and os.path.isdir(normalized_current_dir) and normalized_current_dir != normalized_conf_dir:
+            Logger.info("Creating Symlink : {0} -> {1}".format(normalized_conf_dir, normalized_current_dir))
+            os.symlink(normalized_current_dir, normalized_conf_dir)
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   """
@@ -293,23 +313,18 @@ def create_config_links(stack_id, stack_version):
   stack_id:  stack id, ie HDP-2.3
   stack_version:  version to set, ie 2.3.0.0-1234
   """
-
   if stack_id is None:
     Logger.info("Cannot create config links when stack_id is not defined")
     return
-
   args = stack_id.upper().split('-')
   if len(args) != 2:
     Logger.info("Unrecognized stack id {0}".format(stack_id))
     return
-
   if args[0] != "HDP":
     Logger.info("Unrecognized stack name {0}".format(args[0]))
-
   if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
     Logger.info("Cannot link configs unless HDP-2.3 or higher")
     return
-
   for k, v in PACKAGE_DIRS.iteritems():
     dirs = create(args[0], k, stack_version, dry_run = True)
     if 0 == len(dirs):
