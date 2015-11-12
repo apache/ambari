@@ -41,11 +41,17 @@ def falcon(type, action = None, upgrade_type=None):
   if action == 'config':
     Directory(params.falcon_pid_dir,
       owner = params.falcon_user,
-      recursive = True)
+      recursive = True,
+      mode = 0755,
+      cd_access = "a",
+    )
 
     Directory(params.falcon_log_dir,
       owner = params.falcon_user,
-      recursive = True)
+      recursive = True,
+      mode = 0755,
+      cd_access = "a",
+    )
 
     Directory(params.falcon_webapp_dir,
       owner = params.falcon_user,

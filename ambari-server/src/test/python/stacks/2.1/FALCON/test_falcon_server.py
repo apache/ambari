@@ -81,11 +81,15 @@ class TestFalconServer(RMFTestCase):
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
-                              recursive = True
+                              recursive = True,
+                              cd_access = "a",
+                              mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
-                              recursive = True
+                              recursive = True,
+                              cd_access = "a",
+                              mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
@@ -240,10 +244,14 @@ class TestFalconServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/falcon',
         owner = 'falcon',
         recursive = True,
+        cd_access = "a",
+        mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/falcon',
         owner = 'falcon',
         recursive = True,
+        cd_access = "a",
+        mode = 0755,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/webapp',
         owner = 'falcon',

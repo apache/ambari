@@ -176,12 +176,16 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if name != "client":
     Directory( params.hbase_pid_dir,
                owner = params.hbase_user,
-               recursive = True
+               recursive = True,
+               cd_access = "a",
+               mode = 0755,
     )
 
     Directory (params.hbase_log_dir,
                owner = params.hbase_user,
-               recursive = True
+               recursive = True,
+               cd_access = "a",
+               mode = 0755,
     )
 
   if name == "master":

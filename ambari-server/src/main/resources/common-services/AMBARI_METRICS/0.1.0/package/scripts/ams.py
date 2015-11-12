@@ -241,7 +241,8 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True
+              recursive=True,
+              mode=0755,
     )
 
     Directory(params.ams_collector_pid_dir,

@@ -81,7 +81,9 @@ def knox():
       Directory(directory,
                 owner = params.knox_user,
                 group = params.knox_group,
-                recursive = True
+                recursive = True,
+                cd_access = "a",
+                mode = 0755,
       )
 
     XmlConfig("gateway-site.xml",
