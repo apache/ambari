@@ -636,8 +636,8 @@ public class UpgradeHelper {
      */
     @Override
     public String toString() {
-      StringBuilder buffer = new StringBuilder("UpgradeGroupHolder{ ");
-      buffer.append("name").append(name);
+      StringBuilder buffer = new StringBuilder("UpgradeGroupHolder{");
+      buffer.append("name=").append(name);
       buffer.append(", title=").append(title);
       buffer.append(", allowRetry=").append(allowRetry);
       buffer.append(", skippable=").append(skippable);
