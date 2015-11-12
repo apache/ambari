@@ -199,7 +199,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var properties = [];
     App.Tab.find(this.get('content.serviceName') + '_settings').get('sections').forEach(function(s) {
       s.get('subSections').forEach(function(ss) {
-        properties = properties.concat(ss.get('configProperties').filterProperty('id'));
+        properties = properties.concat(ss.get('configProperties'));
       });
     });
     return properties;
@@ -431,11 +431,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method mergeWithStackProperties
    */
   mergeWithStackProperties: function (configs) {
-    this.get('settingsTabProperties').forEach(function (advanced) {
-      if (!configs.someProperty('name', advanced.name)) {
-        advanced.savedValue = null;
-        advanced.isNotSaved = true;
-        configs.pushObject(App.ServiceConfigProperty.create(advanced));
+    this.get('settingsTabProperties').forEach(function (advanced_id) {
+      if (!configs.someProperty('id', advanced_id)) {
+        var advanced = App.configsCollection.getConfig(advanced_id);
+        if (advanced) {
+          advanced.savedValue = null;
+          advanced.isNotSaved = true;
+          configs.pushObject(App.ServiceConfigProperty.create(advanced));
+        }
       }
     });
     return configs;

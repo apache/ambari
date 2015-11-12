@@ -33,7 +33,7 @@ var App = require('app');
 var configsCollection = [],
   /**
    * this should be object with key - config id and value - config object
-   * @type {Object{}}
+   * @type {Object}
    */
   configsCollectionMap = {};
 

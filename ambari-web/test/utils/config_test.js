@@ -778,6 +778,7 @@ describe('App.config', function () {
 
     var res = {
       /** core properties **/
+      id: "pName__pFileName",
       name: 'pName',
       filename: 'pFileName',
       value: '',

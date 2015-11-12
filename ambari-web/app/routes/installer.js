@@ -240,6 +240,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         masterComponentHosts: undefined
       });
       controller.set('stackConfigsLoaded', false);
+      App.configsCollection.clearAll();
       router.transitionTo('step5');
       console.timeEnd('step4 next');
     }

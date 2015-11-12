@@ -267,6 +267,7 @@ App.config = Em.Object.create({
   createDefaultConfig: function(name, serviceName, fileName, definedInStack, coreObject) {
     var tpl = {
       /** core properties **/
+      id: this.configId(name, fileName),
       name: name,
       filename: fileName,
       value: '',

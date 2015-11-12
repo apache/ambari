@@ -995,7 +995,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
         var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
         if (Em.isNone(mappedConfigValue)) {
-          return _config.serviceName == 'MISC';
+          //for now ranger plugin properties are not sending by recommendations if they are missed - it should be added
+          return _config.serviceName == 'MISC' || /^ranger-/.test(_config.filename);
         } else {
           if (_config.savedValue != mappedConfigValue) {
             _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
