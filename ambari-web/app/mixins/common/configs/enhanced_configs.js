@@ -471,6 +471,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           if (!updateOnlyBoundaries && !parentPropertiesNames.contains(App.config.configId(propertyName, key)) && initialValue != recommendedValue) { //on first initial request we don't need to change values
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', initialValue);
+              Em.set(dependentProperty, 'notDefined', Em.isNone(initialValue));
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
               Em.set(dependentProperty, 'toDelete', false); // handled in <code>saveRecommendedAttributes</code>
               Em.set(dependentProperty, 'toAdd', isNewProperty);
@@ -486,6 +487,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 propertyName: propertyName,
                 configGroup: group ? group.get('name') : "",
                 value: initialValue,
+                notDefined: Em.isNone(initialValue),
                 parentConfigs: parentPropertiesNames,
                 serviceName: serviceName,
                 allowChangeGroup: !this.get('selectedService.isDefault') && service.get('serviceName') != stepConfig.get('serviceName') && stepConfig.get('configGroups.length') > 1,
@@ -591,7 +593,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 self.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
-                  propertyValue: cp && (self.useInitialValue(serviceName) ? cp.get('initialValue') : cp.get('savedValue')),
+                  value: cp && (self.useInitialValue(serviceName) ? cp.get('initialValue') : cp.get('savedValue')),
                   toDelete: true,
                   toAdd: false,
                   isDeleted: true,
