@@ -121,10 +121,11 @@ def __start_local_master():
   Starts HAWQ Master or HAWQ Standby Master component on the host
   """
   import params
+  component_name = __get_component_name()
   utils.exec_hawq_operation(
         constants.START, 
-        "{0} -a".format(__get_component_name()), 
-        not_if=utils.chk_postgres_status_cmd(params.hawq_master_address_port))
+        "{0} -a".format(component_name),
+        not_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
 
   
 def __is_local_initialized():
@@ -183,10 +184,11 @@ def stop_master():
   Stops the HAWQ Master/Standby
   """
   import params
+  component_name = __get_component_name()
   utils.exec_hawq_operation(
                 constants.STOP,
-                "{0} -a".format(__get_component_name()),
-                only_if=utils.chk_postgres_status_cmd(params.hawq_master_address_port))
+                "{0} -a".format(component_name),
+                only_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
 
 
 def __is_active_master():

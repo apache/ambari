@@ -50,7 +50,7 @@ class HawqSegment(Script):
     return utils.exec_hawq_operation(
           constants.START, 
           "{0} -a".format(constants.SEGMENT), 
-          not_if=utils.chk_postgres_status_cmd(params.hawq_segment_address_port))
+          not_if=utils.chk_hawq_process_status_cmd(params.hawq_segment_address_port))
 
   def start(self, env):
     self.configure(env)
@@ -67,7 +67,7 @@ class HawqSegment(Script):
   def stop(self, env):
     import params
 
-    utils.exec_hawq_operation(constants.STOP, "{0} -a".format(constants.SEGMENT), only_if=utils.chk_postgres_status_cmd(
+    utils.exec_hawq_operation(constants.STOP, "{0} -a".format(constants.SEGMENT), only_if=utils.chk_hawq_process_status_cmd(
                                 params.hawq_segment_address_port))
 
 

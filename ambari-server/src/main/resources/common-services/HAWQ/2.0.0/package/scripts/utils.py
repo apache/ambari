@@ -23,11 +23,12 @@ from resource_management.core.logger import Logger
 
 import constants
 
-def chk_postgres_status_cmd(port):
+def chk_hawq_process_status_cmd(port, component_name=None):
   """
-  Checks if the postgres port is occupied
+  Check if hawq postgres / gpsyncmaster process is running
   """
-  return "netstat -tupln | egrep ':{0}\s' | egrep postgres".format(port)
+  process = "gpsyncmaster" if component_name == constants.STANDBY else "postgres"
+  return "netstat -tupln | egrep ':{0}\s' | egrep {1}".format(port, process)
 
 
 def create_dir_as_hawq_user(directory):
