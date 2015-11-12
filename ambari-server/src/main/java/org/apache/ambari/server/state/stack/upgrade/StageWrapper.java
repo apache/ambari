@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,8 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.google.gson.Gson;
 
 /**
  *
@@ -149,6 +149,7 @@ public class StageWrapper {
     RU_TASKS,
     SERVICE_CHECK,
     STOP,
-    START
+    START,
+    CONFIGURE
   }
 }
