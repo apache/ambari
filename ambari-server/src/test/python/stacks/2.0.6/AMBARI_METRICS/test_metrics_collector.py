@@ -22,7 +22,7 @@ from stacks.utils.RMFTestCase import *
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
-class TestOozieClient(RMFTestCase):
+class TestMetricsCollector(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "AMBARI_METRICS/0.1.0/package"
   STACK_VERSION = "2.0.6"
 
@@ -124,7 +124,8 @@ class TestOozieClient(RMFTestCase):
                               owner = 'ams',
                               group = 'hadoop',
                               cd_access = 'a',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/run/ambari-metrics-collector',
                               owner = 'ams',
@@ -229,11 +230,15 @@ class TestOozieClient(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/ambari-metrics-collector/',
                               owner = 'ams',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/var/log/ambari-metrics-collector',
                               owner = 'ams',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
 
     if name == 'master':
