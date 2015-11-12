@@ -318,7 +318,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if 'authentication.ldap.managerDn' in serverProperties:
           putUserSyncProperty('SYNC_LDAP_BIND_DN', serverProperties['authentication.ldap.managerDn'])
         if 'authentication.ldap.primaryUrl' in serverProperties:
-          putUserSyncProperty('SYNC_LDAP_URL', serverProperties['authentication.ldap.primaryUrl'])
+          ldap_protocol =  'ldap://'
+          if 'authentication.ldap.useSSL' in serverProperties and serverProperties['authentication.ldap.useSSL'] == 'true':
+            ldap_protocol =  'ldaps://'
+          ldapUrl = ldap_protocol + serverProperties['authentication.ldap.primaryUrl'] if serverProperties['authentication.ldap.primaryUrl'] else serverProperties['authentication.ldap.primaryUrl']
+          putUserSyncProperty('SYNC_LDAP_URL', ldapUrl)
         if 'authentication.ldap.userObjectClass' in serverProperties:
           putUserSyncProperty('SYNC_LDAP_USER_OBJECT_CLASS', serverProperties['authentication.ldap.userObjectClass'])
         if 'authentication.ldap.usernameAttribute' in serverProperties:

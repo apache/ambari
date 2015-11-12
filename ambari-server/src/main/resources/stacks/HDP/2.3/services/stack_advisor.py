@@ -458,7 +458,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if 'authentication.ldap.managerDn' in serverProperties:
         putRangerUgsyncSite('ranger.usersync.ldap.binddn', serverProperties['authentication.ldap.managerDn'])
       if 'authentication.ldap.primaryUrl' in serverProperties:
-        putRangerUgsyncSite('ranger.usersync.ldap.url', serverProperties['authentication.ldap.primaryUrl'])
+        ldap_protocol =  'ldap://'
+        if 'authentication.ldap.useSSL' in serverProperties and serverProperties['authentication.ldap.useSSL'] == 'true':
+          ldap_protocol =  'ldaps://'
+        ldapUrl = ldap_protocol + serverProperties['authentication.ldap.primaryUrl'] if serverProperties['authentication.ldap.primaryUrl'] else serverProperties['authentication.ldap.primaryUrl']
+        putRangerUgsyncSite('ranger.usersync.ldap.url', ldapUrl)
       if 'authentication.ldap.userObjectClass' in serverProperties:
         putRangerUgsyncSite('ranger.usersync.ldap.user.objectclass', serverProperties['authentication.ldap.userObjectClass'])
       if 'authentication.ldap.usernameAttribute' in serverProperties:
