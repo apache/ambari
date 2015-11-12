@@ -189,7 +189,7 @@ public class UserResourceProviderTest {
     expect(user.getUserId()).andReturn(1000).once();
 
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).once();
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION).once();
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION).once();
 
     securityHelper.getCurrentAuthorities();
     expectLastCall().andReturn(currentAuthorities).once();
@@ -293,7 +293,7 @@ public class UserResourceProviderTest {
     expect(user.getUserName()).andReturn("User100").once();
 
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).once();
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION).once();
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION).once();
 
     securityHelper.getCurrentAuthorities();
     expectLastCall().andReturn(currentAuthorities).once();
@@ -397,7 +397,7 @@ public class UserResourceProviderTest {
     expect(user.getUserName()).andReturn("User100").once();
 
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION).anyTimes();
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION).anyTimes();
 
     securityHelper.getCurrentAuthorities();
     expectLastCall().andReturn(currentAuthorities).anyTimes();

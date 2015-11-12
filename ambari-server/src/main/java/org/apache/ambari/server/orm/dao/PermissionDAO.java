@@ -90,8 +90,8 @@ public class PermissionDAO {
    */
   @RequiresSession
   public PermissionEntity findPermissionByNameAndType(String name, ResourceTypeEntity resourceType) {
-    if (name.equals(PermissionEntity.VIEW_USE_PERMISSION_NAME)) {
-      // VIEW.USE permission should be available for any type of views
+    if (name.equals(PermissionEntity.VIEW_USER_PERMISSION_NAME)) {
+      // VIEW.USER permission should be available for any type of views
       return findViewUsePermission();
     }
     TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT p FROM PermissionEntity p WHERE p.permissionName=:permissionname AND p.resourceType=:resourcetype", PermissionEntity.class);
@@ -101,42 +101,42 @@ public class PermissionDAO {
   }
 
   /**
-   * Find AMBARI.ADMIN permission.
+   * Find AMBARI.ADMINISTRATOR permission.
    *
    * @return a matching permission entity or null
    */
   @RequiresSession
   public PermissionEntity findAmbariAdminPermission() {
-    return findById(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    return findById(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
   }
 
   /**
-   * Find VIEW.USE permission.
+   * Find VIEW.USER permission.
    *
    * @return a matching permission entity or null
    */
   @RequiresSession
   public PermissionEntity findViewUsePermission() {
-    return findById(PermissionEntity.VIEW_USE_PERMISSION);
+    return findById(PermissionEntity.VIEW_USER_PERMISSION);
   }
 
   /**
-   * Find CLUSTER.OPERATE permission.
+   * Find CLUSTER.ADMINISTRATOR permission.
    *
    * @return a matching permission entity or null
    */
   @RequiresSession
   public PermissionEntity findClusterOperatePermission() {
-    return findById(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
+    return findById(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
   }
 
   /**
-   * Find CLUSTER.READ permission.
+   * Find CLUSTER.USER permission.
    *
    * @return a matching permission entity or null
    */
   @RequiresSession
   public PermissionEntity findClusterReadPermission() {
-    return findById(PermissionEntity.CLUSTER_READ_PERMISSION);
+    return findById(PermissionEntity.CLUSTER_USER_PERMISSION);
   }
 }

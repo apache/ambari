@@ -138,7 +138,7 @@ public class Users {
 
     boolean isCurrentUserAdmin = false;
     for (PrivilegeEntity privilegeEntity: currentUserEntity.getPrincipal().getPrivileges()) {
-      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         isCurrentUserAdmin = true;
         break;
       }
@@ -424,7 +424,7 @@ public class Users {
   }
 
   /**
-   * Grants AMBARI.ADMIN privilege to provided user.
+   * Grants AMBARI.ADMINISTRATOR privilege to provided user.
    *
    * @param user user
    */
@@ -443,14 +443,14 @@ public class Users {
   }
 
   /**
-   * Revokes AMBARI.ADMIN privilege from provided user.
+   * Revokes AMBARI.ADMINISTRATOR privilege from provided user.
    *
    * @param user user
    */
   public synchronized void revokeAdminPrivilege(Integer userId) {
     final UserEntity user = userDAO.findByPK(userId);
     for (PrivilegeEntity privilege: user.getPrincipal().getPrivileges()) {
-      if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+      if (privilege.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         user.getPrincipal().getPrivileges().remove(privilege);
         principalDAO.merge(user.getPrincipal()); //explicit merge for Derby support
         userDAO.merge(user);
@@ -528,7 +528,7 @@ public class Users {
    * @return true if user can be removed
    */
   public synchronized boolean isUserCanBeRemoved(UserEntity userEntity){
-    List<PrincipalEntity> adminPrincipals = principalDAO.findByPermissionId(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    List<PrincipalEntity> adminPrincipals = principalDAO.findByPermissionId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     Set<UserEntity> userEntitysSet = new HashSet<UserEntity>(userDAO.findUsersByPrincipal(adminPrincipals));
     return (userEntitysSet.contains(userEntity) && userEntitysSet.size() < 2) ? false : true;
   }

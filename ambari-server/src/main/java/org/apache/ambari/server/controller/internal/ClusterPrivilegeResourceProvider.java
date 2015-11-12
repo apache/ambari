@@ -73,12 +73,12 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
   }
 
   /**
-   * The built-in VIEW.USE permission.
+   * The built-in VIEW.USER permission.
    */
   private final PermissionEntity clusterReadPermission;
 
   /**
-   * The built-in VIEW.USE permission.
+   * The built-in VIEW.USER permission.
    */
   private final PermissionEntity clusterOperatePermission;
 
@@ -90,8 +90,8 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
    */
   public ClusterPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.ClusterPrivilege);
-    clusterReadPermission = permissionDAO.findById(PermissionEntity.CLUSTER_READ_PERMISSION);
-    clusterOperatePermission = permissionDAO.findById(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
+    clusterReadPermission = permissionDAO.findById(PermissionEntity.CLUSTER_USER_PERMISSION);
+    clusterOperatePermission = permissionDAO.findById(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
   }
 
 
@@ -163,8 +163,8 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
 
   @Override
   protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity) throws AmbariException {
-    return (permissionName.equals(PermissionEntity.CLUSTER_READ_PERMISSION_NAME)) ? clusterReadPermission :
-        permissionName.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION_NAME) ? clusterOperatePermission :
+    return (permissionName.equals(PermissionEntity.CLUSTER_USER_PERMISSION_NAME)) ? clusterReadPermission :
+        permissionName.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME) ? clusterOperatePermission :
         super.getPermission(permissionName, resourceEntity);
   }
 }

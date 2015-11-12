@@ -382,9 +382,9 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     boolean hasPermissionForClusterScope = false;
     for (GrantedAuthority grantedAuthority : securityContext.getAuthentication().getAuthorities()) {
       if (((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-              == PermissionEntity.AMBARI_ADMIN_PERMISSION ||
+              == PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION ||
               ((AmbariGrantedAuthority) grantedAuthority).getPrivilegeEntity().getPermission().getId()
-                      == PermissionEntity.CLUSTER_OPERATE_PERMISSION) {
+                      == PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION) {
         hasPermissionForClusterScope = true;
       }
     }

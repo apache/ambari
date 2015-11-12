@@ -136,11 +136,11 @@ public class ViewPrivilegeResourceProviderTest {
     expect(principalEntity.getId()).andReturn(20L).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getUserName()).andReturn("joe").anyTimes();
-    expect(permissionEntity.getPermissionName()).andReturn("VIEW.USE").anyTimes();
+    expect(permissionEntity.getPermissionName()).andReturn("VIEW.USER").anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
     expect(principalTypeEntity.getName()).andReturn("USER").anyTimes();
 
-    expect(permissionDAO.findById(PermissionEntity.VIEW_USE_PERMISSION)).andReturn(permissionEntity);
+    expect(permissionDAO.findById(PermissionEntity.VIEW_USER_PERMISSION)).andReturn(permissionEntity);
 
     expect(userDAO.findUsersByPrincipal(principalEntities)).andReturn(userEntities);
     expect(groupDAO.findGroupsByPrincipal(principalEntities)).andReturn(Collections.<GroupEntity>emptyList());
@@ -155,7 +155,7 @@ public class ViewPrivilegeResourceProviderTest {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("VIEW.USE", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("VIEW.USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
     Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
 

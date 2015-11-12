@@ -1097,10 +1097,10 @@ BEGIN TRANSACTION
 
   insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
   values
-    (1, 'AMBARI.ADMIN', 1, 'Administrator'),
-    (2, 'CLUSTER.READ', 2, 'Read-Only'),
-    (3, 'CLUSTER.OPERATE', 2, 'Operator'),
-    (4, 'VIEW.USE', 3, 'Use View');
+    (1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator'),
+    (2, 'CLUSTER.USER', 2, 'Cluster User'),
+    (3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator'),
+    (4, 'VIEW.USER', 3, 'View User');
 
   insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
     select 1, 1, 1, 1;

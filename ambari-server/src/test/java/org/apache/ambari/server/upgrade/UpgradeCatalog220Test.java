@@ -31,6 +31,7 @@ import java.lang.reflect.Field;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -87,14 +88,37 @@ public class UpgradeCatalog220Test {
     final DBAccessor dbAccessor     = createNiceMock(DBAccessor.class);
     UpgradeCatalog220 upgradeCatalog = (UpgradeCatalog220) getUpgradeCatalog(dbAccessor);
 
-    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Administrator' WHERE permission_id=1"))
-    .andReturn(1).once();
-    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Read-Only' WHERE permission_id=2"))
-    .andReturn(1).once();
-    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Operator' WHERE permission_id=3"))
-    .andReturn(1).once();
-    expect(dbAccessor.executeUpdate("UPDATE adminpermission SET permission_label='Use View' WHERE permission_id=4"))
-    .andReturn(1).once();
+    String updateQueryPattern;
+
+    // Set permission labels
+    updateQueryPattern = "UPDATE adminpermission SET permission_label='%s' WHERE permission_id=%d";
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        "Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)))
+        .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        "Cluster User", PermissionEntity.CLUSTER_USER_PERMISSION)))
+            .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        "Cluster Administrator", PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)))
+        .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        "View User", PermissionEntity.VIEW_USER_PERMISSION)))
+        .andReturn(1).once();
+
+    // Update permissions names
+    updateQueryPattern = "UPDATE adminpermission SET permission_name='%s' WHERE permission_id=%d";
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME, PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)))
+        .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        PermissionEntity.CLUSTER_USER_PERMISSION_NAME, PermissionEntity.CLUSTER_USER_PERMISSION)))
+        .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)))
+        .andReturn(1).once();
+    expect(dbAccessor.executeUpdate(String.format(updateQueryPattern,
+        PermissionEntity.VIEW_USER_PERMISSION_NAME, PermissionEntity.VIEW_USER_PERMISSION)))
+        .andReturn(1).once();
 
     replay(dbAccessor);
     upgradeCatalog.executeDMLUpdates();

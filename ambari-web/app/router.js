@@ -331,7 +331,7 @@ App.Router = Em.Router.extend({
   loginGetClustersSuccessCallback: function (clustersData, opt, params) {
     var privileges = params.loginData.privileges || [];
     var router = this;
-    var isAdmin = privileges.mapProperty('PrivilegeInfo.permission_name').contains('AMBARI.ADMIN');
+    var isAdmin = privileges.mapProperty('PrivilegeInfo.permission_name').contains('AMBARI.ADMINISTRATOR');
 
     App.set('isAdmin', isAdmin);
 
@@ -342,13 +342,13 @@ App.Router = Em.Router.extend({
 
       //cluster installed
       router.setClusterInstalled(clustersData);
-      if (clusterPermissions.contains('CLUSTER.OPERATE')) {
+      if (clusterPermissions.contains('CLUSTER.ADMINISTRATOR')) {
         App.setProperties({
           isAdmin: true,
           isOperator: true
         });
       }
-      if (isAdmin || clusterPermissions.contains('CLUSTER.READ') || clusterPermissions.contains('CLUSTER.OPERATE')) {
+      if (isAdmin || clusterPermissions.contains('CLUSTER.USER') || clusterPermissions.contains('CLUSTER.ADMINISTRATOR')) {
         router.transitionToApp();
       } else {
         router.transitionToViews();

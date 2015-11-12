@@ -96,7 +96,7 @@ public class AmbariAuthorizationFilterTest {
       }
     });
 
-    expect(permission.getId()).andReturn(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
+    expect(permission.getId()).andReturn(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
 
     // expect continue filtering
     chain.doFilter(request, response);
@@ -137,7 +137,7 @@ public class AmbariAuthorizationFilterTest {
 
 
     expect(request.getMethod()).andReturn("POST").anyTimes();
-    expect(permission.getId()).andReturn(PermissionEntity.VIEW_USE_PERMISSION);
+    expect(permission.getId()).andReturn(PermissionEntity.VIEW_USER_PERMISSION);
 
     // expect permission denial
     response.setHeader("WWW-Authenticate", "Basic realm=\"AuthFilter\"");
@@ -184,7 +184,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", true);
 
-    performGeneralDoFilterTest("admin", new int[] {PermissionEntity.AMBARI_ADMIN_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("admin", new int[] {PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -217,7 +217,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_READ_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_USER_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -250,7 +250,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_OPERATE_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -283,7 +283,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.VIEW_USE_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.VIEW_USER_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -331,9 +331,9 @@ public class AmbariAuthorizationFilterTest {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/stacks/HDP/versions/2.3/validations", "POST", true);
     urlTests.put("/api/v1/stacks/HDP/versions/2.3/recommendations", "POST", true);
-    performGeneralDoFilterTest("user1", new int[] { PermissionEntity.CLUSTER_OPERATE_PERMISSION }, urlTests, false);
-    performGeneralDoFilterTest("user2", new int[] { PermissionEntity.CLUSTER_READ_PERMISSION }, urlTests, false);
-    performGeneralDoFilterTest("admin", new int[] { PermissionEntity.AMBARI_ADMIN_PERMISSION }, urlTests, false);
+    performGeneralDoFilterTest("user1", new int[] { PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("user2", new int[] { PermissionEntity.CLUSTER_USER_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("admin", new int[] { PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION}, urlTests, false);
   }
 
   /**
@@ -382,7 +382,7 @@ public class AmbariAuthorizationFilterTest {
       @Override
       public Boolean answer() throws Throwable {
         for (int permissionGranted: permissionsGranted) {
-          if (permissionGranted == PermissionEntity.VIEW_USE_PERMISSION) {
+          if (permissionGranted == PermissionEntity.VIEW_USER_PERMISSION) {
             return true;
           }
         }

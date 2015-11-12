@@ -53,7 +53,7 @@ public class User {
       groups.add(memberEntity.getGroup().getGroupName());
     }
     for (PrivilegeEntity privilegeEntity: userEntity.getPrincipal().getPrivileges()) {
-      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         admin = true;
         break;
       }

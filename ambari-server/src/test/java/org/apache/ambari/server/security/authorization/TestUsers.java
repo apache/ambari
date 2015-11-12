@@ -109,8 +109,8 @@ public class TestUsers {
     resourceDAO.create(resourceEntity);
 
     PermissionEntity adminPermissionEntity = new PermissionEntity();
-    adminPermissionEntity.setId(PermissionEntity.AMBARI_ADMIN_PERMISSION);
-    adminPermissionEntity.setPermissionName(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME);
+    adminPermissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
+    adminPermissionEntity.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
     adminPermissionEntity.setResourceType(resourceTypeEntity);
     permissionDAO.create(adminPermissionEntity);
   }

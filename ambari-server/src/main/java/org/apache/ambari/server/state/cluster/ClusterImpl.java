@@ -2840,10 +2840,10 @@ public class ClusterImpl implements Cluster {
     ResourceEntity resourceEntity = clusterEntity.getResource();
     if (resourceEntity != null) {
       Integer permissionId = privilegeEntity.getPermission().getId();
-      // CLUSTER.READ or CLUSTER.OPERATE for the given cluster resource.
+      // CLUSTER.USER or CLUSTER.ADMINISTRATOR for the given cluster resource.
       if (privilegeEntity.getResource().equals(resourceEntity)) {
-        if ((readOnly && permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION)) ||
-            permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+        if ((readOnly && permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION)) ||
+            permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
           return true;
         }
       }

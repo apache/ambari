@@ -82,7 +82,7 @@ public class PermissionResourceProviderTest {
 
     expect(dao.findAll()).andReturn(permissionEntities);
     expect(permissionEntity.getId()).andReturn(99);
-    expect(permissionEntity.getPermissionName()).andReturn("AMBARI.ADMIN");
+    expect(permissionEntity.getPermissionName()).andReturn("AMBARI.ADMINISTRATOR");
     expect(permissionEntity.getPermissionLabel()).andReturn("Administrator");
     expect(permissionEntity.getResourceType()).andReturn(resourceTypeEntity);
     expect(resourceTypeEntity.getName()).andReturn("AMBARI");
@@ -95,7 +95,7 @@ public class PermissionResourceProviderTest {
     Resource resource = resources.iterator().next();
 
     Assert.assertEquals(99, resource.getPropertyValue(PermissionResourceProvider.PERMISSION_ID_PROPERTY_ID));
-    Assert.assertEquals("AMBARI.ADMIN", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("AMBARI.ADMINISTRATOR", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_NAME_PROPERTY_ID));
     Assert.assertEquals("Administrator", resource.getPropertyValue(PermissionResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("AMBARI", resource.getPropertyValue(PermissionResourceProvider.RESOURCE_NAME_PROPERTY_ID));
     verify(dao, permissionEntity, resourceTypeEntity);

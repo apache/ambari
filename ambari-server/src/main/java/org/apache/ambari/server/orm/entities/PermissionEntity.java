@@ -45,18 +45,18 @@ public class PermissionEntity {
   /**
    * Admin permission id constants.
    */
-  public static final int AMBARI_ADMIN_PERMISSION    = 1;
-  public static final int CLUSTER_READ_PERMISSION    = 2;
-  public static final int CLUSTER_OPERATE_PERMISSION = 3;
-  public static final int VIEW_USE_PERMISSION        = 4;
+  public static final int AMBARI_ADMINISTRATOR_PERMISSION = 1;
+  public static final int CLUSTER_USER_PERMISSION = 2;
+  public static final int CLUSTER_ADMINISTRATOR_PERMISSION = 3;
+  public static final int VIEW_USER_PERMISSION = 4;
 
   /**
    * Admin permission name constants.
    */
-  public static final String AMBARI_ADMIN_PERMISSION_NAME    = "AMBARI.ADMIN";
-  public static final String CLUSTER_READ_PERMISSION_NAME    = "CLUSTER.READ";
-  public static final String CLUSTER_OPERATE_PERMISSION_NAME = "CLUSTER.OPERATE";
-  public static final String VIEW_USE_PERMISSION_NAME        = "VIEW.USE";
+  public static final String AMBARI_ADMINISTRATOR_PERMISSION_NAME = "AMBARI.ADMINISTRATOR";
+  public static final String CLUSTER_USER_PERMISSION_NAME = "CLUSTER.USER";
+  public static final String CLUSTER_ADMINISTRATOR_PERMISSION_NAME = "CLUSTER.ADMINISTRATOR";
+  public static final String VIEW_USER_PERMISSION_NAME = "VIEW.USER";
 
   /**
    * The permission id.

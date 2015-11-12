@@ -4419,7 +4419,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
         Integer permissionId = privilegeEntity.getPermission().getId();
 
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
           isAuthorized = true;
           break;
         }

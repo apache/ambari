@@ -20,9 +20,9 @@
 angular.module('ambariAdminConsole')
 .config(['$translateProvider', function($translateProvider) {
   $translateProvider.translations('en',{
-    'CLUSTER.OPERATE': 'Operator',
-    'CLUSTER.READ': 'Read-Only',
-    'VIEW.USE': 'Use'
+    'CLUSTER.ADMINISTRATOR': 'Operator',
+    'CLUSTER.USER': 'Read-Only',
+    'VIEW.USER': 'Use'
   });
 
   $translateProvider.preferredLanguage('en');

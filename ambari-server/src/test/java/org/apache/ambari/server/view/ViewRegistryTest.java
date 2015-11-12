@@ -1247,7 +1247,7 @@ public class ViewRegistryTest {
     EasyMock.expectLastCall().andReturn(authorities);
     expect(adminAuthority.getPrivilegeEntity()).andReturn(privilegeEntity);
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity);
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMIN_PERMISSION);
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
 
     expect(configuration.getApiAuthentication()).andReturn(true);
     replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
@@ -1299,7 +1299,7 @@ public class ViewRegistryTest {
     expect(viewUseAuthority.getPrivilegeEntity()).andReturn(privilegeEntity).anyTimes();
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
     expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USE_PERMISSION).anyTimes();
+    expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USER_PERMISSION).anyTimes();
     securityHelper.getCurrentAuthorities();
     EasyMock.expectLastCall().andReturn(authorities).anyTimes();
     expect(configuration.getApiAuthentication()).andReturn(true);

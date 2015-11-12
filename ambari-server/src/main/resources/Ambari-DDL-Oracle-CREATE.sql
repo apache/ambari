@@ -984,13 +984,13 @@ insert into users(user_id, principal_id, user_name, user_password)
 select 1,1,'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00' from dual;
 
 insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
-  select 1, 'AMBARI.ADMIN', 1, 'Administrator' from dual
+  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator' from dual
   union all
-  select 2, 'CLUSTER.READ', 2, 'Read-Only' from dual
+  select 2, 'CLUSTER.USER', 2, 'Cluster User' from dual
   union all
-  select 3, 'CLUSTER.OPERATE', 2, 'Operator' from dual
+  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator' from dual
   union all
-  select 4, 'VIEW.USE', 3, 'Use View' from dual;
+  select 4, 'VIEW.USER', 3, 'View User' from dual;
 
 insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   select 1, 1, 1, 1 from dual;

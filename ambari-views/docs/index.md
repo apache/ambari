@@ -376,7 +376,7 @@ For example …
       }
 
 ###Permissions
-The permission VIEW.USE can be granted on any view instance by an administrator.  A user that has VIEW.USE privilege on a view instance will be able to access the view instance.  See [API](#api).
+The permission VIEW.USER can be granted on any view instance by an administrator.  A user that has VIEW.USER privilege on a view instance will be able to access the view instance.  See [API](#api).
   
 ###Custom Permissions
 A view can define permissions in the view.xml descriptor. 

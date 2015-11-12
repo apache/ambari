@@ -71,7 +71,7 @@ Get the permission with the permission_id of 1.
       "href" : "http://your.ambari.server/api/v1/permissions/1",
       "PermissionInfo" : {
         "permission_id" : 1,
-        "permission_name" : "AMBARI.ADMIN",
+        "permission_name" : "AMBARI.ADMINISTRATOR",
         "permission_label" : "Administrator",
         "resource_name" : "AMBARI"
       }

@@ -31,10 +31,10 @@ App.User = DS.Model.extend({
   /**
    * List of permissions assigned to user
    *  Available permissions:
-   *    AMBARI.ADMIN
-   *    CLUSTER.READ
-   *    CLUSTER.OPERATE
-   *    VIEW.USE
+   *    AMBARI.ADMINISTRATOR
+   *    CLUSTER.USER
+   *    CLUSTER.ADMINISTRATOR
+   *    VIEW.USER
    * @property {Array} permissions
    **/
   permissions: DS.attr('array'),

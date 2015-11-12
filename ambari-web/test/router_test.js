@@ -245,7 +245,7 @@ describe('App.Router', function () {
           privileges: [{
             PrivilegeInfo: {
               cluster_name: 'c1',
-              permission_name: 'CLUSTER.OPERATE'
+              permission_name: 'CLUSTER.ADMINISTRATOR'
             }
           }]
         }
@@ -271,7 +271,7 @@ describe('App.Router', function () {
           privileges: [{
             PrivilegeInfo: {
               cluster_name: 'c1',
-              permission_name: 'CLUSTER.READ'
+              permission_name: 'CLUSTER.USER'
             }
           }]
         }
@@ -297,7 +297,7 @@ describe('App.Router', function () {
           privileges: [{
             PrivilegeInfo: {
               cluster_name: 'c1',
-              permission_name: 'AMBARI.ADMIN'
+              permission_name: 'AMBARI.ADMINISTRATOR'
             }
           }]
         }
@@ -340,7 +340,7 @@ describe('App.Router', function () {
           privileges: [{
             PrivilegeInfo: {
               cluster_name: 'c1',
-              permission_name: 'AMBARI.ADMIN'
+              permission_name: 'AMBARI.ADMINISTRATOR'
             }
           }]
         }

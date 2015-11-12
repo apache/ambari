@@ -26,10 +26,10 @@ describe('App.usersMapper', function () {
 
   describe('#isAdmin', function() {
     var tests = [
-      {i:["AMBARI.ADMIN"],e:true,m:'has admin role'},
-      {i:["CLUSTER.READ", "AMBARI.ADMIN"],e:true,m:'has admin role'},
-      {i:["VIEW.USE"],e:false,m:'doesn\'t have admin role'},
-      {i:["CLUSTER.OPERATE"],e:true,m:'has admin role'}
+      {i:["AMBARI.ADMINISTRATOR"],e:true,m:'has admin role'},
+      {i:["CLUSTER.USER", "AMBARI.ADMINISTRATOR"],e:true,m:'has admin role'},
+      {i:["VIEW.USER"],e:false,m:'doesn\'t have admin role'},
+      {i:["CLUSTER.ADMINISTRATOR"],e:true,m:'has admin role'}
     ];
     tests.forEach(function(test) {
       it(test.m, function() {
