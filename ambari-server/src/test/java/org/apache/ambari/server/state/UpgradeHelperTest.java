@@ -17,14 +17,25 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -52,24 +63,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * Tests the {@link UpgradeHelper} class
@@ -229,13 +230,13 @@ public class UpgradeHelperTest {
     assertTrue(mt.structuredOut.contains("NODEMANAGER"));
 
     UpgradeGroupHolder postGroup = groups.get(5);
-    assertEquals(postGroup.name, "POST_CLUSTER");
-    assertEquals(postGroup.title, "Finalize Upgrade");
-    assertEquals(postGroup.items.size(), 3);
-    assertEquals(postGroup.items.get(0).getText(), "Confirm Finalize");
-    assertEquals(postGroup.items.get(1).getText(), "Execute HDFS Finalize");
-    assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
-    assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
@@ -354,12 +355,11 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Upgrade", postGroup.title);
-    assertEquals(4, postGroup.items.size());
-    assertEquals("Check Unhealthy Hosts", postGroup.items.get(0).getText());
-    assertEquals("Confirm Finalize", postGroup.items.get(1).getText());
-    assertEquals("Execute HDFS Finalize", postGroup.items.get(2).getText());
-    assertEquals("Save Cluster State", postGroup.items.get(3).getText());
-    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(3).getType());
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
