@@ -803,12 +803,12 @@ class TestHDP206StackAdvisor(TestCase):
       "authentication.ldap.bindAnonymously" : "false",
       "authentication.ldap.baseDn" : "dc=apache,dc=org",
       "authentication.ldap.groupNamingAttr" : "cn",
-      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:636",
       "authentication.ldap.userObjectClass" : "posixAccount",
-      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:636",
       "authentication.ldap.usernameAttribute" : "uid",
       "authentication.ldap.dnAttribute" : "dn",
-      "authentication.ldap.useSSL" : "false",
+      "authentication.ldap.useSSL" : "true",
       "authentication.ldap.managerPassword" : "/etc/ambari-server/conf/ldap-password.dat",
       "authentication.ldap.groupMembershipAttr" : "memberUid",
       "authentication.ldap.groupObjectClass" : "posixGroup",
@@ -824,7 +824,7 @@ class TestHDP206StackAdvisor(TestCase):
       'ranger-env': {'properties': {}},
       'usersync-properties': {
         'properties': {
-          'SYNC_LDAP_URL': 'c6403.ambari.apache.org:389',
+          'SYNC_LDAP_URL': 'ldaps://c6403.ambari.apache.org:636',
           'SYNC_LDAP_BIND_DN': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
           'SYNC_LDAP_USER_OBJECT_CLASS': 'posixAccount',
           'SYNC_LDAP_USER_NAME_ATTRIBUTE': 'uid'

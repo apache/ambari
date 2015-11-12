@@ -1108,7 +1108,7 @@ class TestHDP23StackAdvisor(TestCase):
           'ranger.usersync.ldap.binddn': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
           'ranger.usersync.ldap.user.nameattribute': 'uid',
           'ranger.usersync.ldap.user.objectclass': 'posixAccount',
-          'ranger.usersync.ldap.url': 'c6403.ambari.apache.org:389',
+          'ranger.usersync.ldap.url': 'ldap://c6403.ambari.apache.org:389',
           'ranger.usersync.ldap.searchBase': 'dc=apache,dc=org'
         }
       },
