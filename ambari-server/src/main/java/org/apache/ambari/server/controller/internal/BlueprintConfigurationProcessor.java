@@ -1254,6 +1254,13 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
+            if (isRangerAdmin() && matchingGroupCount > 1) {
+              if (origValue != null && !origValue.contains("localhost")) {
+                // if this Ranger admin property is a FQDN then simply return it
+                return origValue;
+              }
+            }
+
             throw new IllegalArgumentException(
                 String.format("Unable to update configuration property '%s' with topology information. " +
                     "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
@@ -1354,6 +1361,17 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentHiveMetaStoreServer() {
       return component.equals("HIVE_METASTORE");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is Ranger Admin
+     *
+     * @return true if the component associated is Ranger Admin
+     *         false if the component is not Ranger Admin
+     */
+    private boolean isRangerAdmin() {
+      return component.equals("RANGER_ADMIN");
     }
 
     /**
@@ -1999,6 +2017,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerKmsSitePropsMap = new HashMap<String, PropertyUpdater>();
+
 
 
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -2014,6 +2035,8 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
+    singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
+    singleHostTopologyUpdaters.put("kms-site", rangerKmsSitePropsMap);
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -2048,7 +2071,9 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.encryption.key.provider.uri", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
+    coreSiteMap.put("hadoop.security.key.provider.path", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
@@ -2148,6 +2173,12 @@ public class BlueprintConfigurationProcessor {
     multiWebhcatSiteMap.put("webhcat.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
     multiOozieSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
     multiOozieSiteMap.put("oozie.service.ProxyUserService.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
+
+    // RANGER_ADMIN
+    rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
+
+    // RANGER KMS
+    rangerKmsSitePropsMap.put("hadoop.kms.key.provider.uri", new SingleHostTopologyUpdater("RANGER_KMS_SERVER"));
 
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
