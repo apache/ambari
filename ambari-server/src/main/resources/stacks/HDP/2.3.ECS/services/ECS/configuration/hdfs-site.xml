@@ -27,12 +27,9 @@
     <value>true</value>
   </property>
 
-  <!-- default value is hdfs but ECS implementation does not use default superusergroup as default group for objects owned by superuser-->
-  <!-- Adding group name to be hadoop resolves some permission issues for HBASE and HIVE services. This is only a temporary fix -->
   <property>
     <name>dfs.permissions.superusergroup</name>
-    <!--<value>hdfs</value>-->
-    <value>hadoop</value>
+    <value>hdfs</value>
   </property>
 
 </configuration>
