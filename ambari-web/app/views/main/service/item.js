@@ -213,9 +213,9 @@ App.MainServiceItemView = Em.View.extend({
           }
 
           options.push(self.createOption(actionMap.MASTER_CUSTOM_COMMAND, {
-            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+            label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
             context: {
-              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command),
+              label: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "])),
               service: component.get('serviceName'),
               component: component.get('componentName'),
               command: command

@@ -294,6 +294,28 @@ describe('utils/helper', function() {
           });
         });
       });
+
+      describe('#normalizeNameBySeparators()', function() {
+        var testMessage = '`{0}` should be converted to `{1}`';
+        var tests = {
+          'APP_TIMELINE_SERVER': 'App Timeline Server',
+          'app_timeline_server': 'App Timeline Server',
+          'APP-TIMELINE-SERVER': 'App Timeline Server',
+          'app-timeline-server': 'App Timeline Server',
+          'APP TIMELINE SERVER': 'App Timeline Server',
+          'app timeline server': 'App Timeline Server',
+          'FALCON': 'Falcon',
+          'falcon': 'Falcon'
+        };
+        for (var inputName in tests) {
+          (function(name) {
+            it(testMessage.format(name, tests[name]), function() {
+              expect(App.format.normalizeNameBySeparators(name, ["-", "_", " "])).to.eql(tests[name]);
+            });
+          })(inputName)
+        }
+      });
+
       describe('#normalizeName()', function() {
         var testMessage = '`{0}` should be converted to `{1}`';
         var tests = {

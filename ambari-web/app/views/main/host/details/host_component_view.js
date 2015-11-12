@@ -351,7 +351,7 @@ App.HostComponentView = Em.View.extend({
    */
   getCustomCommandLabel: function (command, isSlave) {
     if (isSlave || !(command in App.HostComponentActionMap.getMap(this)) || !App.HostComponentActionMap.getMap(this)[command].label) {
-      return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command)
+      return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "]))
     }
     return App.HostComponentActionMap.getMap(this)[command].label;
   },

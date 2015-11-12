@@ -543,6 +543,34 @@ App.format = {
   /**
    * Try to format non predefined names to readable format.
    *
+   * @method normalizeNameBySeparator
+   * @param name {String} - name to format
+   * @param separator {String} - token use to split the string
+   * @return {String}
+   */
+  normalizeNameBySeparators: function(name, separators) {
+    if (!name || typeof name != 'string') return '';
+    name = name.toLowerCase();
+    if (!separators || separators.length == 0) {
+      console.debug("No separators specified. Use default separator '_' instead");
+      separators = ["_"];
+    }
+
+    for (var i = 0; i < separators.length; i++){
+      var separator = separators[i];
+      if (new RegExp(separator, 'g').test(name)) {
+        name = name.split(separator).map(function(singleName) {
+          return this.normalizeName(singleName.toUpperCase());
+        }, this).join(' ');
+      }
+    }
+    return name.capitalize();
+  },
+
+
+  /**
+   * Try to format non predefined names to readable format.
+   *
    * @method normalizeName
    * @param name {String} - name to format
    * @return {String}
