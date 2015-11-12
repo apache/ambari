@@ -87,7 +87,7 @@ App.upgradeEntity = Em.Object.extend({
       return 'SUSPENDED';
     }
     if (this.get('type') === 'GROUP') {
-      return !this.get('isActive') && this.get('hasExpandableItems') ? 'SUBITEM_FAILED' : this.get('status');
+      return !this.get('isActive') && this.get('hasExpandableItems') ? 'SUBITEM_FAILED' : this.get('display_status') || this.get('status');
     }
   }.property('isExpandableGroup', 'App.router.mainAdminStackAndUpgradeController.isSuspended')
 });
