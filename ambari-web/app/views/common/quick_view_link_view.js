@@ -396,7 +396,7 @@ App.QuickViewLinks = Em.View.extend({
         hosts = this.findHosts('ATLAS_SERVER', response);
         break;
       default:
-        if (this.get('content.hostComponents').someProperty('isMaster')) {
+        if (this.getWithDefault('content.hostComponents', []).someProperty('isMaster')) {
           hosts = this.findHosts(this.get('content.hostComponents').findProperty('isMaster').get('componentName'), response);
         }
         break;
