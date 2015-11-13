@@ -17,10 +17,25 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -93,24 +108,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Manages the ability to start and get status of upgrades.
@@ -1094,7 +1095,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           throws AmbariException {
 
     switch (wrapper.getType()) {
-      case CONFIGURE:
       case START:
       case STOP:
       case RESTART:
@@ -1242,7 +1242,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     String function = null;
     switch (wrapper.getType()) {
-      case CONFIGURE:
       case START:
       case STOP:
       case RESTART:

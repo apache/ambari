@@ -24,7 +24,6 @@ from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format_hdp_stack_version
-from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
@@ -48,20 +47,8 @@ class OozieServer(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def configure(self, env, upgrade_type=None):
+  def configure(self, env):
     import params
-
-    if upgrade_type == "nonrolling" and params.upgrade_direction == Direction.UPGRADE and \
-            params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "oozie", params.version)
-      # In order for the "/usr/hdp/current/oozie-<client/server>" point to the new version of
-      # oozie, we need to create the symlinks both for server and client.
-      # This is required as both need to be pointing to new installed oozie version.
-
-      # Sets the symlink : eg: /usr/hdp/current/oozie-client -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-client", params.version)
-      # Sets the symlink : eg: /usr/hdp/current/oozie-server -> /usr/hdp/2.3.x.y-<version>/oozie
-      hdp_select.select("oozie-server", params.version)
     env.set_params(params)
 
     oozie(is_server=True)
@@ -179,9 +166,8 @@ class OozieServerDefault(OozieServer):
 
     OozieUpgrade.backup_configuration()
 
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "oozie", params.version)
-      hdp_select.select("oozie-server", params.version)
+    conf_select.select(params.stack_name, "oozie", params.version)
+    hdp_select.select("oozie-server", params.version)
 
     OozieUpgrade.restore_configuration()
     OozieUpgrade.prepare_libext_directory()

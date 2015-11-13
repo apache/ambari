@@ -244,9 +244,6 @@ public class Grouping {
         case EXECUTE:
           type = StageWrapper.Type.RU_TASKS;
           break;
-        case CONFIGURE_FUNCTION:
-          type = StageWrapper.Type.CONFIGURE;
-          break;
         case RESTART:
           type = StageWrapper.Type.RESTART;
           break;
