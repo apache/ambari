@@ -21,7 +21,7 @@ limitations under the License.
 from ambari_commons.os_utils import is_root, run_os_command, copy_file, set_file_permissions, remove_file
 from ambari_commons.exceptions import FatalException, NonFatalException
 from ambari_commons.logging_utils import get_silent, print_warning_msg, print_error_msg
-from ambari_server.userInput import get_validated_string_input, get_prompt_default, read_password, get_YN_input
+from ambari_server.userInput import get_validated_string_input, get_YN_input, get_multi_line_input
 
 from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, update_properties, \
   store_password_file
@@ -35,12 +35,13 @@ JWT_ORIGINAL_URL_QUERY_PARAM = "authentication.jwt.originalUrlParamName"
 
 JWT_COOKIE_NAME_DEFAULT = "hadoop-jwt"
 JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT = "originalUrl"
+JWT_AUTH_PROVIDER_URL_DEFAULT = "http://example.com"
 
 REGEX_ANYTHING = ".*"
 
-JWT_PUBLIC_KEY_FILENAME = "jwt-cert.crt"
+JWT_PUBLIC_KEY_FILENAME = "jwt-cert.pem"
 JWT_PUBLIC_KEY_HEADER = "-----BEGIN CERTIFICATE-----\n"
-JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----"
+JWT_PUBLIC_KEY_FOOTER = "\n-----END CERTIFICATE-----\n"
 
 
 
@@ -53,6 +54,7 @@ def setup_sso(args):
     properties = get_ambari_properties()
 
     must_setup_params = False
+    store_new_cert = False
 
     sso_enabled = properties.get_property(JWT_AUTH_ENBABLED).lower() in ['true']
 
@@ -61,29 +63,29 @@ def setup_sso(args):
         properties.process_pair(JWT_AUTH_ENBABLED, "false")
     else:
       if get_YN_input("Do you want to configure SSO authentication [y/n] (y)?", True):
+        properties.process_pair(JWT_AUTH_ENBABLED, "true")
         must_setup_params = True
       else:
         return False
 
     if must_setup_params:
-      provider_url = properties.get_property(JWT_AUTH_PROVIDER_URL)
-      provider_url = get_validated_string_input("Provider URL [URL] ({}):".format(provider_url),
+
+      provider_url = get_value_from_properties(properties, JWT_AUTH_PROVIDER_URL, JWT_AUTH_PROVIDER_URL_DEFAULT)
+      provider_url = get_validated_string_input("Provider URL [URL] ({0}):".format(provider_url),
                                                 provider_url,
                                                 REGEX_ANYTHING,
                                                 "Invalid provider URL",
                                                 False)
       properties.process_pair(JWT_AUTH_PROVIDER_URL, provider_url)
 
-      cert_string = properties.get_property(JWT_PUBLIC_KEY)
-      cert_string = get_validated_string_input("Public Certificate [BASE64] ({}):".format('stored' if cert_string else 'empty'),
-                                               cert_string,
-                                               REGEX_ANYTHING,
-                                               "Invalid public certificae string",
-                                               False)
+      cert_path = properties.get_property(JWT_PUBLIC_KEY)
+      cert_string = get_multi_line_input("Public Certificate pem ({0})".format('stored' if cert_path else 'empty'))
+      if cert_string is not None:
+          store_new_cert = True
 
       if get_YN_input("Do you want to configure advanced properties [y/n] (n) ?", False):
         cookie_name = get_value_from_properties(properties, JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT)
-        cookie_name = get_validated_string_input("JWT Cookie name ({}):".format(cookie_name),
+        cookie_name = get_validated_string_input("JWT Cookie name ({0}):".format(cookie_name),
                                                  cookie_name,
                                                  REGEX_ANYTHING,
                                                  "Invalid cookie name",
@@ -91,7 +93,7 @@ def setup_sso(args):
         properties.process_pair(JWT_COOKIE_NAME, cookie_name)
 
         audiences = properties.get_property(JWT_AUDIENCES)
-        audiences = get_validated_string_input("JWT audiences list (comma-separated), empty for any ({}):".format(audiences),
+        audiences = get_validated_string_input("JWT audiences list (comma-separated), empty for any ({0}):".format(audiences),
                                                audiences,
                                                REGEX_ANYTHING,
                                                "Invalid value",
@@ -107,8 +109,10 @@ def setup_sso(args):
         #                                               False)
         # properties.process_pair(JWT_ORIGINAL_URL_QUERY_PARAM, orig_query_param)
 
-      full_cert = JWT_PUBLIC_KEY_HEADER + cert_string + JWT_PUBLIC_KEY_FOOTER
-      cert_path = store_password_file(full_cert, JWT_PUBLIC_KEY_FILENAME)
+      if store_new_cert:
+        full_cert = JWT_PUBLIC_KEY_HEADER + cert_string + JWT_PUBLIC_KEY_FOOTER
+        cert_path = store_password_file(full_cert, JWT_PUBLIC_KEY_FILENAME)
+
       properties.process_pair(JWT_PUBLIC_KEY, cert_path)
 
     update_properties(properties)

@@ -68,7 +68,8 @@ public class AmbariErrorHandler extends ErrorHandler {
       //if SSO is configured we should provide info about it in case of access error
       JwtAuthenticationProperties jwtProperties = configuration.getJwtProperties();
       if (jwtProperties != null) {
-        errorMap.put("jwtProviderUrl", jwtProperties.getAuthenticationProviderUrl());
+        errorMap.put("jwtProviderUrl", jwtProperties.getAuthenticationProviderUrl() + "?" +
+          jwtProperties.getOriginalUrlQueryParam() + "=");
       }
     }
 
