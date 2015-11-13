@@ -256,7 +256,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     afterEach(function () {
       App.ajax.send.restore();
     });
-    it("", function() {
+    it("default callback", function() {
       var item = Em.Object.create({
         request_id: 1,
         group_id: 2,
@@ -272,6 +272,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           stageId: 3
         },
         success: 'getUpgradeItemSuccessCallback'
+      });
+    });
+    it("custom callback", function() {
+      var item = Em.Object.create({
+        request_id: 1,
+        group_id: 2,
+        stage_id: 3
+      });
+      controller.getUpgradeItem(item, 'customCallback');
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.upgrade_item',
+        sender: controller,
+        data: {
+          upgradeId: 1,
+          groupId: 2,
+          stageId: 3
+        },
+        success: 'customCallback'
       });
     });
   });
@@ -1435,4 +1453,195 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
     });
   });
+
+  describe("#getServiceCheckItemSuccessCallback()", function() {
+    var testCases = [
+      {
+        title: 'no tasks',
+        data: {
+          tasks: []
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'no structured_out property',
+        data: {
+          tasks: [
+            {
+              Tasks: {}
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'no failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {}
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'service check failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {
+                  failures: {
+                    service_check: ['HDSF', 'YARN']
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            hosts: [],
+            host_detail: {}
+          },
+          serviceCheckFailuresServicenames: ['HDSF', 'YARN']
+        }
+      },
+      {
+        title: 'host-component failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {
+                  failures: {
+                    service_check: ['HDSF'],
+                    host_component: {
+                      "host1": [
+                        {
+                          component: "DATANODE",
+                          service: 'HDFS'
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            hosts: ['host1'],
+            host_detail: {
+              "host1": [
+                {
+                  component: "DATANODE",
+                  service: 'HDFS'
+                }
+              ]
+            }
+          },
+          serviceCheckFailuresServicenames: ['HDSF']
+        }
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it(test.title, function() {
+        controller.set('slaveComponentStructuredInfo', null);
+        controller.set('serviceCheckFailuresServicenames', []);
+        controller.getServiceCheckItemSuccessCallback(test.data);
+        expect(controller.get('serviceCheckFailuresServicenames')).eql(test.expected.serviceCheckFailuresServicenames);
+        expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
+      });
+    });
+  });
+
+  describe("#getSlaveComponentItemSuccessCallback()", function () {
+    var testCases = [
+      {
+        title: 'no tasks',
+        data: {
+          tasks: []
+        },
+        expected: {
+          slaveComponentStructuredInfo: null
+        }
+      },
+      {
+        title: 'structured_out property absent',
+        data: {
+          tasks: [
+            {
+              Tasks: {}
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null
+        }
+      },
+      {
+        title: 'structured_out property present',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                "structured_out" : {
+                  "hosts" : [
+                    "host1"
+                  ],
+                  "host_detail" : {
+                    "host1" : [
+                      {
+                        "service" : "FLUME",
+                        "component" : "FLUME_HANDLER"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            "hosts" : [
+              "host1"
+            ],
+            "host_detail" : {
+              "host1" : [
+                {
+                  "service" : "FLUME",
+                  "component" : "FLUME_HANDLER"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        controller.set('slaveComponentStructuredInfo', null);
+        controller.getSlaveComponentItemSuccessCallback(test.data);
+        expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
+      });
+    });
+  });
+
 });

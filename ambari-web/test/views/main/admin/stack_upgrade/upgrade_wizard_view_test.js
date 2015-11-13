@@ -31,7 +31,9 @@ describe('App.upgradeWizardView', function () {
       upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
       setUpgradeItemStatus: Em.K,
-      getUpgradeItem: Em.K,
+      getUpgradeItem: function () {
+        return {complete: Em.K};
+      },
       load: Em.K
     })
   });
@@ -170,12 +172,14 @@ describe('App.upgradeWizardView', function () {
       App.ModalPopup.show.restore();
     });
     it("", function () {
+      view.set('controller.slaveComponentStructuredInfo', {});
       view.showFailedHosts();
       expect(App.ModalPopup.show.calledWith({
-        content: "",
-        header: Em.I18n.t('common.hosts'),
-        bodyClass: App.SelectablePopupBodyView,
-        secondary: null
+        header: Em.I18n.t('admin.stackUpgrade.failedHosts.header'),
+        bodyClass: App.FailedHostsPopupBodyView,
+        secondary: null,
+        primary: Em.I18n.t('common.close'),
+        content: {}
       })).to.be.true;
     });
   });
@@ -522,43 +526,10 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#failedHosts", function() {
-    beforeEach(function () {
-      sinon.stub(App.RepositoryVersion, 'find').returns([Em.Object.create({
-        displayName: 'HDP-1',
-        notInstalledHosts: ['host1']
-      })]);
-      view.set('controller.upgradeVersion', 'HDP-1');
-    });
-    afterEach(function () {
-      App.RepositoryVersion.find.restore();
-    });
-    it("not resolve context", function() {
-      view.reopen({
-        manualItem: {
-          context: 'not resolve context'
-        }
-      });
-      view.propertyDidChange('isResolveHostsItem');
-      view.propertyDidChange('failedHosts');
-      expect(view.get('failedHosts')).to.be.empty;
-    });
-    it("host resolve context", function() {
-      view.reopen({
-        manualItem: {
-          context: 'Check Unhealthy Hosts'
-        }
-      });
-      view.propertyDidChange('isResolveHostsItem');
-      view.propertyDidChange('failedHosts');
-      expect(view.get('failedHosts')).to.eql(['host1']);
-    });
-  });
-
   describe("#failedHostsMessage", function() {
     it("", function() {
-      view.reopen({
-        failedHosts: ['host1']
+      view.set('controller.slaveComponentStructuredInfo', {
+        hosts: ['host1']
       });
       view.propertyDidChange('failedHostsMessage');
       expect(view.get('failedHostsMessage')).to.equal(Em.I18n.t('admin.stackUpgrade.failedHosts.showHosts').format(1));
@@ -936,6 +907,70 @@ describe('App.upgradeWizardView', function () {
       expect(view.get('controller.skippedServiceChecks')).to.eql(['ZooKeeper', 'YARN', 'Hive']);
     });
 
+  });
+
+  describe("#getSlaveComponentItem()", function() {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
+        return {
+          complete: function (callback) {
+            callback();
+          }
+        }
+      });
+      view.set('controller.areSlaveComponentFailuresHostsLoaded', false);
+    });
+    afterEach(function () {
+      view.get('controller').getUpgradeItem.restore();
+    });
+
+    it("isSlaveComponentFailuresItem is false", function() {
+      view.reopen({
+        isSlaveComponentFailuresItem: false
+      });
+      view.getSlaveComponentItem();
+      expect(view.get('controller.areSlaveComponentFailuresHostsLoaded')).to.be.false;
+    });
+    it("isSlaveComponentFailuresItem is true", function() {
+      view.reopen({
+        isSlaveComponentFailuresItem: true
+      });
+      view.getSlaveComponentItem();
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      expect(view.get('controller.areSlaveComponentFailuresHostsLoaded')).to.be.true;
+    });
+  });
+
+  describe("#getServiceCheckItem()", function() {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
+        return {
+          complete: function (callback) {
+            callback();
+          }
+        }
+      });
+      view.set('controller.areServiceCheckFailuresServicenamesLoaded', false);
+    });
+    afterEach(function () {
+      view.get('controller').getUpgradeItem.restore();
+    });
+
+    it("isServiceCheckFailuresItem is false", function() {
+      view.reopen({
+        isServiceCheckFailuresItem: false
+      });
+      view.getServiceCheckItem();
+      expect(view.get('controller.areServiceCheckFailuresServicenamesLoaded')).to.be.false;
+    });
+    it("isServiceCheckFailuresItem is true", function() {
+      view.reopen({
+        isServiceCheckFailuresItem: true
+      });
+      view.getServiceCheckItem();
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      expect(view.get('controller.areServiceCheckFailuresServicenamesLoaded')).to.be.true;
+    });
   });
 
 });
