@@ -319,11 +319,8 @@ public class TimelineWebServices {
         "or hours");
     } catch (IllegalArgumentException iae) {
       throw new BadRequestException(iae.getMessage());
-    } catch (SQLException sql) {
+    } catch (SQLException | IOException sql) {
       throw new WebApplicationException(sql,
-        Response.Status.INTERNAL_SERVER_ERROR);
-    } catch (IOException io) {
-      throw new WebApplicationException(io,
         Response.Status.INTERNAL_SERVER_ERROR);
     }
   }

@@ -37,8 +37,8 @@ public abstract class AbstractTimelineMetricsSink {
   public static final String METRICS_POST_TIMEOUT_SECONDS = "timeout";
   public static final String COLLECTOR_HOST_PROPERTY = "collector";
   public static final String COLLECTOR_PORT_PROPERTY = "port";
+  public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
 
-  protected static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
   protected final Log LOG;
   private HttpClient httpClient = new HttpClient();
 
