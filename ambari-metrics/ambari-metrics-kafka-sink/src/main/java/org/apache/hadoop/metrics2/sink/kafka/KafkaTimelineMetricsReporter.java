@@ -108,6 +108,10 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         LOG.info("Initializing Kafka Timeline Metrics Sink");
         try {
           hostname = InetAddress.getLocalHost().getHostName();
+          //If not FQDN , call  DNS
+          if ((hostname == null) || (!hostname.contains("."))) {
+            hostname = InetAddress.getLocalHost().getCanonicalHostName();
+          }
         } catch (UnknownHostException e) {
           LOG.error("Could not identify hostname.");
           throw new RuntimeException("Could not identify hostname.", e);
