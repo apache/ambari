@@ -115,11 +115,10 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
+    is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
     if params.dfs_ha_enabled:
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = True
     
     # During NonRolling Upgrade, both NameNodes are initially down,
@@ -130,21 +129,30 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     # ___Scenario___________|_Expected safemode state__|_Wait for safemode OFF____|
     # no-HA                 | ON -> OFF                | Yes                      |
     # HA and active         | ON -> OFF                | Yes                      |
-    # HA and standby        | ON -> OFF                | Yes                      |
+    # HA and standby        | no change                | no check                 |
     # RU with HA on active  | ON -> OFF                | Yes                      |
     # RU with HA on standby | ON -> OFF                | Yes                      |
     # EU with HA on active  | no change                | no check                 |
     # EU with HA on standby | no change                | no check                 |
     # EU non-HA             | no change                | no check                 |
 
+    check_for_safemode_off = False
     msg = ""
     if params.dfs_ha_enabled:
       if upgrade_type is not None:
+        check_for_safemode_off = True
         msg = "Must wait to leave safemode since High Availability is enabled during a Stack Upgrade"
       else:
-        msg = "Must wait to leave safemode since High Availability is enabled."
+        # During normal operations, the NameNode is expected to be up.
+        code, out = shell.call(is_active_namenode_cmd, logoutput=True) # If active NN, code will be 0
+        if code == 0: # active
+          check_for_safemode_off = True
+          msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
+        else:
+          msg = "Will remain in the current safemode state."
     else:
       msg = "Must wait to leave safemode since High Availability is not enabled."
+      check_for_safemode_off = True
 
     Logger.info(msg)
 
@@ -153,19 +161,20 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if upgrade_type == "nonrolling":
       stay_in_safe_mode = True
 
-    Logger.info("Stay in safe mode: {0}".format(stay_in_safe_mode))
-    if not stay_in_safe_mode:
-      Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
-      try:
-        # Wait up to 30 mins
-        Execute(is_namenode_safe_mode_off,
-                tries=180,
-                try_sleep=10,
-                user=params.hdfs_user,
-                logoutput=True
-        )
-      except Fail:
-        Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+    if check_for_safemode_off:
+      Logger.info("Stay in safe mode: {0}".format(stay_in_safe_mode))
+      if not stay_in_safe_mode:
+        Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+        try:
+          # Wait up to 30 mins
+          Execute(is_namenode_safe_mode_off,
+                  tries=180,
+                  try_sleep=10,
+                  user=params.hdfs_user,
+                  logoutput=True
+          )
+        except Fail:
+          Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
 
     # Always run this on non-HA, or active NameNode during HA.
     create_hdfs_directories(is_active_namenode_cmd)
