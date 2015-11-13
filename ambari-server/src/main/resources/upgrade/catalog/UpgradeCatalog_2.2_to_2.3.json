@@ -1359,7 +1359,13 @@
           },
           "ranger.usersync.policymanager.baseURL": {
             "value": "{{ranger_external_url}}"
+          },
+          "ranger.usersync.sleeptimeinmillisbetweensynccycle": {
+            "value": "60000"
           }
+        },
+        "usersync-properties":{
+          "SYNC_INTERVAL": {"remove": "yes"}
         },
         "webhcat-site":{
           "templeton.hive.extra.files": "/usr/hdp/${hdp.version}/tez/conf/tez-site.xml,/usr/hdp/${hdp.version}/tez,/usr/hdp/${hdp.version}/tez/lib"
@@ -1562,14 +1568,6 @@
         },
         "MIN_UNIX_USER_ID_TO_SYNC": {
           "map-to": "ranger.usersync.unix.minUserId",
-          "from-catalog": "usersync-properties",
-          "to-catalog": "ranger-ugsync-site",
-          "required-services": [
-            "RANGER"
-          ]
-        },
-        "SYNC_INTERVAL": {
-          "map-to": "ranger.usersync.sleeptimeinmillisbetweensynccycle",
           "from-catalog": "usersync-properties",
           "to-catalog": "ranger-ugsync-site",
           "required-services": [

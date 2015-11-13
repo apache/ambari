@@ -27,6 +27,7 @@
             <type>ranger-env</type>
             <set key="xml_configurations_supported" value="true" />
           </definition>
+
           <definition id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
             <type>ranger-admin-site</type>
             <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH" to-key="ranger.service.https.attrib.clientAuth" default-value="" />
@@ -56,11 +57,30 @@
             <set key="ranger.externalurl" value="{{ranger_external_url}}" />
           </definition>
 
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
+            <type>ranger-site</type>
+            <transfer operation="delete" delete-key="HTTPS_CLIENT_AUTH" />
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_FILE" />
+            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_PASS" />
+            <transfer operation="delete" delete-key="HTTPS_KEY_ALIAS" />
+            <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT" />
+            <transfer operation="delete" delete-key="HTTP_ENABLED" />
+            <transfer operation="delete" delete-key="HTTP_SERVICE_PORT" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home">
+            <type>ranger-env</type>
+            <transfer operation="delete" delete-key="oracle_home" />
+          </definition>
+        </changes>
+      </component>
+
+      <component name="RANGER_USERSYNC">
+        <changes>
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync" summary="Updating Ranger Usersync">
             <type>ranger-ugsync-site</type>
             <transfer operation="copy" from-type="usersync-properties" from-key="CRED_KEYSTORE_FILENAME" to-key="ranger.usersync.credstore.filename" default-value="/etc/ranger/usersync/ugsync.jceks" />
             <transfer operation="copy" from-type="usersync-properties" from-key="MIN_UNIX_USER_ID_TO_SYNC" to-key="ranger.usersync.unix.minUserId" default-value="" />
-            <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_INTERVAL" to-key="ranger.usersync.sleeptimeinmillisbetweensynccycle" default-value="60000" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_DN" to-key="ranger.usersync.ldap.binddn" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_BIND_PASSWORD" to-key="ranger.usersync.ldap.ldapbindpassword" default-value="" mask="true" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_LDAP_GROUPNAME_CASE_CONVERSION" to-key="ranger.usersync.ldap.groupname.caseconversion" default-value="" />
@@ -75,6 +95,7 @@
             <transfer operation="copy" from-type="usersync-properties" from-key="logdir" to-key="ranger.usersync.logdir" default-value="" />
             <transfer operation="copy" from-type="usersync-properties" from-key="SYNC_SOURCE" to-key="ranger.usersync.sync.source" default-value="unix" />
             <transfer operation="copy" from-type="usersync-properties" from-key="POLICY_MGR_URL" to-key="ranger.usersync.policymanager.baseURL" default-value="{{ranger_external_url}}" />
+
             <set key="ranger.usersync.source.impl.class" value="" />
             <set key="ranger.usersync.ldap.searchBase" value="" />
             <set key="ranger.usersync.group.memberattributename" value="" />
@@ -85,17 +106,7 @@
             <set key="ranger.usersync.group.searchfilter" value="" />
             <set key="ranger.usersync.group.searchscope" value="" />
             <set key="ranger.usersync.group.usermapsyncenabled" value="" />
-          </definition>
-
-          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
-            <type>ranger-site</type>
-            <transfer operation="delete" delete-key="HTTPS_CLIENT_AUTH" />
-            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_FILE" />
-            <transfer operation="delete" delete-key="HTTPS_KEYSTORE_PASS" />
-            <transfer operation="delete" delete-key="HTTPS_KEY_ALIAS" />
-            <transfer operation="delete" delete-key="HTTPS_SERVICE_PORT" />
-            <transfer operation="delete" delete-key="HTTP_ENABLED" />
-            <transfer operation="delete" delete-key="HTTP_SERVICE_PORT" />
+            <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000" />
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">
@@ -118,12 +129,6 @@
             <transfer operation="delete" delete-key="SYNC_SOURCE" />
             <transfer operation="delete" delete-key="POLICY_MGR_URL" />
           </definition>
-
-          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home">
-            <type>ranger-env</type>
-            <transfer operation="delete" delete-key="oracle_home" />
-          </definition>
-          
         </changes>
       </component>
     </service>
