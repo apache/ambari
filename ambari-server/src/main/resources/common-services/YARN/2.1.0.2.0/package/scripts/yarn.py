@@ -71,6 +71,14 @@ def yarn(name = None):
                            mode=0777,
                            recursive_chmod=True
       )
+      
+
+    params.HdfsResource(params.entity_file_history_directory,
+                           action="create_on_execute",
+                           type="directory",
+                           owner=params.yarn_user,
+                           group=params.user_group
+    )
     params.HdfsResource("/mapred",
                          type="directory",
                          action="create_on_execute",

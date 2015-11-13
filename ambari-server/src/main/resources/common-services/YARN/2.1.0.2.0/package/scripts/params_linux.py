@@ -175,6 +175,8 @@ nm_log_dirs_list = nm_log_dirs.split(',')
 distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
 
+entity_file_history_directory = "/tmp/entity-file-history/active"
+
 yarn_pid_dir = status_params.yarn_pid_dir
 mapred_pid_dir = status_params.mapred_pid_dir
 
