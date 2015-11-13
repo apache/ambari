@@ -16,18 +16,19 @@
  * limitations under the License.
  */
 
+var App = require('app');
+require('utils/configs/move_hive_component_config_initializer_class');
 
-// load needed utils here
+/**
+ * Initializer for configs which should be affected when Hive Server is moved from one host to another
+ *
+ * @type {MoveHiveComponentConfigInitializerClass}
+ */
+App.MoveHsConfigInitializer = App.MoveHiveComponentConfigInitializerClass.create({
 
-require('utils/base64');
-require('utils/db');
-require('utils/helper');
-require('utils/config');
-require('utils/configs/config_initializer');
-require('utils/configs/nn_ha_config_initializer');
-require('utils/configs/rm_ha_config_initializer');
-require('utils/configs/move_namenode_config_initializer');
-require('utils/configs/move_rm_config_initializer');
-require('utils/configs/move_os_config_initializer');
-require('utils/configs/move_hm_config_initializer');
-require('utils/configs/move_hs_config_initializer');
+  initializers: {
+    'hadoop.proxyuser.{{hiveUser}}.hosts': App.MoveHiveComponentConfigInitializerClass.getHostsWithComponentsConfig(['HIVE_SERVER', 'HIVE_METASTORE'], 'HIVE_SERVER'),
+    'hadoop.proxyuser.{{webhcatUser}}.hosts': App.MoveHiveComponentConfigInitializerClass.getHostsWithComponentsConfig(['HIVE_SERVER', 'HIVE_METASTORE'], 'HIVE_SERVER')
+  }
+
+});

@@ -165,7 +165,8 @@ function getMultipleMountPointsConfig(components, winReplacer) {
 }
 
 /**
- * Helper-object used to set initial value for some configs
+ * Initializer for configs
+ * Used on the cluster install
  *
  * Usage:
  * <pre>
@@ -176,10 +177,10 @@ function getMultipleMountPointsConfig(components, winReplacer) {
  *    slaveComponentHosts: []
  *   };
  *   var dependencies = {};
- *   configPropertyHelper.initialValue(configProperty, localDB, dependencies);
+ *   App.ConfigInitializer.initialValue(configProperty, localDB, dependencies);
  * </pre>
  *
- * @type {Em.Object}
+ * @instance ConfigInitializer
  */
 App.ConfigInitializer = App.ConfigInitializerClass.create({
 
@@ -271,23 +272,13 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     'hive.metastore.uris': '_initHiveMetastoreUris'
   },
 
-  initializerTypes: {
-    host_with_component: {
-      method: '_initAsHostWithComponent'
-    },
-    hosts_with_components: {
-      method: '_initAsHostsWithComponents'
-    },
-    zookeeper_based: {
-      method: '_initAsZookeeperServersList'
-    },
-    single_mountpoint: {
-      method: '_initAsSingleMountPoint'
-    },
-    multiple_mountpoints: {
-      method: '_initAsMultipleMountPoints'
-    }
-  },
+  initializerTypes: [
+    {name: 'host_with_component', method: '_initAsHostWithComponent'},
+    {name: 'hosts_with_components', method: '_initAsHostsWithComponents'},
+    {name: 'zookeeper_based', method: '_initAsZookeeperServersList'},
+    {name: 'single_mountpoint', method: '_initAsSingleMountPoint'},
+    {name: 'multiple_mountpoints', method: '_initAsMultipleMountPoints'}
+  ],
 
   /**
    * Map for methods used as value-modifiers for configProperties with values as mount point(s)
@@ -307,7 +298,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Initializer for configs with value equal to hostName with needed component
    * Value example: 'hostName'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
@@ -326,7 +317,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
       this.setRecommendedValue(configProperty, initializer.modifier.regex, replaceWith);
     }
     else {
-      configProperty.setProperties({
+      Em.setProperties(configProperty, {
         recommendedValue: component.hostName,
         value: component.hostName
       })
@@ -341,7 +332,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Depends on <code>initializer.asArray</code> (true - array, false - string)
    * Value example: 'hostName1,hostName2,hostName3' or ['hostName1', 'hostName2', 'hostName3']
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
@@ -355,7 +346,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     if (!initializer.asArray) {
       hostNames = hostNames.uniq().join(',');
     }
-    configProperty.setProperties({
+    Em.setProperties(configProperty, {
       value: hostNames,
       recommendedValue: hostNames
     });
@@ -365,17 +356,17 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hive_database</code>-config
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @returns {Object}
    * @private
    */
   _initHiveDatabaseValue: function (configProperty) {
-    var newMySQLDBOption = configProperty.get('options').findProperty('displayName', 'New MySQL Database');
+    var newMySQLDBOption = Em.get(configProperty, 'options').findProperty('displayName', 'New MySQL Database');
     if (newMySQLDBOption) {
       var isNewMySQLDBOptionHidden = !App.get('supports.alwaysEnableManagedMySQLForHive') && App.get('router.currentState.name') != 'configs' &&
         !App.get('isManagedMySQLForHiveEnabled');
-      if (isNewMySQLDBOptionHidden && configProperty.get('value') == 'New MySQL Database') {
-        configProperty.set('value', 'Existing MySQL Database');
+      if (isNewMySQLDBOptionHidden && Em.get(configProperty, 'value') == 'New MySQL Database') {
+        Em.set(configProperty, 'value', 'Existing MySQL Database');
       }
       Em.set(newMySQLDBOption, 'hidden', isNewMySQLDBOptionHidden);
     }
@@ -386,7 +377,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Initializer for configs with value equal to hostNames-list where ZOOKEEPER_SERVER is installed
    * Value example: 'host1:2020,host2:2020,host3:2020'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @returns {Object}
    * @private
@@ -395,7 +386,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     var zkHosts = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
     var zkHostPort = zkHosts;
     var regex = '\\w*:(\\d+)';   //regex to fetch the port
-    var portValue = configProperty.get('recommendedValue') && configProperty.get('recommendedValue').match(new RegExp(regex));
+    var portValue = Em.get(configProperty, 'recommendedValue') && Em.get(configProperty, 'recommendedValue').match(new RegExp(regex));
     if (!portValue) {
       return configProperty;
     }
@@ -411,7 +402,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   /**
    * Unique initializer for <code>templeton.hive.properties</code>
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @returns {Object}
@@ -419,8 +410,8 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    */
   _initTempletonHiveProperties: function (configProperty, localDB, dependencies) {
     var hiveMSUris = this.getHiveMetastoreUris(localDB.masterComponentHosts, dependencies['hive.metastore.uris']).replace(',', '\\,');
-    if (/\/\/localhost:/g.test(configProperty.get('value'))) {
-      configProperty.set('recommendedValue', configProperty.get('value') + ',hive.metastore.execute.setugi=true');
+    if (/\/\/localhost:/g.test(Em.get(configProperty, 'value'))) {
+      Em.set(configProperty, 'recommendedValue', Em.get(configProperty, 'value') + ',hive.metastore.execute.setugi=true');
     }
     this.setRecommendedValue(configProperty, "(hive\\.metastore\\.uris=)([^\\,]+)", "$1" + hiveMSUris);
     return configProperty;
@@ -429,13 +420,13 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hbase.zookeeper.quorum</code>
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @returns {Object}
    * @private
    */
   _initHBaseZookeeperQuorum: function (configProperty, localDB) {
-    if (configProperty.get('filename') == 'hbase-site.xml') {
+    if ('hbase-site.xml' === Em.get(configProperty, 'filename')) {
       var zkHosts = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
       this.setRecommendedValue(configProperty, "(.*)", zkHosts);
     }
@@ -447,7 +438,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * If RANGER_ADMIN-component isn't installed, this config becomes unneeded (isVisible - false, isRequired - false)
    * Value example: 'hostName'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @returns {Object}
    * @private
@@ -455,13 +446,13 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   _initRangerHost: function (configProperty, localDB) {
     var rangerAdminHost = localDB.masterComponentHosts.findProperty('component', 'RANGER_ADMIN');
     if(rangerAdminHost) {
-      configProperty.setProperties({
+      Em.setProperties(configProperty, {
         value: rangerAdminHost.hostName,
         recommendedValue: rangerAdminHost.hostName
       });
     }
     else {
-      configProperty.setProperties({
+      Em.setProperties(configProperty, {
         isVisible: 'false',
         isRequired: 'false'
       });
@@ -475,7 +466,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Port is taken from <code>dependencies.clientPort</code>
    * Value example: 'host1:111,host2:111,host3:111'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @returns {Object}
@@ -485,7 +476,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     var value = localDB.masterComponentHosts.filterProperty('component', 'ZOOKEEPER_SERVER').map(function (component) {
       return component.hostName + ':' + dependencies.clientPort
     }).join(',');
-    configProperty.setProperties({
+    Em.setProperties(configProperty, {
       value: value,
       recommendedValue: value
     });
@@ -495,7 +486,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hive.metastore.uris</code>
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @returns {Object}
@@ -537,17 +528,18 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Set <code>value</code> and <code>recommendedValue</code> for <code>configProperty</code>
    * basing on <code>recommendedValue</code> with replacing <code>regex</code> for <code>replaceWith</code>
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {string} regex
    * @param {string} replaceWith
    * @return {Object}
    */
   setRecommendedValue: function (configProperty, regex, replaceWith) {
-    var recommendedValue = Em.isNone(configProperty.get('recommendedValue')) ? '' : configProperty.get('recommendedValue');
+    var recommendedValue = Em.get(configProperty, 'recommendedValue');
+    recommendedValue = Em.isNone(recommendedValue) ? '' : recommendedValue;
     var re = new RegExp(regex);
     recommendedValue = recommendedValue.replace(re, replaceWith);
-    configProperty.set('recommendedValue', recommendedValue);
-    configProperty.set('value', Em.isNone(configProperty.get('recommendedValue')) ? '' : configProperty.get('recommendedValue'));
+    Em.set(configProperty, 'recommendedValue', recommendedValue);
+    Em.set(configProperty, 'value', Em.isNone(Em.get(configProperty, 'recommendedValue')) ? '' : recommendedValue);
     return configProperty;
   },
 
@@ -557,7 +549,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * Hosts with Windows needs additional processing (@see winReplacersMap)
    * Value example: '/', '/some/cool/dir'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {object} dependencies
    * @param {object} initializer
@@ -575,7 +567,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
 
     var mPoint = allMountPoints[0].mountpoint;
     if (mPoint === "/") {
-      mPoint = configProperty.get('recommendedValue');
+      mPoint = Em.get(configProperty, 'recommendedValue');
     }
     else {
       var mp = mPoint.toLowerCase();
@@ -584,10 +576,10 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
         mPoint = this[methodName].call(this, configProperty, mp);
       }
       else {
-        mPoint = mPoint + configProperty.get('recommendedValue');
+        mPoint = mPoint + Em.get(configProperty, 'recommendedValue');
       }
     }
-    configProperty.setProperties({
+    Em.setProperties(configProperty, {
       value: mPoint,
       recommendedValue: mPoint
     });
@@ -622,7 +614,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
 
     allMountPoints.forEach(function (eachDrive) {
       if (eachDrive.mountpoint === '/') {
-        mPoint += configProperty.get('recommendedValue') + "\n";
+        mPoint += Em.get(configProperty, 'recommendedValue') + "\n";
       }
       else {
         var mp = eachDrive.mountpoint.toLowerCase();
@@ -631,12 +623,12 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
           mPoint += self[methodName].call(this, configProperty, mp);
         }
         else {
-          mPoint += eachDrive.mountpoint + configProperty.get('recommendedValue') + "\n";
+          mPoint += eachDrive.mountpoint + Em.get(configProperty, 'recommendedValue') + "\n";
         }
       }
     }, this);
 
-    configProperty.setProperties({
+    Em.setProperties(configProperty, {
       value: mPoint,
       recommendedValue: mPoint
     });
@@ -647,41 +639,41 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   /**
    * Replace drive-based windows-path with 'file:///'
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
    */
   _winReplaceWithFile: function (configProperty, mountPoint) {
     var winDriveUrl = mountPoint.toLowerCase().replace(winRegex, 'file:///$1:');
-    return winDriveUrl + configProperty.get('recommendedValue') + '\n';
+    return winDriveUrl + Em.get(configProperty, 'recommendedValue') + '\n';
   },
 
   /**
    * Replace drive-based windows-path
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
    */
   _defaultWinReplace: function (configProperty, mountPoint) {
     var winDrive = mountPoint.toLowerCase().replace(winRegex, '$1:');
-    var winDir = configProperty.get('recommendedValue').replace(/\//g, '\\');
+    var winDir = Em.get(configProperty, 'recommendedValue').replace(/\//g, '\\');
     return winDrive + winDir + '\n';
   },
 
   /**
    * Same to <code>_defaultWinReplace</code>, but with extra-slash in the end
    *
-   * @param {Object} configProperty
+   * @param {configProperty} configProperty
    * @param {string} mountPoint
    * @returns {string}
    * @private
    */
   _defaultWinReplaceWithAdditionalSlashes: function (configProperty, mountPoint) {
     var winDrive = mountPoint.toLowerCase().replace(winRegex, '$1:');
-    var winDir = configProperty.get('recommendedValue').replace(/\//g, '\\\\');
+    var winDir = Em.get(configProperty, 'recommendedValue').replace(/\//g, '\\\\');
     return winDrive + winDir + '\n';
   },
 
@@ -746,8 +738,8 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
    * @private
    */
   _getSetOfHostNames: function (localDB, initializer) {
-    var masterComponentHostsInDB = localDB.masterComponentHosts;
-    var slaveComponentHostsInDB = localDB.slaveComponentHosts;
+    var masterComponentHostsInDB = Em.getWithDefault(localDB, 'masterComponentHosts', []);
+    var slaveComponentHostsInDB = Em.getWithDefault(localDB, 'slaveComponentHosts', []);
     var hosts = masterComponentHostsInDB.filter(function (master) {
       return initializer.components.contains(master.component);
     }).mapProperty('hostName');

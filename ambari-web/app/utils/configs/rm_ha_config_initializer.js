@@ -20,6 +20,7 @@ var App = require('app');
 require('utils/configs/config_initializer_class');
 
 /**
+ * Initializer for configs that are updated when Resource Manager HA-mode is activated
  *
  * @class {RmHaConfigInitializer}
  */
@@ -33,17 +34,6 @@ App.RmHaConfigInitializer = App.HaConfigInitializerClass.create({
     'yarn.resourcemanager.webapp.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'webAddressPort', true),
     'yarn.resourcemanager.webapp.https.address.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),
     'yarn.resourcemanager.webapp.https.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true)
-  },
-
-  uniqueInitializers: {},
-
-  initializerTypes: {
-    host_with_port: {
-      method: '_initAsHostWithPort'
-    },
-    hosts_with_port: {
-      method: '_initAsHostsWithPort'
-    }
   }
 
 });

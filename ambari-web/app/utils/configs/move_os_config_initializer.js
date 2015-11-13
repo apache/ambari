@@ -16,18 +16,18 @@
  * limitations under the License.
  */
 
+var App = require('app');
+require('utils/configs/move_component_config_initializer_class');
 
-// load needed utils here
+/**
+ * Initializer for configs which should be affected when Oozie Server is moved from one host to another
+ *
+ * @instance MoveComponentConfigInitializerClass
+ */
+App.MoveOSConfigInitializer = App.MoveComponentConfigInitializerClass.create({
 
-require('utils/base64');
-require('utils/db');
-require('utils/helper');
-require('utils/config');
-require('utils/configs/config_initializer');
-require('utils/configs/nn_ha_config_initializer');
-require('utils/configs/rm_ha_config_initializer');
-require('utils/configs/move_namenode_config_initializer');
-require('utils/configs/move_rm_config_initializer');
-require('utils/configs/move_os_config_initializer');
-require('utils/configs/move_hm_config_initializer');
-require('utils/configs/move_hs_config_initializer');
+  initializers: {
+    'hadoop.proxyuser.{{oozieUser}}.hosts': App.MoveComponentConfigInitializerClass.getHostsWithComponentConfig('OOZIE_SERVER')
+  }
+
+});

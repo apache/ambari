@@ -18,6 +18,14 @@
 
 var App = require('app');
 
+/**
+ * Additional data that is used in the `Move Component Initializers`
+ *
+ * @typedef {object} reassignComponentDependencies
+ * @property {string} sourceHostName host where component was before moving
+ * @property {string} targetHostName host where component will be after moving
+ */
+
 App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
 
   name: "reassignMasterWizardStep4Controller",
@@ -579,6 +587,114 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     });
   },
 
+  /**
+   *
+   * @returns {extendedTopologyLocalDB}
+   * @private
+   * @method _prepareTopologyDB
+   */
+  _prepareTopologyDB: function () {
+    var ret = this.get('content').getProperties(['masterComponentHosts', 'slaveComponentHosts', 'hosts']);
+    ret.installedServices = App.Service.find().mapProperty('serviceName');
+    return ret;
+  },
+
+  /**
+   * Create dependencies for Config Initializers
+   *
+   * @param {object} additionalDependencies  some additional information that should be added
+   * @returns {reassignComponentDependencies}
+   * @private
+   * @method _prepareDependencies
+   */
+  _prepareDependencies: function (additionalDependencies) {
+    additionalDependencies = additionalDependencies || {};
+    var ret = {};
+    ret.sourceHostName = this.get('content.reassignHosts.source');
+    ret.targetHostName = this.get('content.reassignHosts.target');
+    return Em.merge(ret, additionalDependencies);
+  },
+
+  /**
+   * Get additional dependencies-data for App.MoveRmConfigInitializer
+   *
+   * @param {object} configs
+   * @returns {object}
+   * @private
+   * @method _getRmAdditionalDependencies
+   */
+  _getRmAdditionalDependencies: function (configs) {
+    var ret = {};
+    var cfg = configs['yarn-site']['yarn.resourcemanager.hostname.rm1'];
+    if (cfg) {
+      ret.rm1 = cfg;
+    }
+    return ret;
+  },
+
+  /**
+   * Settings used to the App.MoveOSConfigInitializer setup
+   *
+   * @param {object} configs
+   * @returns {object}
+   * @private
+   * @method _getOsInitializerSettings
+   */
+  _getOsInitializerSettings: function (configs) {
+    var ret = {};
+    var cfg = configs['oozie-env']['oozie_user'];
+    if (cfg) {
+      ret.oozieUser = cfg;
+    }
+    return ret;
+  },
+
+  /**
+   * Get additional dependencies-data for App.MoveNameNodeConfigInitializer
+   *
+   * @param {object} configs
+   * @returns {object}
+   * @private
+   * @method _getNnInitializerSettings
+   */
+  _getNnInitializerSettings: function (configs) {
+    var ret = {};
+    if (App.get('isHaEnabled')) {
+      ret.namespaceId = configs['hdfs-site']['dfs.nameservices'];
+      ret.suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + ret.namespaceId + '.nn1'] === this.get('content.reassignHosts.source') + ':50070') ? 'nn1' : 'nn2';
+    }
+    return ret;
+  },
+
+  /**
+   * Settings used to the App.MoveHsConfigInitializer and App.MoveHmConfigInitializer setup
+   *
+   * @param {object} configs
+   * @returns {{hiveUser: string, webhcatUser: string}}
+   * @private
+   * @method _getHiveInitializerSettings
+   */
+  _getHiveInitializerSettings: function (configs) {
+    return {
+      hiveUser: configs['hive-env']['hive_user'],
+      webhcatUser: configs['hive-env']['webhcat_user']
+    };
+  },
+
+  /**
+   * Settings used to the App.MoveRmConfigInitializer setup
+   *
+   * @param {object} configs
+   * @returns {{suffix: string}}
+   * @private
+   * @method _getRmInitializerSettings
+   */
+  _getRmInitializerSettings: function (configs) {
+    return {
+      suffix: configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === this.get('content.reassignHosts.source') ? 'rm1': 'rm2'
+    };
+  },
+
   onLoadConfigs: function (data) {
     var componentName = this.get('content.reassign.component_name');
     var targetHostName = this.get('content.reassignHosts.target');
@@ -594,22 +710,62 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
 
     switch (componentName) {
       case 'NAMENODE':
-        this.setSpecificNamenodeConfigs(configs, targetHostName);
+        App.MoveNameNodeConfigInitializer.setup(this._getNnInitializerSettings(configs));
+        configs = this.setDynamicConfigs(configs, App.MoveNameNodeConfigInitializer);
+        App.MoveNameNodeConfigInitializer.cleanup();
         break;
       case 'RESOURCEMANAGER':
-        this.setSpecificResourceMangerConfigs(configs, targetHostName);
+        App.MoveRmConfigInitializer.setup(this._getRmInitializerSettings(configs));
+        var additionalDependencies = this._getRmAdditionalDependencies(configs);
+        configs = this.setDynamicConfigs(configs, App.MoveRmConfigInitializer, additionalDependencies);
+        App.MoveRmConfigInitializer.cleanup();
         break;
       case 'HIVE_METASTORE':
+        App.MoveHmConfigInitializer.setup(this._getHiveInitializerSettings(configs));
+        configs = this.setDynamicConfigs(configs, App.MoveHmConfigInitializer);
+        App.MoveHmConfigInitializer.cleanup();
+        break;
       case 'HIVE_SERVER':
-        this.setSpecificHiveConfigs(configs, targetHostName);
+        App.MoveHsConfigInitializer.setup(this._getHiveInitializerSettings(configs));
+        configs = this.setDynamicConfigs(configs, App.MoveHsConfigInitializer);
+        App.MoveHsConfigInitializer.cleanup();
         break;
       case 'OOZIE_SERVER':
-        this.setSpecificOozieConfigs(configs, targetHostName);
+        App.MoveOSConfigInitializer.setup(this._getOsInitializerSettings(configs));
+        configs = this.setDynamicConfigs(configs, App.MoveOSConfigInitializer);
+        App.MoveOSConfigInitializer.cleanup();
     }
 
     this.saveClusterStatus(secureConfigs, this.getComponentDir(configs, componentName));
     this.saveConfigsToServer(configs);
     this.saveServiceProperties(configs);
+  },
+
+  /**
+   * Set config values according to the new cluster topology
+   *
+   * @param {object} configs
+   * @param {MoveComponentConfigInitializerClass} initializer
+   * @param {object} [additionalDependencies={}]
+   * @returns {object}
+   * @method setDynamicConfigs
+   */
+  setDynamicConfigs: function (configs, initializer, additionalDependencies) {
+    additionalDependencies = additionalDependencies || {};
+    var topologyDB = this._prepareTopologyDB();
+    var dependencies = this._prepareDependencies(additionalDependencies);
+    Em.keys(configs).forEach(function (site) {
+      Em.keys(configs[site]).forEach(function (config) {
+        // temporary object for initializer
+        var cfg = {
+          name: config,
+          filename: site,
+          value: configs[site][config]
+        };
+        configs[site][config] = initializer.initialValue(cfg, topologyDB, dependencies).value;
+      });
+    });
+    return configs;
   },
 
   /**
@@ -667,69 +823,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   },
 
   /**
-   * set specific configs which applies only to NameNode component
-   * @param configs
-   * @param targetHostName
-   */
-  setSpecificNamenodeConfigs: function (configs, targetHostName) {
-    var sourceHostName = this.get('content.reassignHosts.source');
-
-    if (App.get('isHaEnabled')) {
-      var nameServices = configs['hdfs-site']['dfs.nameservices'];
-      var suffix = (configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + '.nn1'] === sourceHostName + ':50070') ? '.nn1' : '.nn2';
-      configs['hdfs-site']['dfs.namenode.http-address.' + nameServices + suffix] = targetHostName + ':50070';
-      configs['hdfs-site']['dfs.namenode.https-address.' + nameServices + suffix] = targetHostName + ':50470';
-      configs['hdfs-site']['dfs.namenode.rpc-address.' + nameServices + suffix] = targetHostName + ':8020';
-    }
-    if (!App.get('isHaEnabled') && App.Service.find('HBASE').get('isLoaded')) {
-      configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
-    }
-    if (!App.get('isHaEnabled') && App.Service.find('ACCUMULO').get('isLoaded')) {
-      // Update the Namenode's hostname in instance.volumes
-      configs['accumulo-site']['instance.volumes'] = configs['accumulo-site']['instance.volumes'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
-      // Add a replacement entry from the old hostname to the new hostname
-      var target = 'hdfs://' + this.get('content.reassignHosts.target') + ':8020' + '/apps/accumulo/data';
-      var source = 'hdfs://' + this.get('content.reassignHosts.source') + ':8020' + '/apps/accumulo/data';
-      if (configs['accumulo-site']) {
-        configs['accumulo-site']['instance.volumes.replacements'] = source + ' ' + target;
-      }
-    }
-  },
-
-  /**
-   * set specific configs which applies only to ResourceManager component
-   * @param configs
-   * @param targetHostName
-   */
-  setSpecificResourceMangerConfigs: function (configs, targetHostName) {
-    var sourceHostName = this.get('content.reassignHosts.source');
-
-    if (App.get('isRMHaEnabled')) {
-      if (configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] === sourceHostName) {
-        configs['yarn-site']['yarn.resourcemanager.hostname.rm1'] = targetHostName;
-
-        var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm1');
-        if(webAddressPort != null)
-          configs['yarn-site']['yarn.resourcemanager.webapp.address.rm1'] = targetHostName +":"+ webAddressPort;
-
-        var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm1');
-        if(httpsWebAddressPort != null)
-          configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm1'] = targetHostName +":"+ httpsWebAddressPort;
-      } else {
-        configs['yarn-site']['yarn.resourcemanager.hostname.rm2'] = targetHostName;
-
-        var webAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
-        if(webAddressPort != null)
-          configs['yarn-site']['yarn.resourcemanager.webapp.address.rm2'] = targetHostName +":"+ webAddressPort;
-
-        var httpsWebAddressPort = this.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
-        if(httpsWebAddressPort != null)
-          configs['yarn-site']['yarn.resourcemanager.webapp.https.address.rm2'] = targetHostName +":"+ httpsWebAddressPort;
-      }
-    }
-  },
-
-  /**
    * Get the web address port when RM HA is enabled.
    * @param configs
    * @param webAddressKey (http vs https)
@@ -749,48 +842,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       return result;
     else
       return null;
-  },
-
-  /**
-   * set specific configs which applies only to Oozie related configs
-   * @param configs
-   * @param targetHostName
-   */
-  setSpecificOozieConfigs: function (configs, targetHostName) {
-    var sourceHostName = this.get('content.reassignHosts.source'),
-      oozieServerHosts = App.HostComponent.find().filterProperty('componentName', 'OOZIE_SERVER')
-        .mapProperty('hostName').removeObject(sourceHostName).addObject(targetHostName).uniq().join(','),
-      oozieUser = configs['oozie-env']['oozie_user'];
-
-    configs['core-site']['hadoop.proxyuser.' + oozieUser + '.hosts'] = oozieServerHosts;
-  },
-
-  /**
-   * set specific configs which applies only to Hive related configs
-   * @param configs
-   * @param targetHostName
-   */
-  setSpecificHiveConfigs: function (configs, targetHostName) {
-    var sourceHostName = this.get('content.reassignHosts.source');
-    var hiveMSHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName');
-    if (this.get('content.reassign.component_name') === 'HIVE_METASTORE') hiveMSHosts = hiveMSHosts.removeObject(sourceHostName).addObject(targetHostName);
-    var hiveServerHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName');
-    if (this.get('content.reassign.component_name') === 'HIVE_SERVER') hiveServerHosts = hiveServerHosts.removeObject(sourceHostName).addObject(targetHostName);
-    var hiveMasterHosts = hiveMSHosts.concat(hiveServerHosts).uniq().join(',');
-    var hiveUser = configs['hive-env']['hive_user'];
-    var webhcatUser = configs['hive-env']['webhcat_user'];
-
-    var port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
-    port = port ? port[0].slice(1) : "9083";
-
-    for (var i = 0; i < hiveMSHosts.length; i++) {
-      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":" + port;
-    }
-
-    configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
-    configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
-    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
-    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
   },
 
   /**

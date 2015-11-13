@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-App = require('app');
+var App = require('app');
 
 require('controllers/main/service/reassign/step4_controller');
 
@@ -651,98 +651,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  describe('#onLoadConfigs()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'setAdditionalConfigs', Em.K);
-      sinon.stub(controller, 'setSecureConfigs', Em.K);
-      sinon.stub(controller, 'setSpecificNamenodeConfigs', Em.K);
-      sinon.stub(controller, 'setSpecificResourceMangerConfigs', Em.K);
-      sinon.stub(controller, 'setSpecificHiveConfigs', Em.K);
-      sinon.stub(controller, 'getWebAddressPort', Em.K);
-      sinon.stub(controller, 'getComponentDir', Em.K);
-      sinon.stub(controller, 'saveClusterStatus', Em.K);
-      sinon.stub(controller, 'saveConfigsToServer', Em.K);
-      sinon.stub(controller, 'saveServiceProperties', Em.K);
-      controller.set('content.reassignHosts.target', 'host1');
-    });
-    afterEach(function () {
-      controller.setAdditionalConfigs.restore();
-      controller.setSecureConfigs.restore();
-      controller.setSpecificNamenodeConfigs.restore();
-      controller.setSpecificResourceMangerConfigs.restore();
-      controller.setSpecificHiveConfigs.restore();
-      controller.getWebAddressPort.restore();
-      controller.getComponentDir.restore();
-      controller.saveClusterStatus.restore();
-      controller.saveConfigsToServer.restore();
-      controller.saveServiceProperties.restore();
-    });
-
-    it('component is not NAMENODE', function () {
-      controller.set('content.reassign.component_name', 'COMP1');
-
-      controller.onLoadConfigs({items: []});
-      expect(controller.setAdditionalConfigs.calledWith({}, 'COMP1', 'host1')).to.be.true;
-      expect(controller.setSecureConfigs.calledWith([], {}, 'COMP1')).to.be.true;
-      expect(controller.setSpecificNamenodeConfigs.called).to.be.false;
-      expect(controller.getComponentDir.calledWith({}, 'COMP1')).to.be.true;
-      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
-      expect(controller.saveConfigsToServer.calledWith({})).to.be.true;
-      expect(controller.saveServiceProperties.calledWith({})).to.be.true;
-    });
-    it('component is NAMENODE, has configs', function () {
-      controller.set('content.reassign.component_name', 'NAMENODE');
-
-      controller.onLoadConfigs({items: [
-        {
-          type: 'hdfs-site',
-          properties: {}
-        }
-      ]});
-      expect(controller.setAdditionalConfigs.calledWith({'hdfs-site': {}}, 'NAMENODE', 'host1')).to.be.true;
-      expect(controller.setSecureConfigs.calledWith([], {'hdfs-site': {}}, 'NAMENODE')).to.be.true;
-      expect(controller.setSpecificNamenodeConfigs.calledWith({'hdfs-site': {}}, 'host1')).to.be.true;
-      expect(controller.getComponentDir.calledWith({'hdfs-site': {}}, 'NAMENODE')).to.be.true;
-      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
-      expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
-      expect(controller.saveServiceProperties.calledWith({'hdfs-site': {}})).to.be.true;
-    });
-    it('component is RESOURCEMANAGER, has configs', function () {
-      controller.set('content.reassign.component_name', 'RESOURCEMANAGER');
-
-      controller.onLoadConfigs({items: [
-        {
-          type: 'hdfs-site',
-          properties: {}
-        }
-      ]});
-      expect(controller.setAdditionalConfigs.calledWith({'hdfs-site': {}}, 'RESOURCEMANAGER', 'host1')).to.be.true;
-      expect(controller.setSecureConfigs.calledWith([], {'hdfs-site': {}}, 'RESOURCEMANAGER')).to.be.true;
-      expect(controller.setSpecificResourceMangerConfigs.calledWith({'hdfs-site': {}}, 'host1')).to.be.true;
-      expect(controller.getComponentDir.calledWith({'hdfs-site': {}}, 'RESOURCEMANAGER')).to.be.true;
-      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
-      expect(controller.saveConfigsToServer.calledWith({'hdfs-site': {}})).to.be.true;
-      expect(controller.saveServiceProperties.calledWith({'hdfs-site': {}})).to.be.true;
-    });
-    it('component is HIVE_METASTORE, has configs', function () {
-      controller.set('content.reassign.component_name', 'HIVE_METASTORE');
-
-      controller.onLoadConfigs({items: [
-        {
-          type: 'hive-site',
-          properties: {}
-        }
-      ]});
-      expect(controller.setAdditionalConfigs.calledWith({'hive-site': {}}, 'HIVE_METASTORE', 'host1')).to.be.true;
-      expect(controller.setSecureConfigs.calledWith([], {'hive-site': {}}, 'HIVE_METASTORE')).to.be.true;
-      expect(controller.setSpecificHiveConfigs.calledWith({'hive-site': {}}, 'host1')).to.be.true;
-      expect(controller.getComponentDir.calledWith({'hive-site': {}}, 'HIVE_METASTORE')).to.be.true;
-      expect(controller.saveClusterStatus.calledWith([])).to.be.true;
-      expect(controller.saveConfigsToServer.calledWith({'hive-site': {}})).to.be.true;
-      expect(controller.saveServiceProperties.calledWith({'hive-site': {}})).to.be.true;
-    });
-  });
-
   describe('#loadStep()', function () {
     var isHaEnabled = true;
 
@@ -794,7 +702,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-
   describe('#saveConfigsToServer()', function () {
     beforeEach(function () {
       sinon.stub(controller, 'getServiceConfigData', Em.K);
@@ -809,185 +716,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  describe('#setSpecificNamenodeConfigs()', function () {
-    var isHaEnabled = false;
-    var service = Em.Object.create();
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return isHaEnabled;
-      });
-      sinon.stub(App.Service, 'find', function () {
-        return service;
-      });
-      controller.set('content.reassignHosts.source', 'host1');
-    });
-    afterEach(function () {
-      App.get.restore();
-      App.Service.find.restore();
-    });
-    it('HA isn\'t enabled and no HBASE or ACCUMULO service', function () {
-      isHaEnabled = false;
-      var configs = {};
-      controller.setSpecificNamenodeConfigs(configs, 'host1');
-      expect(configs).to.eql({});
-    });
-    it('HA isn\'t enabled and HBASE and ACCUMULO service', function () {
-      isHaEnabled = false;
-      service = Em.Object.create({
-        isLoaded: true
-      });
-      var configs = {
-        'hbase-site': {
-          'hbase.rootdir': 'hdfs://localhost:8020/apps/hbase/data'
-        },
-        'accumulo-site': {
-          'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data'
-        }
-      };
-      controller.setSpecificNamenodeConfigs(configs, 'host1');
-      expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host1:8020/apps/hbase/data');
-      expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host1:8020/apps/accumulo/data');
-    });
-    it('HA enabled and namenode 1', function () {
-      isHaEnabled = true;
-      var configs = {
-        'hdfs-site': {
-          'dfs.nameservices': 's',
-          'dfs.namenode.http-address.s.nn1': 'host1:50070',
-          'dfs.namenode.https-address.s.nn1': '',
-          'dfs.namenode.rpc-address.s.nn1': ''
-        }
-      };
-      controller.setSpecificNamenodeConfigs(configs, 'host2');
-      expect(configs['hdfs-site']).to.eql({
-        "dfs.nameservices": "s",
-        "dfs.namenode.http-address.s.nn1": "host2:50070",
-        "dfs.namenode.https-address.s.nn1": "host2:50470",
-        "dfs.namenode.rpc-address.s.nn1": "host2:8020"
-      });
-    });
-    it('HA enabled and namenode 2', function () {
-      isHaEnabled = true;
-      var configs = {
-        'hdfs-site': {
-          'dfs.nameservices': 's',
-          'dfs.namenode.http-address.s.nn2': 'host2:50070',
-          'dfs.namenode.https-address.s.nn2': '',
-          'dfs.namenode.rpc-address.s.nn2': ''
-        }
-      };
-      controller.setSpecificNamenodeConfigs(configs, 'host1');
-      expect(configs['hdfs-site']).to.eql({
-        "dfs.nameservices": "s",
-        "dfs.namenode.http-address.s.nn2": "host1:50070",
-        "dfs.namenode.https-address.s.nn2": "host1:50470",
-        "dfs.namenode.rpc-address.s.nn2": "host1:8020"
-      });
-    });
-  });
-
-  describe('#setSpecificResourceMangerConfigs()', function () {
-    var isRMHaEnabled = false;
-    var service = Em.Object.create();
-    beforeEach(function () {
-      sinon.stub(App, 'get', function () {
-        return isRMHaEnabled;
-      });
-      controller.set('content.reassignHosts.source', 'host1');
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-
-    it('HA isn\'t enabled', function () {
-      isRMHaEnabled = false;
-      var configs = {};
-      controller.setSpecificResourceMangerConfigs(configs, 'host1');
-      expect(configs).to.eql({});
-    });
-    it('HA enabled and resource manager 1', function () {
-      isRMHaEnabled = true;
-      var configs = {
-        'yarn-site': {
-          'yarn.resourcemanager.hostname.rm1': 'host1',
-          'yarn.resourcemanager.webapp.address.rm1': 'host1:8088',
-          'yarn.resourcemanager.webapp.https.address.rm1': 'host1:8443'
-        }
-      };
-      controller.setSpecificResourceMangerConfigs(configs, 'host2');
-      expect(configs['yarn-site']).to.eql({
-        'yarn.resourcemanager.hostname.rm1': 'host2',
-        'yarn.resourcemanager.webapp.address.rm1': 'host2:8088',
-        'yarn.resourcemanager.webapp.https.address.rm1': 'host2:8443'
-      });
-    });
-    it('HA enabled and resource manager 2', function () {
-      isRMHaEnabled = true;
-      var configs = {
-        'yarn-site': {
-          'yarn.resourcemanager.hostname.rm2': 'host2',
-          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
-          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
-        }
-      };
-      controller.setSpecificResourceMangerConfigs(configs, 'host1');
-      expect(configs['yarn-site']).to.eql({
-        'yarn.resourcemanager.hostname.rm2': 'host1',
-        'yarn.resourcemanager.webapp.address.rm2': 'host1:8088',
-        'yarn.resourcemanager.webapp.https.address.rm2': 'host1:8443'
-      });
-    });
-  });
-
-  describe('#getWebAddressPort', function(){
-    var configs = {
-        'yarn-site': {
-          'yarn.resourcemanager.hostname.rm2': 'host2',
-          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
-          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
-        }
-    };
-    
-    var httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
-    expect(httpPort).to.eql('8088');
-    
-    var httpsPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
-    expect(httpsPort).to.eql('8443');
-
-    configs = {
-        'yarn-site': {
-          'yarn.resourcemanager.hostname.rm2': 'host2',
-          'yarn.resourcemanager.webapp.address.rm2': 'host2:',
-          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:  '
-        }
-    };
-    
-    //check for falsy conditions
-    httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
-    var flag = "falsy"
-    if (httpPort)
-      flag = "truthy"
-    expect(flag).to.eql('falsy')
-
-    httpsPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.https.address.rm2');
-    flag = "falsy"
-    if (httpsPort)
-      flag = "truthy"
-    expect(flag).to.eql("falsy")
-
-    configs = {
-        'yarn-site': {
-          'yarn.resourcemanager.hostname.rm2': 'host2'
-        }
-    };
-
-   httpPort = controller.getWebAddressPort(configs, 'yarn.resourcemanager.webapp.address.rm2');
-   var flag = "falsy"
-   if (httpPort != null) //check for null, still part of the falsy condition checks.
-      flag = "truthy"
-    expect(flag).to.eql('falsy')
-  });
-  
   describe('#setSecureConfigs()', function () {
     it('undefined component and security disabled', function () {
       var secureConfigs = [];
@@ -1434,77 +1162,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     });
   });
 
-  describe("#setSpecificHiveConfigs()", function() {
-    beforeEach(function () {
-      sinon.stub(App.HostComponent, 'find').returns([
-        {
-          componentName: 'HIVE_METASTORE',
-          hostName: 'host1'
-        },
-        {
-          componentName: 'HIVE_METASTORE',
-          hostName: 'host3'
-        },
-        {
-          componentName: 'HIVE_SERVER',
-          hostName: 'host4'
-        }
-      ]);
-    });
-    afterEach(function () {
-      App.HostComponent.find.restore();
-    });
-    it("reassign component is HIVE_METASTORE", function() {
-      var configs = {
-        'hive-env': {
-          'hive_user': 'hive_user',
-          'webhcat_user': 'webhcat_user'
-        },
-        'hive-site': {
-          'hive.metastore.uris': ''
-        },
-        'webhcat-site': {
-          'templeton.hive.properties': 'thrift'
-        },
-        'core-site': {
-
-        }
-      };
-      controller.set('content.reassignHosts.source', 'host1');
-      controller.set('content.reassign.component_name', 'HIVE_METASTORE');
-      controller.setSpecificHiveConfigs(configs, 'host2');
-      expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host3:9083,thrift://host2:9083');
-      expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
-      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host3,host2,host4');
-      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host3,host2,host4');
-    });
-
-    it("reassign component is HIVE_SERVER", function() {
-      var configs = {
-        'hive-env': {
-          'hive_user': 'hive_user',
-          'webhcat_user': 'webhcat_user'
-        },
-        'hive-site': {
-          'hive.metastore.uris': ''
-        },
-        'webhcat-site': {
-          'templeton.hive.properties': 'thrift'
-        },
-        'core-site': {
-
-        }
-      };
-      controller.set('content.reassignHosts.source', 'host1');
-      controller.set('content.reassign.component_name', 'HIVE_SERVER');
-      controller.setSpecificHiveConfigs(configs, 'host2');
-      expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host1:9083,thrift://host3:9083');
-      expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
-      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host1,host3,host4,host2');
-      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host1,host3,host4,host2');
-    });
-  });
-
   describe("#startMySqlServer()", function() {
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find').returns([
@@ -1604,4 +1261,255 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       })).to.be.true;
     });
   });
+
+  describe("#setDynamicConfigs HIVE", function() {
+    beforeEach(function () {
+      controller.set('content.masterComponentHosts', [
+        {component: 'HIVE_METASTORE', hostName: 'host1'},
+        {component: 'HIVE_METASTORE', hostName: 'host3'},
+        {component: 'HIVE_SERVER', hostName: 'host4'}
+      ]);
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassignHosts.target', 'host2');
+    });
+    it("reassign component is HIVE_METASTORE", function() {
+      var configs = {
+        'hive-env': {
+          'hive_user': 'hive_user',
+          'webhcat_user': 'webhcat_user'
+        },
+        'hive-site': {
+          'hive.metastore.uris': ''
+        },
+        'webhcat-site': {
+          'templeton.hive.properties': 'thrift'
+        },
+        'core-site': {
+          'hadoop.proxyuser.hive_user.hosts': '',
+          'hadoop.proxyuser.webhcat_user.hosts': ''
+        }
+      };
+      App.MoveHmConfigInitializer.setup(controller._getHiveInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveHmConfigInitializer);
+      expect(configs['hive-site']['hive.metastore.uris']).to.equal('thrift://host3:9083,thrift://host2:9083');
+      expect(configs['webhcat-site']['templeton.hive.properties']).to.equal('thrift');
+      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host2,host3,host4');
+      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host2,host3,host4');
+    });
+
+    it("reassign component is HIVE_SERVER", function() {
+      controller.get('content.masterComponentHosts').pushObject({component: 'HIVE_SERVER', hostName: 'host1'});
+      var configs = {
+        'hive-env': {
+          'hive_user': 'hive_user',
+          'webhcat_user': 'webhcat_user'
+        },
+        'hive-site': {
+          'hive.metastore.uris': ''
+        },
+        'webhcat-site': {
+          'templeton.hive.properties': 'thrift'
+        },
+        'core-site': {
+          'hadoop.proxyuser.hive_user.hosts': '',
+          'hadoop.proxyuser.webhcat_user.hosts': ''
+        }
+      };
+      App.MoveHsConfigInitializer.setup(controller._getHiveInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveHsConfigInitializer);
+      expect(configs['core-site']['hadoop.proxyuser.hive_user.hosts']).to.equal('host1,host2,host3,host4');
+      expect(configs['core-site']['hadoop.proxyuser.webhcat_user.hosts']).to.equal('host1,host2,host3,host4');
+    });
+  });
+
+  describe('#setDynamicConfigs RESOURCEMANAGER', function () {
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
+    });
+    afterEach(function () {
+      App.get.restore();
+      App.MoveRmConfigInitializer.cleanup();
+    });
+
+    it('HA enabled and resource manager 1', function () {
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassignHosts.target', 'host3');
+      var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm1': 'host1',
+          'yarn.resourcemanager.webapp.address.rm1': 'host1:8088',
+          'yarn.resourcemanager.webapp.https.address.rm1': 'host1:8443',
+          'yarn.resourcemanager.hostname.rm2': 'host2',
+          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
+          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
+        }
+      };
+      var additionalDependencies = controller._getRmAdditionalDependencies(configs);
+      App.MoveRmConfigInitializer.setup(controller._getRmInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveRmConfigInitializer, additionalDependencies);
+      expect(configs['yarn-site']).to.eql({
+        'yarn.resourcemanager.hostname.rm1': 'host3',
+        'yarn.resourcemanager.webapp.address.rm1': 'host3:8088',
+        'yarn.resourcemanager.webapp.https.address.rm1': 'host3:8443',
+        'yarn.resourcemanager.hostname.rm2': 'host2',
+        'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
+        'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
+      });
+    });
+
+    it('HA enabled and resource manager 2', function () {
+      controller.set('content.reassignHosts.source', 'host2');
+      controller.set('content.reassignHosts.target', 'host3');
+      var configs = {
+        'yarn-site': {
+          'yarn.resourcemanager.hostname.rm1': 'host1',
+          'yarn.resourcemanager.webapp.address.rm1': 'host1:8088',
+          'yarn.resourcemanager.webapp.https.address.rm1': 'host1:8443',
+          'yarn.resourcemanager.hostname.rm2': 'host2',
+          'yarn.resourcemanager.webapp.address.rm2': 'host2:8088',
+          'yarn.resourcemanager.webapp.https.address.rm2': 'host2:8443'
+        }
+      };
+      var additionalDependencies = controller._getRmAdditionalDependencies(configs);
+      App.MoveRmConfigInitializer.setup(controller._getRmInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveRmConfigInitializer, additionalDependencies);
+
+      expect(configs['yarn-site']).to.eql({
+        'yarn.resourcemanager.hostname.rm1': 'host1',
+        'yarn.resourcemanager.webapp.address.rm1': 'host1:8088',
+        'yarn.resourcemanager.webapp.https.address.rm1': 'host1:8443',
+        'yarn.resourcemanager.hostname.rm2': 'host3',
+        'yarn.resourcemanager.webapp.address.rm2': 'host3:8088',
+        'yarn.resourcemanager.webapp.https.address.rm2': 'host3:8443'
+      });
+    });
+  });
+
+  describe('#setDynamicConfigs NAMENODE', function () {
+    var isHaEnabled = false;
+
+    beforeEach(function () {
+      sinon.stub(App, 'get', function () {
+        return isHaEnabled;
+      });
+      sinon.stub(App.Service, 'find', function () {
+        return [
+          {serviceName: 'HDFS'},
+          {serviceName: 'ACCUMULO'},
+          {serviceName: 'HBASE'}
+        ];
+      });
+      controller.set('content.reassignHosts.source', 'host1');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      App.Service.find.restore();
+      App.MoveNameNodeConfigInitializer.cleanup();
+    });
+
+    it('HA isn\'t enabled and HBASE and ACCUMULO service', function () {
+      isHaEnabled = false;
+      var configs = {
+        'hbase-site': {
+          'hbase.rootdir': 'hdfs://localhost:8020/apps/hbase/data'
+        },
+        'accumulo-site': {
+          'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data',
+          'instance.volumes.replacements': ''
+        }
+      };
+
+      controller.set('content.reassignHosts.target', 'host2');
+
+      App.MoveNameNodeConfigInitializer.setup(controller._getNnInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveNameNodeConfigInitializer);
+
+      expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host2:8020/apps/hbase/data');
+      expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host2:8020/apps/accumulo/data');
+      expect(configs['accumulo-site']['instance.volumes.replacements']).to.equal('hdfs://host1:8020/apps/accumulo/data hdfs://host2:8020/apps/accumulo/data');
+    });
+
+    it('HA enabled and namenode 1', function () {
+      isHaEnabled = true;
+      var configs = {
+        'hdfs-site': {
+          'dfs.nameservices': 's',
+          'dfs.namenode.http-address.s.nn1': 'host1:50070',
+          'dfs.namenode.https-address.s.nn1': 'host1:50470',
+          'dfs.namenode.rpc-address.s.nn1': 'host1:8020'
+        }
+      };
+
+      controller.set('content.reassignHosts.target', 'host2');
+      App.MoveNameNodeConfigInitializer.setup(controller._getNnInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveNameNodeConfigInitializer);
+      expect(configs['hdfs-site']).to.eql({
+        "dfs.nameservices": "s",
+        "dfs.namenode.http-address.s.nn1": "host2:50070",
+        "dfs.namenode.https-address.s.nn1": "host2:50470",
+        "dfs.namenode.rpc-address.s.nn1": "host2:8020"
+      });
+    });
+
+    it('HA enabled and namenode 2', function () {
+      isHaEnabled = true;
+      var configs = {
+        'hdfs-site': {
+          'dfs.nameservices': 's',
+          "dfs.namenode.http-address.s.nn1": "host1:50070",
+          'dfs.namenode.http-address.s.nn2': 'host2:50070',
+          'dfs.namenode.https-address.s.nn2': 'host2:50470',
+          'dfs.namenode.rpc-address.s.nn2': 'host2:8020'
+        }
+      };
+      controller.set('content.reassignHosts.source', 'host2');
+      controller.set('content.reassignHosts.target', 'host3');
+
+      App.MoveNameNodeConfigInitializer.setup(controller._getNnInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveNameNodeConfigInitializer);
+
+      expect(configs['hdfs-site']).to.eql({
+        "dfs.nameservices": "s",
+        "dfs.namenode.http-address.s.nn1": "host1:50070",
+        "dfs.namenode.http-address.s.nn2": "host3:50070",
+        "dfs.namenode.https-address.s.nn2": "host3:50470",
+        "dfs.namenode.rpc-address.s.nn2": "host3:8020"
+      });
+    });
+
+  });
+
+  describe('#setDynamicConfigs OOZIE_SERVER', function () {
+
+    it('should upodate hadoop.proxyuser.${oozie_user}.hosts', function () {
+
+      var configs = {
+        'oozie-env': {
+          'oozie_user': 'cool_dude'
+        },
+        'core-site': {
+          'hadoop.proxyuser.cool_dude.hosts': ''
+        }
+      };
+
+      controller.set('content.masterComponentHosts', [
+        {component: 'OOZIE_SERVER', hostName: 'host2'},
+        {component: 'OOZIE_SERVER', hostName: 'host3'},
+        {component: 'OOZIE_SERVER', hostName: 'host1'}
+      ]);
+
+      controller.set('content.reassignHosts.source', 'host1');
+      controller.set('content.reassignHosts.target', 'host4');
+
+      App.MoveOSConfigInitializer.setup(controller._getOsInitializerSettings(configs));
+      configs = controller.setDynamicConfigs(configs, App.MoveOSConfigInitializer);
+      App.MoveOSConfigInitializer.cleanup();
+
+      expect(configs['core-site']['hadoop.proxyuser.cool_dude.hosts']).to.equal('host2,host3,host4');
+
+    });
+
+  });
+
 });

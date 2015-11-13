@@ -21,8 +21,14 @@ require('utils/configs/config_initializer_class');
 
 /**
  * @type {HaConfigInitializerClass}
+ * @augments {ConfigInitializerClass}
  */
 App.HaConfigInitializerClass = App.ConfigInitializerClass.extend({
+
+  initializerTypes: [
+    {name: 'host_with_port', method: '_initAsHostWithPort'},
+    {name: 'hosts_with_port', method: '_initAsHostsWithPort'}
+  ],
 
   /**
    * Initializer for configs with value equal to the hostName where some component exists
@@ -31,7 +37,7 @@ App.HaConfigInitializerClass = App.ConfigInitializerClass.extend({
    * If calculated port-value is empty, it will be skipped (and ':' too)
    * Value-examples: 'SOME_COOL_PREFIXhost1:port1SOME_COOL_SUFFIX', 'host1:port2'
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -58,7 +64,7 @@ App.HaConfigInitializerClass = App.ConfigInitializerClass.extend({
    * If calculated port-value is empty, it will be skipped (and ':' too)
    * Value examples: 'SOME_COOL_PREFIXhost1:port,host2:port,host2:portSOME_COOL_SUFFIX', 'host1:port|||host2:port|||host2:port'
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {topologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer

@@ -1219,7 +1219,7 @@ describe('App.ConfigInitializer', function () {
 
     var initializers = App.ConfigInitializer.get('initializers');
     var types = App.ConfigInitializer.get('initializerTypes');
-    var typeNames = Em.keys(types);
+    var typeNames = types.mapProperty('name');
 
     Em.keys(initializers).forEach(function (configName) {
       it(configName, function () {

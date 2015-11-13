@@ -29,11 +29,17 @@ var App = require('app');
  */
 
 /**
+ * @typedef {object} masterComponentHost
+ * @property {string} component
+ * @property {string} hostName
+ * @property {boolean} isInstalled is component already installed on the this host or just going to be installed
+ */
+
+/**
  * @typedef {object} topologyLocalDB
- * @property {object[]} hosts
- * @property {object[]} masterComponentHosts
- * @property {object[]} slaveComponentHosts
- *
+ * @property {object[]} hosts list of hosts with information of their disks usage and dirs
+ * @property {masterComponentHost[]} masterComponentHosts
+ * @property {?object[]} slaveComponentHosts
  */
 
 App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ToggleIsRequiredMixin, {

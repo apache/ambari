@@ -76,6 +76,7 @@ function getReplaceNamespaceConfig(toReplace) {
 }
 
 /**
+ * Initializer for configs that are updated when NameNode HA-mode is activated
  *
  * @class {NnHaConfigInitializer}
  */
@@ -124,30 +125,22 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
     'dfs.journalnode.edits.dir': '_initDfsJnEditsDir'
   },
 
-  initializerTypes: {
-    rename: {
-      method: '_initWithRename'
-    },
-    host_with_port: {
-      method: '_initAsHostWithPort'
-    },
-    hosts_with_port: {
-      method: '_initAsHostsWithPort'
-    },
-    namespace: {
-      method: '_initAsNamespace'
-    },
-    replace_namespace: {
-      method: '_initWithNamespace'
-    }
-  },
+  initializerTypes: [
+    {name: 'rename', method: '_initWithRename'},
+    {name: 'namespace', method: '_initAsNamespace'},
+    {name: 'replace_namespace', method: '_initWithNamespace'}
+  ],
 
   /**
    * Initializer for configs that should be renamed
    * Some part of their names should be replaced with <code>namespaceId</code> (user input this value on the wizard's 1st step)
    * Affects both - name and displayName
+   * <b>Important! It's not the same as <code>_updateInitializers</code>!</b>
+   * Main diff - this initializer used for configs
+   * with names that come with some "predicates" in their names. <code>_updateInitializers</code> is used to determine needed
+   * config name that depends on other config values or someting else
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -175,7 +168,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
    * Value may be customized with prefix and suffix (see <code>initializer.modifier</code>)
    * Value-examples: 'SOME_COOL_PREFIXmy_namespaceSOME_COOL_SUFFIX', 'my_namespace'
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -198,7 +191,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
    * Initializer for configs with value that should be modified with replacing some substring
    * to the <code>namespaceId</code> (user input this value on the wizard's 1st step)
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -222,7 +215,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hbase.rootdir</code>
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -245,7 +238,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hbase.rootdir</code> (HBASE-service)
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -267,7 +260,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
   /**
    * Unique initializer for <code>hbase.rootdir</code> (Ambari Metrics-service)
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -292,8 +285,8 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
   /**
    * Unique initializer for <code>instance.volumes</code>
    *
-   * @param {object} configProperty
-   * @param {topologyLocalDB} localDB
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
    * @method _initInstanceVolumes
@@ -315,7 +308,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
   /**
    * Unique initializer for <code>instance.volumes.replacements</code>
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
@@ -340,7 +333,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
    * Unique initializer for <code>dfs.journalnode.edits.dir</code>
    * Used only for Windows Stacks
    *
-   * @param {object} configProperty
+   * @param {configProperty} configProperty
    * @param {extendedTopologyLocalDB} localDB
    * @param {nnHaConfigDependencies} dependencies
    * @param {object} initializer
