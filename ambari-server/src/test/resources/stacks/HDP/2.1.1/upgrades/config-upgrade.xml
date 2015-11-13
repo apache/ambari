@@ -92,6 +92,11 @@
             <transfer operation="delete" delete-key="delete-blank-if-key" if-key="" if-type="non.existent" />
             <transfer operation="delete" delete-key="delete-blank-if-type" if-key="non.existent" if-type="" />
             <transfer operation="delete" delete-key="delete-thrift" if-key="hive.server2.thrift.port" if-type="hive-site" if-value="10001" />
+
+            <transfer operation="delete" delete-key="delete-if-key-present" if-key="condition" if-type="hive-site" if-key-state="present"/>
+            <transfer operation="delete" delete-key="delete-if-key-absent" if-key="condition1" if-type="hive-site" if-key-state="absent"/>
+            <transfer operation="delete" delete-key="not-executed-transfer" if-key="non-existed-key" if-type="hive-site" if-key-state="present"/>
+
           </definition>
         </changes>
       </component>

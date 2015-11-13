@@ -526,6 +526,8 @@ public class UpgradeHelperTest {
     Map<String, String> hiveConfigs = new HashMap<String, String>();
     hiveConfigs.put("hive.server2.transport.mode", "http");
     hiveConfigs.put("hive.server2.thrift.port", "10001");
+    hiveConfigs.put("condition", "1");
+
     ConfigurationRequest configurationRequest = new ConfigurationRequest();
     configurationRequest.setClusterName(cluster.getClusterName());
     configurationRequest.setType("hive-site");
@@ -553,7 +555,7 @@ public class UpgradeHelperTest {
     List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(configurationJson,
             new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() { }.getType());
 
-    assertEquals(8, transfers.size());
+    assertEquals(10, transfers.size());
     assertEquals("copy-key", transfers.get(0).fromKey);
     assertEquals("copy-key-to", transfers.get(0).toKey);
 
@@ -567,6 +569,10 @@ public class UpgradeHelperTest {
     assertEquals("delete-blank-if-key", transfers.get(5).deleteKey);
     assertEquals("delete-blank-if-type", transfers.get(6).deleteKey);
     assertEquals("delete-thrift", transfers.get(7).deleteKey);
+
+    assertEquals("delete-if-key-present", transfers.get(8).deleteKey);
+    assertEquals("delete-if-key-absent", transfers.get(9).deleteKey);
+
   }
 
 

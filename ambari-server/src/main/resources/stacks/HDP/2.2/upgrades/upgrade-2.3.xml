@@ -462,6 +462,8 @@
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
 
+          <task xsi:type="configure" id="hdp_2_3_0_0_namenode_ha_adjustments"/>
+
           <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_adjust_ranger_plugin"/>
