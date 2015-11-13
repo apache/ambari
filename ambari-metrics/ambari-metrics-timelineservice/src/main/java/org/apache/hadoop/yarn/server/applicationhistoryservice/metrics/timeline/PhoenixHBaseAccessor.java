@@ -423,6 +423,7 @@ public class PhoenixHBaseAccessor {
         }
       }
 
+      // commit() blocked if HBase unavailable
       conn.commit();
 
     } finally {

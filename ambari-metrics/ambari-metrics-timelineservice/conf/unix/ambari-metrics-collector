@@ -325,6 +325,7 @@ case "$1" in
     DAEMON_STATUS=$?
 
     if [[ !"${DISTRIBUTED_HBASE}"  && ( ${DAEMON_STATUS} != 0 || ${HBASE_DAEMON_STATUS} != 0 ) ]]; then
+      echo "Stopping already running AMS daemons, if any."
       stop
     fi
     start
