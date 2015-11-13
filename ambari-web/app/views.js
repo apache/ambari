@@ -165,6 +165,7 @@ require('views/main/admin/stack_upgrade/upgrade_task_view');
 require('views/main/admin/stack_upgrade/services_view');
 require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');
+require('views/main/admin/stack_upgrade/failed_hosts_modal_view');
 require('views/main/admin/stack_and_upgrade_view');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');

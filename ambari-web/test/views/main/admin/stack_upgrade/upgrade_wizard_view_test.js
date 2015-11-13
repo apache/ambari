@@ -30,7 +30,9 @@ describe('App.upgradeWizardView', function () {
       upgradeData: Em.Object.create(),
       loadUpgradeData: Em.K,
       setUpgradeItemStatus: Em.K,
-      getUpgradeItem: Em.K
+      getUpgradeItem: function () {
+        return {complete: Em.K};
+      }
     })
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
@@ -807,6 +809,80 @@ describe('App.upgradeWizardView', function () {
       expect(view.get('controller.skippedServiceChecks')).to.eql(['ZooKeeper', 'YARN', 'Hive']);
     });
 
+  });
+
+  describe("#failedHostsMessage", function() {
+    it("", function() {
+      view.set('controller.slaveComponentStructuredInfo', {
+        hosts: ['host1']
+      });
+      view.propertyDidChange('failedHostsMessage');
+      expect(view.get('failedHostsMessage')).to.equal(Em.I18n.t('admin.stackUpgrade.failedHosts.showHosts').format(1));
+    });
+  });
+
+  describe("#getSlaveComponentItem()", function() {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
+        return {
+          complete: function (callback) {
+            callback();
+          }
+        }
+      });
+      view.set('controller.areSlaveComponentFailuresHostsLoaded', false);
+    });
+    afterEach(function () {
+      view.get('controller').getUpgradeItem.restore();
+    });
+
+    it("isSlaveComponentFailuresItem is false", function() {
+      view.reopen({
+        isSlaveComponentFailuresItem: false
+      });
+      view.getSlaveComponentItem();
+      expect(view.get('controller.areSlaveComponentFailuresHostsLoaded')).to.be.false;
+    });
+    it("isSlaveComponentFailuresItem is true", function() {
+      view.reopen({
+        isSlaveComponentFailuresItem: true
+      });
+      view.getSlaveComponentItem();
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      expect(view.get('controller.areSlaveComponentFailuresHostsLoaded')).to.be.true;
+    });
+  });
+
+  describe("#getServiceCheckItem()", function() {
+    beforeEach(function () {
+      sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
+        return {
+          complete: function (callback) {
+            callback();
+          }
+        }
+      });
+      view.set('controller.areServiceCheckFailuresServicenamesLoaded', false);
+    });
+    afterEach(function () {
+      view.get('controller').getUpgradeItem.restore();
+    });
+
+    it("isServiceCheckFailuresItem is false", function() {
+      view.reopen({
+        isServiceCheckFailuresItem: false
+      });
+      view.getServiceCheckItem();
+      expect(view.get('controller.areServiceCheckFailuresServicenamesLoaded')).to.be.false;
+    });
+    it("isServiceCheckFailuresItem is true", function() {
+      view.reopen({
+        isServiceCheckFailuresItem: true
+      });
+      view.getServiceCheckItem();
+      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
+      expect(view.get('controller.areServiceCheckFailuresServicenamesLoaded')).to.be.true;
+    });
   });
 
 });

@@ -222,6 +222,7 @@ var files = [
   'test/views/main/admin/stack_upgrade/version_view_test',
   'test/views/main/admin/stack_upgrade/services_view_test',
   'test/views/main/admin/stack_upgrade/menu_view_test',
+  'test/views/main/admin/stack_upgrade/failed_hosts_modal_view_test',
   'test/views/main/dashboard/config_history_view_test',
   'test/views/main/dashboard/widget_test',
   'test/views/main/dashboard/widgets_test',
