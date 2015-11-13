@@ -178,6 +178,7 @@ class NameNodeDefault(NameNode):
     """
     During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
     all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
+    If HA is present, then this command will run individually on each NameNode, which checks for its own address.
     """
     import params
 
@@ -190,7 +191,13 @@ class NameNodeDefault(NameNode):
     try:
       hdfs_binary = self.get_hdfs_binary()
       # Note, this fails if namenode_address isn't prefixed with "params."
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+
+      is_namenode_safe_mode_off = ""
+      if params.dfs_ha_enabled:
+        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
+      else:
+        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+
       # Wait up to 30 mins
       Execute(is_namenode_safe_mode_off,
               tries=180,
