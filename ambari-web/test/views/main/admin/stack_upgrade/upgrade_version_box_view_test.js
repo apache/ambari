@@ -477,12 +477,12 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'OUT_OF_SYNC',
           isButtonGroup: true,
           buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
+            text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            action: 'confirmUpgrade',
             isDisabled: false
           }],
-          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-          action: 'confirmUpgrade',
+          text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+          action: 'installRepoVersionConfirmation',
           isDisabled: false
         },
         title: 'OUT_OF_SYNC state, admin access, no requests in progress, no installation'
@@ -510,12 +510,12 @@ describe('App.UpgradeVersionBoxView', function () {
           status: 'OUT_OF_SYNC',
           isButtonGroup: true,
           buttons: [{
-            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-            action: 'installRepoVersionConfirmation',
+            text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            action: 'confirmUpgrade',
             isDisabled: true
           }],
-          text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
-          action: 'confirmUpgrade',
+          text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+          action: 'installRepoVersionConfirmation',
           isDisabled: true
         },
         title: 'OUT_OF_SYNC state, admin access, request in progress, no installation'

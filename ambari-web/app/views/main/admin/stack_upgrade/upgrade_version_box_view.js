@@ -102,12 +102,47 @@ App.UpgradeVersionBoxView = Em.View.extend({
   content: null,
 
   /**
+   * map of properties which correspond to particular state of Upgrade version
+   * @type {object}
+   */
+  statePropertiesMap: {
+    'CURRENT': {
+      isLabel: true,
+      text: Em.I18n.t('common.current'),
+      class: 'label label-success'
+    },
+    'INIT': {
+      isButton: true,
+      text: Em.I18n.t('admin.stackVersions.version.installNow'),
+      action: 'installRepoVersionConfirmation'
+    },
+    'INSTALLING': {
+      iconClass: 'icon-cog',
+      isLink: true,
+      text: Em.I18n.t('hosts.host.stackVersions.status.installing'),
+      action: 'showProgressPopup'
+    },
+    'INSTALLED': {
+      iconClass: 'icon-ok',
+      isLink: true,
+      text: Em.I18n.t('common.installed'),
+      action: null
+    },
+    'SUSPENDED': {
+      isButton: true,
+      text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
+      action: 'resumeUpgrade'
+    }
+  },
+
+  /**
    * object that describes how content should be displayed
    * @type {Em.Object}
    * TODO remove <code>isUpgrading</code> condition when transition of version states in API fixed
    */
   stateElement: function () {
     var currentVersion = this.get('controller.currentVersion');
+    var statePropertiesMap = this.get('statePropertiesMap');
     var status = this.get('content.status');
     var element = Em.Object.create({
       status: status,
@@ -121,42 +156,39 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var isAborted = App.get('upgradeState') === 'ABORTED';
     var isSuspended = App.router.get('mainAdminStackAndUpgradeController.isSuspended');
 
-    if (status === 'CURRENT') {
-      element.set('isLabel', true);
-      element.set('text', Em.I18n.t('common.current'));
-      element.set('class', 'label label-success');
+    if (['INSTALLING', 'CURRENT'].contains(status)) {
+      element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'INIT') {
-      element.set('isButton', true);
-      element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
-      element.set('action', 'installRepoVersionConfirmation');
+      element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
-    }
-    else if (status === 'INSTALLING') {
-      element.set('iconClass', 'icon-cog');
-      element.set('isLink', true);
-      element.set('text', Em.I18n.t('hosts.host.stackVersions.status.installing'));
-      element.set('action', 'showProgressPopup');
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
         var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
-        element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
-        element.set('action', 'confirmUpgrade');
-        element.get('buttons').pushObject({
-          text: Em.I18n.t('admin.stackVersions.version.reinstall'),
-          action: 'installRepoVersionConfirmation',
-          isDisabled: isDisabled
-        });
+        if (status === 'OUT_OF_SYNC') {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.reinstall'));
+          element.set('action', 'installRepoVersionConfirmation');
+          element.get('buttons').pushObject({
+            text: Em.I18n.t('admin.stackVersions.version.performUpgrade'),
+            action: 'confirmUpgrade',
+            isDisabled: isDisabled
+          });
+        } else {
+          element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
+          element.set('action', 'confirmUpgrade');
+          element.get('buttons').pushObject({
+            text: Em.I18n.t('admin.stackVersions.version.reinstall'),
+            action: 'installRepoVersionConfirmation',
+            isDisabled: isDisabled
+          });
+        }
         element.set('isDisabled', isDisabled);
       }
       else {
-        element.set('iconClass', 'icon-ok');
-        element.set('isLink', true);
-        element.set('text', Em.I18n.t('common.installed'));
-        element.set('action', null);
+        element.setProperties(statePropertiesMap['INSTALLED']);
       }
     }
     else if ((['UPGRADING', 'UPGRADE_FAILED', 'UPGRADED'].contains(status) || this.get('isUpgrading')) && !isAborted) {
@@ -183,9 +215,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else if (isAborted) {
       if (isSuspended) {
-        element.set('isButton', true);
-        element.set('text', Em.I18n.t('admin.stackUpgrade.dialog.resume'));
-        element.set('action', 'resumeUpgrade');
+        element.setProperties(statePropertiesMap['SUSPENDED']);
         element.set('isDisabled', this.get('controller.requestInProgress'));
       } else {
         element.set('isButton', true);
