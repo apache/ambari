@@ -138,7 +138,7 @@
 
   <property>
     <name>ranger.usersync.sleeptimeinmillisbetweensynccycle</name>
-    <value>60</value>
+    <value>60000</value>
     <description>Sleeptime interval in milliseconds, if &lt; 1000 then default to 30 sec</description>
   </property>
 
