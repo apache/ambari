@@ -170,12 +170,25 @@ App.upgradeWizardView = Em.View.extend({
   }.property('activeGroup.upgradeItems.@each.status'),
 
   /**
+   * plain manual item
+   * @type {object|undefined}
+   */
+  plainManualItem: function () {
+    return this.get('manualItem') && ![
+      this.get('controller.finalizeContext'),
+      this.get("controller.slaveFailuresContext"),
+      this.get("controller.serviceCheckFailuresContext")
+    ].contains(this.get('manualItem.context'));
+  }.property('manualItem.context'),
+
+  /**
    * manualItem: indicate whether the step is "Slave component failures", a dialog with instructions will show up for manual steps
    * @type {boolean}
    */
   isSlaveComponentFailuresItem: function () {
-    return this.get('manualItem.context') === this.get("controller.slaveFailuresContext");
-  }.property('manualItem.context'),
+    var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
+    return item && ['HOLDING', 'HOLDING_FAILED'].contains(item.get('status'));
+  }.property('activeGroup.upgradeItems.@each.status', 'activeGroup.upgradeItems.@each.context'),
 
   /**
    * manualItem: indicate whether the step is "Service check failures", a dialog with instructions will show up for manual steps
@@ -308,7 +321,8 @@ App.upgradeWizardView = Em.View.extend({
     var controller = this.get('controller');
     if (this.get('isSlaveComponentFailuresItem')) {
       if (!this.get('controller.areSlaveComponentFailuresHostsLoaded')) {
-        controller.getUpgradeItem(this.get('manualItem'), 'getSlaveComponentItemSuccessCallback').complete(function () {
+        var item = this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('context', this.get("controller.slaveFailuresContext"));
+        controller.getUpgradeItem(item, 'getSlaveComponentItemSuccessCallback').complete(function () {
           controller.set('areSlaveComponentFailuresHostsLoaded', true);
         });
       }
