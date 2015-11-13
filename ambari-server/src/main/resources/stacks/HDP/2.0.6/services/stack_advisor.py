@@ -972,7 +972,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
             hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
             hbase_heapsize = min(32*1024*1024*1024, hbase_heapsize) #Make sure heapsize < 32GB
-            xmn_size = round_to_n(0.12*hbase_heapsize,128)
+            xmn_size = round_to_n(0.12*hbase_heapsize/1048576,128)
 
             msg = "{0} MB RAM is unused on the host {1} based on components " \
                   "assigned. Consider allocating  {2} MB to " \
