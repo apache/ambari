@@ -609,6 +609,15 @@ public class StackManagerTest {
     ArrayList<String> hbaseMasterStartValues = (ArrayList<String>) generalDeps.get("HBASE_MASTER-START");
     assertTrue(hbaseMasterStartValues.get(0).equals("ZOOKEEPER_SERVER-START, ZOOKEEPER_SERVER-START"));
 
+    assertTrue(optionalNoGlusterfs.containsKey("NAMENODE-STOP"));
+    ArrayList<String> nameNodeStopValues = (ArrayList<String>) optionalNoGlusterfs.get("NAMENODE-STOP");
+    assertTrue(nameNodeStopValues.contains("JOBTRACKER-STOP"));
+    assertTrue(nameNodeStopValues.contains("CUSTOM_MASTER-STOP"));
+
+    assertTrue(generalDeps.containsKey("CUSTOM_MASTER-START"));
+    ArrayList<String> customMasterStartValues = (ArrayList<String>) generalDeps.get("CUSTOM_MASTER-START");
+    assertTrue(customMasterStartValues.contains("ZOOKEEPER_SERVER-START"));
+    assertTrue(customMasterStartValues.contains("NAMENODE-START"));
   }
 
   @Test

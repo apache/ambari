@@ -19,8 +19,11 @@
 package org.apache.ambari.server.state.stack;
 
 import org.apache.commons.collections.map.MultiValueMap;
+import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +84,16 @@ public class StackRoleCommandOrder {
    */
 
   public void merge(StackRoleCommandOrder parent) {
+    merge(parent, false);
+  }
 
+  /**
+   * merge StackRoleCommandOrder content with parent
+   *
+   * @param parent parent StackRoleCommandOrder instance
+   */
+
+  public void merge(StackRoleCommandOrder parent, boolean mergeProperties) {
     HashMap<String, Object> mergedRoleCommandOrders = new HashMap<String, Object>();
     HashMap<String, Object> parentData = parent.getContent();
 
@@ -93,12 +105,27 @@ public class StackRoleCommandOrder {
         Map<String, Object> result = new HashMap<String, Object>();
         Map<String, Object> parentProperties = (Map<String, Object>) parentData.get(key);
         Map<String, Object> childProperties = (Map<String, Object>) content.get(key);
-        MultiValueMap childAndParentProperties = new MultiValueMap();
+        MultiValueMap childAndParentProperties = null;
+
+        childAndParentProperties = new MultiValueMap();
         childAndParentProperties.putAll(childProperties);
         childAndParentProperties.putAll(parentProperties);
+
         for (Object property : childAndParentProperties.keySet()) {
           List propertyValues = (List) childAndParentProperties.get(property);
-          result.put((String) property, propertyValues.get(0));
+          Object values = propertyValues.get(0);
+          if (mergeProperties) {
+            List<String> valueList = new ArrayList<String>();
+            for (Object value : propertyValues) {
+              if (value instanceof List)
+                valueList.addAll((List<String>) value);
+              else
+		valueList.add(value.toString());
+            }
+		values = valueList;
+          }
+
+          result.put((String) property, values);
         }
         mergedRoleCommandOrders.put(key, result);
       } else if (content.containsKey(key)) {
@@ -109,5 +136,33 @@ public class StackRoleCommandOrder {
     }
     this.content = mergedRoleCommandOrders;
   }
+
+  public void printRoleCommandOrder(Logger LOG) {
+    Map<String, Object> map = getContent();
+    List<String> keys = Arrays.asList(GENERAL_DEPS_KEY, GLUSTERFS_DEPS_KEY,
+      NO_GLUSTERFS_DEPS_KEY, NAMENODE_HA_DEPS_KEY, RESOURCEMANAGER_HA_DEPS_KEY);
+
+    for (String key : keys) {
+      LOG.debug(key);
+      Object value = map.get(key);
+      if (value instanceof Map) {
+		Map<String, Object> deps = (Map<String, Object>) map.get(key);
+		for (String depKey : deps.keySet()) {
+		  Object depValue = deps.get(depKey);
+		  if (depValue instanceof Collection) {
+			StringBuffer buffer = new StringBuffer();
+			for (Object o : ((Collection) depValue)) {
+				if (buffer.length() > 0)
+				  buffer.append(",");
+				buffer.append(o);
+			}
+			depValue = buffer.toString();
+		  }
+		  LOG.debug(depKey + " => " + depValue);
+		}
+      }
+    }
+  }
+
 }
 
