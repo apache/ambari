@@ -134,7 +134,7 @@ module.exports = {
       return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
     } else {
       // still running, duration till now
-      var time = (App.dateTime() - startTimestamp) < 0 ? 0 : (App.dateTime() - startTimestamp);
+      var time = (App.dateTimeWithTimeZone() - startTimestamp) < 0 ? 0 : (App.dateTimeWithTimeZone() - startTimestamp);
       durationSummary = '' + this.timingFormat(time, 1);
     }
     return durationSummary;
