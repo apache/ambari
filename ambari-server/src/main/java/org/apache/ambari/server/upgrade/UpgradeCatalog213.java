@@ -913,10 +913,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
 
+            //Changed AMS result set limit from 5760 to 11520.
+            newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+
             //Interval
-            newProperties.put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
-            newProperties.put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
-            newProperties.put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+            newProperties.put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
+            newProperties.put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(300));
+            newProperties.put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(300));
 
             //ttl
             newProperties.put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));

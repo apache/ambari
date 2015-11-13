@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.AMSReportPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
@@ -44,7 +45,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
 
   public MetricsReportPropertyProviderProxy(
     Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-    StreamProvider streamProvider,
+    URLStreamProvider streamProvider,
     ComponentSSLConfiguration configuration,
     TimelineMetricCacheProvider cacheProvider,
     MetricHostProvider hostProvider,
@@ -64,7 +65,7 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
   }
 
   private void createReportPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                                             StreamProvider streamProvider,
+                                             URLStreamProvider streamProvider,
                                              ComponentSSLConfiguration configuration,
                                              MetricHostProvider hostProvider,
                                              String clusterNamePropertyId) {

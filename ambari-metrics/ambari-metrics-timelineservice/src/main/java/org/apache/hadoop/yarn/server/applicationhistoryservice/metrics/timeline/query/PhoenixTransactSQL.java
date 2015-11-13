@@ -445,9 +445,9 @@ public class PhoenixTransactSQL {
 
     long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size();
     if (totalRowsRequested > PhoenixHBaseAccessor.RESULTSET_LIMIT) {
-      throw new IllegalArgumentException("The time range query for " +
-        "precision table exceeds row count limit, please query aggregate " +
-        "table instead.");
+      throw new IllegalArgumentException("Requested precision (" + precision + ") for given time range causes " +
+        "result set size of " + totalRowsRequested + ", which exceeds the limit - "
+        + PhoenixHBaseAccessor.RESULTSET_LIMIT + ". Please request higher precision.");
     }
   }
 
