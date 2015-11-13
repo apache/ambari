@@ -22,7 +22,6 @@ import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.junit.Test;
-import java.util.Map;
 import java.util.TreeMap;
 
 public class MetricsPaddingMethodTest {
@@ -138,7 +137,7 @@ public class MetricsPaddingMethodTest {
   }
 
   @Test
-  public void testPaddingWithOneValueReturnedNoStepProvided() throws Exception {
+  public void testPaddingWithOneValue() throws Exception {
     MetricsPaddingMethod paddingMethod =
       new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
@@ -161,6 +160,66 @@ public class MetricsPaddingMethodTest {
     Assert.assertEquals(new Long(now - 1000), values.keySet().iterator().next());
     Assert.assertEquals(1.0, values.values().iterator().next());
   }
+
+  @Test
+  public void testPaddingWithWithVariousPrecisionData() throws Exception {
+    MetricsPaddingMethod paddingMethod =
+      new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
+
+    long now = System.currentTimeMillis();
+    TimelineMetric timelineMetric = new TimelineMetric();
+    timelineMetric.setMetricName("m1");
+    timelineMetric.setHostName("h1");
+    timelineMetric.setAppId("a1");
+    timelineMetric.setTimestamp(now);
+    TreeMap<Long, Double> inputValues = new TreeMap<Long, Double>();
+
+    long seconds = 1000;
+    long minute = 60*seconds;
+    long hour = 60*minute;
+    long day = 24*hour;
+
+    //MINUTES
+    inputValues.clear();
+    for(int i=5;i>=1;i--) {
+      inputValues.put(now - i*minute, i+ 0.0);
+    }
+    timelineMetric.setMetricValues(inputValues);
+
+    TemporalInfo temporalInfo = getTemporalInfo(now - 2*hour - 1*minute, now, null);
+    paddingMethod.applyPaddingStrategy(timelineMetric, temporalInfo);
+    TreeMap<Long, Double> values = (TreeMap<Long, Double>) timelineMetric.getMetricValues();
+
+    Assert.assertEquals(122, values.size());
+    Assert.assertEquals(new Long(now - 2*hour - 1*minute), values.keySet().iterator().next());
+
+    //HOURS
+    inputValues.clear();
+    for(int i=5;i>=1;i--) {
+      inputValues.put(now - i*hour, i+ 0.0);
+    }
+    timelineMetric.setMetricValues(inputValues);
+
+    temporalInfo = getTemporalInfo(now - 1*day - 1*hour, now, null);
+    paddingMethod.applyPaddingStrategy(timelineMetric, temporalInfo);
+    values = (TreeMap<Long, Double>) timelineMetric.getMetricValues();
+
+    Assert.assertEquals(26, values.size());
+    Assert.assertEquals(new Long(now - 1*day - 1*hour), values.keySet().iterator().next());
+
+    //DAYS
+    inputValues.clear();
+    inputValues.put(now - day, 1.0);
+    timelineMetric.setMetricValues(inputValues);
+
+    temporalInfo = getTemporalInfo(now - 40*day, now, null);
+    paddingMethod.applyPaddingStrategy(timelineMetric, temporalInfo);
+    values = (TreeMap<Long, Double>) timelineMetric.getMetricValues();
+
+    Assert.assertEquals(41, values.size());
+    Assert.assertEquals(new Long(now - 40*day), values.keySet().iterator().next());
+  }
+
 
   @Test
   public void testNoPaddingRequested() throws Exception {
