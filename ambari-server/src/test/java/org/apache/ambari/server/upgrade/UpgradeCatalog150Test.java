@@ -28,14 +28,12 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
-import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
-import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
@@ -49,9 +47,6 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class UpgradeCatalog150Test {
   private Injector injector;
@@ -145,10 +140,7 @@ public class UpgradeCatalog150Test {
     componentDesiredStateEntity.setComponentName("DATANODE");
     componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
-    ServiceComponentDesiredStateDAO componentDesiredStateDAO =
-      injector.getInstance(ServiceComponentDesiredStateDAO.class);
-
-    componentDesiredStateDAO.create(componentDesiredStateEntity);
+    //componentDesiredStateDAO.create(componentDesiredStateEntity);
 
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO =
       injector.getInstance(HostComponentDesiredStateDAO.class);
@@ -163,8 +155,6 @@ public class UpgradeCatalog150Test {
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
     hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
-    componentDesiredStateEntity.setHostComponentDesiredStateEntities(
-      Collections.singletonList(hostComponentDesiredStateEntity));
 
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 

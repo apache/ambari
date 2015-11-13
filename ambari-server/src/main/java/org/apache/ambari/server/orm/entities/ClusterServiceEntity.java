@@ -49,10 +49,10 @@ public class ClusterServiceEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
-  @OneToOne(mappedBy = "clusterServiceEntity")
+  @OneToOne(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   private ServiceDesiredStateEntity serviceDesiredStateEntity;
 
-  @OneToMany(mappedBy = "clusterServiceEntity")
+  @OneToMany(mappedBy = "clusterServiceEntity", cascade = CascadeType.ALL)
   private Collection<ServiceComponentDesiredStateEntity> serviceComponentDesiredStateEntities;
 
   public Long getClusterId() {

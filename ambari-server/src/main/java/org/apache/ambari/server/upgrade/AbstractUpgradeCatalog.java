@@ -221,11 +221,6 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       try {
         func.run();
         entityManager.getTransaction().commit();
-        // This is required because some of the  entities actively managed by
-        // the persistence context will remain unaware of the actual changes
-        // occurring at the database level. Some UpgradeCatalogs perform
-        // update / delete using CriteriaBuilder directly.
-        entityManager.getEntityManagerFactory().getCache().evictAll();
       } catch (Exception e) {
         LOG.error("Error in transaction ", e);
         if (entityManager.getTransaction().isActive()) {

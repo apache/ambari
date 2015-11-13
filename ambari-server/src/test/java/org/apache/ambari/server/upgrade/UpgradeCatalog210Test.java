@@ -577,11 +577,6 @@ public class UpgradeCatalog210Test {
     componentDesiredStateEntity.setComponentName("STORM_REST_API");
     componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
-    ServiceComponentDesiredStateDAO componentDesiredStateDAO =
-      injector.getInstance(ServiceComponentDesiredStateDAO.class);
-
-    componentDesiredStateDAO.create(componentDesiredStateEntity);
-
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO =
       injector.getInstance(HostComponentDesiredStateDAO.class);
 
@@ -603,6 +598,9 @@ public class UpgradeCatalog210Test {
 
     UpgradeCatalog210 upgradeCatalog210 = injector.getInstance(UpgradeCatalog210.class);
     upgradeCatalog210.removeStormRestApiServiceComponent();
+
+    ServiceComponentDesiredStateDAO componentDesiredStateDAO =
+      injector.getInstance(ServiceComponentDesiredStateDAO.class);
 
     ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
     entityPK.setClusterId(clusterEntity.getClusterId());

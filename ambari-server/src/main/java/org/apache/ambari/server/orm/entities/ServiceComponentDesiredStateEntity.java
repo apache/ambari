@@ -66,10 +66,10 @@ public class ServiceComponentDesiredStateEntity {
   @JoinColumns({@javax.persistence.JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false), @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false)})
   private ClusterServiceEntity clusterServiceEntity;
 
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
 
-  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity")
+  @OneToMany(mappedBy = "serviceComponentDesiredStateEntity", cascade = CascadeType.ALL)
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
   public Long getClusterId() {

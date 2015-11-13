@@ -1150,43 +1150,43 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           executeInTransaction(new Runnable() {
             @Override
             public void run() {
-            ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
-            ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
-            entityPK.setClusterId(cluster.getClusterId());
-            entityPK.setServiceName("STORM");
-            entityPK.setComponentName("STORM_REST_API");
-            ServiceComponentDesiredStateEntity entity = dao.findByPK(entityPK);
-            if (entity != null) {
-              EntityManager em = getEntityManagerProvider().get();
-              CriteriaBuilder cb = em.getCriteriaBuilder();
+              ServiceComponentDesiredStateDAO dao = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+              ServiceComponentDesiredStateEntityPK entityPK = new ServiceComponentDesiredStateEntityPK();
+              entityPK.setClusterId(cluster.getClusterId());
+              entityPK.setServiceName("STORM");
+              entityPK.setComponentName("STORM_REST_API");
+              ServiceComponentDesiredStateEntity entity = dao.findByPK(entityPK);
+              if (entity != null) {
+                EntityManager em = getEntityManagerProvider().get();
+                CriteriaBuilder cb = em.getCriteriaBuilder();
 
-              try {
-                LOG.info("Deleting STORM_REST_API service component.");
-                CriteriaDelete<HostComponentStateEntity> hcsDelete = cb.createCriteriaDelete(HostComponentStateEntity.class);
-                CriteriaDelete<HostComponentDesiredStateEntity> hcdDelete = cb.createCriteriaDelete(HostComponentDesiredStateEntity.class);
-                CriteriaDelete<ServiceComponentDesiredStateEntity> scdDelete = cb.createCriteriaDelete(ServiceComponentDesiredStateEntity.class);
+                try {
+                  LOG.info("Deleting STORM_REST_API service component.");
+                  CriteriaDelete<HostComponentStateEntity> hcsDelete = cb.createCriteriaDelete(HostComponentStateEntity.class);
+                  CriteriaDelete<HostComponentDesiredStateEntity> hcdDelete = cb.createCriteriaDelete(HostComponentDesiredStateEntity.class);
+                  CriteriaDelete<ServiceComponentDesiredStateEntity> scdDelete = cb.createCriteriaDelete(ServiceComponentDesiredStateEntity.class);
 
-                Root<HostComponentStateEntity> hcsRoot = hcsDelete.from(HostComponentStateEntity.class);
-                Root<HostComponentDesiredStateEntity> hcdRoot = hcdDelete.from(HostComponentDesiredStateEntity.class);
-                Root<ServiceComponentDesiredStateEntity> scdRoot = scdDelete.from(ServiceComponentDesiredStateEntity.class);
+                  Root<HostComponentStateEntity> hcsRoot = hcsDelete.from(HostComponentStateEntity.class);
+                  Root<HostComponentDesiredStateEntity> hcdRoot = hcdDelete.from(HostComponentDesiredStateEntity.class);
+                  Root<ServiceComponentDesiredStateEntity> scdRoot = scdDelete.from(ServiceComponentDesiredStateEntity.class);
 
-                hcsDelete.where(cb.equal(hcsRoot.get("componentName"), "STORM_REST_API"));
-                hcdDelete.where(cb.equal(hcdRoot.get("componentName"), "STORM_REST_API"));
-                scdDelete.where(cb.equal(scdRoot.get("componentName"), "STORM_REST_API"));
+                  hcsDelete.where(cb.equal(hcsRoot.get("componentName"), "STORM_REST_API"));
+                  hcdDelete.where(cb.equal(hcdRoot.get("componentName"), "STORM_REST_API"));
+                  scdDelete.where(cb.equal(scdRoot.get("componentName"), "STORM_REST_API"));
 
-                em.createQuery(hcsDelete).executeUpdate();
-                em.createQuery(hcdDelete).executeUpdate();
-                em.createQuery(scdDelete).executeUpdate();
-              } catch (Exception e) {
-                LOG.warn("Error deleting STORM_REST_API service component. " +
-                  "This could result in issue with ambari server start. " +
-                  "Please make sure the STORM_REST_API component is deleted " +
-                  "from the database by running following commands:\n" +
-                  "delete from hostcomponentdesiredstate where component_name='STORM_REST_API';\n" +
-                  "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
-                  "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
+                  em.createQuery(hcsDelete).executeUpdate();
+                  em.createQuery(hcdDelete).executeUpdate();
+                  em.createQuery(scdDelete).executeUpdate();
+                } catch (Exception e) {
+                  LOG.warn("Error deleting STORM_REST_API service component. " +
+                    "This could result in issue with ambari server start. " +
+                    "Please make sure the STORM_REST_API component is deleted " +
+                    "from the database by running following commands:\n" +
+                    "delete from hostcomponentdesiredstate where component_name='STORM_REST_API';\n" +
+                    "delete from hostcomponentstate where component_name='STORM_REST_API';\n" +
+                    "delete from servicecomponentdesiredstate where component_name='STORM_REST_API';\n", e);
+                }
               }
-            }
             }
           });
         }
