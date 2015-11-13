@@ -18,10 +18,11 @@
 package org.apache.ambari.server.controller.metrics;
 
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
 public class MetricsPaddingMethod {
   private final PADDING_STRATEGY strategy;
@@ -54,7 +55,12 @@ public class MetricsPaddingMethod {
 
     TreeMap<Long, Double> values = metric.getMetricValues();
 
-    long dataInterval = getTimelineMetricInterval(values);
+    long intervalStartTime = longToMillis(temporalInfo.getStartTime());
+    long intervalEndTime = longToMillis(temporalInfo.getEndTime());
+    long dataStartTime = longToMillis(values.firstKey());
+    long dataEndTime = longToMillis(values.lastKey());
+
+    long dataInterval = getTimelineMetricInterval(values, intervalStartTime, intervalEndTime);
 
     if (dataInterval == -1 || dataInterval < MINIMUM_STEP_INTERVAL) {
       dataInterval = temporalInfo.getStep() != null ? temporalInfo.getStep() : -1;
@@ -63,11 +69,6 @@ public class MetricsPaddingMethod {
     if (dataInterval == -1) {
       return;
     }
-
-    long intervalStartTime = longToMillis(temporalInfo.getStartTime());
-    long intervalEndTime = longToMillis(temporalInfo.getEndTime());
-    long dataStartTime = longToMillis(values.firstKey());
-    long dataEndTime = longToMillis(values.lastKey());
 
     Double paddingValue = 0.0d;
 
@@ -94,14 +95,30 @@ public class MetricsPaddingMethod {
     return time;
   }
 
-  private long getTimelineMetricInterval(TreeMap<Long, Double> values) {
-    if (values != null && values.size() > 1) {
-      Iterator<Long> tsValuesIterator = values.descendingKeySet().iterator();
-      long lastValue = tsValuesIterator.next();
-      long secondToLastValue = tsValuesIterator.next();
-      return Math.abs(lastValue - secondToLastValue);
+  private long getTimelineMetricInterval(TreeMap<Long, Double> values, long startTime, long endTime) {
+
+    Precision precision = Precision.getPrecision(startTime, endTime);
+    long interval;
+
+    if (precision.equals(Precision.DAYS)) {
+      interval = TimeUnit.DAYS.toMillis(1);
+    } else if (precision.equals(Precision.HOURS)) {
+      interval = TimeUnit.HOURS.toMillis(1);
+    } else if (precision.equals(Precision.MINUTES)) {
+      interval = TimeUnit.MINUTES.toMillis(1);
+    } else {
+      //Precision = SECONDS.
+      //More than 1 point.
+      if (values != null && values.size() > 1) {
+        Iterator<Long> tsValuesIterator = values.descendingKeySet().iterator();
+        long lastValue = tsValuesIterator.next();
+        long secondToLastValue = tsValuesIterator.next();
+        interval =  Math.abs(lastValue - secondToLastValue);
+      } else {
+        // Only 1 point
+        interval = -1;
+      }
     }
-    // No values found or only one value found
-    return -1;
+    return interval;
   }
 }
