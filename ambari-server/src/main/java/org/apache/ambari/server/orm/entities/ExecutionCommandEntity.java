@@ -23,7 +23,6 @@ import java.util.Arrays;
 
 @Table(name = "execution_command")
 @Entity
-@Cacheable(false) // We explicitly cache this, no need for JPA to do it as well
 public class ExecutionCommandEntity {
 
   @Id

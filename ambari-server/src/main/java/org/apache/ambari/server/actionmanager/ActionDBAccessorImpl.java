@@ -145,7 +145,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   public List<Stage> getAllStages(long requestId) {
     List<StageEntity> stageEntities = stageDAO.findByRequestId(requestId);
     List<Stage> stages = new ArrayList<>(stageEntities.size());
-    for (StageEntity stageEntity : stageEntities ){
+    for( StageEntity stageEntity : stageEntities ){
       stages.add(stageFactory.createExisting(stageEntity));
     }
 

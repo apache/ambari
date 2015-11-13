@@ -123,10 +123,10 @@ public class HostEntity implements Comparable<HostEntity> {
   @Lob
   private String hostAttributes = "";
 
-  @OneToMany(mappedBy = "hostEntity")
+  @OneToMany(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private Collection<HostComponentDesiredStateEntity> hostComponentDesiredStateEntities;
 
-  @OneToMany(mappedBy = "hostEntity")
+  @OneToMany(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private Collection<HostComponentStateEntity> hostComponentStateEntities;
 
   @OneToMany(mappedBy = "hostEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
