@@ -573,6 +573,20 @@ class GeneratorHelper(object):
         self.copy_common_services(parent_services)
     pass
 
+  def copy_remaining_common_services(self, common_services = []):
+    ignored_files = ['.pyc']
+    source_common_services_path = os.path.join(self.resources_folder, "common-services")
+    dest_common_services_path = os.path.join(self.output_folder, "common-services")
+
+    source_common_services_list = os.listdir(source_common_services_path)
+    dest_common_services_list = os.listdir(dest_common_services_path)
+
+    for service_name in source_common_services_list:
+      if service_name not in dest_common_services_list:
+        source = os.path.join(source_common_services_path, service_name)
+        dest = os.path.join(dest_common_services_path, service_name)
+        copy_tree(source, dest, ignored_files, post_copy=None)
+
   def copy_resource_management(self):
     source_folder = join(os.path.abspath(join(self.resources_folder, "..", "..", "..", "..")),
                          'ambari-common', 'src', 'main', 'python', 'resource_management')
@@ -663,6 +677,7 @@ def main(argv):
   gen_helper.copy_stacks()
   gen_helper.copy_resource_management()
   gen_helper.copy_common_services()
+  gen_helper.copy_remaining_common_services()
   gen_helper.copy_ambari_properties()
   gen_helper.copy_custom_actions()
 
