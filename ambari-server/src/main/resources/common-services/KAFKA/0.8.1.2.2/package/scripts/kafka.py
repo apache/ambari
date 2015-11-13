@@ -33,9 +33,13 @@ def kafka():
               group=params.user_group,
               recursive=True
           )
-    brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
+
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
-    kafka_server_config['broker.id'] = brokerid
+    # This still has an issue of out of alphabetical order of hostnames can get out of order broker.id assigned to them for HDP-2.2.
+    # Since from HDP-2.3 kafka is handling the generation of broker.id ambari doesn't need to generate one.
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0 and compare_versions(params.hdp_stack_version, '2.3.0.0') < 0 :
+        brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
+        kafka_server_config['broker.id'] = brokerid
 
     #listeners and advertised.listeners are only added in 2.3.0.0 onwards.
     if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3.0.0') >= 0:
