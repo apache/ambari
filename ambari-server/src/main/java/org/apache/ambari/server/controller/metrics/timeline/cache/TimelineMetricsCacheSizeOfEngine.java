@@ -27,6 +27,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Cache sizing engine that reduces reflective calls over the Object graph to
@@ -45,6 +46,7 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
   private volatile long timelineMetricPrimitivesApproximation = 0;
 
   private long sizeOfMapEntry;
+  private long sizeOfMapEntryOverhead;
 
   private TimelineMetricsCacheSizeOfEngine(SizeOfEngine underlying) {
     this.underlying = underlying;
@@ -55,6 +57,13 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
 
     this.sizeOfMapEntry = reflectionSizeOf.sizeOf(new Long(1)) +
       reflectionSizeOf.sizeOf(new Double(2.0));
+
+    //SizeOfMapEntryOverhead = SizeOfMapWithOneEntry - (SizeOfEmptyMap + SizeOfOneEntry)
+    TreeMap<Long,Double> map = new TreeMap<>();
+    long emptyMapSize = reflectionSizeOf.sizeOf(map);
+    map.put(new Long(1), new Double(2.0));
+    long sizeOfMapOneEntry = reflectionSizeOf.deepSizeOf(DEFAULT_MAX_DEPTH, DEFAULT_ABORT_WHEN_MAX_DEPTH_EXCEEDED, map).getCalculated();
+    this.sizeOfMapEntryOverhead =  sizeOfMapOneEntry - (emptyMapSize + this.sizeOfMapEntry);
 
     LOG.info("Creating custom sizeof engine for TimelineMetrics.");
   }
@@ -119,8 +128,8 @@ public class TimelineMetricsCacheSizeOfEngine implements SizeOfEngine {
         if (metricValues != null && !metricValues.isEmpty()) {
           // Numeric wrapper: 12 bytes + 8 bytes Data type + 4 bytes alignment = 48 (Long, Double)
           // Tree Map: 12 bytes for header + 20 bytes for 5 object fields : pointers + 1 byte for flag = 40
-          LOG.debug("Size of metric value: " + (sizeOfMapEntry + 40) * metricValues.size());
-          size += (sizeOfMapEntry + 40) * metricValues.size(); // Treemap size is O(1)
+         LOG.debug("Size of metric value: " + (sizeOfMapEntry + sizeOfMapEntryOverhead) * metricValues.size());
+          size += (sizeOfMapEntry + sizeOfMapEntryOverhead) * metricValues.size(); // Treemap size is O(1)
         }
       }
       LOG.debug("Total Size of metric values in cache: " + size);

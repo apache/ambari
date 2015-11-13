@@ -56,7 +56,6 @@ public class TimelineMetricCacheSizingTest {
     return metric;
   }
 
-  @Ignore
   @Test
   public void testTimelineMetricCacheSizing() throws Exception {
     Set<String> metricNames = new HashSet<>();
