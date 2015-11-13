@@ -296,6 +296,10 @@
 
       <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_namenode_ha_adjustments"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
         <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
       </execute-stage>
 

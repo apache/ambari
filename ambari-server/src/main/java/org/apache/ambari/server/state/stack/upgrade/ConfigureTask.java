@@ -228,9 +228,30 @@ public class ConfigureTask extends ServerSideActionTask {
       List<Transfer> allowedTransfers = new ArrayList<>();
       for (Transfer transfer : transfers) {
         if (transfer.operation == TransferOperation.DELETE) {
-          if (StringUtils.isNotBlank(transfer.ifKey) &&
-              StringUtils.isNotBlank(transfer.ifType) &&
-              transfer.ifValue != null) {
+          boolean ifKeyIsNotBlank = StringUtils.isNotBlank(transfer.ifKey);
+          boolean ifTypeIsNotBlank = StringUtils.isNotBlank(transfer.ifType);
+
+          //  value doesn't required for Key Check
+          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifKeyState == PropertyKeyState.ABSENT) {
+            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
+            if (keyPresent) {
+              LOG.info("Skipping property delete for {}/{} as the key {} for {} is present",
+                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
+              continue;
+            }
+          }
+
+          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue == null &&
+            transfer.ifKeyState == PropertyKeyState.PRESENT) {
+            boolean keyPresent = getDesiredConfigurationKeyPresence(cluster, transfer.ifType, transfer.ifKey);
+            if (!keyPresent) {
+              LOG.info("Skipping property delete for {}/{} as the key {} for {} is not present",
+                definition.getConfigType(), transfer.deleteKey, transfer.ifKey, transfer.ifType);
+              continue;
+            }
+          }
+
+          if (ifKeyIsNotBlank && ifTypeIsNotBlank && transfer.ifValue != null) {
 
             String ifConfigType = transfer.ifType;
             String ifKey = transfer.ifKey;
@@ -285,6 +306,32 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     return config.getProperties().get(propertyKey);
+  }
+
+  /**
+   * Gets the property presence state
+   * @param cluster
+   *          the cluster (not {@code null}).
+   * @param configType
+   *          the configuration type (ie hdfs-site) (not {@code null}).
+   * @param propertyKey
+   *          the key to retrieve (not {@code null}).
+   * @return {@code true} if property key exists or {@code false} if not.
+   */
+  private boolean getDesiredConfigurationKeyPresence(Cluster cluster,
+      String configType, String propertyKey) {
+
+    Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    DesiredConfig desiredConfig = desiredConfigs.get(configType);
+    if (null == desiredConfig) {
+      return false;
+    }
+
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    if (null == config) {
+      return false;
+    }
+    return config.getProperties().containsKey(propertyKey);
   }
 
 }
