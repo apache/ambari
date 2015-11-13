@@ -26,6 +26,7 @@ import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheEntryFactory;
@@ -738,7 +739,7 @@ public class AMSPropertyProviderTest {
   }
 
   /* Since streamProviders are not injected this hack becomes necessary */
-  private void injectCacheEntryFactoryWithStreamProvider(StreamProvider streamProvider) throws Exception {
+  private void injectCacheEntryFactoryWithStreamProvider(URLStreamProvider streamProvider) throws Exception {
     Field field = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
     field.setAccessible(true);
     field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));

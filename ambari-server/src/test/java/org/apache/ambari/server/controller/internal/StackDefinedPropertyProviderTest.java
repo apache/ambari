@@ -31,6 +31,7 @@ import java.util.Set;
 import com.google.inject.Binder;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
@@ -209,8 +210,11 @@ public class StackDefinedPropertyProviderTest {
 
 
 
-  private static class CombinedStreamProvider implements StreamProvider {
+  private static class CombinedStreamProvider extends URLStreamProvider {
 
+    public CombinedStreamProvider() {
+      super(1000, 1000, ComponentSSLConfiguration.instance());
+    }
     @Override
     public InputStream readFrom(String spec) throws IOException {
       if (spec.indexOf ("jmx") > -1) {
@@ -325,7 +329,7 @@ public class StackDefinedPropertyProviderTest {
   @Test
   public void testPopulateResources_HDP2() throws Exception {
 
-    StreamProvider  streamProvider = new TestStreamProvider();
+    URLStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     JMXPropertyProviderTest.TestMetricHostProvider metricsHostProvider = new JMXPropertyProviderTest.TestMetricHostProvider();
     TestGangliaServiceProvider serviceProvider = new TestGangliaServiceProvider();
@@ -1100,7 +1104,7 @@ public class StackDefinedPropertyProviderTest {
   }
 
   /* Since streamProviders are not injected this hack becomes necessary */
-  private void injectCacheEntryFactoryWithStreamProvider(StreamProvider streamProvider) throws Exception {
+  private void injectCacheEntryFactoryWithStreamProvider(org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider streamProvider) throws Exception {
     Field field = TimelineMetricCacheEntryFactory.class.getDeclaredField("requestHelperForGets");
     field.setAccessible(true);
     field.set(cacheEntryFactory, new MetricsRequestHelper(streamProvider));

@@ -967,7 +967,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
   /**
    * Create the Ganglia report property provider for the given type.
    */
-  private PropertyProvider createMetricsReportPropertyProvider(Resource.Type type, StreamProvider streamProvider,
+  private PropertyProvider createMetricsReportPropertyProvider(Resource.Type type, URLStreamProvider streamProvider,
                                                                ComponentSSLConfiguration configuration,
                                                                MetricHostProvider hostProvider,
                                                                MetricsServiceProvider serviceProvider,
@@ -983,7 +983,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * Create the Ganglia host property provider for the given type.
    */
   private PropertyProvider createMetricsHostPropertyProvider(Resource.Type type,
-                                                             StreamProvider streamProvider,
+                                                             URLStreamProvider streamProvider,
                                                              ComponentSSLConfiguration configuration,
                                                              MetricHostProvider hostProvider,
                                                              MetricsServiceProvider serviceProvider,
@@ -999,7 +999,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * Create the Ganglia component property provider for the given type.
    */
   private PropertyProvider createMetricsComponentPropertyProvider(Resource.Type type,
-                                                                  StreamProvider streamProvider,
+                                                                  URLStreamProvider streamProvider,
                                                                   ComponentSSLConfiguration configuration,
                                                                   MetricHostProvider hostProvider,
                                                                   MetricsServiceProvider serviceProvider,
@@ -1017,7 +1017,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
    * Create the Ganglia host component property provider for the given type.
    */
   private PropertyProvider createMetricsHostComponentPropertyProvider(Resource.Type type,
-                                                                      StreamProvider streamProvider,
+                                                                      URLStreamProvider streamProvider,
                                                                       ComponentSSLConfiguration configuration,
                                                                       MetricHostProvider hostProvider,
                                                                       MetricsServiceProvider serviceProvider,

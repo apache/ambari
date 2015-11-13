@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaComponentPropertyProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostComponentPropertyProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaHostPropertyProvider;
@@ -52,7 +53,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   public MetricsPropertyProviderProxy(
     InternalType type,
     Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-    StreamProvider streamProvider,
+    URLStreamProvider streamProvider,
     ComponentSSLConfiguration configuration,
     TimelineMetricCacheProvider cacheProvider,
     MetricHostProvider hostProvider,
@@ -103,7 +104,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   }
 
   private void createHostPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                                           StreamProvider streamProvider,
+                                           URLStreamProvider streamProvider,
                                            ComponentSSLConfiguration configuration,
                                            MetricHostProvider hostProvider,
                                            String clusterNamePropertyId,
@@ -126,7 +127,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
 }
 
   private void createHostComponentPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                                            StreamProvider streamProvider,
+                                            URLStreamProvider streamProvider,
                                             ComponentSSLConfiguration configuration,
                                             MetricHostProvider hostProvider,
                                             String clusterNamePropertyId,
@@ -154,7 +155,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   }
 
   private void createComponentPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                                                StreamProvider streamProvider,
+                                                URLStreamProvider streamProvider,
                                                 ComponentSSLConfiguration configuration,
                                                 MetricHostProvider hostProvider,
                                                 String clusterNamePropertyId,

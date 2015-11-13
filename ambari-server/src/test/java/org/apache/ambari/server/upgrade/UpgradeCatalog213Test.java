@@ -635,16 +635,18 @@ public class UpgradeCatalog213Test {
     Map<String, String> oldPropertiesAmsSite = new HashMap<String, String>() {
       {
         //Including only those properties that might be present in an older version.
-        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(1000));
-        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.service.default.result.limit", String.valueOf(5760));
+        put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(1000));
+        put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(1000));
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(1000));
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
-        put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
-        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
-        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+        put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
+        put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(300));
+        put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(300));
         put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
         put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));

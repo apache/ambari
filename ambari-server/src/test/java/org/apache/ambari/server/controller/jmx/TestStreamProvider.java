@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.jmx;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 
 import java.io.IOException;
@@ -25,7 +27,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestStreamProvider implements StreamProvider {
+public class TestStreamProvider extends URLStreamProvider {
 
   protected static Map<String, String> FILE_MAPPING = new HashMap<String, String>();
 
@@ -51,10 +53,12 @@ public class TestStreamProvider implements StreamProvider {
   private boolean isLastSpecUpdated;
 
   public TestStreamProvider() {
+    super(1000, 1000, ComponentSSLConfiguration.instance());
     delay = 0;
   }
 
   public TestStreamProvider(long delay) {
+    super(1000, 1000, ComponentSSLConfiguration.instance());
     this.delay = delay;
   }
 
