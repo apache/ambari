@@ -181,6 +181,18 @@ public class TimelineMetricConfiguration {
   public static final String HANDLER_THREAD_COUNT =
     "timeline.metrics.service.handler.thread.count";
 
+  public static final String WATCHER_INITIAL_DELAY =
+    "timeline.metrics.service.watcher.initial.delay";
+
+  public static final String WATCHER_DELAY =
+    "timeline.metrics.service.watcher.delay";
+
+  public static final String WATCHER_TIMEOUT =
+    "timeline.metrics.service.watcher.timeout";
+
+  public static final String WATCHER_MAX_FAILURES =
+    "timeline.metrics.service.watcher.max.failures";
+
   public static final String PRECISION_TABLE_SPLIT_POINTS =
     "timeline.metrics.host.aggregate.splitpoints";
 
@@ -247,6 +259,34 @@ public class TimelineMetricConfiguration {
       return Integer.parseInt(metricsConf.get(HANDLER_THREAD_COUNT, "20"));
     }
     return 20;
+  }
+
+  public int getTimelineMetricsServiceWatcherInitDelay() {
+    if (metricsConf != null) {
+      return Integer.parseInt(metricsConf.get(WATCHER_INITIAL_DELAY, "120"));
+    }
+    return 120;
+  }
+
+  public int getTimelineMetricsServiceWatcherDelay() {
+    if (metricsConf != null) {
+      return Integer.parseInt(metricsConf.get(WATCHER_DELAY, "30"));
+    }
+    return 30;
+  }
+
+  public int getTimelineMetricsServiceWatcherTimeout() {
+    if (metricsConf != null) {
+      return Integer.parseInt(metricsConf.get(WATCHER_TIMEOUT, "30"));
+    }
+    return 30;
+  }
+
+  public int getTimelineMetricsServiceWatcherMaxFailures() {
+    if (metricsConf != null) {
+      return Integer.parseInt(metricsConf.get(WATCHER_MAX_FAILURES, "3"));
+    }
+    return 3;
   }
 
   public String getTimelineServiceRpcAddress() {
