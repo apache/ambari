@@ -25,8 +25,6 @@ import java.util.TreeMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -88,9 +86,7 @@ public class ExecutionCommandWrapper {
           // tags to be refreshed to the latest cluster desired-configs.
           Set<String> refreshConfigTagsBeforeExecution = executionCommand.getForceRefreshConfigTagsBeforeExecution();
           if (refreshConfigTagsBeforeExecution != null && !refreshConfigTagsBeforeExecution.isEmpty()) {
-            AmbariManagementController managementController = AmbariServer.getController();
-            Map<String, Map<String, String>> configTags = managementController.findConfigurationTagsWithOverrides(
-                cluster, executionCommand.getHostname());
+            Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
             for (String refreshConfigTag : refreshConfigTagsBeforeExecution) {
               if ("*".equals(refreshConfigTag)) {
                 // if forcing a refresh of *, then clear out any existing
@@ -98,11 +94,15 @@ public class ExecutionCommandWrapper {
                 // forcefully applied
                 LOG.debug("ExecutionCommandWrapper.getExecutionCommand: refreshConfigTag set to {}, so clearing config for full refresh.", refreshConfigTag);
                 executionCommand.getConfigurations().clear();
-                configurationTags = configTags;
-                executionCommand.setConfigurationTags(configTags);
+
+                for (final Entry<String, DesiredConfig> desiredConfig : desiredConfigs.entrySet()) {
+                  configurationTags.put(desiredConfig.getKey(), new HashMap<String, String>() {{
+                    put("tag", desiredConfig.getValue().getTag());
+                  }});
+                }
                 break;
-              } else if (configurationTags.containsKey(refreshConfigTag) && configTags.containsKey(refreshConfigTag)) {
-                configurationTags.put(refreshConfigTag, configTags.get(refreshConfigTag));
+              } else if (configurationTags.containsKey(refreshConfigTag) && desiredConfigs.containsKey(refreshConfigTag)) {
+                configurationTags.get(refreshConfigTag).put("tag", desiredConfigs.get(refreshConfigTag).getTag());
               }
             }
           }
