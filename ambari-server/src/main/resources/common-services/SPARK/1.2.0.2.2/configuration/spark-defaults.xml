@@ -116,28 +116,6 @@
   </property>
 
   <property>
-    <name>spark.driver.extraJavaOptions</name>
-    <value>-Dhdp.version={{hdp_full_version}}</value>
-    <description>
-      Specifies parameters that are passed to the JVM of the Spark driver.
-    </description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>spark.yarn.am.extraJavaOptions</name>
-    <value>-Dhdp.version={{hdp_full_version}}</value>
-    <description>
-      Specifies the parameters that are passed to the JVM of the Spark Application Master.
-    </description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
-
-  <property>
     <name>spark.history.kerberos.principal</name>
     <value>none</value>
     <description>

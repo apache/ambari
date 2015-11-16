@@ -92,22 +92,6 @@
   </property>
 
   <property>
-    <name>spark.driver.extraJavaOptions</name>
-    <value>-Dhdp.version={{hdp_full_version}}</value>
-    <description>
-      Specifies parameters that are passed to the JVM of the Spark driver.
-    </description>
-  </property>
-
-  <property>
-    <name>spark.yarn.am.extraJavaOptions</name>
-    <value>-Dhdp.version={{hdp_full_version}}</value>
-    <description>
-      Specifies the parameters that are passed to the JVM of the Spark Application Master.
-    </description>
-  </property>
-
-  <property>
     <name>spark.yarn.max.executor.failures</name>
     <value>3</value>
     <description>The maximum number of executor failures before failing the application.</description>
