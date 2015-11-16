@@ -77,7 +77,7 @@ def ams(name=None):
                   username = params.ams_user,
                   password = Script.get_password(params.ams_user))
 
-    if params.is_hbase_distributed:
+    if params.is_hdfs_rootdir:
       # Configuration needed to support NN HA
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
@@ -285,7 +285,7 @@ def ams(name=None):
       )
     pass
 
-    if params.is_hbase_distributed:
+    if params.is_hdfs_rootdir:
       # Configuration needed to support NN HA
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,

@@ -1352,7 +1352,7 @@ class TestHDP206StackAdvisor(TestCase):
         'config-name': 'hbase.rootdir',
         'config-type': 'ams-hbase-site',
         'level': 'WARN',
-        'message': 'In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.',
+        'message': 'In distributed mode hbase.rootdir should point to HDFS.',
         'type': 'configuration'
       }
     ]
