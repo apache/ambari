@@ -40,6 +40,16 @@
     <targetType>ALL</targetType>
   </actionDefinition>
   <actionDefinition>
+    <actionName>clear_repocache</actionName>
+    <actionType>SYSTEM</actionType>
+    <inputs/>
+    <targetService/>
+    <targetComponent/>
+    <defaultTimeout>60</defaultTimeout>
+    <description>Clear repository cache on hosts</description>
+    <targetType>ALL</targetType>
+  </actionDefinition>
+  <actionDefinition>
     <actionName>validate_configs</actionName>
     <actionType>SYSTEM</actionType>
     <inputs/>
