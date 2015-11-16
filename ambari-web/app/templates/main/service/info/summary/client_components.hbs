@@ -18,12 +18,12 @@
 <tr class="hidden"><td></td></tr>
 {{#each clientComponent in view.clientsObj}}
   <tr>
-    <td class="summary-label">
+    <td {{bindAttr class=":summary-label clientComponent.summaryLabelClassName"}}>
       <a {{action filterHosts clientComponent}} href="javascript:void(null)" >
         {{clientComponent.displayNamePluralized}}
       </a>
     </td>
-    <td class="summary-label">
+    <td {{bindAttr class=":summary-value clientComponent.summaryValueClassName"}}>
       <span class="green-live">{{clientComponent.installedCount}}</span> {{clientComponent.displayNamePluralized}} {{t common.installed}}
     </td>
   </tr>

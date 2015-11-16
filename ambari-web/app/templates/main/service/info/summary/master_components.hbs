@@ -18,7 +18,7 @@
 <tr class="hidden"><td></td></tr>
 {{#each comp in view.mastersComp}}
   <tr {{bindAttr class="comp.isSubComponent:component-small :component comp.componentName"}}>
-    <td class="summary-label">
+    <td {{bindAttr class=":summary-label comp.summaryLabelClassName"}}>
       <a href="#" {{action showDetails comp.host}} title="{{unbound comp.host.publicHostName}}" rel="UsageTooltip">
         {{#if comp.displayNameAdvanced}}
           {{comp.displayNameAdvanced}}
@@ -27,7 +27,7 @@
         {{/if}}
       </a>
     </td>
-    <td class="summary-value">
+    <td {{bindAttr class=":summary-value comp.summaryValueClassName"}}>
       <span rel='SummaryComponentHealthTooltip' {{bindAttr class="comp.statusClass comp.statusIconClass" data-original-title="comp.passiveTooltip"}}></span>
       {{comp.componentTextStatus}}
     </td>

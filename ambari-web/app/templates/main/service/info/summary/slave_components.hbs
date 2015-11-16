@@ -19,9 +19,9 @@
 
 {{#each slaveComponent in view.slavesObj}}
   <tr {{bindAttr class=":component slaveComponent.componentName"}}>
-    <td class="summary-label"><a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
+    <td {{bindAttr class=":summary-label slaveComponent.summaryLabelClassName"}}><a href="#" {{action filterHosts slaveComponent}}>{{slaveComponent.displayNamePluralized}}</a>
     </td>
-    <td class="summary-value">
+    <td {{bindAttr class=":summary-value slaveComponent.summaryValueClassName"}}>
       <span>
         {{#view App.ComponentLiveTextView liveComponentsBinding="slaveComponent.startedCount" totalComponentsBinding="slaveComponent.totalCount"}}
           {{view.liveComponents}}/{{view.totalComponents}}
