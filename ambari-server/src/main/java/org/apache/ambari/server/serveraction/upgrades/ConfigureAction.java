@@ -45,11 +45,11 @@ import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
-import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
-import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Masked;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -404,9 +404,10 @@ public class ConfigureAction extends AbstractServerAction {
 
     // !!! string replacements happen only on the new values.
     for (Replace replacement : replacements) {
-      if (newValues.containsKey(replacement.key)) {
-        String toReplace = newValues.get(replacement.key);
-
+      // the key might exist but might be null, so we need to check this
+      // condition when replacing a part of the value
+      String toReplace = newValues.get(replacement.key);
+      if (StringUtils.isNotBlank(toReplace)) {
         if (!toReplace.contains(replacement.find)) {
           outputBuffer.append(MessageFormat.format("String \"{0}\" was not found in {1}/{2}\n",
               replacement.find, configType, replacement.key));
@@ -415,15 +416,19 @@ public class ConfigureAction extends AbstractServerAction {
 
           newValues.put(replacement.key, replaced);
 
-          outputBuffer.append(MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"\n",
-            configType, replacement.key, replacement.find, replacement.replaceWith));
+          outputBuffer.append(
+              MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"", configType,
+                  replacement.key, replacement.find, replacement.replaceWith));
+
+          outputBuffer.append(System.lineSeparator());
         }
       } else {
-        outputBuffer.append(MessageFormat.format("Property \"{0}\" was not found in {1} to replace content\n",
-            replacement.key, configType));
+        outputBuffer.append(MessageFormat.format(
+            "Skipping replacement for {0}/{1} because it does not exist or is empty.",
+            configType, replacement.key));
+        outputBuffer.append(System.lineSeparator());
       }
     }
-
 
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead
