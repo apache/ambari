@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('utils/configs/config_initializer_class');
+var stringUtils = require('utils/string_utils');
 
 /**
  * Regexp for host with port ('hostName:1234')
@@ -264,6 +265,7 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
   },
 
   uniqueInitializers: {
+    'ranger_admin_password': '_setRangerAdminPassword',
     'hive_database': '_initHiveDatabaseValue',
     'templeton.hive.properties': '_initTempletonHiveProperties',
     'hbase.zookeeper.quorum': '_initHBaseZookeeperQuorum',
@@ -292,6 +294,19 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     default: '_defaultWinReplace',
     file: '_winReplaceWithFile',
     slashes: '_defaultWinReplaceWithAdditionalSlashes'
+  },
+
+  /**
+   * Some strange method that should define <code>ranger_admin_password</code>
+   * TODO DELETE as soon as <code>ranger_admin_password</code> will be defined in stack!
+   *
+   * @param {configProperty} configProperty
+   * @private
+   */
+  _setRangerAdminPassword: function(configProperty) {
+    var value = 'P1!q' + stringUtils.getRandomString(12);
+    Em.setProperties(configProperty, {'value': value, 'recommendedValue': value, 'retypedPassword': value});
+    return configProperty;
   },
 
   /**
