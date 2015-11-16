@@ -104,8 +104,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           this.loadHosts().done(function () {
             self.loadServices();
             self.loadClients();
-            if(self.get("content.slaveComponentHosts.length"))
-              self.loadSlaveComponentHosts();//depends on loadServices
+            self.loadSlaveComponentHosts();//depends on loadServices
             dfd.resolve();
           });
           return dfd.promise();
@@ -332,14 +331,97 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         });
       });
     }
+    if (!slaveComponentHosts) {
+      slaveComponentHosts = this.getSlaveComponentHosts();
+    }
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddServiceController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
 
   /**
-   * Generate clients list for selected services and save it to model
+   * return slaveComponents bound to hosts
+   * @return {Array}
    */
-  saveClients: function () {
+  getSlaveComponentHosts: function () {
+    var components = this.get('slaveComponents');
+    var result = [];
+    var installedServices = App.Service.find().mapProperty('serviceName');
+    var selectedServices = this.get('content.services').filterProperty('isSelected', true).mapProperty('serviceName');
+    var installedComponentsMap = {};
+    var uninstalledComponents = [];
+    var hosts = this.getDBProperty('hosts') || this.get('content.hosts');
+    var masterComponents = App.get('components.masters');
+    var nonMasterComponentHosts = [];
+
+    components.forEach(function (component) {
+      if (installedServices.contains(component.get('serviceName'))) {
+        installedComponentsMap[component.get('componentName')] = [];
+      } else if (selectedServices.contains(component.get('serviceName'))) {
+        uninstalledComponents.push(component);
+      }
+    }, this);
+
+    for (var hostName in hosts) {
+      if (hosts[hostName].isInstalled) {
+        var isMasterComponentHosted = false;
+        hosts[hostName].hostComponents.forEach(function (component) {
+          if (installedComponentsMap[component.HostRoles.component_name]) {
+            installedComponentsMap[component.HostRoles.component_name].push(hostName);
+          }
+          if (masterComponents.contains(component.HostRoles.component_name)) {
+            isMasterComponentHosted = true;
+          }
+        }, this);
+        if (!isMasterComponentHosted) {
+          nonMasterComponentHosts.push(hostName);
+        }
+      }
+    }
+
+    for (var componentName in installedComponentsMap) {
+      var component = {
+        componentName: componentName,
+        displayName: App.format.role(componentName),
+        hosts: [],
+        isInstalled: true
+      };
+      installedComponentsMap[componentName].forEach(function (hostName) {
+        component.hosts.push({
+          group: "Default",
+          hostName: hostName,
+          isInstalled: true
+        });
+      }, this);
+      result.push(component);
+    }
+
+    if (!nonMasterComponentHosts.length) {
+      nonMasterComponentHosts.push(Object.keys(hosts)[0]);
+    }
+    var uninstalledComponentHosts =  nonMasterComponentHosts.map(function(_hostName){
+      return {
+        group: "Default",
+        hostName: _hostName,
+        isInstalled: false
+      }
+    });
+    uninstalledComponents.forEach(function (component) {
+      result.push({
+        componentName: component.get('componentName'),
+        displayName: App.format.role(component.get('componentName')),
+        hosts: uninstalledComponentHosts,
+        isInstalled: false
+      })
+    });
+
+    return result;
+  },
+
+  /**
+   * Generate clients list for selected services and save it to model
+   * @param stepController step4WizardController
+   */
+  saveClients: function (stepController) {
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
     this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled',false).forEach(function (_service) {
