@@ -37,8 +37,9 @@
             "hbase.security.authentication": "kerberos",
             "hbase.security.authorization": "true",
             "zookeeper.znode.parent": "/hbase-secure",
-              "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
-              "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
+            "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
+            "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
+            "hbase.coprocessor.regionserver.classes": "{{hbase_coprocessor_regionserver_classes}}",
             "hbase.bulkload.staging.dir": "/apps/hbase/staging"
           }
         }

@@ -2327,7 +2327,9 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "hbase.regionserver.global.memstore.size": "0.4",
-          "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint"
+          "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
+          "hbase.coprocessor.regionserver.classes": "",
+          "hbase.coprocessor.master.classes": "",
         },
         'property_attributes': {
           "hbase.bucketcache.size": {
@@ -2433,7 +2435,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.security.authorization'] = "true"
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
-    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test when Ranger plugin HBase is enabled in non-kerberos environment")
 
@@ -2446,11 +2448,11 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d, {{hbase_coprocessor_region_classes}}'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = ''
     del expected['hbase-site']['properties']['hbase.security.authorization']
-    del expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes']
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test with Kerberos enabled and hbase.coprocessor.region.classes predefined")
 
@@ -2474,6 +2476,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
     expected['hbase-site']['properties']['hbase.security.authorization']  = 'true'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test with Kerberos enabled and HBase ranger plugin enabled")

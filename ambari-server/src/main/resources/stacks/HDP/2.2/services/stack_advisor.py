@@ -631,15 +631,20 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
     # Authorization
-    hbase_coprocessor_region_classes = None
-    if 'hbase.coprocessor.region.classes' in configurations["hbase-site"]["properties"]:
-      hbase_coprocessor_region_classes = configurations["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
-    elif 'hbase-site' in services['configurations'] and 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
-      hbase_coprocessor_region_classes = services['configurations']["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
-    if hbase_coprocessor_region_classes:
-      coprocessorRegionClassList = hbase_coprocessor_region_classes.split(',')
-    else:
-      coprocessorRegionClassList = []
+    hbaseCoProcessorConfigs = {
+      'hbase.coprocessor.region.classes': [],
+      'hbase.coprocessor.regionserver.classes': [],
+      'hbase.coprocessor.master.classes': []
+    }
+    for key in hbaseCoProcessorConfigs:
+      hbase_coprocessor_classes = None
+      if key in configurations["hbase-site"]["properties"]:
+        hbase_coprocessor_classes = configurations["hbase-site"]["properties"][key].strip()
+      elif 'hbase-site' in services['configurations'] and key in services['configurations']["hbase-site"]["properties"]:
+        hbase_coprocessor_classes = services['configurations']["hbase-site"]["properties"][key].strip()
+      if hbase_coprocessor_classes:
+        hbaseCoProcessorConfigs[key] = hbase_coprocessor_classes.split(',')
+
     # If configurations has it - it has priority as it is calculated. Then, the service's configurations will be used.
     hbase_security_authorization = None
     if 'hbase-site' in configurations and 'hbase.security.authorization' in configurations['hbase-site']['properties']:
@@ -648,18 +653,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_security_authorization = services['configurations']['hbase-site']['properties']['hbase.security.authorization']
     if hbase_security_authorization:
       if 'true' == hbase_security_authorization.lower():
-        putHbaseSiteProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseSiteProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        hbaseCoProcessorConfigs['hbase.coprocessor.master.classes'].append('org.apache.hadoop.hbase.security.access.AccessController')
+        hbaseCoProcessorConfigs['hbase.coprocessor.regionserver.classes'].append('org.apache.hadoop.hbase.security.access.AccessController')
+        # regional classes when hbase authorization is enabled
+        authRegionClasses = ['org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint', 'org.apache.hadoop.hbase.security.access.AccessController']
+        for item in range(len(authRegionClasses)):
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append(authRegionClasses[item])
       else:
-        putHbaseSiteProperty('hbase.coprocessor.master.classes', "")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
+        if 'org.apache.hadoop.hbase.security.access.AccessController' in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.master.classes'].remove('org.apache.hadoop.hbase.security.access.AccessController')
+        hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
                 ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
           putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
-      coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
+      hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
       if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
               ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
@@ -667,20 +675,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # Authentication
     if 'hbase-site' in services['configurations'] and 'hbase.security.authentication' in services['configurations']['hbase-site']['properties']:
       if 'kerberos' == services['configurations']['hbase-site']['properties']['hbase.security.authentication'].lower():
-        if 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint' not in coprocessorRegionClassList:
-          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint')
-        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in coprocessorRegionClassList:
-          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.token.TokenProvider')
+        if 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint' not in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append('org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint')
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append('org.apache.hadoop.hbase.security.token.TokenProvider')
       else:
-        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in coprocessorRegionClassList:
-          coprocessorRegionClassList.remove('org.apache.hadoop.hbase.security.token.TokenProvider')
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].remove('org.apache.hadoop.hbase.security.token.TokenProvider')
 
     #Remove duplicates
-    uniqueCoprocessorRegionClassList = []
-    [uniqueCoprocessorRegionClassList.append(i)
-     for i in coprocessorRegionClassList if
-     not i in uniqueCoprocessorRegionClassList and i != '{{hbase_coprocessor_region_classes}}']
-    putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
+    for key in hbaseCoProcessorConfigs:
+      uniqueCoprocessorRegionClassList = []
+      [uniqueCoprocessorRegionClassList.append(i)
+       for i in hbaseCoProcessorConfigs[key] if
+       not i in uniqueCoprocessorRegionClassList
+       and (i.strip() not in ['{{hbase_coprocessor_region_classes}}', '{{hbase_coprocessor_master_classes}}', '{{hbase_coprocessor_regionserver_classes}}'])]
+      putHbaseSiteProperty(key, ','.join(set(uniqueCoprocessorRegionClassList)))
+
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     rangerServiceVersion=''
     if 'RANGER' in servicesList:
@@ -692,7 +704,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
 
     nonRangerClass = 'org.apache.hadoop.hbase.security.access.AccessController'
-    hbaseClassConfigs = ['hbase.coprocessor.master.classes', 'hbase.coprocessor.region.classes']
+    hbaseClassConfigs =  hbaseCoProcessorConfigs.keys()
 
     for item in range(len(hbaseClassConfigs)):
       if 'hbase-site' in services['configurations']:
