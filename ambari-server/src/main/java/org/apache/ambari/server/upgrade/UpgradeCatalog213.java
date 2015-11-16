@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -297,6 +298,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateRangerEnvConfig();
     updateZookeeperLog4j();
     updateHiveConfig();
+    updateAccumuloConfigs();
   }
 
   /**
@@ -1099,6 +1101,25 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     return hiveEnvContent.replaceFirst(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
   }
 
+  protected void updateAccumuloConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      // If security type is set to Kerberos, update Kerberos-related configs
+      if(cluster.getSecurityType() == SecurityType.KERBEROS) {
+        Config clientProps = cluster.getDesiredConfigByType("client");
+        if (clientProps != null) {
+          Map<String, String> properties = clientProps.getProperties();
+          if (properties == null) {
+            properties = new HashMap<String, String>();
+          }
+          // <2.1.3 did not account for a custom service principal.
+          // Need to ensure that the client knows the server's principal (the primary) to properly authenticate.
+          properties.put("kerberos.server.primary", "{{bare_accumulo_principal}}");
+          updateConfigurationPropertiesForCluster(cluster, "client", properties, true, false);
+        }
+      } // else -- no special client-configuration is necessary.
+    }
+  }
 
   private String memoryToIntMb(String memorySize) {
     if (memorySize == null) {
