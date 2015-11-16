@@ -35,6 +35,11 @@
             <type>hdfs-site</type>
             <set key="myproperty" value="mynewvalue"/>
           </definition>
+          <definition xsi:type="configure" id="hdp_2_1_1_nn_test">
+            <type>hdfs-site</type>
+            <key>myproperty</key>
+            <value>mynewvalue</value>
+          </definition>
         </changes>
       </component>
     </service>
@@ -64,6 +69,19 @@
       <component name="HIVE_SERVER">
         <changes>
           <definition xsi:type="configure" id="hdp_2_1_1_set_transport_mode">
+            <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
+              <type>hive-site</type>
+              <key>hive.server2.thrift.port</key>
+              <value>10010</value>
+            </condition>
+            <condition type="hive-site" key="hive.server2.transport.mode" value="http">
+              <type>hive-site</type>
+              <key>hive.server2.http.port</key>
+              <value>10011</value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_1_1_test_properties">
             <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
               <type>hive-site</type>
               <key>hive.server2.thrift.port</key>

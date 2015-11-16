@@ -753,7 +753,6 @@ public class UpgradeHelperTest {
         manualTask.message);
   }
 
-  @Ignore
   @Test
   public void testUpgradeOrchestrationFullTask() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
@@ -794,7 +793,7 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder group = groups.get(1);
     // check that the display name is being used
     assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
-    assertEquals(group.items.get(5).getText(), "Service Check Zk");
+    assertEquals(group.items.get(4).getText(), "Service Check Zk");
 
     group = groups.get(3);
     assertEquals(8, group.items.size());
@@ -826,7 +825,7 @@ public class UpgradeHelperTest {
     assertEquals(4, hosts.size());
 
     assertEquals(4, groups.get(0).items.size());
-    assertEquals(6, groups.get(1).items.size());
+    assertEquals(5, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
   }

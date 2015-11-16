@@ -19,7 +19,18 @@
   <target>2.2.*</target>
   <skip-failures>true</skip-failures>
   <skip-service-check-failures>true</skip-service-check-failures>
-  
+  <prerequisite-checks>
+    <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
+    <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
+    <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesNamenodeTruncateCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
+    <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
+    <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
+    <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+  </prerequisite-checks>
   <order>
     <group name="ZOOKEEPER" title="Zookeeper">
       <skippable>true</skippable>
