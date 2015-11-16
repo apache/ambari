@@ -28,6 +28,13 @@ App.ClientComponent = DS.Model.extend({
   stackInfo: DS.belongsTo('App.StackServiceComponent'),
   hostNames: DS.attr('array'),
 
+  summaryLabelClassName:function(){
+    return 'label_for_'+this.get('componentName').toLowerCase();
+  }.property('componentName'),
+
+  summaryValueClassName:function(){
+    return 'value_for_'+this.get('componentName').toLowerCase();
+  }.property('componentName'),
 
   displayName: function() {
     var displayName = App.format.role(this.get('componentName'));
