@@ -23,7 +23,7 @@
   <property>
     <name>policy_user</name>
     <value>storm</value>
-    <display-name>policy User for STORM</display-name>
+    <display-name>Policy user for STORM</display-name>
     <description>This user must be system user and also present at Ranger admin portal</description>
   </property> 
 
@@ -63,6 +63,7 @@
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>stormtestuser</value>
+    <display-name>Ranger repository config password</display-name>
     <property-type>PASSWORD</property-type>
     <description>Used for repository creation on ranger admin</description>
   </property> 
