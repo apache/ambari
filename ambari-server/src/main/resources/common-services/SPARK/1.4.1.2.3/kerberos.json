@@ -46,6 +46,14 @@
         },
         {
           "name": "SPARK_CLIENT"
+        },
+        {
+          "name": "SPARK_THRIFTSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
         }
       ]
     }

@@ -8,9 +8,6 @@
         },
         {
           "name": "/smokeuser"
-        },
-        {
-          "name": "/HDFS/hdfs"
         }
       ],
       "auth_to_local_properties" : [
@@ -30,6 +27,9 @@
         {
           "name": "OOZIE_SERVER",
           "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
             {
               "name": "oozie_server",
               "principal": {

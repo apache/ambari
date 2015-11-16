@@ -5,14 +5,16 @@
     "identities": [
       {
         "name": "/smokeuser"
-      },
-      {
-        "name": "/HDFS/hdfs"
       }
     ],
     "components": [
       {
-        "name": "MAHOUT"
+        "name": "MAHOUT",
+        "identities": [
+          {
+            "name": "/HDFS/NAMENODE/hdfs"
+          }
+        ]
       }
     ]
    }

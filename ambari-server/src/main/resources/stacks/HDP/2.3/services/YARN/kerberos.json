@@ -7,9 +7,6 @@
           "name": "/spnego"
         },
         {
-          "name": "/HDFS/hdfs"
-        },
-        {
           "name": "/smokeuser"
         }
       ],
@@ -176,9 +173,6 @@
           "name": "/spnego"
         },
         {
-          "name": "/HDFS/hdfs"
-        },
-        {
           "name": "/smokeuser"
         }
       ],
@@ -186,6 +180,9 @@
         {
           "name": "HISTORYSERVER",
           "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
             {
               "name": "history_server_jhs",
               "principal": {
