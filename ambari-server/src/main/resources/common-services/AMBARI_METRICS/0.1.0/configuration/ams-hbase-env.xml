@@ -61,6 +61,12 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
@@ -72,6 +78,12 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase_master_maxperm_size</name>

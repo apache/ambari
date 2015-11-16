@@ -2173,6 +2173,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     ]
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'

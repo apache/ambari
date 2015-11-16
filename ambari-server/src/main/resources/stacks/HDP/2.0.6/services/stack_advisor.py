@@ -437,11 +437,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
+    hbaseClusterDistributed = False
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
       if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
+      if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
+        hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:
@@ -496,7 +499,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
 
     # Distributed mode heap size
-    if rootDir.startswith("hdfs://"):
+    if hbaseClusterDistributed:
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
@@ -521,7 +524,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
-    mode = 'distributed' if rootDir.startswith("hdfs://") else 'embedded'
+    mode = 'distributed' if hbaseClusterDistributed else 'embedded'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
@@ -813,7 +816,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
     if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
-      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.")
+      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
       pass
 
     distributed_item = None
@@ -890,8 +893,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     masterXmnItem = None
     regionServerXmnItem = None
-    hbase_rootdir = amsHbaseSite.get("hbase.rootdir")
-    is_hbase_distributed = hbase_rootdir.startswith('hdfs://')
+    is_hbase_distributed = amsHbaseSite.get("hbase.cluster.distributed").lower() == 'true'
 
     if is_hbase_distributed:
       minMasterXmn = 0.12 *  hbase_master_heapsize
@@ -967,8 +969,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           requiredMemory = getMemorySizeRequired(hostComponents, configurations)
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
           if unusedMemory > 4294967296:  # warn user, if more than 4GB RAM is unused
-            heapPropertyToIncrease = "hbase_regionserver_heapsize" if hbase_rootdir.startswith("hdfs://") else "hbase_master_heapsize"
-            xmnPropertyToIncrease = "regionserver_xmn_size" if hbase_rootdir.startswith("hdfs://") else "hbase_master_xmn_size"
+            heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
+            xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
             collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
             hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
             hbase_heapsize = min(32*1024*1024*1024, hbase_heapsize) #Make sure heapsize < 32GB
@@ -1018,7 +1020,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     # '/etc/resolv.conf', '/etc/hostname', '/etc/hosts' are docker specific mount points
     undesirableMountPoints = ["/", "/home", "/etc/resolv.conf", "/etc/hosts",
-                              "/etc/hostname"]
+                              "/etc/hostname", "/tmp"]
     undesirableFsTypes = ["devtmpfs", "tmpfs", "vboxsf", "CDFS"]
     mountPoints = []
     if hostInfo and "disk_info" in hostInfo:

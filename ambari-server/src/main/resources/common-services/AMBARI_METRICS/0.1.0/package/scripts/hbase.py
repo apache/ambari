@@ -190,7 +190,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if name == "master":
 
-    if params.is_hbase_distributed:
+    if params.is_hdfs_rootdir:
       # If executing Stop All, HDFS is probably down
       if action != 'stop':
 
@@ -212,6 +212,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
         params.HdfsResource(None, action="execute")
 
+      if params.is_hbase_distributed:
         #Workaround for status commands not aware of operating mode
         File(format("{params.hbase_pid_dir}/distributed_mode"), action="create", mode=0644, owner=params.hbase_user)
 
