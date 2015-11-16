@@ -60,6 +60,9 @@
           "name": "HIVE_SERVER",
           "identities": [
             {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
               "name": "hive_server_hive",
               "principal": {
                 "value": "hive/_HOST@${realm}",

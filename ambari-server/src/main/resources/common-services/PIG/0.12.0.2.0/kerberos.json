@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "PIG",
+      "components": [
+        {
+          "name": "PIG",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -8,9 +8,6 @@
         },
         {
           "name": "/smokeuser"
-        },
-        {
-          "name": "/HDFS/hdfs"
         }
       ],
       "configurations": [
@@ -29,6 +26,9 @@
         {
           "name": "FALCON_SERVER",
           "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
             {
               "name": "falcon_server",
               "principal": {

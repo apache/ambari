@@ -9,13 +9,6 @@
             {
               "name": "/HDFS/NAMENODE/hdfs"
             }
-          ],
-          "configurations": [
-            {
-              "tez-site": {
-                "tez.am.view-acls": ""
-              }
-            }
           ]
         }
       ]
