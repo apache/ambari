@@ -138,11 +138,6 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = '  -Dhdp.version=2.3.2.0-1597',
-        owner = 'spark',
-        group = 'spark',
-    )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf',
         key_value_delimiter = ' ',
         properties = self.getConfig()['configurations']['spark-thrift-sparkconf']

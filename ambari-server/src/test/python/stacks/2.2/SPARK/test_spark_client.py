@@ -83,11 +83,7 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = '  -Dhdp.version=2.3.0.0-1597',
-        owner = 'spark',
-        group = 'spark',
-    )
+
       
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/run/spark',
@@ -121,11 +117,7 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
-    self.assertResourceCalled('File', '/usr/hdp/current/spark-client/conf/java-opts',
-        content = '  -Dhdp.version=2.3.0.0-1597',
-        owner = 'spark',
-        group = 'spark',
-    )
+
 
   def test_pre_upgrade_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"

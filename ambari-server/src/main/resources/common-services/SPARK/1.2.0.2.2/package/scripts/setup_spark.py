@@ -44,12 +44,12 @@ def setup_spark(env, type, action = None):
                        mode=0775
     )
     params.HdfsResource(None, action="execute")
-    
+
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
     properties = params.config['configurations']['spark-defaults'],
-    key_value_delimiter = " ", 
+    key_value_delimiter = " ",
     owner=params.spark_user,
-    group=params.spark_group,              
+    group=params.spark_group,
   )
 
   # create spark-env.sh in etc/conf dir
@@ -73,12 +73,6 @@ def setup_spark(env, type, action = None):
        content=InlineTemplate(params.spark_metrics_properties)
   )
 
-  File(os.path.join(params.spark_conf, 'java-opts'),
-       owner=params.spark_user,
-       group=params.spark_group,
-       content=params.spark_javaopts_properties
-  )
-
   if params.is_hive_installed:
     XmlConfig("hive-site.xml",
           conf_dir=params.spark_conf,
@@ -92,5 +86,5 @@ def setup_spark(env, type, action = None):
       and 'spark-thrift-sparkconf' in params.config['configurations']:
     PropertiesFile(params.spark_thrift_server_conf_file,
       properties = params.config['configurations']['spark-thrift-sparkconf'],
-      key_value_delimiter = " ",             
+      key_value_delimiter = " ",
     )
