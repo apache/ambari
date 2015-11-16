@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var stringUtils = require('utils/string_utils')
 
 module.exports = {
 
@@ -26,6 +27,9 @@ module.exports = {
     var hostWithPort = "([\\w|\\.]*)(?=:)";
     var hostWithPrefix = ":\/\/" + hostWithPort;
     switch (configProperty.get('name')) {
+      case 'ranger_admin_password':
+        this.generateRangerPassword(configProperty);
+        break;
       case 'dfs.namenode.rpc-address':
       case 'dfs.http.address':
       case 'dfs.namenode.http-address':
@@ -239,6 +243,15 @@ module.exports = {
     return hiveMSUris.join(',');
   },
 
+  /**
+   * method to randomly generate <code>ranger_admin_password</code>
+   * @returns {*}
+   */
+  generateRangerPassword: function(configProperty) {
+    var value = 'P1!q' + stringUtils.getRandomString(12);
+    Em.setProperties(configProperty, {'value': value, 'recommendedValue': value, 'retypedPassword': value});
+    return configProperty;
+  },
   /**
    * @param regex : String
    * @param replaceWith : String
