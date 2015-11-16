@@ -23,7 +23,7 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.5.1.2.3</version>
+          <version>1.5.2.2.3</version>
           <extends>common-services/SPARK/1.4.1.2.3</extends>
           <osSpecifics>
             <osSpecific>
