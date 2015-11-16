@@ -78,6 +78,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -262,6 +263,7 @@ public class UpgradeCatalog213Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
     Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
+    Method updateAccumuloConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAccumuloConfigs");
 
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
@@ -277,6 +279,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateZookeeperLog4j)
         .addMockedMethod(updateRangerEnvConfig)
         .addMockedMethod(updateHiveConfig)
+        .addMockedMethod(updateAccumuloConfigs)
         .createMock();
 
     upgradeCatalog213.addNewConfigurationsFromXml();
@@ -302,6 +305,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateRangerEnvConfig();
     expectLastCall().once();
     upgradeCatalog213.updateHiveConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateAccumuloConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -1287,4 +1292,62 @@ public class UpgradeCatalog213Test {
     Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
   }
 
+  @Test
+  public void testUpdateAccumuloConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    // We start with no client properties (< 2.1.3).
+    final Map<String, String> originalClientProperties = new HashMap<String, String>();
+    // And should get the following property on upgrade.
+    final Map<String, String> updatedClientProperties = new HashMap<String, String>() {
+      {
+        put("kerberos.server.primary", "{{bare_accumulo_principal}}");
+      }
+    };
+    
+    final Config clientConfig = easyMockSupport.createNiceMock(Config.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    // Enable KERBEROS
+    expect(mockClusterExpected.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
+    // Mock out our empty original properties
+    expect(mockClusterExpected.getDesiredConfigByType("client")).andReturn(clientConfig).atLeastOnce();
+    expect(clientConfig.getProperties()).andReturn(originalClientProperties).atLeastOnce();
+
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+                    Map.class, boolean.class, boolean.class)
+            .createMock();
+    // Verify that we get this method called with the updated properties
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "client", updatedClientProperties, true, false);
+    expectLastCall().once();
+
+    // Run it
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog213);
+    upgradeCatalog213.updateAccumuloConfigs();
+    easyMockSupport.verifyAll();
+  }
 }
