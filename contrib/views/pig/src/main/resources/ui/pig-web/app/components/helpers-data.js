@@ -72,7 +72,7 @@ module.exports = [
   {
     'title':'HCatalog',
     'helpers':[
-      "LOAD '%TABLE%' USING org.apache.hcatalog.pig.HCatLoader();"
+      "LOAD '%TABLE%' USING org.apache.hive.hcatalog.pig.HCatLoader();"
     ]
   },
   {
