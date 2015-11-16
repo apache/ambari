@@ -109,6 +109,8 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
+    self.assertResourceCalled('Package', 'fuse')
+    self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
     self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -167,6 +169,8 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
+    self.assertResourceCalled('Package', 'fuse')
+    self.assertResourceCalled('Package', 'libfuse2')
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
     self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
@@ -228,6 +232,8 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
     )
+    self.assertResourceCalled('Package', 'fuse')
+    self.assertResourceCalled('Package', 'fuse-libs')
     self.assertResourceCalled('Package', 'hadoop_2_2_*', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
     self.assertResourceCalled('Package', 'snappy', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=['HDP-*'])
@@ -360,6 +366,8 @@ class TestInstallPackages(RMFTestCase):
                               mirror_list=None,
                               append_to_file=True,
                               )
+    self.assertResourceCalled('Package', 'fuse')
+    self.assertResourceCalled('Package', 'libfuse2')
     self.assertResourceCalled('Package', 'hadoop_2_2_0_1_885*', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
     self.assertResourceCalled('Package', 'snappy', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])
     self.assertResourceCalled('Package', 'snappy-devel', use_repos=['base', 'HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'], skip_repos=[])

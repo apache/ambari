@@ -287,6 +287,8 @@ class InstallPackages(Script):
     # Install packages
     packages_were_checked = False
     try:
+      Package(self.get_base_packages_to_install())
+      
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
       packages_installed_before = [package[0] for package in packages_installed_before]
@@ -375,6 +377,20 @@ class InstallPackages(Script):
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
+    
+  def get_base_packages_to_install(self):
+    """
+    HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
+    """
+    base_packages_to_install = ['fuse']
+    
+    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
+      base_packages_to_install.append('libfuse2')
+    else:
+      base_packages_to_install.append('fuse-libs')
+      
+    return base_packages_to_install
+
     
   def filter_package_list(self, package_list):
     """
