@@ -23,6 +23,7 @@ import org.apache.hive.service.cli.thrift.TStatusCode;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
@@ -58,6 +59,19 @@ public class Utils {
       }
     }
     return true;
+  }
+
+  /**
+   * Removes the empty strings and returns back only the strings with content
+   */
+  static String[] removeEmptyStrings(String[] strs) {
+    List<String> nonEmptyStrings = new ArrayList<>();
+    for(String str : strs) {
+      if (!(str == null || str.trim().isEmpty())) {
+        nonEmptyStrings.add(str);
+      }
+    }
+    return nonEmptyStrings.toArray(new String[] {});
   }
 
   public static class HiveAuthenticationParams {
