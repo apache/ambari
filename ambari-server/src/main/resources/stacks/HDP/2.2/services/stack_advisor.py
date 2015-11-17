@@ -784,8 +784,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
-
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
     storm_site = getServicesSiteProperties(services, "storm-site")

@@ -465,6 +465,49 @@ class TestHDP206StackAdvisor(TestCase):
 
     self.assertEquals(result, expected)
 
+  def test_recommendStormConfigurations(self):
+    # no AMS
+    configurations = {}
+    services = {
+      "services":  [
+      ],
+      "configurations": configurations
+    }
+
+    expected = {
+      "storm-site": {
+        "properties": {
+        }
+      },
+    }
+
+    self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
+    self.assertEquals(configurations, expected)
+
+    # with AMS
+    configurations = {}
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          }
+        }
+      ],
+      "configurations": configurations
+    }
+
+    expected = {
+      "storm-site": {
+        "properties": {
+          "metrics.reporter.register": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
+        }
+      },
+    }
+
+    self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
+    self.assertEquals(configurations, expected)
+
   def test_recommendYARNConfigurations(self):
     configurations = {}
     services = {"configurations": configurations}
@@ -1375,6 +1418,51 @@ class TestHDP206StackAdvisor(TestCase):
         'level': 'WARN',
         'message': 'In distributed mode hbase.rootdir should point to HDFS.',
         'type': 'configuration'
+      }
+    ]
+    self.assertEquals(res, expected)
+
+  def test_validateStormSiteConfigurations(self):
+    configurations = {
+      "storm-site": {
+        "properties": {
+          'metrics.reporter.register': "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
+        }
+      }
+    }
+
+    recommendedDefaults = {
+      'metrics.reporter.register': 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter',
+    }
+    properties = {
+      'metrics.reporter.register': 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter',
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          }
+        }
+      ],
+      "configurations": configurations
+    }
+
+    # positive
+    res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
+    expected = []
+    self.assertEquals(res, expected)
+    properties['metrics.reporter.register'] = ''
+
+    res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
+    expected = [
+      {'config-name': 'metrics.reporter.register',
+       'config-type': 'storm-site',
+       'level': 'WARN',
+       'message': 'Should be set to org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter '
+                  'to report the metrics to Ambari Metrics service.',
+       'type': 'configuration'
       }
     ]
     self.assertEquals(res, expected)

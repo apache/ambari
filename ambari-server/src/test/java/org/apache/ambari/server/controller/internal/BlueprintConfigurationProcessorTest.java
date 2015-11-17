@@ -148,6 +148,19 @@ public class BlueprintConfigurationProcessorTest {
     hbaseComponents.add("HBASE_MASTER");
     serviceComponents.put("HBASE", hbaseComponents);
 
+    Collection<String> atlasComponents = new HashSet<String>();
+    atlasComponents.add("ATLAS_SERVER");
+    atlasComponents.add("ATLAS_CLIENT");
+    serviceComponents.put("ATLAS", atlasComponents);
+
+    Collection<String> amsComponents = new HashSet<String>();
+    amsComponents.add("METRICS_COLLECTOR");
+    serviceComponents.put("AMBARI_METRICS", amsComponents);
+
+    Collection<String> stormComponents = new HashSet<String>();
+    stormComponents.add("NIMBUS");
+    serviceComponents.put("STORM", stormComponents);
+
     for (Map.Entry<String, Collection<String>> entry : serviceComponents.entrySet()) {
       String service = entry.getKey();
       for (String component : entry.getValue()) {
@@ -5166,6 +5179,132 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("*", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.hosts"));
     assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.groups"));
+  }
+
+  @Test
+  public void testStormAmsPropertiesDefault() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSite = new HashMap<String, String>();
+    //default
+    stormSite.put("metrics.reporter.register", "");
+    properties.put("storm-site", stormSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    hgComponents1.add("NIMBUS");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter",
+      clusterConfig.getPropertyValue("storm-site", "metrics.reporter.register"));
+  }
+
+  @Test
+  public void testStormAmsPropertiesUserDefinedReporter() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSite = new HashMap<String, String>();
+    //default
+    stormSite.put("metrics.reporter.register", "user.Reporter");
+    properties.put("storm-site", stormSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    hgComponents1.add("NIMBUS");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("user.Reporter",
+      clusterConfig.getPropertyValue("storm-site", "metrics.reporter.register"));
+  }
+
+  @Test
+  public void testKafkaAmsProperties() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSite = new HashMap<String, String>();
+    //default
+    stormSite.put("kafka.metrics.reporters", "");
+    properties.put("kafka-broker", stormSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    hgComponents1.add("KAFKA_BROKER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter",
+      clusterConfig.getPropertyValue("kafka-broker", "kafka.metrics.reporters"));
+
+  }
+
+  @Test
+  public void testKafkaAmsPropertiesMultipleReporters() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    Map<String, String> stormSite = new HashMap<String, String>();
+    //default
+    stormSite.put("kafka.metrics.reporters", "user.Reporter");
+    properties.put("kafka-broker", stormSite);
+
+    Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
+    Configuration parentClusterConfig = new Configuration(parentProperties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap(), parentClusterConfig);
+
+    Collection<String> hgComponents1 = new HashSet<String>();
+    hgComponents1.add("METRICS_COLLECTOR");
+    hgComponents1.add("KAFKA_BROKER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents1, Collections.singleton("host1"));
+
+    Collection<TestHostGroup> hostGroups = Collections.singletonList(group1);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    configProcessor.doUpdateForClusterCreate();
+
+    assertEquals("user.Reporter,org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter",
+      clusterConfig.getPropertyValue("kafka-broker", "kafka.metrics.reporters"));
+
   }
 
   @Test

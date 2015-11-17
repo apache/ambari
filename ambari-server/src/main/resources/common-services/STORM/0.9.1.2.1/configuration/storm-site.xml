@@ -720,4 +720,11 @@
        "storm dev-zookeeper". This zookeeper instance is only intended for development;
        it is not a production grade zookeeper setup.</description>
   </property>
+  <property>
+    <name>metrics.reporter.register</name>
+    <description>Topology metrics reporter.</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
 </configuration>
