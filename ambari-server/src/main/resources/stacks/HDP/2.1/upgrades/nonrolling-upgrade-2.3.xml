@@ -306,6 +306,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
       </execute-stage>
 
+      <!--FALCON-->
+      <execute-stage service="FALCON" component="FALCON_SERVER" title="Apply config changes for Falcon Server">
+        <task xsi:type="configure" id="hdp_2_2_0_0_falcon_application_services"/>
+      </execute-stage>
 
       <!--STORM-->
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
