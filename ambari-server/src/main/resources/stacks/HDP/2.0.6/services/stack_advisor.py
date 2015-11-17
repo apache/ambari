@@ -226,11 +226,23 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
+    putHDFSSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    putHDFSSitePropertyAttributes = self.putPropertyAttribute(configurations, "hdfs-site")
     putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
+    # Check if NN HA is enabled and recommend removing dfs.namenode.rpc-address
+    hdfsSiteProperties = getServicesSiteProperties(services, "hdfs-site")
+    nameServices = None
+    if hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
+      nameServices = hdfsSiteProperties['dfs.nameservices']
+    if nameServices and "dfs.ha.namenodes.%s" % nameServices in hdfsSiteProperties:
+      namenodes = hdfsSiteProperties["dfs.ha.namenodes.%s" % nameServices]
+      if len(namenodes.split(',')) > 1:
+        putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)

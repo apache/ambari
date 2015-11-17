@@ -1010,6 +1010,10 @@ class TestHDP206StackAdvisor(TestCase):
           "webhcat_user": "webhcat"
         }
       },
+      "hdfs-site": {
+        "properties": {
+        }
+      },
       "oozie-env": {
         "properties": {
           "oozie_user": "oozie"
@@ -1066,6 +1070,23 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+    # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
+    configurations["hdfs-site"]["properties"]['dfs.nameservices'] = "mycluster"
+    configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
+    services['configurations'] = configurations
+    expected["hdfs-site"] = {
+      'properties': {
+        'dfs.nameservices': 'mycluster',
+        'dfs.ha.namenodes.mycluster': 'nn1,nn2'
+      },
+      'property_attributes': {
+        'dfs.namenode.rpc-address': {
+          'delete': 'true'
+        }
+      }
+    }
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
 
 
   def test_getHostNamesWithComponent(self):
