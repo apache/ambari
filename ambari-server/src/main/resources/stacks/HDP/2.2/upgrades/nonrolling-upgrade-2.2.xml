@@ -295,7 +295,7 @@
       <direction>UPGRADE</direction>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
-        <task xsi:type="execute" hosts="master" summary="Wait for NameNode to leave Safemode">
+        <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
           <script>scripts/namenode.py</script>
           <function>wait_for_safemode_off</function>
         </task>
