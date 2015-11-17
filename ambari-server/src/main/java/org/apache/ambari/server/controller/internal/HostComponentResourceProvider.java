@@ -554,6 +554,14 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         continue;
       }
 
+      // STARTED state is invalid for the client component, but this shouldn't cancel the whole stage
+      if (sc.isClientComponent() && newState == State.STARTED &&
+            !requestProperties.containsKey(sch.getServiceComponentName().toLowerCase())) {
+        ignoredScHosts.add(sch);
+        logComponentInfo("Ignoring ServiceComponentHost", request, sch.getState(), newState);
+        continue;
+      }
+
       if (sc.isClientComponent() &&
           !newState.isValidClientComponentState()) {
         throw new IllegalArgumentException("Invalid desired state for a client"
