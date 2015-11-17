@@ -22,13 +22,13 @@ angular.module('ambariAdminConsole')
 
   function loadUserInfo(){
     User.get($routeParams.id).then(function(data) {
-      $scope.user = data.Users;
+      $scope.user = User.makeUser(data).Users;
       $scope.isCurrentUser = $scope.user.user_name === Auth.getCurrentUser();
       $scope.editingGroupsList = angular.copy($scope.user.groups);
     });
   }
 
-  loadUserInfo();  
+  loadUserInfo();
   $scope.user;
   $scope.isCurrentUser = true;
   $scope.dataLoaded = false;
@@ -46,7 +46,6 @@ angular.module('ambariAdminConsole')
       if( !angular.equals(newValue, $scope.user.groups) ){
         $scope.updateGroups();
       }
-        
     }
   }, true);
 

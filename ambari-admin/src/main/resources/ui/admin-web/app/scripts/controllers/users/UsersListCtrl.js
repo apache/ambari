@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', function($scope, User, $modal, $rootScope) {
+  .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', function($scope, User, $modal, $rootScope, UserConstants) {
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
@@ -35,18 +35,15 @@ angular.module('ambariAdminConsole')
 
   $scope.loadUsers = function(){
     User.list({
-      currentPage: $scope.currentPage, 
-      usersPerPage: $scope.usersPerPage, 
+      currentPage: $scope.currentPage,
+      usersPerPage: $scope.usersPerPage,
       searchString: $scope.currentNameFilter,
-      ldap_user: $scope.currentTypeFilter.value,
+      user_type: $scope.currentTypeFilter.value,
       active: $scope.currentActiveFilter.value,
       admin: $scope.adminFilter
     }).then(function(data) {
       $scope.totalUsers = data.data.itemTotal;
-      $scope.users = data.data.items.map(function (user) {
-        user.Users.encoded_name = encodeURIComponent(user.Users.user_name);
-        return user;
-      });
+      $scope.users = data.data.items.map(User.makeUser);
     });
   };
 
@@ -61,13 +58,15 @@ angular.module('ambariAdminConsole')
     {label:'Inactive', value:false}
   ];
   $scope.currentActiveFilter = $scope.actvieFilterOptions[0];
-  
 
-  $scope.typeFilterOptions = [
-    {label:'All', value:'*'},
-    {label:'Local', value:false},
-    {label:'LDAP', value:true}
-  ];
+  $scope.typeFilterOptions = [{ label: 'All', value: '*'}]
+    .concat(Object.keys(UserConstants.TYPES).map(function(key) {
+      return {
+        label: UserConstants.TYPES[key].NAME,
+        value: UserConstants.TYPES[key].VALUE
+      };
+    }));
+
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
 
   $scope.adminFilter = false;
