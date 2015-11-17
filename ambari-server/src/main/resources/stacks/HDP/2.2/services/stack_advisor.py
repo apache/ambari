@@ -839,7 +839,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       authPattern = "<provider>\s*<role>\s*authorization\s*</role>[\s\S]*?</provider>"
       authXml = re.search(authPattern, topologyContent)
 
-      if authXml.group(0):
+      if authXml and authXml.group(0):
         authNamePattern = "<name>\s*(.*?)\s*</name>"
         authName = re.search(authNamePattern, authXml.group(0))
         newAuthName=''
