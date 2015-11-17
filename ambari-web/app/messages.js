@@ -290,6 +290,7 @@ Em.I18n.translations = {
   'common.timeout.warning.popup.body.after': ' seconds due to inactivity',
   'common.timeout.warning.popup.primary': 'Remain Logged In',
   'common.timeout.warning.popup.secondary': 'Log Out Now',
+  'common.openNewWindow': 'Open in New Window',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",

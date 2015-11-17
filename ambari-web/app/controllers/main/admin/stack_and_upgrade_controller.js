@@ -1486,5 +1486,37 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       self.initDBProperties();
       self.loadUpgradeData(true);
     });
+  },
+
+  /**
+   * Build table from configs list and open new window to show this table
+   * @param configs
+   */
+  openConfigsInNewWindow: function (configs) {
+    var newWindow;
+    var output = '';
+
+    output += '<table style="text-align: left;"><thead><tr>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+        '</tr></thead><tbody>';
+
+    configs.context.forEach(function (config) {
+      output += '<tr>' +
+          '<td>' + config.type + '</td>' +
+          '<td>' + config.name + '</td>' +
+          '<td>' + config.currentValue + '</td>' +
+          '<td>' + config.recommendedValue + '</td>' +
+          '<td>' + config.resultingValue + '</td>' +
+          '</tr>';
+    });
+
+    output += '</tbody></table>';
+    newWindow = window.open();
+    newWindow.document.write(output);
+    newWindow.focus();
   }
 });

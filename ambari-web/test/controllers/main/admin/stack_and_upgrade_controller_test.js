@@ -1034,23 +1034,23 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "stackVersion": '2.3',
         "repositoryVersion": '2.2.1'
       });
-      
+
       var stackVersion = controller.getStackVersionNumber(repo);
       expect(stackVersion).to.equal('2.3');
     });
-    
+
     it("get default stack version number", function(){
       App.set('currentStackVersion', '1.2.3');
       var repo = Em.Object.create({
         "stackVersionType": 'HDP',
         "repositoryVersion": '2.2.1'
       });
-      
+
       var stackVersion = controller.getStackVersionNumber(repo);
       expect(stackVersion).to.equal('1.2.3');
     });
   });
-  
+
   describe("#saveRepoOS()", function() {
     before(function(){
       this.mock = sinon.stub(controller, 'validateRepoVersions');
@@ -1641,6 +1641,75 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         controller.getSlaveComponentItemSuccessCallback(test.data);
         expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
       });
+    });
+  });
+
+
+  describe("#openConfigsInNewWindow()", function () {
+
+    var mock = {
+      document: {
+        write: function () {}
+      },
+      focus: function () {}
+    };
+
+    before(function(){
+      sinon.stub(window, 'open', function () {
+        return mock;
+      });
+      sinon.spy(mock.document, 'write');
+      sinon.spy(mock, 'focus');
+    });
+
+    after(function(){
+      window.open.restore();
+    });
+
+    it("should open window and write table to it", function () {
+
+      controller.openConfigsInNewWindow({
+        context: [
+          {
+            type: 'type1',
+            name: 'name1',
+            currentValue: 'currentValue1',
+            recommendedValue: 'recommendedValue1',
+            resultingValue: 'resultingValue1'
+          },
+          {
+            type: 'type2',
+            name: 'name2',
+            currentValue: 'currentValue2',
+            recommendedValue: 'recommendedValue2',
+            resultingValue: 'resultingValue2'
+          }
+        ]
+      });
+
+      expect(window.open.calledOnce).to.be.true;
+      expect(mock.document.write.calledWith('<table style="text-align: left;"><thead><tr>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+          '</tr></thead><tbody>' +
+          '<tr>' +
+          '<td>' + 'type1' + '</td>' +
+          '<td>' + 'name1' + '</td>' +
+          '<td>' + 'currentValue1' + '</td>' +
+          '<td>' + 'recommendedValue1' + '</td>' +
+          '<td>' + 'resultingValue1' + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td>' + 'type2' + '</td>' +
+          '<td>' + 'name2' + '</td>' +
+          '<td>' + 'currentValue2' + '</td>' +
+          '<td>' + 'recommendedValue2' + '</td>' +
+          '<td>' + 'resultingValue2' + '</td>' +
+          '</tr></tbody></table>')).to.be.true;
+      expect(mock.focus.calledOnce).to.be.true;
     });
   });
 
