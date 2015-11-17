@@ -69,6 +69,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
@@ -248,6 +249,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private AmbariSessionManager sessionManager;
+
+  @Inject
+  private TopologyRequestDAO topologyRequestDAO;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -2018,6 +2022,7 @@ public class ClusterImpl implements Cluster {
     alertDefinitionDAO.removeAll(clusterId);
     alertDispatchDAO.removeAllGroups(clusterId);
     upgradeDAO.removeAll(clusterId);
+    topologyRequestDAO.removeAll(clusterId);
     clusterDAO.removeByPK(clusterId);
   }
 

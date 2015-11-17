@@ -73,4 +73,16 @@ public class TopologyRequestDAO {
   public void removeByPK(Long requestId) {
     remove(findById(requestId));
   }
+
+  /**
+   * Removes all {@link TopologyRequestEntity} that are associated with the specified cluster ID.
+   * @param clusterId the cluster ID.
+   */
+  @Transactional
+  public void removeAll(Long clusterId) {
+    List<TopologyRequestEntity> clusterTopologyRequests = findByClusterId(clusterId);
+    for (TopologyRequestEntity topologyRequestEntity: clusterTopologyRequests)
+      remove(topologyRequestEntity);
+  }
 }
+

@@ -115,4 +115,18 @@ public class TopologyRequestDAOTest {
     create();
     testRequestEntity(requestDAO.findByClusterId(clusterId));
   }
+
+  @Test
+  public void testRemoveAll() throws Exception {
+    // Given
+    create();
+
+    // When
+    requestDAO.removeAll(clusterId);
+
+
+    // Then
+    List<TopologyRequestEntity> requestEntities = requestDAO.findByClusterId(clusterId);
+    Assert.assertEquals("All topology request entities associated with cluster should be removed !", 0, requestEntities.size());
+  }
 }
