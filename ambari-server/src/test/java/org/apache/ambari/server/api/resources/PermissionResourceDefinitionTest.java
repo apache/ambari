@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.api.resources;
 
+import org.apache.ambari.server.controller.spi.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -43,8 +45,14 @@ public class PermissionResourceDefinitionTest {
   public void testGetSubResourceDefinitions() throws Exception {
     PermissionResourceDefinition permissionResourceDefinition = new PermissionResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = permissionResourceDefinition.getSubResourceDefinitions ();
+    Set<Resource.Type> expectedSubTypes = new HashSet<Resource.Type>();
+    expectedSubTypes.add(Resource.Type.RoleAuthorization);
 
-    Assert.assertEquals(0, subResourceDefinitions.size());
+    Assert.assertEquals(1, subResourceDefinitions.size());
+
+    for(SubResourceDefinition subResourceDefinition:subResourceDefinitions) {
+      Assert.assertTrue(expectedSubTypes.contains(subResourceDefinition.getType()));
+    }
   }
 }
 

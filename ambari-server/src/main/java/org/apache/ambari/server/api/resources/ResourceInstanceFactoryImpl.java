@@ -396,6 +396,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new CredentialResourceDefinition();
         break;
 
+      case RoleAuthorization:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.RoleAuthorization, "authorization", "authorizations");
+        break;
+
+      case UserAuthorization:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.UserAuthorization, "authorization", "authorizations");
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

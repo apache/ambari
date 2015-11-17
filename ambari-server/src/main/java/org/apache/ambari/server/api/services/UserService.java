@@ -149,6 +149,19 @@ public class UserService extends BaseService {
   }
 
   /**
+   * Gets the user authorization service.
+   *
+   * @param request  the request
+   * @param username the username
+   * @return the UserAuthorizationService
+   */
+  @Path("{userName}/authorizations")
+  public UserAuthorizationService getUserAuthorizations(
+      @Context javax.ws.rs.core.Request request, @PathParam("userName") String username) {
+    return new UserAuthorizationService(username);
+  }
+
+  /**
    * Create a user resource instance.
    *
    * @param userName  user name

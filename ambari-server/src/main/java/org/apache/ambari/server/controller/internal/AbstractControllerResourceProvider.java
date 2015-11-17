@@ -173,6 +173,10 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return resourceProviderFactory.getHostKerberosIdentityResourceProvider(managementController);
       case Credential:
         return resourceProviderFactory.getCredentialResourceProvider(managementController);
+      case RoleAuthorization:
+        return new RoleAuthorizationResourceProvider(managementController);
+      case UserAuthorization:
+        return new UserAuthorizationResourceProvider(managementController);
 
       default:
         throw new IllegalArgumentException("Unknown type " + type);
