@@ -896,12 +896,12 @@ public class ClusterTest {
     Assert.assertTrue("Expect desired config contain " + config1.getType(), desiredConfigs.containsKey("global"));
     Assert.assertTrue("Expect desired config contain " + config3.getType(), desiredConfigs.containsKey("core-site"));
     Assert.assertEquals("Expect desired config for global should be " + config1.getTag(),
-        config1.getTag(), desiredConfigs.get(config1.getType()).getTag());
+      config1.getTag(), desiredConfigs.get(config1.getType()).getTag());
     Assert.assertEquals("_test1", desiredConfigs.get(config1.getType()).getUser());
     Assert.assertEquals("_test3", desiredConfigs.get(config3.getType()).getUser());
     DesiredConfig dc = desiredConfigs.get(config1.getType());
     Assert.assertTrue("Expect no host-level overrides",
-        (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
+      (null == dc.getHostOverrides() || dc.getHostOverrides().size() == 0));
 
     c1.addDesiredConfig("_test2", Collections.singleton(config2));
     Assert.assertEquals("_test2", c1.getDesiredConfigs().get(config2.getType()).getUser());
@@ -1008,6 +1008,65 @@ public class ClusterTest {
     assertEquals(1, c1.getServices().size());
     assertEquals(1, injector.getProvider(EntityManager.class).get().
         createQuery("SELECT service FROM ClusterServiceEntity service").getResultList().size());
+  }
+
+  @Test
+  public void testDeleteServiceWithConfigHistory() throws Exception {
+    createDefaultCluster();
+
+    c1.addService("HDFS").persist();
+
+    Config config1 = configFactory.createNew(c1, "hdfs-site",
+      new HashMap<String, String>() {{ put("a", "b"); }}, new HashMap<String, Map<String,String>>());
+    config1.setTag("version1");
+
+    Config config2 = configFactory.createNew(c1, "core-site",
+      new HashMap<String, String>() {{ put("x", "y"); }}, new HashMap<String, Map<String,String>>());
+    config2.setTag("version2");
+
+    config1.persist();
+    c1.addConfig(config1);
+    config2.persist();
+    c1.addConfig(config2);
+
+    Set<Config> configs = new HashSet<Config>();
+    configs.add(config1);
+    configs.add(config2);
+
+    c1.addDesiredConfig("admin", configs);
+    List<ServiceConfigVersionResponse> serviceConfigVersions = c1.getServiceConfigVersions();
+    Assert.assertNotNull(serviceConfigVersions);
+    // Single serviceConfigVersion for multiple configs
+    Assert.assertEquals(1, serviceConfigVersions.size());
+    Assert.assertEquals(Long.valueOf(1), serviceConfigVersions.get(0).getVersion());
+    Assert.assertEquals(2, c1.getDesiredConfigs().size());
+    Assert.assertEquals("version1", c1.getDesiredConfigByType("hdfs-site").getTag());
+    Assert.assertEquals("version2", c1.getDesiredConfigByType("core-site").getTag());
+
+    Map<String, Collection<ServiceConfigVersionResponse>> activeServiceConfigVersions =
+      c1.getActiveServiceConfigVersions();
+    Assert.assertEquals(1, activeServiceConfigVersions.size());
+
+    c1.deleteService("HDFS");
+
+    Assert.assertEquals(0, c1.getServices().size());
+    Assert.assertEquals(0, c1.getServiceConfigVersions().size());
+
+    EntityManager em = injector.getProvider(EntityManager.class).get();
+
+    // ServiceConfig
+    Assert.assertEquals(0,
+      em.createQuery("SELECT serviceConfig from ServiceConfigEntity serviceConfig").getResultList().size());
+    // ClusterConfig
+    Assert.assertEquals(2,
+      em.createQuery("SELECT config from ClusterConfigEntity config").getResultList().size());
+    // ClusterConfigMapping
+    Assert.assertEquals(2,
+      em.createQuery("SELECT configmapping from ClusterConfigMappingEntity configmapping").getResultList().size());
+
+    // ServiceConfigMapping
+    Assert.assertEquals(0,
+      em.createNativeQuery("SELECT * from serviceconfigmapping").getResultList().size());
   }
 
   @Test

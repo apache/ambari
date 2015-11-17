@@ -788,9 +788,9 @@ public class ClusterImpl implements Cluster {
 
       if (schToRemove == null) {
         LOG.warn("Unavailable in per host cache. ServiceComponentHost"
-            + ", serviceName=" + serviceName
-            + ", serviceComponentName" + componentName
-            + ", hostname= " + hostname);
+          + ", serviceName=" + serviceName
+          + ", serviceComponentName" + componentName
+          + ", hostname= " + hostname);
       }
 
       if (LOG.isDebugEnabled()) {
@@ -1182,7 +1182,7 @@ public class ClusterImpl implements Cluster {
 
       // find any hosts that do not have the stack/repo version already
       Sets.SetView<String> hostsMissingRepoVersion = Sets.difference(
-          hosts.keySet(), existingHostsWithClusterStackAndVersion);
+        hosts.keySet(), existingHostsWithClusterStackAndVersion);
 
       for (String hostname : hosts.keySet()) {
         // if the host is in maintenance mode, that's an explicit marker which
@@ -1264,7 +1264,7 @@ public class ClusterImpl implements Cluster {
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
     LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED host versions, " +
-        "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
+      "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 
@@ -1430,8 +1430,8 @@ public class ClusterImpl implements Cluster {
     StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
     HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(
-        getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
-        host.getHostName());
+      getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
+      host.getHostName());
 
     hostTransitionStateWriteLock.lock();
     try {
@@ -2171,9 +2171,9 @@ public class ClusterImpl implements Cluster {
     }
 
     configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
-      "version='{}'", getClusterName(), user, serviceName,
-      configGroup==null?"default":configGroup.getName(),
-      configGroup==null?"-1":configGroup.getId(),
+        "version='{}'", getClusterName(), user, serviceName,
+      configGroup == null ? "default" : configGroup.getName(),
+      configGroup == null ? "-1" : configGroup.getId(),
       serviceConfigEntity.getVersion());
 
     String configGroupName = configGroup != null ? configGroup.getName() : null;
@@ -2994,69 +2994,77 @@ public class ClusterImpl implements Cluster {
     return new HashMap<>();
   }
 
+  // The caller should make sure global write lock is acquired.
+  @Transactional
+  void removeAllConfigsForStack(StackId stackId) {
+    long clusterId = clusterEntity.getClusterId();
+
+    // this will keep track of cluster config mappings that need removal
+    // since there is no relationship between configs and their mappings, we
+    // have to do it manually
+    List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
+    Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
+      clusterId, stackId);
+
+    // remove all service configurations and associated configs
+    Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
+
+    for (ServiceConfigEntity serviceConfig : serviceConfigs) {
+      for (ClusterConfigEntity configEntity : serviceConfig.getClusterConfigEntities()) {
+        clusterConfigEntities.remove(configEntity);
+        clusterDAO.removeConfig(configEntity);
+        removedClusterConfigs.add(configEntity);
+      }
+      serviceConfigDAO.remove(serviceConfig);
+      serviceConfigEntities.remove(serviceConfig);
+    }
+
+    // remove any lefover cluster configurations that don't have a service
+    // configuration (like cluster-env)
+    List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
+      clusterId, stackId);
+
+    for (ClusterConfigEntity clusterConfig : clusterConfigs) {
+      clusterConfigEntities.remove(clusterConfig);
+      clusterDAO.removeConfig(clusterConfig);
+      removedClusterConfigs.add(clusterConfig);
+    }
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // remove config mappings
+    Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+    for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
+      String removedClusterConfigType = removedClusterConfig.getType();
+      String removedClusterConfigTag = removedClusterConfig.getTag();
+
+      Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
+      while (clusterConfigMappingIterator.hasNext()) {
+        ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
+        String mappingType = clusterConfigMapping.getType();
+        String mappingTag = clusterConfigMapping.getTag();
+
+        if (removedClusterConfigTag.equals(mappingTag)
+          && removedClusterConfigType.equals(mappingType)) {
+          clusterConfigMappingIterator.remove();
+          clusterDAO.removeConfigMapping(clusterConfigMapping);
+        }
+      }
+    }
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  @Transactional
   public void removeConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
-      long clusterId = clusterEntity.getClusterId();
-
-      // this will keep track of cluster config mappings that need removal
-      // since there is no relationship between configs and their mappings, we
-      // have to do it manually
-      List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
-      Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
-
-      List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
-          clusterId, stackId);
-
-      // remove any lefover cluster configurations that don't have a service
-      // configuration (like cluster-env)
-      for (ClusterConfigEntity clusterConfig : clusterConfigs) {
-        clusterDAO.removeConfig(clusterConfig);
-        clusterConfigEntities.remove(clusterConfig);
-
-        removedClusterConfigs.add(clusterConfig);
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
-
-      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
-          clusterId, stackId);
-
-      // remove all service configurations
-      Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
-      for (ServiceConfigEntity serviceConfig : serviceConfigs) {
-        serviceConfigDAO.remove(serviceConfig);
-        serviceConfigEntities.remove(serviceConfig);
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
-
-      // remove config mappings
-      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
-      for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
-        String removedClusterConfigType = removedClusterConfig.getType();
-        String removedClusterConfigTag = removedClusterConfig.getTag();
-
-        Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
-        while (clusterConfigMappingIterator.hasNext()) {
-          ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
-          String mappingType = clusterConfigMapping.getType();
-          String mappingTag = clusterConfigMapping.getTag();
-
-          if (removedClusterConfigTag.equals(mappingTag)
-              && removedClusterConfigType.equals(mappingType)) {
-            clusterConfigMappingIterator.remove();
-            clusterDAO.removeConfigMapping(clusterConfigMapping);
-          }
-        }
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
+      removeAllConfigsForStack(stackId);
 
       cacheConfigurations();
     } finally {
