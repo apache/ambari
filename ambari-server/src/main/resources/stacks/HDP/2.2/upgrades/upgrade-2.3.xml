@@ -789,6 +789,15 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <!-- In HDP 2.3.4.0, Kafka had changes that required stopping all Kafka Brokers, running a migration script,
+        and then starting one at a time. This is needed during both upgrade and downgrade. -->
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Shut down all Kafka Brokers">
+            <script>scripts/kafka_broker.py</script>
+            <function>stop</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
