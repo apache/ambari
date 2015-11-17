@@ -89,12 +89,17 @@ public class ServiceConfigEntity {
   @Column(name = "host_id")
   private List<Long> hostIds;
 
+  /**
+   * Cascading remove from serviceConfig to ClusterConfig results in breaking
+   * the contract of configs being associated with only the cluster and the
+   * same config can technically belong to multiple serviceConfig versions.
+   */
   @JoinTable(
     name = "serviceconfigmapping",
     joinColumns = {@JoinColumn(name = "service_config_id", referencedColumnName = "service_config_id")},
     inverseJoinColumns = {@JoinColumn(name = "config_id", referencedColumnName = "config_id")}
   )
-  @ManyToMany(cascade = { CascadeType.REMOVE })
+  @ManyToMany
   private List<ClusterConfigEntity> clusterConfigEntities;
 
   @ManyToOne
