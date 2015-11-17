@@ -68,7 +68,6 @@ public class Utils {
     public static final String AUTH_SIMPLE = "noSasl";
     public static final String AUTH_TOKEN = "delegationToken";
     public static final String AUTH_USER = "user";
-    public static final String HS2_PROXY_USER = "hive.server2.proxy.user";
     public static final String AUTH_PRINCIPAL = "principal";
     public static final String AUTH_PASSWD = "password";
     public static final String AUTH_KERBEROS_AUTH_TYPE = "kerberosAuthType";

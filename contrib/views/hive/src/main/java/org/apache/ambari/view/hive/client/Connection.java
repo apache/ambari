@@ -476,12 +476,6 @@ public class Connection {
       @Override
       public TOpenSessionResp body() throws HiveClientException {
         TOpenSessionReq openReq = new TOpenSessionReq();
-        Map<String, String> openConf = new HashMap<String, String>();
-        if(authParams.containsKey(Utils.HiveAuthenticationParams.HS2_PROXY_USER)){
-          openConf.put(Utils.HiveAuthenticationParams.HS2_PROXY_USER,
-                       authParams.get(Utils.HiveAuthenticationParams.HS2_PROXY_USER));
-        }
-        openReq.setConfiguration(openConf);
         try {
           return client.OpenSession(openReq);
         } catch (TException e) {
