@@ -480,6 +480,8 @@ public class UpgradeHelperTest {
     Map<String, String> hiveConfigs = new HashMap<String, String>();
     hiveConfigs.put("hive.server2.transport.mode", "http");
     hiveConfigs.put("hive.server2.thrift.port", "10001");
+    hiveConfigs.put("condition", "1");
+
     ConfigurationRequest configurationRequest = new ConfigurationRequest();
     configurationRequest.setClusterName(cluster.getClusterName());
     configurationRequest.setType("hive-site");
