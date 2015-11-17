@@ -2238,6 +2238,24 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("worker.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     stormSiteMap.put("supervisor.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     stormSiteMap.put("nimbus.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
+    // Storm AMS integration
+    stormSiteMap.put("metrics.reporter.register", new NonTopologyUpdater() {
+      @Override
+      public String updateForClusterCreate(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+
+        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+          final String amsReporterClass = "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter";
+          if (origValue == null || origValue.isEmpty()) {
+            return amsReporterClass;
+          }
+        }
+        return origValue;
+      }
+    });
+
     multiStormSiteMap.put("supervisor_hosts",
         new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("SUPERVISOR")));
     multiStormSiteMap.put("storm.zookeeper.servers",
@@ -2253,6 +2271,25 @@ public class BlueprintConfigurationProcessor {
 
     // KAFKA
     kafkaBrokerMap.put("kafka.ganglia.metrics.host", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
+    // KAFKA AMS integration
+    kafkaBrokerMap.put("kafka.metrics.reporters", new NonTopologyUpdater() {
+      @Override
+      public String updateForClusterCreate(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+
+        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+          final String amsReportesClass = "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter";
+          if (origValue == null || origValue.isEmpty()) {
+            return amsReportesClass;
+          } else if (!origValue.contains(amsReportesClass)) {
+            return String.format("%s,%s", origValue, amsReportesClass);
+          }
+        }
+        return origValue;
+      }
+    });
 
     // KNOX
     multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));

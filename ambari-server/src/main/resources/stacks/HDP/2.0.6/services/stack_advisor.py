@@ -86,6 +86,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "HDFS": self.recommendHDFSConfigurations,
       "HBASE": self.recommendHbaseConfigurations,
+      "STORM": self.recommendStormConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
       "RANGER": self.recommendRangerConfigurations
     }
@@ -439,6 +440,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return round_to_n(collector_heapsize), round_to_n(hbase_heapsize), total_sinks_count
 
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    # Storm AMS integration
+    if 'AMBARI_METRICS' in servicesList:
+      putStormSiteProperty('metrics.reporter.register', 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter')
+
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
@@ -757,6 +765,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations},
+      "STORM": {"storm-site": self.validateStormConfigurations},
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
               "ams-site": self.validateAmsSiteConfigurations}
@@ -888,6 +897,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             validationItems.extend([{"config-name": "dfs.client.read.shortcircuit", "item": self.validatorEqualsToRecommendedItem(properties, recommendedDefaults, "dfs.client.read.shortcircuit")}])
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
+
+  def validateStormConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    # Storm AMS integration
+    if 'AMBARI_METRICS' in servicesList and \
+      "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter" not in properties.get("metrics.reporter.register"):
+
+      validationItems.append({"config-name": 'metrics.reporter.register',
+                              "item": self.getWarnItem(
+                                "Should be set to org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter to report the metrics to Ambari Metrics service.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "storm-site")
 
   def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize") ## FIXME if new service added
