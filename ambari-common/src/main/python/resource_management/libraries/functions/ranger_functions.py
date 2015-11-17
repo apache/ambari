@@ -120,13 +120,15 @@ class Rangeradmin:
             else:
               if retryCount < 5:
                 Logger.info("Retry Repository Creation is being called")
+                time.sleep(15) # delay for 15 seconds
                 retryCount += 1
               else:
-                raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                break
       else:
-        raise Fail('Ambari admin user creation failed')
+        Logger.error('Ambari admin user creation failed')
     elif not self.skip_if_rangeradmin_down:
-      raise Fail("Connection failed to Ranger Admin !")
+      Logger.error("Connection failed to Ranger Admin !")
           
   def create_repository_urllib2(self, data, usernamepassword, policy_user):
     """
