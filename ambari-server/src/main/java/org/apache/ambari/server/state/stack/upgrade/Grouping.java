@@ -17,23 +17,22 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.state.UpgradeContext;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.utils.SetUtils;
 import org.apache.commons.lang.StringUtils;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlSeeAlso;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -245,6 +244,9 @@ public class Grouping {
           break;
         case EXECUTE:
           type = StageWrapper.Type.RU_TASKS;
+          break;
+        case CONFIGURE_FUNCTION:
+          type = StageWrapper.Type.CONFIGURE;
           break;
         case RESTART:
           type = StageWrapper.Type.RESTART;

@@ -18,17 +18,16 @@
 
 package org.apache.ambari.server.metadata;
 
+import com.google.inject.Singleton;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.state.Service;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.state.Service;
-
-import com.google.inject.Singleton;
 
 /**
  * Contains metadata about actions supported by services
@@ -63,6 +62,7 @@ public class ActionMetadata {
     defaultHostComponentCommands.add("STOP");
     defaultHostComponentCommands.add("INSTALL");
     defaultHostComponentCommands.add("CONFIGURE");
+    defaultHostComponentCommands.add("CONFIGURE_FUNCTION");
   }
 
   private void fillServiceClients() {

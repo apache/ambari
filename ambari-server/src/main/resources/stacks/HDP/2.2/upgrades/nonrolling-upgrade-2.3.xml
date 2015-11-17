@@ -691,7 +691,7 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="OOZIE">
-        <component>OOZIE_CLIENT</component>
+        <component>OOZIE_SERVER</component>
       </service>
     </group>
 
