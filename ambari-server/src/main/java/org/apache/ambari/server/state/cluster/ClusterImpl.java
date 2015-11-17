@@ -2995,6 +2995,7 @@ public class ClusterImpl implements Cluster {
         clusterDAO.removeConfig(configEntity);
         removedClusterConfigs.add(configEntity);
       }
+      serviceConfig.getClusterConfigEntities().clear();
       serviceConfigDAO.remove(serviceConfig);
       serviceConfigEntities.remove(serviceConfig);
     }
