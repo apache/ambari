@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.jmetertest;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.loadsimulator.jmetertest.jmetertest;
 
 import org.apache.commons.lang.StringUtils;
 
