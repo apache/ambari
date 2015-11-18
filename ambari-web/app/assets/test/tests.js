@@ -166,6 +166,7 @@ var files = [
   'test/utils/data_manipulation_test',
   'test/utils/config_test',
   'test/utils/db_test',
+  'test/utils/ember_computed_test',
   'test/utils/ember_reopen_test',
   'test/utils/form_field_test',
   'test/utils/host_progress_popup_test',

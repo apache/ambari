@@ -217,33 +217,3 @@ Em.View.reopen({
 Ember.TextArea.reopen({
   attributeBindings: ['readonly']
 });
-
-/**
- *
- * A computed property that returns true if the provided dependent property
- * is equal to the given value.
- * Example*
- * ```javascript
- * var Hamster = Ember.Object.extend({
- *    napTime: Ember.computed.equal('state', 'sleepy')
- *  });
- * var hamster = Hamster.create();
- * hamster.get('napTime'); // false
- * hamster.set('state', 'sleepy');
- * hamster.get('napTime'); // true
- * hamster.set('state', 'hungry');
- * hamster.get('napTime'); // false
- * ```
- * @method equal
- * @for Ember.computed
- * @param {String} dependentKey
- * @param {String|Number|Object} value
- * @return {Ember.ComputedProperty} computed property which returns true if
- * the original value for property is equal to the given value.
- * @public
- */
-Ember.computed.equal = function(dependentKey, value) {
-  return Ember.computed(dependentKey, function(key) {
-    return Ember.get(this, dependentKey) === value;
-  }).cacheable();
-};
