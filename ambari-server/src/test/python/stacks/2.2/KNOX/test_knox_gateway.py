@@ -255,13 +255,13 @@ class TestKnoxGateway(RMFTestCase):
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
      '/var/lib/knox/data'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', '2.2.1.0-3242'),
         sudo = True,
@@ -299,13 +299,13 @@ class TestKnoxGateway(RMFTestCase):
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
      '/var/lib/knox/data'),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),
         sudo = True,
@@ -320,7 +320,7 @@ class TestKnoxGateway(RMFTestCase):
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '-C',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
         action = ['delete'],
@@ -371,13 +371,13 @@ class TestKnoxGateway(RMFTestCase):
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
      '/var/lib/knox/data'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),
         sudo = True,
@@ -392,7 +392,7 @@ class TestKnoxGateway(RMFTestCase):
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '-C',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar',
         action = ['delete'],
@@ -443,13 +443,13 @@ class TestKnoxGateway(RMFTestCase):
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/'),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/knox-upgrade-backup/knox-data-backup.tar',
      "/usr/hdp/%s/knox/data" % source_version),
-        sudo = True,
+        sudo = True,  tries = 3, try_sleep = 1,
     )
 
     '''
