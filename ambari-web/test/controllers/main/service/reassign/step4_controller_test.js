@@ -1512,4 +1512,46 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   });
 
+  describe("#prepareDBCheckAction()", function() {
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').returns({
+        'jdk_location': 'jdk_location',
+        'jdk.name': 'jdk.name',
+        'java.home': 'java.home'
+      });
+      sinon.stub(controller, 'getConnectionProperty').returns('prop1');
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      controller.getConnectionProperty.restore();
+    });
+    it("", function () {
+      controller.set('content.reassignHosts', Em.Object.create({target: 'host1'}));
+      controller.reopen({
+        dbType: 'type1',
+        requiredProperties: [],
+        preparedDBProperties: {}
+      });
+      controller.prepareDBCheckAction();
+      expect(App.ajax.send.getCall(0).args[0].name).to.equal('cluster.custom_action.create');
+      expect(App.ajax.send.getCall(0).args[0].success).to.equal('onCreateActionSuccess');
+      expect(App.ajax.send.getCall(0).args[0].error).to.equal('onTaskError');
+      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+        requestInfo: {
+          "context": "Check host",
+          "action": "check_host",
+          "parameters": {
+            "db_name": "type1",
+            "jdk_location": "jdk_location",
+            "jdk_name": "jdk.name",
+            "java_home": "java.home",
+            "threshold": 60,
+            "ambari_server_host": "",
+            "check_execute_list": "db_connection_check"
+          }
+        },
+        filteredHosts: ['host1']
+      });
+    });
+  });
 });
