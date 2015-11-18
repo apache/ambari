@@ -70,9 +70,8 @@ App.AlertGroup = DS.Model.extend({
     return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
   }.property('displayName', 'definitions.length'),
 
-  isAddDefinitionsDisabled: function () {
-    return this.get('default');
-  }.property('default')
+  isAddDefinitionsDisabled: Em.computed.alias('default')
+
 });
 App.AlertGroup.FIXTURES = [];
 

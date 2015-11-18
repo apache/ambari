@@ -107,9 +107,7 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    * @returns {String}
    */
-  isActive: function () {
-    return (this.get('passiveState') == 'OFF');
-  }.property('passiveState'),
+  isActive: Em.computed.equal('passiveState', 'OFF'),
 
   passiveTooltip: function () {
     if (!this.get('isActive')) {

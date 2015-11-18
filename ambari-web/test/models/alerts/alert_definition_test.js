@@ -125,6 +125,40 @@ describe('App.AlertDefinition', function () {
 
   });
 
+  describe('#isOK', function () {
+
+    Em.A([
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {OK: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {}, e: false}
+    ]).forEach(function (test, i) {
+      it('test ' + (i + 1), function () {
+        model.set('summary', test.summary);
+        expect(model.get('isOK')).to.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('#isUnknown', function () {
+
+    Em.A([
+      {summary: {CRITICAL: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {WARNING: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {OK: {count: 1, maintenanceCount: 0}}, e: false},
+      {summary: {UNKNOWN: {count: 1, maintenanceCount: 0}}, e: true},
+      {summary: {}, e: false}
+    ]).forEach(function (test, i) {
+      it('test ' + (i + 1), function () {
+        model.set('summary', test.summary);
+        expect(model.get('isUnknown')).to.equal(test.e);
+      });
+    });
+
+  });
+
   describe('#lastTriggeredAgoFormatted', function () {
 
     it('should be empty', function () {

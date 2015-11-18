@@ -78,9 +78,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
     return length;
   }.property('slaveConfigs.groups.@each.errorCount'),
 
-  errorCount: function () {
-    return this.get('slaveErrorCount') + this.get('nonSlaveErrorCount');
-  }.property('slaveErrorCount', 'nonSlaveErrorCount'),
+  errorCount: Em.computed.sumProperties('slaveErrorCount', 'nonSlaveErrorCount'),
 
   isAdvanced : function(){
     var name = this.get('name');

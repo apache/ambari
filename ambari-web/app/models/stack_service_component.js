@@ -56,29 +56,19 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('cardinality'),
 
   /** @property {Boolean} isRequired - component required to install **/
-  isRequired: function() {
-    return this.get('minToInstall') > 0;
-  }.property('cardinality'),
+  isRequired: Em.computed.gt('minToInstall', 0),
 
   /** @property {Boolean} isMultipleAllowed - component can be assigned for more than one host **/
-  isMultipleAllowed: function() {
-    return this.get('maxToInstall') > 1;
-  }.property('cardinality'),
+  isMultipleAllowed: Em.computed.gt('maxToInstall', 1),
 
   /** @property {Boolean} isSlave **/
-  isSlave: function() {
-   return this.get('componentCategory') === 'SLAVE';
-  }.property('componentCategory'),
+  isSlave: Em.computed.equal('componentCategory', 'SLAVE'),
 
   /** @property {Boolean} isRestartable - component supports restart action **/
-  isRestartable: function() {
-    return !this.get('isClient');
-  }.property('isClient'),
+  isRestartable: Em.computed.not('isClient'),
 
   /** @property {Boolean} isReassignable - component supports reassign action **/
-  isReassignable: function() {
-    return ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR'].contains(this.get('componentName'));
-  }.property('componentName'),
+  isReassignable: Em.computed.existsIn('componentName', ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR']),
 
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
   isRollinRestartAllowed: function() {
@@ -86,14 +76,10 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isDecommissionAllowed - component supports decommission action **/
-  isDecommissionAllowed: function() {
-    return ["DATANODE", "TASKTRACKER", "NODEMANAGER", "HBASE_REGIONSERVER"].contains(this.get('componentName'));
-  }.property('componentName'),
+  isDecommissionAllowed: Em.computed.existsIn('componentName', ['DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER']),
 
   /** @property {Boolean} isRefreshConfigsAllowed - component supports refresh configs action **/
-  isRefreshConfigsAllowed: function() {
-    return ["FLUME_HANDLER"].contains(this.get('componentName'));
-  }.property('componentName'),
+  isRefreshConfigsAllowed: Em.computed.existsIn('componentName', ['FLUME_HANDLER']),
 
   /** @property {Boolean} isAddableToHost - component can be added on host details page **/
   isAddableToHost: function() {
@@ -150,20 +136,13 @@ App.StackServiceComponent = DS.Model.extend({
    * New instances of these components are added in appropriate HA wizards
    * @property {Boolean} isMasterAddableOnlyOnHA
    */
-  isMasterAddableOnlyOnHA: function () {
-    return ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN'].contains(this.get('componentName'));
-  }.property('componentName'),
+  isMasterAddableOnlyOnHA: Em.computed.existsIn('componentName', ['NAMENODE', 'RESOURCEMANAGER', 'RANGER_ADMIN']),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
-  isHAComponentOnly: function() {
-    var HAComponentNames = ['ZKFC','JOURNALNODE'];
-    return HAComponentNames.contains(this.get('componentName'));
-  }.property('componentName'),
+  isHAComponentOnly: Em.computed.existsIn('componentName', ['ZKFC','JOURNALNODE']),
 
   /** @property {Boolean} isRequiredOnAllHosts - Is It require to install the components on all hosts. used in step-6 wizard controller **/
-  isRequiredOnAllHosts: function() {
-    return this.get('minToInstall') == Infinity;
-  }.property('stackService','isSlave'),
+  isRequiredOnAllHosts: Em.computed.equal('minToInstall', Infinity),
 
   /** @property {Number} defaultNoOfMasterHosts - default number of master hosts on Assign Master page: **/
   defaultNoOfMasterHosts: function() {
@@ -185,9 +164,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isOtherComponentCoHosted - Is any other component co-hosted with this component **/
-  isOtherComponentCoHosted: function() {
-    return !!this.get('coHostedComponents').length;
-  }.property('coHostedComponents'),
+  isOtherComponentCoHosted: Em.computed.bool('coHostedComponents.length'),
 
   /** @property {Boolean} isCoHostedComponent - Is this component co-hosted with other component **/
   isCoHostedComponent: function() {
@@ -196,9 +173,7 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
-  isNotAddableOnlyInInstall: function() {
-    return ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER'].contains(this.get('componentName'));
-  }.property('componentName')
+  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER'])
 
 });
 

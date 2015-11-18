@@ -112,12 +112,8 @@ App.ConfigOverridable = Em.Mixin.create({
       warningMessage: '&nbsp;',
       isWarning: false,
       optionSelectConfigGroup: true,
-      optionCreateConfigGroup: function () {
-        return !this.get('optionSelectConfigGroup');
-      }.property('optionSelectConfigGroup'),
-      hasExistedGroups: function () {
-        return !!this.get('availableConfigGroups').length;
-      }.property('availableConfigGroups'),
+      optionCreateConfigGroup: Em.computed.not('optionSelectConfigGroup'),
+      hasExistedGroups: Em.computed.bool('availableConfigGroups.length'),
       availableConfigGroups: availableConfigGroups,
       selectedConfigGroup: selectedConfigGroup,
       newConfigGroupName: '',

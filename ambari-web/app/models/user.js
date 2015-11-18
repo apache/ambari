@@ -21,9 +21,7 @@ var validator = require('utils/validator');
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
-  id:function(){
-    return this.get('userName');
-  }.property('userName'),
+  id: Em.computed.alias('userName'),
   userType: DS.attr('string'),
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin: DS.attr('boolean'),
@@ -42,9 +40,7 @@ App.User = DS.Model.extend({
   /**
    * @type {Boolean}
    */
-  isLdap: function() {
-    return this.get('userType') === 'LDAP';
-  }.property('userType')
+  isLdap: Em.computed.equal('userType', 'LDAP')
 });
 
 App.EditUserForm = App.Form.extend({

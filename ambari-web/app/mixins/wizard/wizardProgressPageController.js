@@ -43,9 +43,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create(App.InstallComponent, {
   completedStatuses: ['COMPLETED', 'FAILED', 'TIMEDOUT', 'ABORTED'],
   currentPageRequestId: null,
   isSingleRequestPage: false,
-  isCommandLevelRetry: function () {
-    return !this.get('isSingleRequestPage');
-  }.property('isSingleRequestPage'),
+  isCommandLevelRetry: Em.computed.not('isSingleRequestPage'),
   showRetry: false,
   /**
    * Show whether tasks data was loaded

@@ -32,29 +32,21 @@ App.TableServerViewMixin = Em.Mixin.create({
   /**
    * count of filtered items
    */
-  filteredCount: function () {
-    return this.get('controller.filteredCount');
-  }.property('controller.filteredCount'),
+  filteredCount: Em.computed.alias('controller.filteredCount'),
   /**
    * total count of items
    */
-  totalCount: function () {
-    return this.get('controller.totalCount');
-  }.property('controller.totalCount'),
+  totalCount: Em.computed.alias('controller.totalCount'),
 
   /**
    * data requested from server
    */
-  content: function () {
-    return this.get('controller.content');
-  }.property('controller.content'),
+  content: Em.computed.alias('controller.content'),
 
   /**
    * content already filtered on server-side
    */
-  filteredContent: function () {
-    return this.get('content');
-  }.property('content'),
+  filteredContent: Em.computed.alias('content'),
   /**
    * sort and slice recieved content by pagination parameters
    */

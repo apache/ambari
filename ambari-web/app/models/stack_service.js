@@ -62,9 +62,7 @@ App.StackService = DS.Model.extend({
 
   // Primary DFS. used if there is more than one DFS in a stack.
   // Only one service in the stack should be tagged as primary DFS.
-  isPrimaryDFS: function () {
-    return this.get('serviceName') === 'HDFS';
-  }.property('serviceName'),
+  isPrimaryDFS: Em.computed.equal('serviceName', 'HDFS'),
 
   configTypesRendered: function () {
     var configTypes = this.get('configTypes');
@@ -105,22 +103,13 @@ App.StackService = DS.Model.extend({
   }.property('serviceName'),
 
   // Is the service required for monitoring of other hadoop ecosystem services
-  isMonitoringService: function () {
-    var services = ['GANGLIA'];
-    return services.contains(this.get('serviceName'));
-  }.property('serviceName'),
+  isMonitoringService: Em.computed.existsIn('serviceName', ['GANGLIA']),
 
   // Is the service required for reporting host metrics
-  isHostMetricsService: function () {
-      var services = ['GANGLIA', 'AMBARI_METRICS'];
-      return services.contains(this.get('serviceName'));
-  }.property('serviceName'),
+  isHostMetricsService: Em.computed.existsIn('serviceName', ['GANGLIA', 'AMBARI_METRICS']),
 
   // Is the service required for reporting hadoop service metrics
-  isServiceMetricsService: function () {
-      var services = ['GANGLIA'];
-      return services.contains(this.get('serviceName'));
-  }.property('serviceName'),
+  isServiceMetricsService: Em.computed.existsIn('serviceName', ['GANGLIA']),
 
   coSelectedServices: function () {
     var coSelectedServices = App.StackService.coSelected[this.get('serviceName')];
@@ -131,30 +120,18 @@ App.StackService = DS.Model.extend({
     }
   }.property('serviceName'),
 
-  hasClient: function () {
-    var serviceComponents = this.get('serviceComponents');
-    return serviceComponents.someProperty('isClient');
-  }.property('serviceName'),
+  hasClient: Em.computed.someBy('serviceComponents', 'isClient', true),
 
-  hasMaster: function () {
-    var serviceComponents = this.get('serviceComponents');
-    return serviceComponents.someProperty('isMaster');
-  }.property('serviceName'),
+  hasMaster: Em.computed.someBy('serviceComponents', 'isMaster', true),
 
-  hasSlave: function () {
-    var serviceComponents = this.get('serviceComponents');
-    return serviceComponents.someProperty('isSlave');
-  }.property('serviceName'),
+  hasSlave: Em.computed.someBy('serviceComponents', 'isSlave', true),
 
   hasNonMastersWithCustomAssignment: function () {
     var serviceComponents = this.get('serviceComponents');
     return serviceComponents.rejectProperty('isMaster').rejectProperty('cardinality', 'ALL').length > 0;
   }.property('serviceName'),
 
-  isClientOnlyService: function () {
-    var serviceComponents = this.get('serviceComponents');
-    return serviceComponents.everyProperty('isClient');
-  }.property('serviceName'),
+  isClientOnlyService: Em.computed.everyBy('serviceComponents', 'isClient', true),
 
   isNoConfigTypes: function () {
     var configTypes = this.get('configTypes');
@@ -165,9 +142,7 @@ App.StackService = DS.Model.extend({
     return App.StackService.reviewPageHandlers[this.get('serviceName')];
   }.property('serviceName'),
 
-  hasHeatmapSection: function() {
-    return ['HDFS', 'YARN', 'HBASE'].contains(this.get('serviceName'));
-  }.property('serviceName'),
+  hasHeatmapSection: Em.computed.existsIn('serviceName', ['HDFS', 'YARN', 'HBASE']),
 
   /**
    * configCategories are fetched from  App.StackService.configCategories.

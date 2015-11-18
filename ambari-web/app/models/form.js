@@ -92,9 +92,7 @@ App.Form = Em.View.extend({
     }, this);
   },
 
-  visibleFields:function () {
-    return this.get('fields').filterProperty('isHiddenField', false);
-  }.property('fields'),
+  visibleFields:Em.computed.filterBy('fields', 'isHiddenField', false),
 
   resultText:function () {
     var text = "";
@@ -126,9 +124,7 @@ App.FormField = Em.Object.extend({ // try to realize this as view
   unit:'',
   value:'',
 
-  isValid:function () {
-    return this.get('errorMessage') === '';
-  }.property('errorMessage'),
+  isValid:Em.computed.equal('errorMessage', ''),
 
   viewClass:function () {
     var options = {};
@@ -178,7 +174,5 @@ App.FormField = Em.Object.extend({ // try to realize this as view
     }
   },
 
-  isHiddenField:function () {
-    return this.get('displayType') == 'hidden';
-  }.property('type')
+  isHiddenField: Em.computed.equal('displayType', 'hidden')
 });

@@ -280,9 +280,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     return ["componentHost", "componentHosts", "radio button"].contains(this.get('displayType'));
   }.property('displayType'),
 
-  isValid: function () {
-    return this.get('errorMessage') === '';
-  }.property('errorMessage'),
+  isValid: Em.computed.equal('errorMessage', ''),
 
   viewClass: function () {
     switch (this.get('displayType')) {

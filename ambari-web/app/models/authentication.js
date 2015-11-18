@@ -97,11 +97,8 @@ App.AuthenticationForm = App.Form.extend({
     this.set('testResult', parseInt(Math.random() * 2));
     return true;
   },
-  testConfigurationMessage:function () {
-    return this.get('testResult') ? Em.I18n.t('admin.authentication.form.test.success') : Em.I18n.t('admin.authentication.form.test.fail');
-  }.property('testResult'),
-  testConfigurationClass:function () {
-    return this.get('testResult') ? "text-success" : "text-error";
-  }.property('testConfigurationMessage')
-})
-;
+  testConfigurationMessage: Em.computed.ifThenElse('testResult', Em.I18n.t('admin.authentication.form.test.success'), Em.I18n.t('admin.authentication.form.test.fail')),
+
+  testConfigurationClass: Em.computed.ifThenElse('testResult', 'text-success', 'text-error')
+
+});

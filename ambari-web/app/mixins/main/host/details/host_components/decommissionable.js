@@ -309,9 +309,7 @@ App.Decommissionable = Em.Mixin.create({
 
     templateName: require('templates/main/host/decommission'),
 
-    text: function () {
-      return this.get('parentView.isComponentDecommissionAvailable') ? Em.I18n.t('common.decommission') : Em.I18n.t('common.recommission');
-    }.property('parentView.isComponentDecommissionAvailable'),
+    text: Em.computed.ifThenElse('parentView.isComponentDecommissionAvailable', Em.I18n.t('common.decommission'), Em.I18n.t('common.recommission')),
 
     didInsertElement: function () {
       this._super();

@@ -33,9 +33,7 @@ App.Cluster = DS.Model.extend({
    */
   desiredConfigs: null,
 
-  isKerberosEnabled: function() {
-    return this.get('securityType') === 'KERBEROS';
-  }.property('securityType'),
+  isKerberosEnabled: Em.computed.equal('securityType', 'KERBEROS'),
 
   isCredentialStorePersistent: function() {
     return this.get('credentialStoreProperties')[credentialUtils.STORE_TYPES.PERSISTENT_PATH] === "true";

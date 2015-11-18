@@ -42,9 +42,7 @@ App.upgradeEntity = Em.Object.extend({
   /**
    * @type {boolean}
    */
-  isVisible: function () {
-    return this.get('status') !== 'PENDING';
-  }.property('status'),
+  isVisible: Em.computed.notEqual('status', 'PENDING'),
 
   /**
    * status of tasks/items/groups which should be grayed out and disabled
@@ -55,9 +53,7 @@ App.upgradeEntity = Em.Object.extend({
   /**
    * @type {boolean}
    */
-  isRunning: function () {
-    return ['IN_PROGRESS'].contains(this.get('status'));
-  }.property('status'),
+  isRunning: Em.computed.existsIn('status', ['IN_PROGRESS']),
 
   /**
    * @type {number}

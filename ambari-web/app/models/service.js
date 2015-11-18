@@ -45,9 +45,7 @@ App.Service = DS.Model.extend({
   /**
    * @type {bool}
    */
-  isInPassive: function() {
-    return this.get('passiveState') === "ON";
-  }.property('passiveState'),
+  isInPassive: Em.computed.equal('passiveState', 'ON'),
 
   serviceComponents: function() {
     var clientComponents = this.get('clientComponents').mapProperty('componentName');
@@ -77,12 +75,9 @@ App.Service = DS.Model.extend({
         return 'yellow';
     }
   }.property('workStatus'),
-  isStopped: function () {
-    return this.get('workStatus') === 'INSTALLED';
-  }.property('workStatus'),
-  isStarted: function () {
-    return this.get('workStatus') === 'STARTED';
-  }.property('workStatus'),
+  isStopped: Em.computed.equal('workStatus', 'INSTALLED'),
+
+  isStarted: Em.computed.equal('workStatus', 'STARTED'),
 
   /**
    * Service Tagging by their type.

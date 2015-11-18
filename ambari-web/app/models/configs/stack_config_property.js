@@ -47,9 +47,7 @@ App.StackConfigProperty = DS.Model.extend({
    * same as fileName
    * @property {string}
    */
-  filename: function() {
-    return this.get('fileName');
-  }.property('fileName'),
+  filename: Em.computed.alias('fileName'),
 
   /**
    * description of config property meaning

@@ -36,9 +36,7 @@ App.Repository = DS.Model.extend({
   errorContent: DS.attr('string', {defaultValue: ''}),
   errorTitle: DS.attr('string', {defaultValue: ''}),
 
-  isSelected: function() {
-    return this.get('operatingSystem.isSelected');
-  }.property('id','operatingSystem.isSelected'),
+  isSelected: Em.computed.alias('operatingSystem.isSelected'),
 
   invalidFormatError: function() {
     return !validator.isValidBaseUrl(this.get('baseUrl'));
@@ -48,13 +46,10 @@ App.Repository = DS.Model.extend({
     return this.get('validation') == App.Repository.validation['INVALID'];
   }.property('validation'),
 
-  undo: function() {
-    return this.get('baseUrl') != this.get('latestBaseUrl');
-  }.property('baseUrl','latestBaseUrl'),
+  undo: Em.computed.notEqualProperties('baseUrl', 'latestBaseUrl'),
 
-  clearAll: function() {
-    return this.get('baseUrl')
-  }.property('baseUrl')
+  clearAll: Em.computed.alias('baseUrl')
+
 });
 
 App.Repository.validation = {
