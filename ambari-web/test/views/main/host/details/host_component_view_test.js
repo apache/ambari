@@ -36,7 +36,6 @@ describe('App.HostComponentView', function() {
       return Em.get(App.router, k);
     });
     hostComponentView = App.HostComponentView.create({
-      componentCounter: 1,
       startBlinking: function(){},
       doBlinking: function(){},
       getDesiredAdminState: function(){return $.ajax({});},
@@ -243,50 +242,33 @@ describe('App.HostComponentView', function() {
   describe('#isDeleteComponentDisabled', function() {
 
     beforeEach(function() {
-      sinon.stub(App.StackServiceComponent, 'find', function(component) {
-        var min = component == 'comp0' ? 0 : 1;
-        return Em.Object.create({minToInstall: min});
-      });
+      this.mock = sinon.stub(App.StackServiceComponent, 'find');
+      sinon.stub(App.HostComponent, 'getCount').returns(1);
     });
     afterEach(function() {
-      App.StackServiceComponent.find.restore();
-    });
-
-    var tests = ['INSTALLED', 'UNKNOWN', 'INSTALL_FAILED', 'UPGRADE_FAILED', 'INIT'];
-    var testE = false;
-    var defaultE = true;
-
-    App.HostComponentStatus.getStatusesList().forEach(function(status) {
-      it(status, function() {
-        App.store.load(App.StackServiceComponent, {
-          id: 1,
-          component_name: 'comp0'
-        });
-        hostComponentView.get('hostComponent').set('componentName', 'comp0');
-        hostComponentView.get('hostComponent').set('workStatus', status);
-        var e = tests.contains(status) ? testE : defaultE;
-        expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(e);
-      });
+      this.mock.restore();
+      App.HostComponent.getCount.restore();
     });
 
     it('delete is disabled because min cardinality 1', function() {
-      App.store.load(App.StackServiceComponent, {
-        id: 2,
-        component_name: 'comp1'
-      });
-      hostComponentView.get('hostComponent').set('componentName', 'comp1');
-      hostComponentView.get('hostComponent').set('workStatus', 'INSTALLED');
-      expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(true);
+      this.mock.returns(Em.Object.create({minToInstall: 1}));
+      hostComponentView.get('hostComponent').set('componentName', 'C1');
+      hostComponentView.propertyDidChange('isDeleteComponentDisabled');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.be.true;
     });
 
-    it('delete is enabled because min cardinality 0', function() {
-      App.store.load(App.StackServiceComponent, {
-        id: 2,
-        component_name: 'comp0'
-      });
-      hostComponentView.get('hostComponent').set('componentName', 'comp0');
-      hostComponentView.get('hostComponent').set('workStatus', 'INSTALLED');
-      expect(hostComponentView.get('isDeleteComponentDisabled')).to.equal(false);
+    it('delete is disabled because min cardinality 0 and status INSTALLED', function() {
+      this.mock.returns(Em.Object.create({minToInstall: 0}));
+      hostComponentView.get('hostComponent').set('workStatus', 'INIT');
+      hostComponentView.propertyDidChange('isDeleteComponentDisabled');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.be.false;
+    });
+
+    it('delete is enabled because min cardinality 0 and status STARTED', function() {
+      this.mock.returns(Em.Object.create({minToInstall: 0}));
+      hostComponentView.get('hostComponent').set('workStatus', 'STARTED');
+      hostComponentView.propertyDidChange('isDeleteComponentDisabled');
+      expect(hostComponentView.get('isDeleteComponentDisabled')).to.be.true;
     });
   });
 
@@ -506,7 +488,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      hostComponentView.set('componentCounter', 2);
+      sinon.stub(App.HostComponent, 'getCount').returns(2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 1;
@@ -528,7 +510,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      hostComponentView.set('componentCounter', 2);
+      sinon.stub(App.HostComponent, 'getCount').returns(2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 0;
@@ -550,7 +532,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      hostComponentView.set('componentCounter', 2);
+      sinon.stub(App.HostComponent, 'getCount').returns(2);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 2;
@@ -572,7 +554,7 @@ describe('App.HostComponentView', function() {
         });
       });
 
-      hostComponentView.set('componentCounter', 1);
+      sinon.stub(App.HostComponent, 'getCount').returns(1);
 
       sinon.stub(hostComponentView, 'runningComponentCounter', function () {
         return 1;
@@ -585,6 +567,7 @@ describe('App.HostComponentView', function() {
     afterEach(function() {
       App.HostComponentActionMap.getMap.restore();
       App.StackServiceComponent.find.restore();
+      App.HostComponent.getCount.restore();
       hostComponentView.runningComponentCounter.restore();
     });
   });

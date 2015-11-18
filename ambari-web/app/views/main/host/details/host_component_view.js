@@ -207,27 +207,10 @@ App.HostComponentView = Em.View.extend({
    */
   isDeleteComponentDisabled: function () {
     var stackComponentCount = App.StackServiceComponent.find(this.get('hostComponent.componentName')).get('minToInstall');
-    var installedCount = this.get('componentCounter');
+    var installedCount = App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount');
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
-  }.property('workStatus', 'componentCounter'),
-
-  /**
-   * gets number of current component that are applied to the cluster;
-   * @returns {Number}
-   */
-  componentCounter: function() {
-    var component;
-    var stackServiceComponent =  App.StackServiceComponent.find(this.get('hostComponent.componentName'));
-    if (stackServiceComponent && App.get('router.clusterController.isHostContentLoaded')) {
-      if (stackServiceComponent.get('isMaster')) {
-        component = App.MasterComponent.find().findProperty('componentName', this.get('content.componentName'))
-      } else {
-        component = App.SlaveComponent.find().findProperty('componentName', this.get('content.componentName'));
-      }
-    }
-    return component ? component.get('totalCount') : 0;
-  }.property('App.router.clusterController.isHostContentLoaded'),
+  }.property('workStatus'),
 
   /**
    * Gets number of current running components that are applied to the cluster
@@ -390,7 +373,7 @@ App.HostComponentView = Em.View.extend({
 
     if (component.get('cardinality') !== '1') {
       if (!this.get('isStart')) {
-        if (this.get('componentCounter') > 1) {
+        if (App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount') > 1) {
           if (this.runningComponentCounter()) {
             return false;
           }

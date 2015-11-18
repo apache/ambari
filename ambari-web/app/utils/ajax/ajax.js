@@ -998,9 +998,11 @@ var urls = {
   },
   'service.metrics.flume.incoming_event_put_successCount': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate[{fromSeconds},{toSeconds},{stepSeconds}]'
-  },'service.metrics.flume.incoming_event_put_successCount.mma': {
+  },
+  'service.metrics.flume.incoming_event_put_successCount.mma': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/avg[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/max[{fromSeconds},{toSeconds},{stepSeconds}],metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/min[{fromSeconds},{toSeconds},{stepSeconds}]'
-  },'service.metrics.flume.incoming_event_put_successCount.sum': {
+  },
+  'service.metrics.flume.incoming_event_put_successCount.sum': {
     'real': '/clusters/{clusterName}/services/FLUME/components/FLUME_HANDLER?fields=metrics/flume/flume/CHANNEL/EventPutSuccessCount/rate/sum[{fromSeconds},{toSeconds},{stepSeconds}]'
   },
   'service.metrics.flume.outgoing_event_take_success_count': {
