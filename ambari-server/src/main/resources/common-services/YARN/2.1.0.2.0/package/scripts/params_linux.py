@@ -98,6 +98,12 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   # Timeline Service property that was added in 2.2
   ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
 
+# ats 1.5 properties
+entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
+entity_groupfs_active_dir_mode = 01777
+entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
+entity_groupfs_store_dir_mode = 0700
+
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 limits_conf_dir = "/etc/security/limits.d"

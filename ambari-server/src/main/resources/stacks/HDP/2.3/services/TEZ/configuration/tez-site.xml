@@ -98,4 +98,9 @@
     </depends-on>
   </property>
 
+  <property>
+    <name>tez.history.logging.service.class</name>
+    <value>org.apache.tez.dag.history.logging.ats.ATSV15HistoryLoggingService</value>
+  </property>
+
 </configuration>

@@ -256,6 +256,42 @@ def yarn(name = None):
        recursive=True,
        cd_access="a",
       )
+    # app timeline server 1.5 directories
+    if not is_empty(params.entity_groupfs_store_dir):
+      parent_path = os.path.dirname(params.entity_groupfs_store_dir)
+      params.HdfsResource(parent_path,
+                          type="directory",
+                          action="create_on_execute",
+                          change_permissions_for_parents=True,
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=0755
+                          )
+      params.HdfsResource(params.entity_groupfs_store_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=params.entity_groupfs_store_dir_mode
+                          )
+    if not is_empty(params.entity_groupfs_active_dir):
+      parent_path = os.path.dirname(params.entity_groupfs_active_dir)
+      params.HdfsResource(parent_path,
+                          type="directory",
+                          action="create_on_execute",
+                          change_permissions_for_parents=True,
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=0755
+                          )
+      params.HdfsResource(params.entity_groupfs_active_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=params.entity_groupfs_active_dir_mode
+                          )
+    params.HdfsResource(None, action="execute")
 
   File(params.rm_nodes_exclude_path,
        owner=params.yarn_user,

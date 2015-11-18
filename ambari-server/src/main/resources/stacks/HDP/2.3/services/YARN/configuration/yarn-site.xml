@@ -62,5 +62,51 @@
       <empty-value-valid>true</empty-value-valid>
     </value-attributes>
   </property>
-
+  <!--ats v1.5 properties-->
+  <property>
+    <name>yarn.timeline-service.version</name>
+    <value>1.5</value>
+    <description>Timeline service version we’re currently using.</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.store-class</name>
+    <value>org.apache.hadoop.yarn.server.timeline.EntityGroupFSTimelineStore</value>
+    <description>Main storage class for YARN timeline server.</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.active-dir</name>
+    <value>/ats/active/</value>
+    <description>DFS path to store active application’s timeline data</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.done-dir</name>
+    <value>/ats/done/</value>
+    <description>DFS path to store done application’s timeline data</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes</name>
+    <value>org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl</value>
+    <description>Plugins that can translate a timeline entity read request into a list of timeline cache ids, separated by commas. </description>
+  </property>
+  <!-- advanced ats v1.5 properties-->
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.summary-store</name>
+    <!-- Use rolling leveldb, advanced -->
+    <value>org.apache.hadoop.yarn.server.timeline.RollingLevelDBTimelineStore</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.scan-interval-seconds</name>
+    <!-- Default is 60 seconds, advanced -->
+    <value>60</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.cleaner-interval-seconds</name>
+    <!-- 3600 is default, advanced -->
+    <value>3600</value>
+  </property>
+  <property>
+    <name>yarn.timeline-service.entity-group-fs-store.retain-seconds</name>
+    <!-- 7 days is default, advanced -->
+    <value>604800</value>
+  </property>
 </configuration>
