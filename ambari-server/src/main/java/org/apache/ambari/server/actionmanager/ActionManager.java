@@ -69,8 +69,7 @@ public class ActionManager {
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2, hostsMap, unitOfWork, ambariEventPublisher, configuration);
-    requestCounter = new AtomicLong(
-        db.getLastPersistedRequestIdWhenInitialized());
+    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
     this.requestFactory = requestFactory;
   }
 
