@@ -27,6 +27,9 @@
     <value>oozie</value>
     <property-type>USER</property-type>
     <description>Oozie User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>oozie_admin_users</name>
@@ -171,6 +174,9 @@ export OOZIE_ADMIN_PORT={{oozie_server_admin_port}}
 export JAVA_LIBRARY_PATH={{hadoop_lib_home}}/native/Linux-amd64-64
 
    </value>
+   <value-attributes>
+     <type>content</type>
+   </value-attributes>
   </property>
 
 </configuration>

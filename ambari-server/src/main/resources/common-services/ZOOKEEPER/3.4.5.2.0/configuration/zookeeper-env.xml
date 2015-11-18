@@ -27,6 +27,9 @@
     <value>zookeeper</value>
     <property-type>USER</property-type>
     <description>ZooKeeper User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>zk_log_dir</name>
@@ -70,5 +73,8 @@ export SERVER_JVMFLAGS="$SERVER_JVMFLAGS -Djava.security.auth.login.config={{zk_
 export CLIENT_JVMFLAGS="$CLIENT_JVMFLAGS -Djava.security.auth.login.config={{zk_client_jaas_file}}"
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

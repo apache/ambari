@@ -644,17 +644,11 @@ describe('App.config', function () {
   });
 
   describe('#getDefaultDisplayType', function() {
-    it('returns content displayType', function() {
-      expect(App.config.getDefaultDisplayType('content','f1','anything')).to.equal('content');
-    });
     it('returns singleLine displayType', function() {
-      expect(App.config.getDefaultDisplayType('n1','f1','v1')).to.equal('string');
+      expect(App.config.getDefaultDisplayType('v1')).to.equal('string');
     });
     it('returns multiLine displayType', function() {
-      expect(App.config.getDefaultDisplayType('n2', 'f2', 'v1\nv2')).to.equal('multiLine');
-    });
-    it('returns custom displayType for FALCON oozie-site properties', function() {
-      expect(App.config.getDefaultDisplayType('n2', 'oozie-site.xml', 'v1\nv2', 'FALCON')).to.equal('custom');
+      expect(App.config.getDefaultDisplayType('v1\nv2')).to.equal('multiLine');
     });
   });
 
@@ -815,7 +809,7 @@ describe('App.config', function () {
       expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
     });
     it('runs proper methods', function() {
-      expect(App.config.getDefaultDisplayType.calledWith('pName', 'pFileName', '')).to.be.true;
+      expect(App.config.getDefaultDisplayType.called).to.be.true;
       expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
       expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
       expect(App.config.shouldSupportFinal.calledWith('pServiceName', 'pFileName')).to.be.true;

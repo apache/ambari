@@ -151,6 +151,9 @@ fi
 YARN_OPTS="$YARN_OPTS -Dyarn.policy.file=$YARN_POLICYFILE"
 YARN_OPTS="$YARN_OPTS -Djava.io.tmpdir={{hadoop_java_io_tmpdir}}"
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>  
   
 </configuration>

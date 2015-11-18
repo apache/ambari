@@ -147,6 +147,9 @@ set CATALINA_OPTS=%CATALINA_OPTS% -Xmx1024m
 
 set JAVA_LIBRARY_PATH=%HADOOP_COMMON_HOME%\bin
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

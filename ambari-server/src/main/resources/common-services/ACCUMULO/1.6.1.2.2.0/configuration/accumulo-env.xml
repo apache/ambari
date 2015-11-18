@@ -99,6 +99,9 @@
     <value>accumulo</value>
     <property-type>USER</property-type>
     <description>User for running Accumulo server processes.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_master_heapsize</name>

@@ -103,8 +103,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
             if (!attributes) {
               config.StackConfigurations.property_value_attributes = {};
             }
-            config.StackConfigurations.property_value_attributes.type = App.config.getDefaultDisplayType(config.StackConfigurations.property_name,
-              config.StackConfigurations.type, config.StackConfigurations.property_value, config.StackConfigurations.service_name);
+            config.StackConfigurations.property_value_attributes.type = App.config.getDefaultDisplayType(config.StackConfigurations.property_value);
           }
           // Map from /dependencies to property_depended_by
           config.StackConfigurations.property_depended_by = [];
@@ -187,7 +186,6 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   handleSpecialProperties: function(config) {
     if (!config.StackConfigurations.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
       config.index = App.StackService.displayOrder.indexOf(config.StackConfigurations.service_name) + 1 || 30;
-      config.StackConfigurations.property_value_attributes.type = 'user';
     }
     config.StackConfigurations.service_name = 'MISC';
     config.category = 'Users and Groups';

@@ -25,6 +25,9 @@
     <value>ams</value>
     <property-type>USER</property-type>
     <description>Ambari Metrics User Name.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>metrics_collector_log_dir</name>
@@ -92,6 +95,9 @@ export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config
 {% endif %}
 
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

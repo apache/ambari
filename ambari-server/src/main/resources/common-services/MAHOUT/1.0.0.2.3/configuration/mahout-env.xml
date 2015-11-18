@@ -27,5 +27,8 @@
         <value>mahout</value>
         <property-type>USER</property-type>
         <description>Mahout user</description>
+        <value-attributes>
+            <type>user</type>
+        </value-attributes>
     </property>
 </configuration>

@@ -115,6 +115,9 @@ log4j.category.JPOX.Enhancer=ERROR,DRFA
 log4j.logger.org.apache.zookeeper.server.NIOServerCnxn=WARN,DRFA
 log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,DRFA
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

@@ -280,7 +280,7 @@ App.config = Em.Object.create({
       supportsFinal: this.shouldSupportFinal(serviceName, fileName),
       serviceName: serviceName,
       displayName: name,
-      displayType: this.getDefaultDisplayType(name, fileName, coreObject ? coreObject.value : '', serviceName),
+      displayType: this.getDefaultDisplayType(coreObject ? coreObject.value : ''),
       description: '',
       category: this.getDefaultCategory(definedInStack, fileName),
       isSecureConfig: this.getIsSecure(name),
@@ -380,24 +380,11 @@ App.config = Em.Object.create({
 
   /**
    * Get displayType for properties that has not defined value
-   * @param name
-   * @param type
    * @param value
-   * @param serviceName
    * @returns {string}
    */
-  getDefaultDisplayType: function(name, type, value, serviceName) {
-    if (serviceName && serviceName == 'FALCON' && this.getConfigTagFromFileName(type) == 'oozie-site') {
-      /**
-       * This specific type for 'oozie-site' configs of FALCON service.
-       * After this type will be moved to stack definition this hard-code should be removed
-       */
-      return 'custom';
-    } else if (name == 'content') {
-      return 'content';
-    } else {
-      return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'string';
-    }
+  getDefaultDisplayType: function(value) {
+    return value && !stringUtils.isSingleLine(value) ? 'multiLine' : 'string';
   },
 
   /**

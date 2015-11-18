@@ -113,6 +113,9 @@
     <value>hive</value>
     <property-type>USER</property-type>
     <description>Hive User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <!--HCAT-->
@@ -145,6 +148,9 @@
     <value>hcat</value>
     <property-type>USER</property-type>
     <description>HCat User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>webhcat_user</name>
@@ -152,6 +158,9 @@
     <value>hcat</value>
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -211,6 +220,9 @@ fi
 export METASTORE_PORT={{hive_metastore_port}}
 
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

@@ -37,6 +37,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -59,6 +62,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -81,6 +87,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -104,6 +113,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -129,6 +141,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -140,6 +155,9 @@
     <description>
       EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -151,6 +169,9 @@
     <description>
       EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
   <!--web ui should add following properties to oozie site accordingly to FALCON_USER-->
   <!--<property>-->

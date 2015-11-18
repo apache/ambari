@@ -37,6 +37,9 @@
     <value>flume</value>
     <property-type>USER</property-type>
     <description>Flume User</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <!-- flume-env.sh -->
@@ -75,5 +78,8 @@ export JAVA_HOME={{java_home}}
 # export HIVE_HOME=/usr/lib/hive
 # export HCAT_HOME=/usr/lib/hive-hcatalog
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

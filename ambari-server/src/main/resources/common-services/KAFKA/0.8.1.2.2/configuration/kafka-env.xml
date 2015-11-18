@@ -27,6 +27,9 @@
     <value>kafka</value>
     <property-type>USER</property-type>
     <description></description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>kafka_log_dir</name>
@@ -79,6 +82,9 @@ if [ -f /etc/kafka/conf/kafka-ranger-env.sh ]; then
 . /etc/kafka/conf/kafka-ranger-env.sh
 fi
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   <property>
     <name>is_supported_kafka_ranger</name>

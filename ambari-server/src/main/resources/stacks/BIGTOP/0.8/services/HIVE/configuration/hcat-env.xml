@@ -52,6 +52,9 @@
       USER={{hcat_user}}
       METASTORE_PORT={{hive_metastore_port}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

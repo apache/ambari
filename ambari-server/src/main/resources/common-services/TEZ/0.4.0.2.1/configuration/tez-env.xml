@@ -27,6 +27,9 @@
     <value>tez</value>
     <property-type>USER</property-type>
     <description></description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <!-- tez-env.sh -->
@@ -43,5 +46,8 @@ export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
 # The java implementation to use.
 export JAVA_HOME={{java64_home}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

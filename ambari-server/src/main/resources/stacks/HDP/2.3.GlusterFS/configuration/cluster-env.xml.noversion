@@ -41,6 +41,9 @@
         <value>ambari-qa</value>
         <property-type>USER</property-type>
         <description>User executing service checks</description>
+        <value-attributes>
+            <type>user</type>
+        </value-attributes>
     </property>
     <property>
         <name>smokeuser_keytab</name>
@@ -52,5 +55,8 @@
         <value>hadoop</value>
         <property-type>GROUP</property-type>
         <description>Hadoop user group.</description>
+        <value-attributes>
+            <type>user</type>
+        </value-attributes>
     </property>
 </configuration>

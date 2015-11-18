@@ -42,6 +42,9 @@
     <value>knox</value>
     <property-type>USER</property-type>
     <description>Knox Username.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -50,6 +53,9 @@
     <value>knox</value>
     <property-type>GROUP</property-type>
     <description>Knox Group.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>

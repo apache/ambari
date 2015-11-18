@@ -28,6 +28,7 @@
     <property-type>USER</property-type>
     <description>User to run Hadoop services under</description>
     <value-attributes>
+      <type>user</type>
       <visible>false</visible>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
@@ -74,6 +75,7 @@
     <property-type>USER</property-type>
     <description>User executing service checks</description>
     <value-attributes>
+      <type>user</type>
       <visible>false</visible>
     </value-attributes>
   </property>
@@ -89,6 +91,7 @@
     <property-type>GROUP</property-type>
     <description>Hadoop user group.</description>
     <value-attributes>
+      <type>user</type>
       <visible>false</visible>
     </value-attributes>
   </property>

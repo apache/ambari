@@ -82,5 +82,8 @@ dfs.datanode.handler.count = 60
 ipc.client.connection.maxidletime = 3600000
 dfs.namenode.accesstime.precision = -1
     </value>
+    <value-attributes>
+        <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

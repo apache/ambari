@@ -37,6 +37,9 @@
     <value>mapred</value>
     <property-type>USER</property-type>
     <description>Mapreduce User</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>jobhistory_heapsize</name>
@@ -62,5 +65,8 @@ export HADOOP_MAPRED_ROOT_LOGGER=INFO,RFA
 #export HADOOP_MAPRED_IDENT_STRING= #A string representing this instance of hadoop. $USER by default
 #export HADOOP_MAPRED_NICENESS= #The scheduling priority for daemons. Defaults to 0.
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

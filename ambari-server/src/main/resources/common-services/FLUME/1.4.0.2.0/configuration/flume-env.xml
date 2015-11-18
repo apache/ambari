@@ -54,6 +54,9 @@
     <value>flume</value>
     <property-type>USER</property-type>
     <description>Flume User</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <!-- flume-env.sh -->

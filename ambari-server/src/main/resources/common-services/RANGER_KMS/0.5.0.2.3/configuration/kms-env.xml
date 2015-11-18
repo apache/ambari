@@ -26,6 +26,9 @@
     <value>kms</value>
     <property-type>USER</property-type>
     <description>Kms username</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -34,6 +37,9 @@
     <value>kms</value>
     <property-type>GROUP</property-type>
     <description>Kms group</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>

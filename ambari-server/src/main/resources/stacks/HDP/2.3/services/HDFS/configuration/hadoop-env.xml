@@ -153,6 +153,9 @@ if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n
 fi
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   <property>
     <name>nfsgateway_heapsize</name>

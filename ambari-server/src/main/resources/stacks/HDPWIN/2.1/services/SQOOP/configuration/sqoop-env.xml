@@ -68,5 +68,8 @@
 ::Set the path for where zookeper config dir is
 ::set ZOOCFGDIR=
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

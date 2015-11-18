@@ -66,6 +66,9 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value>hbase</value>
     <property-type>USER</property-type>
     <description>HBase User Name.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_max_direct_memory_size</name>
@@ -173,6 +176,9 @@ export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_
 # HBase off-heap MaxDirectMemorySize
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}"
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

@@ -170,6 +170,9 @@
     <value>users</value>
     <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>hdfs_user</name>
@@ -177,6 +180,9 @@
     <value>hdfs</value>
     <property-type>USER</property-type>
     <description>User to run HDFS as</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>hdfs_user_nofile_limit</name>
@@ -327,6 +333,9 @@ if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n
 fi
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

@@ -27,6 +27,9 @@
     <value>storm</value>
     <property-type>USER</property-type>
     <description></description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>storm_log_dir</name>
@@ -68,6 +71,9 @@ export STORM_LOG_DIR={{log_dir}}
 export STORM_CONF_DIR={{conf_dir}}
 export STORM_HOME={{storm_component_home_dir}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
    <property>

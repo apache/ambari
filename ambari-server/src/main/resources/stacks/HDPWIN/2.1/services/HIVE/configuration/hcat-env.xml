@@ -27,5 +27,8 @@
     <description>This is the jinja template for hcat-env.cmd file</description>
     <value>
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

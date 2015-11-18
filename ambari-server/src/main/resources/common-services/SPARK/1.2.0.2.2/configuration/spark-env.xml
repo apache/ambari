@@ -26,6 +26,9 @@
     <display-name>Spark User</display-name>
     <value>spark</value>
     <property-type>USER</property-type>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -34,6 +37,9 @@
     <value>spark</value>
     <property-type>GROUP</property-type>
     <description>spark group</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -98,6 +104,9 @@ else
 fi
 
 </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
   <property>
