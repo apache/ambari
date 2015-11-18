@@ -44,7 +44,9 @@ def kafka():
     #listeners and advertised.listeners are only added in 2.3.0.0 onwards.
     if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3.0.0') >= 0:
         if params.security_enabled and params.kafka_kerberos_enabled:
-            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname).replace("PLAINTEXT", "PLAINTEXTSASL")
+            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
+            if "SASL" not in listeners:
+                listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
             kafka_server_config['listeners'] = listeners
             kafka_server_config['advertised.listeners'] = listeners
         else:
