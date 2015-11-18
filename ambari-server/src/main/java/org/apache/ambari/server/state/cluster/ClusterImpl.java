@@ -1221,6 +1221,7 @@ public class ClusterImpl implements Cluster {
    * UPGRADE_FAILED: at least one host in UPGRADE_FAILED
    * UPGRADED: all hosts are UPGRADED
    * UPGRADING: at least one host is UPGRADING, and the rest in UPGRADING|INSTALLED
+   * UPGRADING: at least one host is UPGRADED, and the rest in UPGRADING|INSTALLED
    * INSTALLED: all hosts in INSTALLED
    * INSTALL_FAILED: at least one host in INSTALL_FAILED
    * INSTALLING: all hosts in INSTALLING. Notice that if one host is CURRENT and another is INSTALLING, then the
@@ -1249,6 +1250,13 @@ public class ClusterImpl implements Cluster {
       return RepositoryVersionState.UPGRADED;
     }
     if (stateToHosts.containsKey(RepositoryVersionState.UPGRADING) && !stateToHosts.get(RepositoryVersionState.UPGRADING).isEmpty()) {
+      return RepositoryVersionState.UPGRADING;
+    }
+    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADED)
+        && !stateToHosts.get(RepositoryVersionState.UPGRADED).isEmpty()
+        && stateToHosts.get(RepositoryVersionState.UPGRADED).size() != totalHosts) {
+      // It is possible that a host has transitioned to UPGRADED state even before any other host has transitioned to UPGRADING state.
+      // Example: Host with single component ZOOKEEPER Server on it which is the first component to be upgraded.
       return RepositoryVersionState.UPGRADING;
     }
     if (stateToHosts.containsKey(RepositoryVersionState.INSTALLED) && stateToHosts.get(RepositoryVersionState.INSTALLED).size() == totalHosts) {
