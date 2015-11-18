@@ -18,11 +18,13 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
+import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -203,6 +205,17 @@ public class ClusterDAO {
     return daoUtils.selectList(query);
   }
 
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> getClusterConfigMappingEntitiesByCluster(long clusterId) {
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+      "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
+        "WHERE mapping.clusterId = :clusterId", ClusterConfigMappingEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+
+    return daoUtils.selectList(query);
+  }
+
   /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
@@ -226,6 +239,32 @@ public class ClusterDAO {
   @Transactional
   public void removeConfig(ClusterConfigEntity entity) {
     entityManagerProvider.get().remove(entity);
+  }
+
+  /**
+   * Bulk update config mappings in DB
+   */
+  @Transactional
+  public void mergeConfigMappings(Collection<ClusterConfigMappingEntity> mappingEntities) {
+    for (ClusterConfigMappingEntity mappingEntity : mappingEntities) {
+      entityManagerProvider.get().merge(mappingEntity);
+    }
+  }
+
+  /**
+   * Update config mapping in DB
+   */
+  @Transactional
+  public void mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
+    entityManagerProvider.get().merge(mappingEntity);
+  }
+
+  /**
+   * Create cluster config mapping in DB
+   */
+  @Transactional
+  public void persistConfigMapping(ClusterConfigMappingEntity entity) {
+    entityManagerProvider.get().persist(entity);
   }
 
   /**
@@ -323,4 +362,8 @@ public class ClusterDAO {
     remove(findById(id));
   }
 
+  @RequiresSession
+  public boolean isManaged(ClusterEntity entity) {
+    return entityManagerProvider.get().contains(entity);
+  }
 }

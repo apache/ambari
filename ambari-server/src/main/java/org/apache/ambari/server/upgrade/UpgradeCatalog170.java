@@ -714,6 +714,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       for (ClusterConfigMappingEntity configMapping : cluster.getConfigMappingEntities()) {
         if (configMapping.getType().equals(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG)) {
           configMapping.setSelected(0);
+          clusterDAO.mergeConfigMapping(configMapping);
         }
       }
       clusterDAO.merge(cluster);

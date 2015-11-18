@@ -115,7 +115,7 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
   private Collection<ClusterConfigEntity> configEntities;
 
-  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE)
   private Collection<ClusterConfigMappingEntity> configMappingEntities;
 
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.ALL)

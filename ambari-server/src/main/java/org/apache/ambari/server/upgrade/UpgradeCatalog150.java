@@ -777,6 +777,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
                   clusterConfigMappingEntity.setUser(defaultUser);
                   clusterConfigMappingEntity.setTag(configEntity.getTag());
                   entities.add(clusterConfigMappingEntity);
+                  clusterDAO.persistConfigMapping(clusterConfigMappingEntity);
                   clusterDAO.merge(clusterEntity);
                 }
               }
