@@ -2482,7 +2482,11 @@ public class ClusterImpl implements Cluster {
     }
 
     if (serviceName == null) {
-      LOG.error("No service found for config type '{}', service config version not created");
+      ArrayList<String> configTypes = new ArrayList<>();
+      for (Config config: configs) {
+        configTypes.add(config.getType());
+      }
+      LOG.error("No service found for config types '{}', service config version not created", configTypes);
       return null;
     } else {
       return createServiceConfigVersion(serviceName, user, serviceConfigVersionNote);
