@@ -59,9 +59,7 @@ App.AjaxDefaultErrorPopupBodyView = Em.View.extend({
    * Indicates if error message should be displayed
    * @type {boolean}
    */
-  showMessage: function () {
-    return !!this.get('message');
-  }.property('message'),
+  showMessage: Em.computed.bool('message'),
 
   /**
    * HTTP response error description

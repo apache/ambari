@@ -36,9 +36,7 @@ App.showManageCredentialsPopup = function () {
 
     isCredentialsRemoved: false,
 
-    disablePrimary: function() {
-      return this.get('formView.isSubmitDisabled');
-    }.property('formView.isSubmitDisabled'),
+    disablePrimary: Em.computed.alias('formView.isSubmitDisabled'),
 
     formView: function() {
       return this.get('childViews').findProperty('viewName', 'manageCredentialsForm');

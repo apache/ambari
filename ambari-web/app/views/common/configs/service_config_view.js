@@ -62,9 +62,7 @@ App.ServiceConfigView = Em.View.extend({
    * Determines if user is on the service configs page
    * @type {boolean}
    */
-  isOnTheServicePage: function () {
-    return this.get('controller.name') === 'mainServiceInfoConfigsController';
-  }.property('controller.name'),
+  isOnTheServicePage: Em.computed.equal('controller.name', 'mainServiceInfoConfigsController'),
 
   classNameBindings: ['isOnTheServicePage:serviceConfigs'],
 

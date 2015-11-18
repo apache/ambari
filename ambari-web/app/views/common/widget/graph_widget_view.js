@@ -71,9 +71,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
    */
   data: [],
 
-  exportTargetView: function () {
-    return this.get('childViews.lastObject');
-  }.property(),
+  exportTargetView: Em.computed.alias('childViews.lastObject'),
 
   drawWidget: function () {
     if (this.get('isLoaded')) {
@@ -222,15 +220,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
 
     noTitleUnderGraph: true,
     inWidget: true,
-    description: function () {
-      return this.get('parentView.content.description');
-    }.property('parentView.content.description'),
-    isPreview: function () {
-      return this.get('parentView.isPreview');
-    }.property('parentView.isPreview'),
-    displayUnit: function () {
-      return this.get('parentView.content.properties.display_unit');
-    }.property('parentView.content.properties.display_unit'),
+    description: Em.computed.alias('parentView.content.description'),
+    isPreview: Em.computed.alias('parentView.isPreview'),
+    displayUnit: Em.computed.alias('parentView.content.properties.display_unit'),
     setYAxisFormatter: function () {
       var displayUnit = this.get('displayUnit');
       if (displayUnit) {
@@ -271,9 +263,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       return this.get('parentView.content.properties.graph_type') === 'STACK' ? 'area' : 'line';
     }.property('parentView.content.properties.graph_type'),
 
-    title: function () {
-      return this.get('parentView.content.widgetName');
-    }.property('parentView.content.widgetName'),
+    title: Em.computed.alias('parentView.content.widgetName'),
 
     transformToSeries: function (seriesData) {
       var seriesArray = [];

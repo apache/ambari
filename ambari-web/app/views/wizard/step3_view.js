@@ -54,9 +54,7 @@ App.WizardStep3View = App.TableView.extend({
    * Active category
    * @type {string}
    */
-  selectedCategory: function() {
-    return this.get('categories').findProperty('isActive');
-  }.property('categories.@each.isActive'),
+  selectedCategory: Em.computed.findBy('categories', 'isActive', true),
 
   /**
    * Message about other registered hosts (not included in current registration)
@@ -86,9 +84,7 @@ App.WizardStep3View = App.TableView.extend({
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
     }.property('value', 'hostsCount'),
     isActive: false,
-    itemClass: function () {
-      return this.get('isActive') ? 'active' : '';
-    }.property('isActive')
+    itemClass: Em.computed.ifThenElse('isActive', 'active', '')
   }),
 
   /**

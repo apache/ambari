@@ -21,17 +21,11 @@ var App = require('app');
 App.MainServiceItemView = Em.View.extend({
   templateName: require('templates/main/service/item'),
 
-  serviceName: function() {
-    return this.get('controller.content.serviceName');
-  }.property('controller.content.serviceName'),
+  serviceName: Em.computed.alias('controller.content.serviceName'),
 
-  displayName: function() {
-    return this.get('controller.content.displayName');
-  }.property('controller.content.displayName'),
+  displayName: Em.computed.alias('controller.content.displayName'),
 
-  isPassive: function() {
-    return this.get('controller.content.passiveState') === 'ON';
-  }.property('controller.content.passiveState'),
+  isPassive: Em.computed.equal('controller.content.passiveState', 'ON'),
 
   /**
    * Some custom commands need custom logic to be executed

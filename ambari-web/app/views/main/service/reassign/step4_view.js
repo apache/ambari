@@ -39,13 +39,7 @@ App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend(
     }
   }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 
-  submitButtonText: function () {
-    if (this.get('controller.content.hasManualSteps')) {
-      return Em.I18n.t('common.next') + ' &rarr;';
-    } else {
-      return Em.I18n.t('common.complete');
-    }
-  }.property('controller.content.hasManualSteps'),
+  submitButtonText: Em.computed.ifThenElse('controller.content.hasManualSteps', Em.I18n.t('common.next') + ' &rarr;', Em.I18n.t('common.complete')),
 
   templateName: require('templates/main/service/reassign/step4'),
 

@@ -99,10 +99,7 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
    * Tooltip for "Remove group"-button
    * @type {string}
    */
-  removeButtonTooltip: function () {
-    return this.get('controller.isRemoveButtonDisabled') ? Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButtonDisabled') :
-        Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton');
-  }.property('controller.isRemoveButtonDisabled'),
+  removeButtonTooltip: Em.computed.ifThenElse('controller.isRemoveButtonDisabled', Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButtonDisabled'), Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton')),
 
   /**
    * Tooltip for "Rename"-button

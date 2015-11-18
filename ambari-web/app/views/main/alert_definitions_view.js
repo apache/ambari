@@ -75,9 +75,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   /**
    * @type {number}
    */
-  totalCount: function () {
-    return this.get('content.length');
-  }.property('content.length'),
+  totalCount: Em.computed.alias('content.length'),
 
   colPropAssoc: ['', 'label', 'summary', 'serviceName', 'type', 'lastTriggered', 'enabled', 'groups'],
 

@@ -71,21 +71,15 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     $("[rel='tooltip']").tooltip('destroy');
   },
 
-  dataNodesDead: function () {
-    return this.get('service.dataNodesInstalled');
-  }.property('service.dataNodesInstalled'),
+  dataNodesDead: Em.computed.alias('service.dataNodesInstalled'),
 
-  showJournalNodes: function () {
-    return this.get('service.journalNodes.length') > 0;
-  }.property('service.journalNodes.length'),
+  showJournalNodes: Em.computed.gt('service.journalNodes.length', 0),
 
   journalNodesLive: function () {
     return this.get('service.journalNodes').filterProperty("workStatus", "STARTED").get("length");
   }.property("service.journalNodes.@each.workStatus"),
 
-  journalNodesTotal: function () {
-    return this.get('service.journalNodes').get("length");
-  }.property("service.journalNodes.length"),
+  journalNodesTotal: Em.computed.alias('service.journalNodes.length'),
 
   dfsTotalBlocks: function(){
     return this.formatUnavailable(this.get('service.dfsTotalBlocks'));
@@ -189,9 +183,7 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
   }.property(),
   
-  journalNodeComponent: function () {
-    return this.get('service.journalNodes').objectAt(0);
-  }.property(),
+  journalNodeComponent: Em.computed.alias('service.journalNodes.firstObject'),
 
   safeModeStatus: function () {
     var safeMode = this.get('service.safeModeStatus');

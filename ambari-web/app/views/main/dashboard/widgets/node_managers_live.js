@@ -50,9 +50,7 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
     return !this.get('model.metricsNotAvailable') &&  App.get('router.clusterController.isComponentsStateLoaded');
   }.property('App.router.clusterController.isComponentsStateLoaded'),
 
-  nodeManagersLive: function () {
-    return this.get('model.nodeManagersCountActive');
-  }.property('model.nodeManagersCountActive'),
+  nodeManagersLive: Em.computed.alias('model.nodeManagersCountActive'),
 
   data: function () {
     var nodeManagers = this.get('model.nodeManagersTotal');

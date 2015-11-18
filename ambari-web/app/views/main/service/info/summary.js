@@ -88,9 +88,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     return App.get('services.hasClient');
   }.property('App.services.hasClient'),
 
-  hasManyServers: function () {
-    return this.get('servers').length > 1;
-  }.property('servers'),
+  hasManyServers: Em.computed.gt('servers.length', 1),
 
   clientsHostText: function () {
     if (this.get('controller.content.installedClients').length == 0) {
@@ -102,9 +100,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     }
   }.property("hasManyClients"),
 
-  hasManyClients: function () {
-    return this.get('controller.content.installedClients').length > 1;
-  }.property('service.installedClients'),
+  hasManyClients: Em.computed.gt('controller.content.installedClients.length', 1),
 
   servers: function () {
     var result = [];
@@ -274,9 +270,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
     href:'javascript:void(null)'
   }),
 
-  serviceName:function () {
-    return this.get('service.serviceName');
-  }.property('service'),
+  serviceName: Em.computed.alias('service.serviceName'),
 
   oldServiceName:'',
 
@@ -286,13 +280,9 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   componentsCount: null,
   hostsCount: null,
 
-  alertsCount: function () {
-    return this.get('controller.content.alertsCount');
-  }.property('controller.content.alertsCount'),
+  alertsCount: Em.computed.alias('controller.content.alertsCount'),
 
-  hasCriticalAlerts: function () {
-    return this.get('controller.content.hasCriticalAlerts');
-  }.property('controller.content.alertsCount'),
+  hasCriticalAlerts: Em.computed.alias('controller.content.hasCriticalAlerts'),
 
   /**
    * Define if service has alert definitions defined

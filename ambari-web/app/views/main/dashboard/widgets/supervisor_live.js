@@ -40,17 +40,11 @@ App.SuperVisorUpView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  superVisorsLive: function () {
-    return this.get('model.superVisorsStarted');
-  }.property('model.superVisorsStarted'),
+  superVisorsLive: Em.computed.alias('model.superVisorsStarted'),
 
-  superVisorsDead: function () {
-    return this.get('model.superVisorsInstalled');
-  }.property('model.superVisorsInstalled'),
+  superVisorsDead: Em.computed.alias('model.superVisorsInstalled'),
 
-  superVisorsTotal: function() {
-    return this.get('model.superVisorsTotal');
-  }.property('model.superVisorsTotal'),
+  superVisorsTotal: Em.computed.alias('model.superVisorsTotal'),
 
   data: function () {
     if ( !this.get('superVisorsTotal') || Em.isNone(this.get('superVisorsLive'))) {

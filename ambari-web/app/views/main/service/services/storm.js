@@ -35,13 +35,9 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
     return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
   }.property('service.freeSlots', 'service.totalSlots'),
 
-  superVisorsLive: function () {
-    return this.get('service.superVisorsStarted');
-  }.property('service.superVisorsStarted'),
+  superVisorsLive: Em.computed.alias('service.superVisorsStarted'),
 
-  superVisorsTotal: function() {
-    return this.get('service.superVisorsTotal');
-  }.property('service.superVisorsTotal'),
+  superVisorsTotal: Em.computed.alias('service.superVisorsTotal'),
 
   nimbusUptimeFormatted: function() {
     return this.get('service.nimbusUptime') || Em.I18n.t('services.service.summary.notRunning');

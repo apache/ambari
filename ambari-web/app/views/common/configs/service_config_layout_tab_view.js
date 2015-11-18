@@ -39,9 +39,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   /**
    * @type {App.Service}
    */
-  service: function () {
-    return this.get('controller.selectedService');
-  }.property('controller.selectedService'),
+  service: Em.computed.alias('controller.selectedService'),
 
   templateName: require('templates/common/configs/service_config_layout_tab'),
 

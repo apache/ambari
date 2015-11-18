@@ -31,9 +31,7 @@ App.MainHostDetailsView = Em.View.extend({
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
-  clients: function () {
-    return this.get('content.hostComponents').filterProperty('isClient');
-  }.property('content.hostComponents.@each'),
+  clients: Em.computed.filterBy('content.hostComponents', 'isClient', true),
 
   clientsWithConfigs: function() {
     return this.get('content.hostComponents').filterProperty('isClient').filter(function(client) {
@@ -41,9 +39,7 @@ App.MainHostDetailsView = Em.View.extend({
     });
   }.property('content.hostComponents.@each'),
 
-  isActive: function() {
-    return this.get('controller.content.passiveState') === "OFF";
-  }.property('controller.content.passiveState'),
+  isActive: Em.computed.equal('controller.content.passiveState', 'OFF'),
 
   maintenance: function(){
     var onOff = this.get('isActive') ? "On" : "Off";

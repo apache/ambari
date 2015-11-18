@@ -54,9 +54,7 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     //return this.get('service.hostComponents').findProperty('componentName', 'YARN_CLIENT');
   }.property(),
 
-  hasManyYarnClients: function () {
-    return (this.get('service.installedClients') > 1);
-  }.property('service.installedClients'),
+  hasManyYarnClients: Em.computed.gt('service.installedClients', 1),
 
   nodeUptime: function () {
     var uptime = this.get('service').get('resourceManagerStartTime');

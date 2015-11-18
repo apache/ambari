@@ -194,17 +194,13 @@ App.upgradeWizardView = Em.View.extend({
    * manualItem: indicate whether the step is "Service check failures", a dialog with instructions will show up for manual steps
    * @type {boolean}
    */
-  isServiceCheckFailuresItem: function () {
-    return this.get('manualItem.context') === this.get("controller.serviceCheckFailuresContext");
-  }.property('manualItem.context'),
+  isServiceCheckFailuresItem: Em.computed.equalProperties('manualItem.context', 'controller.serviceCheckFailuresContext'),
 
   /**
    * manualItem: indicate whether the step is Finalize
    * @type {boolean}
    */
-  isFinalizeItem: function () {
-    return this.get('manualItem.context') === this.get('controller.finalizeContext');
-  }.property('manualItem.context'),
+  isFinalizeItem: Em.computed.equalProperties('manualItem.context', 'controller.finalizeContext'),
 
   /**
    * label of Upgrade status

@@ -62,16 +62,12 @@ App.TableView = Em.View.extend(App.UserPref, {
   /**
    * number of items in table after applying filters
    */
-  filteredCount: function () {
-    return this.get('filteredContent.length');
-  }.property('filteredContent.length'),
+  filteredCount: Em.computed.alias('filteredContent.length'),
 
   /**
    * total number of items in table before applying filters
    */
-  totalCount: function () {
-    return this.get('content.length');
-  }.property('content.length'),
+  totalCount: Em.computed.alias('content.length'),
 
   /**
    * Do filtering, using saved in the local storage filter conditions
@@ -408,9 +404,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    * Determine if <code>filteredContent</code> is empty or not
    * @type {Boolean}
    */
-  hasFilteredItems: function() {
-    return !!this.get('filteredCount');
-  }.property('filteredCount'),
+  hasFilteredItems: Em.computed.bool('filteredCount'),
 
   /**
    * Contains content to show on the current page of data page view

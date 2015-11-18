@@ -230,9 +230,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * If host lost heartbeat, components can't be added on it
    * @type {bool}
    */
-  isAddComponent: function () {
-    return this.get('content.healthClass') !== 'health-status-DEAD-YELLOW';
-  }.property('content.healthClass'),
+  isAddComponent: Em.computed.notEqual('content.healthClass', 'health-status-DEAD-YELLOW'),
 
   /**
    * Disable "Add" button if components can't be added to the current host

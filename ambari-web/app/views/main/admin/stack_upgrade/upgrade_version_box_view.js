@@ -68,9 +68,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isOutOfSync: function () {
-    return this.get('content.status') === 'OUT_OF_SYNC';
-  }.property('content.status'),
+  isOutOfSync: Em.computed.equal('content.status', 'OUT_OF_SYNC'),
 
   /**
    * map containing version (id, label)

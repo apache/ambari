@@ -27,17 +27,13 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    * Does host lost heartbeat
    * @type {bool}
    */
-  isHeartbeatLost: function() {
-    return (this.get('parentView.host.status') === 'heartbeat_lost');
-  }.property('parentView.host.status'),
+  isHeartbeatLost: Em.computed.equal('parentView.host.status', 'heartbeat_lost'),
 
   /**
    * Does host doesn't have scheduled tasks for install
    * @type {bool}
    */
-  isNoTasksScheduled: function() {
-    return this.get('parentView.host.isNoTasksForInstall');
-  }.property('parentView.host.isNoTasksForInstall'),
+  isNoTasksScheduled: Em.computed.alias('parentView.host.isNoTasksForInstall'),
 
   /**
    * Is log-box hidden

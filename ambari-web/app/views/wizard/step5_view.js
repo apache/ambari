@@ -21,12 +21,9 @@ var stringUtils = require('utils/string_utils');
 
 App.WizardStep5View = App.AssignMasterComponentsView.extend({
 
-  title: function () {
-    if (this.get('controller.content.controllerName') === 'reassignMasterController') {
-      return Em.I18n.t('installer.step5.reassign.header');
-    }
-    return Em.I18n.t('installer.step5.header');
-  }.property('controller.content.controllerName'),
+  isReassignWizard: Em.computed.equal('controller.content.controllerName', 'reassignMasterController'),
+
+  title: Em.computed.ifThenElse('isReassignWizard', Em.I18n.t('installer.step5.reassign.header'), Em.I18n.t('installer.step5.header')),
 
   alertMessage: function () {
     var result = Em.I18n.t('installer.step5.body');

@@ -64,9 +64,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   /**
    * flag to toggle displaying selected hosts counter
    */
-  showSelectedFilter: function () {
-    return this.get('selectedHosts.length') > 0;
-  }.property('selectedHosts'),
+  showSelectedFilter: Em.computed.bool('selectedHosts.length'),
 
   /**
    * return filtered number of all content number information displayed on the page footer bar
@@ -434,9 +432,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      * true if host has no components
      * @returns {Boolean}
      */
-    hasNoComponents: function() {
-      return !this.get('content.hostComponents.length');
-    }.property('content.hostComponents.length'),
+    hasNoComponents: Em.computed.empty('content.hostComponents'),
 
     /**
 
@@ -554,9 +550,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
      * Add "active" class for category span-wrapper if current category is selected
      * @type {String}
      */
-    itemClass: function() {
-      return this.get('isActive') ? 'active' : '';
-    }.property('isActive'),
+    itemClass: Em.computed.ifThenElse('isActive', 'active', ''),
 
     /**
      * Text shown on the right of category icon
@@ -583,9 +577,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   /**
    * Category for <code>selected</code> property of each App.Host
    */
-  selectedCategory: function() {
-    return this.get('categories').findProperty('selected', true);
-  }.property('categories.@each.selected'),
+  selectedCategory: Em.computed.findBy('categories', 'selected', true),
 
   statusFilter: Em.View.extend({
     column: 0,
@@ -978,9 +970,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * associations between host property and column index
    * @type {Array}
    */
-  colPropAssoc: function () {
-    return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc'),
+  colPropAssoc: Em.computed.alias('controller.colPropAssoc'),
 
   /**
    * Run <code>clearFilter</code> in the each child filterView

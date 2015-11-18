@@ -45,9 +45,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
         didInsertElement: function() {
           this.set('selectedGroup', this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups')[this.get('serviceName')]);
         },
-        serviceName: function() {
-          return this.get('content').get('serviceName');
-        }.property('content'),
+        serviceName: Em.computed.alias('content.serviceName'),
         selectedGroup: null,
         updateGroup: function() {
           var dependentGroups = $.extend({},this.get('parentView.parentView.selectedConfigGroup.dependentConfigGroups'));

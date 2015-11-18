@@ -25,15 +25,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
   /**
    * All master components
    */
-  masters: function () {
-    return this.get('service.hostComponents').filterProperty('isMaster', true);
-  }.property('service.hostComponents.length'),
+  masters: Em.computed.filterBy('service.hostComponents', 'isMaster', true),
   /**
    * Passive master components
    */
-  passiveMasters: function () {
-    return this.get('masters').filterProperty('haStatus', 'false');
-  }.property('masters'),
+  passiveMasters: Em.computed.filterBy('masters', 'haStatus', 'false'),
 
   regionServesText: function () {
     if (this.get('service.regionServersTotal') == 0) {
@@ -55,16 +51,12 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     }
   }.property("service"),
 
-  showPhoenixInfo: function () {
-    return !!this.get('service.phoenixServersTotal');
-  }.property("service.phoenixServersTotal"),
+  showPhoenixInfo: Em.computed.bool('service.phoenixServersTotal'),
 
   /**
    * One(!) active master component
    */
-  activeMaster: function () {
-    return this.get('masters').findProperty('haStatus', 'true');
-  }.property('masters'),
+  activeMaster: Em.computed.findBy('masters', 'haStatus', 'true'),
 
   activeMasterTitle: function(){
     return this.t('service.hbase.activeMaster');

@@ -63,18 +63,14 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * if not, text-field with config value or label "Undefined" should be shown
    * @type {boolean}
    */
-  doNotShowWidget: function() {
-    return this.get('isPropertyUndefined') || this.get('config.showAsTextBox');
-  }.property('isPropertyUndefined', 'config.showAsTextBox'),
+  doNotShowWidget: Em.computed.or('isPropertyUndefined', 'config.showAsTextBox'),
 
   /**
    * defines if property in not defined in selected version
    * in this case "Undefined" should be shown instead of widget
    * @type {boolean}
    */
-  isPropertyUndefined: function() {
-    return this.get('config.value') === "Undefined";
-  }.property('config.value'),
+  isPropertyUndefined: Em.computed.equal('config.value', 'Undefined'),
 
   /**
    * Tab where current widget placed

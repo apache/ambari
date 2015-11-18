@@ -23,21 +23,13 @@ App.ReassignMasterWizardStep7View = App.HighAvailabilityProgressPageView.extend(
 
   headerTitle: Em.I18n.t('services.reassign.step7.header'),
 
-  noticeInProgress: function () {
-    return Em.I18n.t('services.reassign.step7.info');
-  }.property(),
+  noticeInProgress: Em.I18n.t('services.reassign.step7.info'),
 
-  noticeFailed: function () {
-    return Em.I18n.t('services.reassign.step7.failed');
-  }.property(),
+  noticeFailed: Em.I18n.t('services.reassign.step7.failed'),
 
-  noticeCompleted: function () {
-    return Em.I18n.t('services.reassign.step7.success');
-  }.property(),
+  noticeCompleted: Em.I18n.t('services.reassign.step7.success'),
 
-  submitButtonText: function () {
-    return Em.I18n.t('common.complete') + ' &rarr;';
-  }.property(),
+  submitButtonText: Em.I18n.t('common.complete') + ' &rarr;',
 
   templateName: require('templates/main/service/reassign/step7'),
 

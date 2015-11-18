@@ -54,13 +54,10 @@ App.StageLabelView = Em.View.extend({
     })
   },
 
-  isStarted: function () {
-    return  (this.get('command') && this.get('command.isStarted'));
-  }.property('command.isStarted'),
+  isStarted: Em.computed.alias('command.isStarted'),
 
-  showLink: function () {
-    return (this.get('command') && this.get('command.showLink'));
-  }.property('command.showLink')
+  showLink: Em.computed.alias('command.showLink')
+
 });
 
 App.StageSuccessView = Em.View.extend({

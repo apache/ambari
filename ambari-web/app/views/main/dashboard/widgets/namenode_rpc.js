@@ -35,13 +35,9 @@ App.NameNodeRpcView = App.TextDashboardWidgetView.extend({
   thresh2: 2,
   maxValue: 'infinity',
 
-  isGreen: function () {
-    return (this.get('data') <= this.get('thresh1'));
-  }.property('data','thresh1'),
+  isGreen: Em.computed.lteProperties('data', 'thresh1'),
 
-  isRed: function () {
-    return (this.get('data') > this.get('thresh2'));
-  }.property('data','thresh2'),
+  isRed: Em.computed.gtProperties('data', 'thresh2'),
 
   data: function () {
     if (this.get('model.nameNodeRpc')) {

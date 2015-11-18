@@ -43,17 +43,13 @@ App.ManageAlertNotificationsView = Em.View.extend({
    * Show EMAIL information if selected alert notification has type EMAIL
    * @type {boolean}
    */
-  showEmailDetails: function () {
-    return this.get('controller.selectedAlertNotification.type') === 'EMAIL';
-  }.property('controller.selectedAlertNotification.type'),
+  showEmailDetails: Em.computed.equal('controller.selectedAlertNotification.type', 'EMAIL'),
 
   /**
    * Show SNMP information if selected alert notification has type SNMP
    * @type {boolean}
    */
-  showSNMPDetails: function () {
-    return this.get('controller.selectedAlertNotification.type') === 'SNMP';
-  }.property('controller.selectedAlertNotification.type'),
+  showSNMPDetails: Em.computed.equal('controller.selectedAlertNotification.type', 'SNMP'),
 
   email: function () {
     return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];

@@ -45,9 +45,7 @@ App.WizardStep9View = App.TableView.extend({
    * When progress is 100, step is completed
    * @type {bool}
    */
-  isStepCompleted: function() {
-   return (this.get('controller.progress') === '100');
-  }.property('controller.progress'),
+  isStepCompleted: Em.computed.equal('controller.progress', '100'),
 
   /**
    * Number of visible hosts
@@ -67,9 +65,7 @@ App.WizardStep9View = App.TableView.extend({
    * Active category
    * @type {Ember.Object}
    */
-  selectedCategory: function() {
-    return this.get('categories').findProperty('isActive');
-  }.property('categories.@each.isActive'),
+  selectedCategory: Em.computed.findBy('categories', 'isActive', true),
 
   /**
    * Ember Object category. This object also contains
@@ -88,9 +84,7 @@ App.WizardStep9View = App.TableView.extend({
       return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
     }.property('value', 'hostsCount'),
     isActive: false,
-    itemClass: function () {
-      return this.get('isActive') ? 'active' : '';
-    }.property('isActive')
+    itemClass: Em.computed.ifThenElse('isActive', 'active', '')
   }),
 
   /**
@@ -111,9 +105,7 @@ App.WizardStep9View = App.TableView.extend({
    * True if <code>controller.hostsWithHeartbeatLost</code> contains some values
    * @type {bool}
    */
-  isHostHeartbeatLost: function () {
-    return (this.get('controller.hostsWithHeartbeatLost').length > 0);
-  }.property('controller.hostsWithHeartbeatLost.@each'),
+  isHostHeartbeatLost: Em.computed.bool('controller.hostsWithHeartbeatLost.length'),
 
   /**
    * Css-string to overall progress-bar width-property

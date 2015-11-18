@@ -61,9 +61,7 @@ App.MainHostAlertsView = App.TableView.extend({
   /**
    * @type {number}
    */
-  totalCount: function () {
-    return this.get('content.length');
-  }.property('content.length'),
+  totalCount: Em.computed.alias('content.length'),
 
   colPropAssoc: ['', 'serviceName', 'label', 'latestTimestamp', 'state', 'text'],
 

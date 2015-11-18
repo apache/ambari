@@ -34,12 +34,9 @@ App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend({
     return result;
   }.property("model.averageLoad"),
 
-  isGreen: function () {
-    return this.get('data') <= this.get('thresh1');
-  }.property('data','thresh1','thresh2'),
-  isRed: function () {
-    return this.get('data') > this.get('thresh2');
-  }.property('data','thresh1','thresh2'),
+  isGreen: Em.computed.lteProperties('data', 'thresh1'),
+  isRed: Em.computed.gtProperties('data', 'thresh2'),
+
   isNA: function (){
     return this.get('data') === null || isNaN(this.get('data'));
   }.property('data'),
@@ -48,9 +45,7 @@ App.HBaseAverageLoadView = App.TextDashboardWidgetView.extend({
   thresh2: 2,
   maxValue: 'infinity',
 
-  data: function () {
-    return this.get('model.averageLoad');
-  }.property("model.averageLoad"),
+  data: Em.computed.alias('model.averageLoad'),
 
   content: function (){
     if(this.get('data') || this.get('data') == 0){
