@@ -22,6 +22,7 @@ import time
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
+import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.environment import Environment
@@ -52,7 +53,7 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 
-logger = logging.getLogger()
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -191,8 +192,8 @@ def execute(configurations={}, parameters={}, host_name=None):
     elif (transaction_difference > int(checkpoint_tx)) and (float(delta) / int(checkpoint_period)*100 >= int(percent_warning)):
       result_code = 'WARNING'
 
-  except Exception, e:
-    label = str(e)
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
         
   return ((result_code, [label]))

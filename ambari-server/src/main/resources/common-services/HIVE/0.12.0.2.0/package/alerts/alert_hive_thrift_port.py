@@ -21,6 +21,8 @@ limitations under the License.
 import os
 import socket
 import time
+import logging
+import traceback
 from resource_management.libraries.functions import hive_check
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
@@ -65,6 +67,8 @@ SMOKEUSER_DEFAULT = 'ambari-qa'
 
 HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
 HADOOPUSER_DEFAULT = 'hadoop'
+
+logger = logging.getLogger('ambari_alerts')
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
@@ -189,12 +193,12 @@ def execute(configurations={}, parameters={}, host_name=None):
       result_code = 'OK'
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)
-    except Exception, exception:
+    except:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
+      label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
 
-  except Exception, e:
-    label = str(e)
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return (result_code, [label])
@@ -252,11 +256,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       total_time = time.time() - start_time
       result_code = 'OK'
       label = OK_MESSAGE.format(total_time, port)
-    except Exception, exception:
+    except:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
-  except Exception, e:
-    label = str(e)
+      label = CRITICAL_MESSAGE.format(host_name, port, traceback.format_exc())
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return (result_code, [label])

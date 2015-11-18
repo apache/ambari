@@ -21,6 +21,8 @@ limitations under the License.
 import os
 import socket
 import time
+import traceback
+import logging
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
@@ -30,7 +32,6 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
 CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
-
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
@@ -60,6 +61,7 @@ HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
 HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
 HADOOPUSER_DEFAULT = 'hadoop'
+logger = logging.getLogger('ambari_alerts')
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
@@ -177,12 +179,12 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       result_code = 'OK'
       label = OK_MESSAGE.format(total_time)
-    except Exception, exception:
+    except:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, str(exception))
+      label = CRITICAL_MESSAGE.format(host_name, traceback.format_exc())
 
-  except Exception, e:
-    label = str(e)
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return ((result_code, [label]))
@@ -236,11 +238,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       total_time = time.time() - start_time
       result_code = 'OK'
       label = OK_MESSAGE.format(total_time)
-    except Exception, exception:
+    except:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, str(exception))
-  except Exception, e:
-    label = str(e)
+      label = CRITICAL_MESSAGE.format(host_name, traceback.format_exc())
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return ((result_code, [label]))
