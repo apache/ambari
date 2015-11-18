@@ -21,6 +21,7 @@ limitations under the License.
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
+import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request, CONNECTION_TIMEOUT_DEFAULT
 from resource_management.core.environment import Environment
@@ -34,8 +35,7 @@ KERBEROS_PRINCIPAL = '{{hdfs-site/dfs.web.authentication.kerberos.principal}}'
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
 EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
-
-logger = logging.getLogger()
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -138,8 +138,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       label = "HDFS cluster is not finalized"
       result_code = 'CRITICAL'
 
-  except Exception, e:
-    label = str(e)
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return ((result_code, [label]))

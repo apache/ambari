@@ -21,6 +21,7 @@ limitations under the License.
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
+import traceback
 
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
 from resource_management.core.environment import Environment
@@ -48,7 +49,8 @@ EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
 
-logger = logging.getLogger()
+LOGGER_EXCEPTION_MESSAGE = "[Alert] NameNode High Availability Health on {0} fails:"
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -167,6 +169,7 @@ def execute(configurations={}, parameters={}, host_name=None):
         else:
           unknown_namenodes.append(value)
       except:
+        logger.exception(LOGGER_EXCEPTION_MESSAGE.format(host_name))
         unknown_namenodes.append(value)
 
   # now that the request is done, determine if this host is the host that
