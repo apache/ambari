@@ -92,7 +92,6 @@ metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sin
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
-hbase_classpath_additional = config['configurations']['ams-hbase-env']['hbase_classpath_additional']
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
 regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regionserver_heapsize']
 

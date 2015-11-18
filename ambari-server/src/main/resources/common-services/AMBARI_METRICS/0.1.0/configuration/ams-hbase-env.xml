@@ -32,14 +32,6 @@
     <description>Pid Directory for HBase.</description>
   </property>
   <property>
-    <name>hbase_classpath_additional</name>
-    <value></value>
-    <description>Additional directory or jar in classpath for HBase.</description>
-    <value-attributes>
-      <empty-value-valid>true</empty-value-valid>
-    </value-attributes>
-  </property>
-  <property>
     <name>hbase_regionserver_heapsize</name>
     <value>512</value>
     <description>
@@ -151,7 +143,7 @@ export JAVA_HOME={{java64_home}}
 export HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}
 
 # Extra Java CLASSPATH elements. Optional.
-export HBASE_CLASSPATH=${HBASE_CLASSPATH}:{{hbase_classpath_additional}}
+export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 
 # The maximum amount of heap to use, in MB. Default is 1000.
 export HBASE_HEAPSIZE={{hbase_heapsize}}m
