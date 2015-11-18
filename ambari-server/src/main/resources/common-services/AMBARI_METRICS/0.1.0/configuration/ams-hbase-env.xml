@@ -61,6 +61,12 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase_master_xmn_size</name>
@@ -72,6 +78,12 @@
       <type>int</type>
       <unit>MB</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase_master_maxperm_size</name>
@@ -124,7 +136,7 @@
     <value>
 # Set environment variables here.
 
-# The java implementation to use. Java 1.6 required.
+# The java implementation to use. Java 1.6+ required.
 export JAVA_HOME={{java64_home}}
 
 # HBase Configuration directory
@@ -203,6 +215,9 @@ export HBASE_OPTS="$HBASE_OPTS -Djava.library.path=${_HADOOP_NATIVE_LIB}"
 # Unset HADOOP_HOME to avoid importing HADOOP installed cluster related configs like: /usr/hdp/2.2.0.0-2041/hadoop/conf/
 export HADOOP_HOME={{ams_hbase_home_dir}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

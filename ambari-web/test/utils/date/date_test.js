@@ -167,7 +167,7 @@ describe('date', function () {
     ];
 
     beforeEach(function() {
-      sinon.stub(App, 'dateTime', function () { return 100019000; });
+      sinon.stub(App, 'dateTimeWithTimeZone', function () { return 100019000; });
     });
 
     tests.forEach(function(test) {
@@ -178,7 +178,7 @@ describe('date', function () {
     });
 
     afterEach(function() {
-      App.dateTime.restore();
+      App.dateTimeWithTimeZone.restore();
     });
   });
 

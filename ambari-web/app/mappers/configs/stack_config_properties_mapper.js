@@ -18,30 +18,48 @@
 var App = require('app');
 
 App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
-  model: App.StackConfigProperty,
-  config: {
+  /**
+   * this is map for configs that will be stored as plan objects
+   */
+  configToPlain: {
     id: 'id',
     name: 'StackConfigurations.property_name',
-    display_name: 'StackConfigurations.property_display_name',
-    file_name: 'StackConfigurations.type',
+    displayName: 'StackConfigurations.property_display_name',
+    fileName: 'StackConfigurations.type',
+    filename: 'StackConfigurations.type',
     description: 'StackConfigurations.property_description',
     value: 'StackConfigurations.property_value',
-    recommended_value: 'StackConfigurations.property_value',
-    type: 'StackConfigurations.property_type',
-    service_name: 'StackConfigurations.service_name',
-    stack_name: 'StackConfigurations.stack_name',
-    stack_version: 'StackConfigurations.stack_version',
-    property_depended_by: 'StackConfigurations.property_depended_by',
-    property_depends_on: 'StackConfigurations.property_depends_on',
-    value_attributes: 'StackConfigurations.property_value_attributes',
-    is_final: 'recommended_is_final',
-    recommended_is_final: 'recommended_is_final',
-    supports_final: 'supports_final',
-    widget: 'widget',
-    /**** ui properties ***/
-    display_type: 'display_type',
+    recommendedValue: 'StackConfigurations.property_value',
+    serviceName: 'StackConfigurations.service_name',
+    stackName: 'StackConfigurations.stack_name',
+    stackVersion: 'StackConfigurations.stack_version',
+    isOverridable: 'StackConfigurations.property_value_attributes.overridable',
+    isVisible: 'StackConfigurations.property_value_attributes.visible',
+    showLabel: 'StackConfigurations.property_value_attributes.show_property_name',
+    displayType: 'StackConfigurations.property_value_attributes.type',
+    unit: 'StackConfigurations.property_value_attributes.unit',
+
+    isRequired: 'is_required',
+    isReconfigurable: 'is_reconfigurable',
+    isEditable: 'is_editable',
+    isRequiredByAgent: 'is_required_by_agent',
+
+    isFinal: 'recommended_is_final',
+    recommendedIsFinal: 'recommended_is_final',
+    supportsFinal: 'supports_final',
+
+    propertyDependedBy: 'StackConfigurations.property_depended_by',
+    propertyDependsOn: 'StackConfigurations.property_depends_on',
+    valueAttributes: 'StackConfigurations.property_value_attributes',
+
+    /**** ui properties, ib future should be moved to BE ***/
     category: 'category',
-    index: 'index'
+    index: 'index',
+    /*** temp properties until all radio buttons type will be moved to BE **/
+    radioName: 'radioName',
+    options: 'options',
+    /*** temp property until visibility dependencies will be retrieved from stack **/
+    dependentConfigPattern: 'dependentConfigPattern'
   },
 
   map: function (json) {
@@ -64,6 +82,29 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           config.id = App.config.configId(config.StackConfigurations.property_name, configType);
           config.recommended_is_final = config.StackConfigurations.final === "true";
           config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
+
+          var attributes = config.StackConfigurations.property_value_attributes;
+          if (attributes) {
+            config.is_required = !attributes.empty_value_valid;
+            config.is_reconfigurable = !attributes.editable_only_at_install;
+            config.is_editable = !attributes.read_only;
+            config.is_required_by_agent = !attributes.ui_only_property;
+          }
+
+          if (!config.StackConfigurations.property_display_name) {
+            config.StackConfigurations.property_display_name = config.StackConfigurations.property_name;
+          }
+
+          if (!config.StackConfigurations.service_name) {
+            config.StackConfigurations.service_name = 'MISC';
+          }
+
+          if (!attributes || !attributes.type) {
+            if (!attributes) {
+              config.StackConfigurations.property_value_attributes = {};
+            }
+            config.StackConfigurations.property_value_attributes.type = App.config.getDefaultDisplayType(config.StackConfigurations.property_value);
+          }
           // Map from /dependencies to property_depended_by
           config.StackConfigurations.property_depended_by = [];
           if (config.dependencies && config.dependencies.length > 0) {
@@ -93,11 +134,22 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
            * for now is not used; uncomment in will be needed
            * this.mergeWithUI(config);
            */
-          this.mergeWithUI(config);
-          configs.push(this.parseIt(config, this.get('config')));
+          if (this.isMiscService(config.StackConfigurations.property_type)) {
+            this.handleSpecialProperties(config);
+          } else {
+            this.mergeWithUI(config);
+          }
+
+          var staticConfigInfo = this.parseIt(config, this.get('configToPlain'));
+          var v = Em.isNone(staticConfigInfo.recommendedValue) ? staticConfigInfo.recommendedValue : staticConfigInfo.value;
+          staticConfigInfo.value = staticConfigInfo.recommendedValue = App.config.formatPropertyValue(staticConfigInfo, v);
+          staticConfigInfo.isSecure = App.config.getIsSecure(staticConfigInfo.name);
+          staticConfigInfo.isUserProperty = false;
+          App.configsCollection.add(staticConfigInfo);
+
         }, this);
       }, this);
-      App.store.loadMany(this.get('model'), configs);
+      this.addUIOnlyProperties(configs);
     }
     console.timeEnd('App.stackConfigPropertiesMapper execution time');
   },
@@ -113,18 +165,65 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   mergeWithUI: function(config) {
     var c = config.StackConfigurations;
     var uiConfigProperty = this.getUIConfig(c.property_name, c.type);
-    var advancedData = App.config.advancedConfigIdentityData(c);
 
-    if (!c.property_display_name) {
-      c.property_display_name = App.config.getPropertyIfExists('displayName', App.config.getDefaultDisplayName(c.property_name, c.type), advancedData, uiConfigProperty);
+    config.category = uiConfigProperty && uiConfigProperty.category ? uiConfigProperty.category : App.config.getDefaultCategory(true, c.type);
+
+    if (uiConfigProperty) {
+      config.index = uiConfigProperty.index || Infinity;
+      if (uiConfigProperty.displayType) {
+        c.property_value_attributes.type = uiConfigProperty.displayType;
+        config.radioName = uiConfigProperty.radioName;
+        config.options = uiConfigProperty.options;
+      }
+      config.dependentConfigPattern = uiConfigProperty.dependentConfigPattern;
     }
-    c.service_name = App.config.getPropertyIfExists('serviceName', c.service_name, advancedData, uiConfigProperty);
-
-    config.category = App.config.getPropertyIfExists('category', App.config.getDefaultCategory(true, c.type), advancedData, uiConfigProperty);
-    config.display_type = App.config.getPropertyIfExists('displayType', Em.get(c, 'property_value_attributes.type') || App.config.getDefaultDisplayType(c.property_name, c.type, c.property_value), advancedData, uiConfigProperty);
-    config.index = App.config.getPropertyIfExists('index', null, advancedData, uiConfigProperty);
   },
 
+  /**
+   *
+   * @param config
+   */
+  handleSpecialProperties: function(config) {
+    if (!config.StackConfigurations.property_type.contains('ADDITIONAL_USER_PROPERTY')) {
+      config.index = App.StackService.displayOrder.indexOf(config.StackConfigurations.service_name) + 1 || 30;
+    }
+    config.StackConfigurations.service_name = 'MISC';
+    config.category = 'Users and Groups';
+  },
+
+  /**
+   * defines if property should refer to MISC tab
+   * @param type
+   * @returns {Boolean}
+   */
+  isMiscService: function(type) {
+    return type.length && (type.contains('USER') || type.contains('GROUP') || type.contains('ADDITIONAL_USER_PROPERTY'));
+  },
+
+  /**
+   * add properties that doesn't have any info on stack definition
+   * @param configs
+   */
+  addUIOnlyProperties: function(configs) {
+    require('data/HDP2/ui_properties').concat(require('data/HDP2/alert_notification')).forEach(function(p) {
+      configs.push({
+        id: App.config.configId(p.name, p.filename),
+        name: p.name,
+        display_name: p.displayName,
+        file_name: p.filename,
+        description: p.description || '',
+        is_required_by_agent: p.isRequiredByAgent !== false, // by default is_required_by_agent should be true
+        service_name: p.serviceName,
+        supports_final: false,
+        category: p.category,
+        index: p.index,
+        stack_name: App.get('currentStackName'),
+        stack_version: App.get('currentStackVersionNumber')
+      });
+      p.id = App.config.configId(p.name, p.filename);
+      App.configsCollection.add(p);
+    });
+  },
   /**
    * returns config with such name and fileName if there is such on UI
    * otherwise returns null

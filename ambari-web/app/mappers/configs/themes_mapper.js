@@ -175,16 +175,20 @@ App.themesMapper = App.QuickDataMapper.create({
       } else if (subSectionId) {
         var subSection = App.SubSection.find(subSectionId);
       }
-      var configProperty = App.StackConfigProperty.find(configId);
+      var configProperty = App.configsCollection.getConfig(configId);
 
       var dependsOnConfigs = configLink["depends-on"] || [];
 
-      if (configProperty.get('id') && subSection) {
-        subSection.get('configProperties').pushObject(configProperty);
-        configProperty.set('subSection', subSection);
-      } else if (configProperty.get('id') && subSectionTab) {
-        subSectionTab.get('configProperties').pushObject(configProperty);
-        configProperty.set('subSectionTab', subSectionTab);
+      if (configProperty && subSection) {
+        var cp = subSection.get('configProperties').contains(configProperty.id);
+        if (!cp) {
+          subSection.set('configProperties', subSection.get('configProperties').concat(configProperty.id));
+        }
+      } else if (configProperty && subSectionTab) {
+        var cp = subSectionTab.get('configProperties').contains(configProperty.id);
+        if (!cp) {
+          subSectionTab.set('configProperties', subSectionTab.get('configProperties').concat(configProperty.id));
+        }
       } else {
         var valueAttributes = configLink["property_value_attributes"];
         if (valueAttributes) {
@@ -193,12 +197,11 @@ App.themesMapper = App.QuickDataMapper.create({
           // And thus is affiliated with fake config property termed as ui only config property
           if (isUiOnlyProperty && subSection) {
             var split = configLink.config.split("/");
-            var fileName =  split[0] + '.xml';
-            var configName = split[1];
-            var uiOnlyConfig = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename', fileName).findProperty('name', configName);
+            var fileName =  split[0] + '.xml', configName = split[1], id = App.config.configId(configName, fileName);
+            var uiOnlyConfig = App.configsCollection.getConfig(id);
             if (!uiOnlyConfig) {
-              var coreObject = {
-                id: configName + '_' + split[0],
+              configProperty = {
+                id: id,
                 isRequiredByAgent: false,
                 showLabel: false,
                 isOverridable: false,
@@ -207,18 +210,30 @@ App.themesMapper = App.QuickDataMapper.create({
                 isUserProperty: false,
                 filename: fileName,
                 serviceName: serviceName,
-                subSection: subSection
+                stackName: App.get('currentStackName'),
+                stackVersion: App.get('currentStackVersionNumber')
               };
-              var uiOnlyConfigDerivedFromTheme = Em.Object.create(App.config.createDefaultConfig(configName, serviceName, fileName, false, coreObject));
-              App.uiOnlyConfigDerivedFromTheme.pushObject(uiOnlyConfigDerivedFromTheme);
+              App.configsCollection.add(configProperty);
+
+              if (subSection) {
+                var cp = subSection.get('configProperties').contains(configProperty.id);
+                if (!cp) {
+                  subSection.set('configProperties', subSection.get('configProperties').concat(configProperty.id));
+                }
+              } else if (subSectionTab) {
+                var cp = subSectionTab.get('configProperties').contains(configProperty.id);
+                if (!cp) {
+                  subSectionTab.set('configProperties', subSectionTab.get('configProperties').concat(configProperty.id));
+                }
+              }
             }
           }
         }
       }
 
       // map all the configs which conditionally affect the value attributes of a config
-      if (dependsOnConfigs && dependsOnConfigs.length) {
-        this.mapThemeConfigConditions(dependsOnConfigs, uiOnlyConfigDerivedFromTheme || configProperty);
+      if (dependsOnConfigs && dependsOnConfigs.length && configProperty) {
+        this.mapThemeConfigConditions(dependsOnConfigs, configProperty);
       }
 
     }, this);
@@ -232,10 +247,10 @@ App.themesMapper = App.QuickDataMapper.create({
   mapThemeConfigConditions: function(configConditions, configProperty) {
     var configConditionsCopy = [];
     configConditions.forEach(function(_configCondition, index){
-      var configCondition = $.extend({},_configCondition);
-      configCondition.id = configProperty.get('id') + '_' + index;
-      configCondition.config_name =  configProperty.get('name');
-      configCondition.file_name =  configProperty.get('filename');
+      var configCondition = $.extend({}, _configCondition);
+      configCondition.id = configProperty.id + '_' + index;
+      configCondition.config_name =  configProperty.name;
+      configCondition.file_name =  configProperty.filename;
       if (_configCondition.configs && _configCondition.configs.length) {
         configCondition.configs = _configCondition.configs.map(function (item) {
           var result = {};
@@ -294,17 +309,19 @@ App.themesMapper = App.QuickDataMapper.create({
   mapThemeWidgets: function(json) {
     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.widgets", []).forEach(function(widget) {
       var configId = this.getConfigId(widget);
-      var configProperty = App.StackConfigProperty.find(configId);
+      var configProperty = App.configsCollection.getConfig(configId);
 
-      if (configProperty.get('id')) {
-        configProperty.set('widget', widget.widget);
+      if (configProperty) {
+        configProperty.widget = widget.widget;
+        configProperty.widgetType = Em.get(widget, 'widget.type');
       } else {
         var split = widget.config.split("/");
         var fileName =  split[0] + '.xml';
         var configName = split[1];
-        var uiOnlyProperty = App.uiOnlyConfigDerivedFromTheme.filterProperty('filename',fileName).findProperty('name',configName);
+        var uiOnlyProperty = App.configsCollection.getConfigByName(configName, fileName);
         if (uiOnlyProperty) {
-          uiOnlyProperty.set('widget', widget.widget);
+          uiOnlyProperty.widget = widget.widget;
+          uiOnlyProperty.set('widgetType', Em.get(widget, 'widget.type'));
         }
       }
     }, this);

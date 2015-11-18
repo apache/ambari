@@ -33,6 +33,12 @@ App.MainConfigHistoryController = Em.ArrayController.extend(App.TableServerMixin
   }.property('App.clusterName'),
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  showFilterConditionsFirstLoad: false,
+
+  /**
    * associations between host property and column index
    * @type {Array}
    */

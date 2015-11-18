@@ -130,33 +130,25 @@ App.HostComponentView = Em.View.extend({
    * For Started and Starting states
    * @type {bool}
    */
-  isStart: function () {
-    return [App.HostComponentStatus.started, App.HostComponentStatus.starting].contains(this.get('workStatus'));
-  }.property('workStatus'),
+  isStart: Em.computed.existsIn('workStatus', [App.HostComponentStatus.started, App.HostComponentStatus.starting]),
 
   /**
    * For Installed state
    * @type {bool}
    */
-  isStop: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.stopped);
-  }.property('workStatus'),
+  isStop: Em.computed.equal('workStatus', App.HostComponentStatus.stopped),
 
   /**
    * For Installing state
    * @type {bool}
    */
-  isInstalling: function () {
-    return (this.get('workStatus') == App.HostComponentStatus.installing);
-  }.property('workStatus'),
+  isInstalling: Em.computed.equal('workStatus', App.HostComponentStatus.installing),
 
   /**
    * For Init state
    * @type {bool}
    */
-  isInit: function() {
-    return this.get('workStatus') == App.HostComponentStatus.init;
-  }.property('workStatus'),
+  isInit: Em.computed.equal('workStatus', App.HostComponentStatus.init),
 
   /**
    * No action available while component is starting/stopping/unknown
@@ -172,18 +164,13 @@ App.HostComponentView = Em.View.extend({
    * For Stopping or Starting states
    * @type {bool}
    */
-  isInProgress: function () {
-    return (this.get('workStatus') === App.HostComponentStatus.stopping ||
-      this.get('workStatus') === App.HostComponentStatus.starting);
-  }.property('workStatus'),
+  isInProgress: Em.computed.existsIn('workStatus', [App.HostComponentStatus.stopping, App.HostComponentStatus.starting]),
 
   /**
    * For OFF <code>passiveState</code> of host component
    * @type {bool}
    */
-  isActive: function () {
-    return (this.get('content.passiveState') == "OFF");
-  }.property('content.passiveState'),
+  isActive: Em.computed.equal('content.passiveState', 'OFF'),
 
   /**
    * Shows whether we need to show Delete button
@@ -351,7 +338,7 @@ App.HostComponentView = Em.View.extend({
    */
   getCustomCommandLabel: function (command, isSlave) {
     if (isSlave || !(command in App.HostComponentActionMap.getMap(this)) || !App.HostComponentActionMap.getMap(this)[command].label) {
-      return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(command)
+      return Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format(App.format.normalizeNameBySeparators(command, ["_", "-", " "]))
     }
     return App.HostComponentActionMap.getMap(this)[command].label;
   },

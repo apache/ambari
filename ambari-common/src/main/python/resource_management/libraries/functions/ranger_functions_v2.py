@@ -113,12 +113,11 @@ class RangeradminV2:
                 retryCount += 1
               else:
                 Logger.error('{0} Repository creation failed in Ranger admin'.format(component.title()))
-                raise Fail('{0} Repository creation failed in Ranger admin'.format(component.title()))
+                break
       else:
         Logger.error('Ambari admin user creation failed')
-        raise Fail('Ambari admin user creation failed')
     elif not self.skip_if_rangeradmin_down:
-      raise Fail("Connection failed to Ranger Admin !")
+      Logger.error("Connection failed to Ranger Admin !")
 
           
   def create_repository_urllib2(self, data, usernamepassword):

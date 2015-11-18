@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.apache.ambari.server.topology.AdvisedConfiguration;
@@ -139,7 +140,13 @@ public class BlueprintConfigurationProcessor {
     { new PasswordPropertyFilter(),
       new SimplePropertyNameExportFilter("tez.tez-ui.history-url.base", "tez-site"),
       new SimplePropertyNameExportFilter("admin_server_host", "kerberos-env"),
-      new SimplePropertyNameExportFilter("kdc_host", "kerberos-env")};
+      new SimplePropertyNameExportFilter("kdc_host", "kerberos-env"),
+      new SimplePropertyNameExportFilter("realm", "kerberos-env"),
+      new SimplePropertyNameExportFilter("kdc_type", "kerberos-env"),
+      new SimplePropertyNameExportFilter("ldap-url", "kerberos-env"),
+      new SimplePropertyNameExportFilter("container_dn", "kerberos-env"),
+      new SimplePropertyNameExportFilter("domains", "krb5-conf")
+    };
 
   /**
    * Statically-defined list of filters to apply on cluster config
@@ -1248,6 +1255,13 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
+            if (isRangerAdmin() && matchingGroupCount > 1) {
+              if (origValue != null && !origValue.contains("localhost")) {
+                // if this Ranger admin property is a FQDN then simply return it
+                return origValue;
+              }
+            }
+
             throw new IllegalArgumentException(
                 String.format("Unable to update configuration property '%s' with topology information. " +
                     "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
@@ -1352,6 +1366,17 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentHiveMetaStoreServer() {
       return component.equals("HIVE_METASTORE");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is Ranger Admin
+     *
+     * @return true if the component associated is Ranger Admin
+     *         false if the component is not Ranger Admin
+     */
+    private boolean isRangerAdmin() {
+      return component.equals("RANGER_ADMIN");
     }
 
     /**
@@ -2013,6 +2038,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> rangerKmsSitePropsMap = new HashMap<String, PropertyUpdater>();
+
 
 
     singleHostTopologyUpdaters.put("hdfs-site", hdfsSiteMap);
@@ -2029,6 +2057,9 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
+    singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
+    singleHostTopologyUpdaters.put("kms-site", rangerKmsSitePropsMap);
+
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -2063,7 +2094,9 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
+    hdfsSiteMap.put("dfs.encryption.key.provider.uri", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
+    coreSiteMap.put("hadoop.security.key.provider.path", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
@@ -2205,6 +2238,24 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("worker.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     stormSiteMap.put("supervisor.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     stormSiteMap.put("nimbus.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
+    // Storm AMS integration
+    stormSiteMap.put("metrics.reporter.register", new NonTopologyUpdater() {
+      @Override
+      public String updateForClusterCreate(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+
+        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+          final String amsReporterClass = "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter";
+          if (origValue == null || origValue.isEmpty()) {
+            return amsReporterClass;
+          }
+        }
+        return origValue;
+      }
+    });
+
     multiStormSiteMap.put("supervisor_hosts",
         new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("SUPERVISOR")));
     multiStormSiteMap.put("storm.zookeeper.servers",
@@ -2220,6 +2271,25 @@ public class BlueprintConfigurationProcessor {
 
     // KAFKA
     kafkaBrokerMap.put("kafka.ganglia.metrics.host", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
+    // KAFKA AMS integration
+    kafkaBrokerMap.put("kafka.metrics.reporters", new NonTopologyUpdater() {
+      @Override
+      public String updateForClusterCreate(String propertyName,
+                                           String origValue,
+                                           Map<String, Map<String, String>> properties,
+                                           ClusterTopology topology) {
+
+        if (topology.getBlueprint().getServices().contains("AMBARI_METRICS")) {
+          final String amsReportesClass = "org.apache.hadoop.metrics2.sink.kafka.KafkaTimelineMetricsReporter";
+          if (origValue == null || origValue.isEmpty()) {
+            return amsReportesClass;
+          } else if (!origValue.contains(amsReportesClass)) {
+            return String.format("%s,%s", origValue, amsReportesClass);
+          }
+        }
+        return origValue;
+      }
+    });
 
     // KNOX
     multiCoreSiteMap.put("hadoop.proxyuser.knox.hosts", new MultipleHostTopologyUpdater("KNOX_GATEWAY"));
@@ -2230,6 +2300,11 @@ public class BlueprintConfigurationProcessor {
     // ATLAS
     atlasPropsMap.put("atlas.server.bind.address", new SingleHostTopologyUpdater("ATLAS_SERVER"));
 
+    // RANGER_ADMIN
+    rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
+
+    // RANGER KMS
+    rangerKmsSitePropsMap.put("hadoop.kms.key.provider.uri", new SingleHostTopologyUpdater("RANGER_KMS_SERVER"));
 
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.

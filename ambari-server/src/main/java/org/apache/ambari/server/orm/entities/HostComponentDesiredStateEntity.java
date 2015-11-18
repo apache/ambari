@@ -95,7 +95,6 @@ public class HostComponentDesiredStateEntity {
   @Column(name = "admin_state", nullable = true, insertable = true, updatable = true)
   private HostComponentAdminState adminState;
 
-  @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumns({
       @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false),
       @JoinColumn(name = "service_name", referencedColumnName = "service_name", nullable = false),

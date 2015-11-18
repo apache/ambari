@@ -39,6 +39,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -63,6 +66,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -87,6 +93,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -112,6 +121,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -139,6 +151,9 @@
       This property is a convenience property to add extensions to the built in executors without having to
       include all the built in ones.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -150,6 +165,9 @@
     <description>
       EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -161,6 +179,9 @@
     <description>
       EL functions declarations, separated by commas, format is [PREFIX:]NAME=CLASS#METHOD.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
   
   <property>
@@ -169,5 +190,8 @@
     <description>
       Enlist the different filesystems supported for federation. If wildcard "*" is specified, then ALL file schemes will be allowed.
     </description>
+    <value-attributes>
+      <type>custom</type>
+    </value-attributes>
   </property>
 </configuration>

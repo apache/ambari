@@ -95,6 +95,7 @@ public class UpgradeResourceProviderHDP22Test {
   private AmbariManagementController amc;
   private ConfigHelper configHelper;
   private StackDAO stackDAO;
+  private TopologyManager topologyManager;
 
   private static final String configTagVersion1 = "version1";
   private static final String configTagVersion2 = "version2";
@@ -102,6 +103,12 @@ public class UpgradeResourceProviderHDP22Test {
   private static final Map<String, String> configTagVersion1Properties = new HashMap<String, String>() {
     {
       put("hive.server2.thrift.port", "10000");
+    }
+  };
+
+  private static final Map<String, String> configTagVersion2Properties = new HashMap<String, String>() {
+    {
+      put("hive.server2.thrift.port", "10010");
     }
   };
 
@@ -128,14 +135,31 @@ public class UpgradeResourceProviderHDP22Test {
           }
         });
       }
-    }).anyTimes();
+    }).times(3);
+
+    expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
+      {
+        put("hive-site", new HashMap<String, String>() {
+          {
+            put("tag", configTagVersion2);
+          }
+        });
+      }
+    }).times(2);
 
     expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
         new HashMap<String, Map<String, String>>() {
           {
             put("hive-site", configTagVersion1Properties);
           }
-        }).anyTimes();
+        }).times(1);
+
+    expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
+        new HashMap<String, Map<String, String>>() {
+          {
+            put("hive-site", configTagVersion2Properties);
+          }
+        }).times(2);
 
     expect(configHelper.getMergedConfig(EasyMock.anyObject(Map.class),
         EasyMock.anyObject(Map.class))).andReturn(new HashMap<String, String>()).anyTimes();
@@ -212,7 +236,7 @@ public class UpgradeResourceProviderHDP22Test {
     component = service.addServiceComponent("HIVE_CLIENT");
     sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.2.0.0");
-    TopologyManager topologyManager = new TopologyManager();
+    topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
   }
@@ -221,6 +245,10 @@ public class UpgradeResourceProviderHDP22Test {
   public void after() {
     injector.getInstance(PersistService.class).stop();
     injector = null;
+  }
+
+  private void setupConfigHelper() {
+
   }
 
   /**
@@ -303,11 +331,7 @@ public class UpgradeResourceProviderHDP22Test {
     // Change the new desired config tag and verify execution command picks up new tag
     assertEquals(configTagVersion1, cluster.getDesiredConfigByType("hive-site").getTag());
     final Config newConfig = new ConfigImpl("hive-site");
-    newConfig.setProperties(new HashMap<String, String>() {
-      {
-        put("hive.server2.thrift.port", "10010");
-      }
-    });
+    newConfig.setProperties(configTagVersion2Properties);
     newConfig.setTag(configTagVersion2);
     Set<Config> desiredConfigs = new HashSet<Config>() {
       {
@@ -347,6 +371,8 @@ public class UpgradeResourceProviderHDP22Test {
         ExecutionCommand executionCommand = executionCommandWrapper.getExecutionCommand();
         Map<String, Map<String, String>> configurationTags = executionCommand.getConfigurationTags();
         assertEquals(configTagVersion2, configurationTags.get("hive-site").get("tag"));
+        Map<String, Map<String, String>> configurations = executionCommand.getConfigurations();
+        assertEquals("10010", configurations.get("hive-site").get("hive.server2.thrift.port"));
       }
     }
   }

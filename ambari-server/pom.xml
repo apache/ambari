@@ -203,9 +203,6 @@
             <exclude>src/main/resources/stacks/HDP/2.0._/services/HBASE/package/templates/regionservers.j2</exclude>
             <exclude>src/main/resources/stacks/HDPWIN/2.1/services/*/configuration*/*</exclude>
 
-            <!-- HAWQ Stack definitions -->
-            <exclude>src/main/resources/common-services/HAWQ/2.0.0.0/package/templates/*.j2</exclude>
-
             <!--test samples -->
             <exclude>src/test/resources/TestAmbaryServer.samples/**</exclude>
             <exclude>src/test/resources/*.txt</exclude>
@@ -2010,6 +2007,18 @@
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache</artifactId>
       <version>2.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.nimbusds</groupId>
+      <artifactId>nimbus-jose-jwt</artifactId>
+      <version>3.9</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.bouncycastle</groupId>
+          <artifactId>bcprov-jdk15on</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

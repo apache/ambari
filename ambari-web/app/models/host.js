@@ -90,25 +90,19 @@ App.Host = DS.Model.extend({
   /**
    * @type {number}
    */
-  componentsInPassiveStateCount: function() {
-    return this.get('componentsInPassiveState').length;
-  }.property('componentsInPassiveState.length'),
+  componentsInPassiveStateCount: Em.computed.alias('componentsInPassiveState.length'),
 
   /**
    * Get count of host components with stale configs
    * @returns {Number}
    */
-  componentsWithStaleConfigsCount: function() {
-    return this.get('componentsWithStaleConfigs.length');
-  }.property('componentsWithStaleConfigs.length'),
+  componentsWithStaleConfigsCount: Em.computed.alias('componentsWithStaleConfigs.length'),
 
   /**
    * Count of mounted on host disks
    * @returns {Number}
    */
-  disksMounted: function() {
-    return this.get('diskInfo.length');
-  }.property('diskInfo.length'),
+  disksMounted: Em.computed.alias('diskInfo.length'),
 
   coresFormatted: function() {
     return this.get('cpu') + ' (' + this.get('cpuPhysical') + ')';

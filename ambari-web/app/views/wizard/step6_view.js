@@ -41,9 +41,7 @@ App.WizardStep6View = App.TableView.extend({
    * Synonym to <code>content</code> in this <code>App.TableView</code>
    * @type {object[]}
    */
-  filteredContent: function () {
-    return this.get('content');
-  }.property('content'),
+  filteredContent: Em.computed.alias('content'),
 
   /**
    * Set <code>label</code> and do <code>loadStep</code>

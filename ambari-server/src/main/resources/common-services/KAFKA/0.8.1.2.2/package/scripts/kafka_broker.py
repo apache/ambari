@@ -16,11 +16,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management import Script
+from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute, File, Directory
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import Direction
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.check_process_status import check_process_status
 
-from resource_management import *
-import sys
 import upgrade
-
 from kafka import kafka
 from setup_ranger_kafka import setup_ranger_kafka
 
@@ -40,7 +46,26 @@ class KafkaBroker(Script):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "kafka-broker")
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "kafka", params.version)
+      hdp_select.select("kafka-broker", params.version)
+
+    # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary. 
+    if params.current_version and params.version and params.upgrade_direction:
+      src_version = dst_version = None
+      if params.upgrade_direction == Direction.UPGRADE:
+        src_version = format_hdp_stack_version(params.current_version)
+        dst_version = format_hdp_stack_version(params.version)
+      else:
+        # These represent the original values during the UPGRADE direction
+        src_version = format_hdp_stack_version(params.version)
+        dst_version = format_hdp_stack_version(params.downgrade_from_version)
+
+      if compare_versions(src_version, '2.3.4.0') < 0 and compare_versions(dst_version, '2.3.4.0') >= 0:
+        # Calling the acl migration script requires the configs to be present.
+        self.configure(env)
+        upgrade.run_migration(env, upgrade_type)
 
   def start(self, env, upgrade_type=None):
     import params
@@ -62,7 +87,7 @@ class KafkaBroker(Script):
     Execute(daemon_cmd,
             user=params.kafka_user,
     )
-    File (params.kafka_pid_file, 
+    File(params.kafka_pid_file,
           action = "delete"
     )
 

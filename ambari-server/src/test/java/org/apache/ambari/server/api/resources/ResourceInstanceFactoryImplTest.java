@@ -59,4 +59,26 @@ public class ResourceInstanceFactoryImplTest {
     assertEquals("kerberos_identities", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.HostKerberosIdentity, resourceDefinition.getType());
   }
+
+  @Test
+  public void testGetRoleAuthorizationDefinition() {
+    ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
+        Resource.Type.RoleAuthorization, null);
+
+    assertNotNull(resourceDefinition);
+    assertEquals("authorization", resourceDefinition.getSingularName());
+    assertEquals("authorizations", resourceDefinition.getPluralName());
+    assertEquals(Resource.Type.RoleAuthorization, resourceDefinition.getType());
+  }
+
+  @Test
+  public void testGetUserAuthorizationDefinition() {
+    ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
+        Resource.Type.UserAuthorization, null);
+
+    assertNotNull(resourceDefinition);
+    assertEquals("authorization", resourceDefinition.getSingularName());
+    assertEquals("authorizations", resourceDefinition.getPluralName());
+    assertEquals(Resource.Type.UserAuthorization, resourceDefinition.getType());
+  }
 }

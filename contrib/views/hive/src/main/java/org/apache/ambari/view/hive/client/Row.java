@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive.client;
 
+import java.util.Arrays;
 import java.util.HashSet;
 
 public class Row {
@@ -46,5 +47,28 @@ public class Row {
 
   public void setRow(Object[] row) {
     this.row = row;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    Row row1 = (Row) o;
+
+    // Probably incorrect - comparing Object[] arrays with Arrays.equals
+    return Arrays.equals(row, row1.row);
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(row);
+  }
+
+  @Override
+  public String toString() {
+    return "Row{" +
+            "row=" + Arrays.toString(row) +
+            '}';
   }
 }

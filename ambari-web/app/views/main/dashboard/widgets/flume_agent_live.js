@@ -40,9 +40,7 @@ App.FlumeAgentUpView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  flumeAgentComponents: function() {
-    return this.get('model.hostComponents').filterProperty('componentName', 'FLUME_HANDLER');
-  }.property('model.hostComponents.length'),
+  flumeAgentComponents: Em.computed.filterBy('model.hostComponents', 'componentName', 'FLUME_HANDLER'),
 
   /**
    * @type {Array}

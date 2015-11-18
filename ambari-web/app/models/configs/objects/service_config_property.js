@@ -19,6 +19,9 @@
 var App = require('app');
 var validator = require('utils/validator');
 
+/**
+ * @class ServiceConfigProperty
+ */
 App.ServiceConfigProperty = Em.Object.extend({
 
   name: '',
@@ -92,6 +95,27 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   rightSideLabel: false,
 
+  /**
+   * Text to be shown as placeholder
+   * By default savedValue is shown as placeholder
+   * @type {String}
+   */
+  placeholderText: '',
+
+  /**
+   * type of widget View
+   * @type {string}
+   * @default null
+   */
+  widgetType: null,
+
+  /**
+   * Placeholder used for configs with input type text
+   */
+  placeholder: function () {
+    return this.get('placeholderText') || this.get('savedValue');
+  }.property('savedValue', 'placeholderText'),
+
   retypedPassword: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
@@ -102,7 +126,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   isEditable: true, // by default a config property is editable
   isNotEditable: Ember.computed.not('isEditable'),
   hideFinalIcon: function () {
-    return (!this.get('isFinal'))&& this.get('isNotEditable');
+    return (!this.get('isFinal')) && this.get('isNotEditable');
   }.property('isFinal', 'isNotEditable'),
   isVisible: true,
   isMock: false, // mock config created created only to displaying
@@ -227,6 +251,7 @@ App.ServiceConfigProperty = Em.Object.extend({
       this.set('recommendedValue', '');
     }
     this.set('initialValue', this.get('value'));
+    this.updateDescription();
   },
 
   /**
@@ -255,9 +280,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     return ["componentHost", "componentHosts", "radio button"].contains(this.get('displayType'));
   }.property('displayType'),
 
-  isValid: function () {
-    return this.get('errorMessage') === '';
-  }.property('errorMessage'),
+  isValid: Em.computed.equal('errorMessage', ''),
 
   viewClass: function () {
     switch (this.get('displayType')) {
@@ -460,6 +483,28 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       return false;
     }
-  }.property('displayType', 'name', 'App.isHadoop22Stack')
+  }.property('displayType', 'name', 'App.isHadoop22Stack'),
+
+  /**
+   * Update description for `password`-config
+   * Add extra-message about their comparison
+   *
+   * @method updateDescription
+   */
+  updateDescription: function () {
+    var description = this.get('description');
+    var displayType = this.get('displayType');
+    var additionalDescription = Em.I18n.t('services.service.config.password.additionalDescription');
+    if ('password' === displayType) {
+      if (description) {
+        if (!description.contains(additionalDescription)) {
+          description += '<br />' + additionalDescription;
+        }
+      } else {
+        description = additionalDescription;
+      }
+    }
+    this.set('description', description);
+  }
 
 });

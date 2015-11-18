@@ -67,9 +67,6 @@
           }
         },
         {
-          "name": "/HDFS/hdfs"
-        },
-        {
           "name": "/smokeuser"
         }
       ],
@@ -93,7 +90,12 @@
       ],
       "components": [
         {
-          "name": "ACCUMULO_MASTER"
+          "name": "ACCUMULO_MASTER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
         },
         {
           "name": "ACCUMULO_TSERVER"

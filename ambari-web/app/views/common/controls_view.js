@@ -87,8 +87,8 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
-      var p = App.StackConfigProperty.find(App.config.configId(name, type));
-       if ((p && p.get('propertyDependedBy.length') > 0 || p.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
+      var p = App.configsCollection.getConfig(App.config.configId(name, type));
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || p.displayType === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
          return controller.getRecommendationsForDependencies([{
@@ -162,7 +162,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
-  placeholderBinding: 'serviceConfig.savedValue',
+  placeholderBinding: 'serviceConfig.placeholder',
 
   onValueUpdate: function () {
     if ($(this.get('element')).is(':focus')) {
@@ -223,7 +223,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
  * Password control
  * @type {*}
  */
-App.ServiceConfigPasswordField = Ember.TextField.extend({
+App.ServiceConfigPasswordField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, {
 
   serviceConfig: null,
   type: 'password',
@@ -431,6 +431,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
   didInsertElement: function () {
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
+    if (this.get('hostNameProperty')) {
+      this.get('hostNameProperty').set('isEditable', !this.get('isNewDb'));
+    }
     if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name')) && !App.StackService.find(this.get('serviceConfig.serviceName')).get('isInstalled')) {
       if (this.get('isNewDb') || this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name'))) {
         this.onOptionsChange();
@@ -455,18 +458,11 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * properties with these names don'use handleDBConnectionProperty method
    */
   dontUseHandleDbConnection: function () {
-    var version = App.get('currentStackVersion').match(/(\d+)[\.,]?(\d+)?/),
-      majorVersion = version?version[1]: 0,
-      minorVersion = version? version[2]: 0;
-    // functionality added in HDP 2.3
+    // functionality added in Ranger 0.5
     // remove DB_FLAVOR so it can handle DB Connection checks
-    // PHD-2.3 and SAPHD-1.0 is based on HDP-2.3
-    var supportFromMap = {
-      'HDP': 2.3,
-      'PHD': 3.3,
-      'SAPHD': 1.0
-    };
-    if (Number(majorVersion + '.' + minorVersion) < supportFromMap[App.get('currentStackName')]){
+    var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
+    var rangerVersion = rangerService ? rangerService.get('serviceVersion') : '';
+    if (rangerVersion && rangerVersion.split('.')[0] < 1 && rangerVersion.split('.')[1] < 5) {
       return ['DB_FLAVOR', 'authentication_method'];
     }
     return ['ranger.authentication.method'];
@@ -1134,10 +1130,10 @@ App.CheckDBConnectionView = Ember.View.extend({
     this.set('isValidationPassed', isValid);
   }.observes('parentView.categoryConfigsAll.@each.isValid', 'parentView.categoryConfigsAll.@each.value', 'databaseName'),
 
-   getConnectionProperty: function(regexp, isGetName) {
-   var _this = this;
-      var propertyName = _this.get('requiredProperties').filter(function(item) {
-    return regexp.test(item);
+  getConnectionProperty: function (regexp, isGetName) {
+    var _this = this;
+    var propertyName = _this.get('requiredProperties').filter(function (item) {
+      return regexp.test(item);
     })[0];
     return (isGetName) ? propertyName : _this.get('parentView.categoryConfigsAll').findProperty('name', propertyName).get('value');
   },
@@ -1251,9 +1247,10 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method createCustomAction
    **/
   createCustomAction: function() {
+    var isServiceInstalled = App.Service.find(this.get('parentView.service.serviceName')).get('isLoaded');
     var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
     App.ajax.send({
-      name: 'custom_action.create',
+      name: (isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create',
       sender: this,
       data: {
         requestInfo: {

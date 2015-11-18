@@ -17,14 +17,25 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.persist.PersistService;
-import com.google.inject.util.Modules;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -52,24 +63,14 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * Tests the {@link UpgradeHelper} class
@@ -229,13 +230,13 @@ public class UpgradeHelperTest {
     assertTrue(mt.structuredOut.contains("NODEMANAGER"));
 
     UpgradeGroupHolder postGroup = groups.get(5);
-    assertEquals(postGroup.name, "POST_CLUSTER");
-    assertEquals(postGroup.title, "Finalize Upgrade");
-    assertEquals(postGroup.items.size(), 3);
-    assertEquals(postGroup.items.get(0).getText(), "Confirm Finalize");
-    assertEquals(postGroup.items.get(1).getText(), "Execute HDFS Finalize");
-    assertEquals(postGroup.items.get(2).getText(), "Save Cluster State");
-    assertEquals(postGroup.items.get(2).getType(), StageWrapper.Type.SERVER_SIDE_ACTION);
+    assertEquals("POST_CLUSTER", postGroup.name);
+    assertEquals("Finalize Upgrade", postGroup.title);
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
@@ -400,12 +401,11 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder postGroup = groups.get(5);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Upgrade", postGroup.title);
-    assertEquals(4, postGroup.items.size());
-    assertEquals("Check Unhealthy Hosts", postGroup.items.get(0).getText());
-    assertEquals("Confirm Finalize", postGroup.items.get(1).getText());
-    assertEquals("Execute HDFS Finalize", postGroup.items.get(2).getText());
-    assertEquals("Save Cluster State", postGroup.items.get(3).getText());
-    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(3).getType());
+    assertEquals(3, postGroup.items.size());
+    assertEquals("Confirm Finalize", postGroup.items.get(0).getText());
+    assertEquals("Execute HDFS Finalize", postGroup.items.get(1).getText());
+    assertEquals("Save Cluster State", postGroup.items.get(2).getText());
+    assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(6, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
@@ -526,6 +526,8 @@ public class UpgradeHelperTest {
     Map<String, String> hiveConfigs = new HashMap<String, String>();
     hiveConfigs.put("hive.server2.transport.mode", "http");
     hiveConfigs.put("hive.server2.thrift.port", "10001");
+    hiveConfigs.put("condition", "1");
+
     ConfigurationRequest configurationRequest = new ConfigurationRequest();
     configurationRequest.setClusterName(cluster.getClusterName());
     configurationRequest.setType("hive-site");
@@ -553,7 +555,7 @@ public class UpgradeHelperTest {
     List<ConfigUpgradeChangeDefinition.Transfer> transfers = m_gson.fromJson(configurationJson,
             new TypeToken<List<ConfigUpgradeChangeDefinition.Transfer>>() { }.getType());
 
-    assertEquals(8, transfers.size());
+    assertEquals(10, transfers.size());
     assertEquals("copy-key", transfers.get(0).fromKey);
     assertEquals("copy-key-to", transfers.get(0).toKey);
 
@@ -567,6 +569,10 @@ public class UpgradeHelperTest {
     assertEquals("delete-blank-if-key", transfers.get(5).deleteKey);
     assertEquals("delete-blank-if-type", transfers.get(6).deleteKey);
     assertEquals("delete-thrift", transfers.get(7).deleteKey);
+
+    assertEquals("delete-if-key-present", transfers.get(8).deleteKey);
+    assertEquals("delete-if-key-absent", transfers.get(9).deleteKey);
+
   }
 
 
@@ -793,7 +799,6 @@ public class UpgradeHelperTest {
         manualTask.message);
   }
 
-  @Ignore
   @Test
   public void testUpgradeOrchestrationFullTask() throws Exception {
     Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
@@ -834,7 +839,7 @@ public class UpgradeHelperTest {
     UpgradeGroupHolder group = groups.get(1);
     // check that the display name is being used
     assertTrue(group.items.get(1).getText().contains("ZooKeeper1 Server2"));
-    assertEquals(group.items.get(5).getText(), "Service Check Zk");
+    assertEquals(group.items.get(4).getText(), "Service Check Zk");
 
     group = groups.get(3);
     assertEquals(8, group.items.size());
@@ -866,7 +871,7 @@ public class UpgradeHelperTest {
     assertEquals(4, hosts.size());
 
     assertEquals(4, groups.get(0).items.size());
-    assertEquals(6, groups.get(1).items.size());
+    assertEquals(5, groups.get(1).items.size());
     assertEquals(8, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
   }

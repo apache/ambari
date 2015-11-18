@@ -379,15 +379,6 @@ var hdp2properties = [
     "category": "OOZIE_SERVER",
     "index": 9
   },
-  {
-    "name": "oozie_hostname",
-    "displayName": "Database Host",
-    "displayType": "host",
-    "serviceName": "OOZIE",
-    "filename": "oozie-env.xml",
-    "category": "OOZIE_SERVER",
-    "index": 3
-  },
 
 /**********************************************HIVE***************************************/
   {
@@ -476,21 +467,6 @@ var hdp2properties = [
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
     "index": 2
-  },
-  {
-    "name": "hive_hostname",
-    "displayName": "Database Host",
-    "description": "Specify the host on which the database is hosted",
-    "recommendedValue": "",
-    "isReconfigurable": true,
-    "displayType": "host",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "isVisible": true,
-    "serviceName": "HIVE",
-    "filename": "hive-env.xml",
-    "category": "HIVE_METASTORE",
-    "index": 3
   },
   {
     "name": "hcat_log_dir",
@@ -1522,28 +1498,6 @@ var hdp2properties = [
     "index": 0
   },
   {
-    "name": "admin_principal",
-    "displayName": "Admin principal",
-    "description": "Admin principal used to create principals and export key tabs (e.g. admin/admin@EXAMPLE.COM).",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "Kadmin",
-    "index": 1
-  },
-  {
-    "name": "admin_password",
-    "displayName": "Admin password",
-    "displayType": "password",
-    "isOverridable": false,
-    "isRequiredByAgent": false,
-    "serviceName": "KERBEROS",
-    "filename": "krb5-conf.xml",
-    "category": "Kadmin",
-    "index": 2
-  },
-  {
     "name": "manage_krb5_conf",
     "dependentConfigPattern": "CATEGORY",
     "serviceName": "KERBEROS",
@@ -1896,12 +1850,8 @@ var hdp2properties = [
 
 if (App.get('isHadoopWindowsStack')) {
   var excludedWindowsConfigs = [
-    'dfs.client.read.shortcircuit',
-    'knox_pid_dir',
-    'ignore_groupsusers_create',
     'hive_database',
-    'oozie_database',
-    'override_hbase_uid'
+    'oozie_database'
   ];
 
   hdp2properties = hdp2properties.filter(function (item) {

@@ -42,27 +42,37 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/var/run/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf/topologies',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
 
     self.assertResourceCalled('XmlConfig', 'gateway-site.xml',
@@ -488,27 +498,37 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/var/run/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf/topologies',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = "a",
     )
 
     self.assertResourceCalled('XmlConfig', 'gateway-site.xml',

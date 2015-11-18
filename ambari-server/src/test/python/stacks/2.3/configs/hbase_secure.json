@@ -57,7 +57,7 @@
         "stack_version": "2.3", 
         "stack_name": "HDP", 
         "db_name": "ambari", 
-        "jdk_name": "jdk-8u40-linux-x64.tar.gz", 
+        "jdk_name": "jdk-8u60-linux-x64.tar.gz", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "java_version": "8", 
         "ambari_db_rca_username": "mapred", 
@@ -524,7 +524,8 @@
             "hbase_regionserver_heapsize": "1024m", 
             "hbase_log_dir": "/var/log/hbase", 
             "hbase_max_direct_memory_size": "", 
-            "hbase_principal_name": "hbase@EXAMPLE.COM"
+            "hbase_principal_name": "hbase@EXAMPLE.COM",
+            "hbase_java_io_tmpdir" : "/tmp"
         }, 
         "zookeeper-env": {
             "zookeeper_keytab_path": "/etc/security/keytabs/zk.service.keytab", 

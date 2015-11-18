@@ -206,6 +206,7 @@ public class LogicalRequest extends Request {
       //stage.setClusterHostInfo();
       stage.setClusterId(getClusterId());
       stage.setSkippable(false);
+      stage.setAutoSkipFailureSupported(false);
       // getTaskEntities() sync's state with physical tasks
       stage.setHostRoleCommands(hostRequest.getTaskEntities());
 

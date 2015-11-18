@@ -85,6 +85,7 @@ hcat.bin=/usr/bin/hcat
 
     </value>
     <value-attributes>
+      <type>content</type>
       <empty-value-valid>true</empty-value-valid>
       <show-property-name>false</show-property-name>
     </value-attributes>

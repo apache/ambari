@@ -23,6 +23,7 @@
   <property>
     <name>policy_user</name>
     <value>ambari-qa</value>
+    <display-name>Policy user for KAFKA</display-name>
     <description>This user must be system user and also present at Ranger admin portal</description>
   </property> 
 
@@ -70,6 +71,7 @@
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
     <value>kafka</value>
+    <display-name>Ranger repository config user</display-name>
     <description>Used for repository creation on ranger admin</description>
   </property>
 
@@ -77,7 +79,11 @@
     <name>REPOSITORY_CONFIG_PASSWORD</name>
     <value>kafka</value>
     <property-type>PASSWORD</property-type>
+    <display-name>Ranger repository config password</display-name>
     <description>Used for repository creation on ranger admin</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
 </configuration>

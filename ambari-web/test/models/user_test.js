@@ -49,17 +49,16 @@ describe('App.User', function () {
     });
   });
 
-  describe('#type', function () {
-    it('should be LDAP', function () {
-      user.set('isLdap', true);
-      expect(user.get('type')).to.equal('LDAP');
+  describe('#isLdap', function() {
+    it('User userType value is "LDAP" should return "true"', function() {
+      user.set('userType', 'LDAP');
+      expect(user.get('isLdap')).to.be.true;
     });
-    it('should be Local', function () {
-      user.set('isLdap', false);
-      expect(user.get('type')).to.equal('Local');
+    it('User userType value is "LOCAL" should return "false"', function() {
+      user.set('userType', 'LOCAL');
+      expect(user.get('isLdap')).to.be.false;
     });
   });
-
 });
 
 describe('App.EditUserForm', function () {

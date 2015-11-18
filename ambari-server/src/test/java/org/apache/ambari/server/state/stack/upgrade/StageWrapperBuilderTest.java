@@ -88,7 +88,6 @@ public class StageWrapperBuilderTest {
 
     ServerActionTask task = (ServerActionTask)(skipSummaryWrapper.getTasks().get(0).getTasks().get(0));
     Assert.assertEquals(AutoSkipFailedSummaryAction.class.getName(), task.implClass);
-
   }
 
   /**
@@ -126,7 +125,7 @@ public class StageWrapperBuilderTest {
      */
     @Override
     public void add(UpgradeContext upgradeContext, HostsType hostsType, String service,
-        boolean clientOnly, ProcessingComponent pc, Map<String, String> params, boolean scheduleInParallel) {
+        boolean clientOnly, ProcessingComponent pc, Map<String, String> params) {
     }
 
     /**

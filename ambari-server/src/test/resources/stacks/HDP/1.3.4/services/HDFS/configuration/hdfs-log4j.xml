@@ -189,7 +189,10 @@ log4j.appender.NullAppender=org.apache.log4j.varia.NullAppender
 #
 log4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter
 
-    </value>
+      </value>
+      <value-attributes>
+          <type>content</type>
+      </value-attributes>
   </property>
 
 </configuration>

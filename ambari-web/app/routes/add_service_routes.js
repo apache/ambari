@@ -130,6 +130,7 @@ module.exports = App.WizardRoute.extend({
       wizardStep5Controller.clearRecommendations(); // Force reload recommendation between steps 1 and 2
       addServiceController.setDBProperty('recommendations', undefined);
       addServiceController.set('stackConfigsLoaded', false);
+      App.configsCollection.clearAll();
       router.transitionTo('step2');
     }
   }),
@@ -195,6 +196,7 @@ module.exports = App.WizardRoute.extend({
           addServiceController.setDBProperty('groupsToDelete', []);
           addServiceController.setDBProperty('recommendationsConfigs', null);
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
+          router.get('wizardStep7Controller').clearDependentConfigs();
           router.transitionTo('step4');
         });
       });

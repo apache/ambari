@@ -15,7 +15,7 @@
 	<property>
 		<name>policy_user</name>
 		<value>ambari-qa</value>
-		<display-name>policy User for HDFS</display-name>
+		<display-name>Policy user for HDFS</display-name>
 		<description>This user must be system user and also present at Ranger
 			admin portal</description>
 	</property>
@@ -67,9 +67,13 @@
 	<property>
 		<name>REPOSITORY_CONFIG_PASSWORD</name>
 		<value>hadoop</value>
+		<display-name>Ranger repository config password</display-name>
 		<property-type>PASSWORD</property-type>
 		<description>Used for repository creation on ranger admin
 		</description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
 	<property>
@@ -175,6 +179,9 @@
 		<name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
 		<value>10</value>
 		<description></description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
 	<property>
@@ -188,6 +195,9 @@
 		<value>myKeyFilePassword</value>
 		<property-type>PASSWORD</property-type>
 		<description></description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
 	<property>
@@ -239,6 +249,9 @@
 		<value>{{xa_audit_db_password}}</value>
 		<property-type>PASSWORD</property-type>
 		<description>Audit database password</description>
+		<value-attributes>
+			<type>password</type>
+		</value-attributes>
 	</property>
 
 	<property>

@@ -21,10 +21,7 @@ var App = require('app');
 require('config');
 
 require('messages');
-require('utils/base64');
-require('utils/db');
-require('utils/helper');
-require('utils/config');
+require('utils');
 require('mixins');
 require('models');
 require('controllers');
@@ -169,6 +166,8 @@ var files = [
   'test/utils/data_manipulation_test',
   'test/utils/config_test',
   'test/utils/db_test',
+  'test/utils/ember_computed_test',
+  'test/utils/ember_reopen_test',
   'test/utils/form_field_test',
   'test/utils/host_progress_popup_test',
   'test/utils/misc_test',
@@ -181,7 +180,7 @@ var files = [
   'test/utils/ui_effects_test',
   'test/utils/updater_test',
   'test/utils/configs/database_test',
-  'test/utils/configs/config_property_helper_test',
+  'test/utils/configs/config_initializer_test',
   'test/utils/configs/modification_handlers/modification_handler_test',
   'test/utils/configs/modification_handlers/misc_test',
   'test/utils/load_timer_test',
@@ -224,6 +223,7 @@ var files = [
   'test/views/main/admin/stack_upgrade/version_view_test',
   'test/views/main/admin/stack_upgrade/services_view_test',
   'test/views/main/admin/stack_upgrade/menu_view_test',
+  'test/views/main/admin/stack_upgrade/failed_hosts_modal_view_test',
   'test/views/main/dashboard/config_history_view_test',
   'test/views/main/dashboard/widget_test',
   'test/views/main/dashboard/widgets_test',
@@ -252,12 +252,14 @@ var files = [
   'test/views/main/host/details/host_component_views/nodemanager_view_test',
   'test/views/main/host/details/host_component_views/regionserver_view_test',
   'test/views/main/host/details/host_component_views/tasktracker_view_test',
+  'test/views/main/host/metrics/disk_test',
   'test/views/main/charts/heatmap_test',
   'test/views/main/charts/heatmap/heatmap_host_test',
   'test/views/main/service/item_test',
   'test/views/main/service/info/config_test',
   'test/views/main/service/info/summary_test',
   'test/views/main/service/info/metrics/ambari_metrics/regionserver_base_test',
+  'test/views/main/service/info/metrics/flume/flume_agent_metrics_section_test',
   'test/views/main/service/services/ranger_test',
   'test/views/main/service/widgets/create/expression_view_test',
   'test/views/main/admin/highAvailability/nameNode/step1_view_test',
@@ -266,6 +268,7 @@ var files = [
   'test/views/main/admin/highAvailability/nameNode/step6_view_test',
   'test/views/main/admin/highAvailability/nameNode/step8_view_test',
   'test/views/main/admin/highAvailability/nameNode/wizard_view_test',
+  'test/views/main/admin/highAvailability/progress_view_test',
   'test/views/common/host_progress_popup_body_view_test',
   'test/views/common/configs/config_history_flow_test',
   'test/views/common/configs/overriddenProperty_view_test',

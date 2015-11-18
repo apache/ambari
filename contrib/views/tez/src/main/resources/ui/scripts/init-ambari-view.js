@@ -102,92 +102,6 @@ function redirectionCheck() {
   }
 }
 
-App.Helpers.ambari = (function () {
-  /**
-   * Stores parameters from Ambari.
-   */
-  var ambariParameters = {},
-
-  /**
-   * Constructs URL for fetching Ambari view instance parameters.
-   * @return {String}
-   */
-  getURL = function () {
-    var urlParts = location.pathname.split('/');
-
-    return "/api/v1/views/%@/versions/%@/instances/%@/resources/status".fmt(
-      urlParts[2],
-      urlParts[3],
-      urlParts[4]
-    );
-  };
-
-  return {
-    /**
-     * Key for the property representing ATS url.
-     */
-    TIMELINE_URL: 'yarn.timeline-server.url',
-    RM_URL: 'yarn.resourcemanager.url',
-
-    /**
-     * Returns parameter value.
-     * @param {String} name
-     * @return {String}
-     * @method getParam
-     */
-    getParam: function (name) {
-      Ember.assert('Parameter not found!', ambariParameters[name]);
-      return ambariParameters[name];
-    },
-
-    /**
-     * Get view instance properties provided by user.
-     * @returns {$.ajax}
-     * @method getInstanceParameters
-     */
-    getInstanceParameters: function () {
-      var hashArray = location.pathname.split('/'),
-      params = {
-        view: hashArray[2],
-        version: hashArray[3],
-        instanceName: hashArray[4],
-        clusterName: App.get('clusterName')
-      };
-
-      return $.ajax({
-        type: 'GET',
-        dataType: 'json',
-        async: true,
-        context: this,
-        url: getURL(),
-        success: this.getInstanceParametersSuccessCallback,
-        error: this.getInstanceParametersErrorCallback
-      });
-    },
-
-    /**
-     * Success callback for getInstanceParameters-request.
-     * @param {object} data
-     * @method getInstanceParametersSuccessCallback
-     */
-    getInstanceParametersSuccessCallback: function (data) {
-      Ember.assert('Ambari instance parameter weren`t returned by the service!', data.parameters);
-      ambariParameters = data.parameters;
-    },
-
-    /**
-     * Error callback for getInstanceParameters-request.
-     * @method getInstanceParametersErrorCallback
-     */
-    getInstanceParametersErrorCallback: function (request, ajaxOptions, error) {
-      var json = request.responseJSON;
-      App.Helpers.ErrorBar.getInstance().show(json.message, json.trace);
-      Ember.assert(json.message);
-    }
-  };
-
-})();
-
 function allowFullScreen() {
   if(window.parent) {
     var arrFrames = parent.document.getElementsByTagName("IFRAME"),
@@ -203,26 +117,6 @@ function allowFullScreen() {
       iframe.setAttribute('AllowFullScreen', true);
     }
   }
-}
-
-function loadParams() {
-  App.Helpers.ambari.getInstanceParameters().then(function () {
-    var timelineBaseUrl = App.Helpers.ambari.getParam(App.Helpers.ambari.TIMELINE_URL),
-        RMWebUrl = App.Helpers.ambari.getParam(App.Helpers.ambari.RM_URL);
-    $.extend(true, App.Configs, {
-      envDefaults: {
-        isStandalone: false,
-        timelineBaseUrl: timelineBaseUrl.match('://') ?
-            timelineBaseUrl :
-            '%@//%@'.fmt(location.protocol, timelineBaseUrl),
-        RMWebUrl: RMWebUrl.match('://') ?
-            RMWebUrl :
-            '%@//%@'.fmt(location.protocol, RMWebUrl)
-      }
-    });
-
-    App.advanceReadiness();
-  });
 }
 
 function onPathChange() {
@@ -248,6 +142,38 @@ function scheduleChangeHandler(arguments) {
   setTimeout(onPathChange, 100);
 }
 
+function setConfigs() {
+  var host = window.location.origin,
+      urlParts = location.pathname.split('/'),
+      resourcesPrefix = 'api/v1/views/%@/versions/%@/instances/%@/resources/'.fmt(
+        urlParts[2],
+        urlParts[3],
+        urlParts[4]
+      );
+
+  $.extend(true, App.Configs, {
+    envDefaults: {
+      isStandalone: false,
+      timelineBaseUrl: host,
+      RMWebUrl: host,
+    },
+    restNamespace: {
+      timeline: '%@atsproxy/ws/v1/timeline'.fmt(resourcesPrefix),
+      applicationHistory: '%@atsproxy/ws/v1/applicationhistory'.fmt(resourcesPrefix),
+
+      aminfo: '%@rmproxy/proxy/__app_id__/ws/v1/tez'.fmt(resourcesPrefix),
+      aminfoV2: '%@rmproxy/proxy/__app_id__/ws/v2/tez'.fmt(resourcesPrefix),
+      cluster: '%@rmproxy/ws/v1/cluster'.fmt(resourcesPrefix)
+    }
+  });
+
+  App.TimelineRESTAdapter.reopen({
+    namespace: App.Configs.restNamespace.timeline
+  });
+
+  App.advanceReadiness();
+}
+
 if(!redirectionCheck()) {
   App.ApplicationRoute.reopen({
     actions: {
@@ -257,11 +183,5 @@ if(!redirectionCheck()) {
   });
 
   allowFullScreen();
-  loadParams();
-
-  Ember.$.ajaxSetup({
-    beforeSend: function (jqXHR, settings) {
-      settings.url = location.pathname + 'proxy?url=' + encodeURIComponent(settings.url);
-    }
-  });
+  setConfigs();
 }

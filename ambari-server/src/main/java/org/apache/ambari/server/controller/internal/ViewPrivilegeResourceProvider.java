@@ -74,7 +74,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
   }
 
   /**
-   * The built-in VIEW.USE permission.
+   * The built-in VIEW.USER permission.
    */
   private final PermissionEntity viewUsePermission;
 
@@ -86,7 +86,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
    */
   public ViewPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.ViewPrivilege);
-    viewUsePermission = permissionDAO.findById(PermissionEntity.VIEW_USE_PERMISSION);
+    viewUsePermission = permissionDAO.findById(PermissionEntity.VIEW_USER_PERMISSION);
   }
 
 
@@ -202,7 +202,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
 
   @Override
   protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity) throws AmbariException {
-    return (permissionName.equals(PermissionEntity.VIEW_USE_PERMISSION_NAME)) ?
+    return (permissionName.equals(PermissionEntity.VIEW_USER_PERMISSION_NAME)) ?
         viewUsePermission : super.getPermission(permissionName, resourceEntity);
   }
 }

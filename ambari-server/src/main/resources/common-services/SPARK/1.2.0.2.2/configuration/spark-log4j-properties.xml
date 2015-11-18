@@ -39,6 +39,7 @@ log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=INFO
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

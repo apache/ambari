@@ -18,15 +18,32 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
+import static org.easymock.EasyMock.anyLong;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertTrue;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -40,15 +57,15 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
@@ -60,6 +77,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -74,32 +92,15 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.persistence.EntityManager;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
@@ -165,6 +166,29 @@ public class UpgradeCatalog213Test {
   }
 
   @Test
+  public void testExecuteStageDDLUpdates() throws Exception {
+    final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
+
+    dbAccessor.addColumn(eq("stage"), anyObject(DBAccessor.DBColumnInfo.class));
+    expectLastCall().times(1);
+
+    replay(dbAccessor);
+    Module module = new Module() {
+      @Override
+      public void configure(Binder binder) {
+        binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        binder.bind(EntityManager.class).toInstance(entityManager);
+      }
+    };
+
+    Injector injector = Guice.createInjector(module);
+    UpgradeCatalog213 upgradeCatalog213 = injector.getInstance(UpgradeCatalog213.class);
+    upgradeCatalog213.executeStageDDLUpdates();
+    verify(dbAccessor);
+  }
+
+  @Test
   public void testExecuteDMLUpdates() throws Exception {
     // TODO AMBARI-13001, readd unit test section.
     /*
@@ -208,11 +232,13 @@ public class UpgradeCatalog213Test {
     Method updateKafkaConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateKafkaConfigs");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateHbaseEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHbaseEnvConfig");
+    Method updateFlumeEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateFlumeEnvConfig");
     Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method updateHadoopEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHadoopEnv");
     Method updateAlertDefinitions = UpgradeCatalog213.class.getDeclaredMethod("updateAlertDefinitions");
     Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
     Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
+    Method updateAccumuloConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAccumuloConfigs");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
       .addMockedMethod(updateAMSConfigs)
@@ -220,16 +246,19 @@ public class UpgradeCatalog213Test {
       .addMockedMethod(updateStormConfigs)
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(updateHbaseEnvConfig)
+      .addMockedMethod(updateFlumeEnvConfig)
       .addMockedMethod(updateAlertDefinitions)
       .addMockedMethod(updateKafkaConfigs)
       .addMockedMethod(updateZookeeperLog4j)
       .addMockedMethod(updateHadoopEnvConfig)
       .addMockedMethod(updateRangerEnvConfig)
       .addMockedMethod(updateHiveConfig)
+      .addMockedMethod(updateAccumuloConfigs)
       .createMock();
 
     upgradeCatalog213.updateHbaseEnvConfig();
     expectLastCall().once();
+    upgradeCatalog213.updateFlumeEnvConfig();
     upgradeCatalog213.addNewConfigurationsFromXml();
     expectLastCall().once();
     upgradeCatalog213.updateStormConfigs();
@@ -249,6 +278,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateRangerEnvConfig();
     expectLastCall().once();
     upgradeCatalog213.updateHiveConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateAccumuloConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -609,16 +640,18 @@ public class UpgradeCatalog213Test {
     Map<String, String> oldPropertiesAmsSite = new HashMap<String, String>() {
       {
         //Including only those properties that might be present in an older version.
-        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(1000));
-        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(1000));
+        put("timeline.metrics.service.default.result.limit", String.valueOf(5760));
+        put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(1000));
+        put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(1000));
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(1000));
       }
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
-        put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
-        put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
-        put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+        put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+        put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
+        put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(300));
+        put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(300));
         put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
         put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
@@ -735,10 +768,19 @@ public class UpgradeCatalog213Test {
   public void testUpdateKafkaConfigs() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final ConfigurationResponse mockConfigurationResponse = easyMockSupport.createMock(ConfigurationResponse.class);
     final ConfigHelper mockConfigHelper = easyMockSupport.createMock(ConfigHelper.class);
 
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Map<String, String> propertiesKafkaEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+    Map<String, String> updates = Collections.singletonMap("content", "test\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}");
+
     final Map<String, String> propertiesAmsEnv = new HashMap<String, String>() {
       {
         put("kafka.metrics.reporters", "{{kafka_metrics_reporters}}");
@@ -752,6 +794,7 @@ public class UpgradeCatalog213Test {
     };
 
     final Config mockAmsEnv = easyMockSupport.createNiceMock(Config.class);
+    final Config mockKafkaEnv = easyMockSupport.createNiceMock(Config.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -775,8 +818,63 @@ public class UpgradeCatalog213Test {
     expect(mockClusterExpected.getDesiredConfigByType("kafka-broker")).andReturn(mockAmsEnv).atLeastOnce();
     expect(mockAmsEnv.getProperties()).andReturn(propertiesAmsEnv).atLeastOnce();
 
+    expect(mockClusterExpected.getDesiredConfigByType("kafka-env")).andReturn(mockKafkaEnv).atLeastOnce();
+    expect(mockKafkaEnv.getProperties()).andReturn(propertiesKafkaEnv).atLeastOnce();
+
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+        "kafka-env", updates, true, false);
+    expectLastCall().once();
+
+    expect(mockAmbariManagementController.createConfiguration(EasyMock.<ConfigurationRequest>anyObject())).andReturn(mockConfigurationResponse);
+
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateKafkaConfigs();
+    easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateFlumeEnvConfig() throws AmbariException {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesFlumeEnv = new HashMap<String, String>() {
+      {
+        put("content", "test");
+      }
+    };
+
+    final Config mockFlumeEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).once();
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getDesiredConfigByType("flume-env")).andReturn(mockFlumeEnv).atLeastOnce();
+    expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).atLeastOnce();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateFlumeEnvConfig();
     easyMockSupport.verifyAll();
   }
 
@@ -982,6 +1080,7 @@ public class UpgradeCatalog213Test {
     Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn1 = EasyMock.newCapture();
     Capture<DBAccessor.DBColumnInfo> capturedNewBlueprintColumn2 = EasyMock.newCapture();
 
+    Capture<DBAccessor.DBColumnInfo> stageSkipColumnCapture = EasyMock.newCapture();
 
     EasyMock.expect(mockedInjector.getInstance(DaoUtils.class)).andReturn(mockedDaoUtils);
     mockedInjector.injectMembers(anyObject(UpgradeCatalog.class));
@@ -1004,6 +1103,8 @@ public class UpgradeCatalog213Test {
 
     mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn1));
     mockedDbAccessor.addColumn(capture(capturedBlueprintTableName), capture(capturedNewBlueprintColumn2));
+
+    mockedDbAccessor.addColumn(eq("stage"), capture(stageSkipColumnCapture));
 
     mocksControl.replay();
 
@@ -1029,7 +1130,8 @@ public class UpgradeCatalog213Test {
     Assert.assertEquals("The column name is wrong!", "security_descriptor_reference", capturedNewBlueprintColumn2
       .getValue().getName());
 
-
+    Assert.assertEquals("The column name is wrong!", "supports_auto_skip_failure",
+        stageSkipColumnCapture.getValue().getName());
   }
 
   @Test
@@ -1044,7 +1146,11 @@ public class UpgradeCatalog213Test {
     final Map<String, String> propertiesHiveSiteExpected = new HashMap<String, String>() {{
       put("hive.server2.logging.operation.log.location", "/tmp/hive/operation_logs");
     }};
+    final Map<String, String> propertiesHiveEnv = new HashMap<String, String>() {{
+      put("content", "test content");
+    }};
     final Config hiveSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Config hiveEnvConf = easyMockSupport.createNiceMock(Config.class);
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
       protected void configure() {
@@ -1061,8 +1167,10 @@ public class UpgradeCatalog213Test {
       put("normal", mockClusterExpected);
     }}).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("hive-site")).andReturn(hiveSiteConf).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("hive-env")).andReturn(hiveEnvConf).atLeastOnce();
 
     expect(hiveSiteConf.getProperties()).andReturn(propertiesHiveSite).once();
+    expect(hiveEnvConf.getProperties()).andReturn(propertiesHiveEnv).once();
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
             .withConstructor(Injector.class)
@@ -1073,6 +1181,9 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
             "hive-site", propertiesHiveSiteExpected, true, false);
     expectLastCall().once();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "hive-env", propertiesHiveEnv, true, true);
+    expectLastCall().once();
 
     easyMockSupport.replayAll();
     replay(upgradeCatalog213);
@@ -1081,4 +1192,131 @@ public class UpgradeCatalog213Test {
 
   }
 
+  @Test
+  public void testUpdateHiveEnvContentHDP23() throws Exception {
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    String expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContentHDP23(testContent));
+  }
+
+
+  @Test
+  public void testUpdateHiveEnvContent() throws Exception {
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    // Test first case
+    String testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    String expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
+    // Test second case
+    testContent = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "export SERVICE=$SERVICE\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
+            "fi\n" +
+            "\n";
+    expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "export SERVICE=$SERVICE\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE=\"{{hive_metastore_heapsize}}\"\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+    Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
+  }
+
+  @Test
+  public void testUpdateAccumuloConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    // We start with no client properties (< 2.1.3).
+    final Map<String, String> originalClientProperties = new HashMap<String, String>();
+    // And should get the following property on upgrade.
+    final Map<String, String> updatedClientProperties = new HashMap<String, String>() {
+      {
+        put("kerberos.server.primary", "{{bare_accumulo_principal}}");
+      }
+    };
+    
+    final Config clientConfig = easyMockSupport.createNiceMock(Config.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).once();
+
+    // Enable KERBEROS
+    expect(mockClusterExpected.getSecurityType()).andReturn(SecurityType.KERBEROS).once();
+    // Mock out our empty original properties
+    expect(mockClusterExpected.getDesiredConfigByType("client")).andReturn(clientConfig).atLeastOnce();
+    expect(clientConfig.getProperties()).andReturn(originalClientProperties).atLeastOnce();
+
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+                    Map.class, boolean.class, boolean.class)
+            .createMock();
+    // Verify that we get this method called with the updated properties
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "client", updatedClientProperties, true, false);
+    expectLastCall().once();
+
+    // Run it
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog213);
+    upgradeCatalog213.updateAccumuloConfigs();
+    easyMockSupport.verifyAll();
+  }
 }

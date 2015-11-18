@@ -267,6 +267,10 @@
   .task-list-main-warp i {
     font-size: 16px;
   }
+  ul.failed-info-list {
+    max-height: 500px;
+    margin-top: 5px;
+  }
   .upgrade-options-link {
     position: absolute;
     cursor: pointer;
@@ -531,5 +535,32 @@
     .icon-question-sign {
       color: @blue;
     }
+  }
+}
+
+#upgrade-failed-hosts {
+  .host-list-container {
+    overflow-y: auto;
+    max-height: 320px;
+    margin-right: -15px;
+    .accordion {
+      margin-bottom: 0;
+      .accordion-group {
+        border: none;
+        .accordion-toggle {
+          line-height: 20px;
+          padding: 5px 0;
+          .label {
+            margin-right: 10px;
+          }
+        }
+      }
+    }
+  }
+  .sub-header {
+    padding: 0 15px;
+    width: 530px;
+    margin-left: -15px;
+    border-bottom: 1px solid #eee;
   }
 }

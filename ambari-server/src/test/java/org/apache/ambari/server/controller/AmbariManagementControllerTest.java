@@ -200,6 +200,7 @@ public class AmbariManagementControllerTest {
   private OrmTestHelper helper;
   private StageFactory stageFactory;
   private HostDAO hostDAO;
+  private TopologyManager topologyManager;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -228,7 +229,7 @@ public class AmbariManagementControllerTest {
     helper = injector.getInstance(OrmTestHelper.class);
     stageFactory = injector.getInstance(StageFactory.class);
     hostDAO = injector.getInstance(HostDAO.class);
-    TopologyManager topologyManager = new TopologyManager();
+     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
   }
@@ -10590,6 +10591,7 @@ public class AmbariManagementControllerTest {
         "version1",
         new HashMap<String, String>(){{
           put("test.password", "first");
+          put("test.password.empty", "");
         }},
         new HashMap<String, Map<String, String>>()
     );
@@ -10691,6 +10693,9 @@ public class AmbariManagementControllerTest {
       String secretName = "SECRET:hdfs-site:"+resp.getVersion().toString()+":test.password";
       if(resp.getConfigs().containsKey("test.password")) {
         assertEquals(resp.getConfigs().get("test.password"), secretName);
+      }
+      if(resp.getConfigs().containsKey("test.password.empty")) {
+        assertEquals(resp.getConfigs().get("test.password.empty"), "");
       }
     }
   }

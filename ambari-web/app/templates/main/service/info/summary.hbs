@@ -152,26 +152,7 @@
   <div class="row-fluid">
     <div class="span12 metrics-collapsed-graphs">
       {{#each collapsedSection in view.collapsedSections}}
-        <div {{bindAttr class=":accordion collapsedSection.toggleIndex"}}>
-          <div class="accordion-group box">
-            <div class="accordion-heading box-header">
-              <span class="pull-left accordion-toggle metrics-header"
-                    data-toggle="collapse" {{bindAttr dataParent="collapsedSection.toggleIndex" href="collapsedSection.toggleIndex"}}>
-                <i class="pull-left icon-caret-toggle"></i>
-                <span>{{collapsedSection.header}}</span>
-              </span>
-
-              <div class="clearfix"></div>
-            </div>
-            <div class="accordion-body collapse in" {{bindAttr id="collapsedSection.id"}}>
-              <div class="accordion-inner">
-                {{#if collapsedSection.metricView}}
-                  {{view collapsedSection.metricView viewDataBinding="collapsedSection.metricViewData"}}
-                {{/if}}
-              </div>
-            </div>
-          </div>
-        </div>
+        {{view collapsedSection}}
       {{/each}}
     </div>
   </div>

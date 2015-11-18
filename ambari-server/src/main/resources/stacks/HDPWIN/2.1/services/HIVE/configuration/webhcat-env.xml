@@ -27,5 +27,8 @@
     <description>webhcat-env.cmd content</description>
     <value>
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

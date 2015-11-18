@@ -252,13 +252,9 @@ App.MainAlertInstancesController = Em.Controller.extend({
           return this.get('controller.unhealthyAlertInstances');
         }.property('controller.unhealthyAlertInstances.@each.state'),
 
-        isLoaded: function () {
-          return !!this.get('controller.unhealthyAlertInstances');
-        }.property('controller.unhealthyAlertInstances'),
+        isLoaded: Em.computed.bool('controller.unhealthyAlertInstances'),
 
-        isAlertEmptyList: function () {
-          return !this.get('content.length');
-        }.property('content.length'),
+        isAlertEmptyList: Em.computed.empty('content'),
 
         /**
          * Update list of shown alert instances

@@ -38,6 +38,9 @@ export JAVA_HOME={{java64_home}}
 # The hadoop conf directory.  Optional as slider-client.xml can be edited to add properties.
 export HADOOP_CONF_DIR={{hadoop_conf_dir}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

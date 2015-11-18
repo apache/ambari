@@ -107,9 +107,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
   /**
    * Show or hide warning to ignore errors and continue with the install
    */
-  showIgnore: function() {
-    return this.get('tasks').someProperty('showRetry', true);
-  }.property('tasks.@each.showRetry'),
+  showIgnore: Em.computed.someBy('tasks', 'showRetry', true),
 
   /**
    * Enable or disable next button if ignore checkbox ticked

@@ -24,9 +24,7 @@ App.DirectoryConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/directory_config_widget'),
   classNames: ['widget-config', 'directory-widget'],
 
-  disabled: function() {
-    return !this.get('config.isEditable');
-  }.property('config.isEditable'),
+  disabled: Em.computed.not('config.isEditable'),
 
   /**
    * Control to edit value.

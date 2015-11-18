@@ -68,4 +68,14 @@ public class FileBrowserService {
     return new HelpService(context);
   }
 
+
+  /**
+   * @see org.apache.ambari.view.filebrowser.FilePreviewService
+   * @return service
+   */
+  @Path("/preview")
+  public FilePreviewService preview() {
+    return new FilePreviewService(context);
+  }
+
 }

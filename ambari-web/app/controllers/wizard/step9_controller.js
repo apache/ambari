@@ -134,9 +134,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * Computed property to determine if the Retry button should be made visible on the page.
    * @type {bool}
    */
-  showRetry: function () {
-    return this.get('content.cluster.status') == 'INSTALL FAILED';
-  }.property('content.cluster.status'),
+  showRetry: Em.computed.equal('content.cluster.status', 'INSTALL FAILED'),
 
   /**
    * Observer function: Calls {hostStatusUpdates} function once with change in a host status from any registered hosts.

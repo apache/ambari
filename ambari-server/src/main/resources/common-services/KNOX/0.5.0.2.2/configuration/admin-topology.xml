@@ -89,6 +89,7 @@
         The configuration specifies the Knox admin API configuration and access details. The authentication provider should be configured to match your deployment details.
     </description>
     <value-attributes>
+       <type>content</type>
        <empty-value-valid>true</empty-value-valid>
        <show-property-name>false</show-property-name>
     </value-attributes>

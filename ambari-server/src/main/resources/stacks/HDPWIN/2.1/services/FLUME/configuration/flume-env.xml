@@ -53,5 +53,8 @@
       # $HIVE_HOME=
       # $HCAT_HOME=
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

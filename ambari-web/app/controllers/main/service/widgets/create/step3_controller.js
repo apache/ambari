@@ -21,9 +21,7 @@ var App = require('app');
 App.WidgetWizardStep3Controller = Em.Controller.extend({
   name: "widgetWizardStep3Controller",
 
-  isEditController: function () {
-    return this.get('content.controllerName') == 'widgetEditController';
-  }.property('content.controllerName'),
+  isEditController: Em.computed.equal('content.controllerName', 'widgetEditController'),
 
   /**
    * @type {string}
@@ -48,9 +46,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   /**
    * @type {string}
    */
-  widgetScope: function () {
-    return this.get('isSharedChecked') ? 'Cluster' : 'User';
-  }.property('isSharedChecked'),
+  widgetScope: Em.computed.ifThenElse('isSharedChecked', 'Cluster', 'User'),
 
   /**
    * @type {string}

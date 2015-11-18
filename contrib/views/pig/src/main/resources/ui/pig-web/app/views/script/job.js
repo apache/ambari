@@ -20,15 +20,23 @@ var App = require('app');
 
 App.ScriptJobView = Em.View.extend({
   collapsePanel: Em.View.extend({
-    rotateToggle:function () {
-      this.$().on('hide.bs.collapse', function (e) {
-        this.$().parent().find('.toggle-icon').removeClass('fa-rotate-90');
-      }.bind(this));
-      this.$().on('show.bs.collapse', function (e) {
-        this.$().parent().find('.toggle-icon').addClass('fa-rotate-90');
-      }.bind(this));
-      //fix for CodeMirror not rendered properly in hidden container
-      if (this.get('elementId') === "scriptDetails") {
+    actions:{
+      toggleCollapse:function () {
+        this.toggleProperty('collapsed');
+      }
+    },
+    collapsed:true,
+    collapseControl: function () {
+      this.$('.collapse').collapse(this.get('collapsed') ? 'hide' : 'show');
+    }.observes('collapsed'),
+    initCollapse:function () {
+      this.$('.collapse').collapse({
+        toggle: !this.get('collapsed')
+      })
+    }.on('didInsertElement'),
+    hasEditor:false,
+    fixEditor:function () {
+      if (this.get('hasEditor')) {
         this.$().on('shown.bs.collapse', function (e) {
           var cme = this.$('.CodeMirror').get(0);
           if (cme && cme.CodeMirror) {
@@ -36,10 +44,7 @@ App.ScriptJobView = Em.View.extend({
           }
         }.bind(this));
       }
-    }.on('didInsertElement'),
-    unbindToggle:function () {
-      this.$().off('hide.bs.collapse','show.bs.collapse');
-    }.on('willClearRender')
+    }.on('didInsertElement')
   }),
   bindTooltips:function () {
     $('.fullscreen-toggle').tooltip();

@@ -47,13 +47,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isCustomJDK: false,
 
-  isHostContentLoaded: function () {
-    return this.get('isHostsLoaded') && this.get('isComponentsStateLoaded');
-  }.property('isHostsLoaded', 'isComponentsStateLoaded'),
+  isHostContentLoaded: Em.computed.and('isHostsLoaded', 'isComponentsStateLoaded'),
 
-  isServiceContentFullyLoaded: function () {
-    return this.get('isServiceMetricsLoaded') && this.get('isComponentsStateLoaded') && this.get('isComponentsConfigLoaded');
-  }.property('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
+  isServiceContentFullyLoaded: Em.computed.and('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
   clusterName: function () {
     return App.get('clusterName');
@@ -301,22 +297,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       }
 
       if (lastUpgradeData) {
-        upgradeController.setDBProperties({
-          upgradeId: lastUpgradeData.Upgrade.request_id,
-          isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
-          upgradeState: lastUpgradeData.Upgrade.request_status,
-          upgradeType: lastUpgradeData.Upgrade.upgrade_type,
-          downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
-          failuresTolerance: Em.Object.create({
-            skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
-            skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
-          })
-        });
-        upgradeController.loadRepoVersionsToModel().done(function () {
-          upgradeController.setDBProperty('upgradeVersion', App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version).get('displayName'));
-          upgradeController.initDBProperties();
-          upgradeController.loadUpgradeData(true);
-        });
+        upgradeController.restoreLastUpgrade(lastUpgradeData);
       } else {
         upgradeController.initDBProperties();
         upgradeController.loadUpgradeData(true);

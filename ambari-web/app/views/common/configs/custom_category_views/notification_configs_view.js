@@ -34,9 +34,7 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    */
   createNotification: 'no',
 
-  categoryConfigsAll: function () {
-    return this.get('serviceConfigs').filterProperty('filename', 'alert_notification');
-  }.property('serviceConfigs.@each').cacheable(),
+  categoryConfigsAll: Em.computed.filterBy('serviceConfigs', 'filename', 'alert_notification'),
 
   /**
    * @type {string} "tls|ssl"

@@ -631,6 +631,7 @@ pig.tez.grace.parallelism=true
     </value>
     <description>Describe all the Pig agent configurations</description>
     <value-attributes>
+      <type>content</type>
       <empty-value-valid>true</empty-value-valid>
       <show-property-name>false</show-property-name>
     </value-attributes>

@@ -266,7 +266,7 @@ dropdown .fa-remove {
 }
 
 .main-content {
-  width: 100%;
+  width: 96%;
 }
 
 .queries-icon {
@@ -358,6 +358,7 @@ body {
 
 .CodeMirror-hints {
   min-width: 200px;
+  z-index: 100;
 }
 
 .spinner {
@@ -549,11 +550,10 @@ tree-view ul li {
   margin: 0 0 10px;
 }
 
-#query-results {
+#query-results, #upload-table  {
   .table {
     display: inline-block;
     overflow: auto;
-    max-width: 830px;
   }
 
   .query-results-tools {

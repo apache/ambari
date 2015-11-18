@@ -109,18 +109,14 @@ App.WizardStep3HostWarningPopupBody = Em.View.extend({
    * Same to <code>bodyController.warningsByHost</code>
    * @type {Ember.Enumerable}
    */
-  warningsByHost: function () {
-    return this.get('bodyController.warningsByHost');
-  }.property('bodyController.warningsByHost'),
+  warningsByHost: Em.computed.alias('bodyController.warningsByHost'),
 
   /**
    * List of all warnings
    * Same to <code>bodyController.warnings</code>
    * @type {Ember.Enumerable}
    */
-  warnings: function () {
-    return this.get('bodyController.warnings');
-  }.property('bodyController.warnings'),
+  warnings: Em.computed.alias('bodyController.warnings'),
 
   /**
    * Selected category

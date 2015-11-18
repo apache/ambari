@@ -41,6 +41,9 @@
     <value>UnIx529p</value>
     <property-type>PASSWORD</property-type>
     <description>Keystore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -54,6 +57,9 @@
     <value>changeit</value>
     <property-type>PASSWORD</property-type>
     <description>Truststore password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -65,7 +71,7 @@
   <property>
     <name>ranger.usersync.enabled</name>
     <display-name>Enable User Sync</display-name>
-    <value>false</value>
+    <value>true</value>
     <description>Should users and groups be synchronized to Ranger Database? Required to setup Ranger policies</description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
@@ -132,7 +138,7 @@
 
   <property>
     <name>ranger.usersync.sleeptimeinmillisbetweensynccycle</name>
-    <value>60</value>
+    <value>60000</value>
     <description>Sleeptime interval in milliseconds, if &lt; 1000 then default to 30 sec</description>
   </property>
 
@@ -197,6 +203,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>Password for the LDAP bind user used for searching users.</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>

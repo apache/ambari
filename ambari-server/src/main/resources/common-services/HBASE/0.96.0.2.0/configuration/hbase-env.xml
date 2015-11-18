@@ -98,6 +98,9 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <value>hbase</value>
     <property-type>USER</property-type>
     <description>HBase User Name.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_user_nofile_limit</name>
@@ -108,6 +111,12 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <name>hbase_user_nproc_limit</name>
     <value>16000</value>
     <description>Max number of processes limit setting for HBASE user.</description>
+  </property>
+
+  <property>
+    <name>hbase_java_io_tmpdir</name>
+    <value>/tmp</value>
+    <description>Used in hbase-env.sh as HBASE_OPTS=-Djava.io.tmpdir=java_io_tmpdir</description>
   </property>
 
   <!-- hbase-env.sh -->
@@ -135,7 +144,7 @@ export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 # see http://wiki.apache.org/hadoop/PerformanceTuning
 export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:{{log_dir}}/gc.log-`date +'%Y%m%d%H%M'`"
 # Uncomment below to enable java garbage collection logging.
-# export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log"
+# export HBASE_OPTS="$HBASE_OPTS -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:$HBASE_HOME/logs/gc-hbase.log -Djava.io.tmpdir={{java_io_tmpdir}}"
 
 # Uncomment and adjust to enable JMX exporting
 # See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.
@@ -173,15 +182,18 @@ export HBASE_PID_DIR={{pid_dir}}
 export HBASE_MANAGES_ZK=false
 
 {% if security_enabled %}
-export HBASE_OPTS="$HBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.security.auth.login.config={{client_jaas_config_file}}"
+export HBASE_OPTS="$HBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.security.auth.login.config={{client_jaas_config_file}} -Djava.io.tmpdir={{java_io_tmpdir}}"
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Xmx{{master_heapsize}} -Djava.security.auth.login.config={{master_jaas_config_file}}"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}} -Djava.security.auth.login.config={{regionserver_jaas_config_file}}"
 {% else %}
-export HBASE_OPTS="$HBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log"
+export HBASE_OPTS="$HBASE_OPTS -XX:+UseConcMarkSweepGC -XX:ErrorFile={{log_dir}}/hs_err_pid%p.log -Djava.io.tmpdir={{java_io_tmpdir}}"
 export HBASE_MASTER_OPTS="$HBASE_MASTER_OPTS -Xmx{{master_heapsize}}"
 export HBASE_REGIONSERVER_OPTS="$HBASE_REGIONSERVER_OPTS -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 

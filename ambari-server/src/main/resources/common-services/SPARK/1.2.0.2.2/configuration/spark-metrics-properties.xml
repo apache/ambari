@@ -157,6 +157,7 @@
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

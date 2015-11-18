@@ -73,7 +73,8 @@ smokeuser = config['configurations']['cluster-env']['smokeuser']
 hbase_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
 hbase_pid_dir = status_params.hbase_pid_dir
 
-is_hbase_distributed = hbase_root_dir.startswith('hdfs://')
+is_hbase_distributed = config['configurations']['ams-hbase-site']['hbase.cluster.distributed']
+is_hdfs_rootdir = hbase_root_dir.startswith('hdfs://')
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
@@ -115,7 +116,7 @@ else:
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
 
-zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
+zookeeper_quorum_hosts = 'localhost'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir

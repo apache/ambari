@@ -36,5 +36,8 @@ export JAVA_HOME={{java64_home}}
 export STORM_CONF_DIR={{conf_dir}}
 export STORM_HOME={{storm_component_home_dir}}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

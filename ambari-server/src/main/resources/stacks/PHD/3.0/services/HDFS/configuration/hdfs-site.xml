@@ -99,11 +99,6 @@
   </property>
 
   <property>
-    <name>dfs.datanode.max.transfer.threads</name>
-    <value>40960</value>
-  </property>
-
-  <property>
     <name>dfs.datanode.handler.count</name>
     <value>60</value>
   </property>

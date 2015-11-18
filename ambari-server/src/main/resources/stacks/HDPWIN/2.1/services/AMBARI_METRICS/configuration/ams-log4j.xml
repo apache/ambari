@@ -54,6 +54,9 @@
       log4j.appender.file.layout=org.apache.log4j.PatternLayout
       log4j.appender.file.layout.ConversionPattern=%d{ABSOLUTE} %5p [%t] %c{1}:%L - %m%n
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

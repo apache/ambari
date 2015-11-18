@@ -76,6 +76,7 @@ log4j.appender.EWMA.messageAgeLimitSeconds=${yarn.ewma.messageAgeLimitSeconds}
 log4j.appender.EWMA.maxUniqueMessages=${yarn.ewma.maxUniqueMessages}
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

@@ -465,6 +465,49 @@ class TestHDP206StackAdvisor(TestCase):
 
     self.assertEquals(result, expected)
 
+  def test_recommendStormConfigurations(self):
+    # no AMS
+    configurations = {}
+    services = {
+      "services":  [
+      ],
+      "configurations": configurations
+    }
+
+    expected = {
+      "storm-site": {
+        "properties": {
+        }
+      },
+    }
+
+    self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
+    self.assertEquals(configurations, expected)
+
+    # with AMS
+    configurations = {}
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          }
+        }
+      ],
+      "configurations": configurations
+    }
+
+    expected = {
+      "storm-site": {
+        "properties": {
+          "metrics.reporter.register": "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
+        }
+      },
+    }
+
+    self.stackAdvisor.recommendStormConfigurations(configurations, None, services, None)
+    self.assertEquals(configurations, expected)
+
   def test_recommendYARNConfigurations(self):
     configurations = {}
     services = {"configurations": configurations}
@@ -803,12 +846,12 @@ class TestHDP206StackAdvisor(TestCase):
       "authentication.ldap.bindAnonymously" : "false",
       "authentication.ldap.baseDn" : "dc=apache,dc=org",
       "authentication.ldap.groupNamingAttr" : "cn",
-      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.primaryUrl" : "c6403.ambari.apache.org:636",
       "authentication.ldap.userObjectClass" : "posixAccount",
-      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:389",
+      "authentication.ldap.secondaryUrl" : "c6403.ambari.apache.org:636",
       "authentication.ldap.usernameAttribute" : "uid",
       "authentication.ldap.dnAttribute" : "dn",
-      "authentication.ldap.useSSL" : "false",
+      "authentication.ldap.useSSL" : "true",
       "authentication.ldap.managerPassword" : "/etc/ambari-server/conf/ldap-password.dat",
       "authentication.ldap.groupMembershipAttr" : "memberUid",
       "authentication.ldap.groupObjectClass" : "posixGroup",
@@ -824,7 +867,7 @@ class TestHDP206StackAdvisor(TestCase):
       'ranger-env': {'properties': {}},
       'usersync-properties': {
         'properties': {
-          'SYNC_LDAP_URL': 'c6403.ambari.apache.org:389',
+          'SYNC_LDAP_URL': 'ldaps://c6403.ambari.apache.org:636',
           'SYNC_LDAP_BIND_DN': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
           'SYNC_LDAP_USER_OBJECT_CLASS': 'posixAccount',
           'SYNC_LDAP_USER_NAME_ATTRIBUTE': 'uid'
@@ -1010,6 +1053,10 @@ class TestHDP206StackAdvisor(TestCase):
           "webhcat_user": "webhcat"
         }
       },
+      "hdfs-site": {
+        "properties": {
+        }
+      },
       "oozie-env": {
         "properties": {
           "oozie_user": "oozie"
@@ -1066,6 +1113,23 @@ class TestHDP206StackAdvisor(TestCase):
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
+    # Verify dfs.namenode.rpc-address is recommended to be deleted when NN HA
+    configurations["hdfs-site"]["properties"]['dfs.nameservices'] = "mycluster"
+    configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
+    services['configurations'] = configurations
+    expected["hdfs-site"] = {
+      'properties': {
+        'dfs.nameservices': 'mycluster',
+        'dfs.ha.namenodes.mycluster': 'nn1,nn2'
+      },
+      'property_attributes': {
+        'dfs.namenode.rpc-address': {
+          'delete': 'true'
+        }
+      }
+    }
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
 
 
   def test_getHostNamesWithComponent(self):
@@ -1352,8 +1416,53 @@ class TestHDP206StackAdvisor(TestCase):
         'config-name': 'hbase.rootdir',
         'config-type': 'ams-hbase-site',
         'level': 'WARN',
-        'message': 'In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.',
+        'message': 'In distributed mode hbase.rootdir should point to HDFS.',
         'type': 'configuration'
+      }
+    ]
+    self.assertEquals(res, expected)
+
+  def test_validateStormSiteConfigurations(self):
+    configurations = {
+      "storm-site": {
+        "properties": {
+          'metrics.reporter.register': "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
+        }
+      }
+    }
+
+    recommendedDefaults = {
+      'metrics.reporter.register': 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter',
+    }
+    properties = {
+      'metrics.reporter.register': 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter',
+    }
+
+    services = {
+      "services":  [
+        {
+          "StackServices": {
+            "service_name": "AMBARI_METRICS"
+          }
+        }
+      ],
+      "configurations": configurations
+    }
+
+    # positive
+    res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
+    expected = []
+    self.assertEquals(res, expected)
+    properties['metrics.reporter.register'] = ''
+
+    res = self.stackAdvisor.validateStormConfigurations(properties, recommendedDefaults, configurations, services, None)
+    expected = [
+      {'config-name': 'metrics.reporter.register',
+       'config-type': 'storm-site',
+       'level': 'WARN',
+       'message': 'Should be set to org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter '
+                  'to report the metrics to Ambari Metrics service.',
+       'type': 'configuration'
       }
     ]
     self.assertEquals(res, expected)

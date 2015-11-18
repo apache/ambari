@@ -27,12 +27,8 @@ App.ConfigHistoryFlowView = Em.View.extend({
   startIndex: 0,
   showLeftArrow: false,
   showRightArrow: false,
-  leftArrowTooltip: function () {
-    return this.get('showLeftArrow') ? Em.I18n.t('services.service.config.configHistory.leftArrow.tooltip') : null;
-  }.property('showLeftArrow'),
-  rightArrowTooltip: function () {
-    return this.get('showRightArrow') ? Em.I18n.t('services.service.config.configHistory.rightArrow.tooltip') : null;
-  }.property('showRightArrow'),
+  leftArrowTooltip: Em.computed.ifThenElse('showLeftArrow', Em.I18n.t('services.service.config.configHistory.leftArrow.tooltip'), null),
+  rightArrowTooltip: Em.computed.ifThenElse('showRightArrow', Em.I18n.t('services.service.config.configHistory.rightArrow.tooltip'), null),
   VERSIONS_IN_FLOW: 6,
   VERSIONS_IN_DROPDOWN: 6,
   /**
@@ -77,9 +73,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged')) ;
   }.property('controller.isSubmitDisabled', 'controller.versionLoaded', 'controller.isPropertiesChanged'),
 
-  serviceName: function () {
-    return this.get('controller.selectedService.serviceName');
-  }.property('controller.selectedService.serviceName'),
+  serviceName: Em.computed.alias('controller.selectedService.serviceName'),
 
   displayedServiceVersion: function () {
     return this.get('serviceVersions').findProperty('isDisplayed');
@@ -87,10 +81,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * identify whether to show link that open whole content of notes
    */
-  showMoreLink: function () {
-    //100 is number of symbols that fit into label
-    return (this.get('displayedServiceVersion.notes.length') > 100);
-  }.property('displayedServiceVersion.notes.length'),
+  showMoreLink: Em.computed.gt('displayedServiceVersion.notes.length', 100),
   /**
    * formatted notes ready to display
    */
@@ -450,20 +441,28 @@ App.ConfigHistoryFlowView = Em.View.extend({
    */
   save: function () {
     var self = this;
+    var passwordWasChanged = this.get('controller.passwordConfigsAreChanged');
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.title'),
       serviceConfigNote: '',
       bodyClass: Em.View.extend({
         templateName: require('templates/common/configs/save_configuration'),
+        showPasswordChangeWarning: passwordWasChanged,
         notesArea: Em.TextArea.extend({
           classNames: ['full-width'],
+          value: passwordWasChanged ? Em.I18n.t('dashboard.configHistory.info-bar.save.popup.notesForPasswordChange') : '',
           placeholder: Em.I18n.t('dashboard.configHistory.info-bar.save.popup.placeholder'),
+          didInsertElement: function () {
+            if (this.get('value')) {
+              this.onChangeValue();
+            }
+          },
           onChangeValue: function() {
             this.get('parentView.parentView').set('serviceConfigNote', this.get('value'));
           }.observes('value')
         })
       }),
-      footerClass: Ember.View.extend({
+      footerClass: Em.View.extend({
         templateName: require('templates/main/service/info/save_popup_footer')
       }),
       primary: Em.I18n.t('common.save'),

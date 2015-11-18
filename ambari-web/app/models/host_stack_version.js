@@ -36,23 +36,17 @@ App.HostStackVersion = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isCurrent: function () {
-    return this.get('status') === 'CURRENT'
-  }.property('status'),
+  isCurrent: Em.computed.equal('status', 'CURRENT'),
 
   /**
    * @type {boolean}
    */
-  isInstalling: function () {
-    return this.get('status') === 'INSTALLING';
-  }.property('status'),
+  isInstalling: Em.computed.equal('status', 'INSTALLING'),
 
   /**
    * @type {boolean}
    */
-  isOutOfSync: function () {
-    return this.get('status') === 'OUT_OF_SYNC';
-  }.property('status'),
+  isOutOfSync: Em.computed.equal('status', 'OUT_OF_SYNC'),
   /**
    * @type {string}
    */
@@ -66,7 +60,8 @@ App.HostStackVersion = DS.Model.extend({
   installEnabled: function () {
     return ['OUT_OF_SYNC', 'INSTALL_FAILED'].contains(this.get('status'));
   }.property('status'),
-  installDisabled: Ember.computed.not('installEnabled')
+
+  installDisabled: Em.computed.not('installEnabled')
 });
 
 App.HostStackVersion.FIXTURES = [];

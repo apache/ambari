@@ -89,6 +89,17 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   targetVersions: [],
 
   /**
+   * @type {object}
+   * @default null
+   */
+  slaveComponentStructuredInfo: null,
+
+  /**
+   * @type {Array}
+   */
+  serviceCheckFailuresServicenames: [],
+
+  /**
    * methods through which cluster could be upgraded, "allowed" indicated if the method is allowed
    * by stack upgrade path
    * @type {Array}
@@ -146,6 +157,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @type {string}
    */
   finalizeContext: 'Confirm Finalize',
+
+  /**
+   * Context for Slave component failures manual item
+   * @type {string}
+   */
+  slaveFailuresContext: "Check Component Versions",
+
+  /**
+   * Context for Service check (may include slave component) failures manual item
+   * @type {string}
+   */
+  serviceCheckFailuresContext: "Verifying Skipped Failures",
 
   /**
    * Check if current item is Finalize
@@ -235,7 +258,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   initDBProperties: function () {
     var props = this.getDBProperties(this.get('wizardStorageProperties'));
     Em.keys(props).forEach(function (k) {
-      if (props[k]) {
+      if (!Em.isNone(props[k])) {
         this.set(k, props[k]);
       }
     }, this);
@@ -391,9 +414,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
 
   /**
    * request Upgrade Item and its tasks from server
+   * @param {Em.Object} item
+   * @param {Function} customCallback
    * @return {$.ajax}
    */
-  getUpgradeItem: function (item) {
+  getUpgradeItem: function (item, customCallback) {
     return App.ajax.send({
       name: 'admin.upgrade.upgrade_item',
       sender: this,
@@ -402,7 +427,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         groupId: item.get('group_id'),
         stageId: item.get('stage_id')
       },
-      success: 'getUpgradeItemSuccessCallback'
+      success: customCallback || 'getUpgradeItemSuccessCallback'
     });
   },
 
@@ -435,6 +460,35 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         }, this);
       }
     }, this);
+  },
+
+  /**
+   * Failures info may includes service_check and host_component failures. These two types should be displayed separately.
+   */
+  getServiceCheckItemSuccessCallback: function(data) {
+    var task = data.tasks[0];
+    var info = {
+      hosts: [],
+      host_detail: {}
+    };
+
+    if (task && task.Tasks && task.Tasks.structured_out && task.Tasks.structured_out.failures) {
+      this.set('serviceCheckFailuresServicenames', task.Tasks.structured_out.failures.service_check || []);
+      if (task.Tasks.structured_out.failures.host_component) {
+        for (var hostname in task.Tasks.structured_out.failures.host_component){
+          info.hosts.push(hostname);
+        }
+        info.host_detail = task.Tasks.structured_out.failures.host_component;
+      }
+      this.set('slaveComponentStructuredInfo', info);
+    }
+  },
+
+  getSlaveComponentItemSuccessCallback: function(data) {
+    var info = data.tasks[0];
+    if (info && info.Tasks && info.Tasks.structured_out) {
+      this.set('slaveComponentStructuredInfo', info.Tasks.structured_out);
+    }
   },
 
   /**
@@ -1171,6 +1225,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   finish: function () {
     if (App.get('upgradeState') === 'COMPLETED') {
+      var upgradeVersion = this.get('upgradeVersion') && this.get('upgradeVersion').match(/[a-zA-Z]+\-\d+\.\d+/);
       this.setDBProperties({
         upgradeId: undefined,
         upgradeState: 'INIT',
@@ -1185,6 +1240,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       App.clusterStatus.setClusterStatus({
         localdb: App.db.data
       });
+      if (upgradeVersion && upgradeVersion[0]) {
+        App.set('currentStackVersion', upgradeVersion[0]);
+      }
       App.set('upgradeState', 'INIT');
     }
   }.observes('App.upgradeState'),
@@ -1400,5 +1458,65 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         localdb: App.db.data
       });
     });
+  },
+
+  /**
+   * restore last Upgrade data
+   * @param {object} lastUpgradeData
+   */
+  restoreLastUpgrade: function(lastUpgradeData) {
+    var self = this;
+    var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
+    var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
+
+    this.setDBProperties({
+      upgradeId: lastUpgradeData.Upgrade.request_id,
+      isDowngrade: lastUpgradeData.Upgrade.direction === 'DOWNGRADE',
+      upgradeState: lastUpgradeData.Upgrade.request_status,
+      upgradeType: lastUpgradeData.Upgrade.upgrade_type,
+      downgradeAllowed: lastUpgradeData.Upgrade.downgrade_allowed,
+      upgradeTypeDisplayName: upgradeType.get('displayName'),
+      failuresTolerance: Em.Object.create({
+        skipComponentFailures: lastUpgradeData.Upgrade.skip_failures,
+        skipSCFailures: lastUpgradeData.Upgrade.skip_service_check_failures
+      })
+    });
+    this.loadRepoVersionsToModel().done(function () {
+      self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
+      self.initDBProperties();
+      self.loadUpgradeData(true);
+    });
+  },
+
+  /**
+   * Build table from configs list and open new window to show this table
+   * @param configs
+   */
+  openConfigsInNewWindow: function (configs) {
+    var newWindow;
+    var output = '';
+
+    output += '<table style="text-align: left;"><thead><tr>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+        '</tr></thead><tbody>';
+
+    configs.context.forEach(function (config) {
+      output += '<tr>' +
+          '<td>' + config.type + '</td>' +
+          '<td>' + config.name + '</td>' +
+          '<td>' + config.currentValue + '</td>' +
+          '<td>' + config.recommendedValue + '</td>' +
+          '<td>' + config.resultingValue + '</td>' +
+          '</tr>';
+    });
+
+    output += '</tbody></table>';
+    newWindow = window.open();
+    newWindow.document.write(output);
+    newWindow.focus();
   }
 });

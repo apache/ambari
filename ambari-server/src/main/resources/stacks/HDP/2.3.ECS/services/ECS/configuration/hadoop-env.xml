@@ -29,20 +29,29 @@
   <property>
     <name>proxyuser_group</name>
     <value>users</value>
-    <property-type>GROUP</property-type>`
+    <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>hdfs_user</name>
     <value>hdfs</value>
     <property-type>USER</property-type>
     <description>ECS bucket owner user</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>user_group</name>
     <value>hadoop</value>
     <property-type>GROUP</property-type>
     <description>Proxy user group.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <!-- hadoop-env.sh -->
   <property>
@@ -125,6 +134,9 @@ export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
 #Mostly required for hadoop 2.0
 export JAVA_LIBRARY_PATH=${JAVA_LIBRARY_PATH}:/usr/lib/hadoop/lib/native/Linux-amd64-64
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

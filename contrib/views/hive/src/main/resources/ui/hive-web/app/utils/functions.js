@@ -78,6 +78,30 @@ export default Ember.Object.create({
       }
     }
     return array;
+  },
+
+  /**
+   * Convert number of seconds into time object HH MM SS
+   *
+   * @param integer secs Number of seconds to convert
+   * @return object
+  */
+  secondsToHHMMSS: function (secs)
+   {
+    var hours = Math.floor(secs / (60 * 60));
+
+    var divisor_for_minutes = secs % (60 * 60);
+    var minutes = Math.floor(divisor_for_minutes / 60);
+
+    var divisor_for_seconds = divisor_for_minutes % 60;
+    var seconds = Math.ceil(divisor_for_seconds);
+
+    var obj = {
+      "h": hours,
+      "m": minutes,
+      "s": seconds
+    };
+    return  ((obj.h > 0) ? obj.h + ' hr ' : '') + ((obj.m > 0) ? obj.m + ' min ' : '') + ((obj.s >= 0) ? obj.m + ' sec ' : '');
   }
 
 });

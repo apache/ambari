@@ -37,6 +37,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -67,6 +69,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
@@ -246,6 +249,9 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private AmbariSessionManager sessionManager;
+
+  @Inject
+  private TopologyRequestDAO topologyRequestDAO;
 
   /**
    * Data access object used for looking up stacks from the database.
@@ -782,9 +788,9 @@ public class ClusterImpl implements Cluster {
 
       if (schToRemove == null) {
         LOG.warn("Unavailable in per host cache. ServiceComponentHost"
-            + ", serviceName=" + serviceName
-            + ", serviceComponentName" + componentName
-            + ", hostname= " + hostname);
+          + ", serviceName=" + serviceName
+          + ", serviceComponentName" + componentName
+          + ", hostname= " + hostname);
       }
 
       if (LOG.isDebugEnabled()) {
@@ -1176,7 +1182,7 @@ public class ClusterImpl implements Cluster {
 
       // find any hosts that do not have the stack/repo version already
       Sets.SetView<String> hostsMissingRepoVersion = Sets.difference(
-          hosts.keySet(), existingHostsWithClusterStackAndVersion);
+        hosts.keySet(), existingHostsWithClusterStackAndVersion);
 
       for (String hostname : hosts.keySet()) {
         // if the host is in maintenance mode, that's an explicit marker which
@@ -1270,7 +1276,7 @@ public class ClusterImpl implements Cluster {
 
     // Also returns when have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED
     LOG.warn("have a mix of CURRENT and INSTALLING|INSTALLED|UPGRADING|UPGRADED host versions, " +
-        "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
+      "returning OUT_OF_SYNC as cluster version. Host version states: " + stateToHosts.toString());
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 
@@ -1347,8 +1353,14 @@ public class ClusterImpl implements Cluster {
               hostVersionDAO.findByClusterStackAndVersion(getClusterName(), stackId, version);
 
       Set<String> hostsWithState = new HashSet<String>();
+      Set<String> hostsInMaintenanceState = new HashSet<>();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         String hostname = hostVersionEntity.getHostEntity().getHostName();
+        Host host = hosts.get(hostname);
+        if(host != null && host.getMaintenanceState(getClusterId()) == MaintenanceState.ON) {
+          hostsInMaintenanceState.add(hostname);
+          continue;
+        }
         hostsWithState.add(hostname);
         RepositoryVersionState hostState = hostVersionEntity.getState();
 
@@ -1363,6 +1375,7 @@ public class ClusterImpl implements Cluster {
 
       hostsWithoutHostVersion.addAll(hosts.keySet());
       hostsWithoutHostVersion.removeAll(hostsWithState);
+      hostsWithoutHostVersion.removeAll(hostsInMaintenanceState);
 
       // Ensure that all of the hosts without a Host Version only have
       // Components that do not advertise a version.
@@ -1429,8 +1442,8 @@ public class ClusterImpl implements Cluster {
     StackId repoVersionStackId = new StackId(repoVersionStackEntity);
 
     HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(
-        getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
-        host.getHostName());
+      getClusterName(), repoVersionStackId, repositoryVersion.getVersion(),
+      host.getHostName());
 
     hostTransitionStateWriteLock.lock();
     try {
@@ -1924,9 +1937,8 @@ public class ClusterImpl implements Cluster {
       }
 
       for (Service service : services.values()) {
-        service.delete();
+        deleteService(service);
       }
-
       services.clear();
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -1948,10 +1960,38 @@ public class ClusterImpl implements Cluster {
           + ", clusterName=" + getClusterName()
           + ", serviceName=" + service.getName());
       }
-      service.delete();
+      deleteService(service);
       services.remove(serviceName);
+
     } finally {
       clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  /**
+   * Deletes the specified service also removes references to it from {@link this.serviceComponentHosts}
+   * and references to ServiceComponentHost objects that belong to the service from {@link this.serviceComponentHostsByHost}
+   * <p>
+   *   Note: This method must be called only with write lock acquired.
+   * </p>
+   * @param service the service to be deleted
+   * @throws AmbariException
+   * @see   ServiceComponentHost
+   */
+  private void deleteService(Service service) throws AmbariException {
+    final String serviceName = service.getName();
+
+    service.delete();
+
+    serviceComponentHosts.remove(serviceName);
+
+    for (List<ServiceComponentHost> serviceComponents: serviceComponentHostsByHost.values()){
+      Iterables.removeIf(serviceComponents, new Predicate<ServiceComponentHost>() {
+        @Override
+        public boolean apply(ServiceComponentHost serviceComponentHost) {
+          return serviceComponentHost.getServiceName().equals(serviceName);
+        }
+      });
     }
   }
 
@@ -1994,6 +2034,7 @@ public class ClusterImpl implements Cluster {
     alertDefinitionDAO.removeAll(clusterId);
     alertDispatchDAO.removeAllGroups(clusterId);
     upgradeDAO.removeAll(clusterId);
+    topologyRequestDAO.removeAll(clusterId);
     clusterDAO.removeByPK(clusterId);
   }
 
@@ -2142,9 +2183,9 @@ public class ClusterImpl implements Cluster {
     }
 
     configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
-      "version='{}'", getClusterName(), user, serviceName,
-      configGroup==null?"default":configGroup.getName(),
-      configGroup==null?"-1":configGroup.getId(),
+        "version='{}'", getClusterName(), user, serviceName,
+      configGroup == null ? "default" : configGroup.getName(),
+      configGroup == null ? "-1" : configGroup.getId(),
       serviceConfigEntity.getVersion());
 
     String configGroupName = configGroup != null ? configGroup.getName() : null;
@@ -2454,7 +2495,11 @@ public class ClusterImpl implements Cluster {
     }
 
     if (serviceName == null) {
-      LOG.error("No service found for config type '{}', service config version not created");
+      ArrayList<String> configTypes = new ArrayList<>();
+      for (Config config: configs) {
+        configTypes.add(config.getType());
+      }
+      LOG.error("No service found for config types '{}', service config version not created", configTypes);
       return null;
     } else {
       return createServiceConfigVersion(serviceName, user, serviceConfigVersionNote);
@@ -2816,10 +2861,10 @@ public class ClusterImpl implements Cluster {
     ResourceEntity resourceEntity = clusterEntity.getResource();
     if (resourceEntity != null) {
       Integer permissionId = privilegeEntity.getPermission().getId();
-      // CLUSTER.READ or CLUSTER.OPERATE for the given cluster resource.
+      // CLUSTER.USER or CLUSTER.ADMINISTRATOR for the given cluster resource.
       if (privilegeEntity.getResource().equals(resourceEntity)) {
-        if ((readOnly && permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION)) ||
-            permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+        if ((readOnly && permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION)) ||
+            permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
           return true;
         }
       }
@@ -2965,69 +3010,78 @@ public class ClusterImpl implements Cluster {
     return new HashMap<>();
   }
 
+  // The caller should make sure global write lock is acquired.
+  @Transactional
+  void removeAllConfigsForStack(StackId stackId) {
+    long clusterId = clusterEntity.getClusterId();
+
+    // this will keep track of cluster config mappings that need removal
+    // since there is no relationship between configs and their mappings, we
+    // have to do it manually
+    List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
+    Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
+      clusterId, stackId);
+
+    // remove all service configurations and associated configs
+    Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
+
+    for (ServiceConfigEntity serviceConfig : serviceConfigs) {
+      for (ClusterConfigEntity configEntity : serviceConfig.getClusterConfigEntities()) {
+        clusterConfigEntities.remove(configEntity);
+        clusterDAO.removeConfig(configEntity);
+        removedClusterConfigs.add(configEntity);
+      }
+      serviceConfig.getClusterConfigEntities().clear();
+      serviceConfigDAO.remove(serviceConfig);
+      serviceConfigEntities.remove(serviceConfig);
+    }
+
+    // remove any lefover cluster configurations that don't have a service
+    // configuration (like cluster-env)
+    List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
+      clusterId, stackId);
+
+    for (ClusterConfigEntity clusterConfig : clusterConfigs) {
+      clusterConfigEntities.remove(clusterConfig);
+      clusterDAO.removeConfig(clusterConfig);
+      removedClusterConfigs.add(clusterConfig);
+    }
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
+
+    // remove config mappings
+    Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+    for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
+      String removedClusterConfigType = removedClusterConfig.getType();
+      String removedClusterConfigTag = removedClusterConfig.getTag();
+
+      Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
+      while (clusterConfigMappingIterator.hasNext()) {
+        ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
+        String mappingType = clusterConfigMapping.getType();
+        String mappingTag = clusterConfigMapping.getTag();
+
+        if (removedClusterConfigTag.equals(mappingTag)
+          && removedClusterConfigType.equals(mappingType)) {
+          clusterConfigMappingIterator.remove();
+          clusterDAO.removeConfigMapping(clusterConfigMapping);
+        }
+      }
+    }
+
+    clusterEntity = clusterDAO.merge(clusterEntity);
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  @Transactional
   public void removeConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
-      long clusterId = clusterEntity.getClusterId();
-
-      // this will keep track of cluster config mappings that need removal
-      // since there is no relationship between configs and their mappings, we
-      // have to do it manually
-      List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
-      Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
-
-      List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
-          clusterId, stackId);
-
-      // remove any lefover cluster configurations that don't have a service
-      // configuration (like cluster-env)
-      for (ClusterConfigEntity clusterConfig : clusterConfigs) {
-        clusterDAO.removeConfig(clusterConfig);
-        clusterConfigEntities.remove(clusterConfig);
-
-        removedClusterConfigs.add(clusterConfig);
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
-
-      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
-          clusterId, stackId);
-
-      // remove all service configurations
-      Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
-      for (ServiceConfigEntity serviceConfig : serviceConfigs) {
-        serviceConfigDAO.remove(serviceConfig);
-        serviceConfigEntities.remove(serviceConfig);
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
-
-      // remove config mappings
-      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
-      for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
-        String removedClusterConfigType = removedClusterConfig.getType();
-        String removedClusterConfigTag = removedClusterConfig.getTag();
-
-        Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
-        while (clusterConfigMappingIterator.hasNext()) {
-          ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
-          String mappingType = clusterConfigMapping.getType();
-          String mappingTag = clusterConfigMapping.getTag();
-
-          if (removedClusterConfigTag.equals(mappingTag)
-              && removedClusterConfigType.equals(mappingType)) {
-            clusterConfigMappingIterator.remove();
-            clusterDAO.removeConfigMapping(clusterConfigMapping);
-          }
-        }
-      }
-
-      clusterEntity = clusterDAO.merge(clusterEntity);
+      removeAllConfigsForStack(stackId);
 
       cacheConfigurations();
     } finally {

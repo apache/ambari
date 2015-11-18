@@ -232,7 +232,8 @@ class ResourceFilesKeeper():
           self.dbg_out("Empty directory. Skipping archive creation for {0}".format(directory))
           return
 
-      zf = zipfile.ZipFile(os.path.join(directory, self.ARCHIVE_NAME), "w")
+      zip_file_path = os.path.join(directory, self.ARCHIVE_NAME)
+      zf = zipfile.ZipFile(zip_file_path, "w")
       abs_src = os.path.abspath(directory)
       for root, dirs, files in os.walk(directory):
         for filename in files:
@@ -244,6 +245,7 @@ class ResourceFilesKeeper():
                                         arcname))
             zf.write(absname, arcname)
       zf.close()
+      os.chmod(zip_file_path, 0o666)
     except Exception, err:
       raise KeeperException("Can not create zip archive of "
                             "directory {0} : {1}".format(directory, str(err)))

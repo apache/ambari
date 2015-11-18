@@ -430,7 +430,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['kafka-broker']['properties']['authorizer.class.name'], 'kafka.security.auth.SimpleAclAuthorizer' , "Test authorizer.class.name with Ranger Kafka plugin disabled in kerberos environment")
@@ -438,7 +438,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin enabled in non-kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    del services['configurations']['core-site']['properties']['hadoop.security.authentication']
+    del services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol']
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
@@ -447,7 +447,7 @@ class TestHDP23StackAdvisor(TestCase):
     # Test authorizer.class.name with Ranger Kafka plugin enabled in kerberos environment
     configurations['kafka-broker']['properties'] = {}
     configurations['kafka-broker']['property_attributes'] = {}
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['kafka-broker']['properties']['security.inter.broker.protocol'] = 'PLAINTEXTSASL'
     services['configurations']['kafka-broker']['properties']['authorizer.class.name'] = 'kafka.security.auth.SimpleAclAuthorizer'
     services['configurations']['ranger-kafka-plugin-properties']['properties']['ranger-kafka-plugin-enabled'] = 'Yes'
     self.stackAdvisor.recommendKAFKAConfigurations(configurations, clusterData, services, None)
@@ -485,6 +485,8 @@ class TestHDP23StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.size": "0.4",
           "hfile.block.cache.size": "0.4",
           "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
+          "hbase.coprocessor.master.classes": "",
+          "hbase.coprocessor.regionserver.classes": "",
           "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
           'hbase.regionserver.wal.codec': 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec',
@@ -726,8 +728,7 @@ class TestHDP23StackAdvisor(TestCase):
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
-         'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
-         'hive.server2.authentication.kerberos.principal': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
@@ -1284,12 +1285,13 @@ class TestHDP23StackAdvisor(TestCase):
           'ranger.usersync.ldap.binddn': 'uid=hdfs,ou=people,ou=dev,dc=apache,dc=org',
           'ranger.usersync.ldap.user.nameattribute': 'uid',
           'ranger.usersync.ldap.user.objectclass': 'posixAccount',
-          'ranger.usersync.ldap.url': 'c6403.ambari.apache.org:389',
+          'ranger.usersync.ldap.url': 'ldap://c6403.ambari.apache.org:389',
           'ranger.usersync.ldap.searchBase': 'dc=apache,dc=org'
         }
       },
       'ranger-admin-site': {
         'properties': {
+          "ranger.audit.solr.zookeepers": "NONE"
         }
       },
       'ranger-env': {
@@ -1303,3 +1305,13 @@ class TestHDP23StackAdvisor(TestCase):
     self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
     self.assertEquals(recommendedConfigurations, expected)
 
+    # Recommend ranger.audit.solr.zookeepers when solrCloud is disabled
+    services['configurations']['ranger-env'] = {
+      "properties": {
+        "is_solrCloud_enabled": "false"
+      }
+    }
+
+    recommendedConfigurations = {}
+    self.stackAdvisor.recommendRangerConfigurations(recommendedConfigurations, clusterData, services, None)
+    self.assertEquals(recommendedConfigurations['ranger-admin-site']['properties']['ranger.audit.solr.zookeepers'], 'NONE')

@@ -29,6 +29,15 @@
     <value>test</value>
     <description>1</description>
   </property>
+  <property>
+    <name>test.password.empty</name>
+    <property-type>PASSWORD</property-type>
+    <value></value>
+    <description>1</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
+  </property>
 
   <property>
     <name>dfs.namenode.name.dir</name>

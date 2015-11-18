@@ -67,9 +67,7 @@ App.YARNService = App.Service.extend({
   allQueueNames: [],
   childQueueNames: [],
 
-  maxMemory: function() {
-    return this.get('allocatedMemory') + this.get('availableMemory');
-  }.property('allocatedMemory','availableMemory'),
+  maxMemory: Em.computed.sumProperties('allocatedMemory', 'availableMemory'),
 
   /**
    * Provides a flat array of queue names.

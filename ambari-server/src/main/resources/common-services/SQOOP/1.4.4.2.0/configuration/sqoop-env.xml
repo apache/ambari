@@ -44,6 +44,9 @@ export ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}
 # add libthrift in hive to sqoop class path first so hive imports work
 export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}"
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   <property>
     <name>sqoop_user</name>
@@ -51,6 +54,9 @@ export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:
     <description>User to run Sqoop as</description>
     <property-type>USER</property-type>
     <value>sqoop</value>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>jdbc_drivers</name>

@@ -23,9 +23,12 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.spi.ClusterController;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.SecurityType;
 import org.easymock.Capture;
-import org.easymock.EasyMock;
 import org.easymock.EasyMockRule;
 import org.easymock.EasyMockSupport;
 import org.easymock.Mock;
@@ -33,7 +36,6 @@ import org.easymock.MockType;
 import org.easymock.TestSubject;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -47,24 +49,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.isNull;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.same;
 import static org.easymock.EasyMock.verify;
 
 /**
  * TopologyManager unit tests
  */
-@Ignore("The setup needs to be rethought as it's hard to follow!")
 public class TopologyManagerTest {
 
   private static final String CLUSTER_NAME = "test-cluster";
@@ -73,27 +72,51 @@ public class TopologyManagerTest {
   private static final String STACK_NAME = "test-stack";
   private static final String STACK_VERSION = "test-stack-version";
 
+  @Rule
+  public EasyMockRule mocks = new EasyMockRule(this);
+
   @TestSubject
   private TopologyManager topologyManager = new TopologyManager();
 
-  private final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private final Stack stack = createNiceMock(Stack.class);
-  private final ProvisionClusterRequest request = createNiceMock(ProvisionClusterRequest.class);
+  @Mock(type = MockType.NICE)
+  private Blueprint blueprint;
+
+  @Mock(type = MockType.NICE)
+  private Stack stack;
+
+  @Mock(type = MockType.NICE)
+  private ProvisionClusterRequest request;
   private final PersistedTopologyRequest persistedTopologyRequest = new PersistedTopologyRequest(1, request);
-  private final LogicalRequestFactory logicalRequestFactory = createStrictMock(LogicalRequestFactory.class);
-  private final LogicalRequest logicalRequest = createMock(LogicalRequest.class);
-  private final AmbariContext ambariContext = createMock(AmbariContext.class);
-  private final ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
-  private final ConfigurationRequest configurationRequest2 = createNiceMock(ConfigurationRequest.class);
-  private final ConfigurationRequest configurationRequest3 = createNiceMock(ConfigurationRequest.class);
-
-  private final RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
-  private final ExecutorService executor = createStrictMock(ExecutorService.class);
-  private final PersistedState persistedState = createStrictMock(PersistedState.class);
-
-  private final HostGroup group1 = createNiceMock(HostGroup.class);
-  private final HostGroup group2 = createNiceMock(HostGroup.class);
-
+  @Mock(type = MockType.STRICT)
+  private LogicalRequestFactory logicalRequestFactory;
+  @Mock(type = MockType.DEFAULT)
+  private LogicalRequest logicalRequest;
+  @Mock(type = MockType.NICE)
+  private AmbariContext ambariContext;
+  @Mock(type = MockType.NICE)
+  private ConfigurationRequest configurationRequest;
+  @Mock(type = MockType.NICE)
+  private ConfigurationRequest configurationRequest2;
+  @Mock(type = MockType.NICE)
+  private ConfigurationRequest configurationRequest3;
+  @Mock(type = MockType.NICE)
+  private RequestStatusResponse requestStatusResponse;
+  @Mock(type = MockType.STRICT)
+  private ExecutorService executor;
+  @Mock(type = MockType.STRICT)
+  private PersistedState persistedState;
+  @Mock(type = MockType.NICE)
+  private HostGroup group1;
+  @Mock(type = MockType.NICE)
+  private HostGroup group2;
+  @Mock(type = MockType.STRICT)
+  private SecurityConfigurationFactory securityConfigurationFactory;
+  @Mock(type = MockType.STRICT)
+  private CredentialStoreService credentialStoreService;
+  @Mock(type = MockType.STRICT)
+  private ClusterController clusterController;
+  @Mock(type = MockType.STRICT)
+  private ResourceProvider resourceProvider;
   private final Configuration stackConfig = new Configuration(new HashMap<String, Map<String, String>>(),
       new HashMap<String, Map<String, Map<String, String>>>());
   private final Configuration bpConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
@@ -133,22 +156,14 @@ public class TopologyManagerTest {
   private Capture<ClusterRequest> updateClusterConfigRequestCapture;
   private Capture<Runnable> updateConfigTaskCapture;
 
-
-  @Rule
-  public EasyMockRule mocks = new EasyMockRule(this);
-
-  @Mock(type = MockType.STRICT)
-  private SecurityConfigurationFactory securityConfigurationFactory;
-
-
   @Before
   public void setup() throws Exception {
-    clusterTopologyCapture = new Capture<ClusterTopology>();
-    configRequestPropertiesCapture = new Capture<Map<String, Object>>();
-    configRequestPropertiesCapture2 = new Capture<Map<String, Object>>();
-    configRequestPropertiesCapture3 = new Capture<Map<String, Object>>();
-    updateClusterConfigRequestCapture = new Capture<ClusterRequest>();
-    updateConfigTaskCapture = new Capture<Runnable>();
+    clusterTopologyCapture = newCapture();
+    configRequestPropertiesCapture = newCapture();
+    configRequestPropertiesCapture2 = newCapture();
+    configRequestPropertiesCapture3 = newCapture();
+    updateClusterConfigRequestCapture = newCapture();
+    updateConfigTaskCapture = newCapture();
 
     topoConfiguration.setProperty("service1-site", "s1-prop", "s1-prop-value");
     topoConfiguration.setProperty("service2-site", "s2-prop", "s2-prop-value");
@@ -221,7 +236,11 @@ public class TopologyManagerTest {
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();
+
     expect(request.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY);
+
+    expect(request.getSecurityConfiguration()).andReturn(null).anyTimes();
+
 
     expect(group1.getBlueprintName()).andReturn(BLUEPRINT_NAME).anyTimes();
     expect(group1.getCardinality()).andReturn("test cardinality").anyTimes();
@@ -246,7 +265,7 @@ public class TopologyManagerTest {
     expect(group2.getStack()).andReturn(stack).anyTimes();
 
 
-    expect(logicalRequestFactory.createRequest(eq(1L), same(request), capture(clusterTopologyCapture))).
+    expect(logicalRequestFactory.createRequest(eq(1L), (TopologyRequest) anyObject(), capture(clusterTopologyCapture))).
         andReturn(logicalRequest).anyTimes();
     expect(logicalRequest.getRequestId()).andReturn(1L).anyTimes();
     expect(logicalRequest.getReservedHosts()).andReturn(Collections.singleton("host1")).anyTimes();
@@ -274,6 +293,8 @@ public class TopologyManagerTest {
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
     expectLastCall().once();
 
+    expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
+
     executor.execute(capture(updateConfigTaskCapture));
     expectLastCall().times(1);
 
@@ -282,26 +303,18 @@ public class TopologyManagerTest {
     expect(persistedState.persistTopologyRequest(request)).andReturn(persistedTopologyRequest).once();
     persistedState.persistLogicalRequest(logicalRequest, 1);
 
-    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
-        logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState);
+    replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
+        configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
+        persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider);
 
     Class clazz = TopologyManager.class;
-    Field f = clazz.getDeclaredField("logicalRequestFactory");
-    f.setAccessible(true);
-    f.set(null, logicalRequestFactory);
 
-    f = clazz.getDeclaredField("ambariContext");
-    f.setAccessible(true);
-    f.set(null, ambariContext);
-
-
-    f = clazz.getDeclaredField("executor");
+    Field f = clazz.getDeclaredField("executor");
     f.setAccessible(true);
     f.set(topologyManager, executor);
 
     EasyMockSupport.injectMocks(topologyManager);
-    EasyMock.replay(securityConfigurationFactory);
+
   }
 
   @After

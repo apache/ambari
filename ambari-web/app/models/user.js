@@ -21,29 +21,26 @@ var validator = require('utils/validator');
 
 App.User = DS.Model.extend({
   userName:DS.attr('string'),
-  id:function(){
-    return this.get('userName');
-  }.property('userName'),
-  isLdap:DS.attr('boolean'),
-  type: function(){
-    if(this.get('isLdap')){
-      return 'LDAP';
-    }
-    return 'Local';
-  }.property('isLdap'),
+  id: Em.computed.alias('userName'),
+  userType: DS.attr('string'),
   auditItems:DS.hasMany('App.ServiceAudit'),
   admin: DS.attr('boolean'),
   operator: DS.attr('boolean'),
   /**
    * List of permissions assigned to user
    *  Available permissions:
-   *    AMBARI.ADMIN
-   *    CLUSTER.READ
-   *    CLUSTER.OPERATE
-   *    VIEW.USE
+   *    AMBARI.ADMINISTRATOR
+   *    CLUSTER.USER
+   *    CLUSTER.ADMINISTRATOR
+   *    VIEW.USER
    * @property {Array} permissions
    **/
-  permissions: DS.attr('array')
+  permissions: DS.attr('array'),
+
+  /**
+   * @type {Boolean}
+   */
+  isLdap: Em.computed.equal('userType', 'LDAP')
 });
 
 App.EditUserForm = App.Form.extend({
@@ -78,7 +75,6 @@ App.EditUserForm = App.Form.extend({
   isValid:function () {
 
     var isValid = this._super();
-    var thisForm = this;
 
     var newPass = this.get('field.new_password');
     var oldPass = this.get('field.old_password');

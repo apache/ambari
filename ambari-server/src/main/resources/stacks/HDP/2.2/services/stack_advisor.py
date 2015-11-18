@@ -483,16 +483,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     if hive_server2_auth == "ldap":
       putHiveSiteProperty("hive.server2.authentication.ldap.url", "")
-      putHiveSiteProperty("hive.server2.authentication.ldap.baseDN", " ")
     else:
       if ("hive.server2.authentication.ldap.url" in configurations["hive-site"]["properties"]) or \
               ("hive-site" not in services["configurations"]) or \
               ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.url" in services["configurations"]["hive-site"]["properties"]):
         putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
-      if ("hive.server2.authentication.ldap.baseDN" in configurations["hive-site"]["properties"]) or \
-              ("hive-site" not in services["configurations"]) or \
-              ("hive-site" in services["configurations"] and "hive.server2.authentication.ldap.baseDN" in services["configurations"]["hive-site"]["properties"]):
-        putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
 
     if hive_server2_auth == "kerberos":
       putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
@@ -636,15 +631,20 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         putHbaseEnvPropertyAttributes('hbase_max_direct_memory_size', 'delete', 'true')
 
     # Authorization
-    hbase_coprocessor_region_classes = None
-    if 'hbase.coprocessor.region.classes' in configurations["hbase-site"]["properties"]:
-      hbase_coprocessor_region_classes = configurations["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
-    elif 'hbase-site' in services['configurations'] and 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
-      hbase_coprocessor_region_classes = services['configurations']["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
-    if hbase_coprocessor_region_classes:
-      coprocessorRegionClassList = hbase_coprocessor_region_classes.split(',')
-    else:
-      coprocessorRegionClassList = []
+    hbaseCoProcessorConfigs = {
+      'hbase.coprocessor.region.classes': [],
+      'hbase.coprocessor.regionserver.classes': [],
+      'hbase.coprocessor.master.classes': []
+    }
+    for key in hbaseCoProcessorConfigs:
+      hbase_coprocessor_classes = None
+      if key in configurations["hbase-site"]["properties"]:
+        hbase_coprocessor_classes = configurations["hbase-site"]["properties"][key].strip()
+      elif 'hbase-site' in services['configurations'] and key in services['configurations']["hbase-site"]["properties"]:
+        hbase_coprocessor_classes = services['configurations']["hbase-site"]["properties"][key].strip()
+      if hbase_coprocessor_classes:
+        hbaseCoProcessorConfigs[key] = hbase_coprocessor_classes.split(',')
+
     # If configurations has it - it has priority as it is calculated. Then, the service's configurations will be used.
     hbase_security_authorization = None
     if 'hbase-site' in configurations and 'hbase.security.authorization' in configurations['hbase-site']['properties']:
@@ -653,18 +653,21 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_security_authorization = services['configurations']['hbase-site']['properties']['hbase.security.authorization']
     if hbase_security_authorization:
       if 'true' == hbase_security_authorization.lower():
-        putHbaseSiteProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.AccessController")
-        putHbaseSiteProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        hbaseCoProcessorConfigs['hbase.coprocessor.master.classes'].append('org.apache.hadoop.hbase.security.access.AccessController')
+        hbaseCoProcessorConfigs['hbase.coprocessor.regionserver.classes'].append('org.apache.hadoop.hbase.security.access.AccessController')
+        # regional classes when hbase authorization is enabled
+        authRegionClasses = ['org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint', 'org.apache.hadoop.hbase.security.access.AccessController']
+        for item in range(len(authRegionClasses)):
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append(authRegionClasses[item])
       else:
-        putHbaseSiteProperty('hbase.coprocessor.master.classes', "")
-        coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
+        if 'org.apache.hadoop.hbase.security.access.AccessController' in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.master.classes'].remove('org.apache.hadoop.hbase.security.access.AccessController')
+        hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
         if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
                 ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
           putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
     else:
-      coprocessorRegionClassList.append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
+      hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append("org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint")
       if ('hbase.coprocessor.regionserver.classes' in configurations["hbase-site"]["properties"]) or \
               ('hbase-site' in services['configurations'] and 'hbase.coprocessor.regionserver.classes' in services['configurations']["hbase-site"]["properties"]):
         putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
@@ -672,18 +675,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     # Authentication
     if 'hbase-site' in services['configurations'] and 'hbase.security.authentication' in services['configurations']['hbase-site']['properties']:
       if 'kerberos' == services['configurations']['hbase-site']['properties']['hbase.security.authentication'].lower():
-        if 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint' not in coprocessorRegionClassList:
-          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint')
-        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in coprocessorRegionClassList:
-          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.token.TokenProvider')
+        if 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint' not in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append('org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint')
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].append('org.apache.hadoop.hbase.security.token.TokenProvider')
       else:
-        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in coprocessorRegionClassList:
-          coprocessorRegionClassList.remove('org.apache.hadoop.hbase.security.token.TokenProvider')
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in hbaseCoProcessorConfigs['hbase.coprocessor.region.classes']:
+          hbaseCoProcessorConfigs['hbase.coprocessor.region.classes'].remove('org.apache.hadoop.hbase.security.token.TokenProvider')
 
     #Remove duplicates
-    uniqueCoprocessorRegionClassList = []
-    [uniqueCoprocessorRegionClassList.append(i) for i in coprocessorRegionClassList if not uniqueCoprocessorRegionClassList.count(i)]
-    putHbaseSiteProperty('hbase.coprocessor.region.classes', ','.join(set(uniqueCoprocessorRegionClassList)))
+    for key in hbaseCoProcessorConfigs:
+      uniqueCoprocessorRegionClassList = []
+      [uniqueCoprocessorRegionClassList.append(i)
+       for i in hbaseCoProcessorConfigs[key] if
+       not i in uniqueCoprocessorRegionClassList
+       and (i.strip() not in ['{{hbase_coprocessor_region_classes}}', '{{hbase_coprocessor_master_classes}}', '{{hbase_coprocessor_regionserver_classes}}'])]
+      putHbaseSiteProperty(key, ','.join(set(uniqueCoprocessorRegionClassList)))
+
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     rangerServiceVersion=''
     if 'RANGER' in servicesList:
@@ -695,7 +704,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerClass = 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor'
 
     nonRangerClass = 'org.apache.hadoop.hbase.security.access.AccessController'
-    hbaseClassConfigs = ['hbase.coprocessor.master.classes', 'hbase.coprocessor.region.classes']
+    hbaseClassConfigs =  hbaseCoProcessorConfigs.keys()
 
     for item in range(len(hbaseClassConfigs)):
       if 'hbase-site' in services['configurations']:
@@ -775,13 +784,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putTezProperty("tez.tez-ui.history-url.base", tez_url)
     pass
 
-
   def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP22StackAdvisor, self).recommendStormConfigurations(configurations, clusterData, services, hosts)
     putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
     putStormSiteAttributes = self.putPropertyAttribute(configurations, "storm-site")
-    if "core-site" in services["configurations"]:
-      core_site = services["configurations"]["core-site"]["properties"]
-    stackVersion = services["Versions"]["stack_version"]
+    storm_site = getServicesSiteProperties(services, "storm-site")
+    security_enabled = (storm_site is not None and "storm.zookeeper.superACL" in storm_site)
     if "ranger-env" in services["configurations"] and "ranger-storm-plugin-properties" in services["configurations"] and \
         "ranger-storm-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putStormRangerPluginProperty = self.putProperty(configurations, "ranger-storm-plugin-properties", services)
@@ -805,8 +813,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     else:
       rangerClass = 'org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer'
     # Cluster is kerberized
-    if "core-site" in services["configurations"] and \
-          ('hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos'):
+    if security_enabled:
       if rangerPluginEnabled and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putStormSiteProperty('nimbus.authorizer',rangerClass)
       elif (services["configurations"]["storm-site"]["properties"]["nimbus.authorizer"] == rangerClass):
@@ -832,7 +839,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       authPattern = "<provider>\s*<role>\s*authorization\s*</role>[\s\S]*?</provider>"
       authXml = re.search(authPattern, topologyContent)
 
-      if authXml.group(0):
+      if authXml and authXml.group(0):
         authNamePattern = "<name>\s*(.*?)\s*</name>"
         authName = re.search(authNamePattern, authXml.group(0))
         newAuthName=''
@@ -1230,6 +1237,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                               "item": self.getWarnItem("Correct values are {0}".format(stripe_size_values))
                              }
       )
+    authentication_property = "hive.server2.authentication"
+    ldap_baseDN_property = "hive.server2.authentication.ldap.baseDN"
+    ldap_domain_property = "hive.server2.authentication.ldap.Domain"
+    if authentication_property in properties and properties[authentication_property].lower() == "ldap" \
+        and not (ldap_baseDN_property in properties or ldap_domain_property in properties):
+      validationItems.append({"config-name" : authentication_property, "item" :
+        self.getWarnItem("According to LDAP value for " + authentication_property + ", you should add " +
+            ldap_domain_property + " property, if you are using AD, if not, then " + ldap_baseDN_property + "!")})
+
+
     configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
     configurationValidationProblems.extend(parentValidationProblems)
     return configurationValidationProblems

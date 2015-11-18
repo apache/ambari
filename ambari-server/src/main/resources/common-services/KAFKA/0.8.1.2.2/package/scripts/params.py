@@ -26,6 +26,7 @@ from resource_management.libraries.functions.get_hdp_version import get_hdp_vers
 from resource_management.libraries.functions.is_empty import is_empty
 
 import status_params
+from resource_management.core.logger import Logger
 
 
 # server configurations
@@ -34,17 +35,40 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 retryAble = default("/commandParams/command_retry_enabled", False)
 
+# Version being upgraded/downgraded to
 version = default("/commandParams/version", None)
+
+# Version that is CURRENT.
+current_version = default("/hostLevelParams/current_version", None)
+
 host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
+# When downgrading the 'version' and 'current_version' are both pointing to the downgrade-target version
+# downgrade_from_version provides the source-version the downgrade is happening from
+downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+
+hostname = config['hostname']
 
 # default kafka parameters
 kafka_home = '/usr/lib/kafka/'
 kafka_bin = kafka_home+'/bin/kafka'
 conf_dir = "/etc/kafka/conf"
 limits_conf_dir = "/etc/security/limits.d"
+
+# Find the port number of the Zookeeper Server running on this host.
+zookeeper_port = None
+zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
+zookeeper_list = [e.strip() for e in zookeeper_connect.split(",")] if zookeeper_connect else []
+if len(zookeeper_list) > 0:
+  for e in zookeeper_list:
+    if e.find(":") > 0 and len(e.split(":")) == 2 and e.split(":")[0].strip() == hostname:
+      zookeeper_port = e.split(":")[1].strip()
+      break
+
 
 kafka_user_nofile_limit = config['configurations']['kafka-env']['kafka_user_nofile_limit']
 kafka_user_nproc_limit = config['configurations']['kafka-env']['kafka_user_nproc_limit']
@@ -63,7 +87,6 @@ kafka_pid_file = kafka_pid_dir+"/kafka.pid"
 # This is hardcoded on the kafka bash process lifecycle on which we have no control over
 kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"
-hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 kafka_env_sh_template = config['configurations']['kafka-env']['content']

@@ -144,9 +144,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * Current cluster name
    * @type {string}
    */
-  clusterName: function () {
-    return this.get('content.cluster.name');
-  }.property('content.cluster.name'),
+  clusterName: Em.computed.alias('content.cluster.name'),
 
   /**
    * List of existing cluster names
@@ -164,9 +162,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * Indicates if all cluster delete requests are completed
    * @type {boolean}
    */
-  isAllClusterDeleteRequestsCompleted: function () {
-    return this.get('clusterDeleteRequestsCompleted') == this.get('clusterNames.length');
-  }.property('clusterDeleteRequestsCompleted'),
+  isAllClusterDeleteRequestsCompleted: Em.computed.equalProperties('clusterDeleteRequestsCompleted', 'clusterNames.length'),
 
   /**
    * Error popup body views for clusters that couldn't be deleted
@@ -613,7 +609,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   checkKDCSession: function() {
     var self = this;
     var wizardController = App.router.get(this.get('content.controllerName'));
-    if (this.get('content.controllerName') != 'installerController' && App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
+    if (this.get('content.controllerName') != 'installerController') {
       App.get('router.mainAdminKerberosController').getKDCSessionState(this.submitProceed.bind(this), function () {
         self.set('isSubmitDisabled', false);
         self.set('isBackBtnDisabled', false);
@@ -861,7 +857,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (App.get('isKerberosEnabled') && !this.get('isManualKerberos')) {
           this.updateKerberosDescriptor();
         }
-        var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate');
+        var fileNamesToUpdate = this.get('wizardController').getDBProperty('fileNamesToUpdate').uniq();
         if (fileNamesToUpdate && fileNamesToUpdate.length) {
           this.updateConfigurations(fileNamesToUpdate);
         }
@@ -1439,7 +1435,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       });
       groupData.desired_configs = this.buildGroupDesiredConfigs(groupConfigs, timeTag);
       // check for group from installed service
-      if (configGroup.isForInstalledService === true) {
+      if (configGroup.is_for_installed_service === true) {
         // if group is a new one, create it
         if (!configGroup.id) {
           sendData.push({"ConfigGroup": groupData});
@@ -1577,7 +1573,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var configs = this.get('configs').filterProperty('filename', site + '.xml');
     var attributes = App.router.get('mainServiceInfoConfigsController').getConfigAttributes(configs);
     configs.forEach(function (_configProperty) {
-        var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize', 'nfsgateway_heapsize', 'accumulo_master_heapsize', 'accumulo_tserver_heapsize', 'accumulo_monitor_heapsize', 'accumulo_gc_heapsize', 'accumulo_other_heapsize', 'hbase_master_heapsize', 'hbase_regionserver_heapsize', 'metrics_collector_heapsize'];
+      var heapsizeExceptions = ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize',
+        'jobhistory_heapsize', 'nfsgateway_heapsize', 'accumulo_master_heapsize', 'accumulo_tserver_heapsize', 'accumulo_monitor_heapsize', 'accumulo_gc_heapsize',
+        'accumulo_other_heapsize', 'hbase_master_heapsize', 'hbase_regionserver_heapsize', 'metrics_collector_heapsize'];
         // do not pass any globals whose name ends with _host or _hosts
         if (_configProperty.isRequiredByAgent !== false) {
           // append "m" to JVM memory options except for heapsizeExtensions
@@ -1625,7 +1623,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var miscConfigs = this.get('configs').filterProperty('serviceName', 'MISC'),
       createNotification = miscConfigs.findProperty('name', 'create_notification').value;
     if (createNotification !== 'yes') return;
-      var predefinedNotificationConfigNames = require('data/HDP2/site_properties').configProperties.filterProperty('filename', 'alert_notification').mapProperty('name'),
+      var predefinedNotificationConfigNames = require('data/HDP2/alert_notification').mapProperty('name'),
       configsForNotification = this.get('configs').filterProperty('filename', 'alert_notification');
     var properties = {},
       names = [

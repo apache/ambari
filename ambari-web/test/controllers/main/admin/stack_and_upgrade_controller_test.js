@@ -256,7 +256,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     afterEach(function () {
       App.ajax.send.restore();
     });
-    it("", function() {
+    it("default callback", function() {
       var item = Em.Object.create({
         request_id: 1,
         group_id: 2,
@@ -272,6 +272,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           stageId: 3
         },
         success: 'getUpgradeItemSuccessCallback'
+      });
+    });
+    it("custom callback", function() {
+      var item = Em.Object.create({
+        request_id: 1,
+        group_id: 2,
+        stage_id: 3
+      });
+      controller.getUpgradeItem(item, 'customCallback');
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'admin.upgrade.upgrade_item',
+        sender: controller,
+        data: {
+          upgradeId: 1,
+          groupId: 2,
+          stageId: 3
+        },
+        success: 'customCallback'
       });
     });
   });
@@ -444,21 +462,37 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#initDBProperties()", function() {
     before(function () {
-      sinon.stub(controller, 'getDBProperties', function (prop) {
-        var ret = {};
-        prop.forEach(function (k) {
-          ret[k] = k;
-        });
-        return ret;
-      });
+      this.mock = sinon.stub(controller, 'getDBProperties');
     });
     after(function () {
-      controller.getDBProperties.restore();
+      this.mock.restore();
     });
-    it("set properties", function () {
-      controller.set('wizardStorageProperties', ['prop1']);
+    it("set string properties", function () {
+      this.mock.returns({prop: 'string'});
       controller.initDBProperties();
-      expect(controller.get('prop1')).to.equal('prop1');
+      expect(controller.get('prop')).to.equal('string');
+    });
+    it("set number properties", function () {
+      this.mock.returns({prop: 0});
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal(0);
+    });
+    it("set boolean properties", function () {
+      this.mock.returns({prop: false});
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.be.false;
+    });
+    it("set undefined properties", function () {
+      this.mock.returns({prop: undefined});
+      controller.set('prop', 'value');
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal('value');
+    });
+    it("set null properties", function () {
+      this.mock.returns({prop: null});
+      controller.set('prop', 'value');
+      controller.initDBProperties();
+      expect(controller.get('prop')).to.equal('value');
     });
   });
 
@@ -526,16 +560,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       };
-      controller.upgradeMethods = [
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
-          type: 'ROLLING'
-        }),
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON_ROLLING'
-        })
-      ];
       controller.upgradeSuccessCallback(data, {}, {label: 'HDP-2.2.1', isDowngrade: true});
       expect(controller.load.calledOnce).to.be.true;
       expect(controller.get('upgradeVersion')).to.equal('HDP-2.2.1');
@@ -785,30 +809,14 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
       this.mock.restore();
+      controller.get('upgradeMethods').setEach('selected', false);
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
       this.mock.returns({
         done: function(callback) {callback([1]);}
       });
-      controller.upgradeMethods = [
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
-          type: 'ROLLING',
-          icon: "icon-dashboard",
-          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
-          selected: true,
-          allowed: true
-        }),
-        Em.Object.create({
-          displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
-          type: 'NON_ROLLING',
-          icon: "icon-bolt",
-          description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
-          selected: false,
-          allowed: true
-        })
-      ];
+      controller.get('upgradeMethods')[0].set('selected', true);
       controller.set('isDowngrade', false);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.true;
@@ -1026,23 +1034,23 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         "stackVersion": '2.3',
         "repositoryVersion": '2.2.1'
       });
-      
+
       var stackVersion = controller.getStackVersionNumber(repo);
       expect(stackVersion).to.equal('2.3');
     });
-    
+
     it("get default stack version number", function(){
       App.set('currentStackVersion', '1.2.3');
       var repo = Em.Object.create({
         "stackVersionType": 'HDP',
         "repositoryVersion": '2.2.1'
       });
-      
+
       var stackVersion = controller.getStackVersionNumber(repo);
       expect(stackVersion).to.equal('1.2.3');
     });
   });
-  
+
   describe("#saveRepoOS()", function() {
     before(function(){
       this.mock = sinon.stub(controller, 'validateRepoVersions');
@@ -1366,19 +1374,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
     afterEach(function () {
       controller.runPreUpgradeCheckOnly.restore();
+      controller.get('upgradeMethods').setEach('allowed', true);
     });
     it("no allowed upgrade methods", function () {
-      controller.set('upgradeMethods', [Em.Object.create({
-        allowed: false
-      })]);
+      controller.get('upgradeMethods').setEach('allowed', false);
       controller.runUpgradeMethodChecks();
       expect(controller.runPreUpgradeCheckOnly.called).to.be.false;
     });
     it("Rolling method allowed", function () {
-      controller.set('upgradeMethods', [Em.Object.create({
-        allowed: true,
-        type: 'ROLLING'
-      })]);
+      controller.get('upgradeMethods').setEach('allowed', true);
       controller.runUpgradeMethodChecks(Em.Object.create({
         repositoryVersion: 'v1',
         displayName: 'V1'
@@ -1390,4 +1394,323 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       })).to.be.true;
     });
   });
+
+  describe("#restoreLastUpgrade()", function () {
+    beforeEach(function () {
+      sinon.stub(App.RepositoryVersion, 'find').returns([Em.Object.create({
+        repositoryVersion: '1',
+        displayName: 'HDP-1'
+      })]);
+      sinon.stub(controller, 'setDBProperties');
+      sinon.stub(controller, 'loadRepoVersionsToModel', function () {
+        return {
+          done: function (callback) {
+            callback();
+          }
+        }
+      });
+      sinon.stub(controller, 'setDBProperty');
+      sinon.stub(controller, 'initDBProperties');
+      sinon.stub(controller, 'loadUpgradeData');
+    });
+    afterEach(function () {
+      App.RepositoryVersion.find.restore();
+      controller.setDBProperties.restore();
+      controller.loadRepoVersionsToModel.restore();
+      controller.setDBProperty.restore();
+      controller.initDBProperties.restore();
+      controller.loadUpgradeData.restore();
+    });
+    it("", function () {
+      var data = {
+        Upgrade: {
+          request_id: 1,
+          direction: 'UPGRADE',
+          request_status: 'PENDING',
+          upgrade_type: 'ROLLING',
+          downgrade_allowed: true,
+          skip_failures: true,
+          skip_service_check_failures: true,
+          to_version: '1'
+        }
+      };
+      controller.restoreLastUpgrade(data);
+      expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
+        upgradeId: 1,
+        isDowngrade: false,
+        upgradeState: 'PENDING',
+        upgradeType: "ROLLING",
+        downgradeAllowed: true,
+        upgradeTypeDisplayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.title'),
+        failuresTolerance: Em.Object.create({
+          skipComponentFailures: true,
+          skipSCFailures: true
+        })
+      });
+      expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-1')).to.be.true;
+      expect(controller.initDBProperties.calledOnce).to.be.true;
+      expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
+    });
+  });
+
+  describe("#getServiceCheckItemSuccessCallback()", function() {
+    var testCases = [
+      {
+        title: 'no tasks',
+        data: {
+          tasks: []
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'no structured_out property',
+        data: {
+          tasks: [
+            {
+              Tasks: {}
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'no failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {}
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null,
+          serviceCheckFailuresServicenames: []
+        }
+      },
+      {
+        title: 'service check failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {
+                  failures: {
+                    service_check: ['HDSF', 'YARN']
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            hosts: [],
+            host_detail: {}
+          },
+          serviceCheckFailuresServicenames: ['HDSF', 'YARN']
+        }
+      },
+      {
+        title: 'host-component failures',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                structured_out: {
+                  failures: {
+                    service_check: ['HDSF'],
+                    host_component: {
+                      "host1": [
+                        {
+                          component: "DATANODE",
+                          service: 'HDFS'
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            hosts: ['host1'],
+            host_detail: {
+              "host1": [
+                {
+                  component: "DATANODE",
+                  service: 'HDFS'
+                }
+              ]
+            }
+          },
+          serviceCheckFailuresServicenames: ['HDSF']
+        }
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it(test.title, function() {
+        controller.set('slaveComponentStructuredInfo', null);
+        controller.set('serviceCheckFailuresServicenames', []);
+        controller.getServiceCheckItemSuccessCallback(test.data);
+        expect(controller.get('serviceCheckFailuresServicenames')).eql(test.expected.serviceCheckFailuresServicenames);
+        expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
+      });
+    });
+  });
+
+  describe("#getSlaveComponentItemSuccessCallback()", function () {
+    var testCases = [
+      {
+        title: 'no tasks',
+        data: {
+          tasks: []
+        },
+        expected: {
+          slaveComponentStructuredInfo: null
+        }
+      },
+      {
+        title: 'structured_out property absent',
+        data: {
+          tasks: [
+            {
+              Tasks: {}
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: null
+        }
+      },
+      {
+        title: 'structured_out property present',
+        data: {
+          tasks: [
+            {
+              Tasks: {
+                "structured_out" : {
+                  "hosts" : [
+                    "host1"
+                  ],
+                  "host_detail" : {
+                    "host1" : [
+                      {
+                        "service" : "FLUME",
+                        "component" : "FLUME_HANDLER"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        },
+        expected: {
+          slaveComponentStructuredInfo: {
+            "hosts" : [
+              "host1"
+            ],
+            "host_detail" : {
+              "host1" : [
+                {
+                  "service" : "FLUME",
+                  "component" : "FLUME_HANDLER"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ];
+
+    testCases.forEach(function (test) {
+      it(test.title, function () {
+        controller.set('slaveComponentStructuredInfo', null);
+        controller.getSlaveComponentItemSuccessCallback(test.data);
+        expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
+      });
+    });
+  });
+
+
+  describe("#openConfigsInNewWindow()", function () {
+
+    var mock = {
+      document: {
+        write: function () {}
+      },
+      focus: function () {}
+    };
+
+    before(function(){
+      sinon.stub(window, 'open', function () {
+        return mock;
+      });
+      sinon.spy(mock.document, 'write');
+      sinon.spy(mock, 'focus');
+    });
+
+    after(function(){
+      window.open.restore();
+    });
+
+    it("should open window and write table to it", function () {
+
+      controller.openConfigsInNewWindow({
+        context: [
+          {
+            type: 'type1',
+            name: 'name1',
+            currentValue: 'currentValue1',
+            recommendedValue: 'recommendedValue1',
+            resultingValue: 'resultingValue1'
+          },
+          {
+            type: 'type2',
+            name: 'name2',
+            currentValue: 'currentValue2',
+            recommendedValue: 'recommendedValue2',
+            resultingValue: 'resultingValue2'
+          }
+        ]
+      });
+
+      expect(window.open.calledOnce).to.be.true;
+      expect(mock.document.write.calledWith('<table style="text-align: left;"><thead><tr>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+          '</tr></thead><tbody>' +
+          '<tr>' +
+          '<td>' + 'type1' + '</td>' +
+          '<td>' + 'name1' + '</td>' +
+          '<td>' + 'currentValue1' + '</td>' +
+          '<td>' + 'recommendedValue1' + '</td>' +
+          '<td>' + 'resultingValue1' + '</td>' +
+          '</tr>' +
+          '<tr>' +
+          '<td>' + 'type2' + '</td>' +
+          '<td>' + 'name2' + '</td>' +
+          '<td>' + 'currentValue2' + '</td>' +
+          '<td>' + 'recommendedValue2' + '</td>' +
+          '<td>' + 'resultingValue2' + '</td>' +
+          '</tr></tbody></table>')).to.be.true;
+      expect(mock.focus.calledOnce).to.be.true;
+    });
+  });
+
 });

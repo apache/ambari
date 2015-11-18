@@ -27,6 +27,7 @@
     <display-name>Ranger User</display-name>
     <description>Ranger username</description>
     <value-attributes>
+      <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -38,6 +39,7 @@
     <display-name>Ranger Group</display-name>
     <description>Ranger group</description>
     <value-attributes>
+      <type>user</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -69,6 +71,7 @@
     <display-name>Ranger Admin user's password for Ambari</display-name>
     <description>This is the ambari user password created for creating repositories and policies in Ranger Admin for each plugin</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -84,6 +87,9 @@
     <value>admin</value>
     <property-type>PASSWORD</property-type>
     <description>This is the password for default admin user that is used for creating ambari user in Ranger Admin</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
   
   <property>

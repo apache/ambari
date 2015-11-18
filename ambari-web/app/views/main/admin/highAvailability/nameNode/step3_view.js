@@ -34,8 +34,7 @@ App.HighAvailabilityWizardStep3View = Em.View.extend({
   secondaryNameNode: function () {
     return this.get('controller.content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE").hostName;
   }.property('controller.content.masterComponentHosts'),
-  journalNodes: function () {
-    return this.get('controller.content.masterComponentHosts').filterProperty('component', "JOURNALNODE");
-  }.property('controller.content.masterComponentHosts')
+
+  journalNodes: Em.computed.filterBy('controller.content.masterComponentHosts', 'component', 'JOURNALNODE')
 
 });

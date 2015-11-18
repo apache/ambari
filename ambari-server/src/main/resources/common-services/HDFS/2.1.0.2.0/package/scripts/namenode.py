@@ -19,6 +19,7 @@ limitations under the License.
 
 import sys
 import os
+import time
 import json
 import tempfile
 from datetime import datetime
@@ -29,6 +30,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -38,6 +40,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_user
 from resource_management.core.logger import Logger
+
 
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
@@ -130,8 +133,9 @@ class NameNodeDefault(NameNode):
     print "TODO AMBARI-12698"
     pass
 
-  def prepare_non_rolling_upgrade(self, env):
+  def prepare_express_upgrade(self, env):
     """
+    During an Express Upgrade.
     If in HA, on the Active NameNode only, examine the directory dfs.namenode.name.dir and
     make sure that there is no "/previous" directory.
 
@@ -143,17 +147,18 @@ class NameNodeDefault(NameNode):
 
     Copy the checkpoint files located in ${dfs.namenode.name.dir}/current into a backup directory.
 
-    Store the layoutVersion for the NameNode located at ${dfs.namenode.name.dir}/current/VERSION, into a backup directory
-
     Finalize any prior HDFS upgrade,
     hdfs dfsadmin -finalizeUpgrade
+
+    Prepare for a NameNode rolling upgrade in order to not lose any data.
+    hdfs dfsadmin -rollingUpgrade prepare
     """
     import params
     Logger.info("Preparing the NameNodes for a NonRolling (aka Express) Upgrade.")
 
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
-              user=params.hdfs_user)
+      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
+      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
     hdfs_binary = self.get_hdfs_binary()
     namenode_upgrade.prepare_upgrade_check_for_previous_dir()
@@ -161,6 +166,9 @@ class NameNodeDefault(NameNode):
     namenode_upgrade.prepare_upgrade_save_namespace(hdfs_binary)
     namenode_upgrade.prepare_upgrade_backup_namenode_dir()
     namenode_upgrade.prepare_upgrade_finalize_previous_upgrades(hdfs_binary)
+
+    # Call -rollingUpgrade prepare
+    namenode_upgrade.prepare_rolling_upgrade(hdfs_binary)
 
   def prepare_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
@@ -170,14 +178,26 @@ class NameNodeDefault(NameNode):
     """
     During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
     all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
+    If HA is present, then this command will run individually on each NameNode, which checks for its own address.
     """
     import params
 
     Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+
+    if params.security_enabled:
+      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
+      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
+
     try:
       hdfs_binary = self.get_hdfs_binary()
       # Note, this fails if namenode_address isn't prefixed with "params."
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+
+      is_namenode_safe_mode_off = ""
+      if params.dfs_ha_enabled:
+        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
+      else:
+        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+
       # Wait up to 30 mins
       Execute(is_namenode_safe_mode_off,
               tries=180,
@@ -185,6 +205,10 @@ class NameNodeDefault(NameNode):
               user=params.hdfs_user,
               logoutput=True
       )
+
+      # Wait a bit more since YARN still depends on block reports coming in.
+      # Also saw intermittent errors with HBASE service check if it was done too soon.
+      time.sleep(30)
     except Fail:
       Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
 
@@ -202,7 +226,12 @@ class NameNodeDefault(NameNode):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "hadoop", params.version)
+      # When downgrading an Express Upgrade, the first thing we do is to revert the symlinks.
+      # Therefore, we cannot call this code in that scenario.
+      call_if = [("rolling", "upgrade"), ("rolling", "downgrade"), ("nonrolling", "upgrade")]
+      for e in call_if:
+        if (upgrade_type, params.upgrade_direction) == e:
+          conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-hdfs-namenode", params.version)
 
   def post_upgrade_restart(self, env, upgrade_type=None):

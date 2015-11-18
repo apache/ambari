@@ -44,5 +44,8 @@ export HADOOP_OPTS="-Dhdp.version=$HDP_VERSION $HADOOP_OPTS"
 export HADOOP_OPTS="-Djava.io.tmpdir={{hadoop_java_io_tmpdir}} $HADOOP_OPTS"
 export JAVA_LIBRARY_PATH="${JAVA_LIBRARY_PATH}:{{hadoop_java_io_tmpdir}}"
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

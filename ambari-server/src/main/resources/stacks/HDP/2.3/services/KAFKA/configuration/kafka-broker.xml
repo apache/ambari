@@ -140,7 +140,6 @@
   </property>
   <property>
     <name>authorizer.class.name</name>
-    <value>kafka.security.auth.SimpleAclAuthorizer</value>
     <description>
       Kafka authorizer class
     </description>

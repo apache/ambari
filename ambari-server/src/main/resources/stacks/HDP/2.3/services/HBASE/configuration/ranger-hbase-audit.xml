@@ -59,6 +59,9 @@
     <value>crypted</value>
     <property-type>PASSWORD</property-type>
     <description>Audit DB JDBC Password</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -146,7 +149,7 @@
 
   <property>
     <name>xasecure.audit.destination.solr.zookeepers</name>
-    <value>localhost:2181</value>
+    <value>NONE</value>
     <description>Solr Zookeeper string</description>
     <depends-on>
       <property>

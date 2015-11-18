@@ -18,19 +18,52 @@
 
 package org.apache.ambari.server.state.cluster;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.controller.AmbariSessionManager;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
-
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.verify;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ClusterImplTest {
 
+  private static Injector injector;
+  private static Clusters clusters;
+
+  @BeforeClass
+  public static void setUpClass() throws Exception {
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    clusters = injector.getInstance(Clusters.class);
+  }
+  
   @Test
   public void testAddSessionAttributes() throws Exception {
     Map<String, Object> attributes = new HashMap<String, Object>();
@@ -155,5 +188,72 @@ public class ClusterImplTest {
     assertEquals(Collections.<String, Object>emptyMap(), cluster.getSessionAttributes());
 
     verify(sessionManager, cluster);
+  }
+
+  @Test
+  public void testDeleteService() throws Exception {
+    // Given
+    String serviceToDelete = "TEZ";
+
+    String clusterName = "TEST_CLUSTER";
+    String hostName1 = "HOST1", hostName2 = "HOST2";
+
+    clusters.addCluster(clusterName, new StackId("HDP-2.1.1"));
+
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    clusters.addHost(hostName1);
+    clusters.addHost(hostName2);
+
+    Host host1 = clusters.getHost(hostName1);
+    host1.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host1.persist();
+
+    Host host2 = clusters.getHost(hostName2);
+    host2.setHostAttributes(ImmutableMap.of("os_family", "centos", "os_release_version", "6.0"));
+    host2.persist();
+
+    clusters.mapHostsToCluster(Sets.newHashSet(hostName1, hostName2), clusterName);
+
+    Service hdfs = cluster.addService("HDFS");
+    hdfs.persist();
+
+    ServiceComponent nameNode = hdfs.addServiceComponent("NAMENODE");
+    nameNode.persist();
+    nameNode.addServiceComponentHost(hostName1).persist();
+
+    ServiceComponent dataNode = hdfs.addServiceComponent("DATANODE");
+    dataNode.persist();
+    dataNode.addServiceComponentHost(hostName1).persist();
+    dataNode.addServiceComponentHost(hostName2).persist();
+
+    ServiceComponent hdfsClient = hdfs.addServiceComponent("HDFS_CLIENT");
+    hdfsClient.persist();
+    hdfsClient.addServiceComponentHost(hostName1).persist();
+    hdfsClient.addServiceComponentHost(hostName2).persist();
+
+    Service tez = cluster.addService(serviceToDelete);
+    tez.persist();
+
+    ServiceComponent tezClient = tez.addServiceComponent("TEZ_CLIENT");
+    tezClient.persist();
+    ServiceComponentHost tezClientHost1 =  tezClient.addServiceComponentHost(hostName1);
+    tezClientHost1.persist();
+    ServiceComponentHost tezClientHost2 = tezClient.addServiceComponentHost(hostName2);
+    tezClientHost2.persist();
+
+    // When
+    cluster.deleteService(serviceToDelete);
+
+    // Then
+    assertFalse("Deleted service should be removed from the service collection !", cluster.getServices().containsKey(serviceToDelete));
+
+    assertEquals("All components of the deleted service should be removed from all hosts", 0, cluster.getServiceComponentHosts(serviceToDelete, null).size());
+
+    boolean checkHost1 = !cluster.getServiceComponentHosts(hostName1).contains(tezClientHost1);
+    boolean checkHost2 = !cluster.getServiceComponentHosts(hostName2).contains(tezClientHost2);
+
+    assertTrue("All components of the deleted service should be removed from all hosts", checkHost1 && checkHost2);
+
   }
 }

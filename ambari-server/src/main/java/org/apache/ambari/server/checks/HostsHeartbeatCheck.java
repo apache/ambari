@@ -35,18 +35,14 @@ import com.google.inject.Singleton;
  * host which is not heartbeating, then it must be in maintenance mode to
  * prevent a failure of this check.
  * <p/>
- * Hosts that are in maintenance mode will be added to a warning that they will
- * not be included in the upgrade.
- * <p/>
  * This check will return {@link PrereqCheckStatus#FAIL} if there are hosts not
- * heartbeating and not in maintenance mode. Otherwise, it will return
- * {@link PrereqCheckStatus#WARNING} for any hosts in maintenance mode.
+ * heartbeating and not in maintenance mode.
+ *
+ * @see HostMaintenanceModeCheck
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 1.0f, required = true)
 public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
-
-  static final String KEY_HOSTS_IN_MM_WARNING = "key.hosts.in.mm.warning";
 
   /**
    * Constructor.
@@ -55,6 +51,9 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
     super(CheckDescription.HOSTS_HEARTBEAT);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
@@ -83,21 +82,6 @@ public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
       return;
-    }
-
-    // no failues so far, check to see if any hosts are in MM so that this check
-    // will produce a warning
-    for (Host host : hosts) {
-      MaintenanceState maintenanceState = host.getMaintenanceState(cluster.getClusterId());
-      if (maintenanceState != MaintenanceState.OFF) {
-        prerequisiteCheck.getFailedOn().add(host.getHostName());
-      }
-    }
-
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
-      prerequisiteCheck.setFailReason(
-          getFailReason(KEY_HOSTS_IN_MM_WARNING, prerequisiteCheck, request));
     }
   }
 }

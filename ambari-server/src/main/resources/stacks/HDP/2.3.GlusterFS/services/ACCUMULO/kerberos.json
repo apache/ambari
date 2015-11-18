@@ -67,7 +67,7 @@
           }
         },
         {
-          "name": "/HDFS/hdfs"
+          "name": "/HDFS/NAMENODE/hdfs"
         },
         {
           "name": "/smokeuser"

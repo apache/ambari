@@ -41,7 +41,6 @@ class TestAppTimelineServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
     self.assert_configure_default()
     self.assertNoMoreResources()
 
@@ -185,6 +184,19 @@ class TestAppTimelineServer(RMFTestCase):
                               group = 'hadoop',
                               recursive = True,
                               cd_access='a'
+                              )
+    self.assertResourceCalled('HdfsResource', None,
+                              security_enabled = False,
+                              hadoop_bin_dir = '/usr/bin',
+                              keytab = UnknownConfigurationMock(),
+                              default_fs = 'hdfs://c6401.ambari.apache.org:8020',
+                              dfs_type = '',
+                              hdfs_site = self.getConfig()['configurations']['hdfs-site'],
+                              kinit_path_local = '/usr/bin/kinit',
+                              principal_name = UnknownConfigurationMock(),
+                              user = 'hdfs',
+                              action = ['execute'],
+                              hadoop_conf_dir = '/etc/hadoop/conf',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/yarn.exclude',
                               owner = 'yarn',

@@ -550,7 +550,8 @@
             "hbase_regionserver_heapsize": "1024m",
             "hbase_regionserver_xmn_max": "512",
             "hbase_regionserver_xmn_ratio": "0.2",
-            "hbase_log_dir": "/var/log/hbase"
+            "hbase_log_dir": "/var/log/hbase",
+            "hbase_java_io_tmpdir" : "/tmp"
         },
         "ganglia-env": {
             "gmond_user": "nobody", 
@@ -787,7 +788,7 @@
             "hbase.regionserver.thread.compaction.large": "2",
             "phoenix.query.timeoutMs": "1200000",
             "hbase.local.dir": "${hbase.tmp.dir}/local",
-            "hbase.cluster.distributed": "false",
+            "hbase.cluster.distributed": "true",
             "zookeeper.session.timeout.localHBaseCluster": "20000",
             "hbase.client.scanner.caching": "10000",
             "phoenix.sequence.saltBuckets": "2",

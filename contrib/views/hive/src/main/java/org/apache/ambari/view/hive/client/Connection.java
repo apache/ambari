@@ -476,6 +476,12 @@ public class Connection {
       @Override
       public TOpenSessionResp body() throws HiveClientException {
         TOpenSessionReq openReq = new TOpenSessionReq();
+        Map<String, String> openConf = new HashMap<String, String>();
+        if(authParams.containsKey(Utils.HiveAuthenticationParams.HS2_PROXY_USER)){
+          openConf.put(Utils.HiveAuthenticationParams.HS2_PROXY_USER,
+                       authParams.get(Utils.HiveAuthenticationParams.HS2_PROXY_USER));
+        }
+        openReq.setConfiguration(openConf);
         try {
           return client.OpenSession(openReq);
         } catch (TException e) {
@@ -571,7 +577,7 @@ public class Connection {
   public TOperationHandle execute(final TSessionHandle session, final String cmd, final boolean async) throws HiveClientException {
     TOperationHandle handle = null;
 
-    String[] commands = cmd.split(";");
+    String[] commands = Utils.removeEmptyStrings(cmd.split(";"));
     for(int i=0; i<commands.length; i++) {
       final String oneCmd = commands[i];
       final boolean lastCommand = i == commands.length-1;

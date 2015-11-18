@@ -85,6 +85,23 @@ public class TimelineMetricCacheProvider {
       configuration.getMetricCacheIdleSeconds());
 
     // Create a Cache specifying its configuration.
+    CacheConfiguration cacheConfiguration = createCacheConfiguration();
+    Cache cache = new Cache(cacheConfiguration);
+
+    // Decorate with UpdatingSelfPopulatingCache
+    timelineMetricsCache = new TimelineMetricCache(cache, cacheEntryFactory);
+
+    LOG.info("Registering metrics cache with provider: name = " +
+      cache.getName() + ", guid: " + cache.getGuid());
+
+    manager.addCache(timelineMetricsCache);
+
+    isCacheInitialized = true;
+  }
+
+  // Having this as a separate public method for testing/mocking purposes
+  public CacheConfiguration createCacheConfiguration() {
+
     CacheConfiguration cacheConfiguration = new CacheConfiguration()
       .name(TIMELINE_METRIC_CACHE_INSTANCE_NAME)
       .timeToLiveSeconds(configuration.getMetricCacheTTLSeconds()) // 1 hour
@@ -97,17 +114,7 @@ public class TimelineMetricCacheProvider {
       .persistence(new PersistenceConfiguration()
         .strategy(Strategy.NONE.name()));
 
-    Cache cache = new Cache(cacheConfiguration);
-
-    // Decorate with UpdatingSelfPopulatingCache
-    timelineMetricsCache = new TimelineMetricCache(cache, cacheEntryFactory);
-
-    LOG.info("Registering metrics cache with provider: name = " +
-      cache.getName() + ", guid: " + cache.getGuid());
-
-    manager.addCache(timelineMetricsCache);
-
-    isCacheInitialized = true;
+    return cacheConfiguration;
   }
 
   /**

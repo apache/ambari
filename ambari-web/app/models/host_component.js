@@ -29,6 +29,14 @@ App.HostComponent = DS.Model.extend({
   hostName: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
   adminState: DS.attr('string'),
+
+  summaryLabelClassName:function(){
+    return 'label_for_'+this.get('componentName').toLowerCase();
+  }.property('componentName'),
+
+  summaryValueClassName:function(){
+    return 'value_for_'+this.get('componentName').toLowerCase();
+  }.property('componentName'),
   /**
    * Determine if component is client
    * @returns {bool}
@@ -99,9 +107,7 @@ App.HostComponent = DS.Model.extend({
    * User friendly host component status
    * @returns {String}
    */
-  isActive: function () {
-    return (this.get('passiveState') == 'OFF');
-  }.property('passiveState'),
+  isActive: Em.computed.equal('passiveState', 'OFF'),
 
   passiveTooltip: function () {
     if (!this.get('isActive')) {

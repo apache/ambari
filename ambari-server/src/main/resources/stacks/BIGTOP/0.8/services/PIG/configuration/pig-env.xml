@@ -33,6 +33,9 @@ if [ -d "/usr/lib/tez" ]; then
   PIG_OPTS="$PIG_OPTS -Dmapreduce.framework.name=yarn"
 fi
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

@@ -102,7 +102,7 @@ public class SecurityConfigurationFactoryTest {
         kdEntityCaptor.getValue().getName());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testCreateKerberosSecurityWithoutDescriptor() throws Exception {
     Map<String, Object> reuqestMap = new HashMap<>();
     Map<String, Object> security = new HashMap<>();

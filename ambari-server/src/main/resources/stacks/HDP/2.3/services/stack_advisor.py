@@ -220,14 +220,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
 
-    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-    if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
-      rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
-      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
-        putHbaseSiteProperty("hbase.security.authorization", 'true')
-        putHbaseSiteProperty("hbase.coprocessor.master.classes", 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor')
-        putHbaseSiteProperty("hbase.coprocessor.region.classes", 'org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor')
-
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendHIVEConfigurations(configurations, clusterData, services, hosts)
@@ -323,7 +315,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       putHdfsSitePropertyAttribute('dfs.namenode.inode.attributes.provider.class', 'delete', 'true')
 
   def recommendKAFKAConfigurations(self, configurations, clusterData, services, hosts):
-    core_site = services["configurations"]["core-site"]["properties"]
+    kafka_broker = getServicesSiteProperties(services, "kafka-broker")
+
+    # kerberos security for kafka is decided from `security.inter.broker.protocol` property value
+    security_enabled = (kafka_broker is not None and 'security.inter.broker.protocol' in  kafka_broker
+                        and 'SASL' in kafka_broker['security.inter.broker.protocol'])
     putKafkaBrokerProperty = self.putProperty(configurations, "kafka-broker", services)
     putKafkaLog4jProperty = self.putProperty(configurations, "kafka-log4j", services)
     putKafkaBrokerAttributes = self.putPropertyAttribute(configurations, "kafka-broker")
@@ -385,20 +381,16 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
       else:
-      # Cluster is kerberized
-        if 'hadoop.security.authentication' in core_site and core_site['hadoop.security.authentication'] == 'kerberos' and \
+        # Kerberized Cluster with Ranger plugin disabled
+        if security_enabled and 'kafka-broker' in services['configurations'] and 'authorizer.class.name' in services['configurations']['kafka-broker']['properties'] and \
           services['configurations']['kafka-broker']['properties']['authorizer.class.name'] == 'org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer':
           putKafkaBrokerProperty("authorizer.class.name", 'kafka.security.auth.SimpleAclAuthorizer')
+        # Non-kerberos Cluster with Ranger plugin disabled
         else:
           putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
-      # Cluster with Ranger is not kerberized
-    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
-      putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
-
-
-    # Cluster without Ranger is not kerberized
-    elif ('hadoop.security.authentication' not in core_site or core_site['hadoop.security.authentication'] != 'kerberos'):
+    # Non-Kerberos Cluster without Ranger
+    elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
 
@@ -458,7 +450,11 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if 'authentication.ldap.managerDn' in serverProperties:
         putRangerUgsyncSite('ranger.usersync.ldap.binddn', serverProperties['authentication.ldap.managerDn'])
       if 'authentication.ldap.primaryUrl' in serverProperties:
-        putRangerUgsyncSite('ranger.usersync.ldap.url', serverProperties['authentication.ldap.primaryUrl'])
+        ldap_protocol =  'ldap://'
+        if 'authentication.ldap.useSSL' in serverProperties and serverProperties['authentication.ldap.useSSL'] == 'true':
+          ldap_protocol =  'ldaps://'
+        ldapUrl = ldap_protocol + serverProperties['authentication.ldap.primaryUrl'] if serverProperties['authentication.ldap.primaryUrl'] else serverProperties['authentication.ldap.primaryUrl']
+        putRangerUgsyncSite('ranger.usersync.ldap.url', ldapUrl)
       if 'authentication.ldap.userObjectClass' in serverProperties:
         putRangerUgsyncSite('ranger.usersync.ldap.user.objectclass', serverProperties['authentication.ldap.userObjectClass'])
       if 'authentication.ldap.usernameAttribute' in serverProperties:
@@ -477,16 +473,30 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         rangerSqlConnectorProperty = authMap.get(rangerUserSyncClass)
         putRangerAdminProperty('ranger.authentication.method', rangerSqlConnectorProperty)
 
+
+    if 'ranger-env' in services['configurations'] and 'is_solrCloud_enabled' in services['configurations']["ranger-env"]["properties"]:
+      isSolrCloudEnabled = services['configurations']["ranger-env"]["properties"]["is_solrCloud_enabled"]  == "true"
+    else:
+      isSolrCloudEnabled = False
+
+    if isSolrCloudEnabled:
+      zookeeper_host_port = self.getZKHostPortString(services)
+      if zookeeper_host_port:
+        ranger_audit_zk_port = []
+        zk_hosts = zookeeper_host_port.split(',')
+        for zk_host in zk_hosts:
+          ranger_audit_zk_port.append('{0}/{1}'.format(zk_host,'ranger_audits'))
+        ranger_audit_zk_port = ','.join(ranger_audit_zk_port)
+        putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
+    else:
+      putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
+
     # Recommend ranger.audit.solr.zookeepers and xasecure.audit.destination.hdfs.dir
     include_hdfs = "HDFS" in servicesList
-    zookeeper_host_port = self.getZKHostPortString(services)
-    if zookeeper_host_port:
-      putRangerAdminProperty('ranger.audit.solr.zookeepers', zookeeper_host_port)
-
     if include_hdfs:
       if 'core-site' in services['configurations'] and ('fs.defaultFS' in services['configurations']['core-site']['properties']):
         default_fs = services['configurations']['core-site']['properties']['fs.defaultFS']
-        putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', default_fs)
+        putRangerEnvProperty('xasecure.audit.destination.hdfs.dir', '{0}/{1}/{2}'.format(default_fs,'ranger','audit'))
 
     # Recommend Ranger supported service's audit properties
     ranger_services = [
@@ -567,7 +577,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
-      if hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
+      if 'dfs.namenode.inode.attributes.provider.class' not in hdfs_site or \
+        hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
@@ -575,7 +586,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hive_site = properties
     hive_env_properties = getSiteProperties(configurations, "hive-env")
     validationItems = []
@@ -594,8 +605,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                                 "item": self.getWarnItem(
                                   "If Hive using SQL Anywhere db." \
                                   " {0} needs to be set to {1}".format(prop_name,prop_value))})
-    return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
+    configurationValidationProblems = self.toConfigurationValidationProblems(validationItems, "hive-site")
+    configurationValidationProblems.extend(parentValidationProblems)
+    return configurationValidationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP23StackAdvisor, self).validateHiveServer2Configurations(properties, recommendedDefaults, configurations, services, hosts)

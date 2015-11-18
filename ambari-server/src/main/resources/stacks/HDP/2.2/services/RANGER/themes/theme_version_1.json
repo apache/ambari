@@ -320,12 +320,12 @@
               "if": "${ranger-env/bind_anonymous}",
               "then": {
                 "property_value_attributes": {
-                  "visible": true
+                  "visible": false
                 }
               },
               "else": {
                 "property_value_attributes": {
-                  "visible": false
+                  "visible": true
                 }
               }
             }
@@ -344,12 +344,12 @@
               "if": "${ranger-env/bind_anonymous}",
               "then": {
                 "property_value_attributes": {
-                  "visible": true
+                  "visible": false
                 }
               },
               "else": {
                 "property_value_attributes": {
-                  "visible": false
+                  "visible": true
                 }
               }
             }
@@ -592,12 +592,6 @@
       },
       {
         "config": "usersync-properties/SYNC_LDAP_URL",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "admin-properties/xa_ldap_ad_domain",
         "widget": {
           "type": "text-field"
         }

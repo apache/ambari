@@ -114,6 +114,24 @@ def get_validated_filepath_input(prompt, description, default=None):
         print description
         input = False
 
+
+def get_multi_line_input(prompt, end_line=""):
+  full_prompt = prompt
+  if end_line:
+    full_prompt += " ([{0}] to finish input):".format(end_line)
+  else:
+    full_prompt += " (empty line to finish input):".format(end_line)
+
+  print full_prompt
+  user_input = None
+  while True:
+    line = raw_input()
+    if line == end_line:  # no strip() here for purpose
+      return user_input
+    else:
+      user_input = line if user_input is None else user_input + "\n" + line
+
+
 def get_prompt_default(defaultStr=None):
   if not defaultStr or defaultStr == "":
     return ""

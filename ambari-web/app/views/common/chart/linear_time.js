@@ -299,12 +299,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   setExportTooltip: function () {
     if (this.get('isReady')) {
       Em.run.next(this, function () {
-        this.$('.corner-icon').on('mouseover', function () {
-          $(this).closest("[rel='ZoomInTooltip']").trigger('mouseleave');
-        });
-        App.tooltip(this.$('.corner-icon > .icon-save'), {
-          title: Em.I18n.t('common.export')
-        });
+        var icon = this.$('.corner-icon');
+        if (icon) {
+          icon.on('mouseover', function () {
+            $(this).closest("[rel='ZoomInTooltip']").trigger('mouseleave');
+          });
+          App.tooltip(icon.children('.icon-save'), {
+            title: Em.I18n.t('common.export')
+          });
+        }
       });
     }
   }.observes('isReady'),

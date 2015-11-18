@@ -30,6 +30,7 @@
     <property-type>PASSWORD</property-type>
     <description>password to use as the master secret</description>
     <value-attributes>
+      <type>password</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -41,6 +42,9 @@
     <value>knox</value>
     <property-type>USER</property-type>
     <description>Knox Username.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -49,6 +53,9 @@
     <value>knox</value>
     <property-type>GROUP</property-type>
     <description>Knox Group.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>

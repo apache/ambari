@@ -140,20 +140,17 @@ export HADOOP_IDENT_STRING=$USER
 
 # export HADOOP_NICENESS=10
 
-# Use libraries from standard classpath
+# Add database libraries
 JAVA_JDBC_LIBS=""
-#Add libraries required by mysql connector
-for jarFile in `ls /usr/share/java/*mysql* 2>/dev/null`
+for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
 do
   JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
 done
-# Add libraries required by oracle connector
-for jarFile in `ls /usr/share/java/*ojdbc* 2>/dev/null`
-do
-  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
-done
+
 # Add libraries required by nodemanager
 MAPREDUCE_LIBS={{mapreduce_libs_path}}
+
+# Add libraries to the hadoop classpath - some may not need a colon as they already include it
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}:${MAPREDUCE_LIBS}
 
 # added to the HADOOP_CLASSPATH
@@ -163,7 +160,6 @@ if [ -d "/usr/hdp/current/tez-client" ]; then
     export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}:/usr/hdp/current/tez-client/*:/usr/hdp/current/tez-client/lib/*:/etc/tez/conf/
   fi
 fi
-
 
 # Setting path to hdfs command line
 export HADOOP_LIBEXEC_DIR={{hadoop_libexec_dir}}
@@ -181,6 +177,9 @@ if [ "$command" == "datanode" ] &#038;&#038; [ "$EUID" -eq 0 ] &#038;&#038; [ -n
 fi
 {% endif %}
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

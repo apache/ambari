@@ -85,7 +85,10 @@ pig.location.check.strict=false
 
 hcat.bin=/usr/bin/hcat
 
-    </value>
+      </value>
+      <value-attributes>
+          <type>content</type>
+      </value-attributes>
   </property>
 
 </configuration>

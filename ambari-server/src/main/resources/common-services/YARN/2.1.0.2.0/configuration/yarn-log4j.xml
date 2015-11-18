@@ -67,6 +67,7 @@ log4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$Applicat
 log4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

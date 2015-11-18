@@ -165,6 +165,7 @@ require('views/main/admin/stack_upgrade/upgrade_task_view');
 require('views/main/admin/stack_upgrade/services_view');
 require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');
+require('views/main/admin/stack_upgrade/failed_hosts_modal_view');
 require('views/main/admin/stack_and_upgrade_view');
 require('views/main/admin/advanced');
 require('views/main/admin/advanced/password');
@@ -253,6 +254,7 @@ require('views/main/service/info/metrics/ambari_metrics/regionserver_block_cache
 require('views/main/service/info/metrics/ambari_metrics/regionserver_compaction_queue_size');
 require('views/main/service/info/metrics/flume/channel_sum');
 require('views/main/service/info/metrics/flume/channel_size_mma');
+require('views/main/service/info/metrics/flume/flume_agent_metrics_section');
 require('views/main/service/info/metrics/flume/flume_incoming_sum');
 require('views/main/service/info/metrics/flume/flume_incoming_mma');
 require('views/main/service/info/metrics/flume/flume_outgoing_sum');

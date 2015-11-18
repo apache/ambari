@@ -20,11 +20,13 @@ package org.apache.ambari.server.security.authorization;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.springframework.security.core.GrantedAuthority;
 
 /**
  * Describes user of web-services
@@ -33,22 +35,25 @@ public class User {
   final int userId;
   final String userName;
   final boolean ldapUser;
+  final UserType userType;
   final Date createTime;
   final boolean active;
   final Collection<String> groups = new ArrayList<String>();
   boolean admin = false;
+  final List<GrantedAuthority> authorities = new ArrayList<>();
 
   public User(UserEntity userEntity) {
     userId = userEntity.getUserId();
     userName = userEntity.getUserName();
     createTime = userEntity.getCreateTime();
+    userType = userEntity.getUserType();
     ldapUser = userEntity.getLdapUser();
     active = userEntity.getActive();
     for (MemberEntity memberEntity : userEntity.getMemberEntities()) {
       groups.add(memberEntity.getGroup().getGroupName());
     }
     for (PrivilegeEntity privilegeEntity: userEntity.getPrincipal().getPrivileges()) {
-      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME)) {
+      if (privilegeEntity.getPermission().getPermissionName().equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME)) {
         admin = true;
         break;
       }
@@ -65,6 +70,10 @@ public class User {
 
   public boolean isLdapUser() {
     return ldapUser;
+  }
+
+  public UserType getUserType() {
+    return userType;
   }
 
   public Date getCreateTime() {
@@ -85,6 +94,6 @@ public class User {
 
   @Override
   public String toString() {
-    return (ldapUser ? "[LDAP]" : "[LOCAL]") + userName;
+    return "[" + getUserType() + "]" + userName;
   }
 }

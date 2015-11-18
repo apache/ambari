@@ -19,6 +19,13 @@
 var App = require('app');
 var dateUtils = require('utils/date/date');
 
+function computedOnSummaryState(state) {
+  return Em.computed('summary.' + state, 'summary.' + state + '.count', 'summary.' + state + '.maintenanceCount', function () {
+    var summary = Em.get(this, 'summary');
+    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
+  });
+}
+
 App.AlertDefinition = DS.Model.extend({
 
   name: DS.attr('string'),
@@ -207,44 +214,28 @@ App.AlertDefinition = DS.Model.extend({
   }.property('summary'),
 
   /**
-   * if this definition is in state: CRIT
+   * if this definition is in state: CRITICAL
    * @type {boolean}
    */
-  isCritical: function () {
-    var summary = this.get('summary');
-    var state = 'CRITICAL';
-    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
-  }.property('summary'),
+  isCritical: computedOnSummaryState('CRITICAL'),
 
   /**
    * if this definition is in state: WARNING
    * @type {boolean}
    */
-  isWarning: function () {
-    var summary = this.get('summary');
-    var state = 'WARNING';
-    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
-  }.property('summary'),
+  isWarning: computedOnSummaryState('WARNING'),
 
   /**
    * if this definition is in state: OK
    * @type {boolean}
    */
-  isOK: function () {
-    var summary = this.get('summary');
-    var state = 'OK';
-    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
-  }.property('summary'),
+  isOK: computedOnSummaryState('OK'),
 
   /**
-   * if this definition is in state: OK
+   * if this definition is in state: UNKNOWN
    * @type {boolean}
    */
-  isUnknown: function () {
-    var summary = this.get('summary');
-    var state = 'UNKNOWN';
-    return !!summary[state] && !!(summary[state].count || summary[state].maintenanceCount);
-  }.property('summary'),
+  isUnknown: computedOnSummaryState('UNKNOWN'),
 
   /**
    * For alerts we will have processes which are not typical

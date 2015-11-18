@@ -107,6 +107,7 @@ log4j.logger.org.apache.zookeeper.ClientCnxnSocketNIO=WARN,FA
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

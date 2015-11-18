@@ -14,7 +14,7 @@
             {
               "name": "ams_hbase_master_hbase",
               "principal": {
-                "value": "amshbasemaster/_HOST@${realm}",
+                "value": "amshbase/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/hbase.master.kerberos.principal",
                 "local_username": "${ams-env/ambari_metrics_user}"
@@ -35,7 +35,7 @@
             {
               "name": "ams_hbase_regionserver_hbase",
               "principal": {
-                "value": "amshbasers/_HOST@${realm}",
+                "value": "amshbase/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/hbase.regionserver.kerberos.principal",
                 "local_username": "${ams-env/ambari_metrics_user}"

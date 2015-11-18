@@ -55,7 +55,13 @@ def hbase(name=None):
       group = params.user_group,
       recursive = True
   )
- 
+   
+  Directory(params.java_io_tmpdir,
+      owner = params.hbase_user,
+      group = params.user_group,
+      recursive = True,
+      mode=0777
+  )
   parent_dir = os.path.dirname(params.tmp_dir)
   # In case if we have several placeholders in path
   while ("${" in parent_dir):
@@ -147,12 +153,16 @@ def hbase(name=None):
   if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
-      recursive = True
+      recursive = True,
+      cd_access = "a",
+      mode = 0755,
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
-      recursive = True
+      recursive = True,
+      cd_access = "a",
+      mode = 0755,
     )
 
   if (params.log4j_props != None):

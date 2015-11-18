@@ -29,7 +29,7 @@
         <component>
           <name>SPARK_THRIFTSERVER</name>
           <displayName>Spark Thrift Server</displayName>
-          <category>MASTER</category>
+          <category>SLAVE</category>
           <cardinality>0+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <dependencies>
@@ -68,7 +68,6 @@
         <config-type>spark-env</config-type>
         <config-type>spark-log4j-properties</config-type>
         <config-type>spark-metrics-properties</config-type>
-        <config-type>spark-javaopts-properties</config-type>
         <config-type>spark-thrift-sparkconf</config-type>
         <config-type>spark-hive-site-override</config-type>
       </configuration-dependencies>

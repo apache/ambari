@@ -1,0 +1,17 @@
+{
+  "services": [
+    {
+      "name": "TEZ",
+      "components": [
+        {
+          "name": "TEZ_CLIENT",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

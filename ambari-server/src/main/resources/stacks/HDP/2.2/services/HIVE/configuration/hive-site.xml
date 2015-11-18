@@ -355,6 +355,7 @@ limitations under the License.
     <display-name>Database Password</display-name>
     <description>password to use against metastore database</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -1744,7 +1745,6 @@ limitations under the License.
   </property>
   <property>
     <name>hive.server2.authentication.ldap.baseDN</name>
-    <value></value>
     <property-type>DONT_ADD_ON_UPGRADE</property-type>
     <depends-on>
       <property>

@@ -30,6 +30,7 @@
       used to initialize Accumulo and to create the trace user. Changing this
       will not change the password for the Accumulo root user.</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -42,6 +43,7 @@
       processes must know in order to communicate with one
       another.</description>
     <value-attributes>
+      <type>password</type>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>
     </value-attributes>
@@ -55,6 +57,7 @@
       with this password if that user does not already exist. Changing this
       will not change the password for the trace user.</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -96,6 +99,9 @@
     <value>accumulo</value>
     <property-type>USER</property-type>
     <description>User for running Accumulo server processes.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>accumulo_master_heapsize</name>

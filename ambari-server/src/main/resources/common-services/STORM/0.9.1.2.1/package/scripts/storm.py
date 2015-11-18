@@ -64,6 +64,7 @@ def storm(name=None):
             group=params.user_group,
             recursive=True,
             cd_access="a",
+            mode=0755,
   )
 
   Directory(params.conf_dir,

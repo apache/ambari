@@ -80,6 +80,7 @@
       content for log4j.properties file for Knox.
     </description>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

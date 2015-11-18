@@ -40,6 +40,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.USE_GROUPBY_AGGREGATOR_QUERIES;
@@ -50,6 +58,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
   private final TimelineMetricConfiguration configuration;
   private PhoenixHBaseAccessor hBaseAccessor;
   private static volatile boolean isInitialized = false;
+  private final ScheduledExecutorService executorService =
+    Executors.newSingleThreadScheduledExecutor();
 
   /**
    * Construct the service.
@@ -131,6 +141,13 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
         Thread aggregatorDailyThread = new Thread(dailyHostAggregator);
         aggregatorDailyThread.start();
       }
+
+      int initDelay = configuration.getTimelineMetricsServiceWatcherInitDelay();
+      int delay = configuration.getTimelineMetricsServiceWatcherDelay();
+      // Start the watchdog
+      executorService.scheduleWithFixedDelay(
+        new TimelineMetricStoreWatcher(this, configuration), initDelay, delay,
+        TimeUnit.SECONDS);
 
       isInitialized = true;
     }

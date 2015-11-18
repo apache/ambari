@@ -197,9 +197,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
   /**
    * @type {boolean}
    */
-  isHostEmptyList: function () {
-    return !this.get('pageContent.length');
-  }.property('pageContent.length'),
+  isHostEmptyList: Em.computed.empty('pageContent'),
 
   /**
    * @type {wrappedHost}

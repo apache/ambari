@@ -123,6 +123,9 @@ set HADOOP_SECURE_DN_PID_DIR=%HADOOP_PID_DIR%
 set HADOOP_IDENT_STRING=%USERNAME%
 set HADOOP_NAMENODE_OPTS=-Xloggc:%HADOOP_LOG_DIR%/gc-namenode.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps %HADOOP_NAMENODE_OPTS%
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

@@ -7,9 +7,6 @@
           "name": "/spnego"
         },
         {
-          "name": "/HDFS/hdfs"
-        },
-        {
           "name": "hbase",
           "principal": {
             "value": "${hbase-env/hbase_user}-${cluster_name}@${realm}",
@@ -40,8 +37,9 @@
             "hbase.security.authentication": "kerberos",
             "hbase.security.authorization": "true",
             "zookeeper.znode.parent": "/hbase-secure",
-              "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
-              "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
+            "hbase.coprocessor.master.classes": "{{hbase_coprocessor_master_classes}}",
+            "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}",
+            "hbase.coprocessor.regionserver.classes": "{{hbase_coprocessor_regionserver_classes}}",
             "hbase.bulkload.staging.dir": "/apps/hbase/staging"
           }
         }
@@ -50,6 +48,9 @@
         {
           "name": "HBASE_MASTER",
           "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            },
             {
               "name": "hbase_master_hbase",
               "principal": {

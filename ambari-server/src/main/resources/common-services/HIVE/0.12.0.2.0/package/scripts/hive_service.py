@@ -30,6 +30,7 @@ from resource_management.core.resources.service import Service
 from resource_management.core.exceptions import Fail
 from resource_management.core.shell import as_user
 from resource_management.libraries.functions.hive_check import check_thrift_port_sasl
+from resource_management.libraries.functions import get_user_call_output
 
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -59,8 +60,13 @@ def hive_service(name, action='start', upgrade_type=None):
     pid_file = format("{hive_pid_dir}/{hive_pid}")
     cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
-  pid_expression = "`" + as_user(format("cat {pid_file}"), user=params.hive_user) + "`"
-  process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid_expression} >/dev/null 2>&1")
+    if params.security_enabled and params.current_version != None and (params.current_version.startswith("2.2.4") or
+          params.current_version.startswith("2.2.3")):
+      hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
+      Execute(hive_kinit_cmd, user=params.hive_user)
+
+  pid = get_user_call_output.get_user_call_output(format("cat {pid_file}"), user=params.hive_user, is_checked_call=False)[1]
+  process_id_exists_command = format("ls {pid_file} >/dev/null 2>&1 && ps -p {pid} >/dev/null 2>&1")
 
   if action == 'start':
     if name == 'hiveserver2':
@@ -98,8 +104,8 @@ def hive_service(name, action='start', upgrade_type=None):
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
   elif action == 'stop':
 
-    daemon_kill_cmd = format("{sudo} kill {pid_expression}")
-    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid_expression}")
+    daemon_kill_cmd = format("{sudo} kill {pid}")
+    daemon_hard_kill_cmd = format("{sudo} kill -9 {pid}")
 
     Execute(daemon_kill_cmd,
       not_if = format("! ({process_id_exists_command})")

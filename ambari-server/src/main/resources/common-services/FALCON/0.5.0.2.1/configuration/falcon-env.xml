@@ -25,6 +25,9 @@
     <value>falcon</value>
     <property-type>USER</property-type>
     <description>Falcon user.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>falcon_port</name>
@@ -143,6 +146,9 @@ export FALCON_DATA_DIR={{falcon_embeddedmq_data}}
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 #export FALCON_EXPANDED_WEBAPP_DIR=
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   <property>
     <name>supports_hive_dr</name>

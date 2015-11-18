@@ -131,9 +131,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * Check if <code>installerWizard</code> used
    * @type {bool}
    */
-  isInstallerWizard: function () {
-    return this.get('content.controllerName') === 'installerController';
-  }.property('content.controllerName'),
+  isInstallerWizard: Em.computed.equal('content.controllerName', 'installerController'),
 
   /**
    * Master components which could be assigned to multiple hosts

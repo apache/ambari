@@ -645,13 +645,16 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
       ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByPK(pk);
 
-
       final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
+      serviceComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
       serviceComponentDesiredStateEntity.setComponentName("HISTORYSERVER");
       serviceComponentDesiredStateEntity.setDesiredStack(clusterEntity.getDesiredStack());
       serviceComponentDesiredStateEntity.setDesiredState(jtServiceComponentDesiredState);
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
       serviceComponentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
+      serviceComponentDesiredStateEntity.setHostComponentStateEntities(new ArrayList<HostComponentStateEntity>());
+
+      serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
 
       final HostEntity host = hostDao.findByName(jtHostname);
       if (host == null) {
@@ -662,36 +665,42 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       stateEntity.setHostEntity(host);
       stateEntity.setCurrentState(jtCurrState);
       stateEntity.setCurrentStack(clusterEntity.getDesiredStack());
+      stateEntity.setClusterId(clusterEntity.getClusterId());
 
       final HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
       desiredStateEntity.setDesiredState(jtHostComponentDesiredState);
       desiredStateEntity.setDesiredStack(clusterEntity.getDesiredStack());
+      desiredStateEntity.setClusterId(clusterEntity.getClusterId());
 
       persistComponentEntities(stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
     }
   }
 
-  private void persistComponentEntities(HostComponentStateEntity stateEntity, HostComponentDesiredStateEntity desiredStateEntity, ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
+  private void persistComponentEntities(HostComponentStateEntity stateEntity,
+                                        HostComponentDesiredStateEntity desiredStateEntity,
+                                        ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity) {
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
 
     HostEntity hostEntity = stateEntity.getHostEntity();
-    hostEntity.addHostComponentStateEntity(stateEntity);
-    hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
-    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
-
-    desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
     desiredStateEntity.setHostEntity(hostEntity);
-    stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
-    stateEntity.setHostEntity(hostEntity);
-
-    hostComponentStateDAO.create(stateEntity);
+    desiredStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    serviceComponentDesiredStateEntity.getHostComponentDesiredStateEntities().add(desiredStateEntity);
     hostComponentDesiredStateDAO.create(desiredStateEntity);
 
-    serviceComponentDesiredStateDAO.create(serviceComponentDesiredStateEntity);
+    stateEntity.setHostEntity(hostEntity);
+    stateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);
+    serviceComponentDesiredStateEntity.getHostComponentStateEntities().add(stateEntity);
+    hostComponentStateDAO.create(stateEntity);
+
+    serviceComponentDesiredStateDAO.merge(serviceComponentDesiredStateEntity);
+
+    hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
+    hostEntity.addHostComponentStateEntity(stateEntity);
+
     hostDAO.merge(hostEntity);
   }
 

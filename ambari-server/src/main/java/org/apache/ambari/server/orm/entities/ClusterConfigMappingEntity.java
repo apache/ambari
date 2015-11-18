@@ -69,6 +69,7 @@ public class ClusterConfigMappingEntity {
   public String getType() {
     return typeName;
   }
+
   public void setType(String type) {
     typeName = type;
   }

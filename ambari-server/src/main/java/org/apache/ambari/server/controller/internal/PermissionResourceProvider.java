@@ -50,6 +50,7 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
    */
   public static final String PERMISSION_ID_PROPERTY_ID   = "PermissionInfo/permission_id";
   public static final String PERMISSION_NAME_PROPERTY_ID = "PermissionInfo/permission_name";
+  public static final String PERMISSION_LABEL_PROPERTY_ID = "PermissionInfo/permission_label";
   public static final String RESOURCE_NAME_PROPERTY_ID   = "PermissionInfo/resource_name";
 
 
@@ -68,6 +69,7 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
   static {
     propertyIds.add(PERMISSION_ID_PROPERTY_ID);
     propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
+    propertyIds.add(PERMISSION_LABEL_PROPERTY_ID);
     propertyIds.add(RESOURCE_NAME_PROPERTY_ID);
   }
 
@@ -152,6 +154,7 @@ public class PermissionResourceProvider extends AbstractResourceProvider {
 
     setResourceProperty(resource, PERMISSION_ID_PROPERTY_ID, entity.getId(), requestedIds);
     setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID, entity.getPermissionName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_LABEL_PROPERTY_ID, entity.getPermissionLabel(), requestedIds);
     setResourceProperty(resource, RESOURCE_NAME_PROPERTY_ID, entity.getResourceType().getName(), requestedIds);
 
     return resource;

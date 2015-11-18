@@ -94,12 +94,8 @@ App.MainMenuView = Em.CollectionView.extend({
       var itemsWithDropdown = ['services', 'admin', 'views'];
       return itemsWithDropdown.contains(item);
     }.property(''),
-    isAdminItem: function () {
-      return this.get('content').routing == 'admin';
-    }.property(''),
-    isServicesItem: function () {
-      return this.get('content').routing == 'services';
-    }.property(''),
+    isAdminItem: Em.computed.equal('content.routing', 'admin'),
+    isServicesItem: Em.computed.equal('content.routing', 'services'),
     isViewsItem: function () {
       return this.get('content').routing.contains('views');
     }.property(''),
@@ -147,9 +143,7 @@ App.MainMenuView = Em.CollectionView.extend({
     AdminDropdownItemView: Ember.View.extend({
       tagName: 'li',
       classNameBindings: 'isActive:active'.w(),
-      isActive: function () {
-        return this.get('item') === this.get('parentView.selectedAdminItem');
-      }.property('item', 'parentView.selectedAdminItem'),
+      isActive: Em.computed.equalProperties('item', 'parentView.selectedAdminItem'),
 
       goToCategory: function (event) {
         var itemName = this.get('parentView').get('content').routing;

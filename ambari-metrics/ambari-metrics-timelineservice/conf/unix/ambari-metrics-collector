@@ -34,7 +34,7 @@ HBASE_CMD=${HBASE_DIR}/bin/hbase
 METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_DAILY METRIC_RECORD_HOURLY METRIC_RECORD_MINUTE)
 METRIC_COLLECTOR=ambari-metrics-collector
 
-AMS_LOG_DIR=/var/log/ambari-metrics-collector
+AMS_COLLECTOR_LOG_DIR=/var/log/ambari-metrics-collector
 
 STOP_TIMEOUT=5
 
@@ -92,6 +92,10 @@ function enable_normalization
     command="$command \n alter_async '$table', {NORMALIZATION_ENABLED => 'true'}"
   done
   echo -e ${command} | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "WARNING: Failed to enable Ambari Metrics data model normalization."
+     >&2 echo "WARNING: Failed to enable Ambari Metrics data model normalization."
+  fi
 }
 
 function hadoop_java_setup
@@ -214,7 +218,7 @@ function start()
   echo "Collector successfully started."
   echo "Initializing Ambari Metrics data model"
   # Wait until METRIC_* tables created
-  for retry in {1..10}
+  for retry in {1..5}
   do
     echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
@@ -224,11 +228,12 @@ function start()
     sleep 5
   done
   if [ $? -ne 0 ]; then
-    echo "Ambari Metrics data model initialization failed."
-    exit -1
+    echo "WARNING: Ambari Metrics data model initialization failed."
+     >&2 echo "WARNING: Ambari Metrics data model initialization failed."
+  else
+    enable_normalization
   fi
 
-  enable_normalization
   }
 
 function stop()
@@ -320,6 +325,7 @@ case "$1" in
     DAEMON_STATUS=$?
 
     if [[ !"${DISTRIBUTED_HBASE}"  && ( ${DAEMON_STATUS} != 0 || ${HBASE_DAEMON_STATUS} != 0 ) ]]; then
+      echo "Stopping already running AMS daemons, if any."
       stop
     fi
     start

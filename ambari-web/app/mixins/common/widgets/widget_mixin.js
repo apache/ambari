@@ -81,9 +81,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * color of content calculated by thresholds
    * @type {string}
    */
-  contentColor: function () {
-    return this.get('value') ? 'green' : 'grey';
-  }.property('value'),
+  contentColor: Em.computed.ifThenElse('value', 'green', 'grey'),
 
   beforeRender: function () {
     this.get('metrics').clear();

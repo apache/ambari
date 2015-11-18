@@ -279,6 +279,10 @@ class TestHDP21StackAdvisor(TestCase):
           "hadoop.proxyuser.hdfs.hosts": "*",
           "hadoop.proxyuser.hdfs.groups": "*",
         }
+      },
+      "hdfs-site": {
+        "properties": {
+        }
       }
     }
 

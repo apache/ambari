@@ -34,9 +34,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
   /**
    * @type {boolean}
    */
-  isSubmitDisabled: function () {
-    return !this.get('widgetType');
-  }.property('widgetType'),
+  isSubmitDisabled: Em.computed.not('widgetType'),
 
   /**
    * @type {App.WidgetType}

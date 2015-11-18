@@ -16,7 +16,15 @@
  * limitations under the License.
  */
 
+/**
+ * @typedef {object} rmHaConfigDependencies
+ * @property {string|number} webAddressPort
+ * @property {string|number} httpsWebAddressPort
+ * @property {string|number} zkClientPort
+ */
+
 var App = require('app');
+require('utils/configs/rm_ha_config_initializer');
 
 App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
   name: "rMHighAvailabilityWizardStep3Controller",
@@ -29,9 +37,7 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   isLoaded: false,
 
-  isSubmitDisabled: function () {
-    return !this.get('isLoaded');
-  }.property('isLoaded'),
+  isSubmitDisabled: Em.computed.not('isLoaded'),
 
   loadStep: function () {
     this.renderConfigs();
@@ -87,20 +93,9 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   loadConfigsSuccessCallback: function (data, opt, params) {
-    var
-      zooCfg = data && data.items ? data.items.findProperty('type', 'zoo.cfg') : null,
-      yarnSite = data && data.items ? data.items.findProperty('type', 'yarn-site') : null,
-      portValue = zooCfg && Em.get(zooCfg, 'properties.clientPort'),
-      zkPort = portValue ? portValue : '2181',
-      webAddressPort = yarnSite && yarnSite.properties ? yarnSite.properties['yarn.resourcemanager.webapp.address'] : null,
-      httpsWebAddressPort = yarnSite && yarnSite.properties ? yarnSite. properties['yarn.resourcemanager.webapp.https.address'] : null;
-
-    webAddressPort = webAddressPort && webAddressPort.match(/:[0-9]*/g) ? webAddressPort.match(/:[0-9]*/g)[0] : ":8088";
-    httpsWebAddressPort = httpsWebAddressPort && httpsWebAddressPort.match(/:[0-9]*/g) ? httpsWebAddressPort.match(/:[0-9]*/g)[0] : ":8090";
-
     params = params.serviceConfig ? params.serviceConfig : arguments[4].serviceConfig;
 
-    this.setDynamicConfigValues(params, zkPort, webAddressPort, httpsWebAddressPort);
+    this.setDynamicConfigValues(params, data);
     this.setProperties({
       selectedService: params,
       isLoaded: true
@@ -108,40 +103,43 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   /**
-   * Set values dependent on host selection
-   * @param configs
-   * @param zkPort
-   * @param webAddressPort
-   * @param httpsWebAddressPort
+   * Get dependencies for new configs
+   *
+   * @param {{items: object[]}} data
+   * @returns {rmHaConfigDependencies}
+   * @private
+   * @method _prepareDependencies
    */
-  setDynamicConfigValues: function (configs, zkPort, webAddressPort, httpsWebAddressPort) {
-    var
-      configProperties = configs.configs,
-      currentRMHost = this.get('content.rmHosts.currentRM'),
-      additionalRMHost = this.get('content.rmHosts.additionalRM'),
-      zooKeeperHostsWithPort = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').map(function (item) {
-        return item.get('hostName') + ':' + zkPort;
-      }).join(',');
+  _prepareDependencies: function (data) {
+    var ret = {};
+    var zooCfg = data && data.items ? data.items.findProperty('type', 'zoo.cfg') : null;
+    var yarnSite = data && data.items ? data.items.findProperty('type', 'yarn-site') : null;
+    var portValue = zooCfg && Em.get(zooCfg, 'properties.clientPort');
+    var webAddressPort = yarnSite && yarnSite.properties ? yarnSite.properties['yarn.resourcemanager.webapp.address'] : '';
+    var httpsWebAddressPort = yarnSite && yarnSite.properties ? yarnSite. properties['yarn.resourcemanager.webapp.https.address'] : '';
 
-    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm1').set('value', currentRMHost).set('recommendedValue', currentRMHost);
-    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm2').set('value', additionalRMHost).set('recommendedValue', additionalRMHost);
-    configProperties.findProperty('name', 'yarn.resourcemanager.zk-address').set('value', zooKeeperHostsWithPort).set('recommendedValue', zooKeeperHostsWithPort);
+    ret.webAddressPort = webAddressPort && webAddressPort.contains(':') ? webAddressPort.split(':')[1] : '8088';
+    ret.httpsWebAddressPort = httpsWebAddressPort && httpsWebAddressPort.contains(':') ? httpsWebAddressPort.split(':')[1] : '8090';
+    ret.zkClientPort = portValue ? portValue : '2181';
+    return ret;
+  },
 
-    configProperties.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1')
-      .set('value', currentRMHost + webAddressPort)
-      .set('recommendedValue', currentRMHost + webAddressPort);
+  /**
+   * Set values to the new configs
+   *
+   * @param {object} configs
+   * @param {object} data
+   * @returns {object}
+   * @method setDynamicConfigValues
+   */
+  setDynamicConfigValues: function (configs, data) {
+    var topologyLocalDB = this.get('content').getProperties(['masterComponentHosts', 'slaveComponentHosts', 'hosts']);
+    var dependencies = this._prepareDependencies(data);
 
-    configProperties.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2')
-      .set('value', additionalRMHost + webAddressPort)
-      .set('recommendedValue', additionalRMHost + webAddressPort);
-
-    configProperties.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1')
-      .set('value', currentRMHost + httpsWebAddressPort)
-      .set('recommendedValue', currentRMHost + httpsWebAddressPort);
-
-    configProperties.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2')
-      .set('value', additionalRMHost + httpsWebAddressPort)
-      .set('recommendedValue', additionalRMHost + httpsWebAddressPort);
+    configs.configs.forEach(function (config) {
+      App.RmHaConfigInitializer.initialValue(config, topologyLocalDB, dependencies);
+    });
+    return configs;
   },
 
   /**

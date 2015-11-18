@@ -35,6 +35,9 @@
     <value>atlas</value>
     <property-type>USER</property-type>
     <description>Metadata User Name.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>metadata_opts</name>
@@ -86,5 +89,8 @@ export METADATA_PID_DIR={{pid_dir}}
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}
     </value>
-  </property>  
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
+  </property>
 </configuration>

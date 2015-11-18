@@ -88,23 +88,17 @@ App.RepositoryVersion = DS.Model.extend({
   /**
    * @type {string}
    */
-  noInitHostsTooltip: function () {
-    return (this.get('noInitHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
-  }.property('noInitHosts'),
+  noInitHostsTooltip: Em.computed.ifThenElse('noInitHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip')),
 
   /**
    * @type {string}
    */
-  noCurrentHostsTooltip: function () {
-    return (this.get('noCurrentHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
-  }.property('noCurrentHosts'),
+  noCurrentHostsTooltip: Em.computed.ifThenElse('noCurrentHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip')),
 
   /**
    * @type {string}
    */
-  noInstalledHostsTooltip: function () {
-    return (this.get('noInstalledHosts')) ? Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip') : Em.I18n.t('admin.stackVersions.version.hostsTooltip');
-  }.property('noInstalledHosts'),
+  noInstalledHostsTooltip: Em.computed.ifThenElse('noInstalledHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip')),
 
   /**
    * @type {boolean}

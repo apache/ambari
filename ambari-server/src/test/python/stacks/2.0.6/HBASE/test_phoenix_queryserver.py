@@ -217,6 +217,12 @@ class TestPhoenixQueryServer(RMFTestCase):
       group = 'hadoop',
       recursive = True,
     )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
+    )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
                               cd_access = 'a',
@@ -295,10 +301,14 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',
@@ -317,6 +327,12 @@ class TestPhoenixQueryServer(RMFTestCase):
       owner = 'hbase',
       group = 'hadoop',
       recursive = True,
+    )
+    self.assertResourceCalled('Directory', '/tmp',
+      owner = 'hbase',
+      group = 'hadoop',
+      recursive = True,
+      mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
                               recursive = True,
@@ -401,10 +417,14 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
       recursive = True,
+      mode = 0755,
+      cd_access = 'a',
     )
     self.assertResourceCalled('File',
       '/usr/hdp/current/hbase-regionserver/conf/log4j.properties',

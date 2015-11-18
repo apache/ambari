@@ -51,27 +51,21 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
      *
      * @type {boolean}
      */
-    checkboxDisabled: Ember.computed.not('storePersisted'),
+    checkboxDisabled: Em.computed.not('storePersisted'),
 
     /**
      * Returns storage type used to save credentials e.g. <b>persistent</b>, <b>temporary</b> (default)
      *
      * @type {string}
      */
-    storageType: function() {
-      return this.get('storeCredentials') ? credentialsUtils.STORE_TYPES.PERSISTENT : credentialsUtils.STORE_TYPES.TEMPORARY;
-    }.property('storeCredentials'),
+    storageType: Em.computed.ifThenElse('storeCredentials', credentialsUtils.STORE_TYPES.PERSISTENT, credentialsUtils.STORE_TYPES.TEMPORARY),
 
     /**
      * Message to display in tooltip regarding persistent storage state.
      *
      * @type {string}
      */
-    hintMessage: function() {
-      return this.get('storePersisted') ?
-        Em.I18n.t('admin.kerberos.credentials.store.hint.supported') :
-        Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported');
-    }.property('storePersisted'),
+    hintMessage: Em.computed.ifThenElse('storePersisted', Em.I18n.t('admin.kerberos.credentials.store.hint.supported'), Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported')),
 
     bodyClass: Em.View.extend({
       warningMsg: message + Em.I18n.t('popup.invalid.KDC.msg'),

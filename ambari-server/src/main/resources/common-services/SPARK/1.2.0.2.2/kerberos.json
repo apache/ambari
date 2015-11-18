@@ -7,9 +7,6 @@
           "name": "/smokeuser"
         },
         {
-          "name": "/HDFS/hdfs"
-        },
-        {
           "name": "sparkuser",
           "principal": {
             "value": "${spark-env/spark_user}-${cluster_name}@${realm}",
@@ -40,7 +37,12 @@
       ],
       "components": [
         {
-          "name": "SPARK_JOBHISTORYSERVER"
+          "name": "SPARK_JOBHISTORYSERVER",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ]
         },
         {
           "name": "SPARK_CLIENT"

@@ -45,7 +45,13 @@
           </a></span>
         </td>
         <td class="config-dependency-filename">{{config.fileName}}</td>
-        <td class="config-dependency-value">{{config.value}}</td>
+        <td class="config-dependency-value">
+          {{#if config.notDefined}}
+            <i>{{t popup.dependent.configs.table.not.defined}}</i>
+          {{else}}
+            {{config.value}}
+          {{/if}}
+        </td>
         <td class="config-dependency-recommended-value">
           {{#if config.isDeleted}}
             <i>{{t common.removed}}</i>

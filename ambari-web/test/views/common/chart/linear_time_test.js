@@ -26,27 +26,31 @@ describe('App.ChartLinearTimeView', function () {
   describe('#transformData', function () {
 
     var result;
+    var data = [[1, 1200000000], [2, 1200000000], [3, 1200000000]];
+    var name = 'abc';
 
     beforeEach(function () {
-      var data = [[1, 1200000000], [2, 1200000000], [3, 1200000000]];
-      var name = 'abc';
       sinon.stub(App.router, 'get').withArgs('userSettingsController.userSettings.timezone').returns('(UTC+00:00) Greenwich');
-      result = chartLinearTimeView.transformData(data, name);
+      sinon.stub(App, 'dateTimeWithTimeZone').returns(1);
     });
 
     afterEach(function () {
       App.router.get.restore();
+      App.dateTimeWithTimeZone.restore();
     });
 
     it('"name" should be "abc" ', function () {
+      result = chartLinearTimeView.transformData(data, name);
       expect(result.name).to.equal('abc');
     });
 
     it('data size should be 3 ', function () {
+      result = chartLinearTimeView.transformData(data, name);
       expect(result.data.length).to.equal(3);
     });
 
     it('data[0].y should be 1 ', function () {
+      result = chartLinearTimeView.transformData(data, name);
       expect(result.data[0].y).to.equal(1);
     })
 

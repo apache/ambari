@@ -39,6 +39,7 @@ export default Ember.Object.create({
       logs: 'logs',
       results: 'results',
       explain: 'explain',
+      uploadTable :'upload-table',
       visualization: 'visualization'
     },
 

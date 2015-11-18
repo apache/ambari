@@ -30,10 +30,7 @@ try {
   require('messages');
 }
 
-require('utils/base64');
-require('utils/db');
-require('utils/helper');
-require('utils/config');
+require('utils');
 require('mixins');
 require('models');
 require('controllers');

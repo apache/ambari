@@ -34,9 +34,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
   /**
    * @type {Ember.Array}
    */
-  content: function () {
-    return this.get('host.stackVersions').filterProperty('isVisible', true);
-  }.property('host.stackVersions.length'),
+  content: Em.computed.filterBy('host.stackVersions', 'isVisible', true),
 
   /**
    * return filtered number of all content number information displayed on the page footer bar

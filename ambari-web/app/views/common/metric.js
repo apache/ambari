@@ -108,23 +108,15 @@ App.MetricFilteringWidget = Em.View.extend({
   itemView:Em.View.extend({
     tagName:'li',
     classNameBindings:['disabled'],
-    disabled:function () {
-      return this.get('isActive') ? "disabled" : false;
-    }.property('isActive'),
-    isActive:function () {
-      return this.get('metric.value') == this.get('widget.chosenMetric');
-    }.property('widget.chosenMetric'),
-    label:function () {
-      return this.get('metric.label');
-    }.property('metric.label'),
+    disabled:Em.computed.ifThenElse('isActive', 'disabled', false),
+    isActive:Em.computed.equalProperties('metric.value', 'widget.chosenMetric'),
+    label:Em.computed.alias('metric.label'),
     template:Em.Handlebars.compile('<a {{action activate view.metric.value target="view.widget" href="#" }}>{{unbound view.label}}</a>')
   }),
 
   moreItemView:function () {
     return this.get('itemView').extend({
-      label:function () {
-        return this.get('metric.value');
-      }.property('metric.value')
+      label:Em.computed.alias('metric.value')
     });
   }.property(),
 

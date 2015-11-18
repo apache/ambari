@@ -31,9 +31,7 @@ App.GridFilter = Em.View.extend({
   getHeader:function () {
     return this.get('header')
   },
-  filters:function () {
-    return this.get('header._filters');
-  }.property('header._filters')
+  filters:Em.computed.alias('header._filters')
 });
 
 App.GridHeader = Em.View.extend({
@@ -108,9 +106,7 @@ App.GridRow = Em.View.extend({
 });
 
 App.GridPage = Em.Object.extend({
-  activeClass:function () {
-    return this.get('active') ? "active" : "";
-  }.property('active'),
+  activeClass:Em.computed.ifThenElse('active', 'active', ''),
   active:function () {
     return parseInt(this.get('number')) == parseInt(this.get('pager.grid.currentPage'));
   }.property('pager.grid.currentPage')

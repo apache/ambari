@@ -32,10 +32,6 @@ App.HighAvailabilityWizardStep4View = Em.View.extend({
     return Em.I18n.t('admin.highAvailability.wizard.step4.body').format(this.get('controller.content.hdfsUser'), nN.hostName);
   }.property('controller.content.masterComponentHosts'),
 
-  nnCheckPointText: function () {
-    return (this.get('controller.isNextEnabled')) ?
-      Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated') :
-      Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated');
-  }.property('controller.isNextEnabled')
+  nnCheckPointText: Em.computed.ifThenElse('controller.isNextEnabled', Em.I18n.t('admin.highAvailability.wizard.step4.ckCreated'), Em.I18n.t('admin.highAvailability.wizard.step4.ckNotCreated'))
 
 });

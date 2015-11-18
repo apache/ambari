@@ -287,11 +287,14 @@ class InstallPackages(Script):
     # Install packages
     packages_were_checked = False
     try:
+      Package(self.get_base_packages_to_install())
+      
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
       packages_installed_before = [package[0] for package in packages_installed_before]
       packages_were_checked = True
-      for package in package_list:
+      filtered_package_list = self.filter_package_list(package_list)
+      for package in filtered_package_list:
         name = self.format_package_name(package['name'], self.repository_version)
         Package(name,
                 use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
@@ -374,6 +377,45 @@ class InstallPackages(Script):
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
+    
+  def get_base_packages_to_install(self):
+    """
+    HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
+    """
+    base_packages_to_install = ['fuse']
+    
+    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
+      base_packages_to_install.append('libfuse2')
+    else:
+      base_packages_to_install.append('fuse-libs')
+      
+    return base_packages_to_install
+
+    
+  def filter_package_list(self, package_list):
+    """
+    Note: that we have skipUpgrade option in metainfo.xml to filter packages,
+    so use this method only if, for some reason the metainfo option cannot be used.
+    
+    Here we filter packages that are managed with custom logic in package
+    scripts. Usually this packages come from system repositories, and either
+     are not available when we restrict repository list, or should not be
+    installed on host at all.
+    :param package_list: original list
+    :return: filtered package_list
+    """
+    filtered_package_list = []
+    for package in package_list:
+      skip_package = False
+      
+      # skip upgrade for hadooplzo* versioned package, only if lzo is disabled 
+      io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+      if not io_compression_codecs or "com.hadoop.compression.lzo" not in io_compression_codecs:
+        skip_package = package['name'].startswith('hadooplzo')
+
+      if not skip_package:
+        filtered_package_list.append(package)
+    return filtered_package_list
 
 
 if __name__ == "__main__":

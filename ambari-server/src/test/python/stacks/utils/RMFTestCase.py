@@ -113,11 +113,10 @@ class RMFTestCase(TestCase):
     try:
       with patch.object(platform, 'linux_distribution', return_value=os_type):
         script_module = imp.load_source(classname, script_path)
+        script_class_inst = RMFTestCase._get_attr(script_module, classname)()
+        method = RMFTestCase._get_attr(script_class_inst, command)
     except IOError, err:
       raise RuntimeError("Cannot load class %s from %s: %s" % (classname, norm_path, err.message))
-    
-    script_class_inst = RMFTestCase._get_attr(script_module, classname)()
-    method = RMFTestCase._get_attr(script_class_inst, command)
     
     # Reload params import, otherwise it won't change properties during next import
     if 'params' in sys.modules:  

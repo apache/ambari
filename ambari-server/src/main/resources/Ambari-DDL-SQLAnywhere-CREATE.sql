@@ -186,6 +186,7 @@ CREATE TABLE users (
   create_time TIMESTAMP DEFAULT NOW(),
   ldap_user INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL,
+  user_type VARCHAR(255) NOT NULL DEFAULT 'LOCAL',
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
   active_widget_layouts VARCHAR(1024) DEFAULT NULL,
@@ -246,6 +247,7 @@ CREATE TABLE stage (
   request_id NUMERIC(19) NOT NULL,
   cluster_id NUMERIC(19),
   skippable SMALLINT DEFAULT 0 NOT NULL,
+  supports_auto_skip_failure SMALLINT DEFAULT 0 NOT NULL,
   log_info VARCHAR(255) NOT NULL,
   request_context VARCHAR(255),
   cluster_host_info IMAGE,
@@ -518,6 +520,7 @@ CREATE TABLE adminpermission (
   permission_id NUMERIC(19) NOT NULL,
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
+  permission_label VARCHAR(255),
   PRIMARY KEY(permission_id));
 
 CREATE TABLE adminprivilege (
@@ -647,7 +650,7 @@ CREATE TABLE topology_logical_task (
 );
 
 -- altering tables by creating unique constraints----------
-ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
+ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, user_type);
 ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);
 ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id);
 ALTER TABLE clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
@@ -892,7 +895,7 @@ CREATE TABLE upgrade (
   to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
   skip_failures BIT NOT NULL DEFAULT 0,
-  skip_sc_failures BIT NOT NULL DEFAULT 0,  
+  skip_sc_failures BIT NOT NULL DEFAULT 0,
   downgrade_allowed BIT NOT NULL DEFAULT 1,
   PRIMARY KEY (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
@@ -986,14 +989,14 @@ insert into adminprincipal (principal_id, principal_type_id)
 insert into users(user_id, principal_id, user_name, user_password)
   select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
-insert into adminpermission(permission_id, permission_name, resource_type_id)
-  select 1, 'AMBARI.ADMIN', 1
+insert into adminpermission(permission_id, permission_name, resource_type_id, permission_label)
+  select 1, 'AMBARI.ADMINISTRATOR', 1, 'Administrator'
   union all
-  select 2, 'CLUSTER.READ', 2
+  select 2, 'CLUSTER.USER', 2, 'Cluster User'
   union all
-  select 3, 'CLUSTER.OPERATE', 2
+  select 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator'
   union all
-  select 4, 'VIEW.USE', 3;
+  select 4, 'VIEW.USER', 3, 'View User';
 
 insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   select 1, 1, 1, 1;

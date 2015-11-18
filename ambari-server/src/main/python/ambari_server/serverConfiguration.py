@@ -1013,10 +1013,13 @@ def update_ambari_properties():
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
       if "agent.fqdn.service.url" == prop_key:
-        # BUG-7179 what is agent.fqdn property in ambari.props?
+        # what is agent.fqdn property in ambari.props?
         new_properties.process_pair(GET_FQDN_SERVICE_URL, prop_value)
       elif "server.os_type" == prop_key:
         new_properties.process_pair(OS_TYPE_PROPERTY, OS_FAMILY + OS_VERSION)
+      elif JDK_RELEASES == prop_key:
+        # don't replace new jdk releases with old releases, because they can be updated
+        pass
       else:
         new_properties.process_pair(prop_key, prop_value)
 

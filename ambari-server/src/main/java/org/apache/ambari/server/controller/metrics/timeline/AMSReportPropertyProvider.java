@@ -19,6 +19,7 @@ package org.apache.ambari.server.controller.metrics.timeline;
 
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
@@ -55,7 +56,7 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
 
   public AMSReportPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                                 StreamProvider streamProvider,
+                                   URLStreamProvider streamProvider,
                                  ComponentSSLConfiguration configuration,
                                  TimelineMetricCacheProvider cacheProvider,
                                  MetricHostProvider hostProvider,

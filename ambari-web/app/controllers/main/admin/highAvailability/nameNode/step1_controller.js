@@ -23,9 +23,7 @@ require('controllers/main/admin/serviceAccounts_controller');
 App.HighAvailabilityWizardStep1Controller = Em.Controller.extend({
   name: "highAvailabilityWizardStep1Controller",
 
-  isNameServiceIdValid: function () {
-    return /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])$/.test(this.get('content.nameServiceId'));
-  }.property('content.nameServiceId'),
+  isNameServiceIdValid: Em.computed.match('content.nameServiceId', /^([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])$/),
 
   next: function () {
     if (this.get('isNameServiceIdValid')) {

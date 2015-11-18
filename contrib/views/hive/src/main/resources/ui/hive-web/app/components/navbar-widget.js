@@ -34,6 +34,9 @@ export default Ember.Component.extend({
                          path: constants.namingConventions.routes.history}),
 
     Ember.Object.create({text: 'menus.udfs',
-                         path: constants.namingConventions.routes.udfs})
+                         path: constants.namingConventions.routes.udfs}),
+
+    Ember.Object.create({text: 'menus.uploadTable',
+      path: constants.namingConventions.routes.uploadTable})
   ])
 });

@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('User', ['Restangular', '$http', 'Settings', function(Restangular, $http, Settings) {
+  .factory('User', ['Restangular', '$http', 'Settings', 'UserConstants', function(Restangular, $http, Settings, UserConstants) {
   Restangular.addResponseInterceptor(function(data, operation, what, url, response, deferred) {
     var extractedData;
     if(operation === 'getList'){
@@ -36,12 +36,12 @@ angular.module('ambariAdminConsole')
   return {
     list: function(params) {
       return $http.get(
-        Settings.baseUrl + '/users/?' 
+        Settings.baseUrl + '/users/?'
         + 'Users/user_name.matches(.*'+params.searchString+'.*)'
         + '&fields=*'
         + '&from=' + (params.currentPage-1)*params.usersPerPage
         + '&page_size=' + params.usersPerPage
-        + (params.ldap_user === '*' ? '' : '&Users/ldap_user=' + params.ldap_user)
+        + (params.user_type === '*' ? '' : '&Users/user_type=' + params.user_type)
         + (params.active === '*' ? '' : '&Users/active=' + params.active)
         + (params.admin ? '&Users/admin=true' : '')
       );
@@ -86,6 +86,21 @@ angular.module('ambariAdminConsole')
           'fields': '*'
         }
       });
+    },
+    /**
+     * Generate user info to display by response data from API.
+     * Generally this is a single point to manage all required and useful data
+     * needed to use as context for views/controllers.
+     *
+     * @param {Object} user - object from API response
+     * @returns {Object}
+     */
+    makeUser: function(user) {
+      user.Users.encoded_name = encodeURIComponent(user.Users.user_name);
+      user.Users.userTypeName = UserConstants.TYPES[user.Users.user_type].NAME;
+      user.Users.ldap_user = user.Users.user_type === UserConstants.TYPES.LDAP.VALUE;
+
+      return user;
     }
   };
 }]);

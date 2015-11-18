@@ -260,6 +260,8 @@ App.ConfigsComparator = Em.Mixin.create({
 
   /**
    * check value and final attribute of original and compare config for differences
+   * if config is password, it won't be shown in the comparison
+   *
    * @param originalConfig
    * @param compareConfig
    * @return {Boolean}
@@ -267,6 +269,11 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
+    var displayType = Em.get(originalConfig, 'displayType');
+    var notShownTypes = ['password'];
+    if (notShownTypes.contains(displayType)) {
+      return false;
+    }
     var originalValue = App.config.trimProperty({ value: Em.get(originalConfig, 'value'), displayType: 'string' });
     var compareValue = App.config.trimProperty({ value: Em.get(compareConfig, 'value'), displayType: 'string' });
 
@@ -297,7 +304,7 @@ App.ConfigsComparator = Em.Mixin.create({
    * @method getMockConfig
    */
   getMockConfig: function (name, serviceName, filename) {
-    var undefinedConfig = {
+    var undefinedConfig = App.configsCollection.getConfigByName(name, filename) || {
       description: name,
       displayName: name,
       isOverridable: false,
@@ -311,12 +318,11 @@ App.ConfigsComparator = Em.Mixin.create({
       name: name,
       filename: filename,
       serviceName: serviceName,
+      category: App.config.getDefaultCategory(false, filename),
       value: Em.I18n.t('common.property.undefined'),
       isMock: true,
       displayType: 'label'
     };
-    var category = App.config.identifyCategory(undefinedConfig);
-    undefinedConfig.category = category && category.name;
     return App.ServiceConfigProperty.create(undefinedConfig);
   },
 

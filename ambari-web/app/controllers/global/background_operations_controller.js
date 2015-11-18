@@ -207,11 +207,12 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var currentRequestIds = [];
     var countIssued = this.get('operationsCount');
     var countGot = data.itemTotal;
+    var restoreUpgradeState = false;
 
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
         if (!App.get('upgradeIsRunning') && !App.get('testMode')) {
-          App.router.get('clusterController').restoreUpgradeState();
+          restoreUpgradeState = true;
         }
         return;
       }
@@ -239,8 +240,8 @@ App.BackgroundOperationsController = Em.Controller.extend({
           isRunning: isRunning,
           hostsMap: {},
           tasks: [],
-          startTime: request.Requests.start_time,
-          endTime: request.Requests.end_time,
+          startTime: App.dateTimeWithTimeZone(request.Requests.start_time),
+          endTime: App.dateTimeWithTimeZone(request.Requests.end_time),
           dependentService: requestParams.dependentService,
           sourceRequestScheduleId: request.Requests.request_schedule && request.Requests.request_schedule.schedule_id,
           previousTaskStatusMap: {},
@@ -252,10 +253,13 @@ App.BackgroundOperationsController = Em.Controller.extend({
       }
       runningServices += ~~isRunning;
     }, this);
+    if (restoreUpgradeState) {
+      App.router.get('clusterController').restoreUpgradeState();
+    }
     this.removeOldRequests(currentRequestIds);
     this.set("allOperationsCount", runningServices);
     this.set('isShowMoreAvailable', countGot >= countIssued);
-    this.set('serviceTimestamp', App.dateTime());
+    this.set('serviceTimestamp', App.dateTimeWithTimeZone());
   },
   isShowMoreAvailable: null,
   /**

@@ -61,9 +61,7 @@ App.WizardStep2View = Em.View.extend({
    * Is manualInstall selected
    * @type {bool}
    */
-  sshKeyState: function () {
-    return this.get("controller.content.installOptions.manualInstall");
-  }.property("controller.content.installOptions.manualInstall"),
+  sshKeyState: Em.computed.alias('controller.content.installOptions.manualInstall'),
 
   /**
    * Is File API available
@@ -88,9 +86,7 @@ App.WizardStep2View = Em.View.extend({
 
     classNames: ['radio-btn-provide-ssh-key'],
 
-    checked: function () {
-      return this.get('controller.content.installOptions.useSsh');
-    }.property('controller.content.installOptions.useSsh'),
+    checked: Em.computed.alias('controller.content.installOptions.useSsh'),
 
     type: 'radio',
 
@@ -113,9 +109,7 @@ App.WizardStep2View = Em.View.extend({
 
     type: 'radio',
 
-    checked: function () {
-      return this.get('controller.content.installOptions.manualInstall');
-    }.property('controller.content.installOptions.manualInstall'),
+    checked: Em.computed.alias('controller.content.installOptions.manualInstall'),
 
     click: function () {
       this.set('controller.content.installOptions.manualInstall', true);
@@ -133,9 +127,7 @@ App.WizardStep2View = Em.View.extend({
      * Is textfield disabled
      * @type {bool}
      */
-    disabled: function () {
-      return !this.get('isEnabled');
-    }.property('isEnabled')
+    disabled: Em.computed.not('isEnabled')
   })
 
 });

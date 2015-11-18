@@ -39,9 +39,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   /**
    * @type {App.Service}
    */
-  service: function () {
-    return this.get('controller.selectedService');
-  }.property('controller.selectedService'),
+  service: Em.computed.alias('controller.selectedService'),
 
   templateName: require('templates/common/configs/service_config_layout_tab'),
 
@@ -80,8 +78,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       row.forEach(function (section) {
         section.get('subsectionRows').forEach(function (subRow) {
           subRow.forEach(function (subsection) {
-            var uiOnlyConfigs = App.uiOnlyConfigDerivedFromTheme.filterProperty('subSection.name', subsection.get('name'));
-            self.setConfigsToContainer(subsection, uiOnlyConfigs);
+            self.setConfigsToContainer(subsection);
             subsection.get('subSectionTabs').forEach(function (subSectionTab) {
               self.setConfigsToContainer(subSectionTab);
             });
@@ -96,21 +93,21 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
    * Also correct widget should be used for each config (it's selected according to <code>widget.type</code> and
    * <code>widgetTypeMap</code>). It may throw an error if needed widget can't be found in the <code>widgetTypeMap</code>
    * @param containerObject
-   * @param [uiOnlyConfigs]
    */
-  setConfigsToContainer: function(containerObject, uiOnlyConfigs) {
+  setConfigsToContainer: function(containerObject) {
     var self = this;
     var service = this.get('controller.stepConfigs').findProperty('serviceName', this.get('controller.selectedService.serviceName'));
     if (!service) return;
     containerObject.set('configs', []);
 
-    containerObject.get('configProperties').toArray().concat(uiOnlyConfigs || []).forEach(function (config) {
+    containerObject.get('configProperties').forEach(function (configId) {
 
-      var configProperty = service.get('configs').findProperty('name', config.get('name'));
+      var config = App.configsCollection.getConfig(configId);
+      var configProperty = service.get('configs').findProperty('id', Em.get(config, 'id'));
       if (!configProperty) return;
 
       containerObject.get('configs').pushObject(configProperty);
-      var configWidgetType = config.get('widget.type');
+      var configWidgetType = Em.get(config, 'widgetType');
       var widget = self.get('widgetTypeMap')[configWidgetType];
       Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
 
@@ -121,9 +118,9 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
 
       var configConditions = App.ThemeCondition.find().filter(function (_configCondition) {
         // Filter config condition depending on the value of another config
-        var conditionalConfigs = (_configCondition.get('configs')||[]).filterProperty('fileName', config.get('filename')).filterProperty('configName', config.get('name'));
+        var conditionalConfigs = _configCondition.getWithDefault('configs', []).filterProperty('fileName', Em.get(config,'filename')).filterProperty('configName', Em.get(config,'name'));
         // Filter config condition depending on the service existence or service state
-        var serviceConfigConditionFlag = ((_configCondition.get('configName') === config.get('name')) &&  (_configCondition.get('fileName') === config.get('filename')) &&  (_configCondition.get('resource') === 'service'));
+        var serviceConfigConditionFlag = ((_configCondition.get('configName') === Em.get(config,'name')) &&  (_configCondition.get('fileName') === Em.get(config,'filename')) &&  (_configCondition.get('resource') === 'service'));
         var conditions;
 
         if (serviceConfigConditionFlag) {

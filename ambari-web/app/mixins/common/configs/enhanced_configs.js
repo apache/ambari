@@ -183,25 +183,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param {App.ServiceConfig[]} stepConfigs
    */
   clearDependenciesForInstalledServices: function(installedServices, stepConfigs) {
-    var stackConfigsMap = App.StackConfigProperty.find().toArray().toMapByProperty('name');
     var allConfigs = stepConfigs.mapProperty('configs').filterProperty('length').reduce(function(p, c) {
-      if (p) {
-        return p.concat(c);
-      }
+      return p && p.concat(c);
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
       if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
-        var stackProperty = stackConfigsMap[item.propertyName];
-        var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');
+        var stackProperty = App.configsCollection.getConfigByName(item.propertyName, item.fileName);
+        var parentConfigs = stackProperty && stackProperty.propertyDependsOn;
         if (!parentConfigs || !parentConfigs.length) {
           return true;
-        } else {
-          parentConfigs = parentConfigs.mapProperty('name');
         }
         // check that all parent properties from installed service
-        return !parentConfigs.reject(function(parentConfigName) {
-          var property = allConfigs.findProperty('name', parentConfigName);
+        return !parentConfigs.reject(function(parentConfig) {
+          var property = allConfigs.filterProperty('filename', App.config.getOriginalFileName(parentConfig.type))
+                                   .findProperty('name', parentConfig.name);
           if (!property) {
             return false;
           }
@@ -473,12 +469,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           });
 
           if (!updateOnlyBoundaries && !parentPropertiesNames.contains(App.config.configId(propertyName, key)) && initialValue != recommendedValue) { //on first initial request we don't need to change values
-            var groupName = group && Em.get(group, 'name');
-            var dependentProperty = this.get('_dependentConfigValues').find(function (dcv) {
-              return dcv.propertyName === propertyName && dcv.fileName === key && dcv.configGroup === groupName;
-            });
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', initialValue);
+              Em.set(dependentProperty, 'notDefined', Em.isNone(initialValue));
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
               Em.set(dependentProperty, 'toDelete', false); // handled in <code>saveRecommendedAttributes</code>
               Em.set(dependentProperty, 'toAdd', isNewProperty);
@@ -494,6 +487,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 propertyName: propertyName,
                 configGroup: group ? group.get('name') : "",
                 value: initialValue,
+                notDefined: Em.isNone(initialValue),
                 parentConfigs: parentPropertiesNames,
                 serviceName: serviceName,
                 allowChangeGroup: !this.get('selectedService.isDefault') && service.get('serviceName') != stepConfig.get('serviceName') && stepConfig.get('configGroups.length') > 1,
@@ -557,10 +551,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     });
   }.property(),
 
-  stackConfigsMap: function () {
-    return App.StackConfigProperty.find().toArray().toMapByProperty('id');
-  }.property(),
-
   /**
    * Save property attributes received from recommendations. These attributes are minimum, maximum,
    * increment_step. Attributes are stored in <code>App.StackConfigProperty</code> model.
@@ -575,7 +565,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var installedServices = this.get('installedServices');
     var wizardController = this.get('wizardController');
     var fileNamesToUpdate = wizardController ? this.get('_fileNamesToUpdate') : [];
-    var stackConfigsMap = this.get('stackConfigsMap');
     Em.keys(configs).forEach(function (siteName) {
       var fileName = App.config.getOriginalFileName(siteName);
       var service = App.config.get('serviceByConfigTypeMap')[siteName];
@@ -586,7 +575,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       var properties = configs[siteName].property_attributes || {};
       Em.keys(properties).forEach(function (propertyName) {
         var cp = configProperties.findProperty('name', propertyName);
-        var stackProperty = stackConfigsMap[App.config.configId(propertyName, siteName)];
+        var stackProperty = App.configsCollection.getConfigByName(propertyName, siteName);
         var attributes = properties[propertyName] || {};
         Em.keys(attributes).forEach(function (attributeName) {
           if (attributeName == 'delete' && cp) {
@@ -604,7 +593,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 self.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
-                  propertyValue: cp && (self.useInitialValue(serviceName) ? cp.get('initialValue') : cp.get('savedValue')),
+                  value: cp && (self.useInitialValue(serviceName) ? cp.get('initialValue') : cp.get('savedValue')),
                   toDelete: true,
                   toAdd: false,
                   isDeleted: true,
@@ -628,16 +617,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             }
           } else if (stackProperty) {
             if (selectedConfigGroup) {
-              if (!stackProperty.get('valueAttributes')[selectedConfigGroup]) {
+              if (!stackProperty.valueAttributes[selectedConfigGroup]) {
                 /** create not default group object for updating such values as min/max **/
-                Em.set(stackProperty.get('valueAttributes'), selectedConfigGroup, {});
+                Em.set(stackProperty.valueAttributes, selectedConfigGroup, {});
               }
-              if (stackProperty.get('valueAttributes')[selectedConfigGroup][attributeName] != attributes[attributeName]) {
-                Em.set(stackProperty.get('valueAttributes')[selectedConfigGroup], attributeName, attributes[attributeName]);
+              if (stackProperty.valueAttributes[selectedConfigGroup][attributeName] != attributes[attributeName]) {
+                Em.set(stackProperty.valueAttributes[selectedConfigGroup], attributeName, attributes[attributeName]);
                 self.toggleProperty('forceUpdateBoundaries');
               }
             } else {
-              Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
+              Em.set(stackProperty.valueAttributes, attributeName, attributes[attributeName]);
             }
           }
         });
@@ -700,9 +689,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             this.get('_dependentConfigValues').removeObject(propertyToAdd);
           }
           var originalFileName = App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName'));
-          var predefinedProperty = App.config.get('preDefinedSiteProperties')
-                .filterProperty('filename', originalFileName)
-                .findProperty('name', Em.get(propertyToAdd, 'propertyName'));
+          var stackProperty = App.configsCollection.getConfigByName(Em.get(propertyToAdd, 'propertyName'), Em.get(propertyToAdd, 'fileName'));
           var addedProperty = App.ServiceConfigProperty.create({
             name: Em.get(propertyToAdd, 'propertyName'),
             displayName: Em.get(propertyToAdd, 'propertyName'),
@@ -713,7 +700,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             serviceName: stepConfigs.get('serviceName'),
             filename: originalFileName,
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired:  predefinedProperty ? Em.getWithDefault(predefinedProperty, 'isRequired', true) : true
+            isRequired: stackProperty && stackProperty.isRequired !== false
           });
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();

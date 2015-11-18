@@ -62,6 +62,10 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     LOG.info("Preparing Storm Metrics Sink");
     try {
       hostname = InetAddress.getLocalHost().getHostName();
+      //If not FQDN , call  DNS
+      if ((hostname == null) || (!hostname.contains("."))) {
+        hostname = InetAddress.getLocalHost().getCanonicalHostName();
+      }
     } catch (UnknownHostException e) {
       LOG.error("Could not identify hostname.");
       throw new RuntimeException("Could not identify hostname.", e);

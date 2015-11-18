@@ -95,13 +95,15 @@ public class AmbariAuthorizationFilter implements Filter {
         context.setAuthentication(new InternalAuthenticationToken(token));
       } else {
         // for view access, we should redirect to the Ambari login
-        if(requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
-          String queryString  = httpRequest.getQueryString();
+        if (requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)) {
+          String queryString = httpRequest.getQueryString();
           String requestedURL = queryString == null ? requestURI : (requestURI + '?' + queryString);
-          String redirectURL  = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
+          String redirectURL = httpResponse.encodeRedirectURL(LOGIN_REDIRECT_BASE + requestedURL);
 
           httpResponse.sendRedirect(redirectURL);
           return;
+        } else {
+          httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
         }
       }
     } else {
@@ -116,7 +118,7 @@ public class AmbariAuthorizationFilter implements Filter {
           Integer permissionId = privilegeEntity.getPermission().getId();
 
           // admin has full access
-          if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+          if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
             authorized = true;
             break;
           }
@@ -124,36 +126,36 @@ public class AmbariAuthorizationFilter implements Filter {
           // clusters require permission
           if (!"GET".equalsIgnoreCase(httpRequest.getMethod()) && requestURI.matches(API_CREDENTIALS_AMBARI_PATTERN)) {
             // Only the administrator can operate on credentials where the alias starts with "ambari."
-            if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (requestURI.matches(API_CREDENTIALS_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
-              permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
+              permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (STACK_ADVISOR_REGEX.matcher(requestURI).matches()) {
             //TODO permissions model doesn't manage stacks api, but we need access to stack advisor to save configs
-            if (permissionId.equals(PermissionEntity.CLUSTER_READ_PERMISSION) ||
-                permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
+                permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (requestURI.matches(API_VIEWS_ALL_PATTERN)) {
             // views require permission
-            if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.VIEW_USER_PERMISSION)) {
               authorized = true;
               break;
             }
           } else if (requestURI.matches(API_PERSIST_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_OPERATE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
               authorized = true;
               break;
             }

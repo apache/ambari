@@ -68,6 +68,10 @@ App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warnin
         callback();
       }
       this._super();
+    },
+    didInsertElement: function () {
+      this._super();
+      this.fitHeight();
     }
   });
 };
@@ -124,6 +128,10 @@ App.showPreUpgradeCheckPopup = function (data, header, failTitle, failAlert, war
       if (callback) {
         callback();
       }
+    },
+    didInsertElement: function () {
+      this._super();
+      this.fitHeight();
     }
   });
 };

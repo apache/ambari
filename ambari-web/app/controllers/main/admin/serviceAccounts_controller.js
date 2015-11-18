@@ -104,9 +104,8 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
    */
   createConfigObject: function(serverConfigs) {
     var configs = App.config.mergePredefinedWithSaved(serverConfigs, this.get('selectedService'));
-    var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups').filterProperty('isVisible', true);
-
-    miscConfigs = App.config.miscConfigVisibleProperty(miscConfigs, App.Service.find().mapProperty('serviceName').concat('MISC'));
+    var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups');
+    miscConfigs.setEach('isVisible', true);
 
     // load specific users along the wizards which called <code>loadUsers</code> method
     var wizardContentProperties = [

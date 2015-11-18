@@ -121,7 +121,6 @@
   }
   &.slider-widget {
     width: 100%;
-    overflow-x: hidden;
     margin-left: -20px;
     margin-right: 0;
     padding-left: 20px;
@@ -200,7 +199,7 @@
         display: none;
       }
       .tooltip-inner {
-        padding: 0px 2px;
+        padding: 0 2px;
         background-color: @slider-widget-tooltip-background-color;
         text-align: center;
       }
@@ -212,9 +211,9 @@
       }
     }
     .slider-tick {
-      width: 0px;
+      width: 0;
       margin-top: 10px;
-      margin-left: 0px;
+      margin-left: 0;
       font-size: 8px;
       &:before,
       &.in-selection:before {
@@ -483,5 +482,5 @@
 
 .compare-mode {
   background-color: rgba(211, 237, 247, 0.39);
-  padding: 10px 5px 0px 10px;
+  padding: 10px 5px 0 10px;
 }

@@ -71,6 +71,14 @@ def yarn(name = None):
                            mode=0777,
                            recursive_chmod=True
       )
+      
+
+    params.HdfsResource(params.entity_file_history_directory,
+                           action="create_on_execute",
+                           type="directory",
+                           owner=params.yarn_user,
+                           group=params.user_group
+    )
     params.HdfsResource("/mapred",
                          type="directory",
                          action="create_on_execute",
@@ -230,18 +238,6 @@ def yarn(name = None):
                            mode=0700
       )
       params.HdfsResource(None, action="execute")
-    if params.toggle_rm_security:
-      Execute('yarn resourcemanager -format-state-store', user = params.yarn_user,
-      )
-      # Setting RM marker file
-      if params.security_enabled:
-        File(params.rm_security_marker,
-             content="Marker file to track first start after enabling/disabling security. "
-                     "During first start ResourceManager state store is formatted"
-        )
-      elif not params.security_enabled:
-        File(params.rm_security_marker, action="delete")
-
 
 
   elif name == 'apptimelineserver':
@@ -260,6 +256,42 @@ def yarn(name = None):
        recursive=True,
        cd_access="a",
       )
+    # app timeline server 1.5 directories
+    if not is_empty(params.entity_groupfs_store_dir):
+      parent_path = os.path.dirname(params.entity_groupfs_store_dir)
+      params.HdfsResource(parent_path,
+                          type="directory",
+                          action="create_on_execute",
+                          change_permissions_for_parents=True,
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=0755
+                          )
+      params.HdfsResource(params.entity_groupfs_store_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=params.entity_groupfs_store_dir_mode
+                          )
+    if not is_empty(params.entity_groupfs_active_dir):
+      parent_path = os.path.dirname(params.entity_groupfs_active_dir)
+      params.HdfsResource(parent_path,
+                          type="directory",
+                          action="create_on_execute",
+                          change_permissions_for_parents=True,
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=0755
+                          )
+      params.HdfsResource(params.entity_groupfs_active_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.yarn_user,
+                          group=params.user_group,
+                          mode=params.entity_groupfs_active_dir_mode
+                          )
+    params.HdfsResource(None, action="execute")
 
   File(params.rm_nodes_exclude_path,
        owner=params.yarn_user,

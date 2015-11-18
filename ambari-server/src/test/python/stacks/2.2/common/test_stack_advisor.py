@@ -1035,8 +1035,7 @@ class TestHDP22StackAdvisor(TestCase):
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
-         'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
-         'hive.server2.authentication.kerberos.principal': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
          'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
@@ -2152,7 +2151,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Embedded mode, 4096m master heapsize, some splitpoints recommended
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     expected['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'] = \
-      'jvm.JvmMetrics.MemHeapCommittedM,regionserver.Server.Increment_median'
+      'master.Server.numDeadRegionServers'
     expected['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'] = ' '
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '4096'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
@@ -2162,7 +2161,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
+    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 9)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
 
     # Test splitpoints, AMS distributed mode
@@ -2174,6 +2173,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     ]
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
@@ -2193,7 +2193,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
     expected['ams-hbase-env']['properties']['hbase_regionserver_heapsize'] = '8192'
     self.stackAdvisor.recommendAmsConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 10)
+    self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.host.aggregate.splitpoints'].split(',')), 9)
     self.assertEquals(len(configurations['ams-site']['properties']['timeline.metrics.cluster.aggregate.splitpoints'].split(',')), 2)
 
   def test_recommendHbaseConfigurations(self):
@@ -2311,7 +2311,7 @@ class TestHDP22StackAdvisor(TestCase):
             "hbase.bucketcache.size": "",
             "hbase.bucketcache.percentage.in.combinedcache": "",
             "hbase.coprocessor.regionserver.classes": "",
-            "hbase.coprocessor.region.classes": ""
+            "hbase.coprocessor.region.classes": "{{hbase_coprocessor_region_classes}}"
           }
         },
         "ranger-hbase-plugin-properties": {
@@ -2327,7 +2327,9 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
           "phoenix.functions.allowUserDefinedFunctions": "true",
           "hbase.regionserver.global.memstore.size": "0.4",
-          "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint"
+          "hbase.coprocessor.region.classes": "org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint",
+          "hbase.coprocessor.regionserver.classes": "",
+          "hbase.coprocessor.master.classes": "",
         },
         'property_attributes': {
           "hbase.bucketcache.size": {
@@ -2433,7 +2435,7 @@ class TestHDP22StackAdvisor(TestCase):
     expected['hbase-site']['properties']['hbase.security.authorization'] = "true"
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
-    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test when Ranger plugin HBase is enabled in non-kerberos environment")
 
@@ -2446,11 +2448,11 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'false'
     services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
     services['configurations']['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
-    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d, {{hbase_coprocessor_region_classes}}'
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = ''
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = ''
     del expected['hbase-site']['properties']['hbase.security.authorization']
-    del expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes']
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test with Kerberos enabled and hbase.coprocessor.region.classes predefined")
 
@@ -2474,6 +2476,7 @@ class TestHDP22StackAdvisor(TestCase):
     services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled'] = 'Yes'
     expected['hbase-site']['properties']['hbase.security.authorization']  = 'true'
     expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
     expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor'
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected, "Test with Kerberos enabled and HBase ranger plugin enabled")
@@ -2518,9 +2521,6 @@ class TestHDP22StackAdvisor(TestCase):
         "stack_version": "2.2"
       },
       "configurations": {
-        "core-site": {
-          "properties": { },
-        },
         "storm-site": {
           "properties": {
             "nimbus.authorizer" : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer"
@@ -2551,7 +2551,7 @@ class TestHDP22StackAdvisor(TestCase):
     configurations['storm-site']['property_attributes'] = {}
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = ''
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'Yes'
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin enabled in kerberos environment")
 
@@ -2559,7 +2559,7 @@ class TestHDP22StackAdvisor(TestCase):
     configurations['storm-site']['properties'] = {}
     configurations['storm-site']['property_attributes'] = {}
     services['configurations']['ranger-storm-plugin-properties']['properties']['ranger-storm-plugin-enabled'] = 'No'
-    services['configurations']['core-site']['properties']['hadoop.security.authentication'] = 'kerberos'
+    services['configurations']['storm-site']['properties']['storm.zookeeper.superACL'] = 'sasl:{{storm_bare_jaas_principal}}'
     services['configurations']['storm-site']['properties']['nimbus.authorizer'] = 'com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer'
     self.stackAdvisor.recommendStormConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations['storm-site']['properties']['nimbus.authorizer'], 'backtype.storm.security.auth.authorizer.SimpleACLAuthorizer', "Test nimbus.authorizer with Ranger Storm plugin being disabled in kerberos environment")
@@ -3096,6 +3096,7 @@ class TestHDP22StackAdvisor(TestCase):
 
   def test_validateHiveConfigurations(self):
     properties = {"hive_security_authorization": "None",
+                  "hive.server2.authentication": "LDAP",
                   "hive.exec.orc.default.stripe.size": "8388608",
                   'hive.tez.container.size': '2048',
                   'hive.tez.java.opts': '-Xmx300m',
@@ -3116,7 +3117,10 @@ class TestHDP22StackAdvisor(TestCase):
     }
 
     # Test for 'ranger-hive-plugin-properties' not being in configs
-    res_expected = []
+    res_expected = [{'config-type': 'hive-site', 'message': 'According to LDAP value for hive.server2.authentication, '
+                   'you should add hive.server2.authentication.ldap.Domain property, if you are using AD, if not, '
+                   'then hive.server2.authentication.ldap.baseDN!', 'type': 'configuration', 'config-name':
+                  'hive.server2.authentication', 'level': 'WARN'}]
     res = self.stackAdvisor.validateHiveConfigurations(properties, recommendedDefaults, configurations, services, {})
     self.assertEquals(res, res_expected)
 

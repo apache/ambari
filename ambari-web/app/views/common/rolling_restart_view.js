@@ -174,17 +174,14 @@ App.RollingRestartView = Em.View.extend({
    * List of host components without components in out-of-service state
    * @type {Array}
    */
-  nonMaintainanceHostComponents : function() {
-    return this.get('allHostComponents').filterProperty('passiveState', 'OFF')
-  }.property('allHostComponents', 'allHostComponents.@each.passiveState'),
+  nonMaintainanceHostComponents : Em.computed.filterBy('allHostComponents', 'passiveState', 'OFF'),
 
   /**
    * List of host components with host in Maintenance mode
    * @type {Array}
    */
-  componentsWithMaintenanceHost: function() {
-    return this.get('allHostComponents').filterProperty('hostPassiveState', 'ON');
-  }.property('allHostComponents', 'allHostComponents.@each.hostPassiveState'),
+  componentsWithMaintenanceHost: Em.computed.filterBy('allHostComponents', 'hostPassiveState', 'ON'),
+
   /**
    * List of host components without components in out-of-service state
    * If <code>staleConfigsOnly</code> is true, components with <code>staleConfigs</code> = false are also filtered

@@ -113,6 +113,9 @@
     <value>hive</value>
     <property-type>USER</property-type>
     <description>Hive User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <!--HCAT-->
@@ -145,6 +148,9 @@
     <value>hcat</value>
     <property-type>USER</property-type>
     <description>HCat User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
   <property>
     <name>webhcat_user</name>
@@ -152,6 +158,9 @@
     <value>hcat</value>
     <property-type>USER</property-type>
     <description>WebHCat User.</description>
+    <value-attributes>
+      <type>user</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -182,12 +191,12 @@
 # The heap size of the jvm stared by hive shell script can be controlled via:
 
 if [ "$SERVICE" = "metastore" ]; then
-  export HADOOP_HEAPSIZE="{{hive_metastore_heapsize}}"
+  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore
 else
-  export HADOOP_HEAPSIZE="{{hive_heapsize}}"
+  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client
 fi
 
-export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
+export HADOOP_CLIENT_OPTS="$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m"
 
 # Larger heap size may be required when running queries over large number of files or partitions.
 # By default hive shell scripts use a heap size of 256 (MB).  Larger heap size would also be
@@ -211,6 +220,9 @@ fi
 export METASTORE_PORT={{hive_metastore_port}}
 
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
   
 </configuration>

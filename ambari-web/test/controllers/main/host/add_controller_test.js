@@ -940,7 +940,7 @@ describe('App.AddHostController', function () {
             "host2"
           ],
           "configGroupsNames": [
-            "s1 Default",
+            "Default",
             "G1"
           ],
           "configGroups": [
@@ -951,7 +951,7 @@ describe('App.AddHostController', function () {
               }
             }
           ],
-          "selectedConfigGroup": "s1 Default"
+          "selectedConfigGroup": "Default"
         }
       ]);
     });
@@ -1048,7 +1048,7 @@ describe('App.AddHostController', function () {
             "host1"
           ],
           "configGroupsNames": [
-            "s1 Default",
+            "Default",
             "G1"
           ],
           "configGroups": [
@@ -1059,7 +1059,7 @@ describe('App.AddHostController', function () {
               }
             }
           ],
-          "selectedConfigGroup": "s1 Default"
+          "selectedConfigGroup": "Default"
         }
       ]);
     });

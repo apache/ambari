@@ -185,3 +185,4 @@ require("components/pigHelper");
 require("components/scriptListRow");
 require("components/tabControl");
 require("components/pathInput");
+require("components/highlightErrors");

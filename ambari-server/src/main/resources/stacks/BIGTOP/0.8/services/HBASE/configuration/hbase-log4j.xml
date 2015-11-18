@@ -138,6 +138,9 @@ log4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO
 # log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO
 
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

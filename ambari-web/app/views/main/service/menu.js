@@ -66,21 +66,15 @@ App.MainServiceMenuView = Em.CollectionView.extend({
     templateName:require('templates/main/service/menu_item'),
     restartRequiredMessage: null,
 
-    shouldBeRestarted: function() {
-      return this.get('content.hostComponents').someProperty('staleConfigs', true);
-    }.property('content.hostComponents.@each.staleConfigs'),
+    shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
 
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
 
-    alertsCount: function () {
-      return this.get('content.alertsCount');
-    }.property('content.alertsCount'),
+    alertsCount: Em.computed.alias('content.alertsCount'),
 
-    hasCriticalAlerts: function () {
-      return this.get('content.hasCriticalAlerts');
-    }.property('content.hasCriticalAlerts'),
+    hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));
@@ -173,21 +167,15 @@ App.TopNavServiceMenuView = Em.CollectionView.extend({
     templateName:require('templates/main/service/menu_item'),
     restartRequiredMessage: null,
 
-    shouldBeRestarted: function() {
-      return this.get('content.hostComponents').someProperty('staleConfigs', true);
-    }.property('content.hostComponents.@each.staleConfigs'),
+    shouldBeRestarted: Em.computed.someBy('content.hostComponents', 'staleConfigs', true),
 
     active:function () {
       return this.get('content.id') == this.get('parentView.activeServiceId') ? 'active' : '';
     }.property('parentView.activeServiceId'),
 
-    alertsCount: function () {
-      return this.get('content.alertsCount');
-    }.property('content.alertsCount'),
+    alertsCount: Em.computed.alias('content.alertsCount'),
 
-    hasCriticalAlerts: function () {
-      return this.get('content.hasCriticalAlerts');
-    }.property('content.hasCriticalAlerts'),
+    hasCriticalAlerts: Em.computed.alias('content.hasCriticalAlerts'),
 
     isConfigurable: function () {
       return !App.get('services.noConfigTypes').contains(this.get('content.serviceName'));

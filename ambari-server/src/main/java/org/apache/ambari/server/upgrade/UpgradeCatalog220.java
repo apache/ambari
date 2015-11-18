@@ -23,6 +23,7 @@ import java.sql.SQLException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,15 @@ import com.google.inject.Injector;
  */
 public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   private static final String HOST_ROLE_COMMAND_TABLE = "host_role_command";
+  private static final String USERS_TABLE = "users";
+
   private static final String HOST_ID_COL = "host_id";
+  private static final String USER_TYPE_COL = "user_type";
+
+  private static final String ADMIN_PERMISSION_TABLE = "adminpermission";
+  private static final String PERMISSION_ID_COL = "permission_id";
+  private static final String PERMISSION_NAME_COL = "permission_name";
+  private static final String PERMISSION_LABEL_COL = "permission_label";
 
   @Inject
   DaoUtils daoUtils;
@@ -85,6 +94,14 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
 
     dbAccessor.alterColumn(HOST_ROLE_COMMAND_TABLE, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
+    dbAccessor.addColumn(USERS_TABLE, new DBColumnInfo(USER_TYPE_COL, String.class, null, "LOCAL", true));
+
+    dbAccessor.executeQuery("UPDATE users SET user_type='LDAP' WHERE ldap_user=1");
+
+    dbAccessor.addUniqueConstraint(USERS_TABLE, "UNQ_users_0", "user_name", "user_type");
+
+
+    updateAdminPermissionTable();
   }
 
   @Override
@@ -93,9 +110,45 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
+    setPermissionLabels();
+    updatePermissionNames();
   }
 
 
   // ----- UpgradeCatalog ----------------------------------------------------
+
+  private void updateAdminPermissionTable() throws SQLException {
+    // Add the permission_label column to the adminpermission table
+    dbAccessor.addColumn(ADMIN_PERMISSION_TABLE, new DBColumnInfo(PERMISSION_LABEL_COL, String.class, 255, null, true));
+  }
+
+  private void setPermissionLabels() throws SQLException {
+    String updateStatement = "UPDATE " + ADMIN_PERMISSION_TABLE + " SET " + PERMISSION_LABEL_COL + "='%s' WHERE " + PERMISSION_ID_COL + "=%d";
+
+    LOG.info("Setting permission labels");
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        "Administrator", PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        "Cluster User", PermissionEntity.CLUSTER_USER_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        "Cluster Administrator", PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        "View User", PermissionEntity.VIEW_USER_PERMISSION));
+  }
+
+  private void updatePermissionNames() throws SQLException {
+    String updateStatement = "UPDATE " + ADMIN_PERMISSION_TABLE + " SET " + PERMISSION_NAME_COL + "='%s' WHERE " + PERMISSION_ID_COL + "=%d";
+
+    // Update permissions names
+    LOG.info("Updating permission names");
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME, PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        PermissionEntity.CLUSTER_USER_PERMISSION_NAME, PermissionEntity.CLUSTER_USER_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME, PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION));
+    dbAccessor.executeUpdate(String.format(updateStatement,
+        PermissionEntity.VIEW_USER_PERMISSION_NAME, PermissionEntity.VIEW_USER_PERMISSION));
+  }
 
 }

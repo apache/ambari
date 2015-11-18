@@ -18,6 +18,7 @@
 package org.apache.ambari.server.state.stack.upgrade;
 
 import com.google.gson.Gson;
+import org.apache.ambari.server.AmbariException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -358,10 +359,17 @@ public class ConfigUpgradeChangeDefinition {
     public String ifValue;
 
     /**
+     * The property key state for the if condition
+     */
+    @XmlAttribute(name = "if-key-state")
+    public PropertyKeyState ifKeyState;
+
+    /**
      * The keys to keep when the action is {@link TransferOperation#DELETE}.
      */
     @XmlElement(name = "keep-key")
     public List<String> keepKeys = new ArrayList<String>();
+
 
     @Override
     public String toString() {
@@ -377,6 +385,7 @@ public class ConfigUpgradeChangeDefinition {
               ", ifKey='" + ifKey + '\'' +
               ", ifType='" + ifType + '\'' +
               ", ifValue='" + ifValue + '\'' +
+              ", ifKeyState='" + ifKeyState + '\'' +
               ", keepKeys=" + keepKeys +
               '}';
     }

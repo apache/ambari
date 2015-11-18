@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -41,7 +42,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected static final Pattern questionMarkPattern = Pattern.compile("\\?");
 
-  protected final StreamProvider streamProvider;
+  protected final URLStreamProvider streamProvider;
 
   protected final MetricHostProvider hostProvider;
 
@@ -60,7 +61,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected MetricsPropertyProvider(Map<String, Map<String,
        PropertyInfo>> componentPropertyInfoMap,
-       StreamProvider streamProvider,
+       URLStreamProvider streamProvider,
        ComponentSSLConfiguration configuration,
        MetricHostProvider hostProvider,
        String clusterNamePropertyId,
@@ -80,7 +81,7 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
   public static MetricsPropertyProviderProxy createInstance(
         Resource.Type type,
         Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-        StreamProvider streamProvider,
+        URLStreamProvider streamProvider,
         ComponentSSLConfiguration configuration,
         TimelineMetricCacheProvider cacheProvider,
         MetricHostProvider hostProvider,

@@ -102,6 +102,9 @@ export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m"
 {% endif %}
 
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

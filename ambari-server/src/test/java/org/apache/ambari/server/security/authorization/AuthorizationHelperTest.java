@@ -63,13 +63,13 @@ public class AuthorizationHelperTest {
     permissionEntity1.setPermissionName("Permission1");
     permissionEntity1.setResourceType(resourceTypeEntity);
     permissionEntity1.setId(2);
-    permissionEntity1.setPermissionName("CLUSTER.READ");
+    permissionEntity1.setPermissionName("CLUSTER.USER");
 
     PermissionEntity permissionEntity2 = new PermissionEntity();
     permissionEntity2.setPermissionName("Permission1");
     permissionEntity2.setResourceType(resourceTypeEntity);
     permissionEntity2.setId(3);
-    permissionEntity2.setPermissionName("CLUSTER.OPERATE");
+    permissionEntity2.setPermissionName("CLUSTER.ADMINISTRATOR");
 
     PrivilegeEntity privilegeEntity1 = new PrivilegeEntity();
     privilegeEntity1.setId(1);
@@ -95,8 +95,8 @@ public class AuthorizationHelperTest {
     for (GrantedAuthority authority : authorities) {
       authorityNames.add(authority.getAuthority());
     }
-    Assert.assertTrue(authorityNames.contains("CLUSTER.READ@1"));
-    Assert.assertTrue(authorityNames.contains("CLUSTER.OPERATE@1"));
+    Assert.assertTrue(authorityNames.contains("CLUSTER.USER@1"));
+    Assert.assertTrue(authorityNames.contains("CLUSTER.ADMINISTRATOR@1"));
   }
 
   @Test

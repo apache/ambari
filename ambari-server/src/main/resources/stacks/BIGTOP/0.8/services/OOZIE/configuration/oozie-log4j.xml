@@ -92,6 +92,9 @@ log4j.logger.org.mortbay=WARN, oozie
 log4j.logger.org.hsqldb=WARN, oozie
 log4j.logger.org.apache.hadoop.security.authentication.server=INFO, oozie
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 
 </configuration>

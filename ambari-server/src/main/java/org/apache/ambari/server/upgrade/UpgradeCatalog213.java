@@ -18,11 +18,21 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -49,6 +59,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -60,19 +71,11 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -83,11 +86,15 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String STORM_SITE = "storm-site";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
   private static final String KAFKA_BROKER = "kafka-broker";
+  private static final String KAFKA_ENV_CONFIG = "kafka-env";
+  private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS = "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String AMS_SITE = "ams-site";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
+  private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
+  private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
@@ -100,7 +107,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
     "  ulimit -l {{datanode_max_locked_memory}}\n" +
     "fi\n" +
-    "{% endif %};\n";
+    "{% endif %}\n";
 
   private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
   private static final String UPGRADE_SKIP_FAILURE_COLUMN = "skip_failures";
@@ -126,6 +133,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String BLUEPRINT_TABLE = "blueprint";
   private static final String SECURITY_TYPE_COLUMN = "security_type";
   private static final String SECURITY_DESCRIPTOR_REF_COLUMN = "security_descriptor_reference";
+
+  private static final String STAGE_TABLE = "stage";
 
   /**
    * Logger.
@@ -186,6 +195,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     addKerberosDescriptorTable();
     executeBlueprintDDLUpdates();
+    executeStageDDLUpdates();
   }
 
   protected void executeUpgradeDDLUpdates() throws AmbariException, SQLException {
@@ -208,9 +218,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         String.class, null, null, true));
   }
 
-    /**
-     * {@inheritDoc}
-     */
+  /**
+   * Updates the {@code stage} table by:
+   * <ul>
+   * <li>Adding the {@code supports_auto_skip_failure} column</li>
+   * </ul>
+   *
+   * @throws SQLException
+   */
+  protected void executeStageDDLUpdates() throws SQLException {
+    dbAccessor.addColumn(STAGE_TABLE,
+            new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
   @Override
   protected void executePreDMLUpdates() throws AmbariException, SQLException {
     // execute DDL updates
@@ -269,11 +292,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateAMSConfigs();
     updateHDFSConfigs();
     updateHbaseEnvConfig();
+    updateFlumeEnvConfig();
     updateHadoopEnv();
     updateKafkaConfigs();
     updateRangerEnvConfig();
     updateZookeeperLog4j();
     updateHiveConfig();
+    updateAccumuloConfigs();
   }
 
   /**
@@ -772,25 +797,78 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, HIVE_SITE_CONFIG, updates, true, false);
         }
       }
+      StackId stackId = cluster.getCurrentStackVersion();
+      boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
+              VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
+
+      Config hiveEnvConfig = cluster.getDesiredConfigByType(HIVE_ENV_CONFIG);
+      if (hiveEnvConfig != null) {
+        Map<String, String> hiveEnvProps = new HashMap<String, String>();
+        String content = hiveEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        // For HDP-2.3 we need to add hive heap size management to content,
+        // for others we need to update content
+        if(content != null) {
+          if(isStackNotLess23) {
+            content = updateHiveEnvContentHDP23(content);
+          } else {
+            content = updateHiveEnvContent(content);
+          }
+          hiveEnvProps.put(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, HIVE_ENV_CONFIG, hiveEnvProps, true, true);
+        }
+      }
+
     }
   }
 
   protected void updateHbaseEnvConfig() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    boolean updateConfig = false;
 
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
       StackId stackId = cluster.getCurrentStackVersion();
-      if (stackId != null && stackId.getStackName().equals("HDP") &&
-        VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
-        Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
-        if (hbaseEnvConfig != null) {
-          String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
-          if (content != null && content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
-            String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
-            content += newPartOfContent;
-            Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
-            updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
+      Config hbaseEnvConfig = cluster.getDesiredConfigByType(HBASE_ENV_CONFIG);
+      if (hbaseEnvConfig != null) {
+        String content = hbaseEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          if (!content.contains("-Djava.io.tmpdir")) {
+            content += "\n\nexport HBASE_OPTS=\"-Djava.io.tmpdir={{java_io_tmpdir}}\"";
+            updateConfig = true;
           }
+          if (stackId != null && stackId.getStackName().equals("HDP") &&
+              VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
+            if (content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
+              String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
+              content += newPartOfContent;
+              updateConfig = true;
+            }
+            if (updateConfig) {
+              Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+              updateConfigurationPropertiesForCluster(cluster, HBASE_ENV_CONFIG, updates, true, false);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  protected void updateFlumeEnvConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config flumeEnvConfig = cluster.getDesiredConfigByType(FLUME_ENV_CONFIG);
+      if (flumeEnvConfig != null) {
+        String content = flumeEnvConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null && !content.contains("/usr/lib/flume/lib/ambari-metrics-flume-sink.jar")) {
+          String newPartOfContent = "\n\n" +
+            "# Note that the Flume conf directory is always included in the classpath.\n" +
+            "# Add flume sink to classpath\n" +
+            "if [ -e \"/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\" ]; then\n" +
+            "  export FLUME_CLASSPATH=$FLUME_CLASSPATH:/usr/lib/flume/lib/ambari-metrics-flume-sink.jar\n" +
+            "fi\n";
+          content += newPartOfContent;
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, FLUME_ENV_CONFIG, updates, true, false);
         }
       }
     }
@@ -839,10 +917,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
 
+            //Changed AMS result set limit from 5760 to 11520.
+            newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+
             //Interval
-            newProperties.put("timeline.metrics.cluster.aggregator.second.interval",String.valueOf(120));
-            newProperties.put("timeline.metrics.cluster.aggregator.minute.interval",String.valueOf(300));
-            newProperties.put("timeline.metrics.host.aggregator.minute.interval",String.valueOf(300));
+            newProperties.put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
+            newProperties.put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(300));
+            newProperties.put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(300));
 
             //ttl
             newProperties.put("timeline.metrics.cluster.aggregator.second.ttl", String.valueOf(2592000));
@@ -870,7 +951,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       Map<String, Cluster> clusterMap = clusters.getClusters();
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Set<String> installedServices =cluster.getServices().keySet();
+          Set<String> installedServices = cluster.getServices().keySet();
           Config kafkaBroker = cluster.getDesiredConfigByType(KAFKA_BROKER);
           if (kafkaBroker != null) {
             Map<String, String> newProperties = new HashMap<>();
@@ -890,6 +971,16 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             }
             if (!newProperties.isEmpty()) {
               updateConfigurationPropertiesForCluster(cluster, KAFKA_BROKER, newProperties, true, true);
+            }
+          }
+
+          Config kafkaEnv = cluster.getDesiredConfigByType(KAFKA_ENV_CONFIG);
+          if (kafkaEnv != null) {
+            String kafkaEnvContent = kafkaEnv.getProperties().get(CONTENT_PROPERTY);
+            if (kafkaEnvContent != null && !kafkaEnvContent.contains(KAFKA_ENV_CONTENT_KERBEROS_PARAMS)) {
+              kafkaEnvContent += "\n\nexport KAFKA_KERBEROS_PARAMS=\"$KAFKA_KERBEROS_PARAMS {{kafka_kerberos_params}}\"";
+              Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, kafkaEnvContent);
+              updateConfigurationPropertiesForCluster(cluster, KAFKA_ENV_CONFIG, updates, true, false);
             }
           }
         }
@@ -968,6 +1059,66 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     replacement = "{{regionserver_heapsize}}m";
     content = content.replaceAll(regSearch, replacement);
     return content;
+  }
+
+  protected String updateHiveEnvContent(String hiveEnvContent) {
+    if(hiveEnvContent == null) {
+      return null;
+    }
+    // There are two cases here
+    // We do not have "export HADOOP_CLIENT_OPTS" and we need to add it
+    // We have "export HADOOP_CLIENT_OPTS" with wrong order
+    String exportHadoopClientOpts = "(?s).*export\\s*HADOOP_CLIENT_OPTS.*";
+    if (hiveEnvContent.matches(exportHadoopClientOpts)) {
+      String oldHeapSizeRegex = "export\\s*HADOOP_CLIENT_OPTS=\"-Xmx\\$\\{HADOOP_HEAPSIZE\\}m\\s*\\$HADOOP_CLIENT_OPTS\"";
+      String newHeapSizeRegex = "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+      return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+    } else {
+      String oldHeapSizeRegex = "export\\s*HADOOP_HEAPSIZE\\s*=\\s*\"\\{\\{hive_heapsize\\}\\}\"\\.*\\n\\s*fi\\s*\\n";
+      String newHeapSizeRegex = "export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+              "fi\n" +
+              "\n" +
+              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+      return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+    }
+  }
+
+  protected String updateHiveEnvContentHDP23(String hiveEnvContent) {
+    if(hiveEnvContent == null) {
+      return null;
+    }
+    String oldHeapSizeRegex = "# The heap size of the jvm stared by hive shell script can be controlled via:\\s*\\n";
+    String newHeapSizeRegex = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
+            "\n" +
+            "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
+            "  export HADOOP_HEAPSIZE={{hive_metastore_heapsize}} # Setting for HiveMetastore\n" +
+            "else\n" +
+            "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
+            "fi\n" +
+            "\n" +
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "\n";
+    return hiveEnvContent.replaceFirst(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
+  }
+
+  protected void updateAccumuloConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      // If security type is set to Kerberos, update Kerberos-related configs
+      if(cluster.getSecurityType() == SecurityType.KERBEROS) {
+        Config clientProps = cluster.getDesiredConfigByType("client");
+        if (clientProps != null) {
+          Map<String, String> properties = clientProps.getProperties();
+          if (properties == null) {
+            properties = new HashMap<String, String>();
+          }
+          // <2.1.3 did not account for a custom service principal.
+          // Need to ensure that the client knows the server's principal (the primary) to properly authenticate.
+          properties.put("kerberos.server.primary", "{{bare_accumulo_principal}}");
+          updateConfigurationPropertiesForCluster(cluster, "client", properties, true, false);
+        }
+      } // else -- no special client-configuration is necessary.
+    }
   }
 
   private String memoryToIntMb(String memorySize) {

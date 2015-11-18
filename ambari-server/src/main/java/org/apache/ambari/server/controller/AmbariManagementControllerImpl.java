@@ -2558,7 +2558,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         StageUtils.getClusterHostInfo(cluster));
 
     // Hack - Remove passwords from configs
-    if (ec.getRole().equals(Role.HIVE_CLIENT.toString()) &&
+    if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
+            ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||
+            ec.getRole().equals(Role.HCAT.toString())) &&
         ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
       ec.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
     }
@@ -3200,7 +3202,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // get them all
       if (null == r.getUsername()) {
         for (User u : users.getAllUsers()) {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
+          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
+              .isAdmin());
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }
@@ -3215,7 +3218,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                 + r.getUsername() + "'");
           }
         } else {
-          UserResponse resp = new UserResponse(u.getUserName(), u.isLdapUser(), u.isActive(), u.isAdmin());
+          UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
+              .isAdmin());
           resp.setGroups(new HashSet<String>(u.getGroups()));
           responses.add(resp);
         }
@@ -4415,7 +4419,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
         Integer permissionId = privilegeEntity.getPermission().getId();
 
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
           isAuthorized = true;
           break;
         }

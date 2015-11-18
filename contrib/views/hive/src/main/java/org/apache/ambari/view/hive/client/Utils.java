@@ -23,6 +23,7 @@ import org.apache.hive.service.cli.thrift.TStatusCode;
 import org.apache.http.client.CookieStore;
 import org.apache.http.cookie.Cookie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Utils {
@@ -60,6 +61,19 @@ public class Utils {
     return true;
   }
 
+  /**
+   * Removes the empty strings and returns back only the strings with content
+   */
+  static String[] removeEmptyStrings(String[] strs) {
+    List<String> nonEmptyStrings = new ArrayList<>();
+    for(String str : strs) {
+      if (!(str == null || str.trim().isEmpty())) {
+        nonEmptyStrings.add(str);
+      }
+    }
+    return nonEmptyStrings.toArray(new String[] {});
+  }
+
   public static class HiveAuthenticationParams {
     public static final String AUTH_TYPE = "auth";
     // We're deprecating this variable's name.
@@ -68,6 +82,7 @@ public class Utils {
     public static final String AUTH_SIMPLE = "noSasl";
     public static final String AUTH_TOKEN = "delegationToken";
     public static final String AUTH_USER = "user";
+    public static final String HS2_PROXY_USER = "hive.server2.proxy.user";
     public static final String AUTH_PRINCIPAL = "principal";
     public static final String AUTH_PASSWD = "password";
     public static final String AUTH_KERBEROS_AUTH_TYPE = "kerberosAuthType";

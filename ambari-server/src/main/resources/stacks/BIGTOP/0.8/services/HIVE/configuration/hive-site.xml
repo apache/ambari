@@ -56,6 +56,9 @@ limitations under the License.
     <value></value>
     <property-type>PASSWORD</property-type>
     <description>password to use against metastore database</description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>

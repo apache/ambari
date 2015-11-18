@@ -24,17 +24,28 @@
   <target-stack>HDP-2.3</target-stack>
   <type>ROLLING</type>
   <prerequisite-checks>
+    <!-- List of additional pre-req checks to run in addition to the required pre-reqs -->
     <check>org.apache.ambari.server.checks.HiveMultipleMetastoreCheck</check>
     <check>org.apache.ambari.server.checks.MapReduce2JobHistoryStatePreservingCheck</check>
     <check>org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck</check>
     <check>org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck</check>
     <check>org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck</check>
-    <check>org.apache.ambari.server.checks.ServicesNamenodeTruncateCheck</check>
     <check>org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck</check>
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+
+    <configuration>
+      <!-- Configuration properties for all pre-reqs including required pre-reqs -->
+      <check-properties name="org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck">
+        <property name="min-applicable-stack-version">HDP-2.2.4.2</property>
+      </check-properties>
+      <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
+        <property name="min-failure-stack-version">HDP-2.3.0.0</property>
+      </check-properties>
+    </configuration>
   </prerequisite-checks>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
@@ -63,6 +74,8 @@
     <group xsi:type="cluster" name="PREPARE_BACKUPS" title="Prepare Backups">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Pre Upgrade HBase Backup">
         <task xsi:type="execute" hosts="master">
           <script>scripts/hbase_upgrade.py</script>
@@ -103,6 +116,7 @@
     
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="RANGER">
         <component>RANGER_ADMIN</component>
         <component>RANGER_USERSYNC</component>
@@ -111,6 +125,7 @@
 
     <group name="RANGER_KMS" title="Ranger_KMS">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="RANGER_KMS">
         <component>RANGER_KMS_SERVER</component>
       </service>
@@ -136,7 +151,6 @@
       <service name="HBASE">
         <component>HBASE_MASTER</component>
       </service>
-      
     </group>
     
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
@@ -194,6 +208,7 @@
 
     <group name="HIVE" title="Hive">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service name="HIVE">
         <component>HIVE_METASTORE</component>
         <component>HIVE_SERVER</component>
@@ -203,24 +218,48 @@
 
     <group name="SPARK" title="Spark">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+      </service>
+    </group>
+
+    <group name="SPARK_CLIENTS" title="Spark Clients">
+      <skippable>true</skippable>
+      <service name="SPARK">
         <component>SPARK_CLIENT</component>
       </service>
     </group>
 
     <group name="OOZIE" title="Oozie">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="OOZIE">
         <component>OOZIE_SERVER</component>
+      </service>
+    </group>
+
+    <group name="OOZIE_CLIENTS" title="Oozie Clients">
+      <skippable>true</skippable>
+      <service name="OOZIE">
         <component>OOZIE_CLIENT</component>
       </service>
     </group>
 
     <group name="FALCON" title="Falcon">
       <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <service-check>false</service-check>
       <service name="FALCON">
         <component>FALCON_SERVER</component>
+      </service>
+    </group>
+
+    <group name="FALCON_CLIENTS" title="Falcon Clients">
+      <skippable>true</skippable>
+      <service name="FALCON">
         <component>FALCON_CLIENT</component>
       </service>
     </group>
@@ -342,7 +381,6 @@
     </group>
 
     <group xsi:type="cluster" name="FINALIZE_PRE_CHECK" title="Finalize {{direction.text.proper}} Pre-Check">
-      <skippable>false</skippable>
       <direction>UPGRADE</direction>
       
       <execute-stage title="Check Component Versions">
@@ -352,11 +390,7 @@
 
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
-      <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
-        <task xsi:type="manual">
-          <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
-        </task>
-      </execute-stage>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
@@ -530,6 +564,9 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -676,6 +713,15 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
+        <!-- In HDP 2.3.4.0, Kafka had changes that required stopping all Kafka Brokers, running a migration script,
+        and then starting one at a time. This is needed during both upgrade and downgrade. -->
+        <pre-upgrade>
+          <task xsi:type="execute" hosts="all" summary="Shut down all Kafka Brokers">
+            <script>scripts/kafka_broker.py</script>
+            <function>stop</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>

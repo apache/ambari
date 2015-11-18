@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.agent.ActionQueue;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.AlertDefinitionCommand;
@@ -596,8 +597,7 @@ public class AlertDefinitionHash {
     try {
       Cluster cluster = m_clusters.get().getCluster(clusterName);
       if (null == cluster) {
-        LOG.warn("Unable to get alert definitions for the missing cluster {}",
-            clusterName);
+
 
         return Collections.emptySet();
       }
@@ -642,7 +642,13 @@ public class AlertDefinitionHash {
 
       // add any alerts not bound to a service (host level alerts)
       definitions.addAll(m_definitionDao.findAgentScoped(clusterId));
-    } catch (AmbariException ambariException) {
+    }
+    catch (ClusterNotFoundException clusterNotFound) {
+      LOG.warn("Unable to get alert definitions for the missing cluster {}",
+        clusterName);
+      return Collections.emptySet();
+    }
+    catch (AmbariException ambariException) {
       LOG.error("Unable to get alert definitions", ambariException);
       return Collections.emptySet();
     }

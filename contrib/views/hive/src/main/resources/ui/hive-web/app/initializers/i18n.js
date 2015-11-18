@@ -158,6 +158,7 @@ TRANSLATIONS = {
     savedQueries: 'Saved Queries',
     history: 'History',
     udfs: 'UDFs',
+    uploadTable: 'Upload Table',
     logs: 'Logs',
     results: 'Results',
     explain: 'Explain'
@@ -199,6 +200,7 @@ TRANSLATIONS = {
     expand: 'Expand message',
     collapse: 'Collapse message',
     previousPage: 'previous',
+    uploadTable: 'Upload Table',
     nextPage: 'next',
     loadMore: 'Load more...',
     saveHdfs: 'Save to HDFS',
@@ -237,7 +239,10 @@ TRANSLATIONS = {
 
   hive: {
     errors: {
-      'no.query': "No query to process."
+      'no.query': "No query to process.",
+      'emptyDatabase' : "Please select Database.",
+      'emptyTableName' : "Please enter tableName.",
+      'emptyIsFirstRow' : "Please select is First Row Header?"
     }
   },
 

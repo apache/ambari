@@ -311,9 +311,15 @@ switch ($($args[0])){
     _pstart $args
     echo "Refreshing stack hash finished"
   }
+  "setup-sso"
+    {
+      echo "Setting up SSO authentication for Ambari Server"
+      _pstart $args
+      echo "Ambari Server SSO authentication setup finished"
+    }
   default
   {
-    echo "Usage: ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security|refresh-stack-hash} [options]"
+    echo "Usage: ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security|setup-sso|refresh-stack-hash} [options]"
     echo "Use ambari-server <action> --help to get details on options available."
     echo "Or, simply invoke ambari-server.py --help to print the options."
     $retcode=1

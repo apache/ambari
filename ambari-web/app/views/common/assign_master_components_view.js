@@ -39,9 +39,7 @@ App.AssignMasterComponentsView = Em.View.extend({
    * Otherwise - App.SelectHostView
    * @type {bool}
    */
-  shouldUseInputs: function() {
-    return this.get('controller.hosts.length') > 25;
-  }.property('controller.hosts.length'),
+  shouldUseInputs: Em.computed.gt('controller.hosts.length', 25),
 
   didInsertElement: function () {
     this.get('controller').loadStep();

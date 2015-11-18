@@ -1101,41 +1101,14 @@ describe('App.WizardStep8Controller', function () {
       App.set('isKerberosEnabled', false);
       App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
     });
-    Em.A([
-        {
-          controllerName: 'addServiceController',
-          securityEnabled: true,
-          isManualKerberos: true
-        },
-        {
-          controllerName: 'addServiceController',
-          securityEnabled: true,
-          isManualKerberos: false
-        },
-        {
-          controllerName: 'addServiceController',
-          securityEnabled: false,
-          isManualKerberos: false
-        }
-      ]).forEach(function (test) {
-        it(test.controllerName + ' Kerberos enabled - ' + test.securityEnabled.toString() + ' manual kerberos - ' + test.isManualKerberos, function () {
-          App.set('isKerberosEnabled', test.securityEnabled);
-          installerStep8Controller.reopen({isSubmitDisabled: false, isManualKerberos: test.isManualKerberos, content: {controllerName: test.controllerName}});
-          installerStep8Controller.submit();
-          if (test.securityEnabled) {
-            if (test.isManualKerberos) {
-              expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
-              expect(installerStep8Controller.submitProceed.called).to.equal(true);
-            } else {
-              expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(true);
-              expect(installerStep8Controller.submitProceed.called).to.equal(false);
-            }
-          } else {
-            expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(false);
-            expect(installerStep8Controller.submitProceed.called).to.equal(true);
-          }
-        });
+    it('AddServiceController Kerberos enabled', function () {
+      installerStep8Controller.reopen({
+        isSubmitDisabled: false,
+        content: {controllerName: 'addServiceController'}
       });
+      installerStep8Controller.submit();
+      expect(App.get('router.mainAdminKerberosController').getKDCSessionState.called).to.equal(true);
+    });
     it('shouldn\'t do nothing if isSubmitDisabled is true', function() {
       installerStep8Controller.reopen({isSubmitDisabled: true});
       installerStep8Controller.submit();

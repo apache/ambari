@@ -2597,6 +2597,9 @@ a:focus {
         margin: 3px;
       }
     }
+    .accordion-body.in {
+      overflow: visible;
+    }
   }
 }
 
@@ -6016,7 +6019,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       }
       .configs-table {
         table-layout: fixed;
-        font-size: 0.95em;
+        font-size: 0.9em;
         td {
           word-wrap: break-word;
           &.no-value {
@@ -6029,6 +6032,15 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
         td:first-child + td + td, td:first-child + td + td + td, td:first-child + td + td + td + td, th:first-child + th + th, th:first-child + th + th + th, th:first-child + th + th + th + th {
           width: 25%;
         }
+      }
+      .configs-table-header {
+        padding-right: 15px;
+      }
+      .configurations-changes-header {
+        display: inline-block;
+      }
+      .open-in-new-window {
+        margin-top: 10px;
       }
     }
   }

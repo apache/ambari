@@ -31,11 +31,8 @@ App.MainAdminAuthenticationView = Em.View.extend({
     this.pushAuthenticationToForm();
   },
 
-  ldapChecked:function () {
-    return this.get('form.field.method.value');
-  }.property('form.field.method.value'),
+  ldapChecked: Em.computed.alias('form.field.method.value'),
 
-  useCredentials:function () {
-    return this.get('form.field.bindMethod.value');
-  }.property('form.field.bindMethod.value')
+  useCredentials: Em.computed.alias('form.field.bindMethod.value')
+
 });

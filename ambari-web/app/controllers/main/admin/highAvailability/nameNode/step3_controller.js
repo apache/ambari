@@ -16,7 +16,19 @@
  * limitations under the License.
  */
 
+/**
+ * @typedef {object} nnHaConfigDependencies
+ * @property {string} namespaceId
+ * @property {object} serverConfigs
+ * @property {string|number} nnHttpPort
+ * @property {string|number} nnHttpsPort
+ * @property {string|number} nnRpcPort
+ * @property {string|number} zkClientPort
+ */
+
 var App = require('app');
+
+require('utils/configs/nn_ha_config_initializer');
 
 App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   name: "highAvailabilityWizardStep3Controller",
@@ -39,7 +51,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   clearStep: function () {
     this.get('stepConfigs').clear();
-    this.serverConfigData = {};
+    this.set('serverConfigData', {});
   },
 
   loadStep: function () {
@@ -103,90 +115,58 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     this.set('isLoaded', true);
   },
 
+  /**
+   * Generate set of data used to correctly initialize config values and names
+   *
+   * @returns {nnHaConfigDependencies}
+   * @private
+   * @method _prepareDependencies
+   */
+  _prepareDependencies: function () {
+    var ret = {};
+    var configsFromServer = this.get('serverConfigData.items');
+    ret.namespaceId = this.get('content.nameServiceId');
+    ret.serverConfigs = configsFromServer;
+    var hdfsConfigs = configsFromServer.findProperty('type','hdfs-site').properties;
+    var zkConfigs = configsFromServer.findProperty('type','zoo.cfg').properties;
+
+    var dfsHttpA = hdfsConfigs['dfs.namenode.http-address'];
+    ret.nnHttpPort = dfsHttpA ? dfsHttpA.split(':')[1] : 50070;
+
+    var dfsHttpsA = hdfsConfigs['dfs.namenode.https-address'];
+    ret.nnHttpsPort = dfsHttpsA ? dfsHttpsA.split(':')[1] : 50470;
+
+    var dfsRpcA = hdfsConfigs['dfs.namenode.rpc-address'];
+    ret.nnRpcPort = dfsRpcA ? dfsRpcA.split(':')[1] : 8020;
+
+    ret.zkClientPort = zkConfigs['clientPort'] ? zkConfigs['clientPort'] : 2181;
+
+    return ret;
+  },
+
+  /**
+   * Generate set of data with information about cluster topology
+   * Used in the configs' initialization process
+   *
+   * @returns {extendedTopologyLocalDB}
+   * @private
+   * @method _prepareLocalDB
+   */
+  _prepareLocalDB: function () {
+    var localDB = this.get('content').getProperties(['masterComponentHosts', 'slaveComponentHosts', 'hosts']);
+    localDB.installedServices = App.Service.find().mapProperty('serviceName');
+    return localDB;
+  },
 
   tweakServiceConfigs: function(configs) {
-    var nameServiceId = this.get('content.nameServiceId');
-    var nameServiceConfig = configs.findProperty('name','dfs.nameservices');
-    this.setConfigInitialValue(nameServiceConfig,nameServiceId);
-    var defaultFsConfig = configs.findProperty('name','fs.defaultFS');
-    this.setConfigInitialValue(defaultFsConfig, "hdfs://" + nameServiceId);
-    this.tweakServiceConfigNames(configs,nameServiceId);
-    this.tweakServiceConfigValues(configs,nameServiceId);
-  },
+    var localDB = this._prepareLocalDB();
+    var dependencies = this._prepareDependencies();
 
-  tweakServiceConfigNames: function(configs,nameServiceId) {
-    var regex = new RegExp("\\$\\{dfs.nameservices\\}","g");
-    configs.forEach(function(config) {
-      if (config.name.contains("${dfs.nameservices}")) {
-        config.name = config.name.replace(regex,nameServiceId);
-        config.displayName = config.displayName.replace(regex,nameServiceId);
-      }
-    }, this);
-  },
+    configs.forEach(function (config) {
+      App.NnHaConfigInitializer.initialValue(config, localDB, dependencies);
+    });
 
-  tweakServiceConfigValues: function(configs,nameServiceId) {
-    var
-      value = "",
-      currentNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName,
-      newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName,
-      journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName'),
-      zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    
-    var nnHttpPort = 50070;
-    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.http-address'])
-      nnHttpPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.http-address'].split(':')[1];
-    var nnHttpsPort = 50470;
-    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.https-address'])
-      nnHttpsPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.https-address'].split(':')[1];
-    var nnRpcPort = 8020;
-    if (this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.rpc-address'])
-      nnRpcPort = this.get('serverConfigData').items.findProperty('type','hdfs-site').properties['dfs.namenode.rpc-address'].split(':')[1];
-    var zkClientPort = 2181;
-    if (this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'])
-      zkClientPort = this.get('serverConfigData').items.findProperty('type','zoo.cfg').properties['clientPort'];
-
-    var config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnRpcPort);
-    config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn2');
-    this.setConfigInitialValue(config,newNameNodeHost + ':8020');
-    config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpPort);
-    config = configs.findProperty('name','dfs.namenode.http-address.' + nameServiceId + '.nn2');
-    this.setConfigInitialValue(config,newNameNodeHost + ':50070');
-    config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn1');
-    this.setConfigInitialValue(config,currentNameNodeHost + ':' + nnHttpsPort);
-    config = configs.findProperty('name','dfs.namenode.https-address.' + nameServiceId + '.nn2');
-    this.setConfigInitialValue(config,newNameNodeHost + ':50470');
-    config = configs.findProperty('name','dfs.namenode.shared.edits.dir');
-    this.setConfigInitialValue(config,'qjournal://' + journalNodeHosts[0] + ':8485;' + journalNodeHosts[1] + ':8485;' + journalNodeHosts[2] + ':8485/' + nameServiceId);
-    config = configs.findProperty('name','ha.zookeeper.quorum');
-    this.setConfigInitialValue(config,zooKeeperHosts[0] + ':' + zkClientPort + ',' + zooKeeperHosts[1] + ':' + zkClientPort + ',' + zooKeeperHosts[2] + ':'+ zkClientPort  );
-    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
-      config = configs.filterProperty('filename', 'hbase-site').findProperty('name','hbase.rootdir');
-      value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
-     this.setConfigInitialValue(config,value);
-    }
-    if (App.Service.find().someProperty('serviceName', 'AMBARI_METRICS')) {
-      config = configs.filterProperty('filename', 'ams-hbase-site').findProperty('name','hbase.rootdir');
-      value = this.get('serverConfigData.items').findProperty('type', 'ams-hbase-site').properties['hbase.rootdir'];
-      value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + nameServiceId : value;
-      config.isVisible = config.value != value ;
-      this.setConfigInitialValue(config,value);
-    }
-    config = configs.findProperty('name','instance.volumes');
-    config2 = configs.findProperty('name','instance.volumes.replacements');
-    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
-      var oldValue = this.get('serverConfigData.items').findProperty('type', 'accumulo-site').properties['instance.volumes'];
-      value = oldValue.replace(/\/\/[^\/]*/, '//' + nameServiceId);
-      var replacements = oldValue + " " + value;
-      this.setConfigInitialValue(config,value);
-      this.setConfigInitialValue(config2,replacements)
-    }
-    config = configs.findProperty('name','dfs.journalnode.edits.dir');
-    if (App.get('isHadoopWindowsStack') && App.Service.find().someProperty('serviceName', 'HDFS')) {
-     value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
-     this.setConfigInitialValue(config, value);
-    }
+    return configs;
   },
 
   /**
@@ -205,11 +185,6 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       }
     });
     return configs;
-  },
-
-  setConfigInitialValue: function(config,value) {
-    config.value = value;
-    config.recommendedValue = value;
   },
 
   renderServiceConfigs: function (_serviceConfig) {

@@ -33,25 +33,17 @@ App.ControlsView = Ember.View.extend({
 		return !this.get('serviceConfigProperty.isEditable') && this.get('serviceConfigProperty.group');
 	}.property('showActions', 'serviceConfigProperty.group'),
 
-	showIsFinal: function() {
-		return this.get('serviceConfigProperty.supportsFinal');
-	}.property('serviceConfigProperty.supportsFinal'),
+	showIsFinal: Em.computed.alias('serviceConfigProperty.supportsFinal'),
 
-	showRemove: function() {
-		return this.get('showActions') && this.get('serviceConfigProperty.isRemovable');
-	}.property('showActions', 'serviceConfigProperty.isRemovable'),
+	showRemove: Em.computed.and('showActions', 'serviceConfigProperty.isRemovable'),
 
-	showOverride: function() {
-		return this.get('showActions') && this.get('serviceConfigProperty.isPropertyOverridable');
-	}.property('showActions', 'serviceConfigProperty.isPropertyOverridable'),
+	showOverride: Em.computed.and('showActions', 'serviceConfigProperty.isPropertyOverridable'),
 
 	showUndo: function() {
 		return this.get('showActions') && !this.get('serviceConfigProperty.cantBeUndone') && this.get('serviceConfigProperty.isNotDefaultValue');
 	}.property('showActions', 'serviceConfigProperty.cantBeUndone', 'serviceConfigProperty.isNotDefaultValue'),
 
-	showSetRecommended: function() {
-		return this.get('showActions') && this.get('serviceConfigProperty.recommendedValueExists');
-	}.property('showActions', 'serviceConfigProperty.recommendedValueExists')
+	showSetRecommended: Em.computed.and('showActions', 'serviceConfigProperty.recommendedValueExists')
 
 });
 

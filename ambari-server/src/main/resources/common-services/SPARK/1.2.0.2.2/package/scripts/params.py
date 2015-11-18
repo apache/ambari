@@ -105,7 +105,6 @@ else:
   spark_history_server_host = "localhost"
 
 # spark-defaults params
-spark_hive_sec_authorization_enabled = "false"
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
 
 spark_history_ui_port = config['configurations']['spark-defaults']['spark.history.ui.port']
@@ -113,24 +112,9 @@ spark_history_ui_port = config['configurations']['spark-defaults']['spark.histor
 spark_env_sh = config['configurations']['spark-env']['content']
 spark_log4j_properties = config['configurations']['spark-log4j-properties']['content']
 spark_metrics_properties = config['configurations']['spark-metrics-properties']['content']
-spark_javaopts_properties = config['configurations']['spark-javaopts-properties']['content']
 
 hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 is_hive_installed = not len(hive_server_host) == 0
-
-hdp_full_version = functions.get_hdp_version('spark-client')
-
-spark_driver_extraJavaOptions = str(config['configurations']['spark-defaults']['spark.driver.extraJavaOptions'])
-if spark_driver_extraJavaOptions.find('-Dhdp.version') == -1:
-  spark_driver_extraJavaOptions = spark_driver_extraJavaOptions + ' -Dhdp.version=' + str(hdp_full_version)
-
-spark_yarn_am_extraJavaOptions = str(config['configurations']['spark-defaults']['spark.yarn.am.extraJavaOptions'])
-if spark_yarn_am_extraJavaOptions.find('-Dhdp.version') == -1:
-  spark_yarn_am_extraJavaOptions = spark_yarn_am_extraJavaOptions + ' -Dhdp.version=' + str(hdp_full_version)
-
-spark_javaopts_properties = str(spark_javaopts_properties)
-if spark_javaopts_properties.find('-Dhdp.version') == -1:
-  spark_javaopts_properties = spark_javaopts_properties+ ' -Dhdp.version=' + str(hdp_full_version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
@@ -145,7 +129,7 @@ spark_hive_properties = {
 # security settings
 if security_enabled:
   spark_principal = spark_kerberos_principal.replace('_HOST',spark_history_server_host.lower())
-  
+
   if is_hive_installed:
     spark_hive_properties.update({
       'hive.metastore.sasl.enabled': str(config['configurations']['hive-site']['hive.metastore.sasl.enabled']).lower(),
@@ -155,8 +139,7 @@ if security_enabled:
       'hive.metastore.kerberos.principal': config['configurations']['hive-site']['hive.metastore.kerberos.principal'],
       'hive.server2.authentication.kerberos.principal': config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal'],
       'hive.server2.authentication.kerberos.keytab': config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab'],
-      'hive.security.authorization.enabled': spark_hive_sec_authorization_enabled,
-      'hive.server2.enable.doAs': str(config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
+      'hive.server2.authentication': config['configurations']['hive-site']['hive.server2.authentication'],
     })
 
 # thrift server support - available on HDP 2.3 or higher

@@ -131,7 +131,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   errorsCount: function () {
     return this.get('selectedService.configs').filter(function (config) {
-      return Em.isNone(config.get('widget'));
+      return Em.isNone(config.get('widgetType'));
     }).filter(function(config) {
       return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
     }).filterProperty('isVisible').length;
@@ -153,9 +153,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * Determines if some config value is changed
    * @type {boolean}
    */
-  isPropertiesChanged: function(){
-    return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
-  }.property('stepConfigs.@each.isPropertiesChanged'),
+  isPropertiesChanged: Em.computed.someBy('stepConfigs', 'isPropertiesChanged', true),
 
   /**
    * Filter text will be located here
@@ -199,7 +197,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var properties = [];
     App.Tab.find(this.get('content.serviceName') + '_settings').get('sections').forEach(function(s) {
       s.get('subSections').forEach(function(ss) {
-        properties = properties.concat(ss.get('configProperties').filterProperty('id'));
+        properties = properties.concat(ss.get('configProperties'));
       });
     });
     return properties;
@@ -224,6 +222,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }, this);
     return filterColumns;
   }.property('propertyFilters', 'isCompareMode'),
+
+  /**
+   * Detects of some of the `password`-configs has not default value
+   *
+   * @type {boolean}
+   */
+  passwordConfigsAreChanged: function () {
+    return this.get('stepConfigs')
+      .findProperty('serviceName', this.get('selectedService.serviceName'))
+      .get('configs')
+      .filterProperty('displayType', 'password')
+      .someProperty('isNotDefaultValue');
+  }.property('stepConfigs.[].configs', 'selectedService.serviceName'),
 
   /**
    * indicate whether service config version belongs to default config group
@@ -400,7 +411,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   addDBProperties: function(configs) {
     if (this.get('content.serviceName') === 'HIVE') {
-      var propertyToAdd = App.config.get('preDefinedSitePropertiesMap')[App.config.configId('hive_hostname','hive-env')],
+      var propertyToAdd = App.configsCollection.getConfigByName('hive_hostname','hive-env'),
         cfg = App.config.createDefaultConfig(propertyToAdd.name, propertyToAdd.serviceName, propertyToAdd.filename, true, propertyToAdd),
         connectionUrl = configs.findProperty('name', 'javax.jdo.option.ConnectionURL');
       if (cfg && connectionUrl) {
@@ -418,24 +429,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method mergeWithStackProperties
    */
   mergeWithStackProperties: function (configs) {
-    this.get('settingsTabProperties').forEach(function (advanced) {
-      if (!configs.someProperty('name', advanced.get('name'))) {
-        configs.pushObject(App.ServiceConfigProperty.create({
-          name: advanced.get('name'),
-          displayName: advanced.get('displayName'),
-          value: advanced.get('value'),
-          savedValue: null,
-          filename: advanced.get('fileName'),
-          isUserProperty: false,
-          isNotSaved: true,
-          recommendedValue: advanced.get('value'),
-          isFinal: advanced.get('isFinal'),
-          recommendedIsFinal: advanced.get('recommendedIsFinal'),
-          serviceName: advanced.get('serviceName'),
-          supportsFinal: advanced.get('supportsFinal'),
-          category: 'Advanced ' + App.config.getConfigTagFromFileName(advanced.get('fileName')),
-          widget: advanced.get('widget')
-        }));
+    this.get('settingsTabProperties').forEach(function (advanced_id) {
+      if (!configs.someProperty('id', advanced_id)) {
+        var advanced = App.configsCollection.getConfig(advanced_id);
+        if (advanced) {
+          advanced.savedValue = null;
+          advanced.isNotSaved = true;
+          configs.pushObject(App.ServiceConfigProperty.create(advanced));
+        }
       }
     });
     return configs;

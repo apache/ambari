@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.JAXBException;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +40,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Encapsulates IO operations on a stack definition stack directory.
@@ -474,13 +477,11 @@ public class StackDirectory extends StackDefinitionDirectory {
   /**
    * Parse role command order file
    */
-
   private void parseRoleCommandOrder() {
     HashMap<String, Object> result = null;
     ObjectMapper mapper = new ObjectMapper();
     try {
-      TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {
-      };
+      TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {};
       if (rcoFilePath != null) {
         File file = new File(rcoFilePath);
         result = mapper.readValue(file, rcoElementTypeReference);
@@ -492,8 +493,43 @@ public class StackDirectory extends StackDefinitionDirectory {
             ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
       }
       roleCommandOrder = new StackRoleCommandOrder(result);
+      parseRoleCommandOrdersForServices();
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Role Command Order for " + rcoFilePath);
+        roleCommandOrder.printRoleCommandOrder(LOG);
+      }
     } catch (IOException e) {
       LOG.error(String.format("Can not read role command order info %s", rcoFilePath), e);
     }
   }
+
+  private void parseRoleCommandOrdersForServices() {
+    if (rcoFilePath != null) {
+      File stack = new File(rcoFilePath).getParentFile();
+      File servicesDir = new File(stack, "services");
+      File[] services = servicesDir.listFiles();
+      for (File service : services) {
+        if (service.isDirectory()) {
+          File rcoFile = new File(service, ROLE_COMMAND_ORDER_FILE);
+          if (rcoFile.exists())
+            parseRoleCommandOrdersForService(rcoFile);
+        }
+      }
+    }
+  }
+
+  private void parseRoleCommandOrdersForService(File rcoFile) {
+    HashMap<String, Object> result = null;
+    ObjectMapper mapper = new ObjectMapper();
+    TypeReference<Map<String, Object>> rcoElementTypeReference = new TypeReference<Map<String, Object>>() {};
+    try {
+      result = mapper.readValue(rcoFile, rcoElementTypeReference);
+      LOG.info("Role command order info was loaded from file: {}", rcoFile.getAbsolutePath());
+      StackRoleCommandOrder serviceRoleCommandOrder = new StackRoleCommandOrder(result);
+      roleCommandOrder.merge(serviceRoleCommandOrder, true);
+    } catch (IOException e) {
+      LOG.error(String.format("Can not read role command order info %s", rcoFile), e);
+    }
+  }
+
 }

@@ -45,7 +45,7 @@ App.ManageCredentialsFormView = Em.View.extend({
    *
    * @type {boolean}
    */
-  checkboxDisabled: Ember.computed.not('storePersisted'),
+  checkboxDisabled: Em.computed.not('storePersisted'),
 
   /**
    * Credentials can be removed, in case when they stored to persistent secure storage.
@@ -133,22 +133,14 @@ App.ManageCredentialsFormView = Em.View.extend({
     return credentialsUtils.STORE_TYPES.PERSISTENT;
   }.property('storeCredentials'),
 
-  formHeader: function() {
-    return this.get('isRemovable') ?
-      Em.I18n.t('admin.kerberos.credentials.form.header.stored') :
-      Em.I18n.t('admin.kerberos.credentials.form.header.not.stored');
-  }.property('isRemovable'),
+  formHeader: Em.computed.ifThenElse('isRemovable', Em.I18n.t('admin.kerberos.credentials.form.header.stored'), Em.I18n.t('admin.kerberos.credentials.form.header.not.stored')),
 
   /**
    * Message to display in tooltip regarding persistent storage state.
    *
    * @type {string}
    */
-  hintMessage: function() {
-    return this.get('storePersisted') ?
-      Em.I18n.t('admin.kerberos.credentials.store.hint.supported') :
-      Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported');
-  }.property('storePersisted'),
+  hintMessage: Em.computed.ifThenElse('storePersisted', Em.I18n.t('admin.kerberos.credentials.store.hint.supported'), Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported')),
 
   /**
    * Observe changes for principal and password.

@@ -135,9 +135,7 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
       App.tooltip($('[rel=SummaryComponentHealthTooltip]'));
     },
     templateName: require('templates/main/service/info/summary/master_components'),
-    mastersComp: function () {
-      return this.get('parentView.parentView.mastersObj');
-    }.property("parentView.parentView.mastersObj"),
+    mastersComp: Em.computed.alias('parentView.parentView.mastersObj'),
     willDestroyElement: function() {
       $('[rel=SummaryComponentHealthTooltip]').tooltip('destroy');
     }
@@ -147,13 +145,9 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');
   },
 
-  alertsCount: function () {
-    return this.get('service.alertsCount');
-  }.property('service.alertsCount'),
+  alertsCount: Em.computed.alias('service.alertsCount'),
 
-  hasCriticalAlerts: function () {
-    return this.get('service.hasCriticalAlerts');
-  }.property('service.hasCriticalAlerts'),
+  hasCriticalAlerts: Em.computed.alias('service.hasCriticalAlerts'),
 
   isCollapsed: false,
 
@@ -162,9 +156,7 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     this.set('isCollapsed', !this.isCollapsed);
   },
 
-  masters: function(){
-    return this.get('service.hostComponents').filterProperty('isMaster', true);
-  }.property('service'),
+  masters: Em.computed.filterBy('service.hostComponents', 'isMaster', true),
 
   clients: function(){
     var clients = this.get('service.hostComponents').filterProperty('isClient', true);

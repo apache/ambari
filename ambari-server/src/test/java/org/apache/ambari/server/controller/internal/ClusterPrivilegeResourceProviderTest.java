@@ -105,7 +105,7 @@ public class ClusterPrivilegeResourceProviderTest {
     expect(principalEntity.getId()).andReturn(20L).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getUserName()).andReturn("joe").anyTimes();
-    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.OPERATE").anyTimes();
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
     expect(principalTypeEntity.getName()).andReturn("USER").anyTimes();
     expect(clusterEntity.getResource()).andReturn(resourceEntity);
@@ -131,7 +131,7 @@ public class ClusterPrivilegeResourceProviderTest {
 
     Resource resource = resources.iterator().next();
 
-    Assert.assertEquals("CLUSTER.OPERATE", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
     Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
 
@@ -145,7 +145,7 @@ public class ClusterPrivilegeResourceProviderTest {
     PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
     Request request = createNiceMock(Request.class);
 
-    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.OPERATE").anyTimes();
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").anyTimes();
     expect(permissionDAO.findById(2)).andReturn(permissionEntity);
     expect(permissionDAO.findById(3)).andReturn(permissionEntity);
 

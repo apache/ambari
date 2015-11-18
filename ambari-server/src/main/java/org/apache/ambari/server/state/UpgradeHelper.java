@@ -51,7 +51,6 @@ import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.RestartGrouping;
@@ -151,11 +150,7 @@ public class UpgradeHelper {
     /**
      * The proper verbal noun of the {@link Direction} value.
      */
-    DIRECTION_VERB_PROPER("direction.verb.proper"),
-    /**
-     * Unhealthy hosts if they are specified.
-     */
-    UNHEALTHY_HOSTS("hosts.unhealthy");
+    DIRECTION_VERB_PROPER("direction.verb.proper");
 
     private String pattern;
     private Placeholder(String key) {
@@ -280,6 +275,7 @@ public class UpgradeHelper {
       groupHolder.title = group.title;
       groupHolder.groupClass = group.getClass();
       groupHolder.skippable = group.skippable;
+      groupHolder.supportsAutoSkipOnFailure = group.supportsAutoSkipOnFailure;
       groupHolder.allowRetry = group.allowRetry;
 
       // !!! all downgrades are skippable
@@ -289,7 +285,6 @@ public class UpgradeHelper {
 
       // Attempt to get the function of the group, during a NonRolling Upgrade
       Task.Type functionName = null;
-      boolean scheduleInParallel = false;
       // NonRolling defaults to not performing service checks on a group.
       // Of course, a Service Check Group does indeed run them.
       if (upgradePack.getType() == UpgradeType.NON_ROLLING) {
@@ -297,15 +292,12 @@ public class UpgradeHelper {
 
         if (RestartGrouping.class.isInstance(group)) {
           functionName = ((RestartGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
         if (StartGrouping.class.isInstance(group)) {
           functionName = ((StartGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
         if (StopGrouping.class.isInstance(group)) {
           functionName = ((StopGrouping) group).getFunction();
-          scheduleInParallel = true;
         }
       }
 
@@ -338,7 +330,7 @@ public class UpgradeHelper {
 
           // NonRolling Upgrade has several tasks for the same component, since it must first call Stop, perform several
           // other tasks, and then Start on that Component.
-          
+
           HostsType hostsType = mhr.getMasterAndHosts(service.serviceName, component);
           if (null == hostsType) {
             continue;
@@ -410,7 +402,7 @@ public class UpgradeHelper {
                   hostsType.hosts = order;
 
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null, false);
+                      svc.isClientOnlyService(), pc, null);
                 }
                 break;
               case NON_ROLLING:
@@ -435,21 +427,21 @@ public class UpgradeHelper {
 
 
                   builder.add(context, ht1, service.serviceName,
-                      svc.isClientOnlyService(), pc, h1Params, false);
+                      svc.isClientOnlyService(), pc, h1Params);
 
                   builder.add(context, ht2, service.serviceName,
-                      svc.isClientOnlyService(), pc, h2Params, false);
+                      svc.isClientOnlyService(), pc, h2Params);
                 } else {
                   // If no NameNode HA, then don't need to change hostsType.hosts since there should be exactly one.
                   builder.add(context, hostsType, service.serviceName,
-                      svc.isClientOnlyService(), pc, null, false);
+                      svc.isClientOnlyService(), pc, null);
                 }
 
                 break;
             }
           } else {
             builder.add(context, hostsType, service.serviceName,
-                svc.isClientOnlyService(), pc, null, scheduleInParallel);
+                svc.isClientOnlyService(), pc, null);
           }
         }
       }
@@ -582,9 +574,6 @@ public class UpgradeHelper {
         case DIRECTION_TEXT_PROPER:
           value = ctx.getDirection().getText(p == Placeholder.DIRECTION_TEXT_PROPER);
           break;
-        case UNHEALTHY_HOSTS:
-          value = StringUtils.join(ctx.getUnhealthy().keySet(), ", ");
-          break;
         default:
           value = m_configHelper.get().getPlaceholderValueFromDesiredConfigurations(
               cluster, token);
@@ -628,6 +617,16 @@ public class UpgradeHelper {
     public boolean skippable = false;
 
     /**
+     * {@code true} if the upgrade group's tasks can be automatically skipped if
+     * they fail. This is used in conjunction with
+     * {@link UpgradePack#isComponentFailureAutoSkipped()}. If the upgrade pack
+     * (or the upgrade request) does support auto skipping failures, then this
+     * setting has no effect. It's used mainly as a way to ensure that some
+     * groupings never have their failed tasks automatically skipped.
+     */
+    public boolean supportsAutoSkipOnFailure = true;
+
+    /**
      * List of stages for the group
      */
     public List<StageWrapper> items = new ArrayList<>();
@@ -637,8 +636,8 @@ public class UpgradeHelper {
      */
     @Override
     public String toString() {
-      StringBuilder buffer = new StringBuilder("UpgradeGroupHolder{ ");
-      buffer.append("name").append(name);
+      StringBuilder buffer = new StringBuilder("UpgradeGroupHolder{");
+      buffer.append("name=").append(name);
       buffer.append(", title=").append(title);
       buffer.append(", allowRetry=").append(allowRetry);
       buffer.append(", skippable=").append(skippable);

@@ -18,6 +18,7 @@
 
 // Application bootstrapper
 require('utils/ember_reopen');
+require('utils/ember_computed');
 var stringUtils = require('utils/string_utils');
 
 module.exports = Em.Application.create({
@@ -52,9 +53,7 @@ module.exports = Em.Application.create({
    * flag is true when upgrade process is running
    * @returns {boolean}
    */
-  upgradeInProgress: function() {
-    return ["IN_PROGRESS"].contains(this.get('upgradeState'));
-  }.property('upgradeState'),
+  upgradeInProgress: Em.computed.equal('upgradeState', 'IN_PROGRESS'),
 
   /**
    * flag is true when upgrade process is waiting for user action
@@ -228,8 +227,7 @@ module.exports = Em.Application.create({
    * @type {bool}
    */
   isHaEnabled: function () {
-    var isHDFSInstalled = App.Service.find().findProperty('serviceName','HDFS');
-    return !!isHDFSInstalled && !this.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
+    return App.Service.find('HDFS').get('isLoaded') && !App.HostComponent.find().someProperty('componentName', 'SECONDARY_NAMENODE');
   }.property('router.clusterController.dataLoadList.services', 'router.clusterController.isServiceContentFullyLoaded'),
 
   /**

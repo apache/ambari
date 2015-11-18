@@ -26,8 +26,6 @@ App.MainHostConfigsView = Em.View.extend({
     return App.router.get('mainHostDetailsController.content');
   }.property('App.router.mainHostDetailsController.content'),
 
-  isConfigAvailable: function () {
-    return !!this.get('content.hostComponents.length');
-  }.property('content.hostComponents.length')
+  isConfigAvailable: Em.computed.bool('content.hostComponents.length')
 
 });

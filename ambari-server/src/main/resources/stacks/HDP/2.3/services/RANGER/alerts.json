@@ -29,6 +29,18 @@
             }
           }
         }
+      },
+      {
+        "name": "ranger_admin_password_check",
+        "label": "Ranger Admin password check",
+        "description": "This alert is used to ensure that the Ranger Admin password in Ambari is correct.",
+        "interval": 1,
+        "scope": "ANY",
+        "source": {
+          "type": "SCRIPT",
+          "path": "RANGER/0.4.0/package/alerts/alert_ranger_admin_passwd_check.py",
+          "parameters": []
+        }
       }
     ],
     "RANGER_USERSYNC": [

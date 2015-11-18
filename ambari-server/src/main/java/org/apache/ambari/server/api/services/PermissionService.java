@@ -132,6 +132,18 @@ public class PermissionService extends BaseService {
     return handleRequest(headers, null, ui, Request.Type.DELETE, createPermissionResource(permissionId));
   }
 
+  /**
+   * Gets the role (permission) authorization service.
+   *
+   * @param request      the request
+   * @param permissionId the permission id
+   * @return the RoleAuthorizationService
+   */
+  @Path("{permissionId}/authorizations")
+  public RoleAuthorizationService getRoleAuthorizations(
+      @Context javax.ws.rs.core.Request request, @PathParam("permissionId") String permissionId) {
+    return new RoleAuthorizationService(permissionId);
+  }
 
   // ----- helper methods ----------------------------------------------------
 

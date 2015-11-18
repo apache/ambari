@@ -82,11 +82,9 @@ App.Section = DS.Model.extend({
   }.property('subSections.@each.errorsCount', 'subSections.@each.isSectionVisible'),
 
   /**
-   * @type {boolean}
+   * @type {boolean}/
    */
-  isFirstRow: function () {
-    return this.get('rowIndex') == 0;
-  }.property('rowIndex'),
+  isFirstRow: Em.computed.equal('rowIndex', 0),
 
   /**
    * @type {boolean}
@@ -105,9 +103,7 @@ App.Section = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isFirstColumn: function () {
-    return this.get('columnIndex') == 0;
-  }.property('columnIndex'),
+  isFirstColumn: Em.computed.equal('columnIndex', 0),
 
   /**
    * @type {boolean}

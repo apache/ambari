@@ -583,6 +583,7 @@
   }
   #scriptResults .panel-body, #scriptLogs .panel-body {
     max-height: 550px;
+    min-height: 55px;
     overflow-x: hidden;
     background-color: #fcfcfc;
     pre {
@@ -591,6 +592,12 @@
       border: 0;
       border-radius: 0;
       background-color: #fcfcfc;
+      &.error {
+        background-color: #f2dede;
+      }
+    }
+    .alert {
+      word-wrap: break-word;
     }
   }
   #sgrip {

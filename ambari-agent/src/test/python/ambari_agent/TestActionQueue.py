@@ -907,6 +907,7 @@ class TestActionQueue(TestCase):
     self.assertEqual(1, sleep_mock.call_count)
     sleep_mock.assert_any_call(2)
 
+  @not_for_platform(PLATFORM_LINUX)
   @patch("time.sleep")
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(StackVersionsFileHandler, "read_stack_version")

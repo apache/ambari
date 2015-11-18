@@ -30,6 +30,17 @@
       </component>
     </service>
 
+    <service name="FALCON">
+      <component name="FALCON_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_2_0_0_falcon_application_services">
+            <type>falcon-startup.properties</type>
+            <set key="*.application.services" value="org.apache.falcon.security.AuthenticationInitializationService,&#92;&#xA;      org.apache.falcon.workflow.WorkflowJobEndNotificationService,&#92;&#xA;      org.apache.falcon.service.ProcessSubscriberService,&#92;&#xA;      org.apache.falcon.entity.store.ConfigurationStore,&#92;&#xA;      org.apache.falcon.rerun.service.RetryService,&#92;&#xA;      org.apache.falcon.rerun.service.LateRunService,&#92;&#xA;      org.apache.falcon.service.LogCleanupService,&#92;&#xA;      org.apache.falcon.metadata.MetadataMappingService"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
@@ -57,6 +68,18 @@
               <key>hive.server2.http.port</key>
               <value>10001</value>
             </condition>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
+    <service name="TEZ">
+      <component name="TEZ_CLIENT">
+        <changes>
+          <definition xsi:type="configure"
+              id="hdp_2_2_0_0_tez_client_adjust_tez_lib_uris_property">
+            <type>tez-site</type>
+            <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
           </definition>
         </changes>
       </component>

@@ -19,15 +19,13 @@
 var App = require('app');
 
 App.PigAlertController = Ember.ArrayController.extend({
-  model:[],
   needs: ['pigErrorLog'],
   actions:{
     removeAlertObject:function (alert) {
       this.get('content').removeObject(alert);
     },
     showErrorLog:function (context) {
-      errorLogController = this.get('controllers.pigErrorLog');
-      errorLogController.set('errorLog', context.trace);
+      this.set('controllers.pigErrorLog.errorLog',context.trace);
       this.transitionToRoute('pig.errorLog');
     }
   }

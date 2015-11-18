@@ -73,7 +73,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
   private String componentNamePropertyId = null;
   private String resourceStatePropertyId = null;
   private ComponentSSLConfiguration sslConfig = null;
-  private StreamProvider streamProvider = null;
+  private URLStreamProvider streamProvider = null;
   private JMXHostProvider jmxHostProvider;
   private PropertyProvider defaultJmx = null;
   private PropertyProvider defaultGanglia = null;
@@ -99,7 +99,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
                                       JMXHostProvider jmxHostProvider,
                                       MetricHostProvider metricHostProvider,
                                       MetricsServiceProvider serviceProvider,
-                                      StreamProvider streamProvider,
+                                      URLStreamProvider streamProvider,
                                       String clusterPropertyId,
                                       String hostPropertyId,
                                       String componentPropertyId,

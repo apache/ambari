@@ -98,6 +98,12 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   # Timeline Service property that was added in 2.2
   ats_leveldb_state_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.leveldb-state-store.path']
 
+# ats 1.5 properties
+entity_groupfs_active_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.active-dir']
+entity_groupfs_active_dir_mode = 01777
+entity_groupfs_store_dir = config['configurations']['yarn-site']['yarn.timeline-service.entity-group-fs-store.done-dir']
+entity_groupfs_store_dir_mode = 0700
+
 hadoop_conf_secure_dir = os.path.join(hadoop_conf_dir, "secure")
 
 limits_conf_dir = "/etc/security/limits.d"
@@ -121,9 +127,6 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 nm_security_marker = '/var/lib/hadoop-yarn/nm_security_enabled'
 current_nm_security_state = os.path.isfile(nm_security_marker)
 toggle_nm_security = (current_nm_security_state and not security_enabled) or (not current_nm_security_state and security_enabled)
-rm_security_marker = "/var/lib/hadoop-yarn/rm_security_enabled"
-current_rm_security_state = os.path.isfile(rm_security_marker)
-toggle_rm_security = (current_rm_security_state and not security_enabled) or (not current_rm_security_state and security_enabled)
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
 yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site']['yarn.nodemanager.container-executor.class']
@@ -176,6 +179,8 @@ nm_log_dirs_list = nm_log_dirs.split(',')
 
 distrAppJarName = "hadoop-yarn-applications-distributedshell-2.*.jar"
 hadoopMapredExamplesJarName = "hadoop-mapreduce-examples-2.*.jar"
+
+entity_file_history_directory = "/tmp/entity-file-history/active"
 
 yarn_pid_dir = status_params.yarn_pid_dir
 mapred_pid_dir = status_params.mapred_pid_dir

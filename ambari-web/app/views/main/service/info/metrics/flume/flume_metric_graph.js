@@ -39,9 +39,7 @@ App.ChartServiceFlumeMetricGraph = App.ChartLinearTimeView.extend({
     return "service-metrics-flume-metric-graph-" + this.get('metricType') + '-' + this.get('metricName');
   }.property('metricType', 'metricName'),
 
-  title: function(){
-    return this.get('metricName');
-  }.property('metricName'),
+  title: Em.computed.alias('metricName'),
 
   ajaxIndex: 'host.host_component.flume.metrics.timeseries',
 

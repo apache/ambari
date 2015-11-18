@@ -44,6 +44,11 @@ public class CalculatedStatus {
   private final HostRoleStatus status;
 
   /**
+   * The display status.
+   */
+  private final HostRoleStatus displayStatus;
+
+  /**
    * The calculated percent complete.
    */
   private final double percent;
@@ -58,7 +63,19 @@ public class CalculatedStatus {
    * @param percent  the calculated percent complete
    */
   private CalculatedStatus(HostRoleStatus status, double percent) {
+    this(status, null, percent);
+  }
+
+  /**
+   * Overloaded constructor that allows to set the display status if required.
+   *
+   * @param status   the calculated overall status
+   * @param displayStatus the calculated display status
+   * @param percent  the calculated percent complete
+   */
+  private CalculatedStatus(HostRoleStatus status, HostRoleStatus displayStatus, double percent) {
     this.status  = status;
+    this.displayStatus  = displayStatus;
     this.percent = percent;
   }
 
@@ -72,6 +89,19 @@ public class CalculatedStatus {
    */
   public HostRoleStatus getStatus() {
     return status;
+  }
+
+  /**
+   * Get the calculated display status. The display_status field is used as
+   * a hint for UI. It's effective only on UpgradeGroup level.
+   * We should expose it for the following states:
+   * SKIPPED_FAILED
+   * FAILED
+   *
+   * @return the display status
+   */
+  public HostRoleStatus getDisplayStatus() {
+    return displayStatus;
   }
 
   /**
@@ -267,6 +297,8 @@ public class CalculatedStatus {
     Collection<HostRoleStatus> stageStatuses = new HashSet<HostRoleStatus>();
     Collection<HostRoleStatus> taskStatuses = new ArrayList<HostRoleStatus>();
 
+    HostRoleStatus displayStatus = null;
+
     for (Long stageId : stageIds) {
       if (!stageDto.containsKey(stageId)) {
         continue;
@@ -277,6 +309,7 @@ public class CalculatedStatus {
       int total = summary.getTaskTotal();
       boolean skip = summary.isStageSkippable();
       Map<HostRoleStatus, Integer> counts = calculateStatusCounts(summary.getTaskStatuses());
+      displayStatus = calculateDisplayStatus(counts, displayStatus);
 
       HostRoleStatus stageStatus = calculateSummaryStatus(counts, total, skip);
 
@@ -290,7 +323,7 @@ public class CalculatedStatus {
 
     double progressPercent = calculateProgressPercent(calculateStatusCounts(taskStatuses), taskStatuses.size());
 
-    return new CalculatedStatus(status, progressPercent);
+    return new CalculatedStatus(status, displayStatus, progressPercent);
   }
 
   /**
@@ -342,10 +375,26 @@ public class CalculatedStatus {
         counters.get(HostRoleStatus.HOLDING) > 0 ? HostRoleStatus.HOLDING :
         counters.get(HostRoleStatus.HOLDING_FAILED) > 0 ? HostRoleStatus.HOLDING_FAILED :
         counters.get(HostRoleStatus.HOLDING_TIMEDOUT) > 0 ? HostRoleStatus.HOLDING_TIMEDOUT :
-        counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
         counters.get(HostRoleStatus.FAILED) > 0 && !skippable ? HostRoleStatus.FAILED :
         counters.get(HostRoleStatus.ABORTED) > 0 ? HostRoleStatus.ABORTED:
         counters.get(HostRoleStatus.TIMEDOUT) > 0 && !skippable ? HostRoleStatus.TIMEDOUT :
         counters.get(HostRoleStatus.COMPLETED) == total ? HostRoleStatus.COMPLETED : HostRoleStatus.IN_PROGRESS;
+  }
+
+  /**
+   * Calculate a display status for upgrade group.
+   * Since we iterate over all tasks in all stages that belong to group, we have to
+   * pass a previous status from previous stages, so the most severe status is selected
+   *
+   * @param counters   counts of resources that are in various states
+   * @param previousStatus previous status (from previous stages)
+   *
+   * @return display status based on statuses of tasks in different states. May be SKIPPED_FAILED, FAILED
+   * or null if there is no failures at all
+   */
+  private static HostRoleStatus calculateDisplayStatus(Map<HostRoleStatus, Integer> counters, HostRoleStatus previousStatus) {
+    return previousStatus != null && previousStatus.equals(HostRoleStatus.SKIPPED_FAILED) || counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
+           previousStatus != null && previousStatus.equals(HostRoleStatus.FAILED) || counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
+           null;
   }
 }

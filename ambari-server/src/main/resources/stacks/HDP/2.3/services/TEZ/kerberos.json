@@ -5,6 +5,11 @@
       "components": [
         {
           "name": "TEZ_CLIENT",
+          "identities": [
+            {
+              "name": "/HDFS/NAMENODE/hdfs"
+            }
+          ],
           "configurations": [
             {
               "tez-site": {

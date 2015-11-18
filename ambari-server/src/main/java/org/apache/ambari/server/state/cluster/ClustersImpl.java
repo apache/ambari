@@ -930,7 +930,7 @@ public class ClustersImpl implements Clusters {
         Integer                permissionId    = privilegeEntity.getPermission().getId();
 
         // admin has full access
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
           return true;
         }
         if (cluster != null) {

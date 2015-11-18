@@ -123,6 +123,7 @@
       if empty Configuration assumes it is NULL.
     </description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

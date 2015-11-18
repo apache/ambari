@@ -32,8 +32,10 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
+import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.security.encryption.CertificateUtils;
 import org.apache.ambari.server.utils.Parallel;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
@@ -54,6 +56,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import java.security.cert.CertificateException;
+import java.security.interfaces.RSAPublicKey;
 
 
 /**
@@ -100,6 +105,7 @@ public class Configuration {
   public static final String API_GZIP_COMPRESSION_ENABLED_KEY = "api.gzip.compression.enabled";
   public static final String API_GZIP_MIN_COMPRESSION_SIZE_KEY = "api.gzip.compression.min.size";
   public static final String AGENT_API_GZIP_COMPRESSION_ENABLED_KEY = "agent.api.gzip.compression.enabled";
+  public static final String AGENT_USE_SSL = "agent.ssl";
   public static final String SRVR_TWO_WAY_SSL_KEY = "security.server.two_way_ssl";
   public static final String SRVR_TWO_WAY_SSL_PORT_KEY = "security.server.two_way_ssl.port";
   public static final String SRVR_ONE_WAY_SSL_PORT_KEY = "security.server.one_way_ssl.port";
@@ -190,6 +196,14 @@ public class Configuration {
   public static final String ROLLING_UPGRADE_MIN_STACK_DEFAULT = "HDP-2.2";
   public static final String ROLLING_UPGRADE_MAX_STACK_DEFAULT = "";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
+  public static final String JWT_AUTH_ENBABLED = "authentication.jwt.enabled";
+  public static final String JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl";
+  public static final String JWT_PUBLIC_KEY = "authentication.jwt.publicKey";
+  public static final String JWT_AUDIENCES = "authentication.jwt.audiences";
+  public static final String JWT_COOKIE_NAME = "authentication.jwt.cookieName";
+  public static final String JWT_ORIGINAL_URL_QUERY_PARAM = "authentication.jwt.originalUrlParamName";
+  public static final String JWT_COOKIE_NAME_DEFAULT = "hadoop-jwt";
+  public static final String JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT = "originalUrl";
 
   public static final String SERVER_JDBC_CONNECTION_POOL = "server.jdbc.connection-pool";
   public static final String SERVER_JDBC_CONNECTION_POOL_MIN_SIZE = "server.jdbc.connection-pool.min-size";
@@ -202,10 +216,8 @@ public class Configuration {
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_ATTEMPTS = "server.jdbc.connection-pool.acquisition-retry-attempts";
   public static final String SERVER_JDBC_CONNECTION_POOL_ACQUISITION_RETRY_DELAY = "server.jdbc.connection-pool.acquisition-retry-delay";
 
-  public static final String API_OPERATIONS_RETRY_ATTEMPTS_KEY = "api.operations.retry-attempts";
-  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY = "blueprints.operations.retry-attempts";
-  public static final String API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
-  public static final String BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
+  public static final String OPERATIONS_RETRY_ATTEMPTS_KEY = "server.operations.retry-attempts";
+  public static final String OPERATIONS_RETRY_ATTEMPTS_DEFAULT = "0";
   public static final int RETRY_ATTEMPTS_LIMIT = 10;
 
   public static final String SERVER_JDBC_RCA_USER_NAME_KEY = "server.jdbc.rca.user.name";
@@ -1136,6 +1148,14 @@ public class Configuration {
    */
   public boolean getApiSSLAuthentication() {
     return ("true".equals(properties.getProperty(API_USE_SSL, "false")));
+  }
+
+  /**
+   * Check to see if the Agent should be authenticated via ssl or not
+   * @return false if not, true if ssl needs to be used.
+   */
+  public boolean getAgentSSLAuthentication() {
+    return ("true".equals(properties.getProperty(AGENT_USE_SSL, "true")));
   }
 
   /**
@@ -2305,6 +2325,49 @@ public class Configuration {
   }
 
   /**
+   * Get set of properties desribing SSO configuration (JWT)
+   */
+  public JwtAuthenticationProperties getJwtProperties() {
+    boolean enableJwt = Boolean.valueOf(properties.getProperty(JWT_AUTH_ENBABLED, "false"));
+
+    if (enableJwt) {
+      String providerUrl = properties.getProperty(JWT_AUTH_PROVIDER_URL);
+      if (providerUrl == null) {
+        LOG.error("JWT authentication provider URL not specified. JWT auth will be disabled.", providerUrl);
+        return null;
+      }
+      String publicKeyPath = properties.getProperty(JWT_PUBLIC_KEY);
+      if (publicKeyPath == null) {
+        LOG.error("Public key pem not specified for JWT auth provider {}. JWT auth will be disabled.", providerUrl);
+        return null;
+      }
+      try {
+        RSAPublicKey publicKey = CertificateUtils.getPublicKeyFromFile(publicKeyPath);
+        JwtAuthenticationProperties jwtProperties = new JwtAuthenticationProperties();
+        jwtProperties.setAuthenticationProviderUrl(providerUrl);
+        jwtProperties.setPublicKey(publicKey);
+
+        jwtProperties.setCookieName(properties.getProperty(JWT_COOKIE_NAME, JWT_COOKIE_NAME_DEFAULT));
+        jwtProperties.setAudiencesString(properties.getProperty(JWT_AUDIENCES));
+        jwtProperties.setOriginalUrlQueryParam(
+          properties.getProperty(JWT_ORIGINAL_URL_QUERY_PARAM, JWT_ORIGINAL_URL_QUERY_PARAM_DEFAULT));
+
+        return jwtProperties;
+
+      } catch (IOException e) {
+        LOG.error("Unable to read public certificate file. JWT auth will be disabled.", e);
+        return null;
+      } catch (CertificateException e) {
+        LOG.error("Unable to parse public certificate file. JWT auth will be disabled.", e);
+        return null;
+      }
+    } else {
+      return null;
+    }
+
+  }
+
+  /**
    * Gets whether to use experiemental concurrent processing to convert
    * {@link StageEntity} instances into {@link Stage} instances. The default is
    * {@code false}.
@@ -2359,38 +2422,22 @@ public class Configuration {
   }
 
   /**
-   * @return number of retry attempts for API update requests
+   * @return number of retry attempts for api and blueprint operations
    */
-  public int getApiOperationsRetryAttempts() {
-    String property = properties.getProperty(API_OPERATIONS_RETRY_ATTEMPTS_KEY, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+  public int getOperationsRetryAttempts() {
+    String property = properties.getProperty(OPERATIONS_RETRY_ATTEMPTS_KEY, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
     Integer attempts = Integer.valueOf(property);
     if (attempts < 0) {
-      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value reset to default {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-      attempts = Integer.valueOf(API_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
+          attempts, RETRY_ATTEMPTS_LIMIT, OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
+      attempts = Integer.valueOf(OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
     } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
-      LOG.warn("Invalid API retry attempts number ({}), should be [0,{}]. Value set to {}",
+      LOG.warn("Invalid operations retry attempts number ({}), should be [0,{}]. Value set to {}",
           attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
       attempts = RETRY_ATTEMPTS_LIMIT;
     }
-    return attempts;
-  }
-
-  /**
-   * @return number of retry attempts for blueprints operations
-   */
-  public int getBlueprintsOperationsRetryAttempts() {
-    String property = properties.getProperty(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_KEY,
-            BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-    Integer attempts = Integer.valueOf(property);
-    if (attempts < 0) {
-      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value reset to default {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-      attempts = Integer.valueOf(BLUEPRINTS_OPERATIONS_RETRY_ATTEMPTS_DEFAULT);
-    } else if (attempts > RETRY_ATTEMPTS_LIMIT) {
-      LOG.warn("Invalid blueprint operations retry attempts number ({}), should be [0,{}]. Value set to {}",
-          attempts, RETRY_ATTEMPTS_LIMIT, RETRY_ATTEMPTS_LIMIT);
-      attempts = RETRY_ATTEMPTS_LIMIT;
+    if (attempts > 0) {
+      LOG.info("Operations retry enabled. Number of retry attempts: {}", attempts);
     }
     return attempts;
   }

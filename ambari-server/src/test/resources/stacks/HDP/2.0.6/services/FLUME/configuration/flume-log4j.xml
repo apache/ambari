@@ -27,5 +27,8 @@
     <value>
 # Flume log4j config
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

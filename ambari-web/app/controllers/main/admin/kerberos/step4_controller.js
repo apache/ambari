@@ -21,9 +21,7 @@ require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, {
   name: 'kerberosWizardStep4Controller',
-  isWithinAddService: function () {
-    return this.get('wizardController.name') == 'addServiceController';
-  }.property('wizardController.name'),
+  isWithinAddService: Em.computed.equal('wizardController.name', 'addServiceController'),
 
   adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
   
@@ -153,6 +151,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         }
       }, this);
     }
+    configProperties = App.config.sortConfigs(configProperties);
     this.get('stepConfigs').pushObjects(this.createServiceConfig(configProperties));
     this.set('selectedService', this.get('stepConfigs')[0]);
   },

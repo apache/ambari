@@ -149,7 +149,7 @@ describe('App.MainConfigHistoryView', function() {
       view.set('filteringComplete', false);
       view.updateFilter(1, '1', 'string');
       expect(view.get('controller.resetStartIndex')).to.be.false;
-      expect(view.saveFilterConditions.calledWith(1, '1', 'string', false)).to.be.true;
+      expect(view.saveFilterConditions.called).to.be.false;
       view.set('filteringComplete', true);
       this.clock.tick(view.get('filterWaitingTime'));
       expect(view.updateFilter.calledWith(1, '1', 'string')).to.be.true;
@@ -160,6 +160,7 @@ describe('App.MainConfigHistoryView', function() {
 
       view.updateFilter(1, '1', 'string');
       expect(view.get('controller.resetStartIndex')).to.be.true;
+      expect(view.saveFilterConditions.calledWith(1, '1', 'string', false)).to.be.true;
       expect(view.refresh.calledOnce).to.be.true;
     });
 
@@ -210,6 +211,21 @@ describe('App.MainConfigHistoryView', function() {
       view.set('startIndex', 0);
       view.resetStartIndex();
       expect(view.get('startIndex')).to.equal(1);
+    });
+  });
+
+  describe("#updaterSuccessCb()", function () {
+    beforeEach(function () {
+      sinon.stub(view, 'propertyDidChange');
+    });
+    afterEach(function () {
+      view.propertyDidChange.restore();
+    });
+    it("", function () {
+      view.set('filteringComplete', false);
+      view.updaterSuccessCb();
+      expect(view.propertyDidChange.calledWith('pageContent')).to.be.true;
+      expect(view.get('filteringComplete')).to.be.true;
     });
   });
 });

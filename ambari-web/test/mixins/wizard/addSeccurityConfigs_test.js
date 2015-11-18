@@ -288,24 +288,6 @@ describe('App.AddSecurityConfigs', function () {
       var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
       expect(displayName).to.equal(App.format.normalizeName(config.name));
     });
-
-    it('config does not exist in the secure_properties', function () {
-      var config = {
-        fileName: '',
-        name: 'someCoolFakeName'
-      };
-      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
-      expect(displayName).to.equal(config.name);
-    });
-
-    it('config exists in the secure_properties', function () {
-      var config = {
-        fileName: '',
-        name: 'hbase_user_keytab'
-      };
-      var displayName = controller._getDisplayNameForConfig(config.name, config.fileName);
-      expect(displayName).to.equal(App.config.get('allPreDefinedSiteProperties').findProperty('name', config.name).displayName);
-    });
   });
 
 });

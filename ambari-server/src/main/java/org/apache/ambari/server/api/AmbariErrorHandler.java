@@ -21,6 +21,8 @@ package org.apache.ambari.server.api;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.security.authorization.jwt.JwtAuthenticationProperties;
 import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.server.AbstractHttpConnection;
@@ -33,12 +35,17 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Custom error handler for Jetty to return response as JSON instead of stub http page
+ */
 public class AmbariErrorHandler extends ErrorHandler {
   private final Gson gson;
+  private Configuration configuration;
 
   @Inject
-  public AmbariErrorHandler(@Named("prettyGson") Gson prettyGson) {
+  public AmbariErrorHandler(@Named("prettyGson") Gson prettyGson, Configuration configuration) {
     this.gson = prettyGson;
+    this.configuration = configuration;
   }
 
   @Override
@@ -56,6 +63,15 @@ public class AmbariErrorHandler extends ErrorHandler {
       message = HttpStatus.getMessage(code);
     }
     errorMap.put("message", message);
+
+    if (code == HttpServletResponse.SC_FORBIDDEN) {
+      //if SSO is configured we should provide info about it in case of access error
+      JwtAuthenticationProperties jwtProperties = configuration.getJwtProperties();
+      if (jwtProperties != null) {
+        errorMap.put("jwtProviderUrl", jwtProperties.getAuthenticationProviderUrl() + "?" +
+          jwtProperties.getOriginalUrlQueryParam() + "=");
+      }
+    }
 
     gson.toJson(errorMap, response.getWriter());
   }

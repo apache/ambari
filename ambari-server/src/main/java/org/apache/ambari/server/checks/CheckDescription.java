@@ -26,6 +26,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
  * Enum that wraps the various type, text and failure messages for the checks
  * done for Rolling Upgrades.
  */
+@SuppressWarnings("serial")
 public enum CheckDescription {
 
   CLIENT_RETRY(PrereqCheckType.SERVICE,
@@ -38,12 +39,17 @@ public enum CheckDescription {
       }}),
 
   HOSTS_HEARTBEAT(PrereqCheckType.HOST,
-      "All hosts must be heartbeating with the Ambari Server unless they are in Maintenance Mode",
+      "All hosts must be communicating with Ambari. Hosts which are not reachable should be placed in Maintenance Mode.",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-            "The following hosts must be heartbeating to the Ambari Server or be put into maintenance mode.");
-        put(HostsHeartbeatCheck.KEY_HOSTS_IN_MM_WARNING,
-            "The following hosts are in maintenance mode and will not be a part of the upgrade.");
+            "There are hosts which are not communicating with Ambari.");
+      }}),
+
+  HOSTS_MAINTENANCE_MODE(PrereqCheckType.HOST,
+      "Hosts in Maintenance Mode will be excluded from the upgrade.",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There are hosts in Maintenance Mode which excludes them from being upgraded.");
       }}),
 
   HOSTS_MASTER_MAINTENANCE(PrereqCheckType.HOST,
@@ -73,7 +79,7 @@ public enum CheckDescription {
       }}),
 
   STORM_REST_API_MUST_BE_DELETED(PrereqCheckType.SERVICE,
-      "The STORM_REST_API component will no longer be available and must be deleted from the cluster before upgrading. The same functionality is now provided by STORM_UI_SERVER. First, stop the component. Next, delete it using the API, e.g., curl -u $user:$password -X DELETE -H 'X-Requested-By:admin' http://$server:8080/api/v1/clusters/$name/services/STORM/components/STORM_REST_API ",
+      "The STORM_REST_API component will no longer be available and must be deleted from the cluster before upgrading. The same functionality is now provided by STORM_UI_SERVER. First, stop the entire Storm service. Next, delete STORM_REST_API using the API, e.g., curl -u $user:$password -X DELETE -H 'X-Requested-By:admin' http://$server:8080/api/v1/clusters/$name/services/STORM/components/STORM_REST_API . Finally, start Storm service.",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT, "The following component must be deleted from the cluster: {{fails}}.");
       }}),
@@ -146,6 +152,13 @@ public enum CheckDescription {
             "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.");
       }}),
 
+  INSTALL_PACKAGES_CHECK(PrereqCheckType.CLUSTER,
+      "Install packages must be re-run",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "Re-run Install Packages before starting upgrade");
+      }}),
+
   SERVICES_YARN_WP(PrereqCheckType.SERVICE,
       "YARN work preserving restart should be enabled",
       new HashMap<String, String>() {{
@@ -194,6 +207,25 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
           "The following config types will have values overwritten: %s");
+      }}),
+
+  SERVICES_RANGER_PASSWORD_VERIFY(PrereqCheckType.SERVICE,
+      "Verify Ambari and Ranger Password Synchronization",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "There was a problem verifying Ranger and Ambari users");
+        put(RangerPasswordCheck.KEY_RANGER_PASSWORD_MISMATCH,
+            "Credentials for user '%s' in Ambari do not match Ranger.");
+        put(RangerPasswordCheck.KEY_RANGER_UNKNOWN_RESPONSE,
+            "Could not verify credentials for user '%s'.  Response code %s received from %s");
+        put(RangerPasswordCheck.KEY_RANGER_COULD_NOT_ACCESS,
+            "Could not access Ranger to verify user '%s' against %s. %s");
+        put(RangerPasswordCheck.KEY_RANGER_USERS_ELEMENT_MISSING,
+            "The response from Ranger received, but there is no users element.  Request: %s");
+        put(RangerPasswordCheck.KEY_RANGER_OTHER_ISSUE,
+            "The response from Ranger was malformed. %s. Request: %s");
+        put(RangerPasswordCheck.KEY_RANGER_CONFIG_MISSING,
+            "Could not check credentials.  Missing property %s/%s");
       }});
 
 

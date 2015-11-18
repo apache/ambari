@@ -31,33 +31,16 @@ App.PigController = Em.ArrayController.extend({
       this.transitionToRoute('pig');
     },
     saveScript: function (script,onSuccessCallback) {
-      var onSuccess = onSuccessCallback || function(model){
-          //this.set('disableScriptControls',false);
-          this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_saved',{title: script.get('title')}),status:'success'});
-        }.bind(this),
-        onFail = function(error){
-          var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
-          this.send('showAlert', {'message':Em.I18n.t('scripts.alert.save_error'),status:'error',trace:trace});
-        }.bind(this);
-
-      return script.get('pigScript').then(function(file){
-        return Ember.RSVP.all([file.save(),script.save()]).then(onSuccess,onFail);
-      },onFail);
+      return script.get('pigScript').then(function (file){
+        return Ember.RSVP.all([file.save(),script.save()]);
+      }).then(onSuccessCallback || Em.run.bind(this,'saveScriptSuccess'), Em.run.bind(this,'saveScriptFailed'));
     },
     deletescript:function (script) {
       return this.send('openModal','confirmDelete',script);
     },
     confirmdelete:function (script) {
-      var onSuccess = function(model){
-            this.transitionToRoute('pig.scripts');
-            this.send('showAlert', {'message':Em.I18n.t('scripts.alert.script_deleted',{title : model.get('title')}),status:'success'});
-          }.bind(this);
-      var onFail = function(error){
-            var trace = (error && error.responseJSON.trace)?error.responseJSON.trace:null;
-            this.send('showAlert', {'message':Em.I18n.t('scripts.alert.delete_failed'),status:'error',trace:trace});
-          }.bind(this);
       script.deleteRecord();
-      return script.save().then(onSuccess,onFail);
+      return script.save().then(Em.run.bind(this,'deleteScriptSuccess'),Em.run.bind(this,'deleteScriptFailed'));
     },
     copyScript:function (script) {
       var newScript = this.store.createRecord('script',{
@@ -95,5 +78,36 @@ App.PigController = Em.ArrayController.extend({
 
   saveEnabled:function () {
     return this.get('scriptDirty') && !this.get('disableScriptControls');
-  }.property('scriptDirty','disableScriptControls')
+  }.property('scriptDirty','disableScriptControls'),
+
+  saveScriptSuccess: function (script) {
+    this.send('showAlert', {
+      'message': Em.I18n.t('scripts.alert.script_saved', { 'title' : script.get('title') } ),
+      'status': 'success'
+    });
+  },
+
+  saveScriptFailed: function (error) {
+    this.send('showAlert', {
+      'message': Em.I18n.t('scripts.alert.save_error'),
+      'status': 'error',
+      'trace': (error && error.responseJSON.trace) ? error.responseJSON.trace : null
+    });
+  },
+
+  deleteScriptSuccess: function (script) {
+    this.transitionToRoute('pig.scripts');
+    this.send('showAlert', {
+      'message': Em.I18n.t('scripts.alert.script_deleted', { 'title': script.get('title') } ),
+      'status': 'success'
+    });
+  },
+
+  deleteScriptFailed: function (error) {
+    this.send('showAlert', {
+      'message': Em.I18n.t('scripts.alert.delete_failed'),
+      'status': 'error',
+      'trace': (error && error.responseJSON.trace) ? error.responseJSON.trace : null
+    });
+  }
 });

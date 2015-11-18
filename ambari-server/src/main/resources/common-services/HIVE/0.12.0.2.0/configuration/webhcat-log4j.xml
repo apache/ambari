@@ -74,6 +74,7 @@ log4j.logger.org.eclipse.jetty = INFO
 
     </value>
     <value-attributes>
+      <type>content</type>
       <show-property-name>false</show-property-name>
     </value-attributes>
   </property>

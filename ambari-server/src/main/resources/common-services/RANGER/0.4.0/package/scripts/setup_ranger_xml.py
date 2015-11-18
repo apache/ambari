@@ -284,6 +284,7 @@ def setup_usersync(upgrade_type=None):
   import params
 
   usersync_home = params.usersync_home
+  ranger_home = params.ranger_home
   ranger_ugsync_conf = params.ranger_ugsync_conf
 
   if not is_empty(params.ranger_usersync_ldap_ldapbindpassword) and params.ug_sync_source == 'org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder':
@@ -291,6 +292,7 @@ def setup_usersync(upgrade_type=None):
 
   if upgrade_type is not None:
     usersync_home = format("/usr/hdp/{version}/ranger-usersync")
+    ranger_home = format("/usr/hdp/{version}/ranger-admin")
     ranger_ugsync_conf = format("/usr/hdp/{version}/ranger-usersync/conf")
 
   Directory(params.ranger_pid_dir,
@@ -334,8 +336,12 @@ def setup_usersync(upgrade_type=None):
   if os.path.isfile(params.cred_validator_file):
     File(params.cred_validator_file, group=params.unix_group, mode=04555)
 
+  cred_file = format('{ranger_home}/ranger_credential_helper.py')
+  if os.path.isfile(format('{usersync_home}/ranger_credential_helper.py')):
+    cred_file = format('{usersync_home}/ranger_credential_helper.py')
+
   cred_lib = os.path.join(usersync_home,"lib","*")
-  cred_setup_prefix = (format('{usersync_home}/ranger_credential_helper.py'), '-l', cred_lib)
+  cred_setup_prefix = (cred_file, '-l', cred_lib)
 
   cred_setup = cred_setup_prefix + ('-f', params.ugsync_jceks_path, '-k', 'usersync.ssl.key.password', '-v', PasswordString(params.ranger_usersync_keystore_password), '-c', '1')
   Execute(cred_setup, environment={'JAVA_HOME': params.java_home}, logoutput=True, sudo=True)

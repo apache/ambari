@@ -41,8 +41,8 @@ App.RAHighAvailabilityWizardStep1Controller = Em.Controller.extend({
 
   /**
    * Define either Submit is disabled or enabled
-   * @type {Bolean}
+   * @type {Boolean}
    */
-  isSubmitDisabled: Ember.computed.not('isloadBalancerURLValid')
+  isSubmitDisabled: Em.computed.not('isloadBalancerURLValid')
 });
 

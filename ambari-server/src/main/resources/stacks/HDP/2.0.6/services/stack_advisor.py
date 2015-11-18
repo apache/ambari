@@ -86,6 +86,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": self.recommendMapReduce2Configurations,
       "HDFS": self.recommendHDFSConfigurations,
       "HBASE": self.recommendHbaseConfigurations,
+      "STORM": self.recommendStormConfigurations,
       "AMBARI_METRICS": self.recommendAmsConfigurations,
       "RANGER": self.recommendRangerConfigurations
     }
@@ -226,11 +227,23 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
+    putHDFSSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    putHDFSSitePropertyAttributes = self.putPropertyAttribute(configurations, "hdfs-site")
     putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
     putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
+    # Check if NN HA is enabled and recommend removing dfs.namenode.rpc-address
+    hdfsSiteProperties = getServicesSiteProperties(services, "hdfs-site")
+    nameServices = None
+    if hdfsSiteProperties and 'dfs.nameservices' in hdfsSiteProperties:
+      nameServices = hdfsSiteProperties['dfs.nameservices']
+    if nameServices and "dfs.ha.namenodes.%s" % nameServices in hdfsSiteProperties:
+      namenodes = hdfsSiteProperties["dfs.ha.namenodes.%s" % nameServices]
+      if len(namenodes.split(',')) > 1:
+        putHDFSSitePropertyAttributes("dfs.namenode.rpc-address", "delete", "true")
 
     # recommendations for "hadoop.proxyuser.*.hosts", "hadoop.proxyuser.*.groups" properties in core-site
     self.recommendHadoopProxyUsers(configurations, services, hosts)
@@ -318,7 +331,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if 'authentication.ldap.managerDn' in serverProperties:
           putUserSyncProperty('SYNC_LDAP_BIND_DN', serverProperties['authentication.ldap.managerDn'])
         if 'authentication.ldap.primaryUrl' in serverProperties:
-          putUserSyncProperty('SYNC_LDAP_URL', serverProperties['authentication.ldap.primaryUrl'])
+          ldap_protocol =  'ldap://'
+          if 'authentication.ldap.useSSL' in serverProperties and serverProperties['authentication.ldap.useSSL'] == 'true':
+            ldap_protocol =  'ldaps://'
+          ldapUrl = ldap_protocol + serverProperties['authentication.ldap.primaryUrl'] if serverProperties['authentication.ldap.primaryUrl'] else serverProperties['authentication.ldap.primaryUrl']
+          putUserSyncProperty('SYNC_LDAP_URL', ldapUrl)
         if 'authentication.ldap.userObjectClass' in serverProperties:
           putUserSyncProperty('SYNC_LDAP_USER_OBJECT_CLASS', serverProperties['authentication.ldap.userObjectClass'])
         if 'authentication.ldap.usernameAttribute' in serverProperties:
@@ -423,6 +440,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return round_to_n(collector_heapsize), round_to_n(hbase_heapsize), total_sinks_count
 
+  def recommendStormConfigurations(self, configurations, clusterData, services, hosts):
+    putStormSiteProperty = self.putProperty(configurations, "storm-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    # Storm AMS integration
+    if 'AMBARI_METRICS' in servicesList:
+      putStormSiteProperty('metrics.reporter.register', 'org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter')
+
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
     putAmsEnvProperty = self.putProperty(configurations, "ams-env", services)
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site", services)
@@ -433,11 +457,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
+    hbaseClusterDistributed = False
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
       if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
+      if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
+        hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:
@@ -492,7 +519,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
 
     # Distributed mode heap size
-    if rootDir.startswith("hdfs://"):
+    if hbaseClusterDistributed:
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
@@ -517,7 +544,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
-    mode = 'distributed' if rootDir.startswith("hdfs://") else 'embedded'
+    mode = 'distributed' if hbaseClusterDistributed else 'embedded'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
@@ -738,6 +765,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
       "YARN": {"yarn-site": self.validateYARNConfigurations},
       "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations},
+      "STORM": {"storm-site": self.validateStormConfigurations},
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
               "ams-site": self.validateAmsSiteConfigurations}
@@ -809,7 +837,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
     if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
-      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS. Collector will operate in embedded mode otherwise.")
+      rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
       pass
 
     distributed_item = None
@@ -870,6 +898,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-site")
 
+  def validateStormConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    # Storm AMS integration
+    if 'AMBARI_METRICS' in servicesList and \
+      "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter" not in properties.get("metrics.reporter.register"):
+
+      validationItems.append({"config-name": 'metrics.reporter.register',
+                              "item": self.getWarnItem(
+                                "Should be set to org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter to report the metrics to Ambari Metrics service.")})
+
+    return self.toConfigurationValidationProblems(validationItems, "storm-site")
+
   def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize") ## FIXME if new service added
     masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
@@ -886,8 +927,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     masterXmnItem = None
     regionServerXmnItem = None
-    hbase_rootdir = amsHbaseSite.get("hbase.rootdir")
-    is_hbase_distributed = hbase_rootdir.startswith('hdfs://')
+    is_hbase_distributed = amsHbaseSite.get("hbase.cluster.distributed").lower() == 'true'
 
     if is_hbase_distributed:
       minMasterXmn = 0.12 *  hbase_master_heapsize
@@ -963,12 +1003,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           requiredMemory = getMemorySizeRequired(hostComponents, configurations)
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
           if unusedMemory > 4294967296:  # warn user, if more than 4GB RAM is unused
-            heapPropertyToIncrease = "hbase_regionserver_heapsize" if hbase_rootdir.startswith("hdfs://") else "hbase_master_heapsize"
-            xmnPropertyToIncrease = "regionserver_xmn_size" if hbase_rootdir.startswith("hdfs://") else "hbase_master_xmn_size"
+            heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
+            xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
             collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
             hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
             hbase_heapsize = min(32*1024*1024*1024, hbase_heapsize) #Make sure heapsize < 32GB
-            xmn_size = round_to_n(0.12*hbase_heapsize,128)
+            xmn_size = round_to_n(0.12*hbase_heapsize/1048576,128)
 
             msg = "{0} MB RAM is unused on the host {1} based on components " \
                   "assigned. Consider allocating  {2} MB to " \
@@ -1014,7 +1054,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     # '/etc/resolv.conf', '/etc/hostname', '/etc/hosts' are docker specific mount points
     undesirableMountPoints = ["/", "/home", "/etc/resolv.conf", "/etc/hosts",
-                              "/etc/hostname"]
+                              "/etc/hostname", "/tmp"]
     undesirableFsTypes = ["devtmpfs", "tmpfs", "vboxsf", "CDFS"]
     mountPoints = []
     if hostInfo and "disk_info" in hostInfo:

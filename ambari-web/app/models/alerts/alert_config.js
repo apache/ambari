@@ -115,9 +115,7 @@ App.AlertConfigProperty = Ember.Object.extend({
    * should be defined in child class
    * @type {*}
    */
-  apiFormattedValue: function () {
-    return this.get('value');
-  }.property('value'),
+  apiFormattedValue: Em.computed.alias('value'),
 
   /**
    * define if property was changed by user

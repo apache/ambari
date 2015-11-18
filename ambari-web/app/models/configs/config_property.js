@@ -179,26 +179,20 @@ App.ConfigProperty = DS.Model.extend({
    * defines if property has errors
    * @type {boolean}
    */
-  hasErrors: function() {
-    return this.get('errorMessage') !== '';
-  }.property('errorMessage'),
+  hasErrors: Em.computed.notEqual('errorMessage', ''),
 
   /**
    * defines if property has warnings
    * @type {boolean}
    */
-  hasWarnings: function() {
-    return this.get('warnMessage') !== '';
-  }.property('warnMessage'),
+  hasWarnings: Em.computed.notEqual('warnMessage', ''),
 
   /**
    * defines if property belongs to default config group
    * if true it's config group is default
    * @type {boolean}
    */
-  isOriginalSCP: function() {
-    return this.get('configVersion.isDefault');
-  }.property('configVersion.isDefault'),
+  isOriginalSCP: Em.computed.alias('configVersion.isDefault'),
 
   /**
    * defines if property is added by user
@@ -213,17 +207,13 @@ App.ConfigProperty = DS.Model.extend({
    * with which we make comparison
    * @property {boolean}
    */
-  isForCompare: function() {
-    return this.get('configVersion.isForCompare');
-  }.property('configVersion.isForCompare'),
+  isForCompare: Em.computed.alias('configVersion.isForCompare'),
 
   /**
    * if this property can be final
    * @property {boolean}
    */
-  supportsFinal: function () {
-    return this.get('stackConfigProperty.supportsFinal') || this.get('isUserProperty');
-  }.property('stackConfigProperty.supportsFinal', 'isUserProperty'),
+  supportsFinal: Em.computed.or('stackConfigProperty.supportsFinal', 'isUserProperty'),
   /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.

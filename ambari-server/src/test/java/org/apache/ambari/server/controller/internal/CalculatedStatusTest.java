@@ -18,14 +18,11 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.easymock.EasyMock.*;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -35,8 +32,10 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -440,6 +439,7 @@ public class CalculatedStatusTest {
     status = CalculatedStatus.statusFromStages(stages);
 
     assertEquals(HostRoleStatus.HOLDING, status.getStatus());
+    assertNull(status.getDisplayStatus());
     assertEquals(47.5, status.getPercent(), 0.1);
   }
 
@@ -498,20 +498,69 @@ public class CalculatedStatusTest {
     assertEquals(80d, calc.getPercent(), 0.1d);
   }
 
-
-
   /**
    * Tests that a SKIPPED_FAILED status means the stage has completed.
    *
    * @throws Exception
    */
   @Test
-  public void testSkippedFailed() throws Exception {
+  public void testSkippedFailed_Stage() throws Exception {
     Collection<HostRoleCommandEntity> tasks = getTaskEntities(HostRoleStatus.SKIPPED_FAILED);
 
     CalculatedStatus status = CalculatedStatus.statusFromTaskEntities(tasks, false);
 
-    assertEquals(HostRoleStatus.SKIPPED_FAILED, status.getStatus());
+    assertEquals(HostRoleStatus.COMPLETED, status.getStatus());
+  }
+
+  /**
+   * Tests that a SKIPPED_FAILED status of any task means the
+   * summary display status for is SKIPPED_FAILED, but summary status is
+   * still COMPLETED
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testSkippedFailed_UpgradeGroup() throws Exception {
+
+    final HostRoleCommandStatusSummaryDTO summary1 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
+    ArrayList<HostRoleStatus> taskStatuses1 = new ArrayList<HostRoleStatus>() {{
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.COMPLETED);
+    }};
+
+    final HostRoleCommandStatusSummaryDTO summary2 = createNiceMock(HostRoleCommandStatusSummaryDTO.class);
+    ArrayList<HostRoleStatus> taskStatuses2 = new ArrayList<HostRoleStatus>() {{
+      add(HostRoleStatus.COMPLETED);
+      add(HostRoleStatus.SKIPPED_FAILED);
+      add(HostRoleStatus.COMPLETED);
+    }};
+
+    Map<Long, HostRoleCommandStatusSummaryDTO> stageDto = new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
+        put(1l, summary1);
+        put(2l, summary2);
+      }};
+
+    Set<Long> stageIds = new HashSet<Long>() {{
+      add(1l);
+      add(2l);
+    }};
+
+    expect(summary1.getTaskTotal()).andReturn(taskStatuses1.size()).anyTimes();
+    expect(summary2.getTaskTotal()).andReturn(taskStatuses2.size()).anyTimes();
+
+    expect(summary1.isStageSkippable()).andReturn(true).anyTimes();
+    expect(summary2.isStageSkippable()).andReturn(true).anyTimes();
+
+    expect(summary1.getTaskStatuses()).andReturn(taskStatuses1).anyTimes();
+    expect(summary2.getTaskStatuses()).andReturn(taskStatuses2).anyTimes();
+
+    replay(summary1, summary2);
+
+    CalculatedStatus calc = CalculatedStatus.statusFromStageSummary(stageDto, stageIds);
+
+    assertEquals(HostRoleStatus.SKIPPED_FAILED, calc.getDisplayStatus());
+    assertEquals(HostRoleStatus.COMPLETED, calc.getStatus());
   }
 
   private Collection<HostRoleCommandEntity> getTaskEntities(HostRoleStatus... statuses) {

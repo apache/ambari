@@ -99,7 +99,11 @@ def flume(action = None):
               recursive=True,
               owner=params.flume_user,
               )
-    Directory(params.flume_log_dir, owner=params.flume_user)
+    Directory(params.flume_log_dir, 
+              owner=params.flume_user,
+              cd_access="a",
+              mode=0755,
+    )
 
     flume_agents = {}
     if params.flume_conf_content is not None:

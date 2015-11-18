@@ -55,7 +55,8 @@ def ams_service(name, action):
       )
 
       if not params.is_hbase_distributed and os.path.exists(format("{zookeeper_data_dir}")):
-        Execute(format("{sudo} rm -rf {zookeeper_data_dir}/*")
+        Directory(params.zookeeper_data_dir,
+                  action='delete'
         )
 
       daemon_cmd = format("{cmd} start")

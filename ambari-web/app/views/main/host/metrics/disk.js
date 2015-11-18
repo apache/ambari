@@ -52,8 +52,9 @@ App.ChartHostMetricsDisk = App.ChartLinearTimeView.extend({
   },
 
   getData: function (jsonData) {
-    if (jsonData.metrics.part_max_used) {
-      jsonData.metrics.disk.part_max_used = jsonData.metrics.part_max_used;
+    var partMaxUsed = Em.get(jsonData, 'metrics.part_max_used');
+    if (!Em.isNone(partMaxUsed) && Em.get(jsonData, this.get('seriesTemplate.path'))) {
+      Em.set(jsonData, this.get('seriesTemplate.path') + '.part_max_used', partMaxUsed);
     }
     return this._super(jsonData);
   }

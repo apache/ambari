@@ -25,7 +25,9 @@ describe('App.MainAdminView', function () {
   var view;
 
   beforeEach(function () {
-    view = App.MainAdminView.create();
+    view = App.MainAdminView.create({
+      controller: Em.Object.create()
+    });
   });
 
   describe('#categories', function () {
@@ -81,7 +83,13 @@ describe('App.MainAdminView', function () {
         expect(view.get('categories')).to.eql(item.categories);
       });
     });
+  });
 
+  describe("#willDestroyElement()", function() {
+    it("", function() {
+      view.willDestroyElement();
+      expect(view.get('controller.category')).to.be.null;
+    });
   });
 
 });

@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
+import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -28,9 +31,12 @@ import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.ws.rs.HttpMethod;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.util.Date;
 import java.util.Map;
@@ -43,7 +49,7 @@ public class MetricsRequestHelper {
   private final static Logger LOG = LoggerFactory.getLogger(MetricsRequestHelper.class);
   private final static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;
-  private final StreamProvider streamProvider;
+  private final URLStreamProvider streamProvider;
 
   static {
     mapper = new ObjectMapper();
@@ -54,7 +60,7 @@ public class MetricsRequestHelper {
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
   }
 
-  public MetricsRequestHelper(StreamProvider streamProvider) {
+  public MetricsRequestHelper(URLStreamProvider streamProvider) {
     this.streamProvider = streamProvider;
   }
 
@@ -63,7 +69,16 @@ public class MetricsRequestHelper {
     BufferedReader reader = null;
     TimelineMetrics timelineMetrics = null;
     try {
-      reader = new BufferedReader(new InputStreamReader(streamProvider.readFrom(spec)));
+
+      HttpURLConnection connection = streamProvider.processURL(spec, HttpMethod.GET, (String)null, null);
+      if (connection.getResponseCode() == HttpStatus.SC_BAD_REQUEST) {
+        InputStream errorStream = connection.getErrorStream();
+        reader = new BufferedReader(new InputStreamReader(errorStream));
+        throw new IOException(reader.readLine());
+      }
+
+      InputStream inputStream = connection.getInputStream();
+      reader = new BufferedReader(new InputStreamReader(inputStream));
       timelineMetrics = timelineObjectReader.readValue(reader);
       if (LOG.isTraceEnabled()) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
@@ -77,9 +92,10 @@ public class MetricsRequestHelper {
         }
       }
     } catch (IOException io) {
-      String errorMsg = "Error getting timeline metrics.";
+      String errorMsg = "Error getting timeline metrics : " + io.getMessage();
+      LOG.error(errorMsg);
       if (LOG.isDebugEnabled()) {
-        LOG.error(errorMsg, io);
+        LOG.debug(errorMsg, io);
       }
 
       if (io instanceof SocketTimeoutException) {

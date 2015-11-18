@@ -1391,13 +1391,13 @@ public class ViewRegistry {
         Integer                permissionId    = privilegeEntity.getPermission().getId();
 
         // admin has full access
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMIN_PERMISSION)) {
+        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
           return true;
         }
         if (resourceEntity != null) {
-          // VIEW.USE for the given view instance resource.
+          // VIEW.USER for the given view instance resource.
           if (privilegeEntity.getResource().equals(resourceEntity)) {
-            if (permissionId.equals(PermissionEntity.VIEW_USE_PERMISSION)) {
+            if (permissionId.equals(PermissionEntity.VIEW_USER_PERMISSION)) {
               return true;
             }
           }

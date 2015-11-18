@@ -20,7 +20,7 @@ package org.apache.ambari.server.api.resources;
 
 import org.apache.ambari.server.controller.spi.Resource;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 
@@ -53,6 +53,8 @@ public class PermissionResourceDefinition extends BaseResourceDefinition {
 
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    return Collections.emptySet();
+    Set<SubResourceDefinition> subResourceDefinitions = new HashSet<SubResourceDefinition>();
+    subResourceDefinitions.add(new SubResourceDefinition(Resource.Type.RoleAuthorization));
+    return subResourceDefinitions;
   }
 }

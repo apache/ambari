@@ -27,5 +27,8 @@
     <value>
 # Flume agent config
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

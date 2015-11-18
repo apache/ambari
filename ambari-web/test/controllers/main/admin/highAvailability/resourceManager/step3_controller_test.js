@@ -23,7 +23,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#isSubmitDisabled', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create(),
+    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
+        content: Em.Object.create({})
+      }),
       cases = [
         {
           isLoaded: false,
@@ -48,7 +50,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#loadConfigTagsSuccessCallback', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create();
+    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
+      content: Em.Object.create({})
+    });
 
     beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
@@ -82,7 +86,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create(),
+    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
+        content: Em.Object.create({})
+      }),
       cases = [
         {
           'items': [],
@@ -173,7 +179,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         controller.loadConfigsSuccessCallback({
           items: item.items
         }, {}, item.params);
-        expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, item.port, item.webAddressPort, item.httpsWebAddressPort]);
         expect(controller.get('selectedService')).to.eql({});
         expect(controller.get('isLoaded')).to.be.true;
       });
@@ -183,7 +188,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#loadConfigsSuccessCallback=loadConfigsErrorCallback(we have one callback for bouth cases)', function () {
 
-    var controller = App.RMHighAvailabilityWizardStep3Controller.create();
+    var controller = App.RMHighAvailabilityWizardStep3Controller.create({
+      content: Em.Object.create({})
+    });
 
     beforeEach(function () {
       sinon.stub(controller, 'setDynamicConfigValues', Em.K);
@@ -197,7 +204,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       controller.loadConfigsSuccessCallback({}, {}, {}, {}, {
         serviceConfig: {}
       });
-      expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, '2181', ':8088', ':8090']);
       expect(controller.get('selectedService')).to.eql({});
       expect(controller.get('isLoaded')).to.be.true;
     });
@@ -206,13 +212,39 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
   describe('#setDynamicConfigValues', function () {
 
+    var data = {
+      items: [
+        {
+          type: 'zoo.cfg',
+          properties: {
+            clientPort: 2222
+          }
+        },
+        {
+          type: 'yarn-site',
+          properties: {
+            'yarn.resourcemanager.webapp.address': 'lclhst:1234',
+            'yarn.resourcemanager.webapp.https.address': 'lclhst:4321'
+          }
+        }
+      ]
+    };
+
     var controller = App.RMHighAvailabilityWizardStep3Controller.create({
-        content: {
+        content: Em.Object.create({
+          masterComponentHosts: [
+            {component: 'RESOURCEMANAGER', hostName: 'h0', isInstalled: true},
+            {component: 'RESOURCEMANAGER', hostName: 'h1', isInstalled: false},
+            {component: 'ZOOKEEPER_SERVER', hostName: 'h2', isInstalled: true},
+            {component: 'ZOOKEEPER_SERVER', hostName: 'h3', isInstalled: true}
+          ],
+          slaveComponentHosts: [],
+          hosts: {},
           rmHosts: {
             currentRM: 'h0',
             additionalRM: 'h1'
           }
-        }
+        })
       }),
       configs = {
         configs: [
@@ -264,24 +296,24 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     });
 
     it('setting new RM properties values', function () {
-      controller.setDynamicConfigValues(configs, '2181', ':8088', ':8090');
+      controller.setDynamicConfigValues(configs, data);
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('value')).to.equal('h0');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('recommendedValue')).to.equal('h0');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('value')).to.equal('h1');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('recommendedValue')).to.equal('h1');
 
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('value')).to.equal('h0:8088');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('recommendedValue')).to.equal('h0:8088');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('value')).to.equal('h1:8088');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('recommendedValue')).to.equal('h1:8088');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('value')).to.equal('h0:1234');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('recommendedValue')).to.equal('h0:1234');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('value')).to.equal('h1:1234');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('recommendedValue')).to.equal('h1:1234');
 
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('value')).to.equal('h0:8090');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('recommendedValue')).to.equal('h0:8090');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('value')).to.equal('h1:8090');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('recommendedValue')).to.equal('h1:8090');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('value')).to.equal('h0:4321');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('recommendedValue')).to.equal('h0:4321');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('value')).to.equal('h1:4321');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('recommendedValue')).to.equal('h1:4321');
 
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('value')).to.equal('h2:2181,h3:2181');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('recommendedValue')).to.equal('h2:2181,h3:2181');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('value')).to.equal('h2:2222,h3:2222');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('recommendedValue')).to.equal('h2:2222,h3:2222');
     });
 
   });

@@ -30,6 +30,7 @@ RESULT_STATE_CRITICAL = 'CRITICAL'
 RESULT_STATE_UNKNOWN = 'UNKNOWN'
 
 DFS_DATA_DIR = '{{hdfs-site/dfs.datanode.data.dir}}'
+DATA_STORAGE_TAGS = ['[DISK]','[SSD]','[RAM_DISK]','[ARCHIVE]']
 DATA_DIR_MOUNT_FILE = "/var/lib/ambari-agent/data/datanode/dfs_data_dir_mount.hist"
 
 logger = logging.getLogger()
@@ -84,6 +85,11 @@ def execute(configurations={}, parameters={}, host_name=None):
     if data_dir is None or data_dir.strip() == "":
       continue
     data_dir = data_dir.strip()
+    # filter out data storage tags
+    for tag in DATA_STORAGE_TAGS:
+      if data_dir.startswith(tag):
+        data_dir = data_dir.replace(tag, "")
+        continue
     valid_data_dirs.add(data_dir)
 
   # Sort the data dirs, which is needed for deterministic behavior when running the unit tests.

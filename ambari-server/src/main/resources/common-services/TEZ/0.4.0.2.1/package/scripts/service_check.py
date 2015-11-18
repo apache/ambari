@@ -50,6 +50,11 @@ class TezServiceCheckLinux(TezServiceCheck):
       mode = 0755
     )
 
+    params.HdfsResource("/tmp/tezsmokeoutput",
+      action = "delete_on_execute",
+      type = "directory"
+    )
+
     params.HdfsResource("/tmp/tezsmokeinput",
       action = "create_on_execute",
       type = "directory",

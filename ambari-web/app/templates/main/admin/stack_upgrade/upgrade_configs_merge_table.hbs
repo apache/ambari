@@ -16,11 +16,14 @@
 * limitations under the License.
 }}
 
-<h4>{{t popup.clusterCheck.Upgrade.configsMerge.title}}</h4>
+<h4 class="configurations-changes-header">{{t popup.clusterCheck.Upgrade.configsMerge.title}}</h4>
+<a {{action openConfigsInNewWindow view.configs target="App.router.mainAdminStackAndUpgradeController"}} {{translateAttr title="common.openNewWindow"}} class="pull-right open-in-new-window" href="#">
+  <i class="icon-external-link"></i> <span id="i18n-34">{{t common.open}}</span>
+</a>
 <div class="alert alert-warning">
   {{t popup.clusterCheck.Upgrade.configsMerge.alert}}
 </div>
-<div class="limited-height-2">
+<div class="configs-table-header">
   <table class="configs-table table table-striped">
     <thead>
     <tr>
@@ -31,6 +34,10 @@
       <th>{{t popup.clusterCheck.Upgrade.configsMerge.resultingValue}}</th>
     </tr>
     </thead>
+  </table>
+</div>
+<div class="limited-height-2">
+  <table class="configs-table table table-striped">
     <tbody>
     {{#each view.configs}}
       <tr>

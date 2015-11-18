@@ -30,7 +30,18 @@
     <check>org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck</check>
     <check>org.apache.ambari.server.checks.YarnRMHighAvailabilityCheck</check>
     <check>org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck</check>
+
+    <configuration>
+      <property name="global-property-1">global-value-1</property>
+      <check-properties name="org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck">
+        <property name="dfs-protocols-regex">^([^:]*dfs|wasb|ecs):.*</property>
+      </check-properties>
+      <check-properties name="org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck">
+        <property name="dfs-protocols-regex">^([^:]*dfs|wasb|ecs):.*</property>
+      </check-properties>
+    </configuration>
   </prerequisite-checks>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Pre Upgrade" stage="pre">
       <execute-stage title="Confirm 1">

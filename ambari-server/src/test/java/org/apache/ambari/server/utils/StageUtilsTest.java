@@ -51,6 +51,7 @@ import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.host.HostFactory;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.PersistedState;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -114,6 +115,7 @@ public class StageUtilsTest extends EasyMockSupport {
         bind(StageFactory.class).to(StageFactoryImpl.class);
         bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
         bind(HostDAO.class).toInstance(createNiceMock(HostDAO.class));
+        bind(PersistedState.class).toInstance(createNiceMock(PersistedState.class));
       }
     });
 

@@ -29,6 +29,7 @@
           <name>ECS_CLIENT</name>
           <displayName>ECS Client</displayName>
           <category>CLIENT</category>
+          <cardinality>1+</cardinality>
           <commandScript>
             <script>scripts/ecs_client.py</script>
             <scriptType>PYTHON</scriptType>

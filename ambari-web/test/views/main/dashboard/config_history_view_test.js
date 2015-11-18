@@ -256,6 +256,7 @@ describe('App.MainConfigHistoryView', function() {
     ];
     beforeEach(function () {
       sinon.stub(view, 'saveFilterConditions', Em.K);
+      view.set('filteringComplete', true);
     });
     afterEach(function () {
       view.saveFilterConditions.restore();

@@ -1291,7 +1291,7 @@ var urls = {
     'mock': '/data/clusters/info.json'
   },
   'cluster.load_last_upgrade': {
-    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
+    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/from_version,Upgrade/direction,Upgrade/upgrade_type,Upgrade/downgrade_allowed,Upgrade/skip_failures,Upgrade/skip_service_check_failures',
     'mock': '/data/stack_versions/upgrades.json'
   },
   'cluster.update_upgrade_version': {
@@ -1565,7 +1565,6 @@ var urls = {
     'upgrade_groups/upgrade_items/UpgradeItem/request_id,' +
     'upgrade_groups/upgrade_items/UpgradeItem/skippable,' +
     'upgrade_groups/upgrade_items/UpgradeItem/stage_id,' +
-    'upgrade_groups/upgrade_items/UpgradeItem/status,' +
     'upgrade_groups/upgrade_items/UpgradeItem/text&' +
     'minimal_response=true',
     'mock': '/data/stack_versions/upgrade.json'
@@ -2310,7 +2309,7 @@ var urls = {
     'mock': ''
   },
   'hosts.for_quick_links': {
-    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({masterHosts})&fields=Hosts/public_host_name,host_components/HostRoles/component_name{urlParams}&minimal_response=true',
+    'real': '/clusters/{clusterName}/hosts?Hosts/host_name.in({masterHosts})&fields=Hosts/public_host_name{urlParams}&minimal_response=true',
     'mock': '/data/hosts/quick_links.json'
   },
   'hosts.confirmed.install': {

@@ -46,10 +46,12 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.utils.SecretReference;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,6 +208,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
 
 
       Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+      Map<String, Long> configVersions = new TreeMap<String, Long>();
+      Map<String, Map<PropertyType, Set<String>>> configPropertiesTypes = new TreeMap<>();
       Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
 
       Map<String, DesiredConfig> desiredClusterConfigs = cluster.getDesiredConfigs();
@@ -244,6 +248,8 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
           }
 
           configurations.put(clusterConfig.getType(), props);
+          configVersions.put(clusterConfig.getType(), clusterConfig.getVersion());
+          configPropertiesTypes.put(clusterConfig.getType(), clusterConfig.getPropertiesTypes());
 
           Map<String, Map<String, String>> attrs = new TreeMap<String, Map<String, String>>();
           configHelper.cloneAttributesMap(clusterConfig.getPropertiesAttributes(), attrs);
@@ -260,6 +266,15 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       // Hack - Remove passwords from configs
       if (configurations.get(Configuration.HIVE_CONFIG_TAG)!=null) {
         configurations.get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+      }
+
+      // replace passwords on password references
+      for(Map.Entry<String, Map<String, String>> configEntry: configurations.entrySet()) {
+        String configType = configEntry.getKey();
+        Map<String, String> configProperties = configEntry.getValue();
+        Long configVersion = configVersions.get(configType);
+        Map<PropertyType, Set<String>> propertiesTypes = configPropertiesTypes.get(configType);
+        SecretReference.replacePasswordsWithReferences(propertiesTypes, configProperties, configType, configVersion);
       }
 
       Map<String, Set<String>> clusterHostInfo = null;

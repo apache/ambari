@@ -34,28 +34,68 @@ describe('App.ManageAlertNotificationsView', function () {
 
     Em.A([
       {
+	 isOperator: false,
         selectedAlertNotification: {id: 1},
-        m: 'some alert notification is selected',
+        m: 'some alert notification is selected and user is an admin',
         p: {
+          isAddButtonDisabled: true,
           isEditButtonDisabled: true,
           isRemoveButtonDisabled: true,
           isDuplicateButtonDisabled: true
         },
         e:  {
+          isAddButtonDisabled: false,
           isEditButtonDisabled: false,
           isRemoveButtonDisabled: false,
           isDuplicateButtonDisabled: false
         }
       },
       {
-        selectedAlertNotification: null,
-        m: 'some alert notification is not selected',
+        isOperator: true,
+        selectedAlertNotification: {id: 1},
+        m: 'some alert notification is selected and user is a non-admin operator',
         p: {
+          isAddButtonDisabled: true,
+          isEditButtonDisabled: true,
+          isRemoveButtonDisabled: true,
+          isDuplicateButtonDisabled: true
+        },
+        e:  {
+          isAddButtonDisabled: true,
+          isEditButtonDisabled: true,
+          isRemoveButtonDisabled: true,
+          isDuplicateButtonDisabled: true
+        }
+      },
+      {
+        isOperator: false,
+        selectedAlertNotification: null,
+        m: 'some alert notification is not selected and user is an admin',
+        p: {
+          isAddButtonDisabled: true,
           isEditButtonDisabled: false,
           isRemoveButtonDisabled: false,
           isDuplicateButtonDisabled: false
         },
         e:  {
+          isAddButtonDisabled: true,
+          isEditButtonDisabled: true,
+          isRemoveButtonDisabled: true,
+          isDuplicateButtonDisabled: true
+        }
+      },
+      {
+        isOperator: true,
+        selectedAlertNotification: null,        
+        m: 'some alert notification is not selected and user is a non-admin operator',
+        p: {
+	   isAddButtonDisabled: true,
+          isEditButtonDisabled: false,
+          isRemoveButtonDisabled: false,
+          isDuplicateButtonDisabled: false
+        },
+        e:  {
+          isAddButtonDisabled: true,
           isEditButtonDisabled: true,
           isRemoveButtonDisabled: true,
           isDuplicateButtonDisabled: true
@@ -67,6 +107,7 @@ describe('App.ManageAlertNotificationsView', function () {
             view.set(k, test.p[k]);
           });
           view.set('controller.selectedAlertNotification', test.selectedAlertNotification);
+          App.isOperator=test.isOperator;
           view.buttonObserver();
           Em.keys(test.e).forEach(function (k) {
             expect(view.get(k)).to.equal(test.e[k]);

@@ -50,8 +50,8 @@ public class InternalAuthenticationToken implements Authentication {
 
   private static void createAdminPrivilegeEntity(PrivilegeEntity entity) {
     PermissionEntity pe = new PermissionEntity();
-    pe.setId(PermissionEntity.AMBARI_ADMIN_PERMISSION);
-    pe.setPermissionName(PermissionEntity.AMBARI_ADMIN_PERMISSION_NAME);
+    pe.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
+    pe.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
     
     entity.setPermission(pe);
     

@@ -164,6 +164,26 @@ public class ConfigHelperTest {
       managementController.updateClusters(new HashSet<ClusterRequest>() {{
         add(clusterRequest3);
       }}, null);
+
+      // oozie-site
+      ConfigurationRequest cr4 = new ConfigurationRequest();
+      cr4.setClusterName(clusterName);
+      cr4.setType("oozie-site");
+      cr4.setVersionTag("version1");
+      cr4.setProperties(new HashMap<String, String>() {{
+        put("oozie.authentication.type", "simple");
+        put("oozie.service.HadoopAccessorService.kerberos.enabled", "false");
+      }});
+      cr4.setPropertiesAttributes(null);
+
+      final ClusterRequest clusterRequest4 =
+        new ClusterRequest(cluster.getClusterId(), clusterName,
+          cluster.getDesiredStackVersion().getStackVersion(), null);
+
+      clusterRequest4.setDesiredConfig(Collections.singletonList(cr4));
+      managementController.updateClusters(new HashSet<ClusterRequest>() {{
+        add(clusterRequest4);
+      }}, null);
     }
 
     @After
@@ -304,7 +324,7 @@ public class ConfigHelperTest {
               configHelper.getEffectiveDesiredTags(cluster, "h1"));
 
       Assert.assertNotNull(effectiveAttributes);
-      Assert.assertEquals(3, effectiveAttributes.size());
+      Assert.assertEquals(4, effectiveAttributes.size());
 
       Assert.assertTrue(effectiveAttributes.containsKey("global"));
       Map<String, Map<String, String>> globalAttrs = effectiveAttributes.get("global");
@@ -592,6 +612,35 @@ public class ConfigHelperTest {
       // Property and attribute removed
       Assert.assertFalse(properties.containsKey("ipc.client.connect.max.retries"));
       Assert.assertFalse(propertiesAttributes.get("attribute1").containsKey("ipc.client.connect.max.retries"));
+    }
+
+    @Test
+    public void testUpdateConfigTypeNoPropertyAttributes() throws Exception {
+      Config currentConfig = cluster.getDesiredConfigByType("oozie-site");
+      Map<String, String> properties = currentConfig.getProperties();
+      // Config tag before update
+      Assert.assertEquals("version1", currentConfig.getTag());
+      // Properties before update
+      Assert.assertEquals("simple", properties.get("oozie.authentication.type"));
+      Assert.assertEquals("false", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
+
+      Map<String, String> updates = new HashMap<String, String>();
+      updates.put("oozie.authentication.type", "kerberos");
+      updates.put("oozie.service.HadoopAccessorService.kerberos.enabled", "true");
+
+      configHelper.updateConfigType(cluster, managementController, "oozie-site", updates, null, "admin", "Test " +
+        "note");
+
+      Config updatedConfig = cluster.getDesiredConfigByType("oozie-site");
+      // Config tag updated
+      Assert.assertFalse("version1".equals(updatedConfig.getTag()));
+      // Property added
+      properties = updatedConfig.getProperties();
+      Assert.assertTrue(properties.containsKey("oozie.authentication.type"));
+      Assert.assertEquals("kerberos", properties.get("oozie.authentication.type"));
+      // Property updated
+      Assert.assertTrue(properties.containsKey("oozie.service.HadoopAccessorService.kerberos.enabled"));
+      Assert.assertEquals("true", properties.get("oozie.service.HadoopAccessorService.kerberos.enabled"));
     }
 
     @Test

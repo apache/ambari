@@ -28,6 +28,8 @@
     <property-type>USER</property-type>
     <description>User to run Hadoop services under</description>
     <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -39,6 +41,7 @@
     <property-type>PASSWORD</property-type>
     <description>Password for hadoop user</description>
     <value-attributes>
+      <type>password</type>
       <overridable>false</overridable>
       <editable-only-at-install>true</editable-only-at-install>
     </value-attributes>
@@ -60,6 +63,8 @@
     <value>false</value>
     <description>Whether to ignore failures on users and group creation</description>
     <value-attributes>
+      <visible>false</visible>
+      <type>boolean</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -69,6 +74,10 @@
     <value>ambari-qa</value>
     <property-type>USER</property-type>
     <description>User executing service checks</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+    </value-attributes>
   </property>
   <property>
     <name>smokeuser_keytab</name>
@@ -81,5 +90,9 @@
     <value>hadoop</value>
     <property-type>GROUP</property-type>
     <description>Hadoop user group.</description>
+    <value-attributes>
+      <type>user</type>
+      <visible>false</visible>
+    </value-attributes>
   </property>
 </configuration>

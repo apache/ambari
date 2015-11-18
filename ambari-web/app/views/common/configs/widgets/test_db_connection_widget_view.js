@@ -25,9 +25,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   classNames: ['widget'],
 
   /** @property {string} btnCaption - text for button **/
-  btnCaption: function () {
-    return this.get('config.stackConfigProperty.widget.display-name');
-  }.property('config.stackConfigProperty.widget.display-name'),
+  btnCaption: Em.computed.alias('config.stackConfigProperty.widget.display-name'),
   /** @property {string} responseCaption - text for status link **/
   responseCaption: null,
   /** @property {boolean} isConnecting - is request to server activated **/

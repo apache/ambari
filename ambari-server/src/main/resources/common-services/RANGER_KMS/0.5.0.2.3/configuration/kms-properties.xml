@@ -31,6 +31,9 @@
     <value>keyadmin</value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>  
 
   <property>
@@ -56,6 +59,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -81,6 +87,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -88,6 +97,9 @@
     <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
+    <value-attributes>
+      <type>password</type>
+    </value-attributes>
   </property>
 
 </configuration>  

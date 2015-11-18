@@ -24,10 +24,11 @@ import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.ambari.view.utils.UserLocalFactory;
 import org.apache.ambari.view.utils.ambari.AmbariApi;
 import org.apache.ambari.view.utils.ambari.AmbariApiException;
+import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,11 +39,27 @@ public class ConnectionFactory implements UserLocalFactory<Connection> {
   private ViewContext context;
   private HiveAuthCredentials credentials;
   private AmbariApi ambariApi;
+  private HdfsApi hdfsApi = null;
 
   public ConnectionFactory(ViewContext context, HiveAuthCredentials credentials) {
     this.context = context;
     this.credentials = credentials;
     this.ambariApi = new AmbariApi(context);
+  }
+
+  /**
+   * Get HdfsApi instance
+   * @return HdfsApi business delegate
+   */
+  public synchronized HdfsApi getHDFSApi() {
+    if (hdfsApi == null) {
+      try {
+        hdfsApi = HdfsUtil.connectToHDFSApi(context);
+      } catch (Exception ex) {
+        throw new ServiceFormattedException("HdfsApi connection failed. Check \"webhdfs.url\" property", ex);
+      }
+    }
+    return hdfsApi;
   }
 
   @Override

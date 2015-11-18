@@ -83,18 +83,14 @@ App.PieChartDashboardWidgetView = App.DashboardWidgetView.extend({
 
   content: App.ChartPieView.extend({
     model: null,  //data bind here
-    id: function() {
-      return this.get('parentView.widgetHtmlId');
-    }.property('parentView.widgetHtmlId'), // html id
+    id: Em.computed.alias('parentView.widgetHtmlId'), // html id
     stroke: '#D6DDDF', //light grey
     thresh1: null, //bind from parent
     thresh2: null,
     innerR: 25,
 
     existCenterText: true,
-    centerTextColor: function () {
-      return this.get('contentColor');
-    }.property('contentColor'),
+    centerTextColor: Em.computed.alias('contentColor'),
 
     palette: new Rickshaw.Color.Palette({
       scheme: [ '#FFFFFF', '#D6DDDF'].reverse()

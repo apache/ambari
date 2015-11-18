@@ -63,9 +63,9 @@ App.SubSection = DS.Model.extend({
   section: DS.belongsTo('App.Section'),
 
   /**
-   * @type {App.StackConfigProperty[]}
+   * @type {String[]}
    */
-  configProperties: DS.hasMany('App.StackConfigProperty'),
+  configProperties: DS.attr('array', {defaultValue: []}),
 
   /**
    * @type {App.SubSectionTab[]}
@@ -88,13 +88,11 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  hasTabs: function() {
-    return this.get('subSectionTabs.length');
-  }.property('subSectionTabs.length'),
+  hasTabs: Em.computed.bool('subSectionTabs.length'),
 
-  showTabs: function() {
-    return this.get('hasTabs')  && this.get('subSectionTabs').someProperty('isVisible');
-  }.property('hasTabs','subSectionTabs.@each.isVisible'),
+  someSubSectionTabIsVisible: Em.computed.someBy('subSectionTabs', 'isVisible', true),
+
+  showTabs: Em.computed.and('hasTabs', 'someSubSectionTabIsVisible'),
 
   /**
    * Number of the errors in all configs
@@ -118,9 +116,7 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  addRightVerticalSplitter: function() {
-    return !this.get('isLastColumn');
-  }.property('isLastColumn'),
+  addRightVerticalSplitter: Em.computed.not('isLastColumn'),
 
   /**
    * @type {boolean}
@@ -132,9 +128,7 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isFirstRow: function () {
-    return this.get('rowIndex') == 0;
-  }.property('rowIndex'),
+  isFirstRow: Em.computed.equal('rowIndex', 0),
 
   /**
    * @type {boolean}
@@ -153,9 +147,7 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  isFirstColumn: function () {
-    return this.get('columnIndex') == 0;
-  }.property('columnIndex'),
+  isFirstColumn: Em.computed.equal('columnIndex', 0),
 
   /**
    * @type {boolean}

@@ -79,5 +79,8 @@ set JVMFLAGS=-Djava.net.preferIPv4Stack=true
 @rem Server specific JVM parameters
 @rem set SERVER_JVMFLAGS=
     </value>
+    <value-attributes>
+      <type>content</type>
+    </value-attributes>
   </property>
 </configuration>

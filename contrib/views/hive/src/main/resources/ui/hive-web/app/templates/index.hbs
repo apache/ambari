@@ -18,11 +18,11 @@
 
 <div id="index-content">
   <div class="main-content">
-    <aside {{bind-attr class="isDatabaseExplorerVisible:col-md-3:no-width :col-xs-12 :no-padding"}}>
+    <aside {{bind-attr class="isDatabaseExplorerVisible:col-md-3:no-width :col-xs-3 :no-padding"}}>
       {{render 'databases'}}
     </aside>
 
-    <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-12 :query-container"}}>
+    <div {{bind-attr class="isDatabaseExplorerVisible:col-md-9:col-md-12 :col-xs-9 :query-container"}}>
       {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel" iconActions=queryPanelActions}}
         {{render 'open-queries'}}
 

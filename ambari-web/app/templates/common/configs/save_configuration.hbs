@@ -20,6 +20,9 @@
         <div class="span12 alert alert-warning">{{t services.service.config.exitPopup.body}}</div>
     </div>
 {{/if}}
+{{#if view.showPasswordChangeWarning}}
+  <p class="alert alert-warning">{{t dashboard.configHistory.info-bar.save.popup.warningForPasswordChange}}</p>
+{{/if}}
 <div class="row-fluid">
     <div class="span1">{{t common.notes}}</div>
     <div class="span10">{{view view.notesArea}}</div>

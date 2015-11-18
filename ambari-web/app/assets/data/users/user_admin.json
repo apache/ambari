@@ -9,7 +9,7 @@
   "privileges" : [
     {
       "PrivilegeInfo" : {
-        "permission_name" : "AMBARI.ADMIN",
+        "permission_name" : "AMBARI.ADMINISTRATOR",
         "privilege_id" : 1,
         "user_name" : "admin"
       }

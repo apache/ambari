@@ -146,7 +146,9 @@ public interface Resource {
     Theme,
     HostKerberosIdentity,
     Credential,
-    KerberosDescriptor;
+    KerberosDescriptor,
+    RoleAuthorization,
+    UserAuthorization;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -254,6 +256,8 @@ public interface Resource {
     public static final Type HostKerberosIdentity = InternalType.HostKerberosIdentity.getType();
     public static final Type Credential = InternalType.Credential.getType();
     public static final Type KerberosDescriptor = InternalType.KerberosDescriptor.getType();
+    public static final Type RoleAuthorization = InternalType.RoleAuthorization.getType();
+    public static final Type UserAuthorization = InternalType.UserAuthorization.getType();
 
     /**
      * The type name.

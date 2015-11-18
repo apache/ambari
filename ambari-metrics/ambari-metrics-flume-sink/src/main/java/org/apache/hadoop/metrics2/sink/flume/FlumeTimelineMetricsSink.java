@@ -80,6 +80,10 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
     LOG.info("Context parameters " + context);
     try {
       hostname = InetAddress.getLocalHost().getHostName();
+      //If not FQDN , call  DNS
+      if ((hostname == null) || (!hostname.contains("."))) {
+        hostname = InetAddress.getLocalHost().getCanonicalHostName();
+      }
     } catch (UnknownHostException e) {
       LOG.error("Could not identify hostname.");
       throw new FlumeException("Could not identify hostname.", e);

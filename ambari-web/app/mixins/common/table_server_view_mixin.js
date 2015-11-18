@@ -32,29 +32,21 @@ App.TableServerViewMixin = Em.Mixin.create({
   /**
    * count of filtered items
    */
-  filteredCount: function () {
-    return this.get('controller.filteredCount');
-  }.property('controller.filteredCount'),
+  filteredCount: Em.computed.alias('controller.filteredCount'),
   /**
    * total count of items
    */
-  totalCount: function () {
-    return this.get('controller.totalCount');
-  }.property('controller.totalCount'),
+  totalCount: Em.computed.alias('controller.totalCount'),
 
   /**
    * data requested from server
    */
-  content: function () {
-    return this.get('controller.content');
-  }.property('controller.content'),
+  content: Em.computed.alias('controller.content'),
 
   /**
    * content already filtered on server-side
    */
-  filteredContent: function () {
-    return this.get('content');
-  }.property('content'),
+  filteredContent: Em.computed.alias('content'),
   /**
    * sort and slice recieved content by pagination parameters
    */
@@ -80,7 +72,6 @@ App.TableServerViewMixin = Em.Mixin.create({
 
     var self = this;
     this.set('controller.resetStartIndex', false);
-    this.saveFilterConditions(iColumn, value, type, false);
     if (!this.get('filteringComplete')) {
       clearTimeout(this.get('timeOut'));
       this.set('timeOut', setTimeout(function () {
@@ -89,6 +80,8 @@ App.TableServerViewMixin = Em.Mixin.create({
     } else {
       clearTimeout(this.get('timeOut'));
       this.set('controller.resetStartIndex', true);
+      //save filter only when it's applied
+      this.saveFilterConditions(iColumn, value, type, false);
       this.refresh();
     }
   },
@@ -120,7 +113,6 @@ App.TableServerViewMixin = Em.Mixin.create({
    * success callback for updater request
    */
   updaterSuccessCb: function () {
-    clearTimeout(this.get('timeOut'));
     this.set('filteringComplete', true);
     this.propertyDidChange('pageContent');
     App.loadTimer.finish('Hosts Page');

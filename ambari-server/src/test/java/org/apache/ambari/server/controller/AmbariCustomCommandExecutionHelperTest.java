@@ -70,6 +70,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   private AmbariManagementController controller;
   private AmbariMetaInfo ambariMetaInfo;
   private Clusters clusters;
+  private TopologyManager topologyManager;
   
   
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
@@ -93,7 +94,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    StageUtils.setTopologyManager(new TopologyManager());
+    topologyManager = injector.getInstance(TopologyManager.class);
+    StageUtils.setTopologyManager(topologyManager);
   }
   @After
   public void teardown() {

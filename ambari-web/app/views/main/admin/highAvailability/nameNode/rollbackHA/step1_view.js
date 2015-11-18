@@ -64,13 +64,9 @@ App.RollbackHighAvailabilityWizardStep1View = Em.View.extend({
     this.loadHostsName();
   },
 
-  tipAddNNHost: function () {
-    return this.get('controller.content.addNNHost');
-  }.property('controller.content.addNNHost'),
+  tipAddNNHost: Em.computed.alias('controller.content.addNNHost'),
 
-  tipSNNHost: function () {
-    return this.get('controller.content.sNNHost');
-  }.property('controller.content.sNNHost'),
+  tipSNNHost: Em.computed.alias('controller.content.sNNHost'),
 
   done: function () {
     this.get('controller.content').set('selectedSNNHost', this.get('selectedSNNHost'));

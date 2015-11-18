@@ -59,9 +59,7 @@ App.Tab = DS.Model.extend({
    * for now used when tab is disabled
    * @type {String}
    */
-  tooltipMsg: function() {
-    return this.get('isHiddenByFilter') ? Em.I18n.t('services.service.config.nothing.to.display') : '';
-  }.property('isHiddenByFilter'),
+  tooltipMsg: Em.computed.ifThenElse('isHiddenByFilter', Em.I18n.t('services.service.config.nothing.to.display') , ''),
 
   /**
    * Determines if tab is filtered out (all it's sections should be hidden)

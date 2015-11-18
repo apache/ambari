@@ -149,9 +149,7 @@ App.AlertInstance = DS.Model.extend({
    * Used in some logic in templates to distinguish definitions with Ambari serviceName
    * @returns {boolean}
    */
-  isAmbariServiceName: function () {
-    return this.get('serviceName') === 'AMBARI';
-  }.property('serviceName'),
+  isAmbariServiceName: Em.computed.equal('serviceName', 'AMBARI'),
 
   shortState: {
     'CRITICAL': 'CRIT',

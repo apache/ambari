@@ -31,9 +31,7 @@ App.FilterComboboxView = Ember.View.extend({
   //filter: '', binding outside
   //columns: [], binding outside
 
-  placeHolder: function(){
-    return this.t('common.combobox.placeholder');
-  }.property(),
+  placeHolder: Em.I18n.t('common.combobox.placeholder'),
 
   /**
    * Onclick handler for dropdown menu

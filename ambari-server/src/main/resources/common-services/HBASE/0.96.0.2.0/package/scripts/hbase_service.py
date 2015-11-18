@@ -29,7 +29,8 @@ def hbase_service(
     role = name
     cmd = format("{daemon_script} --config {hbase_conf_dir}")
     pid_file = format("{pid_dir}/hbase-{hbase_user}-{role}.pid")
-    no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+    pid_expression = as_sudo(["cat", pid_file])
+    no_op_test = as_sudo(["test", "-f", pid_file]) + format(" && ps -p `{pid_expression}` >/dev/null 2>&1")
     
     if action == 'start':
       daemon_cmd = format("{cmd} start {role}")
@@ -46,7 +47,7 @@ def hbase_service(
         only_if = no_op_test,
         # BUGFIX: hbase regionserver sometimes hangs when nn is in safemode
         timeout = 30,
-        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `cat {pid_file}`"),
+        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `{pid_expression}`"),
       )
       File(pid_file,
            action = "delete",

@@ -23,6 +23,7 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
+import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineAppMetricCacheKey;
@@ -68,7 +69,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
-                             StreamProvider streamProvider,
+                             URLStreamProvider streamProvider,
                              ComponentSSLConfiguration configuration,
                              TimelineMetricCacheProvider cacheProvider,
                              MetricHostProvider hostProvider,

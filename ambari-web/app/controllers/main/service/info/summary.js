@@ -56,6 +56,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       valueForEnable: 'Yes'
     },
     {
+      serviceName: 'YARN',
+      type: 'ranger-yarn-plugin-properties',
+      propertyName: 'ranger-yarn-plugin-enabled',
+      valueForEnable: 'Yes'
+    },
+    {
       serviceName: 'HBASE',
       type: 'ranger-hbase-plugin-properties',
       propertyName: 'ranger-hbase-plugin-enabled',
@@ -80,9 +86,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       valueForEnable: 'Yes'
     },
     {
-      serviceName: 'YARN',
-      type: 'ranger-yarn-plugin-properties',
-      propertyName: 'ranger-yarn-plugin-enabled',
+      serviceName: 'KAFKA',
+      type: 'ranger-kafka-plugin-properties',
+      propertyName: 'ranger-kafka-plugin-enabled',
       valueForEnable: 'Yes'
     },
     {
@@ -106,8 +112,18 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    */
   setRangerPlugins: function () {
     if (App.get('router.clusterController.isLoaded') && !this.get('isRangerPluginsArraySet')) {
+      // Display order of ranger plugin for services should be decided from  App.StackService.displayOrder to keep consistency
+      // with display order of services at other places in the application like `select service's page` and `service menu bar`
+      var displayOrderLength = App.StackService.displayOrder.length;
+      var rangerPlugins = this.get('rangerPlugins').map(function (item, index) {
+        var displayOrderIndex = App.StackService.displayOrder.indexOf(item.serviceName);
+        return $.extend(item, {
+          index: displayOrderIndex == -1 ? displayOrderLength + index : displayOrderIndex
+        });
+      }).sortProperty('index');
+
       this.setProperties({
-        rangerPlugins: this.get('rangerPlugins').map(function (item) {
+        rangerPlugins: rangerPlugins.map(function (item) {
           var stackService = App.StackService.find().findProperty('serviceName', item.serviceName);
           var displayName = (stackService) ? stackService.get('displayName') : item.serviceName;
           return $.extend(item, {

@@ -66,7 +66,7 @@ public class ComponentVersionCheckAction extends FinalizeUpgradeAction {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
     } else {
       String structuredOut = getErrors(outSB, errSB, errors);
-      return createCommandReport(0, HostRoleStatus.HOLDING, structuredOut, outSB.toString(), errSB.toString());
+      return createCommandReport(-1, HostRoleStatus.FAILED, structuredOut, outSB.toString(), errSB.toString());
     }
   }
 
