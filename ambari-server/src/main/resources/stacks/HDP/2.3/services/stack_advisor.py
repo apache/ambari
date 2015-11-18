@@ -668,4 +668,4 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER']
+    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
