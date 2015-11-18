@@ -1673,6 +1673,14 @@ public class ClusterTest {
     checkStackVersionState(stackId, stackVersion,
         RepositoryVersionState.UPGRADING);
 
+    hv1.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+        RepositoryVersionState.UPGRADING);
+    // reset host1 state
+    hv1.setState(RepositoryVersionState.UPGRADING);
+
     hv2.setState(RepositoryVersionState.UPGRADING);
     hostVersionDAO.merge(hv2);
     c1.recalculateClusterVersionState(repositoryVersionEntity);
