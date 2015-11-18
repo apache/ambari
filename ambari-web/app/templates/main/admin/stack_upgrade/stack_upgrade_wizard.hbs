@@ -172,7 +172,9 @@
                 {{t admin.stackUpgrade.failedHosts.options}}
               <ul>
                 <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
-                <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                {{#if view.isDowngradeAvailable}}
+                  <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                {{/if}}
               </ul>
               </p>
             </div>
@@ -211,7 +213,9 @@
                 {{t admin.stackUpgrade.failedHosts.options}}
               <ul>
                 <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
-                <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                {{#if view.isDowngradeAvailable}}
+                  <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                {{/if}}
               </ul>
               </p>
             </div>
@@ -269,7 +273,9 @@
                   <ul>
                     <li>{{t admin.stackUpgrade.failedHosts.options.first}}</li>
                     <li>{{t admin.stackUpgrade.failedHosts.options.third}}</li>
-                    <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                    {{#if view.isDowngradeAvailable}}
+                      <li>{{t admin.stackUpgrade.failedHosts.options.second}}</li>
+                    {{/if}}
                   </ul>
                   </p>
                 </div>
