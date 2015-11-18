@@ -197,7 +197,7 @@ App.HostComponentView = Em.View.extend({
     var installedCount = App.HostComponent.getCount(this.get('hostComponent.componentName'), 'totalCount');
     return (installedCount <= stackComponentCount)
       || ![App.HostComponentStatus.stopped, App.HostComponentStatus.unknown, App.HostComponentStatus.install_failed, App.HostComponentStatus.upgrade_failed, App.HostComponentStatus.init].contains(this.get('workStatus'));
-  }.property('workStatus', 'componentCounter'),
+  }.property('workStatus'),
 
   /**
    * Gets number of current running components that are applied to the cluster
