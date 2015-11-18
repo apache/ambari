@@ -913,7 +913,7 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.loadConfigGroups(serviceConfigGroups);
       expect(installerStep7Controller.get('stepConfigs.firstObject.configGroups.length')).to.equal(1);
       var group = installerStep7Controller.get('stepConfigs.firstObject.configGroups.firstObject');
-      expect(group.get('name')).to.equal(serviceName + ' Default');
+      expect(group.get('name')).to.equal('Default');
       expect(group.get('description').contains(serviceName)).to.equal(true);
       expect(group.get('isDefault')).to.equal(true);
       expect(group.get('hosts')).to.eql(['h1', 'h2', 'h3']);

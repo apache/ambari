@@ -373,7 +373,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     var unusedHosts = [];
     var serviceName = this.get('serviceName');
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.format.role(serviceName) + " Default",
+      name: "Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       parentConfigGroup: null,

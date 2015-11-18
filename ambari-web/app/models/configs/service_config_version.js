@@ -49,7 +49,7 @@ App.ServiceConfigVersion = DS.Model.extend({
     return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('displayName'), this.get('configGroupName'));
   }.property('displayName', 'configGroupName'),
   configGroupName: function () {
-    return this.get('isDefault') ? (this.get('displayName') + ' ' + Em.I18n.t('common.default')) : this.get('groupName');
+    return this.get('isDefault') ? Em.I18n.t('common.default') : this.get('groupName');
   }.property('groupName','isDefault'),
   authorFormatted: function () {
     var author = this.get('author');

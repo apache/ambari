@@ -404,7 +404,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }, this);
     }
     var defaultConfigGroup = App.ConfigGroup.create({
-      name: App.format.role(serviceName) + " Default",
+      name: "Default",
       description: "Default cluster level " + serviceName + " configuration",
       isDefault: true,
       hosts: defaultConfigGroupHosts,
@@ -1127,7 +1127,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!serviceRawGroups.length) {
         service.set('configGroups', [
           App.ConfigGroup.create({
-            name: service.displayName + " Default",
+            name: "Default",
             description: "Default cluster level " + service.serviceName + " configuration",
             isDefault: true,
             hosts: Em.copy(hosts),
