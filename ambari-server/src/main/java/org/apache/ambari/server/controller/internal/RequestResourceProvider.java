@@ -505,7 +505,13 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     // get summaries from TopologyManager for logical requests
     summary.putAll(topologyManager.getStageSummaries(entity.getRequestId()));
 
-    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    CalculatedStatus status;
+    if (summary.isEmpty()) {
+      // Delete host might have cleared all HostRoleCommands
+      status = CalculatedStatus.getCompletedStatus();
+    } else {
+      status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    }
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, status.getPercent(), requestedPropertyIds);

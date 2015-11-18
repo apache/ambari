@@ -294,7 +294,13 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     setResourceProperty(resource, STAGE_START_TIME, startTime, requestedIds);
     setResourceProperty(resource, STAGE_END_TIME, endTime, requestedIds);
 
-    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
+    CalculatedStatus status;
+    if (summary.isEmpty()) {
+      // Delete host might have cleared all HostRoleCommands
+      status = CalculatedStatus.getCompletedStatus();
+    } else {
+      status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
+    }
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
     setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);

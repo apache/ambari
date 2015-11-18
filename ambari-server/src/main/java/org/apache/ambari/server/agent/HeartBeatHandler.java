@@ -199,7 +199,7 @@ public class HeartBeatHandler {
   public HeartBeatResponse handleHeartBeat(HeartBeat heartbeat)
       throws AmbariException {
     long now = System.currentTimeMillis();
-    if(heartbeat.getAgentEnv() != null && heartbeat.getAgentEnv().getHostHealth() != null) {
+    if (heartbeat.getAgentEnv() != null && heartbeat.getAgentEnv().getHostHealth() != null) {
       heartbeat.getAgentEnv().getHostHealth().setServerTimeStampAtReporting(now);
     }
 
@@ -229,7 +229,18 @@ public class HeartBeatHandler {
     response = new HeartBeatResponse();
     response.setResponseId(++currentResponseId);
 
-    Host hostObject = clusterFsm.getHost(hostname);
+    Host hostObject;
+    try {
+      hostObject = clusterFsm.getHost(hostname);
+    } catch (HostNotFoundException e) {
+      LOG.error("Host: {} not found. Agent is still heartbeating.", hostname);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug("Host associated with the agent heratbeat might have been " +
+          "deleted", e);
+      }
+      // For now return empty response with only response id.
+      return response;
+    }
 
     if (hostObject.getState().equals(HostState.HEARTBEAT_LOST)) {
       // After loosing heartbeat agent should reregister
