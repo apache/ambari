@@ -1105,7 +1105,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
   prepareDBCheckAction: function() {
     var params = this.get('preparedDBProperties');
 
-    ambariProperties = App.router.get('clusterController.ambariProperties');
+    var ambariProperties = App.router.get('clusterController.ambariProperties');
 
     params['db_name'] = this.get('dbType');
     params['jdk_location'] = ambariProperties['jdk_location'];
@@ -1117,7 +1117,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     params['check_execute_list'] = "db_connection_check";
 
     App.ajax.send({
-      name: 'custom_action.create',
+      name: 'cluster.custom_action.create',
       sender: this,
       data: {
         requestInfo: {

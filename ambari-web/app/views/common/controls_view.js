@@ -1228,10 +1228,10 @@ App.CheckDBConnectionView = Ember.View.extend({
     this.set('isValidationPassed', isValid);
   }.observes('parentView.categoryConfigsAll.@each.isValid', 'parentView.categoryConfigsAll.@each.value', 'databaseName'),
 
-   getConnectionProperty: function(regexp, isGetName) {
-   var _this = this;
-      var propertyName = _this.get('requiredProperties').filter(function(item) {
-    return regexp.test(item);
+  getConnectionProperty: function (regexp, isGetName) {
+    var _this = this;
+    var propertyName = _this.get('requiredProperties').filter(function (item) {
+      return regexp.test(item);
     })[0];
     return (isGetName) ? propertyName : _this.get('parentView.categoryConfigsAll').findProperty('name', propertyName).get('value');
   },
@@ -1345,9 +1345,10 @@ App.CheckDBConnectionView = Ember.View.extend({
    * @method createCustomAction
    **/
   createCustomAction: function() {
+    var isServiceInstalled = App.Service.find(this.get('parentView.service.serviceName')).get('isLoaded');
     var params = $.extend(true, {}, { db_name: this.get('databaseName').toLowerCase() }, this.get('connectionProperties'), this.get('ambariProperties'));
     App.ajax.send({
-      name: 'custom_action.create',
+      name: (isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create',
       sender: this,
       data: {
         requestInfo: {
