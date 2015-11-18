@@ -23,7 +23,7 @@
       <name>PXF</name>
       <displayName>PXF</displayName>
       <comment>HAWQ Extension Framework</comment>
-      <version>3.0</version>
+      <version>3.0.0</version>
       <components>
 
         <component>
