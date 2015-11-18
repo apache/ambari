@@ -80,9 +80,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * Based on <code>installOptions.manualInstall</code>
    * @type {number}
    */
-  registrationTimeoutSecs: function () {
-    return this.get('content.installOptions.manualInstall') ? 15 : 120;
-  }.property('content.installOptions.manualInstall'),
+  registrationTimeoutSecs: Em.computed.ifThenElse('content.installOptions.manualInstall', 15, 120),
 
   /**
    * Bootstrap calls are stopped
@@ -122,9 +120,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * Controller is using in Add Host Wizard
    * @return {bool}
    */
-  isAddHostWizard: function () {
-    return this.get('content.controllerName') === 'addHostController';
-  }.property('content.controllerName'),
+  isAddHostWizard: Em.computed.equal('content.controllerName', 'addHostController'),
 
   /**
    * @type {bool}
@@ -193,17 +189,13 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * Are hosts warnings loaded
    * @type {bool}
    */
-  isWarningsLoaded: function () {
-    return this.get('isJDKWarningsLoaded') && this.get('isHostsWarningsLoaded');
-  }.property('isJDKWarningsLoaded', 'isHostsWarningsLoaded'),
+  isWarningsLoaded: Em.computed.and('isJDKWarningsLoaded', 'isHostsWarningsLoaded'),
 
   /**
    * Check are hosts have any warnings
    * @type {bool}
    */
-  isHostHaveWarnings: function () {
-    return this.get('warnings.length') > 0;
-  }.property('warnings'),
+  isHostHaveWarnings: Em.computed.gt('warnings.length', 0),
 
   /**
    * Should warnings-box be visible

@@ -153,9 +153,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * Determines if some config value is changed
    * @type {boolean}
    */
-  isPropertiesChanged: function(){
-    return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
-  }.property('stepConfigs.@each.isPropertiesChanged'),
+  isPropertiesChanged: Em.computed.someBy('stepConfigs', 'isPropertiesChanged', true),
 
   /**
    * Filter text will be located here

@@ -78,9 +78,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   /**
    * @type {boolean}
    */
-  isEditWidget: function () {
-    return this.get('content.controllerName') === 'widgetEditController';
-  }.property('content.controllerName'),
+  isEditWidget: Em.computed.equal('content.controllerName', 'widgetEditController'),
 
   /**
    * metrics filtered by type

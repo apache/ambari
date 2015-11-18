@@ -56,9 +56,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * Is Installer Controller used
    * @type {bool}
    */
-  isInstaller: function () {
-    return this.get('content.controllerName') == 'installerController';
-  }.property('content.controllerName'),
+  isInstaller: Em.computed.equal('content.controllerName', 'installerController'),
 
   /**
    * "Shortcut" to <code>content.installOptions.hostNames</code>
@@ -73,49 +71,37 @@ App.WizardStep2Controller = Em.Controller.extend({
    * "Shortcut" to <code>content.installOptions.manualInstall</code>
    * @type {bool}
    */
-  manualInstall: function () {
-    return this.get('content.installOptions.manualInstall');
-  }.property('content.installOptions.manualInstall'),
+  manualInstall: Em.computed.alias('content.installOptions.manualInstall'),
 
   /**
    * "Shortcut" to <code>content.installOptions.sshKey</code>
    * @type {string}
    */
-  sshKey: function () {
-    return this.get('content.installOptions.sshKey');
-  }.property('content.installOptions.sshKey'),
+  sshKey: Em.computed.alias('content.installOptions.sshKey'),
 
   /**
    * "Shortcut" to <code>content.installOptions.sshUser</code>
    * @type {string}
    */
-  sshUser: function () {
-    return this.get('content.installOptions.sshUser');
-  }.property('content.installOptions.sshUser'),
+  sshUser: Em.computed.alias('content.installOptions.sshUser'),
 
   /**
    * "Shortcut" to <code>content.installOptions.sshPort</code>
    * @type {string}
    */
-  sshPort: function () {
-    return this.get('content.installOptions.sshPort');
-  }.property('content.installOptions.sshPort'),
+  sshPort: Em.computed.alias('content.installOptions.sshPort'),
 
   /**
    * "Shortcut" to <code>content.installOptions.agentUser</code>
    * @type {string}
    */
-  agentUser: function () {
-    return this.get('content.installOptions.agentUser');
-  }.property('content.installOptions.agentUser'),
+  agentUser: Em.computed.alias('content.installOptions.agentUser'),
 
   /**
    * Installed type based on <code>manualInstall</code>
    * @type {string}
    */
-  installType: function () {
-    return this.get('manualInstall') ? 'manualDriven' : 'ambariDriven';
-  }.property('manualInstall'),
+  installType: Em.computed.ifThenElse('manualInstall', 'manualDriven', 'ambariDriven'),
 
   /**
    * List of invalid hostnames
@@ -181,9 +167,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * is Submit button disabled
    * @type {bool}
    */
-  isSubmitDisabled: function () {
-    return (this.get('hostsError') || this.get('sshKeyError') || this.get('sshUserError') || this.get('sshPortError') || this.get('agentUserError'));
-  }.property('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError'),
+  isSubmitDisabled: Em.computed.or('hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError'),
 
   installedHostNames: function () {
     var installedHostsName = [];

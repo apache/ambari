@@ -562,33 +562,25 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
          * Determines if all alert-groups are selected
          * @type {boolean}
          */
-        allGroupsSelected: function () {
-          return this.get('groupSelect.selection.length') === this.get('groupSelect.content.length');
-        }.property('groupSelect.selection.length', 'groupSelect.content.length', 'groupSelect.disabled'),
+        allGroupsSelected: Em.computed.equalProperties('groupSelect.selection.length', 'groupSelect.content.length'),
 
         /**
          * Determines if no one alert-group is selected
          * @type {boolean}
          */
-        noneGroupsSelected: function () {
-          return this.get('groupSelect.selection.length') === 0;
-        }.property('groupSelect.selection.length', 'groupSelect.content.length', 'groupSelect.disabled'),
+        noneGroupsSelected: Em.computed.empty('groupSelect.selection'),
 
         /**
          * Determines if all severities are selected
          * @type {boolean}
          */
-        allSeveritySelected: function () {
-          return this.get('severitySelect.selection.length') === this.get('severitySelect.content.length');
-        }.property('severitySelect.selection.length', 'severitySelect.content.length'),
+        allSeveritySelected: Em.computed.equalProperties('severitySelect.selection.length', 'severitySelect.content.length'),
 
         /**
          * Determines if no one severity is selected
          * @type {boolean}
          */
-        noneSeveritySelected: function () {
-          return this.get('severitySelect.selection.length') === 0;
-        }.property('severitySelect.selection.length', 'severitySelect.content.length'),
+        noneSeveritySelected: Em.computed.empty('severitySelect.selection'),
 
         /**
          * Select all severities

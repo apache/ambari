@@ -47,13 +47,9 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   isCustomJDK: false,
 
-  isHostContentLoaded: function () {
-    return this.get('isHostsLoaded') && this.get('isComponentsStateLoaded');
-  }.property('isHostsLoaded', 'isComponentsStateLoaded'),
+  isHostContentLoaded: Em.computed.and('isHostsLoaded', 'isComponentsStateLoaded'),
 
-  isServiceContentFullyLoaded: function () {
-    return this.get('isServiceMetricsLoaded') && this.get('isComponentsStateLoaded') && this.get('isComponentsConfigLoaded');
-  }.property('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
+  isServiceContentFullyLoaded: Em.computed.and('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
   clusterName: function () {
     return App.get('clusterName');

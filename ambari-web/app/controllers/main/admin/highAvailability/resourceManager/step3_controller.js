@@ -37,9 +37,7 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   isLoaded: false,
 
-  isSubmitDisabled: function () {
-    return !this.get('isLoaded');
-  }.property('isLoaded'),
+  isSubmitDisabled: Em.computed.not('isLoaded'),
 
   loadStep: function () {
     this.renderConfigs();

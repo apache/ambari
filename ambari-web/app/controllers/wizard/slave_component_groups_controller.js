@@ -168,9 +168,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
   }.property('selectedSlaveComponent', 'selectedSlaveComponent.groups', 'stepConfigs.@each.configCategories.@each.slaveConfigs.groups.@each.properties.@each.value'),
 
 
-  getGroupsForDropDown: function () {
-    return this.get('componentGroups').getEach('name');
-  }.property('selectedComponentName', 'componentGroups.@each.name'),
+  getGroupsForDropDown: Em.computed.mapBy('componentGroups', 'name'),
 
   activeGroup: function () {
     var componentGroups = this.get('componentGroups');

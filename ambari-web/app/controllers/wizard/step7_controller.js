@@ -120,9 +120,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   isAppliedConfigLoaded: true,
 
-  isConfigsLoaded: function () {
-    return (this.get('wizardController.stackConfigsLoaded') && this.get('isAppliedConfigLoaded'));
-  }.property('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
+  isConfigsLoaded: Em.computed.and('wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded'),
 
   /**
    * PreInstall Checks allowed only for Install
@@ -190,17 +188,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * List of master components
    * @type {Ember.Enumerable}
    */
-  masterComponentHosts: function () {
-    return this.get('content.masterComponentHosts');
-  }.property('content.masterComponentHosts'),
+  masterComponentHosts: Em.computed.alias('content.masterComponentHosts'),
 
   /**
    * List of slave components
    * @type {Ember.Enumerable}
    */
-  slaveComponentHosts: function () {
-    return this.get('content.slaveGroupProperties');
-  }.property('content.slaveGroupProperties', 'content.slaveComponentHosts'),
+  slaveComponentHosts: Em.computed.alias('content.slaveGroupProperties'),
 
   customData: [],
 

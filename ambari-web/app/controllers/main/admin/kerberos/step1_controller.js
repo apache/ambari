@@ -23,9 +23,7 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
 
   selectedItem: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
 
-  isSubmitDisabled: function() {
-    return this.get('selectedOption.preConditions').someProperty('checked',false);
-  }.property('selectedOption', 'selectedOption.preConditions.@each.checked'),
+  isSubmitDisabled: Em.computed.someBy('selectedOption.preConditions', 'checked', false),
 
   options: [
     Em.Object.create({

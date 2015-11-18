@@ -77,17 +77,13 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Check if <code>addHostWizard</code> used
    * @type {bool}
    */
-  isAddHostWizard: function () {
-    return this.get('content.controllerName') === 'addHostController';
-  }.property('content.controllerName'),
+  isAddHostWizard: Em.computed.equal('content.controllerName', 'addHostController'),
 
   /**
    * Check if <code>installerWizard</code> used
    * @type {bool}
    */
-  isInstallerWizard: function () {
-    return this.get('content.controllerName') === 'installerController';
-  }.property('content.controllerName'),
+  isInstallerWizard: Em.computed.equal('content.controllerName', 'installerController'),
 
   isAllCheckboxesEmpty: function() {
     var hosts = this.get('hosts');
@@ -106,9 +102,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * Check if <code>addServiceWizard</code> used
    * @type {bool}
    */
-  isAddServiceWizard: function () {
-    return this.get('content.controllerName') === 'addServiceController';
-  }.property('content.controllerName'),
+  isAddServiceWizard: Em.computed.equal('content.controllerName', 'addServiceController'),
 
   installedServiceNames: function () {
     return this.get('content.services').filterProperty('isInstalled').mapProperty('serviceName');
@@ -135,17 +129,12 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   /**
    * true if validation has any general (which is not related with concrete host) warning message
    */
-  anyGeneralWarnings: function() {
-    var messages = this.get('generalWarningMessages');
-    return messages && messages.length > 0;
-  }.property('generalWarningMessages', 'generalWarningMessages.@each'),
+  anyGeneralWarnings: Em.computed.gt('generalWarningMessages.length', 0),
 
   /**
    * true if validation has any general (which is not related with concrete host) error or warning message
    */
-  anyGeneralIssues: function () {
-    return this.get('anyGeneralErrors') || this.get('anyGeneralWarnings');
-  }.property('anyGeneralErrors', 'anyGeneralWarnings'),
+  anyGeneralIssues: Em.computed.or('anyGeneralErrors', 'anyGeneralWarnings'),
 
   /**
    * true if validation has any error message (general or host specific)

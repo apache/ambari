@@ -53,9 +53,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * List of all group names related to alert definition
    * @type {Array}
    */
-  groupsList: function () {
-    return this.get('content.groups').mapProperty('displayName');
-  }.property('content.groups.@each'),
+  groupsList: Em.computed.mapBy('content.groups', 'displayName'),
 
   /**
    * Validation function to define if label field populated correctly

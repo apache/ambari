@@ -144,9 +144,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * Current cluster name
    * @type {string}
    */
-  clusterName: function () {
-    return this.get('content.cluster.name');
-  }.property('content.cluster.name'),
+  clusterName: Em.computed.alias('content.cluster.name'),
 
   /**
    * List of existing cluster names
@@ -164,9 +162,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * Indicates if all cluster delete requests are completed
    * @type {boolean}
    */
-  isAllClusterDeleteRequestsCompleted: function () {
-    return this.get('clusterDeleteRequestsCompleted') == this.get('clusterNames.length');
-  }.property('clusterDeleteRequestsCompleted'),
+  isAllClusterDeleteRequestsCompleted: Em.computed.equalProperties('clusterDeleteRequestsCompleted', 'clusterNames.length'),
 
   /**
    * Error popup body views for clusters that couldn't be deleted

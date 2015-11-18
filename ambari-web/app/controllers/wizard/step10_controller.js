@@ -30,9 +30,7 @@ App.WizardStep10Controller = Em.Controller.extend({
    * is Add service wizard the ongoing wizard
    * @type {bool}
    */
-  isAddServiceWizard: function () {
-    return this.get('content.controllerName') === 'addServiceController';
-  }.property('content.controllerName'),
+  isAddServiceWizard: Em.computed.equal('content.controllerName', 'addServiceController'),
 
   /**
    * Clear <code>clusterInfo</code>

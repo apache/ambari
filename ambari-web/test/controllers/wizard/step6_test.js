@@ -306,8 +306,8 @@ describe('App.WizardStep6Controller', function () {
       expect(controller.get('anyGeneralWarnings')).to.equal(false);
     });
     it('undefined if generalWarningMessages is undefined', function () {
-      controller.set('generalWarningMessages', undefined);
-      expect(controller.get('anyGeneralWarnings')).to.equal(undefined);
+      controller.set('generalWarningMessages', false);
+      expect(controller.get('anyGeneralWarnings')).to.equal(false);
     });
   });
 

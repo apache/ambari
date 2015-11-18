@@ -436,9 +436,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
        * Primary button should be disabled while alert definitions are not loaded
        * @type {boolean}
        */
-      disablePrimary: function () {
-        return !this.get('isLoaded');
-      }.property('isLoaded'),
+      disablePrimary: Em.computed.not('isLoaded'),
 
       onSecondary: function () {
         callback(null);

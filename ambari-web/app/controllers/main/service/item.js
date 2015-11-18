@@ -760,9 +760,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         return self.get("hostsWithoutComponent-" + this.get('componentName'));
       }.property('componentName', 'self.hostsWithoutComponent-' + this.get('componentName')),
 
-      anyHostsWithoutComponent: function() {
-        return this.get('hostsWithoutComponent').length > 0
-      }.property('hostsWithoutComponent'),
+      anyHostsWithoutComponent: Em.computed.gt('hostsWithoutComponent.length', 0),
 
       selectedHost: null,
 

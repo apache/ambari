@@ -86,9 +86,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * List of active host components which aren't clients
    * @type {Ember.Enumerable}
    */
-  serviceNonClientActiveComponents: function () {
-    return this.get('serviceActiveComponents').filterProperty('isClient', false);
-  }.property('serviceActiveComponents'),
+  serviceNonClientActiveComponents: Em.computed.filterBy('serviceActiveComponents', 'isClient', false),
 
   /**
    * send command to server to start selected host component
@@ -336,9 +334,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteRangerKMSServer'))
       }),
       isChecked: false,
-      disablePrimary: function () {
-        return !this.get('isChecked');
-      }.property('isChecked'),
+      disablePrimary: Em.computed.not('isChecked'),
       lastComponent: function () {
         this.set('isChecked', !isLastComponent);
         return isLastComponent;
@@ -2110,9 +2106,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           return false;
         }
       }.property(),
-      disablePrimary: function () {
-        return !this.get('isChecked');
-      }.property('isChecked'),
+      disablePrimary: Em.computed.not('isChecked'),
       isChecked: false,
       lastComponentError: Em.View.extend({
         template: Em.Handlebars.compile(Em.I18n.t('hosts.delete.popup.body.msg4').format(container.lastComponents))
