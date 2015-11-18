@@ -198,9 +198,9 @@ class TestHostInfo(TestCase):
     hostInfo = HostInfo()
     results = []
     existingUsers = [{'name':'a1', 'homeDir':os.path.join('home', 'a1')}, {'name':'b1', 'homeDir':os.path.join('home', 'b1')}]
-    hostInfo.checkFolders([os.path.join("etc", "conf"), os.path.join("var", "lib"), "home"], ["a1", "b1"], existingUsers, results)
+    hostInfo.checkFolders([os.path.join("etc", "conf"), os.path.join("var", "lib"), "home"], ["a1", "b1"], ["c","d"], existingUsers, results)
     print results
-    self.assertEqual(4, len(results))
+    self.assertEqual(6, len(results))
     names = [i['name'] for i in results]
     for item in [os.path.join('etc','conf','a1'), os.path.join('var','lib','a1'), os.path.join('etc','conf','b1'), os.path.join('var','lib','b1')]:
 

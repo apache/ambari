@@ -149,9 +149,14 @@ class HostInfoLinux(HostInfo):
   ]
 
   # Default set of directories that are checked for existence of files and folders
-  DEFAULT_DIRS = [
+  DEFAULT_BASEDIRS = [
     "/etc", "/var/run", "/var/log", "/usr/lib", "/var/lib", "/var/tmp", "/tmp", "/var",
     "/hadoop", "/usr/hdp"
+  ]
+  
+  # Exact directories names which are checked for existance
+  EXACT_DIRECTORIES = [
+    "/kafka-logs"
   ]
 
   DEFAULT_SERVICE_NAME = "ntpd"
@@ -174,7 +179,7 @@ class HostInfoLinux(HostInfo):
         result['status'] = "Available"
         results.append(result)
 
-  def checkFolders(self, basePaths, projectNames, existingUsers, dirs):
+  def checkFolders(self, basePaths, projectNames, exactDirectories, existingUsers, dirs):
     foldersToIgnore = []
     for user in existingUsers:
       foldersToIgnore.append(user['homeDir'])
@@ -187,8 +192,15 @@ class HostInfoLinux(HostInfo):
             obj['type'] = self.dirType(path)
             obj['name'] = path
             dirs.append(obj)
+            
+      for path in exactDirectories:
+        if os.path.exists(path):
+          obj = {}
+          obj['type'] = self.dirType(path)
+          obj['name'] = path
+          dirs.append(obj)     
     except:
-      pass
+      logger.exception("Checking folders failed")
 
   def javaProcs(self, list):
     import pwd
@@ -213,7 +225,7 @@ class HostInfoLinux(HostInfo):
                 dict['user'] = pwd.getpwuid(uid).pw_name
             list.append(dict)
     except:
-      pass
+      logger.exception("Checking java processes failed")
     pass
 
   def getTransparentHugePage(self):
@@ -296,7 +308,7 @@ class HostInfoLinux(HostInfo):
       dict['existingUsers'] = existingUsers
 
       dirs = []
-      self.checkFolders(self.DEFAULT_DIRS, self.DEFAULT_PROJECT_NAMES, existingUsers, dirs)
+      self.checkFolders(self.DEFAULT_BASEDIRS, self.DEFAULT_PROJECT_NAMES, self.EXACT_DIRECTORIES, existingUsers, dirs)
       dict['stackFoldersAndFiles'] = dirs
 
       self.reportFileHandler.writeHostCheckFile(dict)
