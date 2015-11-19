@@ -1078,7 +1078,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       String newHeapSizeRegex = "export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
               "fi\n" +
               "\n" +
-              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n";
       return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
     }
   }
