@@ -18,12 +18,16 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -45,12 +49,6 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Management controller interface.
@@ -164,18 +162,6 @@ public interface AmbariManagementController {
    */
   public Set<ConfigurationResponse> getConfigurations(
       Set<ConfigurationRequest> requests) throws AmbariException;
-
-  /**
-   * Gets the task status identified by the given request objects.
-   *
-   * @param requests   the request objects
-   *
-   * @return  a set of task status responses
-   *
-   * @throws AmbariException if the configurations could not be read
-   */
-  public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
-      throws AmbariException;
 
   /**
    * Get service config version history

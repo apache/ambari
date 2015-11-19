@@ -41,7 +41,6 @@ import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.StackConfigurationDependencyRequest;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
-import org.apache.ambari.server.controller.TaskStatusRequest;
 import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.predicate.AlwaysPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -335,12 +334,6 @@ public class AbstractResourceProviderTest {
       return null;
     }
 
-    public static Set<TaskStatusRequest> getTaskRequestSet(Long requestId, Long taskId)
-    {
-      EasyMock.reportMatcher(new TaskRequestSetMatcher(requestId, taskId));
-      return null;
-    }
-
     public static Set<UserRequest> getUserRequestSet(String name)
     {
       EasyMock.reportMatcher(new UserRequestSetMatcher(name));
@@ -475,8 +468,8 @@ public class AbstractResourceProviderTest {
     private final HostRequest hostRequest;
 
     public HostRequestSetMatcher(String hostname, String clusterName, Map<String, String> hostAttributes) {
-      this.hostRequest = new HostRequest(hostname, clusterName, hostAttributes);
-      add(this.hostRequest);
+      hostRequest = new HostRequest(hostname, clusterName, hostAttributes);
+      add(hostRequest);
     }
 
     @Override
@@ -515,10 +508,10 @@ public class AbstractResourceProviderTest {
 
     public HostComponentRequestSetMatcher(String clusterName, String serviceName, String componentName, String hostName,
                                       Map<String, String> configVersions, String desiredState) {
-      this.hostComponentRequest =
+      hostComponentRequest =
           new ServiceComponentHostRequest(clusterName, serviceName, componentName,
               hostName, desiredState);
-      add(this.hostComponentRequest);
+      add(hostComponentRequest);
     }
 
     @Override
@@ -551,43 +544,6 @@ public class AbstractResourceProviderTest {
   }
 
   /**
-   * Matcher for a TaskStatusRequest set containing a single request.
-   */
-  public static class TaskRequestSetMatcher extends HashSet<TaskStatusRequest> implements IArgumentMatcher {
-
-    private final TaskStatusRequest taskStatusRequest;
-
-    public TaskRequestSetMatcher(Long requestId, Long taskId) {
-      this.taskStatusRequest = new TaskStatusRequest(requestId, taskId);
-      add(this.taskStatusRequest);
-    }
-
-    @Override
-    public boolean matches(Object o) {
-
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
-      Set set = (Set) o;
-
-      if (set.size() != 1) {
-        return false;
-      }
-
-      Object request = set.iterator().next();
-
-      return request instanceof TaskStatusRequest &&
-          eq(((TaskStatusRequest) request).getRequestId(), taskStatusRequest.getRequestId());
-    }
-
-    @Override
-    public void appendTo(StringBuffer stringBuffer) {
-      stringBuffer.append("TaskRequestSetMatcher(").append(taskStatusRequest).append(")");
-    }
-  }
-
-  /**
    * Matcher for a UserRequest set containing a single request.
    */
   public static class UserRequestSetMatcher extends HashSet<UserRequest> implements IArgumentMatcher {
@@ -595,8 +551,8 @@ public class AbstractResourceProviderTest {
     private final UserRequest userRequest;
 
     public UserRequestSetMatcher(String name) {
-      this.userRequest = new UserRequest(name);
-      add(this.userRequest);
+      userRequest = new UserRequest(name);
+      add(userRequest);
     }
 
     @Override
@@ -632,8 +588,8 @@ public class AbstractResourceProviderTest {
     private final GroupRequest groupRequest;
 
     public GroupRequestSetMatcher(String name) {
-      this.groupRequest = new GroupRequest(name);
-      add(this.groupRequest);
+      groupRequest = new GroupRequest(name);
+      add(groupRequest);
     }
 
     @Override
@@ -669,8 +625,8 @@ public class AbstractResourceProviderTest {
     private final MemberRequest memberRequest;
 
     public MemberRequestSetMatcher(String groupname, String username) {
-      this.memberRequest = new MemberRequest(groupname, username);
-      add(this.memberRequest);
+      memberRequest = new MemberRequest(groupname, username);
+      add(memberRequest);
     }
 
     @Override
@@ -708,8 +664,8 @@ public class AbstractResourceProviderTest {
 
     public StackConfigurationRequestSetMatcher(String stackName, String stackVersion,
         String serviceName, String propertyName) {
-      this.stackConfigurationRequest = new StackConfigurationRequest(stackName, stackVersion, serviceName, propertyName);
-      add(this.stackConfigurationRequest);
+      stackConfigurationRequest = new StackConfigurationRequest(stackName, stackVersion, serviceName, propertyName);
+      add(stackConfigurationRequest);
     }
 
     @Override
@@ -749,8 +705,8 @@ public class AbstractResourceProviderTest {
 
     public StackConfigurationDependencyRequestSetMatcher(String stackName, String stackVersion,
         String serviceName, String propertyName, String dependencyName) {
-      this.stackConfigurationDependencyRequest = new StackConfigurationDependencyRequest(stackName, stackVersion, serviceName, propertyName, dependencyName);
-      add(this.stackConfigurationDependencyRequest);
+      stackConfigurationDependencyRequest = new StackConfigurationDependencyRequest(stackName, stackVersion, serviceName, propertyName, dependencyName);
+      add(stackConfigurationDependencyRequest);
     }
 
     @Override
@@ -787,8 +743,8 @@ public class AbstractResourceProviderTest {
 
     public StackLevelConfigurationRequestSetMatcher(String stackName, String stackVersion,
         String propertyName) {
-      this.stackLevelConfigurationRequest = new StackLevelConfigurationRequest(stackName, stackVersion, propertyName);
-      add(this.stackLevelConfigurationRequest);
+      stackLevelConfigurationRequest = new StackLevelConfigurationRequest(stackName, stackVersion, propertyName);
+      add(stackLevelConfigurationRequest);
     }
 
     @Override

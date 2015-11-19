@@ -31,12 +31,23 @@ import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Order;
+import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.query.JpaPredicateVisitor;
+import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.controller.spi.PageRequest;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.SortRequest;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.StageEntity;
 
 import com.google.common.collect.Lists;
@@ -523,6 +534,81 @@ public class HostRoleCommandDAO {
 
       // save changes
       merge(task);
+    }
+  }
+
+  /**
+   * Finds all {@link HostRoleCommandEntity} that match the provided predicate.
+   * This method will make JPA do the heavy lifting of providing a slice of the
+   * result set.
+   *
+   * @param request
+   * @return
+   */
+  @RequiresSession
+  public List<HostRoleCommandEntity> findAll(Request request, Predicate predicate) {
+    EntityManager entityManager = entityManagerProvider.get();
+
+    // convert the Ambari predicate into a JPA predicate
+    HostRoleCommandPredicateVisitor visitor = new HostRoleCommandPredicateVisitor();
+    PredicateHelper.visit(predicate, visitor);
+
+    CriteriaQuery<HostRoleCommandEntity> query = visitor.getCriteriaQuery();
+    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+
+    if (null != jpaPredicate) {
+      query.where(jpaPredicate);
+    }
+
+    // sorting
+    SortRequest sortRequest = request.getSortRequest();
+    if (null != sortRequest) {
+      JpaSortBuilder<HostRoleCommandEntity> sortBuilder = new JpaSortBuilder<HostRoleCommandEntity>();
+      List<Order> sortOrders = sortBuilder.buildSortOrders(sortRequest, visitor);
+      query.orderBy(sortOrders);
+    }
+
+    TypedQuery<HostRoleCommandEntity> typedQuery = entityManager.createQuery(query);
+
+    // pagination
+    PageRequest pagination = request.getPageRequest();
+    if (null != pagination) {
+      typedQuery.setFirstResult(pagination.getOffset());
+      typedQuery.setMaxResults(pagination.getPageSize());
+    }
+
+    return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * The {@link HostRoleCommandPredicateVisitor} is used to convert an Ambari
+   * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   */
+  private final class HostRoleCommandPredicateVisitor
+      extends JpaPredicateVisitor<HostRoleCommandEntity> {
+
+    /**
+     * Constructor.
+     *
+     */
+    public HostRoleCommandPredicateVisitor() {
+      super(entityManagerProvider.get(), HostRoleCommandEntity.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<HostRoleCommandEntity> getEntityClass() {
+      return HostRoleCommandEntity.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<? extends SingularAttribute<?, ?>> getPredicateMapping(String propertyId) {
+      return HostRoleCommandEntity_.getPredicateMapping().get(propertyId);
     }
   }
 }

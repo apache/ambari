@@ -60,18 +60,6 @@ import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -182,6 +170,17 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -727,8 +726,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       for(String passwordProperty : propertiesTypes.get(PropertyType.PASSWORD)) {
         if(requestProperties.containsKey(passwordProperty)) {
           String passwordPropertyValue = requestProperties.get(passwordProperty);
-          if (!SecretReference.isSecret(passwordPropertyValue))
+          if (!SecretReference.isSecret(passwordPropertyValue)) {
             continue;
+          }
           SecretReference ref = new SecretReference(passwordPropertyValue, cluster);
           String refValue = ref.getValue();
           requestProperties.put(passwordProperty, refValue);
@@ -3017,35 +3017,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     response.setTasks(tasks);
 
     return response;
-  }
-
-  @Override
-  public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
-      throws AmbariException {
-
-    Collection<Long> requestIds = new ArrayList<Long>();
-    Collection<Long> taskIds = new ArrayList<Long>();
-
-    for (TaskStatusRequest request : requests) {
-      if (request.getTaskId() != null) {
-        taskIds.add(request.getTaskId());
-      }
-      if (request.getRequestId() != null) {
-        requestIds.add(request.getRequestId());
-      }
-    }
-
-    Set<TaskStatusResponse> responses = new HashSet<TaskStatusResponse>();
-    for (HostRoleCommand command : actionManager.getTasksByRequestAndTaskIds(requestIds, taskIds)) {
-      TaskStatusResponse taskStatusResponse = new TaskStatusResponse(command);
-      responses.add(taskStatusResponse);
-    }
-
-    if (responses.size() == 0) {
-      throw new ObjectNotFoundException("Task resource doesn't exist.");
-    }
-
-    return responses;
   }
 
   @Override

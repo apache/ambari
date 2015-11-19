@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.eventbus.Subscribe;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.annotations.ExperimentalFeature;
 import org.apache.ambari.server.AmbariException;
@@ -64,6 +63,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
@@ -602,18 +602,6 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     return getTasks(
         hostRoleCommandDAO.findTaskIdsByRequestIds(requestIds)
     );
-  }
-
-  @Override
-  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
-    if (!requestIds.isEmpty() && !taskIds.isEmpty()) {
-      return getTasks(hostRoleCommandDAO.findTaskIdsByRequestAndTaskIds(requestIds, taskIds));
-
-    } else if (requestIds.isEmpty()) {
-      return getTasks(taskIds);
-    } else {
-      return getAllTasksByRequestIds(requestIds);
-    }
   }
 
   @Override
