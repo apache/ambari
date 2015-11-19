@@ -23,8 +23,9 @@ from resource_management.core.resources.system import Execute
 def archive_dir(output_filename, input_dir):
   Execute(('tar', '-zcvf', output_filename, input_dir),
     sudo = True,
+    tries = 3,
+    try_sleep = 1,
   )
-
 
 def archive_directory_dereference(archive, directory):
   """
@@ -34,15 +35,19 @@ def archive_directory_dereference(archive, directory):
   :param directory:   the directory to include
   :return:  None
   """
-  
+
   Execute(('tar', '-zcvhf', archive, directory),
     sudo = True,
+    tries = 3,
+    try_sleep = 1,
   )
-  
+
 def untar_archive(archive, directory):
   """
   :param directory:   can be a symlink and is followed
   """
   Execute(('tar','-xvf',archive,'-C',directory+"/"),
-          sudo = True,
+    sudo = True,
+    tries = 3,
+    try_sleep = 1,
   )

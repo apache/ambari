@@ -1165,14 +1165,14 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.1.0-2135'),
       sudo = True )
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-        sudo = True)
+        sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
@@ -1233,13 +1233,13 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
@@ -1291,13 +1291,13 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
+      sudo = True,  tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', u'2.2.0.0-0000'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext',mode = 0777)
@@ -1487,13 +1487,13 @@ class TestOozieServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
       ('tar', '-zcvhf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '/usr/hdp/current/oozie-server/conf/'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'oozie-server', '2.3.0.0-1234'), sudo = True)
 
     self.assertResourceCalled('Execute',
       ('tar', '-xvf', '/tmp/oozie-upgrade-backup/oozie-conf-backup.tar', '-C', '/usr/hdp/current/oozie-server/conf//'),
-      sudo = True)
+      sudo = True, tries = 3, try_sleep = 1)
 
     self.assertResourceCalled('Directory', '/tmp/oozie-upgrade-backup', action = ['delete'])
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-server/libext', mode = 0777)
