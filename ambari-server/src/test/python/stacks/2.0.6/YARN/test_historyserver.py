@@ -405,6 +405,7 @@ class TestHistoryServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
+                              mode = 0755,
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/taskcontroller.cfg',
@@ -652,6 +653,7 @@ class TestHistoryServer(RMFTestCase):
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
+                              mode = 0755,
                               owner = 'root',
                               )
     self.assertResourceCalled('File', '/usr/lib/hadoop/sbin/task-controller',

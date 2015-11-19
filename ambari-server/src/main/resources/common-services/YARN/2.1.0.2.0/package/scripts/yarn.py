@@ -342,6 +342,7 @@ def yarn(name = None):
 
   File(format("{hadoop_conf_dir}/mapred-env.sh"),
        owner=tc_owner,
+       mode=0755,
        content=InlineTemplate(params.mapred_env_sh_template)
   )
 
