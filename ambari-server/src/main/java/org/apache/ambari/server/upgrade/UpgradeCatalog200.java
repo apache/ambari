@@ -364,8 +364,37 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
                   stackRepoId, baseUrl);
         }
       }
+
+      // Repositories that have been autoset may be unexpected for user
+      // (especially if they are taken from online json)
+      // We have to output to stdout here, and not to log
+      // to be sure that user sees this message
+      System.out.printf("Ambari has recorded the following repository base urls for cluster %s. Please verify the " +
+              "values and ensure that these are correct. If necessary, " +
+              "after starting Ambari Server, you can edit them using Ambari UI, " +
+              "Admin -> Stacks and Versions -> Versions Tab and editing the base urls for the current Repo. " +
+              "It is critical that these repo base urls are valid for your environment as they " +
+              "will be used for Add Host/Service operations.",
+        cluster.getClusterName());
+      System.out.println(repositoryTable(ambariMetaInfo.getStack(stackName, stackVersion).getRepositories()));
     }
 
+  }
+
+  /**
+   * Formats a list repositories for printing to console
+   * @param repositories list of repositories
+   * @return multi-line string
+   */
+  static String repositoryTable(List<RepositoryInfo> repositories) {
+    StringBuilder result = new StringBuilder();
+    for (RepositoryInfo repository : repositories) {
+      result.append(String.format(" %8s |", repository.getOsType()));
+      result.append(String.format(" %18s |", repository.getRepoId()));
+      result.append(String.format(" %48s ", repository.getBaseUrl()));
+      result.append("\n");
+    }
+    return result.toString();
   }
 
   protected void updateTezConfiguration() throws AmbariException {

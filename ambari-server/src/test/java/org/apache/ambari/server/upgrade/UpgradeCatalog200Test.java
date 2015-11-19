@@ -42,6 +42,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -82,6 +83,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
@@ -455,7 +457,8 @@ public class UpgradeCatalog200Test {
   public void testPersistHDPRepo() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController  mockAmbariManagementController = easyMockSupport.createStrictMock(AmbariManagementController.class);
-    final AmbariMetaInfo mockAmbariMetaInfo = easyMockSupport.createStrictMock(AmbariMetaInfo.class);
+    final AmbariMetaInfo mockAmbariMetaInfo = easyMockSupport.createNiceMock(AmbariMetaInfo.class);
+    final StackInfo mockStackInfo = easyMockSupport.createNiceMock(StackInfo.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockCluster = easyMockSupport.createStrictMock(Cluster.class);
     final Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
@@ -464,7 +467,7 @@ public class UpgradeCatalog200Test {
     HashSet<OperatingSystemInfo> osiSet = new HashSet<OperatingSystemInfo>();
     osiSet.add(osi);
     StackId stackId = new StackId("HDP","2.2");
-    RepositoryInfo mockRepositoryInfo = easyMockSupport.createStrictMock(RepositoryInfo.class);
+    final RepositoryInfo mockRepositoryInfo = easyMockSupport.createNiceMock(RepositoryInfo.class);
 
     final Injector mockInjector = Guice.createInjector(new AbstractModule() {
       @Override
@@ -481,8 +484,13 @@ public class UpgradeCatalog200Test {
     expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
     expect(mockClusters.getClusters()).andReturn(clusterMap).once();
     expect(mockCluster.getCurrentStackVersion()).andReturn(stackId).once();
+    expect(mockCluster.getClusterName()).andReturn("cc").anyTimes();
     expect(mockAmbariMetaInfo.getOperatingSystems("HDP", "2.2")).andReturn(osiSet).once();
     expect(mockAmbariMetaInfo.getRepository("HDP", "2.2", "redhat6", "HDP-2.2")).andReturn(mockRepositoryInfo).once();
+    expect(mockAmbariMetaInfo.getStack("HDP", "2.2")).andReturn(mockStackInfo);
+    expect(mockStackInfo.getRepositories()).andReturn(new ArrayList<RepositoryInfo>() {{
+      add(mockRepositoryInfo);
+    }});
     expect(mockRepositoryInfo.getDefaultBaseUrl()).andReturn("http://baseurl").once();
     mockAmbariMetaInfo.updateRepoBaseURL("HDP", "2.2", "redhat6", "HDP-2.2", "http://baseurl");
     expectLastCall().once();
@@ -490,6 +498,28 @@ public class UpgradeCatalog200Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog200.class).persistHDPRepo();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testRepositoryTable() {
+    final RepositoryInfo repositoryInfo1 = new RepositoryInfo();
+    repositoryInfo1.setOsType("redhat6");
+    repositoryInfo1.setRepoId("HDP-2.2");
+    repositoryInfo1.setBaseUrl("http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0");
+
+    final RepositoryInfo repositoryInfo2 = new RepositoryInfo();
+    repositoryInfo2.setOsType("suse11");
+    repositoryInfo2.setRepoId("HDP-UTILS-1.1.0.20");
+    repositoryInfo2.setBaseUrl("http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3");
+
+    List<RepositoryInfo> repos = new ArrayList<RepositoryInfo>() {{
+      add(repositoryInfo1);
+      add(repositoryInfo2);
+    }};
+    String output = UpgradeCatalog200.repositoryTable(repos);
+    assertEquals("  redhat6 |            HDP-2.2 | http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.2.6.0 \n" +
+                 "   suse11 | HDP-UTILS-1.1.0.20 | http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/suse11sp3 \n",
+      output);
   }
 
   @Test

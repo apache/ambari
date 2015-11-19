@@ -251,6 +251,14 @@ def run_schema_upgrade(args):
 
   (retcode, stdout, stderr) = run_os_command(command, env=environ)
   print_info_msg("Return code from schema upgrade command, retcode = " + str(retcode))
+  if stdout:
+    print "Console output from schema upgrade command:"
+    print stdout
+    print
+  if stderr:
+    print "Error output from schema upgrade command:"
+    print stderr
+    print
   if retcode > 0:
     print_error_msg("Error executing schema upgrade, please check the server logs.")
   else:
