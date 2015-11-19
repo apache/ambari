@@ -22,6 +22,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Properties;
@@ -47,6 +48,7 @@ import org.apache.http.HttpStatus;
  * Simple test that starts the local ambari server,
  * tests it's status and shuts down the server.
  */
+@Ignore
 public class StartStopServerTest {
   /**
    * Run the ambari server on a thread.
