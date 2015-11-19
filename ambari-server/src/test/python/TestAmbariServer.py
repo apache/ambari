@@ -8230,4 +8230,58 @@ class TestAmbariServer(TestCase):
                           'org.apache.ambari.server.update.HostUpdateHelper /testFileWithChanges > '
                           '/var/log/ambari-server/ambari-server.out 2>&1')
 
+    pass
+
+  @not_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(_ambari_server_, "is_server_runing")
+  @patch("optparse.OptionParser")
+  def test_main_test_status_running(self, optionParserMock, is_server_runing_method):
+    opm = optionParserMock.return_value
+    options = MagicMock()
+    del options.exit_message
+
+    args = ["status"]
+    opm.parse_args.return_value = (options, args)
+
+    is_server_runing_method.return_value = (True, 100)
+
+    options.dbms = None
+    options.sid_or_sname = "sid"
+
+    try:
+      _ambari_server_.mainBody()
+    except SystemExit as e:
+      self.assertTrue(e.code == 0)
+
+    self.assertTrue(is_server_runing_method.called)
+    pass
+
+
+  @not_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch.object(_ambari_server_, "is_server_runing")
+  @patch("optparse.OptionParser")
+  def test_main_test_status_not_running(self, optionParserMock, is_server_runing_method):
+    opm = optionParserMock.return_value
+    options = MagicMock()
+    del options.exit_message
+
+    args = ["status"]
+    opm.parse_args.return_value = (options, args)
+
+    is_server_runing_method.return_value = (False, None)
+
+    options.dbms = None
+    options.sid_or_sname = "sid"
+
+    try:
+      _ambari_server_.mainBody()
+    except SystemExit as e:
+      self.assertTrue(e.code == 3)
+
+    self.assertTrue(is_server_runing_method.called)
+    pass
+
+
 

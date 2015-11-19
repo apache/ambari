@@ -162,12 +162,15 @@ def stop(args):
 #
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def status(args):
-  from ambari_windows_service import AmbariServerService
-
   args.exit_message = None
+  status, statusStr = is_server_runing()
 
-  statusStr = AmbariServerService.QueryStatus()
   print "Ambari Server is " + statusStr
+
+  if status:
+    args.exit_code = 0
+  else:
+    args.exit_code = 3
 
 #
 # The Ambari Server status.
@@ -178,10 +181,12 @@ def status(args):
   status, pid = is_server_runing()
   pid_file_path = os.path.join(configDefaults.PID_DIR, PID_NAME)
   if status:
+    args.exit_code = 0
     print "Ambari Server running"
     print "Found Ambari Server PID: " + str(pid) + " at: " + pid_file_path
   else:
     print "Ambari Server not running. Stale PID File at: " + pid_file_path
+    args.exit_code = 3
 
 
 def refresh_stack_hash_action():
@@ -586,6 +591,7 @@ def main(options, args, parser):
     parser.error("Invalid number of arguments. Entered: " + str(len(args)) + ", required: " + possible_args)
 
   options.exit_message = "Ambari Server '%s' completed successfully." % action
+  options.exit_code = None
 
   try:
     action_obj.execute()
@@ -613,6 +619,9 @@ def main(options, args, parser):
 
   if options.exit_message is not None:
     print options.exit_message
+
+  if options.exit_code is not None:  # not all actions may return a system exit code
+    sys.exit(options.exit_code)
 
 def mainBody():
   parser = optparse.OptionParser(usage="usage: %prog [options] action [stack_id os]",)
