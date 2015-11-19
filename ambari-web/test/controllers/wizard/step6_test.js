@@ -314,15 +314,15 @@ describe('App.WizardStep6Controller', function () {
   describe('#anyGeneralIssues', function () {
     it('should return error message if errorMessage', function () {
       controller.set('errorMessage', "error 404");
-      expect(controller.get('anyGeneralIssues')).to.equal("error 404");
+      expect(controller.get('anyGeneralIssues')).to.be.true;
     });
     it('should return true if we have several errors', function () {
       controller.set('generalErrorMessages', ["error 404", "error"]);
-      expect(controller.get('anyGeneralIssues')).to.equal(true);
+      expect(controller.get('anyGeneralIssues')).to.be.true;
     });
     it('should return true if we have several warnings', function () {
       controller.set('generalWarningMessages', ["error 404", "error"]);
-      expect(controller.get('anyGeneralIssues')).to.equal(true);
+      expect(controller.get('anyGeneralIssues')).to.be.true;
     });
   });
 

@@ -20,21 +20,63 @@ var computed = Em.computed;
 var get = Em.get;
 var makeArray = Em.makeArray;
 
+var slice = [].slice;
+
 var dataUtils = require('utils/data_manipulation');
 
 function getProperties(self, propertyNames) {
   var ret = {};
   for (var i = 0; i < propertyNames.length; i++) {
-    ret[propertyNames[i]] = get(self, propertyNames[i]);
+    var propertyName = propertyNames[i];
+    var value;
+    if (propertyName.startsWith('!')) {
+      propertyName = propertyName.substring(1);
+      value = !get(self, propertyName);
+    }
+    else {
+      value = get(self, propertyName);
+    }
+    ret[propertyName] = value;
   }
   return ret;
 }
 
+function getValues(self, propertyNames) {
+  return propertyNames.map(function (propertyName) {
+    return get(self, propertyName);
+  });
+}
+
+function generateComputedWithKey(macro) {
+  return function () {
+    var properties = slice.call(arguments, 1);
+    var key = arguments[0];
+    var computedFunc = computed(function () {
+      var values = getValues(this, properties);
+      return macro.call(this, key, values);
+    });
+
+    return computedFunc.property.apply(computedFunc, properties);
+  }
+}
+
 function generateComputedWithProperties(macro) {
   return function () {
-    var properties = [].slice.call(arguments);
+    var properties = slice.call(arguments);
     var computedFunc = computed(function () {
       return macro.apply(this, [getProperties(this, properties)]);
+    });
+
+    var realProperties = properties.slice().invoke('replace', '!', '');
+    return computedFunc.property.apply(computedFunc, realProperties);
+  };
+}
+
+function generateComputedWithValues(macro) {
+  return function () {
+    var properties = slice.call(arguments);
+    var computedFunc = computed(function () {
+      return macro.apply(this, [getValues(this, properties)]);
     });
 
     return computedFunc.property.apply(computedFunc, properties);
@@ -182,12 +224,13 @@ computed.ifThenElse = function (dependentKey, trueValue, falseValue) {
  * Returns true if all of them are truly, false - otherwise
  *
  * @method and
+ * @param {...string} dependentKeys
  * @returns {Ember.ComputedProperty}
  */
 computed.and = generateComputedWithProperties(function (properties) {
   var value;
   for (var key in properties) {
-    value = properties[key];
+    value = !!properties[key];
     if (properties.hasOwnProperty(key) && !value) {
       return false;
     }
@@ -201,12 +244,13 @@ computed.and = generateComputedWithProperties(function (properties) {
  * Returns true if at least one of them is truly, false - otherwise
  *
  * @method or
+ * @param {...string} dependentKeys
  * @returns {Ember.ComputedProperty}
  */
 computed.or = generateComputedWithProperties(function (properties) {
   var value;
   for (var key in properties) {
-    value = properties[key];
+    value = !!properties[key];
     if (properties.hasOwnProperty(key) && value) {
       return value;
     }
@@ -219,6 +263,7 @@ computed.or = generateComputedWithProperties(function (properties) {
  * Takes any number of arguments
  *
  * @method sumProperties
+ * @param {...string} dependentKeys
  * @returns {Ember.ComputedProperty}
  */
 computed.sumProperties = generateComputedWithProperties(function (properties) {
@@ -443,7 +488,7 @@ computed.findBy = function (collectionKey, propertyName, neededValue) {
 computed.alias = function (dependentKey) {
   return computed(dependentKey, function () {
     return get(this, dependentKey);
-  })
+  });
 };
 
 /**
@@ -458,5 +503,128 @@ computed.existsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
     var value = get(this, dependentKey);
     return makeArray(neededValues).contains(value);
-  })
+  });
 };
+
+/**
+ * A computed property that returns true if dependent property doesn't exist in the needed values
+ *
+ * @method notExistsIn
+ * @param {string} dependentKey
+ * @param {array} neededValues
+ * @returns {Ember.ComputedProperty}
+ */
+computed.notExistsIn = function (dependentKey, neededValues) {
+  return computed(dependentKey, function () {
+    var value = get(this, dependentKey);
+    return !makeArray(neededValues).contains(value);
+  });
+};
+
+/**
+ * A computed property that returns result of calculation <code>(dependentProperty1/dependentProperty2 * 100)</code>
+ * If accuracy is 0 (by default), result is rounded to integer
+ * Otherwise - result is float with provided accuracy
+ *
+ * @method percents
+ * @param {string} dependentKey1
+ * @param {string} dependentKey2
+ * @param {number} [accuracy=0]
+ * @returns {Ember.ComputedProperty}
+ */
+computed.percents = function (dependentKey1, dependentKey2, accuracy) {
+  if (arguments.length < 3) {
+    accuracy = 0;
+  }
+  return computed(dependentKey1, dependentKey2, function () {
+    var v1 = get(this, dependentKey1);
+    var v2 = get(this, dependentKey2);
+    var result = v1 / v2 * 100;
+    if (0 === accuracy) {
+      return Math.round(result);
+    }
+    return parseFloat(result.toFixed(accuracy));
+  });
+};
+
+/**
+ * A computed property that returns result of <code>App.format.role</code> for dependent value
+ *
+ * @method formatRole
+ * @param {string} dependentKey
+ * @returns {Ember.ComputedProperty}
+ */
+computed.formatRole = function (dependentKey) {
+  return computed(dependentKey, function () {
+    var value = get(this, dependentKey);
+    return App.format.role(value);
+  });
+};
+
+/**
+ * A computed property that returns sum of the named property in the each collection's item
+ *
+ * @method sumBy
+ * @param {string} collectionKey
+ * @param {string} propertyName
+ * @returns {Ember.ComputedProperty}
+ */
+computed.sumBy = function (collectionKey, propertyName) {
+  return computed(collectionKey + '.@each.' + propertyName, function () {
+    var collection = get(this, collectionKey);
+    if (Em.isEmpty(collection)) {
+      return 0;
+    }
+    var sum = 0;
+    collection.forEach(function (item) {
+      sum += get(item, propertyName);
+    });
+    return sum;
+  });
+};
+
+/**
+ * A computed property that returns I18n-string formatted with dependent properties
+ * Takes at least one argument
+ *
+ * @param {string} key key in the I18n-messages
+ * @param {...string} dependentKeys
+ * @method i18nFormat
+ * @returns {Ember.ComputedProperty}
+ */
+computed.i18nFormat = generateComputedWithKey(function (key, dependentValues) {
+  var str = Em.I18n.t(key);
+  return str.format.apply(str, dependentValues);
+});
+
+/**
+ * A computed property that returns dependent values joined with separator
+ * Takes at least one argument
+ *
+ * @param {string} separator
+ * @param {...string} dependentKeys
+ * @method concat
+ * @return {Ember.ComputedProperty}
+ */
+computed.concat = generateComputedWithKey(function (separator, dependentValues) {
+  return dependentValues.join(separator);
+});
+
+/**
+ * A computed property that returns first not blank value from dependent values
+ * Based on <code>Ember.isBlank</code>
+ * Takes at least 1 argument
+ * Dependent values order affects the result
+ *
+ * @param {...string} dependentKeys
+ * @method {firstNotBlank}
+ * @return {Ember.ComputedProperty}
+ */
+computed.firstNotBlank = generateComputedWithValues(function (values) {
+  for (var i = 0; i < values.length; i++) {
+    if (!Em.isBlank(values[i])) {
+      return values[i];
+    }
+  }
+  return null;
+});

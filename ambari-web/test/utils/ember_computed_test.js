@@ -109,17 +109,37 @@ describe('Ember.computed macros', function () {
         prop1: true,
         prop2: true,
         prop3: true,
-        prop4: Em.computed.and('prop1', 'prop2', 'prop3')
+        prop4: Em.computed.and('prop1', 'prop2', 'prop3'),
+        prop5: Em.computed.and('prop1', '!prop2', '!prop3')
       });
     });
 
-    it('`true` if all dependent properties are true', function () {
+    it('prop4 `true` if all dependent properties are true', function () {
       expect(this.obj.get('prop4')).to.be.true;
     });
 
-    it('`false` if at elast one dependent property is false', function () {
+    it('prop4 `false` if at elast one dependent property is false', function () {
       this.obj.set('prop2', false);
       expect(this.obj.get('prop4')).to.be.false;
+    });
+
+    it('prop5 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop5._dependentKeys).to.eql(['prop1', 'prop2', 'prop3']);
+    });
+
+    it('prop5 `false` if some inverted dependent properties is true', function () {
+      expect(this.obj.get('prop5')).to.be.false;
+    });
+
+    it('prop5 `false` if some inverted dependent properties is true (2)', function () {
+      this.obj.set('prop1', true);
+      expect(this.obj.get('prop5')).to.be.false;
+    });
+
+    it('prop5 `true` ', function () {
+      this.obj.set('prop2', false);
+      this.obj.set('prop3', false);
+      expect(this.obj.get('prop5')).to.be.true;
     });
 
   });
@@ -131,7 +151,8 @@ describe('Ember.computed macros', function () {
         prop1: false,
         prop2: false,
         prop3: false,
-        prop4: Em.computed.or('prop1', 'prop2', 'prop3')
+        prop4: Em.computed.or('prop1', 'prop2', 'prop3'),
+        prop5: Em.computed.or('!prop1', '!prop2', '!prop3')
       });
     });
 
@@ -142,6 +163,26 @@ describe('Ember.computed macros', function () {
     it('`true` if at elast one dependent property is true', function () {
       this.obj.set('prop2', true);
       expect(this.obj.get('prop4')).to.be.true;
+    });
+
+    it('prop5 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop5._dependentKeys).to.eql(['prop1', 'prop2', 'prop3']);
+    });
+
+    it('prop5 `true` if some inverted dependent properties is true', function () {
+      expect(this.obj.get('prop5')).to.be.true;
+    });
+
+    it('prop5 `true` if some inverted dependent properties is true (2)', function () {
+      this.obj.set('prop1', true);
+      expect(this.obj.get('prop5')).to.be.true;
+    });
+
+    it('prop5 `false` ', function () {
+      this.obj.set('prop1', true);
+      this.obj.set('prop2', true);
+      this.obj.set('prop3', true);
+      expect(this.obj.get('prop5')).to.be.false;
     });
 
   });
@@ -544,6 +585,204 @@ describe('Ember.computed macros', function () {
     it('`false` if dependent value is not in the array', function () {
       this.obj.set('prop1', 'v3');
       expect(this.obj.get('prop2')).to.be.false;
+    });
+
+  });
+
+  describe('#percents', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: 10,
+        prop2: 25,
+        prop3: Em.computed.percents('prop1', 'prop2'),
+        prop4: Em.computed.percents('prop1', 'prop2', 2)
+      });
+    });
+
+    it('should calculate percents', function () {
+      expect(this.obj.get('prop3')).to.equal(40);
+      expect(this.obj.get('prop4')).to.equal(40.00);
+    });
+
+    it('should calculate percents (2)', function () {
+      this.obj.set('prop2', 35);
+      expect(this.obj.get('prop3')).to.equal(29);
+      expect(this.obj.get('prop4')).to.equal(28.57);
+    });
+
+  });
+
+  describe('#formatRole', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: 'NAMENODE',
+        prop2: Em.computed.formatRole('prop1')
+      });
+      sinon.stub(App.StackServiceComponent, 'find', function () {
+        return [
+          Em.Object.create({id: 'NAMENODE', displayName: 'NameNode'}),
+          Em.Object.create({id: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode'})
+        ];
+      });
+      sinon.stub(App.StackService, 'find', function () {
+        return [
+          Em.Object.create({id: 'MAPREDUCE2', displayName: 'MapReduce2'}),
+          Em.Object.create({id: 'HIVE', displayName: 'Hive'})
+        ];
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.StackServiceComponent.find.restore();
+    });
+
+    it('should format as role', function () {
+      expect(this.obj.get('prop2')).to.equal('NameNode');
+    });
+
+    it('should format as role (2)', function () {
+      this.obj.set('prop1', 'HIVE');
+      expect(this.obj.get('prop2')).to.equal('Hive');
+    });
+
+  });
+
+  describe('#sumBy', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: [
+          {a: 1}, {a: 2}, {a: 3}
+        ],
+        prop2: Em.computed.sumBy('prop1', 'a')
+      });
+    });
+
+    it('should calculate sum', function () {
+      expect(this.obj.get('prop2')).to.equal(6);
+    });
+
+    it('should calculate sum (2)', function () {
+      this.obj.get('prop1').pushObject({a: 4});
+      expect(this.obj.get('prop2')).to.equal(10);
+    });
+
+  });
+
+  describe('#i18nFormat', function () {
+
+    beforeEach(function () {
+      sinon.stub(Em.I18n, 't', function (key) {
+        var msgs = {
+          key1: '{0} {1} {2}'
+        };
+        return msgs[key];
+      });
+      this.obj = Em.Object.create({
+        prop1: 'abc',
+        prop2: 'cba',
+        prop3: 'aaa',
+        prop4: Em.computed.i18nFormat('key1', 'prop1', 'prop2', 'prop3')
+      });
+    });
+
+    afterEach(function () {
+      Em.I18n.t.restore();
+    });
+
+    it('`prop4` check dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'prop2', 'prop3']);
+    });
+
+    it('should format message', function () {
+      expect(this.obj.get('prop4')).to.equal('abc cba aaa');
+    });
+
+    it('should format message (2)', function () {
+      this.obj.set('prop1', 'aaa');
+      expect(this.obj.get('prop4')).to.equal('aaa cba aaa');
+    });
+
+  });
+
+  describe('#concat', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: 'abc',
+        prop2: 'cba',
+        prop3: 'aaa',
+        prop4: Em.computed.concat(' ', 'prop1', 'prop2', 'prop3')
+      });
+    });
+
+    it('should concat dependent values', function () {
+      expect(this.obj.get('prop4')).to.equal('abc cba aaa');
+    });
+
+    it('should concat dependent values (2)', function () {
+      this.obj.set('prop1', 'aaa');
+      expect(this.obj.get('prop4')).to.equal('aaa cba aaa');
+    });
+
+  });
+
+  describe('#notExistsIn', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: 'v1',
+        prop2: Em.computed.notExistsIn('prop1', ['v1', 'v2'])
+      });
+    });
+
+    it('`false` if dependent value is in the array', function () {
+      expect(this.obj.get('prop2')).to.be.false;
+    });
+
+    it('`false` if dependent value is in the array (2)', function () {
+      this.obj.set('prop1', 'v2');
+      expect(this.obj.get('prop2')).to.be.false;
+    });
+
+    it('`true` if dependent value is not in the array', function () {
+      this.obj.set('prop1', 'v3');
+      expect(this.obj.get('prop2')).to.be.true;
+    });
+
+  });
+
+  describe('#firstNotBlank', function () {
+
+    beforeEach(function () {
+      this.obj = Em.Object.create({
+        prop1: '',
+        prop2: null,
+        prop3: '1234',
+        prop4: Em.computed.firstNotBlank('prop1', 'prop2', 'prop3')
+      })
+    });
+
+    it('`prop4` check dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'prop2', 'prop3']);
+    });
+
+    it('should returns prop3', function () {
+      expect(this.obj.get('prop4')).to.equal('1234');
+    });
+
+    it('should returns prop2', function () {
+      this.obj.set('prop2', 'not empty string');
+      expect(this.obj.get('prop4')).to.equal('not empty string');
+    });
+
+    it('should returns prop1', function () {
+      this.obj.set('prop2', 'not empty string');
+      this.obj.set('prop1', 'prop1 is used');
+      expect(this.obj.get('prop4')).to.equal('prop1 is used');
     });
 
   });
