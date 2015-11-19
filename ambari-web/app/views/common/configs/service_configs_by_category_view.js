@@ -354,6 +354,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       savedValue: null,
       recommendedValue: null,
       supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
+      supportsAddingForbidden: false, //Can add a new property implies the given categrary allows adding new properties...
       filename: propertyObj.filename || '',
       isUserProperty: true,
       isNotSaved: true,

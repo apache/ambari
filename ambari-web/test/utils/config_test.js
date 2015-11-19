@@ -469,6 +469,65 @@ describe('App.config', function () {
 
   });
 
+  describe('#shouldSupportAddingForbidden', function () {
+
+    var cases = [
+      {
+        shouldSupportAddingForbidden: false,
+        title: 'no service name specified'
+      },
+      {
+        serviceName: 's0',
+        shouldSupportAddingForbidden: false,
+        title: 'no filename specified'
+      },
+      {
+        serviceName: 'MISC',
+        shouldSupportAddingForbidden: false,
+        title: 'MISC'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-site',
+        shouldSupportAddingForbidden: true,
+        title: 'adding forbidden supported'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-properties',
+        shouldSupportAddingForbidden: false,
+        title: 'adding forbidden not supported'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          serviceName: 's0',
+          configTypes: {
+            's0-size': {},
+            's0-properties': {}
+          }
+        })
+      ]);
+      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
+        supportsAddingForbidden: ['s0-site']
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.config.getConfigTypesInfoFromService.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(App.config.shouldSupportAddingForbidden(item.serviceName, item.filename)).to.equal(item.shouldSupportAddingForbidden);
+      });
+    });
+
+  });
+
   describe('#removeRangerConfigs', function () {
 
     it('should remove ranger configs and categories', function () {
@@ -783,6 +842,7 @@ describe('App.config', function () {
       recommendedValue: null,
       recommendedIsFinal: null,
       supportsFinal: true,
+      supportsAddingForbidden: false,
       serviceName: 'pServiceName',
       displayName: 'pName',
       displayType: 'pDisplayType',

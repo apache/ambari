@@ -278,6 +278,7 @@ App.config = Em.Object.create({
       recommendedValue: null,
       recommendedIsFinal: null,
       supportsFinal: this.shouldSupportFinal(serviceName, fileName),
+      supportsAddingForbidden: this.shouldSupportAddingForbidden(serviceName, fileName),
       serviceName: serviceName,
       displayName: name,
       displayType: this.getDefaultDisplayType(coreObject ? coreObject.value : ''),
@@ -580,7 +581,8 @@ App.config = Em.Object.create({
     var configTypes = service.get('configTypes');
     var configTypesInfo = {
       items: [],
-      supportsFinal: []
+      supportsFinal: [],
+      supportsAddingForbidden: []
     };
     if (configTypes) {
       for (var key in configTypes) {
@@ -588,6 +590,9 @@ App.config = Em.Object.create({
           configTypesInfo.items.push(key);
           if (configTypes[key].supports && configTypes[key].supports.final === "true") {
             configTypesInfo.supportsFinal.push(key);
+          }
+          if (configTypes[key].supports && configTypes[key].supports.adding_forbidden === "true"){
+            configTypesInfo.supportsAddingForbidden.push(key);
           }
         }
       }
@@ -912,6 +917,22 @@ App.config = Em.Object.create({
         return false;
       }
       return !!this.getConfigTypesInfoFromService(stackService).supportsFinal.find(function (configType) {
+        return filename.startsWith(configType);
+      });
+    }
+  },
+
+  shouldSupportAddingForbidden: function(serviceName, filename) {
+    var unsupportedServiceNames = ['MISC', 'Cluster'];
+    if (!serviceName || unsupportedServiceNames.contains(serviceName) || !filename) {
+      return false;
+    } else {
+      var stackServiceName = App.StackService.find().findProperty('serviceName', serviceName);
+      if (!stackServiceName) {
+        return false;
+      }
+      var stackService = App.StackService.find(serviceName);
+      return !!this.getConfigTypesInfoFromService(stackService).supportsAddingForbidden.find(function (configType) {
         return filename.startsWith(configType);
       });
     }
