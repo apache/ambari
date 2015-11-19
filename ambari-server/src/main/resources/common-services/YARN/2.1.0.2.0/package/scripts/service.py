@@ -73,7 +73,6 @@ def service(componentName, action='start', serviceName='yarn'):
 
     # Ensure that the process with the expected PID exists.
     Execute(check_process,
-            user=usr,
             not_if = check_process,
             tries=5,
             try_sleep=1,

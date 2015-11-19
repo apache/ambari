@@ -116,7 +116,6 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('Execute', "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
         not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
         tries = 5,
-        user = 'mapred',
         try_sleep = 1,
     )
     self.assertNoMoreResources()
@@ -172,7 +171,6 @@ class TestHistoryServer(RMFTestCase):
     self.assertResourceCalled('Execute', "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
         not_if = "ambari-sudo.sh su mapred -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid && ps -p `cat /var/run/hadoop-mapreduce/mapred/mapred-mapred-historyserver.pid`'",
         tries = 5,
-        user = 'mapred',
         try_sleep = 1,
     )
     self.assertNoMoreResources()

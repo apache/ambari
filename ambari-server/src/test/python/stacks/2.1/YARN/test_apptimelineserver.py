@@ -71,7 +71,6 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Execute', "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid`'",
         not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid`'",
         tries = 5,
-        user = 'yarn',
         try_sleep = 1,
     )
     self.assertNoMoreResources()
