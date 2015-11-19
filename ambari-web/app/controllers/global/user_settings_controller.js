@@ -181,11 +181,69 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
    * @method showSettingsPopup
    */
   showSettingsPopup: function() {
+    var self = this;
     // Settings only for admins
     if (!App.isAccessible('upgrade_ADMIN')) {
       return;
     }
-    this.dataLoading().done(this._showSettingsPopup.bind(this));
+
+    this.dataLoading()
+    .done(function(response) {
+      self.loadPrivileges().complete(function() {
+        self._showSettingsPopup(response);
+      });
+    });
+  },
+
+  loadPrivileges: function() {
+    return App.ajax.send({
+      name: 'router.user.privileges',
+      sender: this,
+      data: {
+        userName: App.db.getLoginName()
+      },
+      success: 'loadPrivilegesSuccessCallback'
+    });
+  },
+
+  loadPrivilegesSuccessCallback: function(data) {
+    var privileges = {
+      clusters: {},
+      views: {}
+    };
+    data.items.forEach(function(privilege) {
+      privilege = privilege.PrivilegeInfo;
+      if(privilege.type === 'CLUSTER'){
+        // This is cluster
+        privileges.clusters[privilege.cluster_name] = privileges.clusters[privilege.cluster_name] || [];
+        privileges.clusters[privilege.cluster_name].push(privilege.permission_label);
+      } else if ( privilege.type === 'VIEW'){
+        privileges.views[privilege.instance_name] = privileges.views[privilege.instance_name] || { privileges:[]};
+        privileges.views[privilege.instance_name].version = privilege.version;
+        privileges.views[privilege.instance_name].view_name = privilege.view_name;
+        privileges.views[privilege.instance_name].privileges.push(privilege.permission_label);
+      }
+    });
+    // restructure data for view
+    var clusters = [];
+    var views = [];
+    for (key in privileges.clusters){
+      clusters.push({
+        name: key,
+        privileges: privileges.clusters[key]
+      });
+    }
+    for (key in privileges.views) {
+      views.push({
+        instance_name: key,
+        privileges: privileges.views[key].privileges,
+        version: privileges.views[key].version,
+        view_name: privileges.views[key].view_name
+      });
+    }
+    privileges.clusters = clusters;
+    privileges.views = views;
+    this.set('privileges', data.items.length ? privileges : null);
   },
 
   /**
@@ -218,8 +276,11 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
           curValue = !this.get('isNotShowBgChecked');
         }.observes('isNotShowBgChecked'),
 
-        timezonesList: timezonesFormatted
+        timezonesList: timezonesFormatted,
 
+        privileges: self.get('privileges'),
+
+        isAdmin: App.get('isAmbariAdmin')
       }),
 
       /**
