@@ -411,7 +411,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       result.push({
         componentName: component.get('componentName'),
         displayName: App.format.role(component.get('componentName')),
-        hosts: uninstalledComponentHosts,
+        hosts: component.get('minToInstall') != 0 ? uninstalledComponentHosts : [],
         isInstalled: false
       })
     });
@@ -421,9 +421,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
   /**
    * Generate clients list for selected services and save it to model
-   * @param stepController step4WizardController
    */
-  saveClients: function (stepController) {
+  saveClients: function () {
     var clients = [];
     var serviceComponents = App.StackServiceComponent.find();
     this.get('content.services').filterProperty('isSelected').filterProperty('isInstalled',false).forEach(function (_service) {
