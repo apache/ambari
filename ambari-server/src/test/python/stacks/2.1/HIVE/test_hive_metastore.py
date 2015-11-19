@@ -19,8 +19,10 @@ limitations under the License.
 '''
 import json
 import os
+
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.script.script import Script
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("resource_management.libraries.functions.get_user_call_output.get_user_call_output", new=MagicMock(return_value=(0,'123','')))
@@ -530,6 +532,37 @@ class TestHiveMetastore(RMFTestCase):
     self.assertEquals(
       ('ambari-python-wrap', '/usr/bin/conf-select', 'create-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
+
+
+  @patch("resource_management.core.shell.call")
+  @patch.object(Script, "is_hdp_stack_greater_or_equal")
+  def test_pre_upgrade_restart_ims(self, is_hdp_stack_greater_or_equal_mock, call_mock):
+    """
+    Tests the state of the init_metastore_schema property on update
+    """
+    is_hdp_stack_greater_or_equal_mock.side_effect = [False, False, False, False, False, False, True, False, False, False, False, False, False, False]
+
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    stack_version = '2.3.0.0-0'
+    version = '2.3.0.0-1234'
+
+    json_content['commandParams']['version'] = version
+    json_content['hostLevelParams']['stack_version'] = stack_version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+                       classname = "HiveMetastore",
+                       command = "pre_upgrade_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertEquals(False, RMFTestCase.env.config["params"]["init_metastore_schema"])
 
 
   @patch("os.path.exists")
