@@ -98,6 +98,11 @@ class HiveMetastoreDefault(HiveMetastore):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Metastore Stack Upgrade pre-restart")
     import params
+
+    if Script.is_hdp_stack_greater_or_equal("2.3"):
+      # disable schema creation on upgrade
+      params.init_metastore_schema = False
+
     env.set_params(params)
 
     if Script.is_hdp_stack_greater_or_equal("2.3"):
