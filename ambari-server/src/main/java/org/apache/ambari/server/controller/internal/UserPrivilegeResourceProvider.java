@@ -51,6 +51,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
 
   protected static final String PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID    = PrivilegeResourceProvider.PRIVILEGE_ID_PROPERTY_ID;
   protected static final String PRIVILEGE_PERMISSION_NAME_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID;
+  protected static final String PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID = PrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID;
   protected static final String PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID  = PrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID;
   protected static final String PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID  = PrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID;
   protected static final String PRIVILEGE_VIEW_NAME_PROPERTY_ID       = ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID;
@@ -87,6 +88,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
   static {
     propertyIds.add(PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_PERMISSION_NAME_PROPERTY_ID);
+    propertyIds.add(PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_VIEW_NAME_PROPERTY_ID);
@@ -177,6 +179,7 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
           setResourceProperty(resource, PRIVILEGE_USER_NAME_PROPERTY_ID, userName, requestedIds);
           setResourceProperty(resource, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID, privilegeEntity.getId(), requestedIds);
           setResourceProperty(resource, PRIVILEGE_PERMISSION_NAME_PROPERTY_ID, privilegeEntity.getPermission().getPermissionName(), requestedIds);
+          setResourceProperty(resource, PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID, privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
           setResourceProperty(resource, PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID, privilegeEntity.getPrincipal().getPrincipalType().getName(), requestedIds);
 
           final String principalTypeName = privilegeEntity.getPrincipal().getPrincipalType().getName();

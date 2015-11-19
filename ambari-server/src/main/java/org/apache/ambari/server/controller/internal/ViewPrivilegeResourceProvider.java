@@ -58,6 +58,7 @@ public class ViewPrivilegeResourceProvider extends PrivilegeResourceProvider<Vie
     propertyIds.add(PRIVILEGE_INSTANCE_NAME_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
     propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
+    propertyIds.add(PERMISSION_LABEL_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_NAME_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_TYPE_PROPERTY_ID);
   }

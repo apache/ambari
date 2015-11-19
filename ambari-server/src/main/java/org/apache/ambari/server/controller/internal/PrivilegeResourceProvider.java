@@ -92,6 +92,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
    */
   public static final String PRIVILEGE_ID_PROPERTY_ID    = "PrivilegeInfo/privilege_id";
   public static final String PERMISSION_NAME_PROPERTY_ID = "PrivilegeInfo/permission_name";
+  public static final String PERMISSION_LABEL_PROPERTY_ID = "PrivilegeInfo/permission_label";
   public static final String PRINCIPAL_NAME_PROPERTY_ID  = "PrivilegeInfo/principal_name";
   public static final String PRINCIPAL_TYPE_PROPERTY_ID  = "PrivilegeInfo/principal_type";
 
@@ -295,6 +296,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
         privilegeEntity.getId(), requestedIds);
     setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID,
         privilegeEntity.getPermission().getPermissionName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_LABEL_PROPERTY_ID,
+        privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
 
     PrincipalEntity principal   = privilegeEntity.getPrincipal();
     Long            principalId = principal.getId();

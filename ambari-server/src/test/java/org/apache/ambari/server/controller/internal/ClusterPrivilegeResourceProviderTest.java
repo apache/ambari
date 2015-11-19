@@ -106,6 +106,7 @@ public class ClusterPrivilegeResourceProviderTest {
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getUserName()).andReturn("joe").anyTimes();
     expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").anyTimes();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Cluster Administrator").anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
     expect(principalTypeEntity.getName()).andReturn("USER").anyTimes();
     expect(clusterEntity.getResource()).andReturn(resourceEntity);
@@ -132,6 +133,7 @@ public class ClusterPrivilegeResourceProviderTest {
     Resource resource = resources.iterator().next();
 
     Assert.assertEquals("CLUSTER.ADMINISTRATOR", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("Cluster Administrator", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
 
