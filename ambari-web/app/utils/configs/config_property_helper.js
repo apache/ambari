@@ -219,9 +219,35 @@ module.exports = {
           configProperty.set('isRequired', 'false');
         }
         break;
+      case 'hawq_master_address_host':
+        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'HAWQMASTER').hostName);
+        break;
+      case 'hawq_standby_address_host':
+        var hawqStandby = masterComponentHostsInDB.findProperty('component', 'HAWQSTANDBY');
+        if (hawqStandby) {
+          configProperty.set('value', hawqStandby.hostName);
+        }
+        break;
+      case 'hawq_dfs_url':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setRecommendedValue(configProperty, hostWithPort, nnHost);
+        break;
+      case 'hawq_rm_yarn_address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
+        if (rmHost) {
+          this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);
+        }
+        break;
+      case 'hawq_rm_yarn_scheduler_address':
+        var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER');
+        if (rmHost) {
+          this.setRecommendedValue(configProperty, hostWithPort, rmHost.hostName);
+        }
+        break;
     }
   },
 
+  
   /**
    * Get hive.metastore.uris initial value
    * @param hosts
