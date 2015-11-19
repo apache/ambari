@@ -837,7 +837,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           }
           if (stackId != null && stackId.getStackName().equals("HDP") &&
               VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
-            if (content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
+            if (!content.contains("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m")) {
               String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
               content += newPartOfContent;
               updateConfig = true;
