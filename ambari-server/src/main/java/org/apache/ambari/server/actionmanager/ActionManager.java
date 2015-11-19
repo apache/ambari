@@ -201,14 +201,6 @@ public class ActionManager {
     return db.getAllTasksByRequestIds(requestIds);
   }
 
-  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
-    // wrapping in new list as returned list may be Collections.emptyList() which doesn't support add()
-    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>(db.getTasksByRequestAndTaskIds(requestIds, taskIds));
-    tasks.addAll(topologyManager.getTasks(requestIds));
-
-    return tasks;
-  }
-
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
     return db.getTasks(taskIds);
   }

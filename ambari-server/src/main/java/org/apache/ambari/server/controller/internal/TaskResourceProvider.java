@@ -18,15 +18,16 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.TaskStatusRequest;
-import org.apache.ambari.server.controller.TaskStatusResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -36,39 +37,56 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.codehaus.jackson.map.ObjectMapper;
+
+import com.google.inject.Inject;
 
 /**
  * Resource provider for task resources.
  */
-class TaskResourceProvider extends AbstractControllerResourceProvider {
+@StaticallyInject
+public class TaskResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Tasks
-  protected static final String TASK_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Tasks", "cluster_name");
-  protected static final String TASK_REQUEST_ID_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "request_id");
-  protected static final String TASK_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Tasks", "id");
-  protected static final String TASK_STAGE_ID_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "stage_id");
-  protected static final String TASK_HOST_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "host_name");
-  protected static final String TASK_ROLE_PROPERTY_ID         = PropertyHelper.getPropertyId("Tasks", "role");
-  protected static final String TASK_COMMAND_PROPERTY_ID      = PropertyHelper.getPropertyId("Tasks", "command");
-  protected static final String TASK_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "status");
-  protected static final String TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "exit_code");
-  protected static final String TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "stderr");
-  protected static final String TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("Tasks", "stdout");
-  protected static final String TASK_OUTPUTLOG_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "output_log");
-  protected static final String TASK_ERRORLOG_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "error_log");
-  protected static final String TASK_STRUCT_OUT_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "structured_out");
-  protected static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
-  protected static final String TASK_END_TIME_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "end_time");
-  protected static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
-  protected static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
-  protected static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
+  public static final String TASK_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Tasks", "cluster_name");
+  public static final String TASK_REQUEST_ID_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "request_id");
+  public static final String TASK_ID_PROPERTY_ID           = PropertyHelper.getPropertyId("Tasks", "id");
+  public static final String TASK_STAGE_ID_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "stage_id");
+  public static final String TASK_HOST_NAME_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "host_name");
+  public static final String TASK_ROLE_PROPERTY_ID         = PropertyHelper.getPropertyId("Tasks", "role");
+  public static final String TASK_COMMAND_PROPERTY_ID      = PropertyHelper.getPropertyId("Tasks", "command");
+  public static final String TASK_STATUS_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "status");
+  public static final String TASK_EXIT_CODE_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "exit_code");
+  public static final String TASK_STDERR_PROPERTY_ID       = PropertyHelper.getPropertyId("Tasks", "stderr");
+  public static final String TASK_STOUT_PROPERTY_ID        = PropertyHelper.getPropertyId("Tasks", "stdout");
+  public static final String TASK_OUTPUTLOG_PROPERTY_ID    = PropertyHelper.getPropertyId("Tasks", "output_log");
+  public static final String TASK_ERRORLOG_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "error_log");
+  public static final String TASK_STRUCT_OUT_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "structured_out");
+  public static final String TASK_START_TIME_PROPERTY_ID   = PropertyHelper.getPropertyId("Tasks", "start_time");
+  public static final String TASK_END_TIME_PROPERTY_ID     = PropertyHelper.getPropertyId("Tasks", "end_time");
+  public static final String TASK_ATTEMPT_CNT_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "attempt_cnt");
+  public static final String TASK_COMMAND_DET_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "command_detail");
+  public static final String TASK_CUST_CMD_NAME_PROPERTY_ID  = PropertyHelper.getPropertyId("Tasks", "custom_command_name");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           TASK_ID_PROPERTY_ID}));
+
+  /**
+   * Used for querying tasks.
+   */
+  @Inject
+  protected static HostRoleCommandDAO s_dao;
+
+  /**
+   * Used for constructing instances of {@link HostRoleCommand} from {@link HostRoleCommandEntity}.
+   */
+  @Inject
+  private static HostRoleCommandFactory s_hostRoleCommandFactory;
 
   /**
    * Thread-safe Jackson JSON mapper.
@@ -97,101 +115,89 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
     throw new UnsupportedOperationException("Not currently supported.");
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
+    Set<Resource> results = new LinkedHashSet<Resource>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
-    Map<String, Set<TaskStatusRequest>> requestsMap = new HashMap<String, Set<TaskStatusRequest>>();
+    List<HostRoleCommandEntity> entities = s_dao.findAll(request, predicate);
+    LOG.debug("Retrieved {} commands for request {}", entities.size(), request);
 
+    // !!! getting the cluster name out of the request property maps is a little
+    // hacky since there could be a different request per cluster name; however
+    // nobody is making task requests across clusters. Overall, this loop could
+    // be called multiple times when using predicates like
+    // tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT) which would unnecessarily
+    // make the same call to the API over and over
+    String clusterName = null;
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      String clusterName = (String) propertyMap.get(TASK_CLUSTER_NAME_PROPERTY_ID);
-
-      Set<TaskStatusRequest> requests = requestsMap.get(clusterName);
-      if (requests == null) {
-        requests = new HashSet<TaskStatusRequest>();
-        requestsMap.put(clusterName, requests);
-      }
-      requests.add(getRequest(propertyMap));
+      clusterName = (String) propertyMap.get(TASK_CLUSTER_NAME_PROPERTY_ID);
     }
 
-    Set<Resource> resources = null;
+    // convert each entity into a response
+    for (HostRoleCommandEntity entity : entities) {
+      Resource resource = new ResourceImpl(Resource.Type.Task);
 
-    for (Map.Entry<String, Set<TaskStatusRequest>> entry : requestsMap.entrySet()) {
-
-      final Set<TaskStatusRequest> requests = entry.getValue();
-
-      Set<TaskStatusResponse> responses = getResources(new Command<Set<TaskStatusResponse>>() {
-        @Override
-        public Set<TaskStatusResponse> invoke() throws AmbariException {
-          return getManagementController().getTaskStatus(requests);
-        }
-      });
-
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Printing size of responses " + responses.size());
-        for (TaskStatusResponse response : responses) {
-          LOG.debug("Printing response from management controller "
-              + response.toString());
-        }
+      // !!! shocked this isn't broken.  the key can be null for non-cluster tasks
+      if (null != clusterName) {
+        setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       }
 
-      resources = new HashSet<Resource>();
-      for (TaskStatusResponse response : responses) {
-        Resource resource = new ResourceImpl(Resource.Type.Task);
+      HostRoleCommand hostRoleCommand = s_hostRoleCommandFactory.createExisting(entity);
 
-        // !!! shocked this isn't broken.  the key can be null for non-cluster tasks
-        if (null != entry.getKey())
-          setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, entry.getKey(), requestedIds);  
-        
-        setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, response.getRequestId(), requestedIds);
-        setResourceProperty(resource, TASK_ID_PROPERTY_ID, response.getTaskId(), requestedIds);
-        setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, response.getStageId(), requestedIds);
-        setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, response.getHostName(), requestedIds);
-        setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, response.getRole(), requestedIds);
-        setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, response.getCommand(), requestedIds);
-        setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, response.getStatus(), requestedIds);
-        setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, response.getExitCode(), requestedIds);
-        setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, response.getStderr(), requestedIds);
-        setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, response.getStdout(), requestedIds);
-        setResourceProperty(resource, TASK_OUTPUTLOG_PROPERTY_ID, response.getOutputLog(), requestedIds);
-        setResourceProperty(resource, TASK_ERRORLOG_PROPERTY_ID, response.getErrorLog(), requestedIds);
-        setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, parseStructuredOutput(response.getStructuredOut()), requestedIds);
-        setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, response.getStartTime(), requestedIds);
-        setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, response.getEndTime(), requestedIds);
-        setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, response.getAttemptCount(), requestedIds);
+      setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, hostRoleCommand.getRequestId(), requestedIds);
+      setResourceProperty(resource, TASK_ID_PROPERTY_ID, hostRoleCommand.getTaskId(), requestedIds);
+      setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, hostRoleCommand.getStageId(), requestedIds);
+      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, hostRoleCommand.getHostName(), requestedIds);
+      setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, hostRoleCommand.getRole().toString(), requestedIds);
+      setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, hostRoleCommand.getRoleCommand(), requestedIds);
+      setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, hostRoleCommand.getStatus(), requestedIds);
+      setResourceProperty(resource, TASK_EXIT_CODE_PROPERTY_ID, hostRoleCommand.getExitCode(), requestedIds);
+      setResourceProperty(resource, TASK_STDERR_PROPERTY_ID, hostRoleCommand.getStderr(), requestedIds);
+      setResourceProperty(resource, TASK_STOUT_PROPERTY_ID, hostRoleCommand.getStdout(), requestedIds);
+      setResourceProperty(resource, TASK_OUTPUTLOG_PROPERTY_ID, hostRoleCommand.getOutputLog(), requestedIds);
+      setResourceProperty(resource, TASK_ERRORLOG_PROPERTY_ID, hostRoleCommand.getErrorLog(), requestedIds);
+      setResourceProperty(resource, TASK_STRUCT_OUT_PROPERTY_ID, parseStructuredOutput(hostRoleCommand.getStructuredOut()), requestedIds);
+      setResourceProperty(resource, TASK_START_TIME_PROPERTY_ID, hostRoleCommand.getStartTime(), requestedIds);
+      setResourceProperty(resource, TASK_END_TIME_PROPERTY_ID, hostRoleCommand.getEndTime(), requestedIds);
+      setResourceProperty(resource, TASK_ATTEMPT_CNT_PROPERTY_ID, hostRoleCommand.getAttemptCount(), requestedIds);
 
-        if (response.getCustomCommandName() != null) {
-          setResourceProperty(resource, TASK_CUST_CMD_NAME_PROPERTY_ID, response.getCustomCommandName(), requestedIds);
-        }
-
-        if (response.getCommandDetail() == null) {
-          setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID,
-              String.format("%s %s", response.getRole(), response.getCommand()), requestedIds);
-        } else {
-          setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID, response.getCommandDetail(), requestedIds);
-        }
-
-        resources.add(resource);
+      if (hostRoleCommand.getCustomCommandName() != null) {
+        setResourceProperty(resource, TASK_CUST_CMD_NAME_PROPERTY_ID, hostRoleCommand.getCustomCommandName(), requestedIds);
       }
+
+      if (hostRoleCommand.getCommandDetail() == null) {
+        setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID,
+            String.format("%s %s", hostRoleCommand.getRole().toString(), hostRoleCommand.getRoleCommand()), requestedIds);
+      } else {
+        setResourceProperty(resource, TASK_COMMAND_DET_PROPERTY_ID, hostRoleCommand.getCommandDetail(), requestedIds);
+      }
+
+      results.add(resource);
     }
-    return resources;
+
+    return results;
   }
 
   /**
    * Converts the specified JSON string into a {@link Map}. For now, use Jackson
    * instead of gson since none of the integers will convert properly without a
    * well-defined first-class object to map to.
-   * 
+   *
    * @param structuredOutput
    *          the JSON string to convert.
    * @return the converted JSON as key-value pairs, or {@code null} if an
    *         exception was encountered or if the JSON string was empty.
    */
   Map<?, ?> parseStructuredOutput(String structuredOutput) {
-    if (null == structuredOutput || structuredOutput.isEmpty())
+    if (null == structuredOutput || structuredOutput.isEmpty()) {
       return null;
+    }
 
     Map<?, ?> result = null;
 
@@ -220,20 +226,5 @@ class TaskResourceProvider extends AbstractControllerResourceProvider {
   @Override
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
-  }
-
-  /**
-   * Get a component request object from a map of property values.
-   *
-   * @param properties  the predicate
-   *
-   * @return the component request object
-   */
-  private TaskStatusRequest getRequest(Map<String, Object> properties) {
-    String taskId = (String) properties.get(TASK_ID_PROPERTY_ID);
-    Long task_id = (taskId == null? null: Long.valueOf(taskId));
-    return new TaskStatusRequest(
-        Long.valueOf((String) properties.get(TASK_REQUEST_ID_PROPERTY_ID)),
-        task_id);
   }
 }

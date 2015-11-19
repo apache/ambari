@@ -139,8 +139,12 @@ public class HostRoleCommand {
     this.executionCommandDAO = executionCommandDAO;
 
     taskId = hostRoleCommandEntity.getTaskId();
-    stageId = hostRoleCommandEntity.getStage().getStageId();
-    requestId = hostRoleCommandEntity.getStage().getRequestId();
+
+    stageId = null != hostRoleCommandEntity.getStageId() ? hostRoleCommandEntity.getStageId()
+        : hostRoleCommandEntity.getStage().getStageId();
+
+    requestId = null != hostRoleCommandEntity.getRequestId() ? hostRoleCommandEntity.getRequestId()
+        : hostRoleCommandEntity.getStage().getRequestId();
 
     if (null != hostRoleCommandEntity.getHostEntity()) {
       hostId = hostRoleCommandEntity.getHostId();

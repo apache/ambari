@@ -162,12 +162,6 @@ public interface ActionDBAccessor {
   public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds);
 
   /**
-   * Get a list of host role commands where the request id belongs to the input requestIds and
-   * the task id belongs to the input taskIds
-   */
-  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds);
-
-  /**
    * Given a list of task ids, get all the host role commands
    */
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds);
