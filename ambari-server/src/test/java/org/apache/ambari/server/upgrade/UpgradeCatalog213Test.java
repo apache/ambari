@@ -1279,7 +1279,8 @@ public class UpgradeCatalog213Test {
             "else\n" +
             "  export HADOOP_HEAPSIZE=\"{{hive_heapsize}}\"\n" +
             "fi\n" +
-            "\n";
+            "\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
     expectedResult = "# The heap size of the jvm stared by hive shell script can be controlled via:\n" +
             "export SERVICE=$SERVICE\n" +
             "if [ \"$SERVICE\" = \"metastore\" ]; then\n" +
@@ -1288,7 +1289,8 @@ public class UpgradeCatalog213Test {
             "  export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
             "fi\n" +
             "\n" +
-            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+            "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n" +
+            "# Larger heap size may be required when running queries over large number of files or partitions.\n";
     Assert.assertEquals(expectedResult, upgradeCatalog213.updateHiveEnvContent(testContent));
   }
 
