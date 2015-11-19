@@ -27,7 +27,7 @@ describe('hdp2SiteProperties', function () {
    */
   var stackProperties = siteProperties.filter(function(item){
     return  (!(item.isRequiredByAgent === false || item.filename === 'alert_notification' || item.category === 'Ambari Principals'
-    || item.name === 'oozie_hostname' || item.serviceName === 'HAWQ'))
+    || item.name === 'oozie_hostname'))
   });
 
   stackProperties.forEach(function(siteProperty){

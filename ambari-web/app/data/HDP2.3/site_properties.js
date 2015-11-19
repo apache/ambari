@@ -235,7 +235,6 @@ hdp23properties.push({
   /*********************************************** HAWQ **********************************************/
   {
     "name": "hawq_master_address_host",
-    "displayType": "componentHost",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -243,7 +242,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_standby_address_host",
-    "displayType": "componentHost",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -251,7 +249,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_master_address_port",
-    "displayType": "int",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -259,7 +256,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_segment_address_port",
-    "displayType": "int",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -274,7 +270,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_master_directory",
-    "displayType": "directory",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -282,7 +277,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_master_temp_directory",
-    "displayType": "directory",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -290,7 +284,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_segment_directory",
-    "displayType": "directory",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
@@ -298,7 +291,6 @@ hdp23properties.push({
   },
   {
     "name": "hawq_segment_temp_directory",
-    "displayType": "directory",
     "filename": "hawq-site.xml",
     "category": "General",
     "serviceName": "HAWQ",
