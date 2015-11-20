@@ -25,6 +25,10 @@ Em.I18n.translations = {
   'app.reloadPopup.text': 'Trying to connect to server...',
   'app.reloadPopup.noClusterName.text': 'Failed to retrieve cluster name, trying to reload...',
   'app.reloadPopup.header': 'Reload Page',
+  'app.redirectIssuePopup.header': 'Login Redirect Issue',
+  'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
+    '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
+    '<a href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
