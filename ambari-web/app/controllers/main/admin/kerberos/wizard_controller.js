@@ -18,7 +18,6 @@
 
 
 var App = require('app');
-var credentialsUtils = require('utils/credentials');
 
 App.KerberosWizardController = App.WizardController.extend(App.InstallComponent, {
 
@@ -158,6 +157,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
    *
    * @param {Array} itemsArray
    * @param newValue
+   * @param exceptions
    */
   overrideVisibility: function (itemsArray, newValue, exceptions) {
     newValue = newValue || false;
@@ -198,6 +198,40 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
         data: '{"ServiceInfo": { "service_name": "KERBEROS"}}',
         cluster: App.get('clusterName') || App.clusterStatus.get('clusterName')
       }
+    });
+  },
+
+  /**
+   * Delete Kerberos service if it exists
+   *
+   * @returns {$.Deferred}
+   */
+  deleteKerberosService: function () {
+    var serviceName = 'KERBEROS';
+    if (App.cache.services.someProperty('ServiceInfo.service_name', serviceName)) {
+      App.cache.services.removeAt(App.cache.services.indexOf(App.cache.services.findProperty('ServiceInfo.service_name', serviceName)));
+    }
+    if (App.Service.find().someProperty('serviceName', serviceName)) {
+      App.serviceMapper.deleteRecord(App.Service.find(serviceName));
+    }
+    return App.ajax.send({
+      name: 'common.delete.service',
+      sender: this,
+      data: {
+        serviceName: serviceName
+      }
+    });
+  },
+
+  /**
+   * Unkerberize cluster. Set cluster `security_type` to "NONE".
+   *
+   * @returns {$.Deferred}
+   */
+  unkerberize: function() {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster',
+      sender: this
     });
   },
 
@@ -312,6 +346,7 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
       : Em.I18n.t('admin.kerberos.wizard.exit.warning.msg');
     return App.showConfirmationPopup(primary, msg, null, null, primaryText, isCritical);
   },
+
   /**
    * Clear all temporary data
    */
@@ -320,6 +355,25 @@ App.KerberosWizardController = App.WizardController.extend(App.InstallComponent,
     this.setCurrentStep('1', false, true);
     // kerberos wizard namespace in the localStorage should be emptied
     this.resetDbNamespace();
-    App.get('router.updateController').updateAll();
+  },
+
+  /**
+   * Discard changes affected by wizard:
+   *   - Unkerberize cluster
+   *   - Remove Kerberos service
+   *
+   * @returns {$.Deferred}
+   */
+  discardChanges: function() {
+    var dfd = $.Deferred();
+    var self = this;
+
+    this.unkerberize().always(function() {
+      self.deleteKerberosService().always(function() {
+        dfd.resolve();
+      });
+    });
+
+    return dfd.promise();
   }
 });
