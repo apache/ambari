@@ -1475,7 +1475,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   restoreLastUpgrade: function(lastUpgradeData) {
     var self = this;
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
-    var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
 
     this.setDBProperties({
       upgradeId: lastUpgradeData.Upgrade.request_id,
@@ -1490,6 +1489,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       })
     });
     this.loadRepoVersionsToModel().done(function () {
+      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
       self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
       self.initDBProperties();
       self.loadUpgradeData(true);
