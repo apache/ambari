@@ -19,6 +19,8 @@ limitations under the License.
 """
 
 from functions import calc_xmn_from_xms
+from functions import trim_heap_property
+
 from resource_management import *
 import status_params
 from ambari_commons import OSCheck
@@ -106,6 +108,13 @@ pass
 
 hbase_master_xmn_size = config['configurations']['ams-hbase-env']['hbase_master_xmn_size']
 hbase_master_maxperm_size = config['configurations']['ams-hbase-env']['hbase_master_maxperm_size']
+
+# Check if hbase java options already have appended "m". If Yes, remove the trailing m.
+master_heapsize = int(trim_heap_property(str(master_heapsize), "m"))
+regionserver_heapsize = int(trim_heap_property(str(regionserver_heapsize), "m"))
+hbase_master_maxperm_size = int(trim_heap_property(str(hbase_master_maxperm_size), "m"))
+hbase_master_xmn_size = int(trim_heap_property(str(hbase_master_xmn_size), "m"))
+regionserver_xmn_size = int(trim_heap_property(str(regionserver_xmn_size), "m"))
 
 # Choose heap size for embedded mode as sum of master + regionserver
 if not is_hbase_distributed:

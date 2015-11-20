@@ -36,3 +36,10 @@ def calc_xmn_from_xms(heapsize, xmn_percent, xmn_max):
   
   result_xmn_val = xmn_max if xmn_val > xmn_max else xmn_val
   return result_xmn_val
+
+def trim_heap_property(property, m_suffix = "m"):
+
+  if property and property.endswith(m_suffix):
+    property = property[:-1]
+
+  return property
