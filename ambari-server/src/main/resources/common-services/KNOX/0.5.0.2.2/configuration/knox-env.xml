@@ -70,4 +70,15 @@
     </value-attributes>
   </property>
 
+
+  <property>
+    <name>knox_principal_name</name>
+    <description>Knox principal name</description>
+  </property>
+
+  <property>
+    <name>knox_keytab_path</name>
+    <description>Knox keytab path</description>
+  </property>
+
 </configuration>

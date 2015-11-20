@@ -196,6 +196,16 @@
     <description>Max number of processes limit setting for HDFS user.</description>
   </property>
 
+  <property>
+    <name>hdfs_user_keytab</name>
+    <description>HDFS keytab path</description>
+  </property>
+
+  <property>
+    <name>hdfs_principal_name</name>
+    <description>HDFS principal name</description>
+  </property>
+
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>

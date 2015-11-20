@@ -54,6 +54,16 @@
     </value-attributes>
   </property>
 
+  <property>
+    <name>zookeeper_principal_name</name>
+    <description>ZooKeeper principal name</description>
+  </property>
+
+  <property>
+    <name>zookeeper_keytab_path</name>
+    <description>ZooKeeper keytab path</description>
+  </property>
+
   
   <!-- zookeeper-env.sh -->
   <property>
