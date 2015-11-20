@@ -79,10 +79,8 @@ angular.module('ambariAdminConsole')
       return Restangular.one('users', userId).remove();
     },
     getPrivileges : function(userId) {
-      return $http.get(Settings.baseUrl + '/privileges', {
+      return $http.get(Settings.baseUrl + '/users/' + userId + '/privileges', {
         params:{
-          'PrivilegeInfo/principal_type': 'USER',
-          'PrivilegeInfo/principal_name': encodeURIComponent(userId),
           'fields': '*'
         }
       });
