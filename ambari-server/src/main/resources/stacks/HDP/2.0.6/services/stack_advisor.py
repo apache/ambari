@@ -912,26 +912,31 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "storm-site")
 
   def validateAmsHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize") ## FIXME if new service added
-    masterItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
+
     ams_env = getSiteProperties(configurations, "ams-env")
     amsHbaseSite = getSiteProperties(configurations, "ams-hbase-site")
-    logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
-                                                  ams_env, "metrics_collector_log_dir")
+    validationItems = []
+    mb = 1024 * 1024
+    gb = 1024 * mb
 
-    # Validate Xmn settings.
+    regionServerItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_regionserver_heapsize") ## FIXME if new service added
+    hbaseMasterHeapsizeItem = self.validatorLessThenDefaultValue(properties, recommendedDefaults, "hbase_master_heapsize")
+    logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir", ams_env, "metrics_collector_log_dir")
+
+    collector_heapsize = to_number(ams_env.get("metrics_collector_heapsize"))
     hbase_master_heapsize = to_number(properties["hbase_master_heapsize"])
     hbase_master_xmn_size = to_number(properties["hbase_master_xmn_size"])
     hbase_regionserver_heapsize = to_number(properties["hbase_regionserver_heapsize"])
     hbase_regionserver_xmn_size = to_number(properties["regionserver_xmn_size"])
 
+    # Validate Xmn settings.
     masterXmnItem = None
     regionServerXmnItem = None
     is_hbase_distributed = amsHbaseSite.get("hbase.cluster.distributed").lower() == 'true'
 
     if is_hbase_distributed:
-      minMasterXmn = 0.12 *  hbase_master_heapsize
-      maxMasterXmn = 0.2 *  hbase_master_heapsize
+      minMasterXmn = 0.12 * hbase_master_heapsize
+      maxMasterXmn = 0.2 * hbase_master_heapsize
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                          "(12% of hbase_master_heapsize)".format(int(math.ceil(minMasterXmn))))
@@ -940,30 +945,31 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                          "(20% of hbase_master_heapsize)".format(int(math.floor(maxMasterXmn))))
 
-      minRegionServerXmn = 0.12 *  hbase_regionserver_heapsize
-      maxRegionServerXmn = 0.2 *  hbase_regionserver_heapsize
+      minRegionServerXmn = 0.12 * hbase_regionserver_heapsize
+      maxRegionServerXmn = 0.2 * hbase_regionserver_heapsize
       if hbase_regionserver_xmn_size < minRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
-                              "(12% of hbase_regionserver_heapsize)".format(int(math.ceil(minRegionServerXmn))))
+                                               "(12% of hbase_regionserver_heapsize)"
+                                               .format(int(math.ceil(minRegionServerXmn))))
 
       if hbase_regionserver_xmn_size > maxRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
-                              "(20% of hbase_regionserver_heapsize)".format(int(math.floor(maxRegionServerXmn))))
+                                               "(20% of hbase_regionserver_heapsize)"
+                                               .format(int(math.floor(maxRegionServerXmn))))
     else:
-      minMasterXmn = 0.12 *  ( hbase_master_heapsize + hbase_regionserver_heapsize )
-      maxMasterXmn = 0.2 *  ( hbase_master_heapsize + hbase_regionserver_heapsize )
+      minMasterXmn = 0.12 * (hbase_master_heapsize + hbase_regionserver_heapsize)
+      maxMasterXmn = 0.2 *  (hbase_master_heapsize + hbase_regionserver_heapsize)
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
-                        "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)".format(int(math.ceil(minMasterXmn))))
+                                         "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)"
+                                         .format(int(math.ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
-                        "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)".format(int(math.floor(maxMasterXmn))))
+                                         "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)"
+                                         .format(int(math.floor(maxMasterXmn))))
 
-    validationItems = []
-    masterHostItem = None
-
-    if masterItem is None:
+    if hbaseMasterHeapsizeItem is None:
       hostMasterComponents = {}
 
       for service in services["services"]:
@@ -981,14 +987,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
           if host["Hosts"]["host_name"] == collectorHostName:
             # AMS Collector co-hosted with other master components in bigger clusters
             if len(hosts['items']) > 31 and \
-              len(hostMasterComponents[collectorHostName]) > 2 and \
-              host["Hosts"]["total_mem"] < 32*1024*1024: # <32 Gb(total_mem in k)
+                            len(hostMasterComponents[collectorHostName]) > 2 and \
+                            host["Hosts"]["total_mem"] < 32*mb: # < 32Gb(total_mem in k)
               masterHostMessage = "Host {0} is used by multiple master components ({1}). " \
                                   "It is recommended to use a separate host for the " \
                                   "Ambari Metrics Collector component and ensure " \
                                   "the host has sufficient memory available."
 
-              masterHostItem = self.getWarnItem(
+              hbaseMasterHeapsizeItem = self.getWarnItem(
                 masterHostMessage.format(
                   collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
 
@@ -1002,28 +1008,34 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
           requiredMemory = getMemorySizeRequired(hostComponents, configurations)
           unusedMemory = host["Hosts"]["total_mem"] * 1024 - requiredMemory # in bytes
-          if unusedMemory > 4294967296:  # warn user, if more than 4GB RAM is unused
+          if unusedMemory > 4*gb:  # warn user, if more than 4GB RAM is unused
             heapPropertyToIncrease = "hbase_regionserver_heapsize" if is_hbase_distributed else "hbase_master_heapsize"
             xmnPropertyToIncrease = "regionserver_xmn_size" if is_hbase_distributed else "hbase_master_xmn_size"
-            collector_heapsize = int((unusedMemory - 4294967296)/5) + to_number(ams_env.get("metrics_collector_heapsize"))*1048576
-            hbase_heapsize = int((unusedMemory - 4294967296)*4/5) + to_number(properties.get(heapPropertyToIncrease))*1048576
-            hbase_heapsize = min(32*1024*1024*1024, hbase_heapsize) #Make sure heapsize < 32GB
-            xmn_size = round_to_n(0.12*hbase_heapsize/1048576,128)
+            recommended_collector_heapsize = int((unusedMemory - 4*gb)/5) + collector_heapsize*mb
+            recommended_hbase_heapsize = int((unusedMemory - 4*gb)*4/5) + to_number(properties.get(heapPropertyToIncrease))*mb
+            recommended_hbase_heapsize = min(32*gb, recommended_hbase_heapsize) #Make sure heapsize <= 32GB
+            recommended_xmn_size = round_to_n(0.12*recommended_hbase_heapsize/mb,128)
 
-            msg = "{0} MB RAM is unused on the host {1} based on components " \
-                  "assigned. Consider allocating  {2} MB to " \
-                  "metrics_collector_heapsize in ams-env, " \
-                  "{3} MB to {4} in ams-hbase-env and " \
-                  "{5} MB to {6} in ams-hbase-env"
+            if collector_heapsize < recommended_collector_heapsize:
+              collectorHeapsizeItem = self.getWarnItem("{0} MB RAM is unused on the host {1} based on "
+                                                       "components assigned. Consider allocating {2} MB"
+                                        .format(unusedMemory/mb, collectorHostName, recommended_collector_heapsize/mb))
+              validationItems.extend([{"config-name": "metrics_collector_heapsize", "item": collectorHeapsizeItem}])
 
-            unusedMemoryHbaseItem = self.getWarnItem(msg.format(unusedMemory/1048576, collectorHostName, collector_heapsize/1048576, hbase_heapsize/1048576, heapPropertyToIncrease, xmn_size, xmnPropertyToIncrease))
-            validationItems.extend([{"config-name": heapPropertyToIncrease, "item": unusedMemoryHbaseItem}])
+            if to_number(properties[heapPropertyToIncreaseItem]) < recommended_hbase_heapsize:
+              heapPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
+                                                            "on host".format(recommended_hbase_heapsize/mb))
+              validationItems.extend([{"config-name": heapPropertyToIncrease, "item": heapPropertyToIncreaseItem}])
+
+            if to_number(properties[xmnPropertyToIncrease]) < recommended_hbase_heapsize:
+              xmnPropertyToIncreaseItem = self.getWarnItem("Consider allocating {0} MB to use up some unused memory "
+                                                           "on host".format(recommended_xmn_size))
+              validationItems.extend([{"config-name": xmnPropertyToIncrease, "item": xmnPropertyToIncreaseItem}])
       pass
 
     validationItems.extend([
       {"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
-      {"config-name": "hbase_master_heapsize", "item": masterItem},
-      {"config-name": "hbase_master_heapsize", "item": masterHostItem},
+      {"config-name": "hbase_master_heapsize", "item": hbaseMasterHeapsizeItem},
       {"config-name": "hbase_log_dir", "item": logDirItem},
       {"config-name": "hbase_master_xmn_size", "item": masterXmnItem},
       {"config-name": "regionserver_xmn_size", "item": regionServerXmnItem}
