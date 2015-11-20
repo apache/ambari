@@ -341,7 +341,7 @@ class TestActionQueue(TestCase):
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
     dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager()
+    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
     dummy_controller.recovery_manager.update_config(5, 5, 1, 11, True, False, "", "")
 
     actionQueue = ActionQueue(config, dummy_controller)
@@ -665,7 +665,7 @@ class TestActionQueue(TestCase):
 
     build_mock.return_value = {'dummy report': '' }
 
-    dummy_controller.recovery_manager = RecoveryManager()
+    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
 
     requestComponentStatus_mock.reset_mock()
     requestComponentStatus_mock.return_value = {'exitcode': 0 }
@@ -725,7 +725,7 @@ class TestActionQueue(TestCase):
                                 get_mock, process_command_mock, gpeo_mock):
     CustomServiceOrchestrator_mock.return_value = None
     dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager()
+    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
     config = MagicMock()
     gpeo_mock.return_value = 0
     config.get_parallel_exec_option = gpeo_mock

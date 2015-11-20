@@ -20,7 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import copy
-
+import tempfile
 from ambari_agent.RecoveryManager import RecoveryManager
 from mock.mock import patch, MagicMock, call
 
@@ -124,7 +124,7 @@ class TestRecoveryManager(TestCase):
 
   @patch.object(RecoveryManager, "update_desired_status")
   def test_process_commands(self, mock_uds):
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
     rm.process_status_commands(None)
     self.assertFalse(mock_uds.called)
 
@@ -154,7 +154,7 @@ class TestRecoveryManager(TestCase):
     pass
 
   def test_defaults(self):
-    rm = RecoveryManager()
+    rm = RecoveryManager(tempfile.mktemp())
     self.assertFalse(rm.enabled())
     self.assertEqual(None, rm.get_install_command("NODEMANAGER"))
     self.assertEqual(None, rm.get_start_command("NODEMANAGER"))
@@ -170,7 +170,7 @@ class TestRecoveryManager(TestCase):
       [1000, 1001, 1002, 1003, 1004, 1071, 1150, 1151, 1152, 1153, 1400, 1401,
        1500, 1571, 1572, 1653, 1900, 1971, 2300, 2301]
 
-    rm = RecoveryManager(True, False)
+    rm = RecoveryManager(tempfile.mktemp(), True, False)
     self.assertTrue(rm.enabled())
 
     rm.update_config(0, 60, 5, 12, True, False, "", "")
@@ -243,7 +243,7 @@ class TestRecoveryManager(TestCase):
     pass
 
   def test_recovery_required(self):
-    rm = RecoveryManager(True, False)
+    rm = RecoveryManager(tempfile.mktemp(), True, False)
 
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
@@ -273,7 +273,7 @@ class TestRecoveryManager(TestCase):
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(tempfile.mktemp(), True, True)
 
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
@@ -291,13 +291,13 @@ class TestRecoveryManager(TestCase):
 
   def test_recovery_required2(self):
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(tempfile.mktemp(), True, True)
     rm.update_config(15, 5, 1, 16, True, False, "", "")
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(tempfile.mktemp(), True, True)
     rm.update_config(15, 5, 1, 16, True, False, "NODEMANAGER", "")
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
@@ -307,7 +307,7 @@ class TestRecoveryManager(TestCase):
     rm.update_desired_status("DATANODE", "STARTED")
     self.assertFalse(rm.requires_recovery("DATANODE"))
 
-    rm = RecoveryManager(True, True)
+    rm = RecoveryManager(tempfile.mktemp(), True, True)
     rm.update_config(15, 5, 1, 16, True, False, "", "NODEMANAGER")
     rm.update_current_status("NODEMANAGER", "INSTALLED")
     rm.update_desired_status("NODEMANAGER", "STARTED")
@@ -339,7 +339,7 @@ class TestRecoveryManager(TestCase):
 
   @patch('time.time', MagicMock(side_effects=[1]))
   def test_store_from_status_and_use(self):
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
 
     command1 = copy.deepcopy(self.command)
 
@@ -391,7 +391,7 @@ class TestRecoveryManager(TestCase):
        4100, 4101, 4102, 4103,
        4200, 4201, 4202,
        4300, 4301, 4302]
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
     rm.update_config(15, 5, 1, 16, True, False, "", "")
 
     command1 = copy.deepcopy(self.command)
@@ -469,7 +469,7 @@ class TestRecoveryManager(TestCase):
 
   @patch.object(RecoveryManager, "update_config")
   def test_update_rm_config(self, mock_uc):
-    rm = RecoveryManager()
+    rm = RecoveryManager(tempfile.mktemp())
     rm.update_configuration_from_registration(None)
     mock_uc.assert_has_calls([call(6, 60, 5, 12, False, True, "", "")])
 
@@ -518,7 +518,7 @@ class TestRecoveryManager(TestCase):
     time_mock.side_effect = \
       [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1715]
 
-    rm = RecoveryManager()
+    rm = RecoveryManager(tempfile.mktemp())
     rec_st = rm.get_recovery_status()
     self.assertEquals(rec_st, {"summary": "DISABLED"})
 
@@ -565,7 +565,7 @@ class TestRecoveryManager(TestCase):
     time_mock.side_effect = \
       [1000, 1001, 1002, 1003, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
 
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
     rm.update_config(5, 5, 1, 11, True, False, "", "")
 
     command1 = copy.deepcopy(self.command)
@@ -594,7 +594,7 @@ class TestRecoveryManager(TestCase):
     pass
 
   def test_command_count(self):
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
     self.assertFalse(rm.has_active_command())
     rm.start_execution_command()
     self.assertTrue(rm.has_active_command())
@@ -606,7 +606,7 @@ class TestRecoveryManager(TestCase):
     self.assertFalse(rm.has_active_command())
 
   def test_configured_for_recovery(self):
-    rm = RecoveryManager(True)
+    rm = RecoveryManager(tempfile.mktemp(), True)
     self.assertTrue(rm.configured_for_recovery("A"))
     self.assertTrue(rm.configured_for_recovery("B"))
 

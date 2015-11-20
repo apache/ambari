@@ -18,46 +18,15 @@
 package org.apache.ambari.server.state.alert;
 
 /**
- * Source type refers to how the alert is to be collected.
+ * Alert when the source type is defined as {@link org.apache.ambari.server.state.alert.SourceType#RECOVERY}
+ * <p/>
+ * Equality checking for instances of this class should be executed on every
+ * member to ensure that reconciling stack differences is correct.
  */
-public enum SourceType {
-  /**
-   * Source is from metric data.
-   */
-  METRIC,
+public class RecoverySource extends Source {
 
-  /**
-   * Source is generated using of a script
-   */
-  SCRIPT,
+  public RecoverySource() {
 
-  /**
-   * Source is a simple port check
-   */
-  PORT,
+  }
 
-  /**
-   * Source is an aggregate of a collection of other alert states
-   */
-  AGGREGATE,
-
-  /**
-   * Source is a ratio of two {@link #METRIC} values.
-   */
-  PERCENT,
-
-  /**
-   * Source is an http(s)-style request.
-   */
-  WEB,
-
-  /**
-   * Source is a component state recovery results
-   */
-  RECOVERY,
-
-  /**
-   * A server-side alert.
-   */
-  SERVER;
 }
