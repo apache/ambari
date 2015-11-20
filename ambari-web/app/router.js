@@ -236,7 +236,7 @@ App.Router = Em.Router.extend({
 
   login: function () {
     var controller = this.get('loginController');
-    var loginName = controller.get('loginName').toLowerCase();
+    var loginName = controller.get('loginName');
     controller.set('loginName', loginName);
     var hash = misc.utf8ToB64(loginName + ":" + controller.get('password'));
     var usr = '';
