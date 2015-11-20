@@ -300,6 +300,14 @@ describe('App.upgradeWizardView', function () {
 
   });
 
+  describe("#resetManualDone()", function() {
+    it("", function() {
+      view.set('isManualDone', true);
+      view.propertyDidChange('manualItem');
+      expect(view.get('isManualDone')).to.be.false;
+    });
+  });
+
   describe("#failedItem", function () {
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
