@@ -1875,8 +1875,11 @@ Em.I18n.translations = {
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
+  'services.service.restartAllRequired':'Restart All Required',
   'services.service.startAll.confirmMsg' : 'You are about to start all services',
   'services.service.stopAll.confirmMsg' : 'You are about to stop all services',
+  'services.service.refreshAll.confirmMsg': '<p>You are about to restart {0}</p>' +
+    '<div class="alert alert-warning">This will trigger alerts as the service is restarted. To suppress alerts, turn on Maintenance Mode for services listed above prior to running Restart All Required</div>',
   'services.service.start.confirmMsg' : 'You are about to start {0}',
   'services.service.stop.confirmMsg' : 'You are about to stop {0}',
   'services.service.stop.confirmButton': 'Confirm Stop',
