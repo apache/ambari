@@ -319,15 +319,6 @@ fi
 case "$1" in
 
 	start)
-    daemon_status "${HBASE_MASTER_PID}"
-    HBASE_DAEMON_STATUS=$?
-    daemon_status "${PIDFILE}"
-    DAEMON_STATUS=$?
-
-    if [[ !"${DISTRIBUTED_HBASE}"  && ( ${DAEMON_STATUS} != 0 || ${HBASE_DAEMON_STATUS} != 0 ) ]]; then
-      echo "Stopping already running AMS daemons, if any."
-      stop
-    fi
     start
 
   ;;

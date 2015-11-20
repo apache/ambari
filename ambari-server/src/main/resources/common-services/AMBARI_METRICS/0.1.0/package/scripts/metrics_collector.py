@@ -42,6 +42,8 @@ class AmsCollector(Script):
 
   def start(self, env):
     self.configure(env, action = 'start') # for security
+    # stop hanging components before start
+    ams_service('collector', action = 'stop')
     ams_service('collector', action = 'start')
 
   def stop(self, env):

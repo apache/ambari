@@ -39,6 +39,33 @@ class TestMetricsCollector(RMFTestCase):
     self.assert_hbase_configure('master', distributed=True)
     self.assert_hbase_configure('regionserver', distributed=True)
     self.assert_ams('collector', distributed=True)
+    self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop zookeeper',
+                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid`',
+                              timeout = 30,
+                              user = 'ams'
+    )
+    self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop master',
+                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-master.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-master.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/ambari-metrics-collector//hbase-ams-master.pid`',
+                              timeout = 30,
+                              user = 'ams'
+    )
+    self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-master.pid',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop regionserver',
+                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid`',
+                              timeout = 30,
+                              user = 'ams'
+    )
+    self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-regionserver.pid',
+                              action = ['delete']
+    )
+    self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf --distributed stop',
+                              user = 'ams'
+    )
     self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf start zookeeper',
                               not_if = 'ls /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-zookeeper.pid` >/dev/null 2>&1',
                               user = 'ams'
@@ -70,6 +97,9 @@ class TestMetricsCollector(RMFTestCase):
     self.assert_hbase_configure('master')
     self.assert_hbase_configure('regionserver')
     self.assert_ams('collector')
+    self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf stop',
+                              user = 'ams'
+    )
     self.assertResourceCalled('Execute', 'ambari-sudo.sh rm -rf /var/lib/ambari-metrics-collector/hbase-tmp/*.tmp',
     )
     self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/zookeeper',
