@@ -52,6 +52,10 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
       });
       App.db.setSortingStatuses(controllerName, savedSortConditions);
     }
+    if (!this.get('controller.showFilterConditionsFirstLoad')) {
+      this.clearFilterConditionsFromLocalStorage();
+    }
+    this._super();
   },
   didInsertElement: function () {
     this.addObserver('startIndex', this, 'updatePagination');
@@ -68,16 +72,6 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
   willDestroyElement: function () {
     this.set('controller.isPolling', false);
     clearTimeout(this.get('controller.timeoutRef'));
-  },
-
-  /**
-   * clear filters on initial loading
-   */
-  willInsertElement: function () {
-    if (!this.get('controller.showFilterConditionsFirstLoad')) {
-      this.clearFilterConditionsFromLocalStorage();
-    }
-    this._super();
   },
 
   updateFilter: function (iColumn, value, type) {

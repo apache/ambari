@@ -155,6 +155,13 @@ App.upgradeWizardView = Em.View.extend({
   isManualDone: false,
 
   /**
+   * if manualItem has been switched then isManualDone flag should be reset
+   */
+  resetManualDone: function() {
+    this.set('isManualDone', false);
+  }.observes('manualItem'),
+
+  /**
    * @type {boolean}
    */
   isManualProceedDisabled: function () {
