@@ -27,6 +27,7 @@ import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.User;
@@ -73,7 +74,8 @@ public class AmbariLocalUserDetailsService implements UserDetailsService {
 
     UserEntity user = userDAO.findLocalUserByName(username);
 
-    if (user == null) {
+    if (user == null || !StringUtils.equals(user.getUserName(), username)) {
+      //TODO case insensitive name comparison is a temporary solution, until users API will change to use id as PK
       log.info("user not found ");
       throw new UsernameNotFoundException("Username " + username + " not found");
     }
