@@ -29,6 +29,30 @@
     ],
     "METRICS_COLLECTOR": [
       {
+        "name": "ams_metrics_collector_autostart",
+        "label": "Metrics Collector Auto-Start",
+        "description": "This alert is triggered if the Metrics Collector has been auto-started for number of times equal to threshold.",
+        "interval": 1,
+        "scope": "ANY",
+        "enabled": true,
+        "source": {
+          "type": "RECOVERY",
+          "reporting": {
+            "ok": {
+              "text": "Metrics Collector hasn't been auto-started{0}."
+            },
+            "warning": {
+              "text": "Metrics Collector has been auto-started {1} times{0}.",
+              "count": 1
+            },
+            "critical": {
+              "text": "Metrics Collector has been auto-started {1} times{0}.",
+              "count": 5
+            }
+          }
+        }
+      },
+      {
         "name": "ams_metrics_collector_process",
         "label": "Metrics Collector Process",
         "description": "This alert is triggered if the Metrics Collector cannot be confirmed to be up and listening on the configured port for number of seconds equal to threshold.",

@@ -15,9 +15,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import json
 import logging
 import copy
+import os
 import time
 import threading
 import pprint
@@ -56,6 +57,8 @@ class RecoveryManager:
   COMPONENT_UPDATE_KEY_FORMAT = "{0}_UPDATE_TIME"
   COMMAND_REFRESH_DELAY_SEC = 600 #10 minutes
 
+  FILENAME = "recovery.json"
+
   default_action_counter = {
     "lastAttempt": 0,
     "count": 0,
@@ -72,8 +75,7 @@ class RecoveryManager:
     "stale_config": False
   }
 
-
-  def __init__(self, recovery_enabled=False, auto_start_only=False):
+  def __init__(self, cache_dir, recovery_enabled=False, auto_start_only=False):
     self.recovery_enabled = recovery_enabled
     self.auto_start_only = auto_start_only
     self.max_count = 6
@@ -87,13 +89,23 @@ class RecoveryManager:
     self.allowed_current_states = [self.INIT, self.INSTALLED]
     self.enabled_components = []
     self.disabled_components = []
-    self.actions = {}
     self.statuses = {}
     self.__status_lock = threading.RLock()
     self.__command_lock = threading.RLock()
     self.__active_command_lock = threading.RLock()
+    self.__cache_lock = threading.RLock()
     self.active_command_count = 0
     self.paused = False
+
+    if not os.path.exists(cache_dir):
+      try:
+        os.makedirs(cache_dir)
+      except:
+        logger.critical("[RecoveryManager] Could not create the cache directory {0}".format(cache_dir))
+
+    self.__actions_json_file = os.path.join(cache_dir, self.FILENAME)
+
+    self.actions = self._load_actions()
 
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "", "")
 
@@ -366,6 +378,7 @@ class RecoveryManager:
     """
     action_counter = self.actions[action_name]
     now = self._now_()
+    executed = False
     seconds_since_last_attempt = now - action_counter["lastAttempt"]
     if action_counter["lifetimeCount"] < self.max_lifetime_count:
       if action_counter["count"] < self.max_count:
@@ -377,7 +390,7 @@ class RecoveryManager:
           action_counter["warnedLastAttempt"] = False
           if action_counter["count"] == 1:
             action_counter["lastReset"] = now
-          return True
+          executed = True
         else:
           if action_counter["warnedLastAttempt"] == False:
             action_counter["warnedLastAttempt"] = True
@@ -398,7 +411,7 @@ class RecoveryManager:
             action_counter["lastAttempt"] = now
           action_counter["lastReset"] = now
           action_counter["warnedLastReset"] = False
-          return True
+          executed = True
         else:
           if action_counter["warnedLastReset"] == False:
             action_counter["warnedLastReset"] = True
@@ -417,7 +430,54 @@ class RecoveryManager:
       else:
         logger.debug("%s occurrences in agent life time reached the limit for %s",
                      action_counter["lifetimeCount"], action_name)
-    return False
+    self._dump_actions()
+    return executed
+    pass
+
+
+  def _dump_actions(self):
+    """
+    Dump recovery actions to FS
+    """
+    self.__cache_lock.acquire()
+    try:
+      with open(self.__actions_json_file, 'w') as f:
+        json.dump(self.actions, f, indent=2)
+    except Exception, exception:
+      logger.exception("Unable to dump actions to {0}".format(self.__actions_json_file))
+      return False
+    finally:
+      self.__cache_lock.release()
+
+    return True
+    pass
+
+
+  def _load_actions(self):
+    """
+    Loads recovery actions from FS
+    """
+    self.__cache_lock.acquire()
+
+    try:
+      if os.path.isfile(self.__actions_json_file):
+        with open(self.__actions_json_file, 'r') as fp:
+          return json.load(fp)
+    except Exception, exception:
+      logger.warning("Unable to load recovery actions from {0}.".format(self.__actions_json_file))
+    finally:
+      self.__cache_lock.release()
+
+    return {}
+    pass
+
+
+  def get_actions_copy(self):
+    """
+    Loads recovery actions from FS
+    :return:  recovery actions copy
+    """
+    return self._load_actions()
     pass
 
 
@@ -775,7 +835,7 @@ class RecoveryManager:
 
 
 def main(argv=None):
-  cmd_mgr = RecoveryManager()
+  cmd_mgr = RecoveryManager('/tmp')
   pass
 
 

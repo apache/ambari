@@ -33,6 +33,7 @@ from alerts.metric_alert import MetricAlert
 from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
+from alerts.recovery_alert import RecoveryAlert
 from ambari_agent.ExitHelper import ExitHelper
 logger = logging.getLogger(__name__)
 
@@ -42,9 +43,11 @@ class AlertSchedulerHandler():
   TYPE_METRIC = 'METRIC'
   TYPE_SCRIPT = 'SCRIPT'
   TYPE_WEB = 'WEB'
+  TYPE_RECOVERY = 'RECOVERY'
 
   def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir,
-      alert_grace_period, cluster_configuration, config, in_minutes=True):
+      alert_grace_period, cluster_configuration, config, recovery_manager,
+      in_minutes=True):
 
     self.cachedir = cachedir
     self.stacks_dir = stacks_dir
@@ -70,6 +73,7 @@ class AlertSchedulerHandler():
     self.__scheduler = Scheduler(self.APS_CONFIG)
     self.__in_minutes = in_minutes
     self.config = config
+    self.recovery_manger = recovery_manager
 
     # register python exit handler
     ExitHelper().register(self.exit_handler)
@@ -282,6 +286,8 @@ class AlertSchedulerHandler():
         alert = ScriptAlert(json_definition, source, self.config)
       elif source_type == AlertSchedulerHandler.TYPE_WEB:
         alert = WebAlert(json_definition, source, self.config)
+      elif source_type == AlertSchedulerHandler.TYPE_RECOVERY:
+        alert = RecoveryAlert(json_definition, source, self.recovery_manger)
 
       if alert is not None:
         alert.set_cluster(clusterName, hostName)

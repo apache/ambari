@@ -20,9 +20,7 @@ limitations under the License.
 
 from unittest import TestCase
 import unittest
-import socket
-import os
-import time
+import tempfile
 from mock.mock import patch, MagicMock, call
 import StringIO
 import sys
@@ -115,7 +113,7 @@ class TestHeartbeat(TestCase):
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
     dummy_controller = MagicMock()
-    dummy_controller.recovery_manager = RecoveryManager()
+    dummy_controller.recovery_manager = RecoveryManager(tempfile.mktemp())
     actionQueue = ActionQueue(config, dummy_controller)
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
@@ -209,6 +207,7 @@ class TestHeartbeat(TestCase):
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
+
     dummy_controller = MagicMock()
     actionQueue = ActionQueue(config, dummy_controller)
     statusCommand = {
