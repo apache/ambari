@@ -85,8 +85,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
       return;
     }
     this.clearStep();
-    //STEP 2: Load on-site configs by service from local DB
-    var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
     this.set('configs', App.configsCollection.getAll());
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
@@ -95,7 +93,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
       this.initilizeKDCStoreProperties(this.get('configs'));
     }
-    this.applyServicesConfigs(this.get('configs'), storedConfigs);
+    this.applyServicesConfigs(this.get('configs'));
   },
 
   /**

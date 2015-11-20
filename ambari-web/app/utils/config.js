@@ -225,7 +225,6 @@ App.config = Em.Object.create({
    */
   mergePredefinedWithSaved: function (configGroups, serviceName, selectedConfigGroup, canEdit) {
     var configs = [];
-    var serviceByConfigTypeMap = this.get('serviceByConfigTypeMap');
 
     configGroups.forEach(function (siteConfig) {
       var filename = App.config.getOriginalFileName(siteConfig.type);
@@ -526,9 +525,9 @@ App.config = Em.Object.create({
   /**
    * create new ServiceConfig object by service name
    * @param {string} serviceName
-   * @param {App.ServiceConfigGroup[]} configGroups
-   * @param {App.ServiceConfigProperty[]} configs
-   * @param {Number} initConfigsLength
+   * @param {App.ServiceConfigGroup[]} [configGroups]
+   * @param {App.ServiceConfigProperty[]} [configs]
+   * @param {Number} [initConfigsLength]
    * @return {App.ServiceConfig}
    * @method createServiceConfig
    */
@@ -600,69 +599,6 @@ App.config = Em.Object.create({
     configTypesInfoMap[service] = configTypesInfo;
     this.set('configTypesInfoMap', configTypesInfoMap);
     return configTypesInfo;
-  },
-
-  /**
-   * Get properties from server by type and tag with properties, that belong to group
-   * push them to common {serviceConfigs} and call callback function
-   */
-  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups, callback, sender) {
-    var configKeyToConfigMap = {};
-    serviceConfigs.forEach(function (item) {
-      if (!configKeyToConfigMap[item.filename]) {
-        configKeyToConfigMap[item.filename] = {};
-      }
-      configKeyToConfigMap[item.filename][item.name] = item;
-    });
-    var typeTagToGroupMap = {};
-    var urlParams = [];
-    for (var group in loadedGroupToOverrideSiteToTagMap) {
-      var overrideTypeTags = loadedGroupToOverrideSiteToTagMap[group];
-      for (var type in overrideTypeTags) {
-        var tag = overrideTypeTags[type];
-        typeTagToGroupMap[type + "///" + tag] = configGroups.findProperty('name', group);
-        urlParams.push('(type=' + type + '&tag=' + tag + ')');
-      }
-    }
-    var params = urlParams.join('|');
-    if (urlParams.length) {
-      App.ajax.send({
-        name: 'config.host_overrides',
-        sender: this,
-        data: {
-          params: params,
-          configKeyToConfigMap: configKeyToConfigMap,
-          typeTagToGroupMap: typeTagToGroupMap,
-          callback: callback,
-          sender: sender,
-          serviceConfigs: serviceConfigs
-        },
-        success: 'loadServiceConfigGroupOverridesSuccess'
-      });
-    } else {
-      callback.call(sender, serviceConfigs);
-    }
-  },
-
-  loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
-    data.items.forEach(function (config) {
-      var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
-      var properties = config.properties;
-      for (var prop in properties) {
-        var fileName = this.getOriginalFileName(config.type);
-        var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
-        var hostOverrideValue = this.formatPropertyValue(serviceConfig, properties[prop]);
-        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
-        if (serviceConfig) {
-          // Value of this property is different for this host.
-          if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
-          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
-        } else {
-          params.serviceConfigs.push(this.createCustomGroupConfig(prop, config, group));
-        }
-      }
-    }, this);
-    params.callback.call(params.sender, params.serviceConfigs);
   },
 
   /**

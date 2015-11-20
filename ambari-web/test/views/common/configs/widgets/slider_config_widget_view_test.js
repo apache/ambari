@@ -465,7 +465,7 @@ describe('App.SliderConfigWidgetView', function () {
 
     beforeEach(function() {
       viewInt.set('config', {});
-      stackConfigProperty = App.StackConfigProperty.createRecord({name: 'p1', widget: { units: [ { 'unit-name': "int"}]}, valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}});
+      stackConfigProperty = {name: 'p1', widget: { units: [ { 'unit-name': "int"}]}, valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}};
       viewInt.set('config.stackConfigProperty', stackConfigProperty);
       viewInt.set('config.isValid', true);
     });

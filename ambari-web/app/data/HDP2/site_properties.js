@@ -1846,7 +1846,7 @@ var hdp2properties = [
     "filename": "storm-env.xml",
     "index": 12
   }
-].concat(require('data/HDP2/alert_notification')).concat(require('data/HDP2/gluster_fs_properties'));
+].concat(require('data/HDP2/gluster_fs_properties'));
 
 if (App.get('isHadoopWindowsStack')) {
   var excludedWindowsConfigs = [

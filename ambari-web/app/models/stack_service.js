@@ -211,9 +211,11 @@ App.StackService.configCategories = function () {
   var serviceConfigCategories = [];
   switch (this.get('serviceName')) {
     case 'HDFS':
+      serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode', showHost: true}));
+      if (!App.get('isHaEnabled')) {
+        serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode', showHost: true}));
+      }
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode', showHost: true}),
-        App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'DATANODE', displayName: 'DataNode', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'NFS_GATEWAY', displayName: 'NFS Gateway', showHost: true})

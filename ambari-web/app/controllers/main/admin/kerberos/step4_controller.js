@@ -173,7 +173,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     var adminProps = [];
     var configProperties = configs.slice(0);
-    var siteProperties = App.config.get('preDefinedSiteProperties');
+    var siteProperties = App.configsCollection.getAll();
     // override stored values
     App.config.mergeStoredValue(configProperties, this.get('wizardController').loadCachedStepConfigValues(this));
 
@@ -182,6 +182,9 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
       this.get('adminPropertyNames').forEach(function(item) {
         var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
+        if (!property) {
+          property = siteProperties.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
+        }
         if (!!property) {
           var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', recommendedValue: '', serviceName: 'Cluster', displayName: item.displayName}));
           if (App.router.get('mainAdminKerberosController.isManualKerberos')) {

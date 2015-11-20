@@ -191,7 +191,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   /**
    * get array of config properties that are shown in settings tab
-   * @type {App.StackConfigProperty[]}
+   * @type {String[]}
    */
   settingsTabProperties: function() {
     var properties = [];
@@ -491,14 +491,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         return serviceNames.contains(c.get('serviceName'));
       });
       var serviceConfig = App.config.createServiceConfig(serviceName, configGroups, configsByService, configsByService.length);
-      if (serviceConfig.get('serviceName') === 'HDFS') {
-        if (App.get('isHaEnabled')) {
-          var c = serviceConfig.configs,
-            removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
-          removedConfigs.setEach('isVisible', false);
-          serviceConfig.configs = c;
-        }
-      }
       this.addHostNamesToConfigs(serviceConfig);
       this.get('stepConfigs').pushObject(serviceConfig);
     }, this);

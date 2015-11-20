@@ -351,7 +351,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   prepareConfigProperties: function (configs) {
     var self = this;
     var configProperties = configs.slice(0);
-    var siteProperties = App.config.get('preDefinedSiteProperties');
+    var siteProperties = App.configsCollection.getAll();
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     configProperties = configProperties.filter(function (item) {
       return installedServiceNames.contains(item.get('serviceName'));

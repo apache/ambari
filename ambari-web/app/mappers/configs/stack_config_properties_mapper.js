@@ -86,7 +86,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           var attributes = config.StackConfigurations.property_value_attributes;
           if (attributes) {
             config.is_required = !attributes.empty_value_valid;
-            config.is_reconfigurable = !attributes.editable_only_at_install;
+            config.is_reconfigurable = !(attributes.editable_only_at_install || config.StackConfigurations.type === 'cluster-env.xml');
             config.is_editable = !attributes.read_only;
             config.is_required_by_agent = !attributes.ui_only_property;
           }

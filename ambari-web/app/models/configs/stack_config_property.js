@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-
+//TODO delete this file soon
 App.StackConfigProperty = DS.Model.extend({
   /**
    * id is consist of property <code>name<code>+<code>fileName<code>

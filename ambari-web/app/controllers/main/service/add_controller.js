@@ -70,9 +70,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     controllerName: 'addServiceController',
     configGroups: [],
     clients: [],
-    additionalClients: [],
-    smokeuser: "ambari-qa",
-    group: "hadoop"
+    additionalClients: []
   }),
 
   loadMap: {

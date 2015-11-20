@@ -56,7 +56,7 @@ describe('App.MainAdminKerberosController', function() {
     });
 
     it('should take displayType from predefinedSiteProperties', function () {
-      sinon.stub(App.config, 'get').withArgs('preDefinedSiteProperties').returns([
+      sinon.stub(App.configsCollection, 'getAll').returns([
         {
           name: 'hadoop.security.auth_to_local',
           displayType: 'multiLine'
@@ -68,7 +68,7 @@ describe('App.MainAdminKerberosController', function() {
           serviceName: 'HDFS'
         })
       ])[0].get('displayType')).to.equal('multiLine');
-      App.config.get.restore();
+      App.configsCollection.getAll.restore();
     });
   });
 

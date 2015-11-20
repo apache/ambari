@@ -21,7 +21,6 @@ require('mappers/configs/themes_mapper');
 require('models/configs/theme/tab');
 require('models/configs/theme/section');
 require('models/configs/theme/sub_section');
-require('models/configs/stack_config_property');
 
 describe('App.themeMapper', function () {
 
