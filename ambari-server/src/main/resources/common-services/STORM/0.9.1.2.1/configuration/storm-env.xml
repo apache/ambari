@@ -49,6 +49,42 @@
     <value>56431</value>
     <description></description>
   </property>
+
+
+  <property>
+    <name>storm_principal_name</name>
+    <description>Storm principal name</description>
+  </property>
+
+  <property>
+    <name>storm_principal_name</name>
+    <description>Storm principal name</description>
+  </property>
+
+  <property>
+    <name>storm_keytab</name>
+    <description>Storm keytab path</description>
+  </property>
+
+  <property>
+    <name>storm_ui_principal_name</name>
+    <description>Storm UI principal name</description>
+  </property>
+
+  <property>
+    <name>storm_ui_keytab</name>
+    <description>Storm UI keytab path</description>
+  </property>
+
+  <property>
+    <name>nimbus_keytab</name>
+    <description>Nimbus keytab path</description>
+  </property>
+
+  <property>
+    <name>nimbus_principal_name</name>
+    <description>Nimbus principal name</description>
+  </property>
   
   <!-- storm-env.sh -->
   <property>

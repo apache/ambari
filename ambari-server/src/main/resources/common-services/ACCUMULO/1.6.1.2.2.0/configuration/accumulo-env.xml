@@ -159,6 +159,17 @@
       <type>boolean</type>
     </value-attributes>
   </property>
+
+  <property>
+    <name>accumulo_user_keytab</name>
+    <description>Accumulo keytab path</description>
+  </property>
+
+  <property>
+    <name>accumulo_principal_name</name>
+    <description>Accumulo principal name</description>
+  </property>
+
   <property>
     <name>content</name>
     <description>The template for a client accumulo-env.sh file.</description>
