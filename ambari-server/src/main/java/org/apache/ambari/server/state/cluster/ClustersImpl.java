@@ -52,6 +52,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.state.AgentVersion;
@@ -218,11 +219,11 @@ public class ClustersImpl implements Clusters {
       }
 
       // create an admin resource to represent this cluster
-      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
       if (resourceTypeEntity == null) {
         resourceTypeEntity = new ResourceTypeEntity();
-        resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-        resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+        resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+        resourceTypeEntity.setName(ResourceType.CLUSTER.name());
         resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
       }
 

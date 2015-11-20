@@ -59,6 +59,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -562,6 +563,9 @@ public class KerberosHelperImpl implements KerberosHelper {
     Set<Resource> response = null;
     try {
       response = artifactProvider.getResources(request, predicate);
+    } catch (AuthorizationException e) {
+      e.printStackTrace();
+      throw new AmbariException(e.getMessage(), e);
     } catch (SystemException e) {
       e.printStackTrace();
       throw new AmbariException("An unknown error occurred while trying to obtain the cluster kerberos descriptor", e);

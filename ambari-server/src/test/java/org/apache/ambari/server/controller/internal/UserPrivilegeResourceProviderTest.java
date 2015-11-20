@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.easymock.EasyMock;
 import org.junit.Test;
 
@@ -88,7 +89,7 @@ public class UserPrivilegeResourceProviderTest {
     EasyMock.expect(userEntity.getUserName()).andReturn("user").anyTimes();
     EasyMock.expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
     EasyMock.expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
-    EasyMock.expect(resourceTypeEntity.getId()).andReturn(ResourceTypeEntity.AMBARI_RESOURCE_TYPE);
+    EasyMock.expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name());
 
     EasyMock.replay(userDAO, userEntity, principalEntity, privilegeEntity, permissionEntity, principalTypeEntity, resourceEntity, resourceTypeEntity);
 

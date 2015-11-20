@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -467,6 +468,9 @@ public class QueryImpl implements Query, ResourceInstance {
             resourceSet.addAll(queryResources);
           } catch (NoSuchResourceException e) {
             // do nothing ...
+          } catch (AuthorizationException e) {
+            // do nothing, since the user does not have access to the data ...
+            LOG.debug("User does not have authorization to get {} resources. The data will not be added to the response.", resourceType.name());
           }
           subResource.queryResults.put(resource,
               new QueryResult(request, queryPredicate, subResourcePredicate, map, new QueryResponseImpl(resourceSet)));

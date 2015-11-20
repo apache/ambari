@@ -62,6 +62,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewRegistryTest;
@@ -129,7 +130,8 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
     expect(resourceEntity.getId()).andReturn(1L).anyTimes();
     expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
-    expect(resourceTypeEntity.getId()).andReturn(1).anyTimes();
+    expect(resourceTypeEntity.getId()).andReturn(ResourceType.AMBARI.getId()).anyTimes();
+    expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name()).anyTimes();
     expect(principalEntity.getId()).andReturn(1L).anyTimes();
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getUserName()).andReturn("joe").anyTimes();
@@ -177,7 +179,8 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(ambariPrivilegeEntity.getPrincipal()).andReturn(ambariPrincipalEntity).anyTimes();
     expect(ambariPrivilegeEntity.getPermission()).andReturn(ambariPermissionEntity).anyTimes();
     expect(ambariResourceEntity.getResourceType()).andReturn(ambariResourceTypeEntity).anyTimes();
-    expect(ambariResourceTypeEntity.getId()).andReturn(1).anyTimes();
+    expect(ambariResourceTypeEntity.getId()).andReturn(ResourceType.AMBARI.getId()).anyTimes();
+    expect(ambariResourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name()).anyTimes();
     expect(ambariPrincipalEntity.getId()).andReturn(1L).anyTimes();
     expect(ambariUserEntity.getPrincipal()).andReturn(ambariPrincipalEntity).anyTimes();
     expect(ambariUserEntity.getUserName()).andReturn("joe").anyTimes();
@@ -200,7 +203,8 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(viewPrivilegeEntity.getPermission()).andReturn(viewPermissionEntity).anyTimes();
     expect(viewPrivilegeEntity.getId()).andReturn(33).anyTimes();
     expect(viewResourceEntity.getResourceType()).andReturn(viewResourceTypeEntity).anyTimes();
-    expect(viewResourceTypeEntity.getId()).andReturn(3).anyTimes();
+    expect(viewResourceTypeEntity.getId()).andReturn(ResourceType.VIEW.getId()).anyTimes();
+    expect(viewResourceTypeEntity.getName()).andReturn(ResourceType.VIEW.name()).anyTimes();
     expect(viewPrincipalEntity.getId()).andReturn(5L).anyTimes();
     expect(viewEntity.getInstances()).andReturn(Arrays.asList(viewInstanceEntity)).anyTimes();
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
@@ -230,7 +234,8 @@ public class AmbariPrivilegeResourceProviderTest {
     expect(clusterPrivilegeEntity.getId()).andReturn(32).anyTimes();
     expect(clusterResourceEntity.getId()).andReturn(7L).anyTimes();
     expect(clusterResourceEntity.getResourceType()).andReturn(clusterResourceTypeEntity).anyTimes();
-    expect(clusterResourceTypeEntity.getId()).andReturn(2).anyTimes();
+    expect(clusterResourceTypeEntity.getId()).andReturn(ResourceType.CLUSTER.getId()).anyTimes();
+    expect(clusterResourceTypeEntity.getName()).andReturn(ResourceType.CLUSTER.name()).anyTimes();
     expect(clusterPrincipalEntity.getId()).andReturn(8L).anyTimes();
     expect(clusterUserEntity.getPrincipal()).andReturn(clusterPrincipalEntity).anyTimes();
     expect(clusterUserEntity.getUserName()).andReturn("jeff").anyTimes();

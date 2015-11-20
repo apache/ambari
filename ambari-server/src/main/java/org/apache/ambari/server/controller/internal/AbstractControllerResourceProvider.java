@@ -30,7 +30,7 @@ import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 /**
  * Abstract resource provider implementation that maps to an Ambari management controller.
  */
-public abstract class AbstractControllerResourceProvider extends AbstractResourceProvider {
+public abstract class AbstractControllerResourceProvider extends AbstractAuthorizedResourceProvider {
 
   private static ResourceProviderFactory resourceProviderFactory;
   /**

@@ -38,10 +38,10 @@ import org.apache.ambari.server.orm.entities.GroupEntity;
 import org.apache.ambari.server.orm.entities.MemberEntity;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
-import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.security.authorization.UserType;
 
 /**
@@ -192,24 +192,21 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
           }
 
           String privilegeType;
-          switch (privilegeEntity.getResource().getResourceType().getId()) {
-          case ResourceTypeEntity.CLUSTER_RESOURCE_TYPE:
+          String typeName = privilegeEntity.getResource().getResourceType().getName();
+          if (ResourceType.CLUSTER.name().equalsIgnoreCase(typeName)) {
             final ClusterEntity clusterEntity = clusterDAO.findByResourceId(privilegeEntity.getResource().getId());
-            privilegeType = ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME;
+            privilegeType = ResourceType.CLUSTER.name();
             setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
-            break;
-          case ResourceTypeEntity.AMBARI_RESOURCE_TYPE:
-            privilegeType = ResourceTypeEntity.AMBARI_RESOURCE_TYPE_NAME;
-            break;
-          default:
-            privilegeType = ResourceTypeEntity.VIEW_RESOURCE_TYPE_NAME;
+          } else if (ResourceType.AMBARI.name().equalsIgnoreCase(typeName)) {
+            privilegeType = ResourceType.AMBARI.name();
+          } else {
+            privilegeType = ResourceType.VIEW.name();
             final ViewInstanceEntity viewInstanceEntity = viewInstanceDAO.findByResourceId(privilegeEntity.getResource().getId());
             final ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
 
             setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
             setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
             setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
-            break;
           }
           setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, privilegeType, requestedIds);
 

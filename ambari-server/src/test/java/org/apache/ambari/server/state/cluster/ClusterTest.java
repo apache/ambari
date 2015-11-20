@@ -75,6 +75,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -213,11 +214,11 @@ public class ClusterTest {
 
     String clusterName = "c1";
 
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     if (resourceTypeEntity == null) {
       resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+      resourceTypeEntity.setName(ResourceType.CLUSTER.name());
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
     ResourceEntity resourceEntity = new ResourceEntity();
