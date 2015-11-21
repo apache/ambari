@@ -37,24 +37,13 @@ esac
 
 export PATH=/usr/lib/ambari-server/*:$PATH:/sbin/:/usr/sbin
 export AMBARI_CONF_DIR=/etc/ambari-server/conf
+PYTHON_WRAP=/var/lib/ambari-server/ambari-python-wrap
 
-# Because Ambari rpm unpacks modules here on all systems
-export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
-
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
-fi
-
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
-fi
+# fills $PYTHON
+. $PYTHON_WRAP -V 2>/dev/null
 
 if [ -a /var/lib/ambari-server/ambari-env.sh ]; then
   . /var/lib/ambari-server/ambari-env.sh
-fi
-
-if [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python
 fi
 
 if [ -z "$AMBARI_PASSPHRASE" ]; then
