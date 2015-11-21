@@ -25,8 +25,6 @@ set AMBARIDBNAME=ambari
 sqlcmd -S localhost\SQLEXPRESS -i C:\app\ambari-server-1.3.0-SNAPSHOT\resources\Ambari-DDL-SQLServer-CREATE.sql
 */
 
-use [$(AMBARIDBNAME)]
-GO
 
 ------create the database------
 
@@ -148,7 +146,7 @@ CREATE TABLE hostcomponentstate (
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  CONSTRAINT pk_hostcomponentstate PRIMARY KEY CLUSTERED (id)
+  PRIMARY KEY CLUSTERED (id)
 );
 
 CREATE NONCLUSTERED INDEX idx_host_component_state on hostcomponentstate(host_id, component_name, service_name, cluster_id);
@@ -326,7 +324,7 @@ CREATE TABLE requestoperationlevel (
   host_id BIGINT NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level
   PRIMARY KEY CLUSTERED (operation_level_id)
   );
-
+  
 CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
   host_id BIGINT NOT NULL,
@@ -1597,7 +1595,7 @@ IF OBJECT_ID ('trigger_workflow_delete','TR') IS NOT NULL
     DROP TRIGGER trigger_workflow_delete;
 GO
 
-CREATE TRIGGER trigger_workflow_delete
+exec('CREATE TRIGGER trigger_workflow_delete
 ON workflow
 INSTEAD OF DELETE
 AS
@@ -1643,14 +1641,14 @@ BEGIN
     delete from workflow
     from workflow w inner join @cteTmpRev r on w.workflowId = r.workflowId
 END
-
+')
 GO
 
 IF OBJECT_ID ('trigger_job_delete','TR') IS NOT NULL
     DROP TRIGGER trigger_job_delete;
 GO
 
-CREATE TRIGGER trigger_job_delete
+exec('CREATE TRIGGER trigger_job_delete
 ON job
 INSTEAD OF DELETE
 AS
@@ -1661,7 +1659,7 @@ BEGIN
 
     delete from job
     from job j inner join deleted d on j.jobId = d.jobId
-END
+END')
 
 GO
 
@@ -1669,7 +1667,7 @@ IF OBJECT_ID ('trigger_task_delete','TR') IS NOT NULL
     DROP TRIGGER trigger_task_delete;
 GO
 
-CREATE TRIGGER trigger_task_delete
+exec('CREATE TRIGGER trigger_task_delete
 ON task
 INSTEAD OF DELETE
 AS
@@ -1681,6 +1679,7 @@ BEGIN
 
     delete from task
     from task t inner join deleted d on t.taskId = d.taskId
-END
+END')
 
 GO
+
