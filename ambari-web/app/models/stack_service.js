@@ -350,7 +350,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}),
         App.ServiceConfigCategory.create({ name: 'UnixAuthenticationSettings', displayName: 'Unix Authentication Settings'}),
         App.ServiceConfigCategory.create({ name: 'ADSettings', displayName: 'AD Settings'}),
-        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'})
+        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'}),
+        App.ServiceConfigCategory.create({ name: 'KnoxSSOSettings', displayName: 'Knox SSO Settings'})
       ]);
       break;
     case 'ACCUMULO':
