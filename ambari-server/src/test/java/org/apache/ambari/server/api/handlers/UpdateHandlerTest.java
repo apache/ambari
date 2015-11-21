@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Before;
 import org.junit.Test;
@@ -232,6 +233,38 @@ public class UpdateHandlerTest {
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
 
     verify(request, body, resource, pm, status, resource1, resource2, requestResource, userPredicate, query);
+  }
+
+  @Test
+  public void testHandleRequest__AuthorizationFailure() throws Exception {
+    Request request = createMock(Request.class);
+    RequestBody body = createMock(RequestBody.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    PersistenceManager pm = createStrictMock(PersistenceManager.class);
+    Predicate userPredicate = createMock(Predicate.class);
+    Query query = createMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
+
+    // expectations
+    expect(request.getResource()).andReturn(resource).atLeastOnce();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
+    expect(request.getQueryPredicate()).andReturn(userPredicate).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer).atLeastOnce();
+
+    expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    query.setRenderer(renderer);
+    query.setUserPredicate(userPredicate);
+
+    expect(pm.update(resource, body)).andThrow(new AuthorizationException());
+
+    replay(request, body, resource, pm, userPredicate, query);
+
+    Result result = new TestUpdateHandler(pm).handleRequest(request);
+
+    assertNotNull(result);
+
+    assertEquals(ResultStatus.STATUS.FORBIDDEN, result.getStatus().getStatus());
+    verify(request, body, resource, pm, userPredicate, query);
   }
 
   private class TestUpdateHandler extends UpdateHandler {

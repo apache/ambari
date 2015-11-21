@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 
 /**
@@ -48,6 +49,8 @@ public class UpdateHandler extends BaseManagementHandler {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }
 
+    } catch (AuthorizationException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
     } catch (IllegalArgumentException e) {

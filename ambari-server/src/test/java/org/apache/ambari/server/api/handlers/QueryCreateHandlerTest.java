@@ -30,6 +30,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.*;
 import org.junit.Test;
 
@@ -612,6 +613,107 @@ public class QueryCreateHandlerTest {
         subResourceDefinition1, subResourceDefinition2, controller, serviceSchema, subResSchema1, subResSchema2,
         resource1, resource2, pm, resourceInstanceFactory, createResource, status, statusResource1, statusResource2,
         readHandler, queryResultStatus);
+  }
+
+  @Test
+  public void testHandleRequest_AuthorizationFailure() throws Exception {
+    final String BODY_STRING = "Body string";
+    Request request = createMock(Request.class);
+    RequestBody body = createMock(RequestBody.class);
+    ResourceInstance resourceInstance = createMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+    ResourceInstanceFactory resourceInstanceFactory = createMock(ResourceInstanceFactory.class);
+    Query query = createMock(Query.class);
+    Predicate predicate = createMock(Predicate.class);
+    Result result = createMock(Result.class);
+    ResourceInstance subResource = createMock(ResourceInstance.class);
+    ResourceDefinition subResourceDefinition = createMock(ResourceDefinition.class);
+    ClusterController controller = createMock(ClusterController.class);
+    Schema serviceSchema = createMock(Schema.class);
+    Schema componentSchema = createMock(Schema.class);
+    String resourceKeyProperty = "resourceKeyProperty";
+    String createKeyProperty = "createKeyProperty";
+    Resource resource1 = createMock(Resource.class);
+    Resource resource2 = createMock(Resource.class);
+    PersistenceManager pm = createMock(PersistenceManager.class);
+    ResourceInstance createResource = createMock(ResourceInstance.class);
+    RequestHandler readHandler = createStrictMock(RequestHandler.class);
+    ResultStatus resultStatus = createMock(ResultStatus.class);
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+
+    Set<NamedPropertySet> setRequestProps = new HashSet<NamedPropertySet>();
+
+    Map<String, Object> mapProperties = new HashMap<String, Object>();
+    Set<Map<String, Object>> arraySet = new HashSet<Map<String, Object>>();
+
+    mapProperties.put("components", arraySet);
+
+    Map<String, Object> map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "SECONDARY_NAMENODE");
+    arraySet.add(map);
+
+    map = new HashMap<String, Object>();
+    map.put(PropertyHelper.getPropertyId("ServiceComponentInfo", "component_name"), "HDFS_CLIENT");
+    arraySet.add(map);
+
+    setRequestProps.add(new NamedPropertySet("", mapProperties));
+
+    Map<String, ResourceInstance> mapSubResources = new HashMap<String, ResourceInstance>();
+    mapSubResources.put("components", subResource);
+
+    TreeNode<Resource> resultTree = new TreeNodeImpl<Resource>(null, null, "result");
+    resultTree.addChild(resource1, "resource1");
+    resultTree.addChild(resource2, "resource2");
+
+    //expectations
+    expect(readHandler.handleRequest(request)).andReturn(result).atLeastOnce();
+    expect(result.getStatus()).andReturn(resultStatus).atLeastOnce();
+    expect(resultStatus.isErrorState()).andReturn(false).atLeastOnce();
+
+    expect(body.getBody()).andReturn(BODY_STRING).atLeastOnce();
+
+    expect(request.getResource()).andReturn(resourceInstance).atLeastOnce();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
+    expect(body.getNamedPropertySets()).andReturn(setRequestProps).atLeastOnce();
+
+    expect(resourceInstance.getResourceDefinition()).andReturn(resourceDefinition).atLeastOnce();
+    expect(resourceInstance.getKeyValueMap()).andReturn(mapIds).atLeastOnce();
+    expect(resourceInstance.getSubResources()).andReturn(mapSubResources).atLeastOnce();
+
+    expect(resourceDefinition.getType()).andReturn(Resource.Type.Service).atLeastOnce();
+
+    expect(subResource.getResourceDefinition()).andReturn(subResourceDefinition).atLeastOnce();
+    expect(subResourceDefinition.getType()).andReturn(Resource.Type.Component).atLeastOnce();
+
+    expect(controller.getSchema(Resource.Type.Service)).andReturn(serviceSchema).atLeastOnce();
+    expect(controller.getSchema(Resource.Type.Component)).andReturn(componentSchema).atLeastOnce();
+
+    expect(serviceSchema.getKeyPropertyId(Resource.Type.Service)).andReturn(resourceKeyProperty).atLeastOnce();
+    expect(componentSchema.getKeyPropertyId(Resource.Type.Service)).andReturn(createKeyProperty).atLeastOnce();
+
+    expect(result.getResultTree()).andReturn(resultTree).atLeastOnce();
+    expect(resource1.getPropertyValue(resourceKeyProperty)).andReturn("id1").atLeastOnce();
+    expect(resource2.getPropertyValue(resourceKeyProperty)).andReturn("id2").atLeastOnce();
+
+    expect(resourceInstanceFactory.createResource(Resource.Type.Component, mapIds)).
+        andReturn(createResource).atLeastOnce();
+
+    expect(pm.create(anyObject(ResourceInstance.class), anyObject(RequestBody.class))).andThrow(new AuthorizationException());
+
+    replay(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+        subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
+        pm, resourceInstanceFactory, createResource, readHandler, resultStatus);
+
+    //test
+    Result testResult = new TestQueryCreateHandler(resourceInstanceFactory, controller, pm, readHandler).
+        handleRequest(request);
+
+    assertEquals(ResultStatus.STATUS.FORBIDDEN, testResult.getStatus().getStatus());
+
+    verify(request, body, resourceInstance, resourceDefinition, query, predicate, result, subResource,
+        subResourceDefinition, controller, serviceSchema, componentSchema, resource1, resource2,
+        pm, resourceInstanceFactory, createResource, readHandler, resultStatus);
   }
 
   static class TestQueryCreateHandler extends QueryCreateHandler {

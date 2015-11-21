@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Before;
 import org.junit.Test;
@@ -239,6 +240,35 @@ public class DeleteHandlerTest {
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
 
     verify(request, body, resource, pm, status, resource1, resource2, requestResource, query);
+  }
+
+  @Test
+  public void testHandleRequest__AuthorizationFailure() throws Exception {
+    Request request = createMock(Request.class);
+    RequestBody body = createMock(RequestBody.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    PersistenceManager pm = createStrictMock(PersistenceManager.class);
+    Query query = createMock(Query.class);
+    Renderer renderer = new DefaultRenderer();
+
+    // expectations
+    expect(request.getResource()).andReturn(resource).anyTimes();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
+    // test delete with no user predicate
+    expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
+    expect(resource.getQuery()).andReturn(query).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
+    query.setRenderer(renderer);
+
+    expect(pm.delete(resource, body)).andThrow(new AuthorizationException());
+
+    replay(request, body, resource, pm, query);
+
+    Result result = new TestDeleteHandler(pm).handleRequest(request);
+
+    assertEquals(ResultStatus.STATUS.FORBIDDEN, result.getStatus().getStatus());
+
+    verify(request, body, resource, pm, query);
   }
 
   @Test

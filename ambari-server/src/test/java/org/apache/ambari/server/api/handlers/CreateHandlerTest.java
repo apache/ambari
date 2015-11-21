@@ -29,6 +29,7 @@ import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Before;
 import org.junit.Test;
@@ -236,6 +237,37 @@ public class CreateHandlerTest {
     assertEquals(ResultStatus.STATUS.ACCEPTED, result.getStatus().getStatus());
     verify(request, body, resource, resourceDefinition, query, pm, status, resource1, resource2,
         requestResource);
+  }
+
+  @Test
+  public void testHandleRequest__AuthorizationFailure() throws Exception {
+    Request request = createMock(Request.class);
+    RequestBody body = createMock(RequestBody.class);
+    ResourceInstance resource = createMock(ResourceInstance.class);
+    ResourceDefinition resourceDefinition = createMock(ResourceDefinition.class);
+    Query query = createStrictMock(Query.class);
+    PersistenceManager pm = createStrictMock(PersistenceManager.class);
+    Renderer renderer = new DefaultRenderer();
+
+    // expectations
+    expect(request.getResource()).andReturn(resource).atLeastOnce();
+    expect(request.getBody()).andReturn(body).atLeastOnce();
+    expect(request.getQueryPredicate()).andReturn(null).atLeastOnce();
+    expect(request.getRenderer()).andReturn(renderer);
+
+    expect(resource.getQuery()).andReturn(query);
+    query.setRenderer(renderer);
+    expect(resource.getResourceDefinition()).andReturn(resourceDefinition).anyTimes();
+    expect(resourceDefinition.isCreatable()).andReturn(true).anyTimes();
+
+    expect(pm.create(resource, body)).andThrow(new AuthorizationException());
+
+    replay(request, body, resource, resourceDefinition, query, pm);
+
+    Result result = new TestCreateHandler(pm).handleRequest(request);
+
+    assertEquals(ResultStatus.STATUS.FORBIDDEN, result.getStatus().getStatus());
+    verify(request, body, resource, resourceDefinition, query, pm);
   }
 
   private class TestCreateHandler extends CreateHandler {

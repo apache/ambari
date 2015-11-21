@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 
 /**
@@ -47,6 +48,8 @@ public class CreateHandler extends BaseManagementHandler {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }
 
+    } catch (AuthorizationException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (NoSuchParentResourceException e) {
