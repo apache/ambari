@@ -40,6 +40,7 @@ export AMBARI_CONF_DIR=/etc/ambari-server/conf:$PATH
 export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
 AMBARI_AGENT=ambari-agent
+PYTHON_WRAP=/var/lib/ambari-agent/ambari-python-wrap
 PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
@@ -74,17 +75,8 @@ change_files_permissions() {
 	ambari-sudo.sh chown 	$current_user "/usr/lib/ambari-agent/"
 }
 
-if [ -a /usr/bin/python2.7 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.7
-fi
-
-if [ -a /usr/bin/python2.6 ] && [ -z "$PYTHON" ]; then
-  PYTHON=/usr/bin/python2.6
-fi
-
-if [ "x$PYTHON" == "x" ]; then
-  PYTHON=/usr/bin/python
-fi
+# fills $PYTHON
+. $PYTHON_WRAP -V 2>/dev/null
 
 export PYTHON=$PYTHON
 
