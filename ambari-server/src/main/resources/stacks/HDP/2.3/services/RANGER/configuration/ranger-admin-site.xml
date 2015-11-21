@@ -466,4 +466,52 @@
     </value-attributes>
   </property> 
 
+  <property>
+    <name>ranger.sso.providerurl</name>
+    <value></value>
+    <display-name>SSO provider url</display-name>
+    <description>Example: https://KNOX_HOST:KNOX_PORT/gateway/TOPOLOGY_NAME/knoxsso/api/v1/websso</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.sso.publicKey</name>
+    <value></value>
+    <display-name>SSO public key</display-name>
+    <description>Public key for SSO cookie verification</description>
+    <value-attributes>
+      <type>multiLine</type>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.sso.cookiename</name>
+    <value>hadoop-jwt</value>
+    <display-name>SSO cookiename</display-name>
+    <description>Parameter name for SSO cookie</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>ranger.sso.enabled</name>
+    <value>false</value>
+    <display-name>Enable Ranger SSO</display-name>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.sso.query.param.originalurl</name>
+    <value>originalUrl</value>
+    <display-name>SSO query param originalurl</display-name>
+    <description>Query name for appending original url in SSO url</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
 </configuration>
