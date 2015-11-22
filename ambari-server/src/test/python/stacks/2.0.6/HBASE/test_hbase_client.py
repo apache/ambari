@@ -259,7 +259,7 @@ class TestHBaseClient(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None), (0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hbase-client', version), sudo=True)

@@ -1220,7 +1220,7 @@ class TestOozieServer(RMFTestCase):
      classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0, None), (0, prepare_war_stdout)],
+     call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)
@@ -1474,7 +1474,7 @@ class TestOozieServer(RMFTestCase):
      classname = "OozieServer", command = "pre_upgrade_restart", config_dict = json_content,
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
      target = RMFTestCase.TARGET_COMMON_SERVICES,
-     call_mocks = [(0, None), (0, prepare_war_stdout)],
+     call_mocks = [(0, None, ''), (0, prepare_war_stdout)],
      mocks_dict = mocks_dict)
 
     self.assertTrue(isfile_mock.called)

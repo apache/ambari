@@ -445,7 +445,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0")],
+      call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", '')],
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 

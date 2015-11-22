@@ -1382,6 +1382,7 @@ class TestNamenode(RMFTestCase):
                        config_file = "nn_eu_standby.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict=mocks_dict)
     
     calls = mocks_dict['call'].call_args_list
