@@ -23,6 +23,7 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
 import os
 import version
 import hdp_select
+import subprocess
 
 from resource_management.core import shell
 from resource_management.libraries.script.script import Script
@@ -202,7 +203,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True)
+  code, stdout, stderr = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
 
   # conf-select can set more than one directory
   # per package, so return that list, especially for dry_run
