@@ -174,46 +174,63 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
         }
 
         for (PrivilegeEntity privilegeEntity : privileges) {
-          final ResourceImpl resource = new ResourceImpl(Resource.Type.UserPrivilege);
-
-          setResourceProperty(resource, PRIVILEGE_USER_NAME_PROPERTY_ID, userName, requestedIds);
-          setResourceProperty(resource, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID, privilegeEntity.getId(), requestedIds);
-          setResourceProperty(resource, PRIVILEGE_PERMISSION_NAME_PROPERTY_ID, privilegeEntity.getPermission().getPermissionName(), requestedIds);
-          setResourceProperty(resource, PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID, privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
-          setResourceProperty(resource, PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID, privilegeEntity.getPrincipal().getPrincipalType().getName(), requestedIds);
-
-          final String principalTypeName = privilegeEntity.getPrincipal().getPrincipalType().getName();
-          if (principalTypeName.equals(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME)) {
-            final UserEntity user = userDAO.findUserByPrincipal(privilegeEntity.getPrincipal());
-            setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, user.getUserName(), requestedIds);
-          } else if (principalTypeName.equals(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME)) {
-            final GroupEntity groupEntity = groupDAO.findGroupByPrincipal(privilegeEntity.getPrincipal());
-            setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, groupEntity.getGroupName(), requestedIds);
-          }
-
-          String privilegeType;
-          String typeName = privilegeEntity.getResource().getResourceType().getName();
-          if (ResourceType.CLUSTER.name().equalsIgnoreCase(typeName)) {
-            final ClusterEntity clusterEntity = clusterDAO.findByResourceId(privilegeEntity.getResource().getId());
-            privilegeType = ResourceType.CLUSTER.name();
-            setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
-          } else if (ResourceType.AMBARI.name().equalsIgnoreCase(typeName)) {
-            privilegeType = ResourceType.AMBARI.name();
-          } else {
-            privilegeType = ResourceType.VIEW.name();
-            final ViewInstanceEntity viewInstanceEntity = viewInstanceDAO.findByResourceId(privilegeEntity.getResource().getId());
-            final ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
-
-            setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
-            setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
-            setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
-          }
-          setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, privilegeType, requestedIds);
-
-          resources.add(resource);
+          resources.add(toResource(privilegeEntity, userName, requestedIds));
         }
       }
     }
     return resources;
+  }
+
+  /**
+   * Translate the found data into a Resource
+   *
+   * @param privilegeEntity the privilege data
+   * @param userName        the username
+   * @param requestedIds    the relevant request ids
+   * @return a resource
+   */
+  protected Resource toResource(PrivilegeEntity privilegeEntity, Object userName, Set<String> requestedIds) {
+    final ResourceImpl resource = new ResourceImpl(Resource.Type.UserPrivilege);
+
+    setResourceProperty(resource, PRIVILEGE_USER_NAME_PROPERTY_ID, userName, requestedIds);
+    setResourceProperty(resource, PRIVILEGE_PRIVILEGE_ID_PROPERTY_ID, privilegeEntity.getId(), requestedIds);
+    setResourceProperty(resource, PRIVILEGE_PERMISSION_NAME_PROPERTY_ID, privilegeEntity.getPermission().getPermissionName(), requestedIds);
+    setResourceProperty(resource, PRIVILEGE_PERMISSION_LABEL_PROPERTY_ID, privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
+    setResourceProperty(resource, PRIVILEGE_PRINCIPAL_TYPE_PROPERTY_ID, privilegeEntity.getPrincipal().getPrincipalType().getName(), requestedIds);
+
+    final String principalTypeName = privilegeEntity.getPrincipal().getPrincipalType().getName();
+    if (principalTypeName.equals(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME)) {
+      final UserEntity user = userDAO.findUserByPrincipal(privilegeEntity.getPrincipal());
+      setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, user.getUserName(), requestedIds);
+    } else if (principalTypeName.equals(PrincipalTypeEntity.GROUP_PRINCIPAL_TYPE_NAME)) {
+      final GroupEntity groupEntity = groupDAO.findGroupByPrincipal(privilegeEntity.getPrincipal());
+      setResourceProperty(resource, PRIVILEGE_PRINCIPAL_NAME_PROPERTY_ID, groupEntity.getGroupName(), requestedIds);
+    }
+
+    String typeName = privilegeEntity.getResource().getResourceType().getName();
+    ResourceType resourceType = ResourceType.translate(typeName);
+    if(resourceType != null) {
+      switch (resourceType) {
+        case AMBARI:
+          // there is nothing special to add for this case
+          break;
+        case CLUSTER:
+          final ClusterEntity clusterEntity = clusterDAO.findByResourceId(privilegeEntity.getResource().getId());
+          setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
+          break;
+        case VIEW:
+          final ViewInstanceEntity viewInstanceEntity = viewInstanceDAO.findByResourceId(privilegeEntity.getResource().getId());
+          final ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
+
+          setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
+          setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
+          setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
+          break;
+      }
+
+      setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, resourceType.name(), requestedIds);
+    }
+
+    return resource;
   }
 }

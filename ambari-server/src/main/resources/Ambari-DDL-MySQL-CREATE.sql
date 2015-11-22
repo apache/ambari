@@ -1058,7 +1058,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
   SELECT 'AMBARI.ASSIGN_ROLES', 'Assign roles' UNION ALL
   SELECT 'AMBARI.MANAGE_STACK_VERSIONS', 'Manage stack versions' UNION ALL
-  SELECT 'AMBARI.EDIT_STACK_REPOS', 'Edit stack repository URLs' FROM  adminresourcetype WHERE resource_type_name='AMBARI';
+  SELECT 'AMBARI.EDIT_STACK_REPOS', 'Edit stack repository URLs';
 
 -- Set authorizations for View User role
 INSERT INTO permission_roleauthorization(permission_id, authorization_id)

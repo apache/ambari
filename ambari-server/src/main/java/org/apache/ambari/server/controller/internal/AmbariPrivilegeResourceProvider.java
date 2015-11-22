@@ -146,25 +146,31 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
       ResourceEntity resourceEntity = privilegeEntity.getResource();
       ResourceTypeEntity type = resourceEntity.getResourceType();
       String typeName = type.getName();
-      String privilegeType;
+      ResourceType resourceType = ResourceType.translate(typeName);
 
-      if (ResourceType.CLUSTER.name().equalsIgnoreCase(typeName)) {
-        ClusterEntity clusterEntity = (ClusterEntity) resourceEntities.get(resourceEntity.getId());
-        privilegeType = ResourceType.CLUSTER.name();
-        setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
-      } else if (ResourceType.AMBARI.name().equalsIgnoreCase(typeName)) {
-        privilegeType = ResourceType.AMBARI.name();
-      } else {
-        privilegeType = ResourceType.VIEW.name();
-        ViewInstanceEntity viewInstanceEntity = (ViewInstanceEntity) resourceEntities.get(resourceEntity.getId());
-        ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
+      if(resourceType != null) {
+        switch (resourceType) {
+          case AMBARI:
+            // there is nothing special to add for this case
+            break;
+          case CLUSTER:
+            ClusterEntity clusterEntity = (ClusterEntity) resourceEntities.get(resourceEntity.getId());
+            setResourceProperty(resource, PRIVILEGE_CLUSTER_NAME_PROPERTY_ID, clusterEntity.getClusterName(), requestedIds);
+            break;
+          case VIEW:
+            ViewInstanceEntity viewInstanceEntity = (ViewInstanceEntity) resourceEntities.get(resourceEntity.getId());
+            ViewEntity viewEntity = viewInstanceEntity.getViewEntity();
 
-        setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
-        setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
-        setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
+            setResourceProperty(resource, PRIVILEGE_VIEW_NAME_PROPERTY_ID, viewEntity.getCommonName(), requestedIds);
+            setResourceProperty(resource, PRIVILEGE_VIEW_VERSION_PROPERTY_ID, viewEntity.getVersion(), requestedIds);
+            setResourceProperty(resource, PRIVILEGE_INSTANCE_NAME_PROPERTY_ID, viewInstanceEntity.getName(), requestedIds);
+            break;
+        }
+
+        setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, resourceType.name(), requestedIds);
       }
-      setResourceProperty(resource, PRIVILEGE_TYPE_PROPERTY_ID, privilegeType, requestedIds);
     }
+
     return resource;
   }
   @Override

@@ -123,10 +123,10 @@ public class AuthorizationHelper {
         AmbariGrantedAuthority ambariGrantedAuthority = (AmbariGrantedAuthority) grantedAuthority;
         PrivilegeEntity privilegeEntity = ambariGrantedAuthority.getPrivilegeEntity();
         ResourceEntity privilegeResource = privilegeEntity.getResource();
-        ResourceType privilegeResourceType = ResourceType.valueOf(privilegeResource.getResourceType().getName());
+        ResourceType privilegeResourceType = ResourceType.translate(privilegeResource.getResourceType().getName());
         boolean resourceOK;
 
-        if (resourceType == null) {
+        if ((resourceType == null) || (privilegeResourceType == null)){
           resourceOK = true;
         } else if (ResourceType.AMBARI == privilegeResourceType) {
           // This resource type indicates administrative access

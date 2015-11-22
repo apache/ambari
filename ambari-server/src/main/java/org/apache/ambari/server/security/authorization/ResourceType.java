@@ -51,4 +51,32 @@ public enum ResourceType {
   public int getId() {
     return id;
   }
+
+  /**
+   * Safely translates a resource type to a ResourceType
+   * <p/>
+   * If a non-empty name is specified and does not match an enumerated value, assume that is is a
+   * view since view types are declared as separate resource types.
+   *
+   * @param resourceTypeName an resource type name
+   * @return a ResourceType or null if no translation can be made
+   */
+  public static ResourceType translate(String resourceTypeName) {
+    if (resourceTypeName == null) {
+      return null;
+    } else {
+      resourceTypeName = resourceTypeName.trim();
+
+      if (resourceTypeName.isEmpty()) {
+        return null;
+      } else {
+        try {
+          return ResourceType.valueOf(resourceTypeName.toUpperCase());
+        } catch (IllegalArgumentException e) {
+          // Assume that this is a view since these resource types are listed separately.
+          return VIEW;
+        }
+      }
+    }
+  }
 }

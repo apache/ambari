@@ -372,4 +372,195 @@ public class AmbariPrivilegeResourceProviderTest {
 
     verify(privilegeEntity, privilegeDAO, request, permissionDAO, permissionEntity, resourceEntity, resourceDAO, principalEntity, principalDAO, userDAO, userEntity, resourceTypeEntity);
   }
+
+  @Test
+  public void testToResource_AMBARI() {
+    PermissionEntity permissionEntity = createMock(PermissionEntity.class);
+    expect(permissionEntity.getPermissionName()).andReturn("ADMINISTRATOR").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Administrator").atLeastOnce();
+
+    PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
+    expect(principalTypeEntity.getName()).andReturn("USER").atLeastOnce();
+
+    PrincipalEntity principalEntity = createMock(PrincipalEntity.class);
+    expect(principalEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).atLeastOnce();
+
+    ResourceTypeEntity resourceTypeEntity = createMock(ResourceTypeEntity.class);
+    expect(resourceTypeEntity.getName()).andReturn("AMBARI").atLeastOnce();
+
+    ResourceEntity resourceEntity = createMock(ResourceEntity.class);
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).atLeastOnce();
+
+    PrivilegeEntity privilegeEntity = createMock(PrivilegeEntity.class);
+    expect(privilegeEntity.getId()).andReturn(1).atLeastOnce();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).atLeastOnce();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).atLeastOnce();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).atLeastOnce();
+
+    replay(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, resourceEntity, privilegeEntity);
+
+    Map<Long, UserEntity> userEntities = new HashMap<>();
+    Map<Long, GroupEntity> groupEntities = new HashMap<>();
+    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+
+    AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+
+    Assert.assertEquals(ResourceType.AMBARI.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+
+    verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, resourceEntity, privilegeEntity);
+  }
+
+  @Test
+  public void testToResource_CLUSTER() {
+    PermissionEntity permissionEntity = createMock(PermissionEntity.class);
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Cluster Administrator").atLeastOnce();
+
+    PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
+    expect(principalTypeEntity.getName()).andReturn("USER").atLeastOnce();
+
+    PrincipalEntity principalEntity = createMock(PrincipalEntity.class);
+    expect(principalEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).atLeastOnce();
+
+    ClusterEntity clusterEntity = createMock(ClusterEntity.class);
+    expect(clusterEntity.getClusterName()).andReturn("TestCluster").atLeastOnce();
+
+    ResourceTypeEntity resourceTypeEntity = createMock(ResourceTypeEntity.class);
+    expect(resourceTypeEntity.getName()).andReturn("CLUSTER").atLeastOnce();
+
+    ResourceEntity resourceEntity = createMock(ResourceEntity.class);
+    expect(resourceEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).atLeastOnce();
+
+    PrivilegeEntity privilegeEntity = createMock(PrivilegeEntity.class);
+    expect(privilegeEntity.getId()).andReturn(1).atLeastOnce();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).atLeastOnce();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).atLeastOnce();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).atLeastOnce();
+
+    replay(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, clusterEntity, resourceEntity, privilegeEntity);
+
+    Map<Long, UserEntity> userEntities = new HashMap<>();
+    Map<Long, GroupEntity> groupEntities = new HashMap<>();
+
+    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+    resourceEntities.put(resourceEntity.getId(), clusterEntity);
+
+    AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+
+    Assert.assertEquals("TestCluster", resource.getPropertyValue(ClusterPrivilegeResourceProvider.PRIVILEGE_CLUSTER_NAME_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.CLUSTER.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+
+    verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, clusterEntity, resourceEntity, privilegeEntity);
+  }
+
+  @Test
+  public void testToResource_VIEW() {
+    PermissionEntity permissionEntity = createMock(PermissionEntity.class);
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Cluster Administrator").atLeastOnce();
+
+    PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
+    expect(principalTypeEntity.getName()).andReturn("USER").atLeastOnce();
+
+    PrincipalEntity principalEntity = createMock(PrincipalEntity.class);
+    expect(principalEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).atLeastOnce();
+
+    ViewEntity viewEntity = createMock(ViewEntity.class);
+    expect(viewEntity.getCommonName()).andReturn("TestView").atLeastOnce();
+    expect(viewEntity.getVersion()).andReturn("1.2.3.4").atLeastOnce();
+
+    ViewInstanceEntity viewInstanceEntity = createMock(ViewInstanceEntity.class);
+    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).atLeastOnce();
+    expect(viewInstanceEntity.getName()).andReturn("Test View").atLeastOnce();
+
+    ResourceTypeEntity resourceTypeEntity = createMock(ResourceTypeEntity.class);
+    expect(resourceTypeEntity.getName()).andReturn("VIEW").atLeastOnce();
+
+    ResourceEntity resourceEntity = createMock(ResourceEntity.class);
+    expect(resourceEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).atLeastOnce();
+
+    PrivilegeEntity privilegeEntity = createMock(PrivilegeEntity.class);
+    expect(privilegeEntity.getId()).andReturn(1).atLeastOnce();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).atLeastOnce();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).atLeastOnce();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).atLeastOnce();
+
+    replay(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
+
+    Map<Long, UserEntity> userEntities = new HashMap<>();
+    Map<Long, GroupEntity> groupEntities = new HashMap<>();
+
+    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+    resourceEntities.put(resourceEntity.getId(), viewInstanceEntity);
+
+    AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+
+    verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
+  }
+
+  @Test
+  public void testToResource_SpecificVIEW() {
+    PermissionEntity permissionEntity = createMock(PermissionEntity.class);
+    expect(permissionEntity.getPermissionName()).andReturn("CLUSTER.ADMINISTRATOR").atLeastOnce();
+    expect(permissionEntity.getPermissionLabel()).andReturn("Cluster Administrator").atLeastOnce();
+
+    PrincipalTypeEntity principalTypeEntity = createMock(PrincipalTypeEntity.class);
+    expect(principalTypeEntity.getName()).andReturn("USER").atLeastOnce();
+
+    PrincipalEntity principalEntity = createMock(PrincipalEntity.class);
+    expect(principalEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).atLeastOnce();
+
+    ViewEntity viewEntity = createMock(ViewEntity.class);
+    expect(viewEntity.getCommonName()).andReturn("TestView").atLeastOnce();
+    expect(viewEntity.getVersion()).andReturn("1.2.3.4").atLeastOnce();
+
+    ViewInstanceEntity viewInstanceEntity = createMock(ViewInstanceEntity.class);
+    expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).atLeastOnce();
+    expect(viewInstanceEntity.getName()).andReturn("Test View").atLeastOnce();
+
+    ResourceTypeEntity resourceTypeEntity = createMock(ResourceTypeEntity.class);
+    expect(resourceTypeEntity.getName()).andReturn("TestView{1.2.3.4}").atLeastOnce();
+
+    ResourceEntity resourceEntity = createMock(ResourceEntity.class);
+    expect(resourceEntity.getId()).andReturn(1L).atLeastOnce();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).atLeastOnce();
+
+    PrivilegeEntity privilegeEntity = createMock(PrivilegeEntity.class);
+    expect(privilegeEntity.getId()).andReturn(1).atLeastOnce();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).atLeastOnce();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).atLeastOnce();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).atLeastOnce();
+
+    replay(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
+
+    Map<Long, UserEntity> userEntities = new HashMap<>();
+    Map<Long, GroupEntity> groupEntities = new HashMap<>();
+
+    Map<Long, Object> resourceEntities = new HashMap<Long, Object>();
+    resourceEntities.put(resourceEntity.getId(), viewInstanceEntity);
+
+    AmbariPrivilegeResourceProvider provider = new AmbariPrivilegeResourceProvider();
+    Resource resource = provider.toResource(privilegeEntity, userEntities, groupEntities, resourceEntities, provider.getPropertyIds());
+
+    Assert.assertEquals("Test View", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_INSTANCE_NAME_PROPERTY_ID));
+    Assert.assertEquals("TestView", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_NAME_PROPERTY_ID));
+    Assert.assertEquals("1.2.3.4", resource.getPropertyValue(ViewPrivilegeResourceProvider.PRIVILEGE_VIEW_VERSION_PROPERTY_ID));
+    Assert.assertEquals(ResourceType.VIEW.name(), resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRIVILEGE_TYPE_PROPERTY_ID));
+
+    verify(permissionEntity, principalTypeEntity, principalEntity, resourceTypeEntity, viewInstanceEntity, viewEntity, resourceEntity, privilegeEntity);
+  }
 }

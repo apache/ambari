@@ -95,6 +95,12 @@ public enum RoleAuthorization {
     return id;
   }
 
+  /**
+   * Safely translates a role authorization Id to a RoleAuthorization
+   *
+   * @param authenticationId  an authentication id
+   * @return a RoleAuthorization or null if no translation can be made
+   */
   public static RoleAuthorization translate(String authenticationId) {
     if (authenticationId == null) {
       return null;
