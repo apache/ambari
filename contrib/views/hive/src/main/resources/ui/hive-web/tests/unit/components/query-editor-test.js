@@ -35,18 +35,3 @@ test('initEditor sets the editor on didInsertElement', function () {
   ok(component.get('editor'), 'element rendered. Editor set.');
 });
 
-test('updateValue sets the query value on the editor.', function () {
-  expect(1);
-
-  var component = this.subject();
-
-  var query = 'select something';
-
-  this.$();
-
-  Ember.run(function () {
-    component.set(('query'), query);
-  });
-
-  equal(component.get('editor').getValue(), query, 'set query property. Updated editor value property.');
-});

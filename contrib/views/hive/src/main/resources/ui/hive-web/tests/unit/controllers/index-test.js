@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
+import constants from 'hive/utils/constants';
 
 moduleFor('controller:index', 'IndexController', {
   needs: [
@@ -185,6 +186,55 @@ test('canExecute return false if queryParams doesnt\'t have values', function() 
 
   ok(controller.get('canExecute'), 'Params with values => canExecute return true');
 });
+
+test('Execute EXPLAIN type query', function() {
+  expect(1);
+
+  var query = Ember.Object.create({
+    id: 1,
+    fileContent: "explain select 1" // explain type query
+  });
+
+  var controller = this.subject({
+    model: query,
+    _executeQuery: function (referer) {
+      equal(referer, constants.jobReferrer.explain, 'Explain type query successful.');
+      return {then: function() {}};
+    }
+  });
+
+  Ember.run(function() {
+      controller.set('openQueries.queryTabs', [query]);
+      controller.set('openQueries.currentQuery', query);
+      controller.send('executeQuery');
+  });
+
+});
+
+test('Execute non EXPLAIN type query', function() {
+  expect(1);
+
+  var query = Ember.Object.create({
+    id: 1,
+    fileContent: "select 1" //non explain type query
+  });
+
+  var controller = this.subject({
+    model: query,
+    _executeQuery: function (referer) {
+      equal(referer, constants.jobReferrer.job , 'non Explain type query successful.');
+      return {then: function() {}};
+    }
+  });
+
+  Ember.run(function() {
+      controller.set('openQueries.queryTabs', [query]);
+      controller.set('openQueries.currentQuery', query);
+      controller.send('executeQuery');
+  });
+
+});
+
 
 test('csvUrl returns if the current query is not a job', function() {
   expect(1);
