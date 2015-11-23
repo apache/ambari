@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-'''
+"""
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
@@ -16,7 +16,8 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-'''
+"""
+
 import json
 import os
 
@@ -29,7 +30,7 @@ from resource_management.libraries.script.script import Script
 class TestHiveMetastore(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
-  
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
                        classname = "HiveMetastore",
@@ -534,14 +535,12 @@ class TestHiveMetastore(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
 
 
-  @patch("resource_management.core.shell.call")
   @patch.object(Script, "is_hdp_stack_greater_or_equal")
-  def test_pre_upgrade_restart_ims(self, is_hdp_stack_greater_or_equal_mock, call_mock):
+  def test_pre_upgrade_restart_ims(self, is_hdp_stack_greater_or_equal_mock):
     """
     Tests the state of the init_metastore_schema property on update
     """
     is_hdp_stack_greater_or_equal_mock.side_effect = [False, False, False, False, False, False, True, False, False, False, False, False, False, False]
-
     config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -559,7 +558,7 @@ class TestHiveMetastore(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertEquals(False, RMFTestCase.env.config["params"]["init_metastore_schema"])
