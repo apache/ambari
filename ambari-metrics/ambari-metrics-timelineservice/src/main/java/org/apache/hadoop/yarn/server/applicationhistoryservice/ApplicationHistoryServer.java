@@ -45,7 +45,7 @@ import org.apache.hadoop.yarn.webapp.WebApps;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.*;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DISABLE_APPLICATION_TIMELINE_STORE;
 
 /**
  * History server that keeps track of all types of history in the cluster.
