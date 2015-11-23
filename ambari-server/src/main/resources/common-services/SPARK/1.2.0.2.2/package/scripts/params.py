@@ -80,6 +80,7 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
 spark_user = status_params.spark_user
+hive_user = status_params.hive_user
 spark_group = status_params.spark_group
 user_group = status_params.user_group
 spark_hdfs_user_dir = format("/user/{spark_user}")
@@ -141,6 +142,9 @@ if security_enabled:
       'hive.server2.authentication.kerberos.keytab': config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab'],
       'hive.server2.authentication': config['configurations']['hive-site']['hive.server2.authentication'],
     })
+
+    hive_kerberos_keytab = config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
+    hive_kerberos_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
 
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None

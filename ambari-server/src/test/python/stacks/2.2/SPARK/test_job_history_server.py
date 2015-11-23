@@ -68,7 +68,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = 'spark',
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -85,7 +85,7 @@ class TestJobHistoryServer(RMFTestCase):
         action = ['delete'],
     )
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -131,7 +131,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = 'spark',
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -154,11 +154,13 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = False,
@@ -214,11 +216,13 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = True,

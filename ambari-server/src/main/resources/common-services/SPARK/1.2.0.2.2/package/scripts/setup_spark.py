@@ -34,6 +34,7 @@ def setup_spark(env, type, action = None):
   Directory([params.spark_pid_dir, params.spark_log_dir],
             owner=params.spark_user,
             group=params.user_group,
+            mode=0775,
             recursive=True
   )
   if type == 'server' and action == 'config':
