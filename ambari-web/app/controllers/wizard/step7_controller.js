@@ -713,23 +713,19 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
-    if (this.get('content.serviceConfigProperties.length') > 0) {
-      this.completeConfigLoading();
-    } else {
-      this.loadServerSideConfigsRecommendations().always(function () {
-        if (self.get('wizardController.name') == 'addServiceController') {
-          // for Add Service just remove or add dependent properties and ignore config values changes
-          // for installed services only
-          self.addRemoveDependentConfigs(self.get('installedServiceNames'));
-          self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
-        }
-        // * add dependencies based on recommendations
-        // * update config values with recommended
-        // * remove properties received from recommendations
-        self.updateDependentConfigs();
-        self.completeConfigLoading();
-      });
-    }
+    this.loadServerSideConfigsRecommendations().always(function () {
+      if (self.get('wizardController.name') == 'addServiceController') {
+        // for Add Service just remove or add dependent properties and ignore config values changes
+        // for installed services only
+        self.addRemoveDependentConfigs(self.get('installedServiceNames'));
+        self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
+      }
+      // * add dependencies based on recommendations
+      // * update config values with recommended
+      // * remove properties received from recommendations
+      self.updateDependentConfigs();
+      self.completeConfigLoading();
+    });
   },
 
   completeConfigLoading: function() {
