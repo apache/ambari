@@ -56,7 +56,7 @@ class TestSparkThriftServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-thriftserver.sh --properties-file /usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf --driver-memory 1g',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
         not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid` >/dev/null 2>&1',
-        user = 'spark',
+        user = 'hive',
     )
     self.assertNoMoreResources()
 
@@ -70,7 +70,7 @@ class TestSparkThriftServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-thriftserver.sh',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        user = 'spark',
+        user = 'hive',
     )
     self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid',
         action = ['delete'],
@@ -82,11 +82,13 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = False,

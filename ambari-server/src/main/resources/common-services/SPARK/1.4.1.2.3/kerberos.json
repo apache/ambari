@@ -52,6 +52,9 @@
           "identities": [
             {
               "name": "/HDFS/NAMENODE/hdfs"
+            },
+            {
+              "name": "/HIVE/HIVE_SERVER/hive_server_hive"
             }
           ]
         }
