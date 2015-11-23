@@ -108,14 +108,5 @@ export default Ember.Component.extend({
     }).find('.ui-resizable-s').addClass('grip fa fa-reorder');
 
     this.tablesChanged();
-  }.on('didInsertElement'),
-
-  updateValue: function () {
-    var query = this.get('query');
-    var editor = this.get('editor');
-
-    if (editor.getValue() !== query) {
-      editor.setValue(query || '');
-    }
-  }.observes('query')
+  }.on('didInsertElement')
 });
