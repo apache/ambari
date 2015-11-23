@@ -379,39 +379,44 @@ module.exports = {
   },
 
   /**
+   * Small helper method to update hostMap
+   * it perform update of object only
+   * if unique component per host is added
+   *
+   * @param {Object} hostMapObject
+   * @param {string[]} hostNames
+   * @param {string} componentName
+   * @returns {Object}
+   * @private
+   */
+  _generateHostMap: function(hostMapObject, hostNames, componentName) {
+    Em.assert('hostMapObject, hostNames, componentName should be defined', !!hostMapObject && !!hostNames && !!componentName);
+    if (!hostNames.length) return hostMapObject;
+    hostNames.forEach(function(hostName) {
+      if (!hostMapObject[hostName])
+        hostMapObject[hostName] = [];
+
+      if (!hostMapObject[hostName].contains(componentName))
+        hostMapObject[hostName].push(componentName);
+    });
+    return hostMapObject;
+  },
+
+  /**
    * collect all component names that are present on hosts
    * @returns {object}
    */
   getComponentForHosts: function() {
     var hostsMap = {};
     App.ClientComponent.find().forEach(function(c) {
-      var componentName = c.get('componentName');
-      c.get('hostNames').forEach(function(hostName){
-        if (hostsMap[hostName]) {
-          hostsMap[hostName].push(componentName);
-        } else {
-          hostsMap[hostName] = [componentName];
-        }
-      });
-    });
+      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
+    }, this);
     App.SlaveComponent.find().forEach(function (c) {
-      var componentName = c.get('componentName');
-      c.get('hostNames').forEach(function (hostName) {
-        if (hostsMap[hostName]) {
-          hostsMap[hostName].push(componentName);
-        } else {
-          hostsMap[hostName] = [componentName];
-        }
-      });
-    });
+      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
+    }, this);
     App.HostComponent.find().forEach(function (c) {
-      var hostName = c.get('hostName');
-      if (hostsMap[hostName]) {
-        hostsMap[hostName].push(c.get('componentName'));
-      } else {
-        hostsMap[hostName] = [c.get('componentName')];
-      }
-    });
+      hostsMap = this._generateHostMap(hostsMap, [c.get('hostName')], c.get('componentName'));
+    }, this);
     return hostsMap;
   }
 };

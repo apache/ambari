@@ -415,19 +415,32 @@ describe('utils/blueprint', function() {
       App.HostComponent.find.restore();
     });
 
-    it("", function() {
-      expect(blueprintUtils.getComponentForHosts()).to.eql({
-        "host1": [
-          "C1"
-        ],
-        "host2": [
-          "C1",
-          "C2"
-        ],
-        "host3": [
-          "C2",
-          "C3"
-        ]
+    it("generate components to host map", function() {
+      var res = blueprintUtils.getComponentForHosts();
+      expect(res['host1'][0]).to.eql("C1");
+      expect(res['host2'][0]).to.eql("C1");
+      expect(res['host2'][1]).to.eql("C2");
+      expect(res['host3'][0]).to.eql("C2");
+      expect(res['host3'][1]).to.eql("C3");
+    });
+  });
+
+  describe('#_generateHostMap', function() {
+    it('generate map', function() {
+      var map = blueprintUtils._generateHostMap({}, ['h1','h2', 'h1'],'c1');
+      expect(map['h1'][0]).to.eql('c1');
+      expect(map['h2'][0]).to.eql('c1');
+    });
+
+    it('skip generations as hosts is empty', function() {
+      expect(blueprintUtils._generateHostMap({}, [],'c1')).to.eql({});
+    });
+
+    it('skip throws error when data is wrong', function() {
+      it('should assert error if no data returned from server', function () {
+        expect(function () {
+          blueprintUtils._generateHostMap();
+        }).to.throw(Error);
       });
     });
   });
