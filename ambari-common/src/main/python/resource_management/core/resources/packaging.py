@@ -39,6 +39,13 @@ class Package(Resource):
   None (default) -  log it in DEBUG mode
   """
   logoutput = ResourceArgument(default=None)
+  
+  """
+  Retry if package manager is locked. (usually another process is running).
+  Note that this works only for apt-get and zypper, while yum manages lock retries itself.
+  """
+  locked_tries = ResourceArgument(default=8)
+  locked_try_sleep = ResourceArgument(default=30) # seconds
 
   version = ResourceArgument()
   actions = ["install", "upgrade", "remove"]
