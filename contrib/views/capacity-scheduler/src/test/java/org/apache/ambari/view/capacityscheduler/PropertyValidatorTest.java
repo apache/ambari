@@ -119,6 +119,40 @@ public class PropertyValidatorTest {
         Validator.ValidationContext.PRE_CREATE).isValid());
   }
 
+  @Test
+  public void shouldValidateUrlsWithHyphenInHostName() throws Exception {
+    ViewInstanceDefinition instanceDefinition =
+      getViewInstanceDefinition("http://sub-domain.hostname.com:8080/api/v1/clusters/Cluster");
+    PropertyValidator propertyValidator = new PropertyValidator();
+
+    assertTrue(propertyValidator.validateProperty(
+      PropertyValidator.AMBARI_SERVER_URL, instanceDefinition,
+      Validator.ValidationContext.PRE_CREATE).isValid());
+  }
+
+  @Test
+  public void shouldValidateUrlWithNonStandardTLDs() throws Exception {
+    ViewInstanceDefinition instanceDefinition =
+      getViewInstanceDefinition("http://cl1-node.nova:8080/api/v1/clusters/Cluster");
+    PropertyValidator propertyValidator = new PropertyValidator();
+
+    assertTrue(propertyValidator.validateProperty(
+      PropertyValidator.AMBARI_SERVER_URL, instanceDefinition,
+      Validator.ValidationContext.PRE_CREATE).isValid());
+  }
+
+  @Test
+  public void shouldValidateLocalhost() throws Exception {
+    ViewInstanceDefinition instanceDefinition =
+      getViewInstanceDefinition("http://localhost:8080/api/v1/clusters/Cluster");
+    PropertyValidator propertyValidator = new PropertyValidator();
+
+    assertTrue(propertyValidator.validateProperty(
+      PropertyValidator.AMBARI_SERVER_URL, instanceDefinition,
+      Validator.ValidationContext.PRE_CREATE).isValid());
+
+  }
+
   private ViewInstanceDefinition getViewInstanceDefinition(String ambariServerUrl) {
     ViewInstanceDefinition instanceDefinition = createNiceMock(ViewInstanceDefinition.class);
     Map<String, String> map = new HashMap<String, String>();
