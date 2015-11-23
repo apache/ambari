@@ -105,10 +105,12 @@ public class PhoenixHBaseAccessor {
   // cluster and host levels.
   static final long DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE = 300000;
   /**
-   * 8 metrics * 60minutes * 24hours => Reasonable upper bound on the limit such that our Precision calculation for a given time range makes sense.
+   * 22 metrics for 2hours in SECONDS (10 second data)
+   * => Reasonable upper bound on the limit such that our Precision calculation for a given time range makes sense.
    */
-  private static final int METRICS_PER_MINUTE = 8;
-  public static int RESULTSET_LIMIT = (int)TimeUnit.HOURS.toMinutes(24) * METRICS_PER_MINUTE;
+  private static final int METRICS_PER_MINUTE = 22;
+  private static final int POINTS_PER_MINUTE = 6;
+  public static int RESULTSET_LIMIT = (int)TimeUnit.HOURS.toMinutes(2) * METRICS_PER_MINUTE * POINTS_PER_MINUTE ;
 
   private static final TimelineMetricReadHelper TIMELINE_METRIC_READ_HELPER = new TimelineMetricReadHelper();
   private static ObjectMapper mapper = new ObjectMapper();

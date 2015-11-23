@@ -60,4 +60,20 @@ public enum Precision {
       return Precision.SECONDS;
     }
   }
+
+  public static Precision getHigherPrecision(Precision precision) {
+
+    if (precision == null)
+      return null;
+
+    if (precision.equals(Precision.SECONDS)) {
+      return Precision.MINUTES;
+    } else if (precision.equals(Precision.MINUTES)) {
+      return Precision.HOURS;
+    } else if (precision.equals(Precision.HOURS)) {
+      return Precision.DAYS;
+    } else {
+      return null;
+    }
+  }
 }

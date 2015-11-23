@@ -51,8 +51,6 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
   private MetricsRequestHelper requestHelperForGets;
   private MetricsRequestHelper requestHelperForUpdates;
   private final Long BUFFER_TIME_DIFF_CATCHUP_INTERVAL;
-  public static final long HOUR = 3600000; // 1 hour
-  public static final long DAY = 86400000; // 1 day
 
   @Inject
   public TimelineMetricCacheEntryFactory(Configuration configuration) {
@@ -87,7 +85,10 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
 
     TimelineMetrics timelineMetrics = null;
     try {
-      timelineMetrics = requestHelperForGets.fetchTimelineMetrics(metricCacheKey.getSpec());
+      URIBuilder uriBuilder = new URIBuilder(metricCacheKey.getSpec());
+      timelineMetrics = requestHelperForGets.fetchTimelineMetrics(uriBuilder,
+        metricCacheKey.getTemporalInfo().getStartTimeMillis(),
+        metricCacheKey.getTemporalInfo().getEndTimeMillis());
     } catch (IOException io) {
       LOG.debug("Caught IOException on fetching metrics. " + io.getMessage());
     }
@@ -174,7 +175,7 @@ public class TimelineMetricCacheEntryFactory implements UpdatingCacheEntryFactor
       uriBuilder.setParameter("precision",requestedPrecision.toString());
 
       try {
-        TimelineMetrics newTimeSeries = requestHelperForUpdates.fetchTimelineMetrics(uriBuilder.toString());
+        TimelineMetrics newTimeSeries = requestHelperForUpdates.fetchTimelineMetrics(uriBuilder, newStartTime, newEndTime);
 
         // Update existing time series with new values
         updateTimelineMetricsInCache(newTimeSeries, existingMetrics,

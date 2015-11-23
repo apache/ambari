@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,12 +17,13 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
-import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.hadoop.metrics2.sink.timeline.Precision;
+import org.apache.http.NameValuePair;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
@@ -38,8 +39,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
+import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.Date;
-import java.util.Map;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Helper class to call AMS backend that is utilized by @AMSPropertyProvider
@@ -64,22 +68,36 @@ public class MetricsRequestHelper {
     this.streamProvider = streamProvider;
   }
 
-  public TimelineMetrics fetchTimelineMetrics(String spec) throws IOException {
-    LOG.debug("Metrics request url = " + spec);
+  public TimelineMetrics fetchTimelineMetrics(URIBuilder uriBuilder, Long startTime, Long endTime) throws IOException {
+    LOG.debug("Metrics request url = " + uriBuilder.toString());
     BufferedReader reader = null;
     TimelineMetrics timelineMetrics = null;
     try {
 
-      HttpURLConnection connection = streamProvider.processURL(spec, HttpMethod.GET, (String)null, null);
-      if (connection.getResponseCode() == HttpStatus.SC_BAD_REQUEST) {
-        InputStream errorStream = connection.getErrorStream();
-        reader = new BufferedReader(new InputStreamReader(errorStream));
-        throw new IOException(reader.readLine());
+      HttpURLConnection connection = streamProvider.processURL(uriBuilder.toString(), HttpMethod.GET,
+        (String) null, Collections.<String, List<String>>emptyMap());
+
+      if (!checkConnectionForPrecisionException(connection)) {
+        //Try one more time with higher precision
+        String higherPrecision = getHigherPrecision(uriBuilder, startTime, endTime);
+        if (higherPrecision != null) {
+          LOG.debug("Requesting metrics with higher precision : " + higherPrecision);
+          uriBuilder.setParameter("precision", higherPrecision);
+          String newSpec = uriBuilder.toString();
+          connection = streamProvider.processURL(newSpec, HttpMethod.GET, (String) null,
+            Collections.<String, List<String>>emptyMap());
+          if (!checkConnectionForPrecisionException(connection)) {
+            throw new IOException("Encountered Precision exception : Higher precision request also failed.");
+          }
+        } else {
+          throw new IOException("Encountered Precision exception : Unable to request higher precision");
+        }
       }
 
       InputStream inputStream = connection.getInputStream();
       reader = new BufferedReader(new InputStreamReader(inputStream));
       timelineMetrics = timelineObjectReader.readValue(reader);
+
       if (LOG.isTraceEnabled()) {
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
           LOG.trace("metric: " + metric.getMetricName() +
@@ -103,7 +121,12 @@ public class MetricsRequestHelper {
         LOG.error(errorMsg);
         throw io;
       }
-
+    } catch (URISyntaxException e) {
+      String errorMsg = "Error getting timeline metrics : " + e.getMessage();
+      LOG.error(errorMsg);
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(errorMsg, e);
+      }
     } finally {
       if (reader != null) {
         try {
@@ -111,9 +134,9 @@ public class MetricsRequestHelper {
         } catch (IOException e) {
           if (LOG.isWarnEnabled()) {
             if (LOG.isDebugEnabled()) {
-              LOG.warn("Unable to close http input stream : spec=" + spec, e);
+              LOG.warn("Unable to close http input stream : spec=" + uriBuilder.toString(), e);
             } else {
-              LOG.warn("Unable to close http input stream : spec=" + spec);
+              LOG.warn("Unable to close http input stream : spec=" + uriBuilder.toString());
             }
           }
         }
@@ -121,4 +144,40 @@ public class MetricsRequestHelper {
     }
     return timelineMetrics;
   }
+
+  private boolean checkConnectionForPrecisionException(HttpURLConnection connection)
+    throws IOException, URISyntaxException {
+
+    if (connection != null && connection.getResponseCode() == HttpStatus.SC_BAD_REQUEST) {
+      InputStream errorStream = connection.getErrorStream();
+      BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+      String errorMessage = reader.readLine();
+      if (errorMessage != null && errorMessage.contains("PrecisionLimitExceededException")) {
+        LOG.debug("Encountered Precision exception while requesting metrics : " + errorMessage);
+        return false;
+      } else {
+        throw new IOException(errorMessage);
+      }
+    }
+    return true;
+  }
+
+  private String getHigherPrecision(URIBuilder uriBuilder, Long startTime, Long endTime) throws URISyntaxException {
+
+    Precision currentPrecision = null;
+    List<NameValuePair> queryParams = uriBuilder.getQueryParams();
+    for (Iterator<NameValuePair> it = queryParams.iterator(); it.hasNext();) {
+      NameValuePair nvp = it.next();
+      if (nvp.getName().equals("precision")) {
+        currentPrecision = Precision.getPrecision(nvp.getValue());
+      }
+    }
+    if (currentPrecision == null && startTime != null && endTime != null) {
+      currentPrecision = Precision.getPrecision(startTime, endTime);
+    }
+    Precision higherPrecision = Precision.getHigherPrecision(currentPrecision);
+
+    return (higherPrecision != null) ? higherPrecision.toString() : null;
+  }
+
 }
