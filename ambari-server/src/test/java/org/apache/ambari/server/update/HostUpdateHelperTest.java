@@ -21,6 +21,7 @@ package org.apache.ambari.server.update;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
@@ -41,6 +42,9 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
 
@@ -277,8 +281,8 @@ public class HostUpdateHelperTest {
     expect(mockClusterConfigEntity4.getType()).andReturn("testType2").atLeastOnce();
     expect(mockClusterConfigEntity4.getVersion()).andReturn(2L).atLeastOnce();
 
-    mockClusterConfigEntity3.setData("{\"testProperty4\":\"testValue_host11\",\"testProperty3\":\"testValue_host55\"," +
-            "\"testProperty2\":\"testValue_host1\",\"testProperty1\":\"testValue_host5\"}");
+    Capture<String> dataCapture = EasyMock.newCapture();
+    mockClusterConfigEntity3.setData(EasyMock.capture(dataCapture));
     expectLastCall();
 
     mockClusterConfigEntity4.setData("{\"testProperty5\":\"test_host5_test_host1_test_host55_test_host11\"}");
@@ -291,6 +295,10 @@ public class HostUpdateHelperTest {
     easyMockSupport.replayAll();
     hostUpdateHelper.updateHostsInConfigurations();
     easyMockSupport.verifyAll();
+
+    // Depends on hashing, string representation can be different
+    Assert.assertTrue(CollectionPresentationUtils.isJsonsEquals("{\"testProperty4\":\"testValue_host11\",\"testProperty3\":\"testValue_host55\"," +
+        "\"testProperty2\":\"testValue_host1\",\"testProperty1\":\"testValue_host5\"}", dataCapture.getValue()));
   }
 
   @Test

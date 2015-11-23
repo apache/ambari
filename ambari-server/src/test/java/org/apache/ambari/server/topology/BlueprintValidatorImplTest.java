@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.easymock.EasyMock.createNiceMock;
@@ -47,7 +48,7 @@ public class BlueprintValidatorImplTest{
   private final Stack stack = createNiceMock(Stack.class);
   private final HostGroup group1 = createNiceMock(HostGroup.class);
   private final HostGroup group2 = createNiceMock(HostGroup.class);
-  private final Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+  private final Map<String, HostGroup> hostGroups = new LinkedHashMap<>();
 
   private final Collection<String> group1Components = new ArrayList<String>();
   private final Collection<String> group2Components = new ArrayList<String>();

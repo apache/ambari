@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.Assert.*;
 
@@ -329,21 +333,22 @@ public class AuthToLocalBuilderTest {
     builder.addRule("hm/_HOST@EXAMPLE.COM", "hbase");
     builder.addRule("rs/_HOST@EXAMPLE.COM", "hbase");
 
-    assertEquals(
-        "RULE:[1:$1@$0](.*@FOOBAR.COM)s/@.*//\n" +
-            "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//\n" +
-            "RULE:[1:$1@$0](.*@REALM2)s/@.*//\n" +
-            "RULE:[1:$1@$0](.*@REALM1)s/@.*//\n" +
-            "RULE:[1:$1@$0](.*@REALM3)s/@.*//\n" +
-            "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/\n" +
-            "RULE:[2:$1@$0](hm@EXAMPLE.COM)s/.*/hbase/\n" +
-            "RULE:[2:$1@$0](jhs@EXAMPLE.COM)s/.*/mapred/\n" +
-            "RULE:[2:$1@$0](jn@EXAMPLE.COM)s/.*/hdfs/\n" +
-            "RULE:[2:$1@$0](nn@EXAMPLE.COM)s/.*/hdfs/\n" +
-            "RULE:[2:$1@$0](rm@EXAMPLE.COM)s/.*/yarn/\n" +
-            "RULE:[2:$1@$0](rs@EXAMPLE.COM)s/.*/hbase/\n" +
-            "DEFAULT",
-        builder.generate("EXAMPLE.COM"));
+    // Depends on hashing, string representation can be different
+    List<String> rules = Arrays.asList(new String[]{"RULE:[1:$1@$0](.*@FOOBAR.COM)s/@.*//",
+                                                    "RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//",
+                                                    "RULE:[1:$1@$0](.*@REALM2)s/@.*//",
+                                                    "RULE:[1:$1@$0](.*@REALM1)s/@.*//",
+                                                    "RULE:[1:$1@$0](.*@REALM3)s/@.*//",
+                                                    "RULE:[2:$1@$0](dn@EXAMPLE.COM)s/.*/hdfs/",
+                                                    "RULE:[2:$1@$0](hm@EXAMPLE.COM)s/.*/hbase/",
+                                                    "RULE:[2:$1@$0](jhs@EXAMPLE.COM)s/.*/mapred/",
+                                                    "RULE:[2:$1@$0](jn@EXAMPLE.COM)s/.*/hdfs/",
+                                                    "RULE:[2:$1@$0](nn@EXAMPLE.COM)s/.*/hdfs/",
+                                                    "RULE:[2:$1@$0](rm@EXAMPLE.COM)s/.*/yarn/",
+                                                    "RULE:[2:$1@$0](rs@EXAMPLE.COM)s/.*/hbase/",
+                                                    "DEFAULT"});
+    assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(builder.generate("EXAMPLE.COM"), rules,
+               "\n", 0, 0));
   }
 
   @Test

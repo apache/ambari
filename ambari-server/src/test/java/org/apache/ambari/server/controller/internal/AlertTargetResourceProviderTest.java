@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.TargetType;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -225,7 +226,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
-    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(false, entity.isGlobal());
 
     // no alert states were set explicitely in the request, so all should be set
@@ -274,7 +275,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
-    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(false, entity.isGlobal());
     assertEquals(3, entity.getAlertGroups().size());
 
@@ -315,7 +316,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
-    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(true, entity.isGlobal());
 
     // no alert states were set explicitely in the request, so all should be set
@@ -394,7 +395,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
-    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
 
     Set<AlertState> alertStates = entity.getAlertStates();
     assertNotNull(alertStates);
@@ -585,7 +586,7 @@ public class AlertTargetResourceProviderTest {
     assertEquals(ALERT_TARGET_NAME, entity.getTargetName());
     assertEquals(ALERT_TARGET_DESC, entity.getDescription());
     assertEquals(ALERT_TARGET_TYPE, entity.getNotificationType());
-    assertEquals(ALERT_TARGET_PROPS, entity.getProperties());
+    assertTrue(CollectionPresentationUtils.isJsonsEquals(ALERT_TARGET_PROPS, entity.getProperties()));
     assertEquals(false, entity.isGlobal());
 
     // no alert states were set explicitely in the request, so all should be set
