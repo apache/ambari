@@ -32,7 +32,7 @@
 <div>
   {{file-upload filesUploaded="filesUploaded"}}
 </div>
-<div id="upload-table">
+
   <!--<div class='fa query-menu-tab fa queries-icon query-context-tab fa-envelope'></div>-->
 
   {{#if rows}}
@@ -56,10 +56,10 @@
     </div>
     <div class="col-md-3">Table Name : {{input type="text" class="form-control" placeHolder="Table Name" value=tableName }}
     </div>
-    <div class="col-md-3">Is First Row Header? :{{input type="checkbox" class="form-control" checked=isFirstRowHeader }}
+    <div class="col-md-3">Is First Row Header? :{{input id="isFirstRowHeader" type="checkbox" class="form-control" checked=isFirstRowHeader }}
     </div>
   </div>
-
+<div id="upload-table">
   <table class="table table-expandable">
     <thead>
     <tr>
@@ -87,6 +87,6 @@
     {{/each}}
     </tbody>
   </table>
-  {{/if}}
 </div>
+{{/if}}
 {{/unless}}
