@@ -100,16 +100,15 @@ import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.PermissionEntity;
-import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
-import org.apache.ambari.server.security.SecurityHelper;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
 import org.apache.ambari.server.security.authorization.User;
@@ -170,7 +169,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -261,9 +259,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * The KerberosHelper to help setup for enabling for disabling Kerberos
    */
   private KerberosHelper kerberosHelper;
-
-  @Inject
-  private SecurityHelper securityHelper;
 
   final private String masterHostname;
   final private Integer masterPort;
@@ -2780,22 +2775,30 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * the requested properties
    */
   @Override
-  public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException {
+  public synchronized void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException {
+    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_MANAGE_USERS);
+    String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
+
     for (UserRequest request : requests) {
-      User u = users.getAnyUser(request.getUsername());
-      if (null == u) {
-        continue;
+      String requestedUsername = request.getUsername();
+
+      // An administrator can modify any user, else a user can only modify themself.
+      if (!isUserAdministrator && (!authenticatedUsername.equalsIgnoreCase(requestedUsername))) {
+        throw new AuthorizationException();
       }
 
-      if (null != request.getOldPassword() && null != request.getPassword()) {
-        users.modifyPassword(u.getUserName(), request.getOldPassword(),
-            request.getPassword());
+      User u = users.getAnyUser(requestedUsername);
+      if (null == u) {
+        continue;
       }
 
       if (null != request.isActive()) {
         // If this value is being set, make sure the authenticated user is an administrator before
         // allowing to change it. Only administrators should be able to change a user's active state
-        verifyAuthorization();
+        if (!isUserAdministrator) {
+          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
+        }
         users.setUserActive(u.getUserName(), request.isActive());
       }
 
@@ -2803,12 +2806,20 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         // If this value is being set, make sure the authenticated user is an administrator before
         // allowing to change it. Only administrators should be able to change a user's administrative
         // privileges
-        verifyAuthorization();
+        if (!isUserAdministrator) {
+          throw new AuthorizationException("The authenticated user is not authorized to update the requested resource property");
+        }
+
         if (request.isAdmin()) {
           users.grantAdminPrivilege(u.getUserId());
         } else {
           users.revokeAdminPrivilege(u.getUserId());
         }
+      }
+
+      if (null != request.getOldPassword() && null != request.getPassword()) {
+        users.modifyPassword(u.getUserName(), request.getOldPassword(),
+            request.getPassword());
       }
     }
   }
@@ -3162,7 +3173,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     Set<UserResponse> responses = new HashSet<UserResponse>();
 
@@ -3172,8 +3183,25 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         LOG.debug("Received a getUsers request"
             + ", userRequest=" + r.toString());
       }
+
+      String requestedUsername = r.getUsername();
+      String authenticatedUsername = AuthorizationHelper.getAuthenticatedName();
+
+      // A user resource may be retrieved by an administrator or the same user.
+      if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_USERS)) {
+        if (null == requestedUsername) {
+          // Since the authenticated user is not the administrator, force only that user's resource
+          // to be returned
+          requestedUsername = authenticatedUsername;
+        } else if (!requestedUsername.equalsIgnoreCase(authenticatedUsername)) {
+          // Since the authenticated user is not the administrator and is asking for a different user,
+          // throw an AuthorizationException
+          throw new AuthorizationException();
+        }
+      }
+
       // get them all
-      if (null == r.getUsername()) {
+      if (null == requestedUsername) {
         for (User u : users.getAllUsers()) {
           UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
               .isAdmin());
@@ -3182,13 +3210,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       } else {
 
-        User u = users.getAnyUser(r.getUsername());
+        User u = users.getAnyUser(requestedUsername);
         if (null == u) {
           if (requests.size() == 1) {
             // only throw exceptin if there is a single request
             // if there are multiple requests, this indicates an OR predicate
             throw new ObjectNotFoundException("Cannot find user '"
-                + r.getUsername() + "'");
+                + requestedUsername + "'");
           }
         } else {
           UserResponse resp = new UserResponse(u.getUserName(), u.getUserType(), u.isLdapUser(), u.isActive(), u
@@ -4375,32 +4403,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           }
         }
       }
-    }
-  }
-
-  /**
-   * Determine whether or not the authenticated user has administrator privileges
-   *
-   * @throws IllegalArgumentException if the authenticated user does not have administrator privileges.
-   */
-  protected void verifyAuthorization() throws AmbariException {
-    boolean isAuthorized = false;
-
-    for (GrantedAuthority grantedAuthority : securityHelper.getCurrentAuthorities()) {
-      if (grantedAuthority instanceof AmbariGrantedAuthority) {
-        AmbariGrantedAuthority authority = (AmbariGrantedAuthority) grantedAuthority;
-        PrivilegeEntity privilegeEntity = authority.getPrivilegeEntity();
-        Integer permissionId = privilegeEntity.getPermission().getId();
-
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
-          isAuthorized = true;
-          break;
-        }
-      }
-    }
-
-    if (!isAuthorized) {
-      throw new IllegalArgumentException("You do not have authorization to update the requested resource property.");
     }
   }
 

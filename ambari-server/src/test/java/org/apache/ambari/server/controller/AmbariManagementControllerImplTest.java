@@ -44,6 +44,7 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
@@ -64,7 +65,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.easymock.Capture;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import javax.persistence.RollbackException;
 import java.lang.reflect.Field;
@@ -102,6 +105,14 @@ public class AmbariManagementControllerImplTest {
   private static final AmbariMetaInfo ambariMetaInfo = createMock(AmbariMetaInfo.class);
   private static final Users users = createMock(Users.class);
   private static final AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
+
+  @BeforeClass
+  public static void setupAuthentication() {
+    // Set authenticated user so that authorization checks will pass
+    InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
+    authenticationToken.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @Before
   public void before() throws Exception {

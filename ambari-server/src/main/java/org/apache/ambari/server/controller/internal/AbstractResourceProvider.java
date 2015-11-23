@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.utils.RetryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -441,7 +442,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
   }
 
   //invoke command with retry support in case of database fail
-  private <T> T invokeWithRetry(Command<T> command) throws AmbariException {
+  private <T> T invokeWithRetry(Command<T> command) throws AmbariException, AuthorizationException {
     RetryHelper.clearAffectedClusters();
     int retryAttempts = RetryHelper.getOperationsRetryAttempts();
     do {
@@ -485,6 +486,6 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
      *
      * @throws AmbariException thrown if a problem occurred during invocation
      */
-    public T invoke() throws AmbariException;
+    public T invoke() throws AmbariException, AuthorizationException;
   }
 }

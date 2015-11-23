@@ -21,26 +21,54 @@ package org.apache.ambari.server.controller.internal;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.util.Modules;
+import org.apache.ambari.server.actionmanager.ActionDBAccessor;
+import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AbstractRootServiceResponseFactory;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.scheduler.ExecutionScheduler;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
+import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
+import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
+import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMockSupport;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
@@ -57,30 +85,73 @@ import static org.easymock.EasyMock.*;
  * UserAuthorizationResourceProvider tests.
  */
 public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
-  private Injector injector;
 
   @Before
-  public void setup() {
-    reset();
-
-    injector = Guice.createInjector(Modules.override(new InMemoryDefaultTestModule())
-        .with(new AbstractModule() {
-          @Override
-          protected void configure() {
-            AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
-
-            bind(AmbariManagementController.class).toInstance(managementController);
-            bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-            bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
-            bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
-            bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
-          }
-        }));
+  public void setup() throws Exception {
+    resetAll();
   }
 
+  @After
+  public void cleanup() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
   @Test
-  public void testGetResources() throws Exception {
+  public void testGetResources_Administrator() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createAdministrator("admin"), "User1");
+  }
+
+  @Test
+  public void testGetResources_NonAdministrator_Self() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_NonAdministrator_Other() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+  }
+
+  @Test(expected = SystemException.class)
+  public void testCreateResources() throws Exception {
+    Injector injector = createInjector();
+
+    replayAll();
+    // Set the authenticated user to a non-administrator
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
+    provider.createResources(createNiceMock(Request.class));
+    verifyAll();
+  }
+
+  @Test(expected = SystemException.class)
+  public void testUpdateResources() throws Exception {
+    Injector injector = createInjector();
+
+    replayAll();
+    // Set the authenticated user to a non-administrator
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
+    provider.updateResources(createNiceMock(Request.class), null);
+    verifyAll();
+  }
+
+  @Test(expected = SystemException.class)
+  public void testDeleteResources() throws Exception {
+    Injector injector = createInjector();
+
+    replayAll();
+    // Set the authenticated user to a non-administrator
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+    UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
+    provider.deleteResources(null);
+    verifyAll();
+  }
+
+  private void getResourcesTest(Authentication authentication, String requestedUsername) throws Exception {
+    Injector injector = createInjector();
 
     Resource clusterResource = createMock(Resource.class);
     expect(clusterResource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_PERMISSION_NAME_PROPERTY_ID))
@@ -233,12 +304,20 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
 
     replayAll();
 
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariMetaInfo.init();
+
+    // Set the authenticated user to a administrator
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
+
+    UserAuthorizationResourceProvider.init(permissionDAO, resourceTypeDAO);
     UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
     setClusterController(provider, clusterController);
 
     Predicate predicate = new PredicateBuilder()
-        .property(UserAuthorizationResourceProvider.USERNAME_PROPERTY_ID).equals("jdoe")
+        .property(UserAuthorizationResourceProvider.USERNAME_PROPERTY_ID).equals(requestedUsername)
         .toPredicate();
 
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), predicate);
@@ -288,23 +367,6 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
     verifyAll();
   }
 
-  @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
-  public void testUpdateResources() throws Exception {
-    replayAll();
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-    UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
-    provider.updateResources(createNiceMock(Request.class), null);
-  }
-
-  @Test(expected = org.apache.ambari.server.controller.spi.SystemException.class)
-  public void testDeleteResources() throws Exception {
-    replayAll();
-    AmbariManagementController managementController = injector.getInstance(AmbariManagementController.class);
-    UserAuthorizationResourceProvider provider = new UserAuthorizationResourceProvider(managementController);
-    provider.deleteResources(null);
-  }
-
-
   private void setClusterController(UserAuthorizationResourceProvider provider, ClusterController clusterController) throws Exception {
     Class<?> c = provider.getClass();
     Field f = c.getDeclaredField("clusterController");
@@ -312,4 +374,38 @@ public class UserAuthorizationResourceProviderTest extends EasyMockSupport {
     f.set(provider, clusterController);
   }
 
+  private Injector createInjector() throws Exception {
+    return Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(ActionDBAccessor.class).toInstance(createNiceMock(ActionDBAccessor.class));
+        bind(ExecutionScheduler.class).toInstance(createNiceMock(ExecutionScheduler.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+        bind(AmbariMetaInfo.class).toInstance(createMock(AmbariMetaInfo.class));
+        bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
+        bind(org.apache.ambari.server.actionmanager.RequestFactory.class).toInstance(createNiceMock(org.apache.ambari.server.actionmanager.RequestFactory.class));
+        bind(RequestExecutionFactory.class).toInstance(createNiceMock(RequestExecutionFactory.class));
+        bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
+        bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
+        bind(Clusters.class).toInstance(createNiceMock(Clusters.class));
+        bind(AbstractRootServiceResponseFactory.class).toInstance(createNiceMock(AbstractRootServiceResponseFactory.class));
+        bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
+        bind(ConfigFactory.class).toInstance(createNiceMock(ConfigFactory.class));
+        bind(ConfigGroupFactory.class).toInstance(createNiceMock(ConfigGroupFactory.class));
+        bind(ServiceFactory.class).toInstance(createNiceMock(ServiceFactory.class));
+        bind(ServiceComponentFactory.class).toInstance(createNiceMock(ServiceComponentFactory.class));
+        bind(ServiceComponentHostFactory.class).toInstance(createNiceMock(ServiceComponentHostFactory.class));
+        bind(PasswordEncoder.class).toInstance(createNiceMock(PasswordEncoder.class));
+        bind(KerberosHelper.class).toInstance(createNiceMock(KerberosHelper.class));
+        bind(Users.class).toInstance(createMock(Users.class));
+        bind(AmbariManagementController.class).to(AmbariManagementControllerImpl.class);
+        bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+        bind(UserDAO.class).toInstance(createMock(UserDAO.class));
+        bind(ResourceTypeDAO.class).toInstance(createMock(ResourceTypeDAO.class));
+        bind(PermissionDAO.class).toInstance(createMock(PermissionDAO.class));
+      }
+    });
+  }
 }

@@ -19,8 +19,6 @@
 package org.apache.ambari.server.security.authorization;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,8 +55,8 @@ public class AmbariAuthorizationFilter implements Filter {
 
   private static final String VIEWS_CONTEXT_PATH_PATTERN       = VIEWS_CONTEXT_PATH_PREFIX + "([^/]+)/([^/]+)/([^/]+)(.*)";
   private static final String VIEWS_CONTEXT_ALL_PATTERN        = VIEWS_CONTEXT_PATH_PREFIX + ".*";
-  private static final String API_USERS_USERNAME_PATTERN       = API_VERSION_PREFIX + "/users/([^/?]+)(.*)";
   private static final String API_USERS_ALL_PATTERN            = API_VERSION_PREFIX + "/users.*";
+  private static final String API_PRIVILEGES_ALL_PATTERN       = API_VERSION_PREFIX + "/privileges.*";
   private static final String API_GROUPS_ALL_PATTERN           = API_VERSION_PREFIX + "/groups.*";
   private static final String API_CLUSTERS_ALL_PATTERN         = API_VERSION_PREFIX + "/clusters.*";
   private static final String API_VIEWS_ALL_PATTERN            = API_VERSION_PREFIX + "/views.*";
@@ -106,7 +104,7 @@ public class AmbariAuthorizationFilter implements Filter {
           httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication required");
         }
       }
-    } else {
+    } else if(!authorizationPerformedInternally(requestURI)) {
       boolean authorized = false;
 
       for (GrantedAuthority grantedAuthority : authentication.getAuthorities()) {
@@ -168,19 +166,11 @@ public class AmbariAuthorizationFilter implements Filter {
         authorized = getViewRegistry().checkPermission(dto.getViewName(), dto.getVersion(), dto.getInstanceName(), true);
       }
 
-      // allow all types of requests for /users/{current_user}
-      if (!authorized && requestURI.matches(API_USERS_USERNAME_PATTERN)) {
-        final SecurityContext securityContext = getSecurityContext();
-        final String currentUserName = securityContext.getAuthentication().getName();
-        final String urlUserName = parseUserName(requestURI);
-        authorized = currentUserName.equalsIgnoreCase(urlUserName);
-      }
 
       // allow GET for everything except /views, /api/v1/users, /api/v1/groups, /api/v1/ldap_sync_events
       if (!authorized &&
           (!httpRequest.getMethod().equals("GET")
             || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
-            || requestURI.matches(API_USERS_ALL_PATTERN)
             || requestURI.matches(API_GROUPS_ALL_PATTERN)
             || requestURI.matches(API_CREDENTIALS_ALL_PATTERN)
             || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
@@ -196,6 +186,18 @@ public class AmbariAuthorizationFilter implements Filter {
       httpResponse.setHeader("User", AuthorizationHelper.getAuthenticatedName());
     }
     chain.doFilter(request, response);
+  }
+
+  /**
+   * Tests the URI to determine if authorization checks are performed internally or should be
+   * performed in the filter.
+   *
+   * @param requestURI the request uri
+   * @return true if handled internally; otherwise false
+   */
+  private boolean authorizationPerformedInternally(String requestURI) {
+    return requestURI.matches(API_USERS_ALL_PATTERN) ||
+        requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
   }
 
   @Override
@@ -241,26 +243,6 @@ public class AmbariAuthorizationFilter implements Filter {
       final String version = matcher.group(2);
       final String instanceName = matcher.group(3);
       return new ViewInstanceVersionDTO(viewName, version, instanceName);
-    }
-  }
-
-  /**
-   * Parses url to get user name.
-   *
-   * @param url the url
-   * @return null if url doesn't match correct pattern
-   */
-  static String parseUserName(String url) {
-    final Pattern pattern = Pattern.compile(API_USERS_USERNAME_PATTERN);
-    final Matcher matcher = pattern.matcher(url);
-    if (!matcher.matches()) {
-      return null;
-    } else {
-      try {
-        return URLDecoder.decode(matcher.group(1), "UTF-8");
-      } catch (UnsupportedEncodingException e) {
-        throw new RuntimeException("Unable to decode URI: " + e, e);
-      }
     }
   }
 

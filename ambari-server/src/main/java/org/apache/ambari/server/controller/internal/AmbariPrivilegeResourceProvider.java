@@ -29,8 +29,10 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -88,6 +90,12 @@ public class AmbariPrivilegeResourceProvider extends PrivilegeResourceProvider<O
    */
   public AmbariPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.AmbariPrivilege);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_ASSIGN_ROLES);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredGetAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
   // ----- AmbariPrivilegeResourceProvider ---------------------------------

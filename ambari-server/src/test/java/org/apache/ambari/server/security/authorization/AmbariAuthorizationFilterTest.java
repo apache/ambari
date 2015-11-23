@@ -43,9 +43,11 @@ import junit.framework.Assert;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity.ViewInstanceVersionDTO;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -58,6 +60,13 @@ import com.google.common.collect.Table.Cell;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AmbariAuthorizationFilterTest {
+  @BeforeClass
+  public static void setupAuthentication() {
+    // Set authenticated user so that authorization checks will pass
+    InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
+    authenticationToken.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @Test
   public void testDoFilter_postPersist_hasOperatePermission() throws Exception {
@@ -184,7 +193,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", true);
 
-    performGeneralDoFilterTest("admin", new int[] {PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("admin", new int[]{PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -210,14 +219,14 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
-    urlTests.put("/api/v1/users/user2", "GET", false);
-    urlTests.put("/api/v1/users/user2", "POST", false);
+    urlTests.put("/api/v1/users/user2", "GET", true);
+    urlTests.put("/api/v1/users/user2", "POST", true);
     urlTests.put("/api/v1/groups", "GET", false);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
 
-    performGeneralDoFilterTest("user1", new int[] {PermissionEntity.CLUSTER_USER_PERMISSION}, urlTests, false);
+    performGeneralDoFilterTest("user1", new int[]{PermissionEntity.CLUSTER_USER_PERMISSION}, urlTests, false);
   }
 
   @Test
@@ -243,8 +252,8 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
-    urlTests.put("/api/v1/users/user2", "GET", false);
-    urlTests.put("/api/v1/users/user2", "POST", false);
+    urlTests.put("/api/v1/users/user2", "GET", true);
+    urlTests.put("/api/v1/users/user2", "POST", true);
     urlTests.put("/api/v1/groups", "GET", false);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
@@ -276,8 +285,8 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
-    urlTests.put("/api/v1/users/user2", "GET", false);
-    urlTests.put("/api/v1/users/user2", "POST", false);
+    urlTests.put("/api/v1/users/user2", "GET", true);
+    urlTests.put("/api/v1/users/user2", "POST", true);
     urlTests.put("/api/v1/groups", "GET", false);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
@@ -307,8 +316,8 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
     urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
-    urlTests.put("/api/v1/users/user1", "GET", false);
-    urlTests.put("/api/v1/users/user1", "POST", false);
+    urlTests.put("/api/v1/users/user1", "GET", true);
+    urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
     urlTests.put("/api/v1/users/user2", "POST", true);
     urlTests.put("/any/other/URL", "GET", true);
@@ -434,54 +443,6 @@ public class AmbariAuthorizationFilterTest {
         throw new Exception("verify( failed on " + urlTest.getColumnKey() + " " + urlTest.getRowKey(), error);
       }
     }
-  }
-
-  @Test
-  public void testParseUserName() throws Exception {
-    final String[] pathesToTest = {
-        "/api/v1/users/user",
-        "/api/v1/users/user?fields=*",
-        "/api/v22/users/user?fields=*"
-    };
-    for (String contextPath: pathesToTest) {
-      final String username = AmbariAuthorizationFilter.parseUserName(contextPath);
-      Assert.assertEquals("user", username);
-    }
-  }
-
-  @Test
-  public void testParseUserNameSpecial() throws Exception {
-    String contextPath = "/api/v1/users/user%3F";
-    String username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("user?", username);
-
-    contextPath = "/api/v1/users/a%20b";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a b", username);
-
-    contextPath = "/api/v1/users/a%2Bb";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a+b", username);
-
-    contextPath = "/api/v1/users/a%21";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a!", username);
-
-    contextPath = "/api/v1/users/a%3D";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a=", username);
-
-    contextPath = "/api/v1/users/a%2Fb";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a/b", username);
-
-    contextPath = "/api/v1/users/a%23";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("a#", username);
-
-    contextPath = "/api/v1/users/%3F%3F";
-    username = AmbariAuthorizationFilter.parseUserName(contextPath);
-    Assert.assertEquals("??", username);
   }
 
   @Test

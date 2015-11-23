@@ -77,7 +77,22 @@ public class AuthorizationHelper {
 
   /**
    * Determines if the authenticated user (from application's security context) is authorized to
-   * perform an operation on the the specific resource by matching the authenticated user's
+   * perform an operation on the specific resource by matching the authenticated user's
+   * authorizations with the one indicated.
+   *
+   * @param resourceType          a resource type being acted upon
+   * @param resourceId            the resource id (relative to the resource type) being acted upon
+   * @param requiredAuthorization the required authorization
+   * @return true if authorized; otherwise false
+   * @see #isAuthorized(Authentication, ResourceType, Long, Set)
+   */
+  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, RoleAuthorization requiredAuthorization) {
+    return isAuthorized(getAuthentication(), resourceType, resourceId, EnumSet.of(requiredAuthorization));
+  }
+
+  /**
+   * Determines if the authenticated user (from application's security context) is authorized to
+   * perform an operation on the specific resource by matching the authenticated user's
    * authorizations with one from the provided set of authorizations.
    *
    * @param resourceType           a resource type being acted upon
@@ -88,6 +103,22 @@ public class AuthorizationHelper {
    */
   public static boolean isAuthorized(ResourceType resourceType, Long resourceId, Set<RoleAuthorization> requiredAuthorizations) {
     return isAuthorized(getAuthentication(), resourceType, resourceId, requiredAuthorizations);
+  }
+
+  /**
+   * Determines if the specified authenticated user is authorized to perform an operation on the
+   * specific resource by matching the authenticated user's authorizations with the one indicated.
+   *
+   * @param authentication         the authenticated user and associated access privileges
+   * @param resourceType          a resource type being acted upon
+   * @param resourceId            the resource id (relative to the resource type) being acted upon
+   * @param requiredAuthorization the required authorization
+   * @return true if authorized; otherwise false
+   * @see #isAuthorized(Authentication, ResourceType, Long, Set)
+   */
+  public static boolean isAuthorized(Authentication authentication, ResourceType resourceType, Long resourceId,
+                                     RoleAuthorization requiredAuthorization) {
+    return isAuthorized(authentication, resourceType, resourceId, EnumSet.of(requiredAuthorization));
   }
 
   /**

@@ -105,6 +105,7 @@ import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -146,6 +147,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -161,6 +163,7 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AmbariManagementControllerTest {
 
@@ -214,6 +217,14 @@ public class AmbariManagementControllerTest {
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
+
+  @BeforeClass
+  public static void setupAuthentication() {
+    // Set authenticated user so that authorization checks will pass
+    InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
+    authenticationToken.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @Before
   public void setup() throws Exception {

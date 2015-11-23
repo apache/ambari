@@ -55,7 +55,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 /**
  * Abstract resource provider for privilege resources.
  */
-public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvider {
+public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedResourceProvider {
 
   /**
    * Data access object used to obtain privilege entities.
@@ -160,7 +160,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  public RequestStatus createResourcesAuthorized(Request request)
       throws SystemException, UnsupportedPropertyException,
       ResourceAlreadyExistsException, NoSuchParentResourceException {
     for (Map<String, Object> properties : request.getProperties()) {
@@ -172,7 +172,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Set<Resource> resources    = new HashSet<Resource>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
@@ -233,7 +233,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getUpdateCommand(request, predicate));
     notifyUpdate(resourceType, request, predicate);
@@ -241,7 +241,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getDeleteCommand(predicate));
     notifyDelete(resourceType, predicate);

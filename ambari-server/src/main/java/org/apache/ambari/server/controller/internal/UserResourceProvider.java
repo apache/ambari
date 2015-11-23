@@ -23,8 +23,11 @@ import org.apache.ambari.server.controller.UserRequest;
 import org.apache.ambari.server.controller.UserResponse;
 import org.apache.ambari.server.controller.spi.*;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -57,10 +60,13 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
                        Map<Resource.Type, String> keyPropertyIds,
                        AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS));
   }
 
   @Override
-  public RequestStatus createResources(Request request)
+  public RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -97,7 +103,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
     Set<UserResponse> responses = getResources(new Command<Set<UserResponse>>() {
       @Override
-      public Set<UserResponse> invoke() throws AmbariException {
+      public Set<UserResponse> invoke() throws AmbariException, AuthorizationException {
         return getManagementController().getUsers(requests);
       }
     });
@@ -151,7 +157,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         getManagementController().updateUsers(requests);
         return null;
       }
@@ -161,7 +167,7 @@ class UserResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<UserRequest> requests = new HashSet<UserRequest>();
 

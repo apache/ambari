@@ -21,7 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.WidgetResponse;
@@ -43,14 +42,14 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -111,6 +110,16 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
   private static Gson gson;
 
   /**
+   * For testing purposes
+   */
+  public static void init(UserDAO userDAO, WidgetDAO widgetDAO, WidgetLayoutDAO widgetLayoutDAO, Gson gson){
+    ActiveWidgetLayoutResourceProvider.userDAO = userDAO;
+    ActiveWidgetLayoutResourceProvider.widgetDAO = widgetDAO;
+    ActiveWidgetLayoutResourceProvider.widgetLayoutDAO = widgetLayoutDAO;
+    ActiveWidgetLayoutResourceProvider.gson = gson;
+  }
+
+  /**
    * Create a new resource provider.
    *
    */
@@ -137,9 +146,18 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
 
     List<WidgetLayoutEntity> layoutEntities = new ArrayList<WidgetLayoutEntity>();
 
+    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_MANAGE_USERS);
+
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
-        java.lang.reflect.Type type = new TypeToken<Set<Map<String, String>>>(){}.getType();
+
+      // Ensure that the authenticated user has authorization to get this information
+      if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
+        throw new AuthorizationException();
+      }
+
+      java.lang.reflect.Type type = new TypeToken<Set<Map<String, String>>>(){}.getType();
         Set<Map<String, String>> activeWidgetLayouts = gson.fromJson(userDAO.findUserByName(userName).getActiveWidgetLayouts(), type);
         if (activeWidgetLayouts != null) {
           for (Map<String, String> widgetLayoutId : activeWidgetLayouts) {
@@ -187,8 +205,17 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
+        boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+            RoleAuthorization.AMBARI_MANAGE_USERS);
+
         for (Map<String, Object> propertyMap : propertyMaps) {
+          // Ensure that the authenticated user has authorization to get this information
+          String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+          if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
+            throw new AuthorizationException();
+          }
+
           Set<HashMap> widgetLayouts = (Set) propertyMap.get(WIDGETLAYOUT);
           for (HashMap<String, String> widgetLayout : widgetLayouts) {
             final Long layoutId;
@@ -202,7 +229,7 @@ public class ActiveWidgetLayoutResourceProvider extends AbstractControllerResour
               throw new AmbariException("There is no widget layout with id " + layoutId);
             }
           }
-          UserEntity user = userDAO.findUserByName(propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString());
+          UserEntity user = userDAO.findUserByName(userName);
           user.setActiveWidgetLayouts(gson.toJson(propertyMap.get(WIDGETLAYOUT)));
           userDAO.merge(user);
         }

@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -45,9 +45,13 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.easymock.EasyMockSupport;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
@@ -59,74 +63,37 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = SystemException.class)
   public void testCreateResources() throws Exception {
-    final UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.createResources(createNiceMock(Request.class));
   }
 
-  @SuppressWarnings("serial")
   @Test
-  public void testGetResources() throws Exception {
-    final UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
-    final UserDAO userDAO = createNiceMock(UserDAO.class);
-    final GroupDAO groupDAO = createNiceMock(GroupDAO.class);
-    final ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
-    final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
-    final UserEntity userEntity = createNiceMock(UserEntity.class);
-    final PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
-    final PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
-    final PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
-    final PrincipalTypeEntity principalTypeEntity = createNiceMock(PrincipalTypeEntity.class);
-    final ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
-    final ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
+  public void testGetResources_Administrator() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createAdministrator("admin"), "User1");
+  }
 
-    expect(userDAO.findLocalUserByName("user")).andReturn(userEntity).anyTimes();
-    expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
-    expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity> emptySet()).anyTimes();
-    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
-    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
-    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
-    expect(principalTypeEntity.getName()).andReturn(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME).anyTimes();
-    expect(principalEntity.getPrivileges()).andReturn(new HashSet<PrivilegeEntity>() {
-      {
-        add(privilegeEntity);
-      }
-    }).anyTimes();
-    expect(userDAO.findUserByPrincipal(anyObject(PrincipalEntity.class))).andReturn(userEntity).anyTimes();
-    expect(userEntity.getUserName()).andReturn("user").anyTimes();
-    expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
-    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
-    expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name());
+  @Test
+  public void testGetResources_NonAdministrator_Self() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+  }
 
-    replayAll();
-
-    UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO);
-
-    final Set<String> propertyIds = new HashSet<String>();
-    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
-    //propertyIds.add(UserResourceProvider.USER_PASSWORD_PROPERTY_ID);
-
-    final Predicate predicate = new PredicateBuilder().property(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID).equals("user").toPredicate();
-    Request request = PropertyHelper.getReadRequest(propertyIds);
-    Set<Resource> resources = resourceProvider.getResources(request, predicate);
-
-    Assert.assertEquals(1, resources.size());
-    for (Resource resource : resources) {
-      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
-      Assert.assertEquals("user", userName);
-    }
-
-    verifyAll();
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_NonAdministrator_Other() throws Exception {
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
   }
 
   @Test(expected = SystemException.class)
   public void testUpdateResources() throws Exception {
-    final UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.updateResources(createNiceMock(Request.class), createNiceMock(Predicate.class));
   }
 
   @Test(expected = SystemException.class)
   public void testDeleteResources() throws Exception {
-    final UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.deleteResources(createNiceMock(Predicate.class));
   }
 
@@ -344,4 +311,65 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
     verifyAll();
   }
+
+  //  @SuppressWarnings("serial")
+  private void getResourcesTest(Authentication authentication, String requestedUsername) throws Exception {
+    final UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
+    final UserDAO userDAO = createNiceMock(UserDAO.class);
+    final GroupDAO groupDAO = createNiceMock(GroupDAO.class);
+    final ClusterDAO clusterDAO = createNiceMock(ClusterDAO.class);
+    final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
+    final UserEntity userEntity = createNiceMock(UserEntity.class);
+    final PrincipalEntity principalEntity = createNiceMock(PrincipalEntity.class);
+    final PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
+    final PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
+    final PrincipalTypeEntity principalTypeEntity = createNiceMock(PrincipalTypeEntity.class);
+    final ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
+    final ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
+
+    expect(userDAO.findLocalUserByName(requestedUsername)).andReturn(userEntity).anyTimes();
+    expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+    expect(userEntity.getMemberEntities()).andReturn(Collections.<MemberEntity>emptySet()).anyTimes();
+    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
+    expect(privilegeEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
+    expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
+    expect(principalTypeEntity.getName()).andReturn(PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME).anyTimes();
+    expect(principalEntity.getPrivileges()).andReturn(new HashSet<PrivilegeEntity>() {
+      {
+        add(privilegeEntity);
+      }
+    }).anyTimes();
+    expect(userDAO.findUserByPrincipal(anyObject(PrincipalEntity.class))).andReturn(userEntity).anyTimes();
+    expect(userEntity.getUserName()).andReturn(requestedUsername).anyTimes();
+    expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
+    expect(resourceTypeEntity.getName()).andReturn(ResourceType.AMBARI.name());
+
+    replayAll();
+
+    UserPrivilegeResourceProvider.init(userDAO, clusterDAO, groupDAO, viewInstanceDAO);
+
+    final Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+
+    final Predicate predicate = new PredicateBuilder()
+        .property(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID)
+        .equals(requestedUsername)
+        .toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    // Set the authenticated user to a administrator
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    Set<Resource> resources = resourceProvider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      String userName = (String) resource.getPropertyValue(UserPrivilegeResourceProvider.PRIVILEGE_USER_NAME_PROPERTY_ID);
+      Assert.assertEquals(requestedUsername, userName);
+    }
+
+    verifyAll();
+  }
+
 }

@@ -39,8 +39,11 @@ import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -112,6 +115,14 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
   private final ClusterController clusterController;
 
   /**
+   * For testing purposes
+   */
+  public static void init(PermissionDAO permissionDAO, ResourceTypeDAO resourceTypeDAO) {
+    UserAuthorizationResourceProvider.permissionDAO = permissionDAO;
+    UserAuthorizationResourceProvider.resourceTypeDAO = resourceTypeDAO;
+  }
+
+  /**
    * Create a new resource provider.
    */
   public UserAuthorizationResourceProvider(AmbariManagementController managementController) {
@@ -131,8 +142,17 @@ public class UserAuthorizationResourceProvider extends ReadOnlyResourceProvider 
     // is used to generate a composite set of authorizations the user has been granted.
     ResourceProvider userPrivilegeProvider = clusterController.ensureResourceProvider(Type.UserPrivilege);
 
+    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_MANAGE_USERS);
+
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       String username = (String) propertyMap.get(USERNAME_PROPERTY_ID);
+
+      // Ensure that the authenticated user has authorization to get this information
+      if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(username)) {
+        throw new AuthorizationException();
+      }
+
       Request internalRequest = createUserPrivilegeRequest();
       Predicate internalPredicate = createUserPrivilegePredicate(username);
 

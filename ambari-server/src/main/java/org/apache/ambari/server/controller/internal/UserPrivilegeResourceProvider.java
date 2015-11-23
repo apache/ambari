@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -41,7 +42,10 @@ import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.UserType;
 
 /**
@@ -137,6 +141,12 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
    */
   public UserPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, null);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_ASSIGN_ROLES);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredGetAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
   // ----- PrivilegeResourceProvider -----------------------------------------
@@ -153,8 +163,16 @@ public class UserPrivilegeResourceProvider extends ReadOnlyResourceProvider {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
+    boolean isUserAdministrator = AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null,
+        RoleAuthorization.AMBARI_MANAGE_USERS);
+
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final String userName = (String) propertyMap.get(PRIVILEGE_USER_NAME_PROPERTY_ID);
+
+      // Ensure that the authenticated user has authorization to get this information
+      if (!isUserAdministrator && !AuthorizationHelper.getAuthenticatedName().equalsIgnoreCase(userName)) {
+        throw new AuthorizationException();
+      }
 
       if (userName != null) {
         UserEntity userEntity = userDAO.findLocalUserByName(userName);

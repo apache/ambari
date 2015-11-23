@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -182,7 +183,7 @@ public interface AmbariManagementController {
    * @throws AmbariException if the users could not be read
    */
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Gets the user groups identified by the given request objects.
@@ -235,7 +236,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException if the resources cannot be updated
    */
-  public void updateUsers(Set<UserRequest> requests) throws AmbariException;
+  public void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Updates the groups specified.
