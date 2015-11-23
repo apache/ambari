@@ -20,6 +20,8 @@ Ambari Agent
 
 """
 
+import subprocess
+import time
 import re
 import logging
 
@@ -27,7 +29,9 @@ from resource_management.core.base import Fail
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 from resource_management.core.utils import suppress_stdout
+from resource_management.core import shell
 
+PACKAGE_MANAGER_LOCK_ACQUIRED = "Package manager lock is acquired. Retrying after {0} seconds. Reason: {1}"
 
 class PackageProvider(Provider):
   def __init__(self, *args, **kwargs):
@@ -60,6 +64,37 @@ class PackageProvider(Provider):
     
   def get_logoutput(self):
     return self.resource.logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or self.resource.logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
+    
+  def call_until_not_locked(self, cmd, **kwargs):
+    return self.wait_until_not_locked(cmd, is_checked=False, **kwargs)
+  
+  def checked_call_until_not_locked(self, cmd, **kwargs):
+    return self.wait_until_not_locked(cmd, is_checked=True, **kwargs)
+    
+  def wait_until_not_locked(self, cmd, is_checked=True, **kwargs):
+    func = shell.checked_call if is_checked else shell.call
+      
+    for i in range(self.resource.locked_tries):
+      is_last_time = (i == self.resource.locked_tries - 1)
+      try:
+        code, out = func(cmd, **kwargs)
+      except Fail as ex:
+        # non-lock error
+        if not self.is_locked_output(str(ex)) or is_last_time:
+          raise
+        
+        Logger.info(PACKAGE_MANAGER_LOCK_ACQUIRED.format(self.resource.locked_try_sleep, str(ex)))
+      else:
+        # didn't fail or failed with non-lock error.
+        if not code or not self.is_locked_output(out):
+           break
+         
+        Logger.info(PACKAGE_MANAGER_LOCK_ACQUIRED.format(self.resource.locked_try_sleep, str(out)))
+      
+      time.sleep(self.resource.locked_try_sleep)
+
+    return code, out
+       
     
   def yum_check_package_available(self, name):
     """

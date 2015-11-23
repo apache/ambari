@@ -34,7 +34,8 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'ubuntu')
   def test_action_install_ubuntu_update(self, shell_mock, call_mock):
-    call_mock.return_value= (1, None)
+    shell_mock.return_value= (0, '')
+    call_mock.return_value= (1, '')
     with Environment('/') as env:
       Package("some_package",
       )
@@ -43,13 +44,14 @@ class TestPackageResource(TestCase):
  call(['/usr/bin/apt-get', 'update', '-qq'], logoutput=False, sudo=True)])
     
     shell_mock.assert_has_calls([call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', 
-                                       '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True)])
+                                       '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True,  env={'DEBIAN_FRONTEND': 'noninteractive'})])
   
   @patch.object(shell, "call")
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'ubuntu')
   def test_action_install_ubuntu(self, shell_mock, call_mock):
-    call_mock.side_effect = [(1, None), (0, None)]
+    call_mock.side_effect = [(1, ''), (0, '')]
+    shell_mock.return_value = (0, '')
     with Environment('/') as env:
       Package("some_package",
       )
@@ -124,6 +126,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_install_suse(self, shell_mock):
+    shell_mock.return_value = (0,'')
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packages'}]
@@ -208,6 +211,7 @@ class TestPackageResource(TestCase):
   @patch.object(shell, "checked_call")
   @patch.object(System, "os_family", new = 'suse')
   def test_action_remove_suse(self, shell_mock):
+    shell_mock.return_value = (0, '')
     sys.modules['rpm'] = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value = MagicMock()
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
