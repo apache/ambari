@@ -514,4 +514,14 @@
     </value-attributes>
   </property>
 
+  <property>
+    <name>ranger.sso.browser.useragent</name>
+    <value>Mozilla,chrome</value>
+    <display-name>SSO browser useragent</display-name>
+    <description>Comma seperated browser agent</description>
+    <value-attributes>
+      <empty-value-valid>true</empty-value-valid>
+    </value-attributes>
+  </property>
+
 </configuration>
