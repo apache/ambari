@@ -221,6 +221,12 @@ hdp23properties.push({
     "category": "KnoxSSOSettings"
   },
   {
+    "name": "ranger.sso.browser.useragent",
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "KnoxSSOSettings"
+  },
+  {
     "name": "ranger.ldap.ad.domain",
     "serviceName": "RANGER",
     "filename": "ranger-admin-site.xml",
