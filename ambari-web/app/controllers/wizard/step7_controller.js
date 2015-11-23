@@ -788,13 +788,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var serviceName = service.get('serviceName');
       if (['MISC'].concat(this.get('allSelectedServiceNames')).contains(serviceName)) {
         var serviceConfig = App.config.createServiceConfig(serviceName);
+        serviceConfig.set('showConfig', App.StackService.find(serviceName).get('isInstallable'));
         if (this.get('wizardController.name') == 'addServiceController') {
           serviceConfig.set('selected', !this.get('installedServiceNames').concat('MISC').contains(serviceName));
           if (serviceName === 'MISC') {
             serviceConfig.set('configCategories', serviceConfig.get('configCategories').rejectProperty('name', 'Notifications'));
           }
+        } else if (this.get('wizardController.name') == 'kerberosWizardController') {
+          serviceConfig.set('showConfig', true);
         }
-        serviceConfig.set('showConfig', App.StackService.find(serviceName).get('isInstallable'));
         stepConfigs.pushObject(serviceConfig);
       }
     }, this);
