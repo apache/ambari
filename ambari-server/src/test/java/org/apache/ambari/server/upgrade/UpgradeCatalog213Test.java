@@ -648,7 +648,7 @@ public class UpgradeCatalog213Test {
     };
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
-        put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+        put("timeline.metrics.service.default.result.limit", String.valueOf(15840));
         put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
         put("timeline.metrics.cluster.aggregator.minute.interval", String.valueOf(300));
         put("timeline.metrics.host.aggregator.minute.interval", String.valueOf(300));

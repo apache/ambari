@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
+import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntities;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEntity;
 import org.apache.hadoop.yarn.api.records.timeline.TimelineEvents;
@@ -378,6 +379,8 @@ public class TimelineWebServices {
     } catch (Precision.PrecisionFormatException pfe) {
       throw new BadRequestException("precision should be seconds, minutes " +
         "or hours");
+    } catch (PrecisionLimitExceededException iae) {
+      throw new PrecisionLimitExceededException(iae.getMessage());
     } catch (IllegalArgumentException iae) {
       throw new BadRequestException(iae.getMessage());
     } catch (SQLException sql) {

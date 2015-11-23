@@ -17,10 +17,6 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline.cache;
 
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
 import junit.framework.Assert;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
@@ -34,13 +30,14 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
 import org.apache.ambari.server.controller.metrics.timeline.MetricsRequestHelper;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.http.client.utils.URIBuilder;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.After;
 import org.junit.Test;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -50,10 +47,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_INSTANCE_NAME;
-import static org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider.TIMELINE_METRIC_CACHE_MANAGER_NAME;
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -474,7 +471,7 @@ public class TimelineMetricCacheTest {
     newKey.setSpec("");
 
     MetricsRequestHelper metricsRequestHelperForGets = createMock(MetricsRequestHelper.class);
-    expect(metricsRequestHelperForGets.fetchTimelineMetrics(EasyMock.isA(String.class)))
+    expect(metricsRequestHelperForGets.fetchTimelineMetrics(EasyMock.isA(URIBuilder.class), anyLong(), anyLong()))
       .andReturn(metrics).andReturn(newMetrics);
     replay(metricsRequestHelperForGets);
 

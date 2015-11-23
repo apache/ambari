@@ -19,6 +19,7 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.metrics2.sink.timeline.PrecisionLimitExceededException;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 
@@ -437,7 +438,7 @@ public class PhoenixTransactSQL {
         rowsPerMetric = TimeUnit.MILLISECONDS.toHours(range);
         break;
       case MINUTES:
-        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range);
+        rowsPerMetric = TimeUnit.MILLISECONDS.toMinutes(range)/2; //2 minute data in METRIC_AGGREGATE_MINUTE table.
         break;
       default:
         rowsPerMetric = TimeUnit.MILLISECONDS.toSeconds(range)/10; //10 second data in METRIC_AGGREGATE table
@@ -445,7 +446,7 @@ public class PhoenixTransactSQL {
 
     long totalRowsRequested = rowsPerMetric * condition.getMetricNames().size();
     if (totalRowsRequested > PhoenixHBaseAccessor.RESULTSET_LIMIT) {
-      throw new IllegalArgumentException("Requested precision (" + precision + ") for given time range causes " +
+      throw new PrecisionLimitExceededException("Requested precision (" + precision + ") for given time range causes " +
         "result set size of " + totalRowsRequested + ", which exceeds the limit - "
         + PhoenixHBaseAccessor.RESULTSET_LIMIT + ". Please request higher precision.");
     }

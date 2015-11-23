@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.hadoop.metrics2.sink.timeline.Precision;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+
 import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -54,6 +55,10 @@ public class MetricsPaddingMethod {
     }
 
     TreeMap<Long, Double> values = metric.getMetricValues();
+
+    if (values==null || values.isEmpty()) {
+      return;
+    }
 
     long intervalStartTime = longToMillis(temporalInfo.getStartTime());
     long intervalEndTime = longToMillis(temporalInfo.getEndTime());
