@@ -59,16 +59,8 @@ kafka_bin = kafka_home+'/bin/kafka'
 conf_dir = "/etc/kafka/conf"
 limits_conf_dir = "/etc/security/limits.d"
 
-# Find the port number of the Zookeeper Server running on this host.
-zookeeper_port = None
+# Used while upgrading the stack in a kerberized cluster and running kafka-acls.sh
 zookeeper_connect = default("/configurations/kafka-broker/zookeeper.connect", None)
-zookeeper_list = [e.strip() for e in zookeeper_connect.split(",")] if zookeeper_connect else []
-if len(zookeeper_list) > 0:
-  for e in zookeeper_list:
-    if e.find(":") > 0 and len(e.split(":")) == 2 and e.split(":")[0].strip() == hostname:
-      zookeeper_port = e.split(":")[1].strip()
-      break
-
 
 kafka_user_nofile_limit = config['configurations']['kafka-env']['kafka_user_nofile_limit']
 kafka_user_nproc_limit = config['configurations']['kafka-env']['kafka_user_nproc_limit']
