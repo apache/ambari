@@ -580,3 +580,8 @@ tree-view ul li {
 .mozBoxSizeFix {
   -moz-box-sizing: border-box;
 }
+
+#isFirstRowHeader {
+  box-shadow: none;
+  width: inherit;
+}
