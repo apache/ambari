@@ -34,6 +34,7 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -2664,10 +2665,16 @@ public class BlueprintConfigurationProcessorTest {
 
     // verify that the host name for the metastore.uris property has been updated, and
     // that both MetaStore Server URIs are included, using the required Hive Syntax
+    // Depends on hashing, string representation can be different
     assertEquals("Unexpected config update for templeton.hive.properties",
-        "hive.metastore.local=false,hive.metastore.uris=thrift://" + expectedHostNameOne + ":9933\\," + "thrift://" +
-        expectedHostNameTwo + ":9933" + "," + "hive.metastore.sasl.enabled=false",
-        webHCatSiteProperties.get("templeton.hive.properties"));
+        "hive.metastore.local=false,hive.metastore.uris=", webHCatSiteProperties.get("templeton.hive.properties").substring(0, 47));
+    assertEquals("Unexpected config update for templeton.hive.properties",
+        ",hive.metastore.sasl.enabled=false", webHCatSiteProperties.get("templeton.hive.properties").substring(123));
+    List<String> parts = Arrays.asList(new String[]{"thrift://" + expectedHostNameOne + ":9933", "thrift://" +
+        expectedHostNameTwo + ":9933"});
+    assertTrue("Unexpected config update for templeton.hive.properties",
+        CollectionPresentationUtils.isStringPermutationOfCollection(webHCatSiteProperties.get("templeton.hive.properties"), parts, "\\,", 47, 34));
+
   }
 
   @Test

@@ -27,7 +27,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.UriInfo;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.easymock.EasyMock.*;
@@ -52,15 +52,15 @@ public class JsonSerializerTest {
     //child.addChild(resource2, "sub-resource");
 
     // resource properties
-    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
-    mapRootProps.put("prop1", "value1");
+    Map<String, Object> mapRootProps = new LinkedHashMap<>();
     mapRootProps.put("prop2", "value2");
+    mapRootProps.put("prop1", "value1");
 
-    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);
@@ -106,15 +106,15 @@ public class JsonSerializerTest {
     resourcesNode.addChild(resource, "resource1");
 
     // resource properties
-    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
-    mapRootProps.put("prop1", "value1");
+    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
     mapRootProps.put("prop2", "value2");
+    mapRootProps.put("prop1", "value1");
 
-    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);
@@ -162,15 +162,15 @@ public class JsonSerializerTest {
     //child.addChild(resource2, "sub-resource");
 
     // resource properties
-    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
-    mapRootProps.put("prop1", "value1");
+    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
     mapRootProps.put("prop2", "value2");
+    mapRootProps.put("prop1", "value1");
 
-    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<String, Map<String, Object>>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);

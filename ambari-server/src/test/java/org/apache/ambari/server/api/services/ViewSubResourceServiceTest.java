@@ -36,6 +36,7 @@ import javax.ws.rs.core.UriInfo;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -105,15 +106,15 @@ public class ViewSubResourceServiceTest extends BaseServiceTest {
     child.setProperty("href", "this is an href");
 
     // resource properties
-    HashMap<String, Object> mapRootProps = new HashMap<String, Object>();
-    mapRootProps.put("prop1", "value1");
+    Map<String, Object> mapRootProps = new LinkedHashMap<String, Object>();
     mapRootProps.put("prop2", "value2");
+    mapRootProps.put("prop1", "value1");
 
-    HashMap<String, Object> mapCategoryProps = new HashMap<String, Object>();
+    Map<String, Object> mapCategoryProps = new LinkedHashMap<String, Object>();
     mapCategoryProps.put("catProp1", "catValue1");
     mapCategoryProps.put("catProp2", "catValue2");
 
-    Map<String, Map<String, Object>> propertyMap = new HashMap<String, Map<String, Object>>();
+    Map<String, Map<String, Object>> propertyMap = new LinkedHashMap<>();
 
     propertyMap.put(null, mapRootProps);
     propertyMap.put("category", mapCategoryProps);

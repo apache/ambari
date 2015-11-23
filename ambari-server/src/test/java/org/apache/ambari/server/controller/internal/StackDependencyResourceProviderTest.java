@@ -40,8 +40,8 @@ import org.junit.Test;
 
 import java.util.Set;
 
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -53,7 +53,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class StackDependencyResourceProviderTest {
 
-  private static final AmbariMetaInfo metaInfo = createStrictMock(AmbariMetaInfo.class);
+  private static final AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
   @BeforeClass
   public static void initClass() {
     StackDependencyResourceProvider.init(metaInfo);

@@ -313,7 +313,7 @@ public class DataStoreImplTest {
     }
     String longString = sb.toString();
 
-    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity);
+    expect(dynamicEntity.set("DS_id", 99)).andReturn(dynamicEntity).times(0, 1);
 
     transaction.begin();
     expect(transaction.isActive()).andReturn(true).anyTimes();

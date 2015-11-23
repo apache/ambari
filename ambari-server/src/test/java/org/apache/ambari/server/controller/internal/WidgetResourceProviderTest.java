@@ -35,6 +35,7 @@ import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.Assert;
@@ -352,7 +353,8 @@ public class WidgetResourceProviderTest {
     Assert.assertFalse(oldMetrics.equals(entity.getMetrics()));
     Assert.assertFalse(oldProperties.equals(entity.getProperties()));
     Assert.assertEquals("[{\"name\":\"new_value\",\"new_name\":\"new_value2\"}]",entity.getMetrics());
-    Assert.assertEquals("{\"new_property\":\"new_value2\",\"property1\":\"new_value1\"}",entity.getProperties());
+    // Depends on hashing, string representation can be different
+    Assert.assertTrue(CollectionPresentationUtils.isJsonsEquals("{\"new_property\":\"new_value2\",\"property1\":\"new_value1\"}", entity.getProperties()));
     Assert.assertEquals("widget name2",entity.getWidgetName());
     Assert.assertEquals(null,entity.getDefaultSectionName());
 

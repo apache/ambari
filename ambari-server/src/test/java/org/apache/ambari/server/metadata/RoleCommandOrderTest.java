@@ -29,10 +29,13 @@ import static org.easymock.EasyMock.verify;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import junit.framework.Assert;
 
@@ -48,6 +51,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -281,16 +285,29 @@ public class RoleCommandOrderTest {
     mapper.setVisibility(JsonMethod.ALL, JsonAutoDetect.Visibility.ANY);
     String dump = mapper.writeValueAsString(rco.getDependencies());
 
-    String expected = "{\"RoleCommandPair{role=SECONDARY_NAMENODE, " +
-        "cmd=UPGRADE}\":[{\"role\":{\"name\":\"NAMENODE\"},\"cmd\":\"UPGRADE\"}]," +
-        "\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=START}\":[{\"role\":{\"name\":\"NAMENODE\"}," +
-    		"\"cmd\":\"START\"}],\"RoleCommandPair{role=DATANODE, cmd=STOP}\":[{\"role\":" +
-        "{\"name\":\"HBASE_MASTER\"},\"cmd\":\"STOP\"},{\"role\":{\"name\":\"RESOURCEMANAGER\"}," +
-    		"\"cmd\":\"STOP\"},{\"role\":{\"name\":\"TASKTRACKER\"},\"cmd\":\"STOP\"}," +
-        "{\"role\":{\"name\":\"NODEMANAGER\"},\"cmd\":\"STOP\"},{\"role\":{\"name\":\"HISTORYSERVER\"}," +
-    		"\"cmd\":\"STOP\"},{\"role\":{\"name\":\"JOBTRACKER\"},\"cmd\":\"STOP\"}]}";
-
-    assertEquals(expected, dump);
+    // Depends on hashing, string representation can be different
+    // We need a sophisticated comparison
+    List<String> parts = Arrays.asList(dump.substring(1, 522).split(Pattern.quote("],")));
+    assertEquals(3, parts.size());
+    assertTrue(parts.contains("\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=UPGRADE}\":[{\"role\":{\"name\":\"NAMENODE\"},\"cmd\":\"UPGRADE\"}"));
+    assertTrue(parts.contains("\"RoleCommandPair{role=SECONDARY_NAMENODE, cmd=START}\":[{\"role\":{\"name\":\"NAMENODE\"},\"cmd\":\"START\"}"));
+    boolean datanodeCommandExists = false;
+    for (String part : parts) {
+      if (part.contains("RoleCommandPair{role=DATANODE, cmd=STOP}")) {
+        datanodeCommandExists = true;
+        String[] parts2 = part.split(Pattern.quote(":["));
+        assertEquals(2, parts2.length);
+        assertEquals("\"RoleCommandPair{role=DATANODE, cmd=STOP}\"", parts2[0]);
+        List<String> components = Arrays.asList(new String[]{"\"role\":{\"name\":\"HBASE_MASTER\"},\"cmd\":\"STOP\"",
+                                                             "\"role\":{\"name\":\"RESOURCEMANAGER\"},\"cmd\":\"STOP\"",
+                                                             "\"role\":{\"name\":\"TASKTRACKER\"},\"cmd\":\"STOP\"",
+                                                             "\"role\":{\"name\":\"NODEMANAGER\"},\"cmd\":\"STOP\"",
+                                                             "\"role\":{\"name\":\"HISTORYSERVER\"},\"cmd\":\"STOP\"",
+                                                             "\"role\":{\"name\":\"JOBTRACKER\"},\"cmd\":\"STOP\""});
+        Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(parts2[1], components, "},{", 1, 1));
+      }
+    }
+    assertTrue(datanodeCommandExists);
   }
 
 
