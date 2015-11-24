@@ -1299,14 +1299,14 @@ class TestAlerts(TestCase):
         "type": "RECOVERY",
         "reporting": {
           "ok": {
-            "text": "Metrics Collector hasn't been auto-started since {0}."
+            "text": "Metrics Collector has not been auto-started and is running normally{0}."
           },
           "warning": {
-            "text": "Metrics Collector has been auto-started {1} times since {0}.",
+            "text": "Metrics Collector has been auto-started {1} times{0}.",
             "count": 1
           },
           "critical": {
-            "text": "Metrics Collector has been auto-started {1} times since {0}.",
+            "text": "Metrics Collector has been auto-started {1} times{0}.",
             "count": 5
           }
         }

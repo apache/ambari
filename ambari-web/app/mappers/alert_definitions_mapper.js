@@ -175,6 +175,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           case 'SERVER':
             alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('serverConfig'))));
             break;
+          case 'RECOVERY':
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('uriConfig'))));
+            break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);
         }

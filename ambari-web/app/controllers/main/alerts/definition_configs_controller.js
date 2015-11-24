@@ -155,6 +155,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       case 'SERVER':
       	configs = this.renderServerConfigs();
       	break;
+      case 'RECOVERY':
+      	configs = this.renderWebConfigs();
+      	break;
       default:
     }
 

@@ -287,6 +287,10 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       {
         value: 'SERVER',
         label: 'SERVER'
+      },
+      {
+        value: 'RECOVERY',
+        label: 'RECOVERY'
       }
     ],
     onChangeValue: function(){

@@ -265,7 +265,8 @@ App.AlertDefinition = DS.Model.extend({
     'WEB': 'icon-globe',
     'PORT': 'icon-signin',
     'AGGREGATE': 'icon-plus',
-    'SERVER': 'icon-desktop'
+    'SERVER': 'icon-desktop',
+    'RECOVERY': 'icon-desktop'
   },
 
   /**
