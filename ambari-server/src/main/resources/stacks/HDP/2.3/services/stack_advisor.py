@@ -537,6 +537,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
+
+    if "tez-site" not in services["configurations"]:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
+    else:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', 'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
+
     if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
         "ranger-yarn-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putYarnRangerPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
