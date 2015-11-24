@@ -215,7 +215,11 @@ if has_ranger_admin:
   elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+    colon_count = xa_db_host.count(':')
+    if colon_count == 2 or colon_count == 0:
+      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+    else:
+      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"

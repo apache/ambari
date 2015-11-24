@@ -116,8 +116,12 @@ if db_flavor.lower() == 'mysql':
 elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
+  colon_count = db_host.count(':')
+  if colon_count == 2 or colon_count == 0:
+    audit_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
+  else:
+    audit_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
 elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = "postgresql.jar"
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
@@ -179,3 +183,6 @@ ranger_ug_ldap_user_searchfilter = config["configurations"]["ranger-ugsync-site"
 ranger_ug_ldap_group_searchbase = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchbase"]
 ranger_ug_ldap_group_searchfilter = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.group.searchfilter"]
 ug_sync_source = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.source.impl.class"]
+current_host = config['hostname']
+if current_host in ranger_admin_hosts:
+  ranger_host = current_host
