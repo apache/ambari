@@ -19,16 +19,19 @@
 package org.apache.ambari.server.controller;
 
 
-import com.google.common.util.concurrent.ServiceManager;
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Scopes;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
+import java.io.File;
+import java.io.IOException;
+import java.net.Authenticator;
+import java.net.BindException;
+import java.net.PasswordAuthentication;
+import java.net.URL;
+import java.util.EnumSet;
+import java.util.Enumeration;
+import java.util.Map;
+
+import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
+
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StateRecoveryManager;
@@ -64,7 +67,6 @@ import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
-import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.controller.utilities.DatabaseChecker;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -82,7 +84,6 @@ import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.resources.ResourceManager;
 import org.apache.ambari.server.resources.api.rest.GetResource;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
-import org.apache.ambari.server.security.AmbariEntryPoint;
 import org.apache.ambari.server.security.AmbariServerSecurityHeaderFilter;
 import org.apache.ambari.server.security.CertificateManager;
 import org.apache.ambari.server.security.SecurityFilter;
@@ -105,7 +106,6 @@ import org.apache.ambari.server.utils.RetryHelper;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
-import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -129,17 +129,16 @@ import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
-import javax.crypto.BadPaddingException;
-import javax.servlet.DispatcherType;
-import java.io.File;
-import java.io.IOException;
-import java.net.Authenticator;
-import java.net.BindException;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.util.EnumSet;
-import java.util.Enumeration;
-import java.util.Map;
+import com.google.common.util.concurrent.ServiceManager;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Scopes;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 @Singleton
 public class AmbariServer {
@@ -191,14 +190,19 @@ public class AmbariServer {
 
   @Inject
   Configuration configs;
+
   @Inject
   CertificateManager certMan;
+
   @Inject
   Injector injector;
+
   @Inject
   AmbariMetaInfo ambariMetaInfo;
+
   @Inject
   MetainfoDAO metainfoDAO;
+
   @Inject
   @Named("dbInitNeeded")
   boolean dbInitNeeded;
@@ -263,8 +267,8 @@ public class AmbariServer {
       parentSpringAppContext.refresh();
       ConfigurableListableBeanFactory factory = parentSpringAppContext.
           getBeanFactory();
-      factory.registerSingleton("guiceInjector",
-          injector);
+
+      factory.registerSingleton("guiceInjector", injector);
       factory.registerSingleton("passwordEncoder",
           injector.getInstance(PasswordEncoder.class));
       factory.registerSingleton("ambariLocalUserService",
@@ -278,12 +282,10 @@ public class AmbariServer {
       factory.registerSingleton("ambariInternalAuthenticationProvider",
           injector.getInstance(AmbariInternalAuthenticationProvider.class));
 
-      //Spring Security xml config depends on this Bean
-
+      // Spring Security xml config depends on this Bean
       String[] contextLocations = {SPRING_CONTEXT_LOCATION};
       ClassPathXmlApplicationContext springAppContext = new
           ClassPathXmlApplicationContext(contextLocations, parentSpringAppContext);
-      //setting ambari web context
 
       ServletContextHandler root = new ServletContextHandler(
           ServletContextHandler.SECURITY | ServletContextHandler.SESSIONS);
@@ -292,6 +294,7 @@ public class AmbariServer {
       configureSessionManager(sessionManager);
       root.getSessionHandler().setSessionManager(sessionManager);
 
+      // setting ambari web context
       GenericWebApplicationContext springWebAppContext = new GenericWebApplicationContext();
       springWebAppContext.setServletContext(root.getServletContext());
       springWebAppContext.setParent(springAppContext);
@@ -306,6 +309,7 @@ public class AmbariServer {
       // and does not use sessions.
       ServletContextHandler agentroot = new ServletContextHandler(
           serverForAgent, "/", ServletContextHandler.NO_SESSIONS);
+
       if (configs.isAgentApiGzipped()) {
         configureHandlerCompression(agentroot);
       }
@@ -320,15 +324,15 @@ public class AmbariServer {
 
       // Conditionally adds security-related headers to all HTTP responses.
       root.addFilter(new FilterHolder(injector.getInstance(AmbariServerSecurityHeaderFilter.class)), "/*", DISPATCHER_TYPES);
-      //session-per-request strategy for api and agents
+
+      // session-per-request strategy for api
       root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
-      // root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", DISPATCHER_TYPES);
       root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", DISPATCHER_TYPES);
-      // root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", DISPATCHER_TYPES);
 
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
 
+      // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
       agentroot.addFilter(SecurityFilter.class, "/*", DISPATCHER_TYPES);
 
@@ -375,20 +379,31 @@ public class AmbariServer {
       //Secured connector for 1-way auth
       SslSelectChannelConnector sslConnectorOneWay = new SslSelectChannelConnector(contextFactoryOneWay);
       sslConnectorOneWay.setPort(configs.getOneWayAuthPort());
-      sslConnectorOneWay.setAcceptors(2);
-      sslConnectorTwoWay.setAcceptors(2);
-      serverForAgent.setConnectors(new Connector[]{sslConnectorOneWay, sslConnectorTwoWay});
+
+      // because there are two connectors sharing the same pool, cut each's
+      // acceptors in half
+      int sslAcceptors = sslConnectorOneWay.getAcceptors();
+      sslConnectorOneWay.setAcceptors(Math.max(2, sslAcceptors / 2));
+      sslConnectorTwoWay.setAcceptors(Math.max(2, sslAcceptors / 2));
+
+      // Agent Jetty thread pool
+      configureJettyThreadPool(serverForAgent, sslConnectorOneWay.getAcceptors(),
+          "qtp-ambari-agent", configs.getAgentThreadPoolSize());
+
+      serverForAgent.addConnector(sslConnectorOneWay);
+      serverForAgent.addConnector(sslConnectorTwoWay);
 
       ServletHolder sh = new ServletHolder(ServletContainer.class);
       sh.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
           "com.sun.jersey.api.core.PackagesResourceConfig");
+
       sh.setInitParameter("com.sun.jersey.config.property.packages",
         "org.apache.ambari.server.api.rest;" +
           "org.apache.ambari.server.api.services;" +
           "org.apache.ambari.eventdb.webservice;" +
           "org.apache.ambari.server.api");
-      sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
-        "true");
+
+      sh.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
       root.addServlet(sh, "/api/v1/*");
       sh.setInitOrder(2);
 
@@ -397,7 +412,6 @@ public class AmbariServer {
       viewRegistry.readViewArchives();
 
       handlerList.addHandler(root);
-
       server.setHandler(handlerList);
 
       ServletHolder agent = new ServletHolder(ServletContainer.class);
@@ -405,8 +419,7 @@ public class AmbariServer {
           "com.sun.jersey.api.core.PackagesResourceConfig");
       agent.setInitParameter("com.sun.jersey.config.property.packages",
           "org.apache.ambari.server.agent.rest;" + "org.apache.ambari.server.api");
-      agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
-          "true");
+      agent.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
       agentroot.addServlet(agent, "/agent/v1/*");
       agent.setInitOrder(3);
 
@@ -418,21 +431,10 @@ public class AmbariServer {
           "com.sun.jersey.api.core.PackagesResourceConfig");
       cert.setInitParameter("com.sun.jersey.config.property.packages",
           "org.apache.ambari.server.security.unsecured.rest;" + "org.apache.ambari.server.api");
-      cert.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature",
-          "true");
+
+      cert.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
       agentroot.addServlet(cert, "/*");
       cert.setInitOrder(4);
-
-      /*
-      ServletHolder proxy = new ServletHolder(ServletContainer.class);
-      proxy.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
-                             "com.sun.jersey.api.core.PackagesResourceConfig");
-      proxy.setInitParameter("com.sun.jersey.config.property.packages",
-                             "org.apache.ambari.server.proxy");
-      proxy.setInitParameter("com.sun.jersey.api.json.POJOMappingFeature", "true");
-      root.addServlet(proxy, "/proxy/*");
-      proxy.setInitOrder(5);
-      */
 
       ServletHolder resources = new ServletHolder(ServletContainer.class);
       resources.setInitParameter("com.sun.jersey.config.property.resourceConfigClass",
@@ -445,18 +447,7 @@ public class AmbariServer {
       if (configs.csrfProtectionEnabled()) {
         sh.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
             "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
-        /* proxy.setInitParameter("com.sun.jersey.spi.container.ContainerRequestFilters",
-                    "org.apache.ambari.server.api.AmbariCsrfProtectionFilter"); */
       }
-
-      // Set jetty thread pool
-      QueuedThreadPool qtp = new QueuedThreadPool(configs.getAgentThreadPoolSize());
-      qtp.setName("qtp-ambari-agent");
-      serverForAgent.setThreadPool(qtp);
-
-      qtp = new QueuedThreadPool(configs.getClientThreadPoolSize());
-      qtp.setName("qtp-client");
-      server.setThreadPool(qtp);
 
       /* Configure the API server to use the NIO connectors */
       SelectChannelConnector apiConnector;
@@ -489,6 +480,8 @@ public class AmbariServer {
         apiConnector.setMaxIdleTime(configs.getConnectionMaxIdleTime());
       }
 
+      // Client Jetty thread pool
+      configureJettyThreadPool(server, apiConnector.getAcceptors(), "qtp-ambari-client", configs.getClientThreadPoolSize());
       server.addConnector(apiConnector);
 
       server.setStopAtShutdown(true);
@@ -506,6 +499,7 @@ public class AmbariServer {
       Clusters clusters = injector.getInstance(Clusters.class);
       StringBuilder clusterDump = new StringBuilder();
       clusters.debugDump(clusterDump);
+
       LOG.info("********* Current Clusters State *********");
       LOG.info(clusterDump.toString());
 
@@ -514,6 +508,7 @@ public class AmbariServer {
 
       LOG.info("********* Initializing ActionManager **********");
       ActionManager manager = injector.getInstance(ActionManager.class);
+
       LOG.info("********* Initializing Controller **********");
       AmbariManagementController controller = injector.getInstance(
           AmbariManagementController.class);
@@ -522,11 +517,11 @@ public class AmbariServer {
       ExecutionScheduleManager executionScheduleManager = injector
           .getInstance(ExecutionScheduleManager.class);
 
-
       clusterController = controller;
 
       StateRecoveryManager recoveryManager = injector.getInstance(
           StateRecoveryManager.class);
+
       recoveryManager.doWork();
 
       /*
@@ -557,6 +552,64 @@ public class AmbariServer {
           "Terminating this instance.", bindException);
       throw bindException;
     }
+  }
+
+  /**
+   * The Jetty thread pool consists of three basic types of threads:
+   * <ul>
+   * <li>Acceptors</li>
+   * <li>Selectors</li>
+   * <li>Threads which can actually do stuff</li>
+   * <ul>
+   * The {@link SelectChannelConnector} uses the
+   * {@link Runtime#availableProcessors()} as a way to determine how many
+   * acceptors and selectors to create. If the number of processors is too
+   * great, then there will be no threads left to fullfil connection requests.
+   * This method ensures that the pool size is configured correctly, taking into
+   * account the number of available processors (sockets x core x
+   * threads-per-core).
+   * <p/>
+   * If the configured pool size is determined to be too small, then this will
+   * log a warning and increase the pool size to ensure that there are at least
+   * 20 available threads for requests.
+   *
+   * @param server
+   *          the Jetty server instance which will have the threadpool set on it
+   *          (not {@code null}).
+   * @param acceptorThreads
+   *          the number of Acceptor threads configured for the connector.
+   * @param threadPoolName
+   *          the name of the thread pool being configured (not {@code null}).
+   * @param configuredThreadPoolSize
+   *          the size of the pool from {@link Configuration}.
+   */
+  protected void configureJettyThreadPool(Server server, int acceptorThreads,
+      String threadPoolName, int configuredThreadPoolSize) {
+    int minumumAvailableThreads = 20;
+
+    // multiply by two since there is 1 selector for every acceptor
+    int reservedJettyThreads = acceptorThreads * 2;
+
+    // this is the calculation used by Jetty
+    if (configuredThreadPoolSize < reservedJettyThreads + minumumAvailableThreads) {
+      int newThreadPoolSize = reservedJettyThreads + minumumAvailableThreads;
+
+      LOG.warn(
+          "The configured Jetty {} thread pool value of {} is not sufficient on a host with {} processors. Increasing the value to {}.",
+          threadPoolName, configuredThreadPoolSize, Runtime.getRuntime().availableProcessors(),
+          newThreadPoolSize);
+
+      configuredThreadPoolSize = newThreadPoolSize;
+    }
+
+    LOG.info(
+        "Jetty is configuring {} with {} reserved acceptors/selectors and a total pool size of {} for {} processors.",
+        threadPoolName, acceptorThreads * 2, configuredThreadPoolSize,
+        Runtime.getRuntime().availableProcessors());
+
+    QueuedThreadPool qtp = new QueuedThreadPool(configuredThreadPoolSize);
+    qtp.setName(threadPoolName);
+    server.setThreadPool(qtp);
   }
 
   /**
