@@ -37,25 +37,12 @@ REMOVE_CMD = {
 
 LIST_ACTIVE_REPOS_CMD = ['/usr/bin/zypper', 'repos']
 
-def get_active_base_repos():
-  (code, output) = self.call_until_not_locked(LIST_ACTIVE_REPOS_CMD)
-  enabled_repos = []
-  if not code:
-    for line in output.split('\n')[2:]:
-      line_list = line.split('|')
-      if line_list[3].strip() == 'Yes' and line_list[2].strip().startswith("SUSE-"):
-        enabled_repos.append(line_list[1].strip())
-      if line_list[2].strip() == 'OpenSuse':
-        return [line_list[1].strip()]
-  return enabled_repos
-
-
 class ZypperProvider(PackageProvider):
   def install_package(self, name, use_repos=[], skip_repos=[]):
     if use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
-        active_base_repos = get_active_base_repos()
+        active_base_repos = self.get_active_base_repos()
         if 'base' in use_repos:
           # Remove 'base' from use_repos list
           use_repos = filter(lambda x: x != 'base', use_repos)
@@ -81,6 +68,18 @@ class ZypperProvider(PackageProvider):
       self.checked_call_until_not_locked(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
       Logger.info("Skipping removal of non-existing package %s" % (name))
+      
+  def get_active_base_repos(self):
+    (code, output) = self.call_until_not_locked(LIST_ACTIVE_REPOS_CMD)
+    enabled_repos = []
+    if not code:
+      for line in output.split('\n')[2:]:
+        line_list = line.split('|')
+        if line_list[3].strip() == 'Yes' and line_list[2].strip().startswith("SUSE-"):
+          enabled_repos.append(line_list[1].strip())
+        if line_list[2].strip() == 'OpenSuse':
+          return [line_list[1].strip()]
+    return enabled_repos
       
   def is_locked_output(self ,out):
     return "System management is locked by the application" in out
