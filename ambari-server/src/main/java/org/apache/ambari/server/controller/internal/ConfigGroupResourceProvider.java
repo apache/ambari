@@ -395,7 +395,7 @@ public class ConfigGroupResourceProvider extends
             && !configGroup.getId().equals(request.getId())) {
           // Check the new host list for duplicated with this group
           for (Host host : hosts.values()) {
-            if (configGroup.getHosts().containsKey(host.getHostName())) {
+            if (configGroup.getHosts().containsKey(host.getHostId())) {
               throw new DuplicateResourceException("Host is already " +
                 "associated with a config group"
                 + ", clusterName = " + configGroup.getClusterName()
