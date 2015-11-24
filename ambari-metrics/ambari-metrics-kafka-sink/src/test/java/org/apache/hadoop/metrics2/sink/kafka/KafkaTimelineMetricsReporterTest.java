@@ -28,7 +28,6 @@ import com.yammer.metrics.core.MetricsRegistry;
 import com.yammer.metrics.core.Timer;
 import junit.framework.Assert;
 import kafka.utils.VerifiableProperties;
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.easymock.EasyMock;
@@ -38,6 +37,9 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -48,7 +50,7 @@ import static org.powermock.api.easymock.PowerMock.replay;
 import static org.powermock.api.easymock.PowerMock.verifyAll;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ Metrics.class, HttpClient.class,
+@PrepareForTest({ Metrics.class, URL.class, OutputStream.class,
   KafkaTimelineMetricsReporter.TimelineScheduledReporter.class })
 @PowerMockIgnore({"javax.management.*", "org.apache.log4j.*", "org.slf4j.*"})
 public class KafkaTimelineMetricsReporterTest {
@@ -90,9 +92,7 @@ public class KafkaTimelineMetricsReporterTest {
     EasyMock.expect(Metrics.defaultRegistry()).andReturn(registry).times(2);
     TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(kafkaTimelineMetricsReporter);
     kafkaTimelineMetricsReporter.setMetricsCache(timelineMetricsCache);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    kafkaTimelineMetricsReporter.setHttpClient(httpClient);
-    replay(Metrics.class, httpClient, timelineMetricsCache);
+    replay(Metrics.class, timelineMetricsCache);
     kafkaTimelineMetricsReporter.init(props);
     kafkaTimelineMetricsReporter.stopReporter();
     verifyAll();
@@ -104,10 +104,8 @@ public class KafkaTimelineMetricsReporterTest {
     EasyMock.expect(Metrics.defaultRegistry()).andReturn(registry).times(2);
     TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(kafkaTimelineMetricsReporter);
     kafkaTimelineMetricsReporter.setMetricsCache(timelineMetricsCache);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    kafkaTimelineMetricsReporter.setHttpClient(httpClient);
 
-    replay(Metrics.class, httpClient, timelineMetricsCache);
+    replay(Metrics.class, timelineMetricsCache);
     kafkaTimelineMetricsReporter.init(props);
 
     Assert.assertTrue(kafkaTimelineMetricsReporter.isExcludedMetric("a.b.c"));

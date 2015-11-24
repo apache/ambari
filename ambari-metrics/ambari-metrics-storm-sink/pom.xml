@@ -102,7 +102,6 @@ limitations under the License.
               <include>org.codehaus.jackson:jackson-core-asl</include>
               <include>org.codehaus.jackson:jackson-xc</include>
               <include>org.apache.hadoop:hadoop-annotations</include>
-              <include>commons-httpclient:commons-httpclient</include>
               <include>commons-logging:commons-logging</include>
               <include>org.apache.commons:commons-lang3</include>
               <include>commons-codec:commons-codec</include>
@@ -112,10 +111,6 @@ limitations under the License.
             <relocation>
               <pattern>org.apache.commons.logging</pattern>
               <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.logging</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.commons.httpclient</pattern>
-              <shadedPattern>org.apache.hadoop.metrics2.sink.relocated.commons.httpclient</shadedPattern>
             </relocation>
             <relocation>
               <pattern>org.apache.hadoop.classification</pattern>

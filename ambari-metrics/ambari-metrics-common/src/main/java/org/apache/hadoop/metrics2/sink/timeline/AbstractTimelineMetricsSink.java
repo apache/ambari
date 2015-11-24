@@ -17,9 +17,6 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -28,7 +25,9 @@ import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
 import java.io.IOException;
-import java.net.ConnectException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public abstract class AbstractTimelineMetricsSink {
   public static final String TAGS_FOR_PREFIX_PROPERTY_PREFIX = "tagsForPrefix.";
@@ -40,7 +39,6 @@ public abstract class AbstractTimelineMetricsSink {
   public static final int DEFAULT_POST_TIMEOUT_SECONDS = 10;
 
   protected final Log LOG;
-  private HttpClient httpClient = new HttpClient();
 
   protected static ObjectMapper mapper;
 
@@ -54,20 +52,30 @@ public abstract class AbstractTimelineMetricsSink {
 
   public AbstractTimelineMetricsSink() {
     LOG = LogFactory.getLog(this.getClass());
-    httpClient.getParams().setSoTimeout(getTimeoutSeconds() * 1000);
-    httpClient.getParams().setConnectionManagerTimeout(getTimeoutSeconds() * 1000);
   }
 
-  protected void emitMetrics(TimelineMetrics metrics) throws IOException {
+  protected void emitMetrics(TimelineMetrics metrics) {
     String connectUrl = getCollectorUri();
+    int timeout = getTimeoutSeconds() * 1000;
     try {
       String jsonData = mapper.writeValueAsString(metrics);
 
-      StringRequestEntity requestEntity = new StringRequestEntity(jsonData, "application/json", "UTF-8");
+      HttpURLConnection connection =
+        (HttpURLConnection) new URL(connectUrl).openConnection();
 
-      PostMethod postMethod = new PostMethod(connectUrl);
-      postMethod.setRequestEntity(requestEntity);
-      int statusCode = httpClient.executeMethod(postMethod);
+      connection.setRequestMethod("POST");
+      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setConnectTimeout(timeout);
+      connection.setReadTimeout(timeout);
+      connection.setDoOutput(true);
+
+      if (jsonData != null) {
+        try (OutputStream os = connection.getOutputStream()) {
+          os.write(jsonData.getBytes("UTF-8"));
+        }
+      }
+
+      int statusCode = connection.getResponseCode();
 
       if (statusCode != 200) {
         LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
@@ -75,13 +83,9 @@ public abstract class AbstractTimelineMetricsSink {
       } else {
         LOG.debug("Metrics posted to Collector " + connectUrl);
       }
-    } catch (ConnectException e) {
+    } catch (IOException e) {
       throw new UnableToConnectException(e).setConnectUrl(connectUrl);
     }
-  }
-
-  public void setHttpClient(HttpClient httpClient) {
-    this.httpClient = httpClient;
   }
 
   abstract protected String getCollectorUri();

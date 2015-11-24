@@ -31,7 +31,6 @@ import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -107,8 +106,6 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
         emitMetrics(timelineMetrics);
       } catch (UnableToConnectException uce) {
         LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
-      } catch (IOException e) {
-        LOG.error("Unexpected error", e);
       }
     }
   }
