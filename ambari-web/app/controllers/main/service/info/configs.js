@@ -197,13 +197,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * get array of config properties that are shown in settings tab
    * @type {App.StackConfigProperty[]}
    */
-  settingsTabProperties: function() {
+  settingsTabProperties: function () {
     var properties = [];
-    App.Tab.find(this.get('content.serviceName') + '_settings').get('sections').forEach(function(s) {
-      s.get('subSections').forEach(function(ss) {
-        properties = properties.concat(ss.get('configProperties').filterProperty('id'));
-      });
-    });
+    App.Tab.find().forEach(function (t) {
+      if (!t.get('isAdvanced') && t.get('serviceName') === this.get('content.serviceName')) {
+        t.get('sections').forEach(function (s) {
+          s.get('subSections').forEach(function (ss) {
+            properties = properties.concat(ss.get('configProperties').filterProperty('id'));
+          });
+        });
+      }
+    }, this);
     return properties;
   }.property('content.serviceName', 'App.router.clusterController.isStackConfigsLoaded'),
 
