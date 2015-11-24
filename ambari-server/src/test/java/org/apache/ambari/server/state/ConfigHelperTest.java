@@ -192,7 +192,7 @@ public class ConfigHelperTest {
     }
 
     @Transactional
-    private Long addConfigGroup(String name, String tag, List<String> hosts,
+    Long addConfigGroup(String name, String tag, List<String> hosts,
                                 List<Config> configs) throws AmbariException {
 
       Map<Long, Host> hostMap = new HashMap<Long, Host>();

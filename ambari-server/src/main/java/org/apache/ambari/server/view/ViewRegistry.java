@@ -1355,7 +1355,7 @@ public class ViewRegistry {
 
   // create an admin resource for the given view instance entity and merge it
   @Transactional
-  private ViewInstanceEntity mergeViewInstance(ViewInstanceEntity instanceEntity, ResourceTypeEntity resourceTypeEntity) {
+  ViewInstanceEntity mergeViewInstance(ViewInstanceEntity instanceEntity, ResourceTypeEntity resourceTypeEntity) {
     // create an admin resource to represent this view instance
     instanceEntity.setResource(createViewInstanceResource(resourceTypeEntity));
 
@@ -1610,7 +1610,7 @@ public class ViewRegistry {
 
   // persist the given view and its instances
   @Transactional
-  private void persistView(ViewEntity viewDefinition, Set<ViewInstanceEntity> instanceDefinitions) throws Exception {
+  void persistView(ViewEntity viewDefinition, Set<ViewInstanceEntity> instanceDefinitions) throws Exception {
     // ensure that the view entity matches the db
     syncView(viewDefinition, instanceDefinitions);
 

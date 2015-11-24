@@ -85,7 +85,7 @@ public class ConfigGroupTest {
   }
 
   @Transactional
-  private ConfigGroup createConfigGroup() throws AmbariException {
+  ConfigGroup createConfigGroup() throws AmbariException {
     // Create config without persisting and save group
     Map<String, String> properties = new HashMap<String, String>();
     properties.put("a", "b");

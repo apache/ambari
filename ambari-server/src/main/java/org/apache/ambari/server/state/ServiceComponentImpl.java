@@ -564,7 +564,7 @@ public class ServiceComponentImpl implements ServiceComponent {
    * has already been acquired from {@link #readWriteLock}.
    */
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     if (isPersisted()) {
       serviceComponentDesiredStateDAO.merge(desiredStateEntity);
     }

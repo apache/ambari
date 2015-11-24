@@ -840,7 +840,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   @Transactional
-  private Long populateHostsId(ResultSet resultSet) throws SQLException {
+  Long populateHostsId(ResultSet resultSet) throws SQLException {
     Long hostId = 0L;
     if (resultSet != null) {
       try {

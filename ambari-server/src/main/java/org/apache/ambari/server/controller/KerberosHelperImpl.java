@@ -1050,7 +1050,7 @@ public class KerberosHelperImpl implements KerberosHelper {
    *                                               Kerberos-specific configuration details
    */
   @Transactional
-  private RequestStageContainer handle(Cluster cluster,
+  RequestStageContainer handle(Cluster cluster,
                                        KerberosDetails kerberosDetails,
                                        Map<String, ? extends Collection<String>> serviceComponentFilter,
                                        Set<String> hostFilter, Collection<String> identityFilter,

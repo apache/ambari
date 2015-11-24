@@ -305,7 +305,7 @@ public class AmbariServer {
 
   // Creates default users and roles if in-memory database is used
   @Transactional
-  private void addInMemoryUsers() {
+  void addInMemoryUsers() {
     if (getPersistenceType(configuration) == PersistenceType.IN_MEMORY &&
         configuration.getApiAuthentication()) {
       LOG.info("In-memory database is used - creating default users");

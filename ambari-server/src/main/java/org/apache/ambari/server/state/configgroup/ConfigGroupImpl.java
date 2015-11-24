@@ -458,13 +458,12 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Transactional
-  private void save(ClusterEntity clusterEntity) {
+  void save(ClusterEntity clusterEntity) {
     persistHostMapping();
     persistConfigMapping(clusterEntity);
   }
 
   @Override
-  @Transactional
   public void delete() {
     cluster.getClusterGlobalLock().writeLock().lock();
     try {

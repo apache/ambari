@@ -247,7 +247,7 @@ public class RequestExecutionImpl implements RequestExecution {
    * Persist @RequestScheduleEntity with @RequestScheduleBatchHostEntity
    */
   @Transactional
-  private void persistEntities() {
+  void persistEntities() {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
     requestScheduleEntity.setClusterEntity(clusterEntity);
     requestScheduleEntity.setCreateTimestamp(System.currentTimeMillis());
@@ -258,7 +258,7 @@ public class RequestExecutionImpl implements RequestExecution {
   }
 
   @Transactional
-  private void persistRequestMapping() {
+  void persistRequestMapping() {
     // Delete existing mappings to support updates
     if (isPersisted) {
       batchRequestDAO.removeByScheduleId(requestScheduleEntity.getScheduleId());
@@ -293,7 +293,7 @@ public class RequestExecutionImpl implements RequestExecution {
   }
 
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     if (isPersisted) {
       requestScheduleEntity.setUpdateTimestamp(System.currentTimeMillis());
       // Update the Entity object with new settings
