@@ -60,7 +60,6 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -1092,6 +1091,67 @@ public class UpgradeHelperTest {
     assertEquals(1, task.getHosts().size());
   }
 
+  @Test
+  public void testResolverWithFailedUpgrade() throws Exception {
+    Clusters clusters = injector.getInstance(Clusters.class);
+    ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
+
+    String clusterName = "c1";
+
+    StackId stackId = new StackId("HDP-2.1.1");
+    clusters.addCluster(clusterName, stackId);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion());
+
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+
+    for (int i = 0; i < 2; i++) {
+      String hostName = "h" + (i+1);
+      clusters.addHost(hostName);
+      Host host = clusters.getHost(hostName);
+
+      Map<String, String> hostAttributes = new HashMap<String, String>();
+      hostAttributes.put("os_family", "redhat");
+      hostAttributes.put("os_release_version", "6");
+
+      host.setHostAttributes(hostAttributes);
+
+      host.persist();
+      clusters.mapHostToCluster(hostName, clusterName);
+    }
+
+    // !!! add services
+    c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
+
+    Service s = c.getService("ZOOKEEPER");
+    ServiceComponent sc = s.addServiceComponent("ZOOKEEPER_SERVER");
+
+    ServiceComponentHost sch1 =sc.addServiceComponentHost("h1");
+    sch1.setVersion("2.1.1.0-1234");
+
+    ServiceComponentHost sch2 = sc.addServiceComponentHost("h2");
+    sch2.setVersion("2.1.1.0-1234");
+
+    List<ServiceComponentHost> schs = c.getServiceComponentHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
+    assertEquals(2, schs.size());
+
+    MasterHostResolver mhr = new MasterHostResolver(null, c, "2.1.1.0-1234");
+
+    HostsType ht = mhr.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
+    assertEquals(0, ht.hosts.size());
+
+    // !!! if one of them is failed, it should be scheduled
+    sch2.setUpgradeState(UpgradeState.FAILED);
+
+    ht = mhr.getMasterAndHosts("ZOOKEEPER", "ZOOKEEPER_SERVER");
+
+    assertEquals(1, ht.hosts.size());
+    assertEquals("h2", ht.hosts.iterator().next());
+  }
 
 
   private class MockModule implements Module {

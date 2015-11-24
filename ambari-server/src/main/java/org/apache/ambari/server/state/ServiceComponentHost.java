@@ -136,7 +136,15 @@ public interface ServiceComponentHost {
    */
   public void setDesiredSecurityState(SecurityState securityState) throws AmbariException;
 
+  /**
+   * @param upgradeState the upgrade state
+   */
   public void setUpgradeState(UpgradeState upgradeState);
+
+  /**
+   * @return the upgrade state
+   */
+  public UpgradeState getUpgradeState();
 
   public StackId getStackVersion();
 

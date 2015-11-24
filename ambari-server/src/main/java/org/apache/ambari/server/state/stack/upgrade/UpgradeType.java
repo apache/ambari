@@ -19,6 +19,8 @@ package org.apache.ambari.server.state.stack.upgrade;
 
 import javax.xml.bind.annotation.XmlEnumValue;
 
+import com.google.gson.annotations.SerializedName;
+
 /**
  * Indicates the type of Upgrade performed.
  */
@@ -27,10 +29,13 @@ public enum UpgradeType {
    * Services are up the entire time
    */
   @XmlEnumValue("ROLLING")
+  @SerializedName("rolling_upgrade")
   ROLLING,
+
   /**
    * All services are stopped, then started
    */
   @XmlEnumValue("NON_ROLLING")
+  @SerializedName("nonrolling_upgrade")
   NON_ROLLING;
 }
