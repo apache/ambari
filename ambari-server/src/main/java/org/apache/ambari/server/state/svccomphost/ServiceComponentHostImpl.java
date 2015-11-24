@@ -20,7 +20,6 @@ package org.apache.ambari.server.state.svccomphost;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -78,7 +77,6 @@ import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -173,8 +171,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   // define the state machine of a HostServiceComponent for runnable
   // components
 
-  .addTransition(State.INIT, 
-      State.INSTALLING, 
+  .addTransition(State.INIT,
+      State.INSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
       new ServiceComponentHostOpStartedTransition())
 
@@ -198,12 +196,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
       new ServiceComponentHostOpInProgressTransition())
 
-  .addTransition(State.INSTALLING, 
+  .addTransition(State.INSTALLING,
       State.INSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLING, 
+  .addTransition(State.INSTALLING,
       State.INSTALL_FAILED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
       new ServiceComponentHostOpCompletedTransition())
@@ -213,49 +211,49 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_RESTART,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALL_FAILED, 
+  .addTransition(State.INSTALL_FAILED,
       State.INSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
       new ServiceComponentHostOpStartedTransition())
 
   // Allow transition on abort
-  .addTransition(State.INSTALL_FAILED, 
+  .addTransition(State.INSTALL_FAILED,
       State.INSTALL_FAILED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_FAILED,
       new ServiceComponentHostOpCompletedTransition())
 
-  .addTransition(State.INSTALLED, 
-      State.STARTING, 
+  .addTransition(State.INSTALLED,
+      State.STARTING,
       ServiceComponentHostEventType.HOST_SVCCOMP_START,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLED, 
+  .addTransition(State.INSTALLED,
       State.UNINSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_UNINSTALL,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLED, 
+  .addTransition(State.INSTALLED,
       State.INSTALLING,
       ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLED, 
+  .addTransition(State.INSTALLED,
       State.STOPPING,
       ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLED, 
+  .addTransition(State.INSTALLED,
       State.UPGRADING,
       ServiceComponentHostEventType.HOST_SVCCOMP_UPGRADE,
       new ServiceComponentHostOpStartedTransition())
 
-  .addTransition(State.INSTALLED, 
+  .addTransition(State.INSTALLED,
       State.INSTALLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
       new ServiceComponentHostOpInProgressTransition())
 
   .addTransition(State.INSTALLED,
-      State.STARTED, 
+      State.STARTED,
       ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
       new ServiceComponentHostOpCompletedTransition())
 
@@ -270,12 +268,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       new ServiceComponentHostOpInProgressTransition())
 
   .addTransition(State.STARTING,
-      State.STARTING, 
+      State.STARTING,
       ServiceComponentHostEventType.HOST_SVCCOMP_START,
       new ServiceComponentHostOpStartedTransition())
 
   .addTransition(State.STARTING,
-      State.STARTED, 
+      State.STARTED,
       ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
       new ServiceComponentHostOpCompletedTransition())
 
@@ -290,12 +288,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       new ServiceComponentHostOpStartedTransition())
 
   .addTransition(State.STARTED,
-      State.STARTED, 
+      State.STARTED,
       ServiceComponentHostEventType.HOST_SVCCOMP_STARTED,
       new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.STARTED,
-      State.STOPPING, 
+      State.STOPPING,
       ServiceComponentHostEventType.HOST_SVCCOMP_STOP,
       new ServiceComponentHostOpStartedTransition())
 
@@ -305,7 +303,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       new ServiceComponentHostOpInProgressTransition())
 
   .addTransition(State.STARTED,
-      State.INSTALLED, 
+      State.INSTALLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_STOPPED,
       new ServiceComponentHostOpCompletedTransition())
 
@@ -349,7 +347,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
       new ServiceComponentHostOpInProgressTransition())
 
-  .addTransition(State.UPGRADING, 
+  .addTransition(State.UPGRADING,
       State.INSTALLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_SUCCEEDED,
       new ServiceComponentHostOpCompletedTransition())
@@ -420,12 +418,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.DISABLED,
-      State.DISABLED, 
+      State.DISABLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
       new ServiceComponentHostOpCompletedTransition())
 
   .addTransition(State.UNKNOWN,
-      State.DISABLED, 
+      State.DISABLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
       new ServiceComponentHostOpCompletedTransition())
 
@@ -434,7 +432,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       ServiceComponentHostEventType.HOST_SVCCOMP_OP_IN_PROGRESS,
       new ServiceComponentHostOpCompletedTransition())
 
-  .addTransition(State.INSTALL_FAILED, 
+  .addTransition(State.INSTALL_FAILED,
       State.DISABLED,
       ServiceComponentHostEventType.HOST_SVCCOMP_DISABLE,
       new ServiceComponentHostOpCompletedTransition())
@@ -949,7 +947,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
   }
 
-  /***
+  /**
    * To be called during the upgrade of a specific Component in a host.
    * The potential upgrade states are NONE (default), PENDING, IN_PROGRESS, FAILED.
    * If the upgrade completes successfully, the upgradeState should be set back to NONE.
@@ -977,6 +975,29 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       writeLock.unlock();
     }
   }
+
+  @Override
+  public UpgradeState getUpgradeState() {
+    readLock.lock();
+
+    try {
+      HostComponentStateEntity stateEntity = getStateEntity();
+      if (stateEntity != null) {
+        return stateEntity.getUpgradeState();
+      } else {
+        LOG.warn("Trying to fetch a state entity from an object that may " +
+          "have been previously deleted, serviceName = " + getServiceName() + ", " +
+          "componentName = " + getServiceComponentName() + ", " +
+          "hostName = " + getHostName());
+      }
+
+    } finally {
+      readLock.unlock();
+    }
+
+    return UpgradeState.NONE;
+  }
+
 
   @Override
   public void handleEvent(ServiceComponentHostEvent event)

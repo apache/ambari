@@ -24,7 +24,7 @@ import tempfile
 import time
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch, call
-import resource_management
+from resource_management.libraries.script.script import Script
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 
@@ -1367,6 +1367,13 @@ class TestNamenode(RMFTestCase):
                      config_file = "nn_ru_lzo.json",
                      hdp_stack_version = self.STACK_VERSION,
                      target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertFalse(0 == len(Script.structuredOut))
+    self.assertTrue(Script.structuredOut.has_key("upgrade_type"))
+    self.assertTrue(Script.structuredOut.has_key("direction"))
+    self.assertEquals("rolling_upgrade", Script.structuredOut["upgrade_type"])
+    self.assertEquals("UPGRADE", Script.structuredOut["direction"])
+
 
   @patch("utils.get_namenode_states")
   def test_upgrade_restart_eu(self, get_namenode_states_mock):

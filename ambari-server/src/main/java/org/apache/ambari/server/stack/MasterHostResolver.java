@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.utils.HTTPUtils;
 import org.apache.ambari.server.utils.HostAndPort;
 import org.apache.ambari.server.utils.StageUtils;
@@ -206,7 +207,8 @@ public class MasterHostResolver {
         // possible
         if (maintenanceState != MaintenanceState.OFF) {
           unhealthyHosts.add(sch);
-        } else if (null == m_version || null == sch.getVersion() || !sch.getVersion().equals(m_version)) {
+        } else if (null == m_version || null == sch.getVersion() ||
+            !sch.getVersion().equals(m_version) || sch.getUpgradeState() == UpgradeState.FAILED) {
           upgradeHosts.add(hostName);
         }
       }
