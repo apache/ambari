@@ -44,9 +44,11 @@ import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -135,6 +137,8 @@ public class ClustersImpl implements Clusters {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private SecurityHelper securityHelper;
+  @Inject
+  private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
 
   /**
    * Data access object for stacks.
@@ -717,10 +721,13 @@ public class ClustersImpl implements Clusters {
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
     final Cluster cluster = getCluster(clusterName);
-    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{ add(cluster); }});
+    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{
+      add(cluster);
+    }});
   }
 
-  public void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
+  @Transactional
+  void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
     Host host = null;
     HostEntity hostEntity = null;
 
@@ -765,7 +772,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void unmapHostClusterEntities(String hostName, long clusterId) {
+  void unmapHostClusterEntities(String hostName, long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
 
@@ -777,7 +784,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void deleteConfigGroupHostMapping(Long hostId) throws AmbariException {
+  void deleteConfigGroupHostMapping(Long hostId) throws AmbariException {
     // Remove Config group mapping
     for (Cluster cluster : clusters.values()) {
       for (ConfigGroup configGroup : cluster.getConfigGroups().values()) {
@@ -822,7 +829,7 @@ public class ClustersImpl implements Clusters {
    * @throws AmbariException
    */
   @Transactional
-  private void deleteHostEntityRelationships(String hostname) throws AmbariException {
+  void deleteHostEntityRelationships(String hostname) throws AmbariException {
     checkLoaded();
 
     if (!hosts.containsKey(hostname)) {
@@ -845,6 +852,17 @@ public class ClustersImpl implements Clusters {
       hostDAO.refresh(entity);
 
       hostVersionDAO.removeByHostName(hostname);
+
+      // Remove blueprint tasks before hostRoleCommands
+      // TopologyLogicalTask owns the OneToOne relationship but Cascade is on HostRoleCommandEntity
+      if (entity.getHostRoleCommandEntities() != null) {
+        for (HostRoleCommandEntity hrcEntity : entity.getHostRoleCommandEntities()) {
+          if (hrcEntity.getTopologyLogicalTaskEntity() != null) {
+            topologyLogicalTaskDAO.remove(hrcEntity.getTopologyLogicalTaskEntity());
+            hrcEntity.setTopologyLogicalTaskEntity(null);
+          }
+        }
+      }
       entity.setHostRoleCommandEntities(null);
       hostRoleCommandDAO.removeByHostId(entity.getHostId());
 
