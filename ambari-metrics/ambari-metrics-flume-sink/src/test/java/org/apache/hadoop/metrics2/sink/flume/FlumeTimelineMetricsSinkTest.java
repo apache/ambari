@@ -30,7 +30,6 @@ import static org.powermock.api.easymock.PowerMock.verifyAll;
 import java.net.InetAddress;
 import java.util.Collections;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.flume.Context;
 import org.apache.flume.instrumentation.util.JMXPollUtil;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
@@ -87,14 +86,12 @@ public class FlumeTimelineMetricsSinkTest {
     FlumeTimelineMetricsSink flumeTimelineMetricsSink = new FlumeTimelineMetricsSink();
     TimelineMetricsCache timelineMetricsCache = getTimelineMetricsCache(flumeTimelineMetricsSink);
     flumeTimelineMetricsSink.setPollFrequency(1);
-    HttpClient httpClient = EasyMock.createNiceMock(HttpClient.class);
-    flumeTimelineMetricsSink.setHttpClient(httpClient);
     mockStatic(JMXPollUtil.class);
     EasyMock.expect(JMXPollUtil.getAllMBeans()).andReturn(
         Collections.singletonMap("component1", Collections.singletonMap("key1", "42"))).once();
     flumeTimelineMetricsSink.start();
     flumeTimelineMetricsSink.stop();
-    replay(JMXPollUtil.class, timelineMetricsCache, httpClient);
+    replay(JMXPollUtil.class, timelineMetricsCache);
     flumeTimelineMetricsSink.start();
     Thread.sleep(5);
     flumeTimelineMetricsSink.stop();

@@ -43,15 +43,11 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -255,8 +251,6 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
         timelineMetrics.setMetrics(metricsList);
         try {
           emitMetrics(timelineMetrics);
-        } catch (IOException e) {
-          LOG.error("Unexpected error", e);
         } catch (Throwable t) {
           LOG.error("Exception emitting metrics", t);
         }

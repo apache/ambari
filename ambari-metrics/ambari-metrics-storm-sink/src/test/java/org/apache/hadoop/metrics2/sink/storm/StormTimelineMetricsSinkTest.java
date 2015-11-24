@@ -29,8 +29,6 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collections;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.junit.Test;
@@ -43,13 +41,11 @@ public class StormTimelineMetricsSinkTest {
     StormTimelineMetricsSink stormTimelineMetricsSink = new StormTimelineMetricsSink();
     TimelineMetricsCache timelineMetricsCache = createNiceMock(TimelineMetricsCache.class);
     stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
-    HttpClient httpClient = createNiceMock(HttpClient.class);
-    stormTimelineMetricsSink.setHttpClient(httpClient);
-    replay(timelineMetricsCache, httpClient);
+    replay(timelineMetricsCache);
     stormTimelineMetricsSink.handleDataPoints(
         new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),
         Collections.singleton(new IMetricsConsumer.DataPoint("key1", "value1")));
-    verify(timelineMetricsCache, httpClient);
+    verify(timelineMetricsCache);
   }
 
   @Test
@@ -61,13 +57,10 @@ public class StormTimelineMetricsSinkTest {
     timelineMetricsCache.putTimelineMetric(anyObject(TimelineMetric.class));
     expectLastCall().once();
     stormTimelineMetricsSink.setMetricsCache(timelineMetricsCache);
-    HttpClient httpClient = createNiceMock(HttpClient.class);
-    stormTimelineMetricsSink.setHttpClient(httpClient);
-    expect(httpClient.executeMethod(anyObject(PostMethod.class))).andReturn(200).once();
-    replay(timelineMetricsCache, httpClient);
+    replay(timelineMetricsCache);
     stormTimelineMetricsSink.handleDataPoints(
         new IMetricsConsumer.TaskInfo("localhost", 1234, "testComponent", 42, 20000L, 60),
         Collections.singleton(new IMetricsConsumer.DataPoint("key1", 42)));
-    verify(timelineMetricsCache, httpClient);
+    verify(timelineMetricsCache);
   }
 }

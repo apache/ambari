@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.metrics2.sink.timeline;
 
-import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.AbstractMetric;
-import org.apache.hadoop.metrics2.MetricsException;
 import org.apache.hadoop.metrics2.MetricsRecord;
 import org.apache.hadoop.metrics2.MetricsSink;
 import org.apache.hadoop.metrics2.MetricsTag;
@@ -212,8 +210,6 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       }
     } catch (UnableToConnectException uce) {
       LOG.warn("Unable to send metrics to collector by address:" + uce.getConnectUrl());
-    } catch (IOException io) {
-      throw new MetricsException("Failed to putMetrics", io);
     }
   }
 
