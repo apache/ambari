@@ -108,5 +108,28 @@ export default Ember.Component.extend({
     }).find('.ui-resizable-s').addClass('grip fa fa-reorder');
 
     this.tablesChanged();
-  }.on('didInsertElement')
+  }.on('didInsertElement'),
+
+  updateValue: function () {
+    var query = this.get('query');
+    var editor = this.get('editor');
+
+    var isEditorExplainQuery = (editor.getValue().toUpperCase().trim().indexOf('EXPLAIN') === 0);
+    var isFinalExplainQuery = (query.toUpperCase().trim().indexOf('EXPLAIN') === 0);
+
+    if (editor.getValue() !== query) {
+
+      if(!isEditorExplainQuery && !isFinalExplainQuery){
+        editor.setValue(query || '');
+      } else if(!isEditorExplainQuery && isFinalExplainQuery){
+        editor.setValue(editor.getValue() || '');
+      } else if(isEditorExplainQuery && isFinalExplainQuery){
+        editor.setValue(editor.getValue() || '');
+      } else{
+        editor.setValue(query || '');
+      }
+
+    }
+
+  }.observes('query')
 });
