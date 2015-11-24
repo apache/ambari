@@ -92,6 +92,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
           putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.hierarchy', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.mount', 'delete', 'true')
           putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount-path', 'delete', 'true')
+    # recommend hadoop.registry.rm.enabled based on SLIDER in services
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if "SLIDER" in servicesList:
+      putYarnProperty('hadoop.registry.rm.enabled', 'true')
+    else:
+      putYarnProperty('hadoop.registry.rm.enabled', 'false')
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)

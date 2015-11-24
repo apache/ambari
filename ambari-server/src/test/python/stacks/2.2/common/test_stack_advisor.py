@@ -691,6 +691,23 @@ class TestHDP22StackAdvisor(TestCase):
   def test_recommendYARNConfigurations(self):
     configurations = {}
     services = {"configurations": configurations}
+    services['services'] = [
+      {
+        "StackServices": {
+          "service_name": "HDFS"
+        },
+        },
+      {
+        "StackServices": {
+          "service_name": "YARN"
+        },
+        },
+      {
+        "StackServices": {
+          "service_name": "SLIDER"
+        },
+        }
+    ]
     clusterData = {
       "cpu": 4,
       "containers" : 5,
@@ -710,7 +727,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-mb": "1280",
           "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
-          "yarn.nodemanager.resource.cpu-vcores": "4"
+          "yarn.nodemanager.resource.cpu-vcores": "4",
+          "hadoop.registry.rm.enabled": "true"
         }
       }
     }
@@ -753,7 +771,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-vcores": "2",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
-          "yarn.nodemanager.resource.cpu-vcores": "2"
+          "yarn.nodemanager.resource.cpu-vcores": "2",
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -1462,7 +1481,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-vcores": "1",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1792",
-          "yarn.nodemanager.resource.cpu-vcores": "1"
+          "yarn.nodemanager.resource.cpu-vcores": "1",
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -1722,7 +1742,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.scheduler.maximum-allocation-vcores": "1",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
-          "yarn.nodemanager.resource.cpu-vcores": "1"
+          "yarn.nodemanager.resource.cpu-vcores": "1",
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -1934,7 +1955,8 @@ class TestHDP22StackAdvisor(TestCase):
                 "yarn.scheduler.maximum-allocation-vcores": "1",
                 "yarn.scheduler.minimum-allocation-vcores": "1",
                 "yarn.scheduler.maximum-allocation-mb": "1280",
-                "yarn.nodemanager.resource.cpu-vcores": "1"
+                "yarn.nodemanager.resource.cpu-vcores": "1",
+                "hadoop.registry.rm.enabled": "false"
             },
             "property_attributes": {
                 'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
@@ -3225,7 +3247,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
+          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
@@ -3279,7 +3302,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
-          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
+          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler",
+          "hadoop.registry.rm.enabled": "false"
         },
         "property_attributes": {
           "yarn.nodemanager.container-executor.cgroups.mount": {
