@@ -126,6 +126,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           // new values will be parsed in the another mapper, so for now just use old values
           alertDefinition.summary = oldAlertDefinition.get('summary');
           alertDefinition.last_triggered = oldAlertDefinition.get('lastTriggered');
+          alertDefinition.last_triggered_raw = oldAlertDefinition.get('lastTriggeredRaw');
         }
 
         alertDefinitionsToDelete = alertDefinitionsToDelete.without(alertDefinition.id);

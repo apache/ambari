@@ -34,6 +34,7 @@ App.AlertDefinition = DS.Model.extend({
   groups: DS.hasMany('App.AlertGroup'),
   reporting: DS.hasMany('App.AlertReportDefinition'),
   lastTriggered: DS.attr('number'),
+  lastTriggeredRaw: DS.attr('number'),
 
   //relates only to SCRIPT-type alert definition
   location: DS.attr('string'),
@@ -95,9 +96,9 @@ App.AlertDefinition = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredAgoFormatted: function () {
-    var lastTriggered = this.get('lastTriggered');
+    var lastTriggered = this.get('lastTriggeredRaw');
     return lastTriggered ? $.timeago(new Date(lastTriggered)) : '';
-  }.property('lastTriggered'),
+  }.property('lastTriggeredRaw'),
 
   lastTriggeredVerboseDisplay: function () {
     var lastTriggered = this.get('lastTriggered');
@@ -109,7 +110,7 @@ App.AlertDefinition = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredForFormatted: function () {
-    var lastTriggered = this.get('lastTriggered');
+    var lastTriggered = this.get('lastTriggeredRaw');
     var previousSuffixAgo = $.timeago.settings.strings.suffixAgo;
     var previousPrefixAgo = $.timeago.settings.strings.prefixAgo;
     $.timeago.settings.strings.suffixAgo = null;
@@ -118,7 +119,7 @@ App.AlertDefinition = DS.Model.extend({
     $.timeago.settings.strings.suffixAgo = previousSuffixAgo;
     $.timeago.settings.strings.prefixAgo = previousPrefixAgo;
     return triggeredFor;
-  }.property('lastTriggered'),
+  }.property('lastTriggeredRaw'),
 
   /**
    * Formatted displayName for <code>componentName</code>

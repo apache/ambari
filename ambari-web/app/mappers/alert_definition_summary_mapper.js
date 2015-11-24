@@ -51,7 +51,8 @@ App.alertDefinitionSummaryMapper = App.QuickDataMapper.create({
         });
         summaryMap[alertDefinitionSummary.definition_id] = {
           summary: summary,
-          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp))
+          lastTriggered: App.dateTimeWithTimeZone(parseInt(timestamp)),
+          lastTriggeredRaw: timestamp
         };
       }
     });
