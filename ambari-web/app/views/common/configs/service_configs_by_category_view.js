@@ -321,7 +321,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       selector: '[data-toggle=tooltip]',
       placement: 'top'
     });
-    this.updateReadOnlyFlags();
     this.filteredCategoryConfigs();
     Em.run.next(function () {
       self.updateReadOnlyFlags();
