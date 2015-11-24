@@ -129,10 +129,12 @@ export HADOOP_IDENT_STRING=$USER
 
 # Add database libraries
 JAVA_JDBC_LIBS=""
-for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
-do
-  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
-done
+if [ -d "/usr/share/java" ]; then
+  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
+  do
+    JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+  done
+fi
 
 # Add libraries to the hadoop classpath - some may not need a colon as they already include it
 export HADOOP_CLASSPATH=${HADOOP_CLASSPATH}${JAVA_JDBC_LIBS}
