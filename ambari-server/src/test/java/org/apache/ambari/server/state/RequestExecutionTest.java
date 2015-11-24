@@ -85,7 +85,7 @@ public class RequestExecutionTest {
   }
 
   @Transactional
-  private RequestExecution createRequestSchedule() throws Exception {
+  RequestExecution createRequestSchedule() throws Exception {
     Batch batches = new Batch();
     Schedule schedule = new Schedule();
 

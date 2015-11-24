@@ -179,7 +179,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void loadClustersAndHosts() {
+  void loadClustersAndHosts() {
     for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
       Cluster currentCluster = clusterFactory.create(clusterEntity);
       clusters.put(clusterEntity.getClusterName(), currentCluster);
@@ -587,7 +587,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void mapHostClusterEntities(String hostName, Long clusterId) {
+  void mapHostClusterEntities(String hostName, Long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
 

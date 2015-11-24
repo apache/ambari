@@ -506,7 +506,7 @@ public class ServiceImpl implements Service {
   }
 
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     if (isPersisted()) {
       clusterServiceDAO.merge(serviceEntity);
       serviceDesiredStateDAO.merge(serviceDesiredStateEntity);

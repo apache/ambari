@@ -1466,7 +1466,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    * from {@link #readWriteLock}.
    */
   @Transactional
-  private void saveIfPersisted() {
+  void saveIfPersisted() {
     if (isPersisted()) {
       hostComponentStateDAO.merge(stateEntity);
       hostComponentDesiredStateDAO.merge(desiredStateEntity);
@@ -1705,7 +1705,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   }
 
   @Transactional
-  private RepositoryVersionEntity createRepositoryVersion(String version, final StackId stackId, final StackInfo stackInfo) throws AmbariException {
+  RepositoryVersionEntity createRepositoryVersion(String version, final StackId stackId, final StackInfo stackInfo) throws AmbariException {
     // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Repo Version will not exist, so bootstrap it.
     LOG.info("Creating new repository version " + stackId.getStackName() + "-" + version);
 

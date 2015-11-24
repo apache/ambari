@@ -71,7 +71,7 @@ public class StackUpgradeHelper {
    * @throws SQLException
    */
   @Transactional
-  private void updateMetaInfo(Map<String, String> data) throws SQLException {
+  void updateMetaInfo(Map<String, String> data) throws SQLException {
     if (data != null && !data.isEmpty()) {
       for (Map.Entry<String, String> entry : data.entrySet()) {
         MetainfoEntity metainfoEntity = metainfoDAO.findByKey(entry.getKey());
