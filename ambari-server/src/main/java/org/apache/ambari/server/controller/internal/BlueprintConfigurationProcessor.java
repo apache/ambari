@@ -2292,7 +2292,7 @@ public class BlueprintConfigurationProcessor {
         String user = configs.get(property);
         if (user != null && !user.isEmpty()) {
           ensureProperty(configuration, "core-site", String.format(proxyUserHosts, user), "*", configTypesUpdated);
-          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "users", configTypesUpdated);
+          ensureProperty(configuration, "core-site", String.format(proxyUserGroups, user), "*", configTypesUpdated);
         }
       } else {
         LOG.debug("setMissingConfigurations: no user configuration found for type = " + configType +
