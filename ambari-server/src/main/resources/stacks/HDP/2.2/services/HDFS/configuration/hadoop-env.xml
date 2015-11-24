@@ -142,10 +142,12 @@ export HADOOP_IDENT_STRING=$USER
 
 # Add database libraries
 JAVA_JDBC_LIBS=""
-for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
-do
-  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
-done
+if [ -d "/usr/share/java" ]; then
+  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
+  do
+    JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+  done
+fi
 
 # Add libraries required by nodemanager
 MAPREDUCE_LIBS={{mapreduce_libs_path}}
