@@ -1378,7 +1378,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (serviceConfigData.length) {
         allConfigData.pushObject(JSON.stringify({
           Clusters: {
-            desired_config: serviceConfigData
+            desired_config: serviceConfigData.map(function(item) {
+              var props = {};
+              Em.keys(item.properties).forEach(function(propName) {
+                if (item.properties[propName] !== null) {
+                  props[propName] = item.properties[propName];
+                }
+              });
+              item.properties = props;
+              return item;
+            })
           }
         }));
       }

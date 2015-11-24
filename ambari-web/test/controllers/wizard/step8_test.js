@@ -1483,10 +1483,9 @@ describe('App.WizardStep8Controller', function () {
             {
               type: 'hdfs',
               tag: 'tag1',
-              properties: [
-                {},
-                {}
-              ]
+              properties: {
+                'prop1': 'value1'
+              }
             }
           ],
           data = '['+JSON.stringify({
