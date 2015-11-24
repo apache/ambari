@@ -46,6 +46,10 @@ def run_migration(env, upgrade_type):
   if params.upgrade_direction == Direction.DOWNGRADE and params.downgrade_from_version is None:
     raise Fail('Parameter "downgrade_from_version" is missing.')
 
+  if not params.security_enabled:
+    Logger.info("Skip running the Kafka ACL migration script since cluster security is not enabled.")
+    return
+  
   Logger.info("Upgrade type: {0}, direction: {1}".format(str(upgrade_type), params.upgrade_direction))
 
   # If the schema upgrade script exists in the version upgrading to, then attempt to upgrade/downgrade it while still using the present bits.
@@ -61,13 +65,11 @@ def run_migration(env, upgrade_type):
   if kafka_acls_script is not None:
     if os.path.exists(kafka_acls_script):
       Logger.info("Found Kafka acls script: {0}".format(kafka_acls_script))
-      if params.zookeeper_port is None:
-        raise Fail("Could not retrieve Zookeeper Port number for localhost from property kafka-broker/zookeeper.connect")
-
-      zookeeper_localhost_port = "localhost:" + params.zookeeper_port
+      if params.zookeeper_connect is None:
+        raise Fail("Could not retrieve property kafka-broker/zookeeper.connect")
 
       acls_command = "{0} --authorizer kafka.security.auth.SimpleAclAuthorizer --authorizer-properties zookeeper.connect={1} {2}".\
-        format(kafka_acls_script, zookeeper_localhost_port, command_suffix)
+        format(kafka_acls_script, params.zookeeper_connect, command_suffix)
 
       Execute(acls_command,
               user=params.kafka_user,
