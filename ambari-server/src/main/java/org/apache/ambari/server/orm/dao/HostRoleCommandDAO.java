@@ -120,8 +120,7 @@ public class HostRoleCommandDAO {
   @RequiresSession
   public List<HostRoleCommandEntity> findByHostId(Long hostId) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
-        "HostRoleCommandEntity.findByHostId",
-        HostRoleCommandEntity.class);
+        "HostRoleCommandEntity.findByHostId", HostRoleCommandEntity.class);
 
     query.setParameter("hostId", hostId);
     return daoUtils.selectList(query);

@@ -764,8 +764,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   }
 
 
-  protected void deleteHosts(Set<HostRequest> requests)
-      throws AmbariException {
+  protected void deleteHosts(Set<HostRequest> requests) throws AmbariException {
 
     AmbariManagementController controller = getManagementController();
     Clusters                   clusters   = controller.getClusters();

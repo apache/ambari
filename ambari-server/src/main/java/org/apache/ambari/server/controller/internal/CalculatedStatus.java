@@ -62,6 +62,12 @@ public class CalculatedStatus {
     this.percent = percent;
   }
 
+  /**
+   * Static factory method to get Status that represents a Completed state
+   */
+  public static CalculatedStatus getCompletedStatus() {
+    return new CalculatedStatus(HostRoleStatus.COMPLETED, 100.0);
+  }
 
   // ----- CalculatedStatus --------------------------------------------------
 

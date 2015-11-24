@@ -17,21 +17,20 @@
  */
 package org.apache.ambari.server.actionmanager;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.name.Named;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.annotations.Experimental;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.events.HostRemovedEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
@@ -56,13 +55,15 @@ import org.apache.ambari.server.utils.ParallelLoopResult;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.name.Named;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Singleton
 public class ActionDBAccessorImpl implements ActionDBAccessor {
@@ -113,13 +114,15 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   private long cacheLimit; //may be exceeded to store tasks from one request
 
   @Inject
-  public ActionDBAccessorImpl(@Named("executionCommandCacheSize") long cacheLimit) {
+  public ActionDBAccessorImpl(@Named("executionCommandCacheSize") long cacheLimit,
+                              AmbariEventPublisher eventPublisher) {
 
     this.cacheLimit = cacheLimit;
     hostRoleCommandCache = CacheBuilder.newBuilder().
         expireAfterAccess(5, TimeUnit.MINUTES).
         build();
 
+    eventPublisher.register(this);
   }
 
   @Inject
@@ -218,7 +221,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   @Experimental
   public List<Stage> getStagesInProgress() {
     List<StageEntity> stageEntities = stageDAO.findByCommandStatuses(
-        HostRoleStatus.IN_PROGRESS_STATUSES);
+      HostRoleStatus.IN_PROGRESS_STATUSES);
 
     // experimentally enable parallel stage processing
     @Experimental
@@ -681,7 +684,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
 
     return hostRoleCommandDAO.getRequestsByTaskStatus(taskStatuses, maxResults,
-        ascOrder);
+      ascOrder);
   }
 
   @Override
@@ -716,5 +719,16 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
     }
 
     hostRoleCommandDAO.mergeAll(tasks);
+  }
+
+  /**
+   * Invalidate cached HostRoleCommands if a host is deleted.
+   * @param event @HostRemovedEvent
+   */
+  @Subscribe
+  public void invalidateCommandCacheOnHostRemove(HostRemovedEvent event) {
+    LOG.info("Invalidating command cache on host delete event." );
+    LOG.debug("HostRemovedEvent => " + event);
+    hostRoleCommandCache.invalidateAll();
   }
 }
