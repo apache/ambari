@@ -5047,19 +5047,19 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-oozie-user.hosts"));
-    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-oozie-user.groups"));
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-oozie-user.groups"));
 
     assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hive-user.hosts"));
-    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hive-user.groups"));
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hive-user.groups"));
 
     assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hcat-user.hosts"));
-    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hcat-user.groups"));
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hcat-user.groups"));
 
     assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hbase-user.hosts"));
-    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-hbase-user.groups"));
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-hbase-user.groups"));
 
     assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-falcon-user.hosts"));
-    assertEquals("users", properties.get("core-site").get("hadoop.proxyuser.test-falcon-user.groups"));
+    assertEquals("*", properties.get("core-site").get("hadoop.proxyuser.test-falcon-user.groups"));
   }
 
   @Test
@@ -5094,10 +5094,10 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(4, coreSiteProperties.size());
 
     assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.hosts"));
-    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.groups"));
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.groups"));
 
     assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.hosts"));
-    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
   }
 
   @Test
@@ -5139,7 +5139,7 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("testOozieGroupsVal", coreSiteProperties.get("hadoop.proxyuser.test-oozie-user.groups"));
 
     assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.hosts"));
-    assertEquals("users", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
+    assertEquals("*", coreSiteProperties.get("hadoop.proxyuser.test-falcon-user.groups"));
   }
 
   @Test
@@ -5182,10 +5182,10 @@ public class BlueprintConfigurationProcessorTest {
     // ensure that explicitly set value is unchanged
     assertEquals("testOozieHostsVal", clusterConfig.getPropertyValue("core-site", "hadoop.proxyuser.test-oozie-user.hosts"));
 
-    assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-oozie-user.groups"));
+    assertEquals("*", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-oozie-user.groups"));
 
     assertEquals("*", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.hosts"));
-    assertEquals("users", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.groups"));
+    assertEquals("*", leafConfigCoreSiteProps.get("hadoop.proxyuser.test-falcon-user.groups"));
   }
 
   @Test
