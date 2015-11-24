@@ -32,7 +32,8 @@ App.AddAlertDefinitionStep1Controller = Em.Controller.extend({
     Em.Object.create({value: 'WEB', isActive: false, icon: 'icon-globe'}),
     Em.Object.create({value: 'AGGREGATE', isActive: false, icon: 'icon-plus-sign-alt'}),
     Em.Object.create({value: 'SCRIPT', isActive: false, icon: 'icon-code'}),
-    Em.Object.create({value: 'SERVER', isActive: false, icon: 'icon-desktop'})
+    Em.Object.create({value: 'SERVER', isActive: false, icon: 'icon-desktop'}),
+    Em.Object.create({value: 'RECOVERY', isActive: false, icon: 'icon-desktop'})
   ],
 
   /**
