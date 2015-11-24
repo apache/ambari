@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property require-input="true">
     <name>accumulo_root_password</name>
     <value></value>

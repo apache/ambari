@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>

@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>nimbus_seeds_supported</name>
     <value>true</value>

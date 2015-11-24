@@ -17,7 +17,7 @@
    limitations under the License.
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <!-- gpcheck.cnf -->
     <property>
       <name>content</name>

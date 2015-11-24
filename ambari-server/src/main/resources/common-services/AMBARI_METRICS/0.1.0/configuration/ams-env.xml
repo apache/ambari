@@ -18,7 +18,7 @@
   ~ limitations under the License.
   -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>ambari_metrics_user</name>
     <display-name>Ambari Metrics User</display-name>

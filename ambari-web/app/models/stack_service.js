@@ -374,15 +374,14 @@ App.StackService.configCategories = function () {
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    if (type.endsWith('-env') || type.endsWith('-log4j')) {
-      return;
+    if (Em.getWithDefault(this.get('configTypes')[type] || {}, 'supports.adding_forbidden', 'true') === 'false') {
+      serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
+        name: 'Custom ' + type,
+        displayName: Em.I18n.t('common.custom') + " " + type,
+        siteFileName: type + '.xml',
+        canAddProperty: true
+      }));
     }
-    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
-      name: 'Custom ' + type,
-      displayName: Em.I18n.t('common.custom') + " " + type,
-      siteFileName: type + '.xml',
-      canAddProperty: true
-    }));
   }, this);
   return serviceConfigCategories;
 };

@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>spark_user</name>
     <display-name>Spark User</display-name>

@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>yarn_cgroups_enabled</name>
     <value>false</value>

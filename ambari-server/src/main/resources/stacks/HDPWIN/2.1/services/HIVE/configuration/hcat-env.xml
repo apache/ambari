@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <!-- hcat-env.cmd -->
   <property>
     <name>content</name>
