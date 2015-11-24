@@ -35,6 +35,7 @@ App.alertInstanceMapper = App.QuickDataMapper.create({
     host_name: 'Alert.host_name',
     scope: 'Alert.scope',
     original_timestamp: 'Alert.original_timestamp',
+    original_raw_timestamp: 'Alert.original_timestamp',
     latest_timestamp: 'Alert.latest_timestamp',
     maintenance_state: 'Alert.maintenance_state',
     instance: 'Alert.instance',

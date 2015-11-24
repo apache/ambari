@@ -31,6 +31,7 @@ App.AlertInstance = DS.Model.extend({
   hostName: DS.attr('string'),
   scope: DS.attr('string'),
   originalTimestamp: DS.attr('number'),
+  originalRawTimestamp: DS.attr('number'),
   latestTimestamp: DS.attr('number'),
   maintenanceState: DS.attr('string'),
   instance: DS.attr('string'),
@@ -89,7 +90,7 @@ App.AlertInstance = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredAgoFormatted: function () {
-    var lastTriggered = this.get('originalTimestamp');
+    var lastTriggered = this.get('originalRawTimestamp');
     return lastTriggered ? $.timeago(new Date(lastTriggered)) : '';
   }.property('originalTimestamp'),
 
@@ -106,7 +107,7 @@ App.AlertInstance = DS.Model.extend({
    * @type {string}
    */
   lastTriggeredForFormatted: function () {
-    var lastTriggered = this.get('originalTimestamp');
+    var lastTriggered = this.get('originalRawTimestamp');
     var previousSuffixAgo = $.timeago.settings.strings.suffixAgo;
     var previousPrefixAgo = $.timeago.settings.strings.prefixAgo;
     $.timeago.settings.strings.suffixAgo = null;
