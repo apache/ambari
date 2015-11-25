@@ -30,6 +30,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   groupId: DS.attr('number'),
   version: DS.attr('number'),
   createTime: DS.attr('number'),
+  rawCreateTime: DS.attr('number'),
   author: DS.attr('string'),
   notes: DS.attr('string'),
   service: DS.belongsTo('App.Service'),
@@ -74,8 +75,8 @@ App.ServiceConfigVersion = DS.Model.extend({
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),
   timeSinceCreated: function () {
-    return $.timeago(this.get('createTime'));
-  }.property('createTime'),
+    return $.timeago(this.get('rawCreateTime'));
+  }.property('rawCreateTime'),
   /**
    * determine whether ServiceConfigVersion is requested from server
    */

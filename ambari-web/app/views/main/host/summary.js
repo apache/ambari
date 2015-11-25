@@ -293,9 +293,9 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {String}
    */
   timeSinceHeartBeat: function () {
-    var d = this.get('content.lastHeartBeatTime');
+    var d = this.get('content.rawLastHeartBeatTime');
     return d ? $.timeago(d) : '';
-  }.property('content.lastHeartBeatTime'),
+  }.property('content.rawLastHeartBeatTime'),
 
   /**
    * Get clients with custom commands

@@ -38,6 +38,7 @@ App.Host = DS.Model.extend({
   rack: DS.attr('string'),
   healthStatus: DS.attr('string'),
   lastHeartBeatTime: DS.attr('number'),
+  rawLastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),
