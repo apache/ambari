@@ -1023,51 +1023,37 @@ class TestHDP206StackAdvisor(TestCase):
     clusterData = {
       "totalAvailableRam": 2048
     }
-    expected = {
-      'hadoop-env': {
-        'properties': {
-          'namenode_heapsize': '1024',
-          'namenode_opt_newsize': '256',
-          'namenode_opt_maxnewsize': '256',
-          'hdfs_user': 'hdfs',
-          "proxyuser_group": "users"
-        }
-      },
-      "core-site": {
-        "properties": {
-          "hadoop.proxyuser.hdfs.hosts": "*",
-          "hadoop.proxyuser.hdfs.groups": "*",
-          "hadoop.proxyuser.hive.hosts": "c6401.ambari.apache.org",
-          "hadoop.proxyuser.hive.groups": "*",
-          "hadoop.proxyuser.webhcat.hosts": "c6401.ambari.apache.org",
-          "hadoop.proxyuser.webhcat.groups": "users",
-          "hadoop.proxyuser.oozie.groups": "*",
-          "hadoop.proxyuser.oozie.hosts": "c6401.ambari.apache.org",
-          "hadoop.proxyuser.falcon.groups": "users",
-          "hadoop.proxyuser.falcon.hosts": "*"
-        }
-      },
-      "hive-env": {
-        "properties": {
-          "hive_user": "hive",
-          "webhcat_user": "webhcat"
-        }
-      },
-      "hdfs-site": {
-        "properties": {
-        }
-      },
-      "oozie-env": {
-        "properties": {
-          "oozie_user": "oozie"
-        }
-      },
-      "falcon-env": {
-        "properties": {
-          "falcon_user": "falcon"
-        }
-      }
-    }
+    expected = {'oozie-env':
+                  {'properties':
+                     {'oozie_user': 'oozie'}},
+                'core-site':
+                  {'properties':
+                     {'hadoop.proxyuser.oozie.groups': '*',
+                      'hadoop.proxyuser.hive.groups': '*',
+                      'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.falcon.hosts': '*',
+                      'hadoop.proxyuser.webhcat.groups': '*',
+                      'hadoop.proxyuser.hdfs.groups': '*',
+                      'hadoop.proxyuser.hdfs.hosts': '*',
+                      'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                      'hadoop.proxyuser.falcon.groups': '*'}},
+                'falcon-env':
+                  {'properties':
+                     {'falcon_user': 'falcon'}},
+                'hive-env':
+                  {'properties':
+                     {'hive_user': 'hive',
+                      'webhcat_user': 'webhcat'}},
+                'hdfs-site':
+                  {'properties': {}},
+                'hadoop-env':
+                  {'properties':
+                     {'hdfs_user': 'hdfs',
+                      'namenode_heapsize': '1024',
+                      'proxyuser_group': 'users',
+                      'namenode_opt_maxnewsize': '256',
+                      'namenode_opt_newsize': '256'}}}
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
@@ -1081,34 +1067,41 @@ class TestHDP206StackAdvisor(TestCase):
     services["changed-configurations"] = changedConfigurations
     services['configurations'] = configurations
 
-    core_site = {
-      "properties": {
-        "hadoop.proxyuser.hdfs1.hosts": "*",
-        "hadoop.proxyuser.hdfs1.groups": "*",
-        "hadoop.proxyuser.hdfs.hosts": "*",
-        "hadoop.proxyuser.hdfs.groups": "*",
-        "hadoop.proxyuser.hive.hosts": "c6401.ambari.apache.org",
-        "hadoop.proxyuser.hive.groups": "*",
-        "hadoop.proxyuser.webhcat.hosts": "c6401.ambari.apache.org",
-        "hadoop.proxyuser.webhcat.groups": "users",
-        "hadoop.proxyuser.oozie.groups": "*",
-        "hadoop.proxyuser.oozie.hosts": "c6401.ambari.apache.org",
-        "hadoop.proxyuser.falcon.groups": "users",
-        "hadoop.proxyuser.falcon.hosts": "*"
-      },
-      "property_attributes": {
-        "hadoop.proxyuser.hdfs.hosts": {
-          "delete": "true"
-        },
-        "hadoop.proxyuser.hdfs.groups": {
-          "delete": "true"
-        }
-      }
-
-    }
-
-    expected["core-site"] = core_site
-    expected["hadoop-env"]["properties"]["hdfs_user"] = "hdfs1"
+    expected = {'oozie-env':
+                  {'properties':
+                     {'oozie_user': 'oozie'}},
+                'core-site': {'properties':
+                                {'hadoop.proxyuser.oozie.groups': '*',
+                                 'hadoop.proxyuser.hive.groups': '*',
+                                 'hadoop.proxyuser.hdfs1.groups': '*',
+                                 'hadoop.proxyuser.hdfs1.hosts': '*',
+                                 'hadoop.proxyuser.webhcat.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.falcon.hosts': '*',
+                                 'hadoop.proxyuser.webhcat.groups': '*',
+                                 'hadoop.proxyuser.hdfs.groups': '*',
+                                 'hadoop.proxyuser.hdfs.hosts': '*',
+                                 'hadoop.proxyuser.hive.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.oozie.hosts': 'c6401.ambari.apache.org',
+                                 'hadoop.proxyuser.falcon.groups': '*'},
+                              'property_attributes':
+                                {'hadoop.proxyuser.hdfs.groups': {'delete': 'true'},
+                                 'hadoop.proxyuser.hdfs.hosts': {'delete': 'true'}}},
+                'falcon-env':
+                  {'properties':
+                     {'falcon_user': 'falcon'}},
+                'hive-env':
+                  {'properties':
+                     {'hive_user': 'hive',
+                      'webhcat_user': 'webhcat'}},
+                'hdfs-site':
+                  {'properties': {}},
+                'hadoop-env':
+                  {'properties':
+                     {'hdfs_user': 'hdfs1',
+                      'namenode_heapsize': '1024',
+                      'proxyuser_group': 'users',
+                      'namenode_opt_maxnewsize': '256',
+                      'namenode_opt_newsize': '256'}}}
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)

@@ -186,26 +186,20 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               and "webhcat_user" in services["configurations"]["hive-env"]["properties"]:
         hive_user = services["configurations"]["hive-env"]["properties"]["hive_user"]
         webhcat_user = services["configurations"]["hive-env"]["properties"]["webhcat_user"]
-        proxy_user_group = None
-        if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
-          proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
         hiveServerrHost = self.getHostWithComponent("HIVE", "HIVE_SERVER", services, hosts)
         if hiveServerrHost is not None:
           hiveServerHostName = hiveServerrHost["Hosts"]["public_host_name"]
           if not hive_user in users and hive_user is not None:
             users[hive_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "hive_user"}
-          if not webhcat_user in users and not None in [webhcat_user , proxy_user_group]:
-            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : proxy_user_group, "config" : "hive-env", "propertyName" : "webhcat_user"}
+          if not webhcat_user in users and webhcat_user is not None:
+            users[webhcat_user] = {"propertyHosts" : hiveServerHostName,"propertyGroups" : "*", "config" : "hive-env", "propertyName" : "webhcat_user"}
 
     if "FALCON" in servicesList:
       falconUser = None
       if "falcon-env" in services["configurations"] and "falcon_user" in services["configurations"]["falcon-env"]["properties"]:
         falconUser = services["configurations"]["falcon-env"]["properties"]["falcon_user"]
-        proxy_user_group = None
-        if "hadoop-env" in services["configurations"] and "proxyuser_group" in services["configurations"]["hadoop-env"]["properties"]:
-          proxy_user_group = services["configurations"]["hadoop-env"]["properties"]["proxyuser_group"]
-        if not falconUser in users and not None in [proxy_user_group, falconUser]:
-          users[falconUser] = {"propertyHosts" : "*","propertyGroups" : proxy_user_group, "config" : "falcon-env", "propertyName" : "falcon_user"}
+        if not falconUser in users and falconUser is not None:
+          users[falconUser] = {"propertyHosts" : "*","propertyGroups" : "*", "config" : "falcon-env", "propertyName" : "falcon_user"}
 
     putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
     putCoreSitePropertyAttribute = self.putPropertyAttribute(configurations, "core-site")
