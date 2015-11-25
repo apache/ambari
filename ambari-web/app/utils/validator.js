@@ -169,6 +169,16 @@ module.exports = {
   },
 
   /**
+   * validate db name
+   * @param value
+   * @returns {boolean}
+   */
+  isValidDbName: function(value) {
+    var dbPattern = /^\S+$/;
+    return dbPattern.test(value);
+  },
+
+  /**
    * validate key of configurations
    * @param value
    * @return {Boolean}
