@@ -210,7 +210,7 @@ public class UpgradeEntity {
    * @return possibility to process downgrade
    */
   public Boolean isDowngradeAllowed() {
-    return downgrade_allowed != 0;
+    return downgrade_allowed != null ? (downgrade_allowed != 0) : null;
   }
 
   /**
