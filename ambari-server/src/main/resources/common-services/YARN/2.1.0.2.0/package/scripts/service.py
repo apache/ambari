@@ -39,13 +39,6 @@ def service(componentName, action='start', serviceName='yarn'):
 def service(componentName, action='start', serviceName='yarn'):
   import params
 
-  if componentName == 'timelineserver' and serviceName == 'yarn' and action == 'start':
-    File(params.ats_leveldb_lock_file,
-         action = "delete",
-         only_if = format("ls {params.ats_leveldb_lock_file}"),
-         ignore_failures = True
-    )
-
   if serviceName == 'mapreduce' and componentName == 'historyserver':
     delete_pid_file = True
     daemon = format("{mapred_bin}/mr-jobhistory-daemon.sh")
@@ -67,6 +60,14 @@ def service(componentName, action='start', serviceName='yarn'):
 
     # Remove the pid file if its corresponding process is not running.
     File(pid_file, action = "delete", not_if = check_process)
+
+    if componentName == 'timelineserver' and serviceName == 'yarn':
+      File(params.ats_leveldb_lock_file,
+         action = "delete",
+         only_if = format("ls {params.ats_leveldb_lock_file}"),
+         not_if = check_process,
+         ignore_failures = True
+      )
 
     # Attempt to start the process. Internally, this is skipped if the process is already running.
     Execute(daemon_cmd, user = usr, not_if = check_process)
