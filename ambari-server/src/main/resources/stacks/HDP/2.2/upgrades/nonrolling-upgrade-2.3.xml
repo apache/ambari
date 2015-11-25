@@ -332,6 +332,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
       </execute-stage>
 
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_keep_ats_v1"/>
+      </execute-stage>
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
       </execute-stage>
@@ -390,7 +394,6 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_delete_old_ranger_properties"/>
       </execute-stage>
 
-
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
@@ -398,6 +401,10 @@
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
       </execute-stage>
 
       <!--HIVE-->
