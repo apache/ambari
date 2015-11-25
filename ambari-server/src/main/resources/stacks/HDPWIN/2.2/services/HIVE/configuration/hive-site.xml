@@ -1404,6 +1404,7 @@ limitations under the License.
     <display-name>Database Name</display-name>
     <description>Database name used as the Hive Metastore</description>
     <value-attributes>
+      <type>database</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

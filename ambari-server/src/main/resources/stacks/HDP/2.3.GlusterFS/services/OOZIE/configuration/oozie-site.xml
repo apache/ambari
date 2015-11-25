@@ -115,6 +115,9 @@
     <description>
       Oozie DataBase Name
     </description>
+    <value-attributes>
+      <type>database</type>
+    </value-attributes>
   </property>
 
   <property>
