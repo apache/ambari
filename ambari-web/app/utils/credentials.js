@@ -18,6 +18,14 @@
 var App = require('app');
 
 /** @module utils.credentials **/
+
+/**
+ * Credential Resource format.
+ * @typedef {object} credentialResourceObject
+ * @property {string} principal user principal name
+ * @property {string} key user password
+ * @property {string} type type of credential store e.g. <b>persistent</b> or <b>temporary</b>
+ */
 module.exports = {
 
   STORE_TYPES: {
@@ -39,7 +47,7 @@ module.exports = {
    * @member utils.credentials
    * @param {string} clusterName cluster name
    * @param {string} alias credential alias name e.g. "kdc.admin.credentials"
-   * @param {object} resource resource info to set e.g.
+   * @param {credentialResourceObject} resource resource info to set e.g.
    * <code>
    * {
    *   principal: "USERNAME",
@@ -79,9 +87,10 @@ module.exports = {
 
   /**
    * @see createCredentials
+   * @member utils.credentials
    * @param {string} clusterName
    * @param {string} alias
-   * @param {object} resource
+   * @param {credentialResourceObject} resource
    * @returns {$.Deferred} promise object
    */
   createOrUpdateCredentials: function(clusterName, alias, resource) {
@@ -248,6 +257,7 @@ module.exports = {
   /**
    * Get store type value for specified cluster and store type e.g. <b>persistent</b> or <b>temporary</b>
    *
+   * @member utils.credentials
    * @param {string} clusterName
    * @param {string} type store type e.g. <b>persistent</b> or <b>temporary</b>
    * @returns {$.Deferred} promise object
@@ -265,10 +275,11 @@ module.exports = {
   /**
    * Generate payload for storing credential.
    *
+   * @member utils.credentials
    * @param {string} principal principal name
    * @param {string} key secret key
    * @param {string} type storage type e.g. <b>persisted</b>, <b>temporary</b>
-   * @returns {object} resource template
+   * @returns {credentialResourceObject} resource template
    */
   createCredentialResource: function(principal, key, type) {
     return {
@@ -281,6 +292,7 @@ module.exports = {
   /**
    * Check that KDC credentials stored as <b>persisted</b> and not <b>temporary</b> from specified credentials list.
    *
+   * @member utils.credentials
    * @param {object[]} credentials credentials list retrieved from API @see credentials
    * @returns {boolean} <code>true</code> if credentials are persisted
    */

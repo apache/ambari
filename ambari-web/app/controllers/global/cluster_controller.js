@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var credentialUtils = require('utils/credentials');
 
 App.ClusterController = Em.Controller.extend({
   name: 'clusterController',
@@ -392,12 +393,19 @@ App.ClusterController = Em.Controller.extend({
   /**
    * puts kerberos admin credentials in the live cluster session
    * and resend ajax request
-   * @param adminPrincipalValue
-   * @param adminPasswordValue
-   * @param ajaxOpt
+   * @param {credentialResourceObject} credentialResource
+   * @param {object} ajaxOpt
    * @returns {$.ajax}
    */
-  createKerberosAdminSession: function (adminPrincipalValue, adminPasswordValue, ajaxOpt) {
+  createKerberosAdminSession: function (credentialResource, ajaxOpt) {
+    if (App.get('supports.storeKDCCredentials')) {
+      return credentialUtils.createOrUpdateCredentials(App.get('clusterName'), credentialUtils.ALIAS.KDC_CREDENTIALS, credentialResource).then(function() {
+        if (ajaxOpt) {
+          $.ajax(ajaxOpt);
+        }
+      });
+    }
+
     return App.ajax.send({
       name: 'common.cluster.update',
       sender: this,
@@ -405,7 +413,7 @@ App.ClusterController = Em.Controller.extend({
         clusterName: App.get('clusterName'),
         data: [{
           session_attributes: {
-            kerberos_admin: {principal: adminPrincipalValue, password: adminPasswordValue}
+            kerberos_admin: {principal: credentialResource.principal, password: credentialResource.key}
           }
         }]
       }
