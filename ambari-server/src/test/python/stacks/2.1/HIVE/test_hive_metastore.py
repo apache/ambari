@@ -23,6 +23,7 @@ import os
 
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.script import Script
 
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -534,32 +535,60 @@ class TestHiveMetastore(RMFTestCase):
       ('conf-select', 'create-conf-dir', '--package', 'hive', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['call'].call_args_list[0][0][0])
 
-
-  @patch.object(Script, "is_hdp_stack_greater_or_equal")
-  def test_pre_upgrade_restart_ims(self, is_hdp_stack_greater_or_equal_mock):
+  def test_pre_upgrade_restart_ims(self):
     """
     Tests the state of the init_metastore_schema property on update
     """
-    is_hdp_stack_greater_or_equal_mock.side_effect = [False, False, False, False, False, False, True, False, False, False, False, False, False, False]
     config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
 
-    stack_version = '2.3.0.0-0'
-    version = '2.3.0.0-1234'
-
-    json_content['commandParams']['version'] = version
-    json_content['hostLevelParams']['stack_version'] = stack_version
-
-    mocks_dict = {}
+    # first try it with a normal, non-upgrade
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
-                       classname = "HiveMetastore",
-                       command = "pre_upgrade_restart",
-                       config_dict = json_content,
-                       hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None)],
-                       mocks_dict = mocks_dict)
+      classname = "HiveMetastore",
+      command = "pre_upgrade_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None)])
+
+    self.assertEquals(True, RMFTestCase.env.config["params"]["init_metastore_schema"])
+
+    self.config_dict = None
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['commandParams']['version'] = '2.3.0.0-1234'
+    json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
+    json_content['hostLevelParams']['stack_version'] = '2.3.0.0-0'
+
+    # now try it in an upgrade
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+      classname = "HiveMetastore",
+      command = "pre_upgrade_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None)])
+
+    self.assertEquals(False, RMFTestCase.env.config["params"]["init_metastore_schema"])
+
+    self.config_dict = None
+    config_file = self.get_src_folder() + "/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    json_content['commandParams']['upgrade_direction'] = Direction.DOWNGRADE
+
+    # now try it in a downgrade
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+      classname = "HiveMetastore",
+      command = "pre_upgrade_restart",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None)])
 
     self.assertEquals(False, RMFTestCase.env.config["params"]["init_metastore_schema"])
 
@@ -587,8 +616,10 @@ class TestHiveMetastore(RMFTestCase):
     # must be HDP 2.3+
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
     json_content['hostLevelParams']['stack_version'] = "2.3"
     json_content['hostLevelParams']['current_version'] = "2.2.7.0-1234"
+
 
     # trigger the code to think it needs to copy the JAR
     json_content['configurations']['hive-site']['javax.jdo.option.ConnectionDriverName'] = "com.mysql.jdbc.Driver"
@@ -672,6 +703,7 @@ class TestHiveMetastore(RMFTestCase):
     # must be HDP 2.3+
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    json_content['commandParams']['upgrade_direction'] = Direction.UPGRADE
     json_content['hostLevelParams']['stack_version'] = "2.3"
 
     # trigger the code to think it needs to copy the JAR

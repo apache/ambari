@@ -318,8 +318,9 @@ mysql_host = config['clusterHostInfo']['hive_mysql_host']
 mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
 
-######## Metastore Schema
-init_metastore_schema = True
+#### Metastore
+# initialize the schema only if not in an upgrade/downgrade
+init_metastore_schema = upgrade_direction is None
 
 ########## HCAT
 hcat_dbroot = hcat_lib
