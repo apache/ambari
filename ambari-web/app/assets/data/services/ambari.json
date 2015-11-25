@@ -25,7 +25,6 @@
           "agent.task.timeout" : "600",
           "agent.threadpool.size.max" : "25",
           "ambari-server.user" : "root",
-          "api.authenticate" : "true",
           "bootstrap.dir" : "/var/run/ambari-server/bootstrap",
           "bootstrap.script" : "/usr/lib/python2.6/site-packages/ambari_server/bootstrap.py",
           "bootstrap.setup_agent.script" : "/usr/lib/python2.6/site-packages/ambari_server/setupAgent.py",

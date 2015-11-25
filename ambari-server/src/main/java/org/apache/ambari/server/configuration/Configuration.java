@@ -99,7 +99,7 @@ public class Configuration {
   public static final String STACK_ADVISOR_SCRIPT_DEFAULT = "/var/lib/ambari-server/resources/scripts/stack_advisor.py";
   public static final String AMBARI_PYTHON_WRAP_KEY = "ambari.python.wrap";
   public static final String AMBARI_PYTHON_WRAP_DEFAULT = "ambari-python-wrap";
-  public static final String API_AUTHENTICATE = "api.authenticate";
+  public static final String API_AUTHENTICATED_USER = "api.authenticated.user";
   public static final String API_USE_SSL = "api.ssl";
   public static final String API_CSRF_PREVENTION_KEY = "api.csrfPrevention.enabled";
   public static final String API_GZIP_COMPRESSION_ENABLED_KEY = "api.gzip.compression.enabled";
@@ -1126,11 +1126,15 @@ public class Configuration {
   }
 
   /**
-   * Check to see if the API should be authenticated or not
-   * @return false if not, true if the authentication is enabled.
+   * Gets the username of the default user assumed to be executing API calls.
+   * <p/>
+   * If this value is <code>null</code> or empty then no default user is set and one must be
+   * specified when issuing API calls.
+   *
+   * @return the username of a user.
    */
-  public boolean getApiAuthentication() {
-    return ("true".equals(properties.getProperty(API_AUTHENTICATE, "false")));
+  public String getDefaultApiAuthenticatedUser() {
+    return properties.getProperty(API_AUTHENTICATED_USER);
   }
 
   /**

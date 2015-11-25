@@ -335,14 +335,11 @@ public class AmbariServer {
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
 
+      root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
+
       // session-per-request strategy for agents
       agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
       agentroot.addFilter(SecurityFilter.class, "/*", DISPATCHER_TYPES);
-
-      if (configs.getApiAuthentication()) {
-        root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
-        // root.addFilter(new FilterHolder(springSecurityFilter), "/proxy/*", DISPATCHER_TYPES);
-      }
 
       Map<String, String> configsMap = configs.getConfigsMap();
 

@@ -755,8 +755,7 @@ public class ViewRegistry {
 
     ResourceEntity resourceEntity = instanceEntity == null ? null : instanceEntity.getResource();
 
-    return !configuration.getApiAuthentication() ||
-        (resourceEntity == null && readOnly) || checkAuthorization(resourceEntity);
+    return (resourceEntity == null && readOnly) || checkAuthorization(resourceEntity);
   }
 
   /**

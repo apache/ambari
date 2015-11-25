@@ -893,8 +893,7 @@ public class ClustersImpl implements Clusters {
 
     Cluster cluster = findCluster(clusterName);
 
-    return (cluster == null && readOnly) || !configuration.getApiAuthentication()
-      || checkPermission(cluster, readOnly);
+    return (cluster == null && readOnly) || checkPermission(cluster, readOnly);
   }
 
   @Override
