@@ -50,6 +50,7 @@ App.hostsMapper = App.QuickDataMapper.create({
     mem_total: 'metrics.memory.mem_total',
     mem_free: 'metrics.memory.mem_free',
     last_heart_beat_time: "Hosts.last_heartbeat_time",
+    raw_last_heart_beat_time: "Hosts.last_heartbeat_time",
     os_arch: 'Hosts.os_arch',
     os_type: 'Hosts.os_type',
     ip: 'Hosts.ip',
@@ -175,6 +176,7 @@ App.hostsMapper = App.QuickDataMapper.create({
         }
         var parsedItem = this.parseIt(item, this.config);
         parsedItem.is_requested = true;
+        parsedItem.last_heart_beat_time = App.dateTimeWithTimeZone(parsedItem.last_heart_beat_time);
         parsedItem.selected = selectedHosts.contains(parsedItem.host_name);
         parsedItem.not_started_components = notStartedComponents;
         parsedItem.components_in_passive_state = componentsInPassiveState;
