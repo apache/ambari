@@ -138,9 +138,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var self = this;
     this.get('wizardController').deleteKerberosService().always(function () {
       self.configureKerberos();
-      if (App.get('supports.storeKDCCredentials') && !self.get('wizardController.skipClientInstall')) {
-        self.createKDCCredentials(self.get('stepConfigs.0.configs'));
-      }
     });
   },
 
@@ -248,6 +245,10 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
    */
   createKerberosAdminSession: function (configs) {
     configs = configs || this.get('stepConfigs')[0].get('configs');
+    if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
+      return this.createKDCCredentials(configs);
+    }
+
     var adminPrincipalValue = configs.findProperty('name', 'admin_principal').value;
     var adminPasswordValue = configs.findProperty('name', 'admin_password').value;
     return App.ajax.send({

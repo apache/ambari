@@ -18,6 +18,7 @@
 
 
 var App = require('app');
+var credentialUtils = require('utils/credentials');
 require('controllers/global/cluster_controller');
 require('models/host_component');
 require('utils/http_client');
@@ -195,21 +196,33 @@ describe('App.clusterController', function () {
   });
 
   describe("#createKerberosAdminSession()", function() {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(App.ajax, 'send', function() {
         return {success: Em.K}
       });
+      sinon.stub(credentialUtils, 'createOrUpdateCredentials', function() {
+        return $.Deferred().resolve().promise();
+      });
     });
-    after(function () {
+    afterEach(function () {
       App.ajax.send.restore();
+      credentialUtils.createOrUpdateCredentials.restore();
     });
-    it("make ajax call", function() {
-      controller.createKerberosAdminSession("admin", "pass", {});
+    it("KDC Store supports disabled, credentials updated via kdc session call", function() {
+      sinon.stub(App, 'get')
+        .withArgs('supports.storeKDCCredentials').returns(false)
+        .withArgs('clusterName').returns('test');
+      controller.createKerberosAdminSession({
+        principal: 'admin',
+        key: 'pass',
+        type: 'persistent'
+      }, {});
+      App.get.restore();
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'common.cluster.update',
         sender: controller,
         data: {
-          clusterName: App.get('clusterName'),
+          clusterName: 'test',
           data: [{
             session_attributes: {
               kerberos_admin: {principal: "admin", password: "pass"}
@@ -217,6 +230,25 @@ describe('App.clusterController', function () {
           }]
         }
       });
+    });
+    it("KDC Store supports enabled, credentials updated via credentials storage call", function() {
+      sinon.stub(App, 'get')
+        .withArgs('supports.storeKDCCredentials').returns(true)
+        .withArgs('clusterName').returns('test');
+      controller.createKerberosAdminSession({
+        principal: 'admin',
+        key: 'pass',
+        type: 'persistent'
+      }, {});
+      App.get.restore();
+      expect(App.ajax.send.called).to.be.eql(false);
+      expect(credentialUtils.createOrUpdateCredentials.getCall(0).args).to.eql([
+        'test', 'kdc.admin.credential', {
+          principal: 'admin',
+          key: 'pass',
+          type: 'persistent'
+        }
+      ]);
     });
   });
 

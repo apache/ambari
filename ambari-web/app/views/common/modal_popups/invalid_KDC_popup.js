@@ -93,11 +93,8 @@ App.showInvalidKDCPopup = function (ajaxOpt, message) {
 
     onPrimary: function () {
       this.hide();
-      if (App.get('supports.storeKDCCredentials')) {
         var resource = credentialsUtils.createCredentialResource(this.get('principal'), this.get('password'), this.get('storageType'));
-        credentialsUtils.createOrUpdateCredentials(App.get('clusterName'), credentialsUtils.ALIAS.KDC_CREDENTIALS, resource);
-      }
-      App.get('router.clusterController').createKerberosAdminSession(this.get('principal'), this.get('password'), ajaxOpt);
+        App.get('router.clusterController').createKerberosAdminSession(resource, ajaxOpt);
     }
   });
 };
