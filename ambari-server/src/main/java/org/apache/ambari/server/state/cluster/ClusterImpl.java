@@ -37,8 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -101,6 +99,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -111,9 +110,8 @@ import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -124,7 +122,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -1669,8 +1669,7 @@ public class ClusterImpl implements Cluster {
 
       if (state == RepositoryVersionState.CURRENT) {
         for (HostEntity hostEntity : clusterEntity.getHostEntities()) {
-          if (hostHasReportables(existingClusterVersion.getRepositoryVersion(),
-              hostEntity)) {
+          if (hostHasReportables(existingClusterVersion.getRepositoryVersion(), hostEntity)) {
             continue;
           }
 
@@ -1827,8 +1826,9 @@ public class ClusterImpl implements Cluster {
         return null;
       }
       for(Map.Entry<String, Config> entry: allConfigs.get(configType).entrySet()) {
-        if(entry.getValue().getVersion().equals(configVersion))
+        if(entry.getValue().getVersion().equals(configVersion)) {
           return entry.getValue();
+        }
       }
       return null;
     } finally {
@@ -2989,7 +2989,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
     try {
-      StackId stackId = this.getCurrentStackVersion();
+      StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
     } catch (AmbariException e) {

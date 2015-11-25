@@ -278,18 +278,27 @@ public class HostEntity implements Comparable<HostEntity> {
     if (this == o) {
       return true;
     }
+
     if (o == null || getClass() != o.getClass()) {
       return false;
     }
 
     HostEntity that = (HostEntity) o;
 
-    return hostId == that.hostId && hostName.equals(that.hostName);
+    return getHostId() == that.getHostId() && hostName.equals(that.hostName);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
-    return (null == hostId ? 0 : hostId.hashCode());
+    int result = null != getHostId() ? getHostId().hashCode() : 0;
+    if (null != hostName) {
+      result = 31 * result + hostName.hashCode();
+    }
+
+    return result;
   }
 
   @Override
