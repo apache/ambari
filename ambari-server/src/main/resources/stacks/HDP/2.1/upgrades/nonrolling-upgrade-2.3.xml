@@ -791,36 +791,69 @@
 
     <service name="STORM">
       <component name="NIMBUS">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
 
-      <component name="STORM_REST_API">
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DRPC_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+          </task>
+        </post-upgrade>
       </component>
     </service>
-    
+
     <service name="FLUME">
       <component name="FLUME_HANDLER">
         <upgrade>
