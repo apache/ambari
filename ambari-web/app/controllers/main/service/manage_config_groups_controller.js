@@ -693,7 +693,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           parentConfigGroup: defaultConfigGroup,
           service: Em.Object.create({id: self.get('serviceName')}),
           hosts: [],
-          configSiteTags: [],
+          desiredConfigs: [],
           properties: []
         });
         if (duplicated) {
