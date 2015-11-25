@@ -270,7 +270,7 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method updateConfigurationGroup
    */
   updateConfigurationGroup: function (configGroup, successCallback, errorCallback) {
-    var configSiteTags = configGroup.get('configSiteTags') || [];
+    var desiredConfigs = configGroup.get('desiredConfigs') || [];
     var putConfigGroup = {
       ConfigGroup: {
         group_name: configGroup.get('name'),
@@ -281,10 +281,10 @@ App.ConfigOverridable = Em.Mixin.create({
             host_name: h
           };
         }),
-        desired_configs: configSiteTags.map(function (cst) {
+        desired_configs: desiredConfigs.map(function (cst) {
           return {
-            type: cst.get('site'),
-            tag: cst.get('tag')
+            type: Em.get(cst, 'site') || Em.get(cst, 'type') ,
+            tag: Em.get(cst, 'tag')
           };
         })
       }

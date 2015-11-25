@@ -690,7 +690,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],
-          configSiteTags: [],
+          desiredConfigs: [],
           properties: []
         });
         App.store.commit();
