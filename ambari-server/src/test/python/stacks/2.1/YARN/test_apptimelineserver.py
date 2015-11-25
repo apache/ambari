@@ -55,15 +55,18 @@ class TestAppTimelineServer(RMFTestCase):
 
     self.assert_configure_default()
 
-    self.assertResourceCalled('File', '/var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
-                              only_if='ls /var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
-                              action=['delete'],
-                              ignore_failures=True)
-
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
         action = ['delete'],
         not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid`'",
     )
+
+    self.assertResourceCalled('File', '/var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
+        only_if='ls /var/log/hadoop-yarn/timeline/leveldb-timeline-store.ldb/LOCK',
+        action=['delete'],
+        not_if="ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid`'",
+        ignore_failures=True
+    )
+
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start timelineserver',
         not_if = "ambari-sudo.sh su yarn -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid`'",
         user = 'yarn',
