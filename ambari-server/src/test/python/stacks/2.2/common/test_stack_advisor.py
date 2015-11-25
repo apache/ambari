@@ -2254,6 +2254,137 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHbaseConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+  def test_recommendKnoxConfigurations(self):
+    servicesList = ["KNOX"]
+    configurations = {}
+    components = []
+
+    services_without_auth_provider_ranger_plugin_enabled = {
+      "services" : [
+      ],
+      "configurations": {
+        "ranger-env": {
+          "properties": {
+            "ranger-knox-plugin-enabled" : "Yes"
+          }
+        },
+        "ranger-knox-plugin-properties": {
+          "properties": {
+
+          }
+        },
+        "topology": {
+          "properties": {
+            "content" : "<topology> <gateway>  </gateway> </topology>"
+          }
+        }
+      }
+    }
+    services_without_auth_provider_ranger_plugin_disabled = {
+      "services" : [
+      ],
+      "configurations": {
+        "ranger-env": {
+          "properties": {
+            "ranger-knox-plugin-enabled" : "No"
+          }
+        },
+        "ranger-knox-plugin-properties": {
+          "properties": {
+
+          }
+        },
+        "topology": {
+          "properties": {
+            "content" : "<topology> <gateway>  </gateway> </topology>"
+          }
+        }
+      }
+    }
+    services_with_auth_provider_ranger_plugin_disabled = {
+      "services" : [
+      ],
+      "configurations": {
+        "ranger-env": {
+          "properties": {
+            "ranger-knox-plugin-enabled" : "No"
+          }
+        },
+        "ranger-knox-plugin-properties": {
+          "properties": {
+
+          }
+        },
+        "topology": {
+          "properties": {
+            "content" : "<topology> <gateway> <provider> <role>aaa</role><name>r</name><enabled>t</enabled></provider>"
+                        " <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled> </provider>"
+                        "<provider><role>bbb</role><name>y</name><enabled>u</enabled></provider> </gateway> </topology>"
+          }
+        }
+      }
+    }
+    services_with_auth_provider_ranger_plugin_enabled = {
+      "services" : [
+      ],
+      "configurations": {
+        "ranger-env": {
+          "properties": {
+            "ranger-knox-plugin-enabled" : "Yes"
+          }
+        },
+        "ranger-knox-plugin-properties": {
+          "properties": {
+
+          }
+        },
+        "topology": {
+          "properties": {
+            "content" : "<topology> <gateway> <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled></provider> </gateway> </topology>"
+          }
+        }
+      }
+    }
+    expected1 = {'ranger-knox-plugin-properties':
+                  {'properties':
+                     {'ranger-knox-plugin-enabled': 'Yes'}},
+                'topology':
+                  {'properties':
+                     {'content': '<topology> <gateway>  <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider></gateway> </topology>'}}}
+
+    expected2 = {'ranger-knox-plugin-properties':
+                   {'properties':
+                      {'ranger-knox-plugin-enabled': 'No'}},
+                 'topology':
+                   {'properties':
+                      {'content': '<topology> <gateway>  <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled></provider></gateway> </topology>'}}}
+    expected3 = {'ranger-knox-plugin-properties':
+                   {'properties':
+                      {'ranger-knox-plugin-enabled': 'No'}},
+                 'topology':
+                   {'properties':
+                      {'content': '<topology> <gateway> <provider> <role>aaa</role><name>r</name><enabled>t</enabled></provider> <provider><role>authorization</role><name>AclsAuthz</name><enabled>true</enabled> </provider><provider><role>bbb</role><name>y</name><enabled>u</enabled></provider> </gateway> </topology>'}}}
+
+    expected4 = {'ranger-knox-plugin-properties':
+                   {'properties':
+                      {'ranger-knox-plugin-enabled': 'Yes'}},
+                 'topology':
+                   {'properties':
+                      {'content': '<topology> <gateway> <provider><role>authorization</role><name>XASecurePDPKnox</name><enabled>true</enabled></provider> </gateway> </topology>'}}}
+
+    self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_without_auth_provider_ranger_plugin_enabled, None)
+    self.assertEquals(configurations, expected1)
+
+    self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_without_auth_provider_ranger_plugin_disabled, None)
+    self.assertEquals(configurations, expected2)
+
+    self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_with_auth_provider_ranger_plugin_disabled, None)
+    self.assertEquals(configurations, expected3)
+
+    self.stackAdvisor.recommendKnoxConfigurations(configurations, None, services_with_auth_provider_ranger_plugin_enabled, None)
+    self.assertEquals(configurations, expected4)
+
+
   def test_recommendHbaseSiteConfigurations(self):
     servicesList = ["HBASE"]
     configurations = {}

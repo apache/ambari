@@ -24,6 +24,7 @@ import os
 import fnmatch
 import socket
 import re
+import xml.etree.ElementTree as ET
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
@@ -835,22 +836,58 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         rangerPluginEnabled = configurations['ranger-knox-plugin-properties']['properties']['ranger-knox-plugin-enabled']
       elif 'ranger-knox-plugin-properties' in services['configurations'] and 'ranger-knox-plugin-enabled' in services['configurations']['ranger-knox-plugin-properties']['properties']:
         rangerPluginEnabled = services['configurations']['ranger-knox-plugin-properties']['properties']['ranger-knox-plugin-enabled']
-      topologyContent = services["configurations"]["topology"]["properties"]["content"]
-      authPattern = "<provider>\s*<role>\s*authorization\s*</role>[\s\S]*?</provider>"
-      authXml = re.search(authPattern, topologyContent)
 
-      if authXml and authXml.group(0):
-        authNamePattern = "<name>\s*(.*?)\s*</name>"
-        authName = re.search(authNamePattern, authXml.group(0))
-        newAuthName=''
-        if authName.group(1) == 'AclsAuthz' and rangerPluginEnabled and rangerPluginEnabled.lower() == "Yes".lower():
-          newAuthName = authName.group(0).replace('AclsAuthz', 'XASecurePDPKnox')
-        elif ((not rangerPluginEnabled) or rangerPluginEnabled.lower() != "Yes".lower()) and authName.group(1) == 'XASecurePDPKnox':
-          newAuthName = authName.group(0).replace('XASecurePDPKnox', 'AclsAuthz')
-        if newAuthName:
-          newAuthxml = authXml.group(0).replace(authName.group(0), newAuthName)
-          newTopologyXmlContent = topologyContent.replace(authXml.group(0), newAuthxml)
-          putKnoxTopologyContent('content', newTopologyXmlContent)
+      # check if authorization provider already added
+      topologyContent = services["configurations"]["topology"]["properties"]["content"]
+      authorizationProviderExists = False
+      authNameChanged = False
+      root = ET.fromstring(topologyContent)
+      if root is not None:
+        gateway = root.find("gateway")
+        if gateway is not None:
+          for provider in gateway.findall('provider'):
+            role = provider.find('role')
+            if role is not None and role.text and role.text.lower() == "authorization":
+              authorizationProviderExists = True
+
+            name = provider.find('name')
+            if name is not None and name.text == "AclsAuthz" and rangerPluginEnabled \
+               and rangerPluginEnabled.lower() == "Yes".lower():
+              newAuthName = "XASecurePDPKnox"
+              authNameChanged = True
+            elif name is not None and (((not rangerPluginEnabled) or rangerPluginEnabled.lower() != "Yes".lower()) \
+               and name.text == 'XASecurePDPKnox'):
+              newAuthName = "AclsAuthz"
+              authNameChanged = True
+
+            if authNameChanged:
+              name.text = newAuthName
+              putKnoxTopologyContent('content', ET.tostring(root))
+
+            if authorizationProviderExists:
+              break
+
+      if not authorizationProviderExists:
+        if root is not None:
+          gateway = root.find("gateway")
+          if gateway is not None:
+            provider = ET.SubElement(gateway, 'provider')
+
+            role = ET.SubElement(provider, 'role')
+            role.text = "authorization"
+
+            name = ET.SubElement(provider, 'name')
+            if rangerPluginEnabled and rangerPluginEnabled.lower() == "Yes".lower():
+              name.text = "XASecurePDPKnox"
+            else:
+              name.text = "AclsAuthz"
+
+            enabled = ET.SubElement(provider, 'enabled')
+            enabled.text = "true"
+
+            #TODO add pretty format for newly added provider
+            putKnoxTopologyContent('content', ET.tostring(root))
+
 
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):

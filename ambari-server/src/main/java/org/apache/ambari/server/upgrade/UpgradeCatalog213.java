@@ -18,21 +18,11 @@
 
 package org.apache.ambari.server.upgrade;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -60,6 +50,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -70,12 +61,33 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.regex.Matcher;
 
 /**
  * Upgrade catalog for version 2.1.3.
@@ -85,6 +97,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String STORM_SITE = "storm-site";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
+  private static final String TOPOLOGY_CONFIG = "topology";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_ENV_CONFIG = "kafka-env";
   private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS = "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
@@ -135,6 +148,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String SECURITY_DESCRIPTOR_REF_COLUMN = "security_descriptor_reference";
 
   private static final String STAGE_TABLE = "stage";
+
+  private static final String KNOX_SERVICE = "KNOX";
 
   /**
    * Logger.
@@ -299,6 +314,104 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateZookeeperLog4j();
     updateHiveConfig();
     updateAccumuloConfigs();
+    updateKnoxTopology();
+  }
+
+  protected void updateKnoxTopology() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Service knoxService = cluster.getService(KNOX_SERVICE);
+      if (knoxService != null) {
+        Config topology = cluster.getDesiredConfigByType(TOPOLOGY_CONFIG);
+        if (topology != null) {
+          String content = topology.getProperties().get(CONTENT_PROPERTY);
+          if (content != null) {
+            Document topologyXml = convertStringToDocument(content);
+            if (topologyXml != null) {
+              Element root = topologyXml.getDocumentElement();
+              if (root != null)  {
+                NodeList providerNodes = root.getElementsByTagName("provider");
+                boolean authorizationProviderExists = false;
+                try {
+                  for (int i = 0; i < providerNodes.getLength(); i++) {
+                    Node providerNode = providerNodes.item(i);
+                    NodeList childNodes = providerNode.getChildNodes();
+                    for (int k = 0; k < childNodes.getLength(); k++) {
+                      Node child = childNodes.item(k);
+                      child.normalize();
+                      String childTextContent = child.getTextContent();
+                      if (childTextContent != null && childTextContent.toLowerCase().equals("authorization")) {
+                        authorizationProviderExists = true;
+                        break;
+                      }
+                    }
+                    if (authorizationProviderExists) {
+                      break;
+                    }
+                  }
+                } catch(Exception e) {
+                  e.printStackTrace();
+                  LOG.error("Error occurred during check 'authorization' provider already exists in topology." + e);
+                  return;
+                }
+                if (!authorizationProviderExists) {
+                  NodeList nodeList = root.getElementsByTagName("gateway");
+                  if (nodeList != null && nodeList.getLength() > 0) {
+                    boolean rangerPluginEnabled = isRangerPluginEnabled(cluster);
+
+                    Node gatewayNode = nodeList.item(0);
+                    Element newProvider = topologyXml.createElement("provider");
+
+                    Element role = topologyXml.createElement("role");
+                    role.appendChild(topologyXml.createTextNode("authorization"));
+                    newProvider.appendChild(role);
+
+                    Element name = topologyXml.createElement("name");
+                    if (rangerPluginEnabled) {
+                      name.appendChild(topologyXml.createTextNode("XASecurePDPKnox"));
+                    } else {
+                      name.appendChild(topologyXml.createTextNode("AclsAuthz"));
+                    }
+                    newProvider.appendChild(name);
+
+                    Element enabled = topologyXml.createElement("enabled");
+                    enabled.appendChild(topologyXml.createTextNode("true"));
+                    newProvider.appendChild(enabled);
+
+
+                    gatewayNode.appendChild(newProvider);
+
+                    DOMSource topologyDomSource = new DOMSource(root);
+                    StringWriter writer = new StringWriter();
+                    try {
+                      Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                      transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "5");
+                      transformer.transform(topologyDomSource, new StreamResult(writer));
+                    } catch (TransformerConfigurationException e) {
+                      e.printStackTrace();
+                      LOG.error("Unable to create transformer instance, to convert Document(XML) to String. " + e);
+                      return;
+                    } catch (TransformerException e) {
+                      e.printStackTrace();
+                      LOG.error("Unable to transform Document(XML) to StringWriter. " + e);
+                      return;
+                    }
+
+                    content = writer.toString();
+                    Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+                    updateConfigurationPropertiesForCluster(cluster, TOPOLOGY_CONFIG, updates, true, false);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
