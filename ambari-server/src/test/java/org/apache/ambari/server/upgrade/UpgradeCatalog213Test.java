@@ -1271,7 +1271,6 @@ public class UpgradeCatalog213Test {
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final Service mockKnoxService = easyMockSupport.createNiceMock(Service.class);
     final Map<String, String> propertiesTopologyWithoutAuthorizationProvider = new HashMap<String, String>() {{
       put("content", "<topology> <gateway>  </gateway> </topology>");
     }};
@@ -1300,7 +1299,6 @@ public class UpgradeCatalog213Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("cl1", mockClusterExpected);
     }}).atLeastOnce();
-    expect(mockClusterExpected.getService("KNOX")).andReturn(mockKnoxService).once();
     expect(mockClusterExpected.getDesiredConfigByType("topology")).andReturn(mockTopologyConf).atLeastOnce();
     expect(mockTopologyConf.getProperties()).andReturn(propertiesTopologyWithoutAuthorizationProvider).once();
 
@@ -1327,7 +1325,6 @@ public class UpgradeCatalog213Test {
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final Service mockKnoxService = easyMockSupport.createNiceMock(Service.class);
     final Map<String, String> propertiesTopologyWitAuthorizationProvider = new HashMap<String, String>() {{
       put("content", "<topology> <gateway>  <provider>" +
               "<role>authorization</role>" +
@@ -1354,7 +1351,6 @@ public class UpgradeCatalog213Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("cl1", mockClusterExpected);
     }}).atLeastOnce();
-    expect(mockClusterExpected.getService("KNOX")).andReturn(mockKnoxService).once();
     expect(mockClusterExpected.getDesiredConfigByType("topology")).andReturn(mockTopologyConf).atLeastOnce();
     expect(mockTopologyConf.getProperties()).andReturn(propertiesTopologyWitAuthorizationProvider).once();
 
@@ -1380,7 +1376,6 @@ public class UpgradeCatalog213Test {
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
     final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
     final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-    final Service mockKnoxService = easyMockSupport.createNiceMock(Service.class);
     final Map<String, String> propertiesTopologyWithoutAuthorizationProvider = new HashMap<String, String>() {{
       put("content", "<topology> <gateway>  </gateway> </topology>");
     }};
@@ -1413,7 +1408,6 @@ public class UpgradeCatalog213Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("cl1", mockClusterExpected);
     }}).atLeastOnce();
-    expect(mockClusterExpected.getService("KNOX")).andReturn(mockKnoxService).once();
     expect(mockClusterExpected.getDesiredConfigByType("topology")).andReturn(mockTopologyConf).atLeastOnce();
     expect(mockClusterExpected.getDesiredConfigByType("ranger-knox-plugin-properties")).andReturn(mockRangerKnoxPluginConf).atLeastOnce();
     expect(mockTopologyConf.getProperties()).andReturn(propertiesTopologyWithoutAuthorizationProvider).once();
