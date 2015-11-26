@@ -39,6 +39,25 @@ def setup_ranger_hive(upgrade_type = None):
     else:
       Logger.info("Hive: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
+    if params.xml_configurations_supported and params.enable_ranger_hive and params.xa_audit_hdfs_is_enabled:
+      params.HdfsResource("/ranger/audit",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hdfs_user,
+                         group=params.hdfs_user,
+                         mode=0755,
+                         recursive_chmod=True
+      )
+      params.HdfsResource("/ranger/audit/hiveServer2",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hive_user,
+                         group=params.hive_user,
+                         mode=0700,
+                         recursive_chmod=True
+      )
+      params.HdfsResource(None, action="execute")
+
     setup_ranger_plugin('hive-server2', 'hive', 
                         params.ranger_downloaded_custom_connector, params.ranger_driver_curl_source,
                         params.ranger_driver_curl_target, params.java64_home,

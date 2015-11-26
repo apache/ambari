@@ -39,6 +39,33 @@ def setup_ranger_hbase(upgrade_type=None):
     else:
       Logger.info("HBase: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
+    if params.xml_configurations_supported and params.enable_ranger_hbase and params.xa_audit_hdfs_is_enabled:
+      params.HdfsResource("/ranger/audit",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hdfs_user,
+                         group=params.hdfs_user,
+                         mode=0755,
+                         recursive_chmod=True
+      )
+      params.HdfsResource("/ranger/audit/hbaseMaster",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hbase_user,
+                         group=params.hbase_user,
+                         mode=0700,
+                         recursive_chmod=True
+      )
+      params.HdfsResource("/ranger/audit/hbaseRegional",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hbase_user,
+                         group=params.hbase_user,
+                         mode=0700,
+                         recursive_chmod=True
+      )
+      params.HdfsResource(None, action="execute")
+
     setup_ranger_plugin('hbase-client', 'hbase', 
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
