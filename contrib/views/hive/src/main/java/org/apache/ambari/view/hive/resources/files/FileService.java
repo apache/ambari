@@ -75,9 +75,7 @@ public class FileService extends BaseService {
   @Path("{filePath:.*}")
   @Produces(MediaType.APPLICATION_JSON)
   public Response getFilePage(@PathParam("filePath") String filePath, @QueryParam("page") Long page) throws IOException, InterruptedException {
-    if (!filePath.startsWith("/") && !filePath.startsWith(".")) {
-      filePath = "/" + filePath;  // some servers strip double slashes in URL
-    }
+
     LOG.debug("Reading file " + filePath);
     try {
       FileResource file = new FileResource();
@@ -100,6 +98,11 @@ public class FileService extends BaseService {
         String content = getJsonPathContentByUrl(filePath);
         fillFakeFileObject(filePath, file, content);
       } else  {
+
+        if (!filePath.startsWith("/") && !filePath.startsWith(".")) {
+          filePath = "/" + filePath;  // some servers strip double slashes in URL
+        }
+
         FilePaginator paginator = new FilePaginator(filePath, getSharedObjectsFactory().getHdfsApi());
 
         fillRealFileObject(filePath, page, file, paginator);

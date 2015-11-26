@@ -18,20 +18,29 @@
 
 package org.apache.ambari.view.hive.resources.files;
 
+import org.apache.ambari.view.URLStreamProvider;
 import org.apache.ambari.view.hive.ServiceTestUtils;
 import org.apache.ambari.view.hive.HDFSTest;
 import org.apache.ambari.view.hive.utils.*;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
+import org.easymock.EasyMock;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
 
 import javax.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.Map;
+
+import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
 
 public class FileServiceTest extends HDFSTest {
   private final static int PAGINATOR_PAGE_SIZE = 4;  //4 bytes
@@ -181,6 +190,50 @@ public class FileServiceTest extends HDFSTest {
     assertHDFSFileNotExists("/tmp/testDeleteFile");
   }
 
+  @Test
+  public void testFakeFile() throws IOException, InterruptedException {
+    String content = "Fake file content";
+    String encodedContent = Base64.encodeBase64String(content.getBytes());
+    String filepath = "fakefile://"+encodedContent;
+    Response response = fileService.getFilePage(filepath,0l);
+
+    ServiceTestUtils.assertHTTPResponseOK(response);
+    JSONObject obj = ((JSONObject) response.getEntity());
+    assertFileJsonResponseSanity(obj);
+
+    FileResource fileResource = (FileResource) obj.get("file");
+    Assert.assertEquals(content, fileResource.getFileContent());
+    Assert.assertEquals(0, fileResource.getPage());
+    Assert.assertFalse(fileResource.isHasNext());
+  }
+
+  @Test
+  public void testJsonFakeFile() throws IOException, InterruptedException,Exception {
+    String content = "{\"queryText\":\"Query Content\"}";
+    String url = "http://fileurl/content#queryText";
+    String filepath = "jsonpath:"+url;
+
+    URLStreamProvider urlStreamProvider = createNiceMock(URLStreamProvider.class);
+    InputStream inputStream = IOUtils.toInputStream(content);
+    reset(context);
+    expect(context.getProperties()).andReturn(properties).anyTimes();
+    expect(context.getURLStreamProvider()).andReturn(urlStreamProvider);
+    expect(urlStreamProvider.readFrom(eq(url),eq("GET"),anyString(), EasyMock.<Map<String, String>>anyObject())).andReturn(inputStream);
+
+    fileService = getService(FileService.class, handler, context);
+    replay(context,urlStreamProvider);
+
+    Response response = fileService.getFilePage(filepath,0l);
+
+    ServiceTestUtils.assertHTTPResponseOK(response);
+    JSONObject obj = ((JSONObject) response.getEntity());
+    assertFileJsonResponseSanity(obj);
+
+    FileResource fileResource = (FileResource) obj.get("file");
+    Assert.assertEquals("Query Content", fileResource.getFileContent());
+    Assert.assertEquals(0, fileResource.getPage());
+    Assert.assertFalse(fileResource.isHasNext());
+  }
 
 
   private Response createFile(String filePath, String content) throws IOException, InterruptedException {
@@ -216,4 +269,5 @@ public class FileServiceTest extends HDFSTest {
   private void assertHDFSFileNotExists(String filePath) throws IOException {
     Assert.assertFalse(hdfsCluster.getFileSystem().exists(new Path(filePath)) );
   }
+
 }
