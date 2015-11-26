@@ -1642,14 +1642,35 @@ public class ClusterTest {
     c1.transitionClusterVersion(stackId, stackVersion,
         RepositoryVersionState.INSTALLING);
 
+    // Installation on one host fails (other is continuing)
+    hv1.setState(RepositoryVersionState.INSTALL_FAILED);
+    hostVersionDAO.merge(hv1);
+    // Check that cluster version is still in a non-final state
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+      RepositoryVersionState.INSTALLING);
+
+    h2.setState(HostState.HEALTHY);
+    hv2.setState(RepositoryVersionState.INSTALLED);
+    hostVersionDAO.merge(hv2);
+    // Now both cluster versions are in a final state, so
+    // cluster version state changes to final state
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+        RepositoryVersionState.INSTALL_FAILED);
+
+    // Retry by going back to INSTALLING
+    c1.transitionClusterVersion(stackId, stackVersion,
+      RepositoryVersionState.INSTALLING);
+
     h2.setState(HostState.HEALTHY);
     hv2.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.merge(hv2);
     c1.recalculateClusterVersionState(repositoryVersionEntity);
     checkStackVersionState(stackId, stackVersion,
-        RepositoryVersionState.INSTALLING);
+      RepositoryVersionState.INSTALLING);
 
-    // Make one host fail
+    // Make the last host fail
     hv1.setState(RepositoryVersionState.INSTALL_FAILED);
     hostVersionDAO.merge(hv1);
     c1.recalculateClusterVersionState(repositoryVersionEntity);

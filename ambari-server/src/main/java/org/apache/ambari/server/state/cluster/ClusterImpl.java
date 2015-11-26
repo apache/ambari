@@ -1262,13 +1262,22 @@ public class ClusterImpl implements Cluster {
     if (stateToHosts.containsKey(RepositoryVersionState.INSTALLED) && stateToHosts.get(RepositoryVersionState.INSTALLED).size() == totalHosts) {
       return RepositoryVersionState.INSTALLED;
     }
-    if (stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) && !stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).isEmpty()) {
-      return RepositoryVersionState.INSTALL_FAILED;
+    if (stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) &&
+      !stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).isEmpty()) {
+      // Installation failed on some host(s). But
+      // cluster version state should transition to Install Failed only after
+      // all hosts have finished installation. Otherwise, UI will misbehave
+      // (hide progress dialog before installation is finished)
+      if (! stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ||
+        stateToHosts.get(RepositoryVersionState.INSTALLING).isEmpty()) {
+        return RepositoryVersionState.INSTALL_FAILED;
+      }
     }
 
     final int totalINSTALLING = stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ? stateToHosts.get(RepositoryVersionState.INSTALLING).size() : 0;
     final int totalINSTALLED = stateToHosts.containsKey(RepositoryVersionState.INSTALLED) ? stateToHosts.get(RepositoryVersionState.INSTALLED).size() : 0;
-    if (totalINSTALLING + totalINSTALLED == totalHosts) {
+    final int totalINSTALL_FAILED = stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) ? stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).size() : 0;
+    if (totalINSTALLING + totalINSTALLED + totalINSTALL_FAILED== totalHosts) {
       return RepositoryVersionState.INSTALLING;
     }
 
