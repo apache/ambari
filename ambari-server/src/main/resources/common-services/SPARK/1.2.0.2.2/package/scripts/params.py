@@ -122,6 +122,9 @@ kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executab
 spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark-defaults']['spark.history.kerberos.principal']
 
+spark_thriftserver_hosts = default("/clusterHostInfo/spark_thriftserver_hosts", [])
+has_spark_thriftserver = not len(spark_thriftserver_hosts) == 0
+
 # hive-site params
 spark_hive_properties = {
   'hive.metastore.uris': config['configurations']['hive-site']['hive.metastore.uris']
