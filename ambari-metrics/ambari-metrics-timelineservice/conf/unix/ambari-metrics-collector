@@ -195,7 +195,7 @@ function start()
     rm -f "${PIDFILE}" >/dev/null 2>&1
   fi
 
-  nohup "${JAVA}" "-Xms$AMS_COLLECTOR_HEAPSIZE" "-Xmx$AMS_COLLECTOR_HEAPSIZE" "${AMS_COLLECTOR_OPTS}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" > $OUTFILE 2>&1 &
+  nohup "${JAVA}" "-Xms$AMS_COLLECTOR_HEAPSIZE" "-Xmx$AMS_COLLECTOR_HEAPSIZE" "${AMS_COLLECTOR_OPTS}" "-cp" "/usr/lib/ambari-metrics-collector/*:${COLLECTOR_CONF_DIR}" "-Djava.net.preferIPv4Stack=true" "-Dams.log.dir=${AMS_COLLECTOR_LOG_DIR}" "-Dproc_${DAEMON_NAME}" "${CLASS}" "$@" >> $OUTFILE 2>&1 &
   PID=$!
   write_pidfile "${PIDFILE}"
   sleep 2
@@ -215,14 +215,21 @@ function start()
     exit -1
   fi
 
-  echo "Collector successfully started."
-  echo "Initializing Ambari Metrics data model"
+  echo "$(date) Collector successfully started." | tee -a $OUTFILE
+  echo "$(date) Initializing Ambari Metrics data model" | tee -a $OUTFILE
+  start=$SECONDS
   # Wait until METRIC_* tables created
   for retry in {1..5}
   do
     echo 'list' | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell | grep ^${METRIC_TABLES[0]} > /dev/null 2>&1
     if [ $? -eq 0 ]; then
-      echo "Ambari Metrics data model initialization completed."
+      echo "$(date) Ambari Metrics data model initialization completed." | tee -a $OUTFILE
+      break
+    fi
+    echo "$(date) Ambari Metrics data model initialization check $retry" | tee -a $OUTFILE
+    duration=$(( SECONDS - start ))
+    if [ $duration -gt 300 ]; then
+      echo "$(date) Ambari Metrics data model initialization timed out" | tee -a $OUTFILE
       break
     fi
     sleep 5
