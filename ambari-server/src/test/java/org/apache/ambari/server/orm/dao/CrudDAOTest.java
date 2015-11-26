@@ -69,7 +69,7 @@ public class CrudDAOTest {
     entity.setDisplayName("display name" + uniqueCounter);
     entity.setOperatingSystems("repositories");
     entity.setStack(stackEntity);
-    entity.setVersion("version");
+    entity.setVersion("version" + uniqueCounter);
     repositoryVersionDAO.create(entity);
     uniqueCounter++;
   }
