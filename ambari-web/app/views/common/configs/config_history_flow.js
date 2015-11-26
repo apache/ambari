@@ -69,15 +69,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return !Em.isNone(this.get('compareServiceVersion'));
   }.property('compareServiceVersion'),
 
-  isSaveDisabled: function () {
-    return (this.get('controller.isSubmitDisabled') || !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged')) ;
-  }.property('controller.isSubmitDisabled', 'controller.versionLoaded', 'controller.isPropertiesChanged'),
+  isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
 
   serviceName: Em.computed.alias('controller.selectedService.serviceName'),
 
-  displayedServiceVersion: function () {
-    return this.get('serviceVersions').findProperty('isDisplayed');
-  }.property('serviceVersions.@each.isDisplayed'),
+  displayedServiceVersion: Em.computed.findBy('serviceVersions', 'isDisplayed', true),
   /**
    * identify whether to show link that open whole content of notes
    */
@@ -128,16 +124,12 @@ App.ConfigHistoryFlowView = Em.View.extend({
   /**
    * enable actions to manipulate version only after it's loaded
    */
-  versionActionsDisabled: function () {
-    return !this.get('controller.versionLoaded') || this.get('dropDownList.length') === 0;
-  }.property('controller.versionLoaded', 'dropDownList.length'),
+  versionActionsDisabled: Em.computed.or('!controller.versionLoaded', '!dropDownList.length'),
 
   /**
    * enable discard to manipulate version only after it's loaded and any property is changed
    */
-  isDiscardDisabled: function () {
-    return !this.get('controller.versionLoaded') || !this.get('controller.isPropertiesChanged');
-  }.property('controller.versionLoaded','controller.isPropertiesChanged'),
+  isDiscardDisabled: Em.computed.or('!controller.versionLoaded', '!controller.isPropertiesChanged'),
   /**
    * list of service versions
    * by default 6 is number of items in short list
@@ -526,17 +518,9 @@ App.ConfigsServiceVersionBoxView = Em.View.extend({
 
   actionTypesBinding: 'parentView.actionTypes',
 
-  disabledActionAttr: function() {
-    if (this.get('serviceVersion')) {
-      return this.get('serviceVersion').get('disabledActionAttr');
-    }
-  }.property('serviceVersion.disabledActionAttr'),
+  disabledActionAttr: Em.computed.alias('serviceVersion.disabledActionAttr'),
 
-  disabledActionMessages: function() {
-    if (this.get('serviceVersion')) {
-      return this.get('serviceVersion').get('disabledActionMessages');
-    }
-  }.property('serviceVersion.disabledActionMessages'),
+  disabledActionMessages: Em.computed.alias('serviceVersion.disabledActionMessages'),
 
   templateName: require('templates/common/configs/service_version_box'),
 

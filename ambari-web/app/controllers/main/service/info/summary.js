@@ -663,9 +663,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
     var self = this;
 
     return App.ModalPopup.show({
-      header: function () {
-        return Em.I18n.t('dashboard.widgets.browser.header');
-      }.property(''),
+      header: Em.I18n.t('dashboard.widgets.browser.header'),
 
       classNames: ['sixty-percent-width-modal', 'widgets-browser-popup'],
       onPrimary: function () {
@@ -693,13 +691,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           this.get('controller').loadMineWidgets();
         },
 
-        isLoaded: function () {
-          return !!(this.get('controller.isAllSharedWidgetsLoaded') && this.get('controller.isMineWidgetsLoaded'));
-        }.property('controller.isAllSharedWidgetsLoaded', 'controller.isMineWidgetsLoaded'),
+        isLoaded: Em.computed.and('controller.isAllSharedWidgetsLoaded', 'controller.isMineWidgetsLoaded'),
 
-        isWidgetEmptyList: function () {
-          return !this.get('filteredContent.length');
-        }.property('filteredContent.length'),
+        isWidgetEmptyList: Em.computed.empty('filteredContent'),
 
         activeService: '',
         activeStatus: '',

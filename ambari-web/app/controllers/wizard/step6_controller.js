@@ -121,10 +121,7 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   /**
    * true if validation has any general (which is not related with concrete host) error message
    */
-  anyGeneralErrors: function() {
-    var messages = this.get('generalErrorMessages');
-    return this.get('errorMessage') || (messages && messages.length > 0);
-  }.property('generalErrorMessages', 'generalErrorMessages.@each', 'errorMessage'),
+  anyGeneralErrors: Em.computed.or('errorMessage','generalErrorMessages.length'),
 
   /**
    * true if validation has any general (which is not related with concrete host) warning message
@@ -136,19 +133,23 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    */
   anyGeneralIssues: Em.computed.or('anyGeneralErrors', 'anyGeneralWarnings'),
 
+  anyHostErrors: function () {
+    return this.get('hosts').some(function(h) { return h.errorMessages.length > 0; });
+  }.property('hosts.@each.errorMessages'),
+
   /**
    * true if validation has any error message (general or host specific)
    */
-  anyErrors: function() {
-    return this.get('anyGeneralErrors') || this.get('hosts').some(function(h) { return h.errorMessages.length > 0; });
-  }.property('anyGeneralErrors', 'hosts.@each.errorMessages'),
+  anyErrors: Em.computed.or('anyGeneralErrors', 'anyHostErrors'),
+
+  anyHostWarnings: function () {
+    return this.get('hosts').some(function(h) { return h.warnMessages.length > 0; });
+  }.property('hosts.@each.warnMessages'),
 
   /**
    * true if validation has any warning message (general or host specific)
    */
-  anyWarnings: function() {
-    return this.get('anyGeneralWarnings') || this.get('hosts').some(function(h) { return h.warnMessages.length > 0; });
-  }.property('anyGeneralWarnings', 'hosts.@each.warnMessages'),
+  anyWarnings: Em.computed.or('anyGeneralWarnings', 'anyHostWarnings'),
 
   openSlavesAndClientsIssues: function () {
     App.ModalPopup.show({

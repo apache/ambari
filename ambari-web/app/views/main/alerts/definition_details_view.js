@@ -191,8 +191,6 @@ App.AlertInstanceServiceHostView = Em.View.extend({
   /**
    * Define whether show separator between service and hosts labels
    */
-  showSeparator: function () {
-    return this.get('instance.serviceDisplayName') && this.get('instance.hostName');
-  }.property('instance.serviceDisplayName', 'instance.hostName')
+  showSeparator: Em.computed.and('instance.serviceDisplayName', 'instance.hostName')
 
 });

@@ -80,9 +80,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * Without this property, all serviceConfigs Objects will show up even if some was collapsed before.
    * @type {boolean}
    */
-  isCategoryBodyVisible: function () {
-    return this.get('category.isCollapsed') ? "display: none;" : "display: block;"
-  }.property('serviceConfigs.length'),
+  isCategoryBodyVisible: Em.computed.ifThenElse('category.isCollapsed', 'display: none;', 'display: block;'),
 
   /**
    * Should we show config group or not

@@ -31,9 +31,7 @@ App.MainDashboardServiceStormView = App.MainDashboardServiceView.extend({
     return Em.Object.create({componentName: 'SUPERVISOR'});
   }.property(),
 
-  freeSlotsPercentage: function() {
-    return Math.round(this.get('service.freeSlots')/this.get('service.totalSlots')*100);
-  }.property('service.freeSlots', 'service.totalSlots'),
+  freeSlotsPercentage: Em.computed.percents('service.freeSlots', 'service.totalSlots'),
 
   superVisorsLive: Em.computed.alias('service.superVisorsStarted'),
 

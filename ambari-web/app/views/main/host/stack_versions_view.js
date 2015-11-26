@@ -40,9 +40,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {string}
    */
-  filteredContentInfo: function () {
-    return this.t('hosts.host.stackVersions.table.filteredInfo').format(this.get('filteredCount'), this.get('totalCount'));
-  }.property('filteredCount', 'totalCount'),
+  filteredContentInfo: Em.computed.i18nFormat('hosts.host.stackVersions.table.filteredInfo', 'filteredCount', 'totalCount'),
 
   /**
    * @type {Ember.View}

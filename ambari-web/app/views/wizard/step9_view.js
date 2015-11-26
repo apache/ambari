@@ -126,9 +126,7 @@ App.WizardStep9View = App.TableView.extend({
    * Message for overall progress
    * @type {string}
    */
-  progressMessage: function () {
-    return Em.I18n.t('installer.step9.overallProgress').format(this.get('controller.progress'));
-  }.property('controller.progress'),
+  progressMessage: Em.computed.i18nFormat('installer.step9.overallProgress', 'controller.progress'),
 
   /**
    * Run <code>countCategoryHosts</code>, <code>filter</code> only once

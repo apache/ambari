@@ -131,11 +131,7 @@ App.AlertInstance = DS.Model.extend({
    * Formatted lastChecked and lastTriggered timestamp
    * @returns {string}
    */
-  statusChangedAndLastCheckedFormatted: function () {
-    var lastCheckedFormatted = this.get('lastCheckedFormatted');
-    var lastTriggeredFormatted = this.get('lastTriggeredFormatted');
-    return Em.I18n.t('models.alert_definition.triggered.checked').format(lastTriggeredFormatted, lastCheckedFormatted);
-  }.property('lastCheckedFormatted', 'lastTriggeredFormatted'),
+  statusChangedAndLastCheckedFormatted: Em.computed.i18nFormat('models.alert_definition.triggered.checked', 'lastTriggeredFormatted', 'lastCheckedFormatted'),
 
   /**
    * List of css-classes for alert instance status

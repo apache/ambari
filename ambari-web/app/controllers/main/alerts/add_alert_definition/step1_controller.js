@@ -40,9 +40,7 @@ App.AddAlertDefinitionStep1Controller = Em.Controller.extend({
    * "Next"-button is disabled if user doesn't select any alert definition type
    * @type {boolean}
    */
-  isSubmitDisabled: function() {
-    return this.get('alertDefinitionsTypes').everyProperty('isActive', false);
-  }.property('alertDefinitionsTypes.@each.isActive'),
+  isSubmitDisabled: Em.computed.everyBy('alertDefinitionsTypes', 'isActive', false),
 
   /**
    * Set selectedType if it exists in the wizard controller

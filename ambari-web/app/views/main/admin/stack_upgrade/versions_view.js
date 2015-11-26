@@ -115,9 +115,7 @@ App.MainAdminStackVersionsView = Em.View.extend({
   /**
    * @type {object}
    */
-  selectedCategory: function () {
-    return this.get('categories').findProperty('isSelected');
-  }.property('categories.@each.isSelected'),
+  selectedCategory: Em.computed.findBy('categories', 'isSelected', true),
 
   /**
    * @type {Em.Array}

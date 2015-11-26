@@ -36,9 +36,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
    */
-  filteredContentInfo: function () {
-    return this.t('tableView.filters.filteredConfigVersionInfo').format(this.get('filteredCount'), this.get('totalCount'));
-  }.property('filteredCount', 'totalCount'),
+  filteredContentInfo: Em.computed.i18nFormat('tableView.filters.filteredConfigVersionInfo', 'filteredCount', 'totalCount'),
 
   willInsertElement: function () {
     var

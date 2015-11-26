@@ -216,7 +216,7 @@ describe('App.WizardStep6Controller', function () {
     });
     it('should return errorMessage', function () {
       controller.set('errorMessage', "error 404");
-      expect(controller.get('anyGeneralErrors')).to.equal("error 404");
+      expect(controller.get('anyGeneralErrors')).to.be.true
     });
     it('true if generalErrorMessages is non empty array and errorMessage is undefined', function () {
       controller.set('generalErrorMessages', ["error1", "error2"]);
@@ -228,7 +228,7 @@ describe('App.WizardStep6Controller', function () {
     });
     it('undefined if generalErrorMessages is undefined and errorMessage is undefined', function () {
       controller.set('generalErrorMessages', undefined);
-      expect(controller.get('anyGeneralErrors')).to.equal(undefined);
+      expect(controller.get('anyGeneralErrors')).to.equal(false);
     });
   });
 

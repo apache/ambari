@@ -223,9 +223,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     }, this);
   },
 
-  isNextDisabled: function () {
-    return !this.get('isLoaded');
-  }.property('isLoaded')
+  isNextDisabled: Em.computed.not('isLoaded')
 
 });
 

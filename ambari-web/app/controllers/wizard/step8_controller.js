@@ -136,9 +136,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * List of installed services
    * @type {Object[]}
    */
-  installedServices: function () {
-    return this.get('content.services').filterProperty('isInstalled');
-  }.property('content.services').cacheable(),
+  installedServices: Em.computed.filterBy('content.services', 'isInstalled', true),
 
   /**
    * Current cluster name

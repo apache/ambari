@@ -78,11 +78,11 @@ App.Section = DS.Model.extend({
    */
   errorsCount: function () {
     var errors = this.get('subSections').filterProperty('isSectionVisible').mapProperty('errorsCount');
-    return errors.length ? errors.reduce(Em.sum) : 0;
+    return errors.length ? errors.reduce(Em.sum, 0) : 0;
   }.property('subSections.@each.errorsCount', 'subSections.@each.isSectionVisible'),
 
   /**
-   * @type {boolean}/
+   * @type {boolean}
    */
   isFirstRow: Em.computed.equal('rowIndex', 0),
 
@@ -123,9 +123,7 @@ App.Section = DS.Model.extend({
    * Determines if section is filtered out (all it's subsections should be hidden)
    * @type {boolean}
    */
-  isHiddenByFilter: function () {
-    return !this.get('subSections').someProperty('isSectionVisible', true);
-  }.property('subSections.@each.isHiddenByFilter')
+  isHiddenByFilter: Em.computed.everyBy('subSections', 'isSectionVisible', false)
 
 });
 

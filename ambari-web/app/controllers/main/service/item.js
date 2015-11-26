@@ -504,9 +504,7 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         var intValue = Number(this.get('inputValue'));
         return this.get('inputValue')!=='DEBUG' && (isNaN(intValue) || intValue < 1 || intValue > 100);
       }.property('inputValue'),
-      disablePrimary : function() {
-        return this.get('isInvalid');
-      }.property('isInvalid'),
+      disablePrimary: Em.computed.alias('isInvalid'),
       onPrimary: function () {
         if (this.get('isInvalid')) {
           return;
@@ -734,27 +732,15 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     self.loadHostsWithoutComponent(componentName);
 
     return App.ModalPopup.show({
-      primary: function() {
-        if (this.get('anyHostsWithoutComponent')) {
-          return Em.I18n.t('hosts.host.addComponent.popup.confirm')
-        } else {
-          return undefined;
-        }
-      }.property('anyHostsWithoutComponent'),
+      primary: Em.computed.ifThenElse('anyHostsWithoutComponent', Em.I18n.t('hosts.host.addComponent.popup.confirm'), undefined),
 
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      addComponentMsg: function () {
-        return Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName);
-      }.property(),
+      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(componentDisplayName),
 
-      selectHostMsg: function () {
-        return Em.I18n.t('services.summary.selectHostForComponent').format(this.get('componentDisplayName'))
-      }.property('componentDisplayName'),
+      selectHostMsg: Em.computed.i18nFormat('services.summary.selectHostForComponent', 'componentDisplayName'),
 
-      thereIsNoHostsMsg: function () {
-        return Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(this.get('componentDisplayName'))
-      }.property('componentDisplayName'),
+      thereIsNoHostsMsg: Em.computed.i18nFormat('services.summary.allHostsAlreadyRunComponent', 'componentDisplayName'),
 
       hostsWithoutComponent: function() {
         return self.get("hostsWithoutComponent-" + this.get('componentName'));
@@ -764,13 +750,9 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
 
       selectedHost: null,
 
-      componentName: function() {
-        return componentName;
-      }.property(),
+      componentName: componentName,
 
-      componentDisplayName: function() {
-        return componentDisplayName;
-      }.property(),
+      componentDisplayName: componentDisplayName,
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/add_host_popup')

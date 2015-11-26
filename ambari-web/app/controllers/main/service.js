@@ -76,8 +76,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (this.get('isStartStopAllClicked') == true) {
       return true;
     }
-    var startedServiceLength = this.get('content').filterProperty('healthStatus', 'green').length;
-    return (startedServiceLength === 0);
+    return !this.get('content').someProperty('healthStatus', 'green');
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
 
   /**

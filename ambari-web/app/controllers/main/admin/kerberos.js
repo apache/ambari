@@ -447,9 +447,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }
   },
 
-  isManualKerberos: function () {
-    return this.get('kdc_type') === 'none';
-  }.property('kdc_type'),
+  isManualKerberos: Em.computed.equal('kdc_type', 'none'),
 
   checkState: function (data, opt, params) {
     var res = Em.get(data, 'Services.attributes.kdc_validation_result');
@@ -465,23 +463,17 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
    * Determines if some config value is changed
    * @type {boolean}
    */
-  isPropertiesChanged: function () {
-    return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
-  }.property('stepConfigs.@each.isPropertiesChanged'),
+  isPropertiesChanged: Em.computed.someBy('stepConfigs', 'isPropertiesChanged', true),
 
   /**
    * Determines if the save button is disabled
    */
-  isSaveButtonDisabled: function () {
-    return this.get('isSubmitDisabled') || !this.get('isPropertiesChanged');
-  }.property('isSubmitDisabled', 'isPropertiesChanged'),
+  isSaveButtonDisabled: Em.computed.or('isSubmitDisabled', '!isPropertiesChanged'),
 
   /**
    * Determines if the `Disbale Kerberos` and `Regenerate Keytabs` button are disabled
    */
-  isKerberosButtonsDisabled: function () {
-    return !this.get('isSaveButtonDisabled');
-  }.property('isSaveButtonDisabled'),
+  isKerberosButtonsDisabled: Em.computed.not('isSaveButtonDisabled'),
 
 
   makeConfigsEditable: function () {

@@ -29,9 +29,7 @@ App.ControlsView = Ember.View.extend({
 		return App.isAccessible('ADMIN') && this.get('serviceConfigProperty.isEditable') && this.get('serviceConfigProperty.isRequiredByAgent') && !this.get('serviceConfigProperty.isComparison');
 	}.property('serviceConfigProperty.isEditable', 'serviceConfigProperty.isRequiredByAgent', 'serviceConfigProperty.isComparison'),
 
-	showSwitchToGroup: function() {
-		return !this.get('serviceConfigProperty.isEditable') && this.get('serviceConfigProperty.group');
-	}.property('showActions', 'serviceConfigProperty.group'),
+	showSwitchToGroup: Em.computed.and('!serviceConfigProperty.isEditable', 'serviceConfigProperty.group'),
 
 	showIsFinal: Em.computed.alias('serviceConfigProperty.supportsFinal'),
 
@@ -39,9 +37,7 @@ App.ControlsView = Ember.View.extend({
 
 	showOverride: Em.computed.and('showActions', 'serviceConfigProperty.isPropertyOverridable'),
 
-	showUndo: function() {
-		return this.get('showActions') && !this.get('serviceConfigProperty.cantBeUndone') && this.get('serviceConfigProperty.isNotDefaultValue');
-	}.property('showActions', 'serviceConfigProperty.cantBeUndone', 'serviceConfigProperty.isNotDefaultValue'),
+	showUndo: Em.computed.and('showActions', '!serviceConfigProperty.cantBeUndone', 'serviceConfigProperty.isNotDefaultValue'),
 
 	showSetRecommended: Em.computed.and('showActions', 'serviceConfigProperty.recommendedValueExists')
 

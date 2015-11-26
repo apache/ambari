@@ -23,19 +23,17 @@ App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend(
 
   headerTitle: Em.I18n.t('services.reassign.step4.header'),
 
-  noticeInProgress: function () {
-    return Em.I18n.t('services.reassign.step4.status.info').format(App.format.role(this.get('controller.content.reassign.component_name')))
-  }.property('controller.content.reassign.component_name'),
+  formattedComponentName: Em.computed.formatRole('controller.content.reassign.component_name'),
 
-  noticeFailed: function () {
-    return Em.I18n.t('services.reassign.step4.status.failed').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'));
-  }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
+  noticeInProgress: Em.computed.i18nFormat('services.reassign.step4.status.info', 'formattedComponentName'),
+
+  noticeFailed: Em.computed.i18nFormat('services.reassign.step4.status.failed', 'formattedComponentName', 'controller.content.reassignHosts.source', 'controller.content.reassignHosts.target'),
 
   noticeCompleted: function () {
     if (this.get('controller.content.hasManualSteps')) {
-      return Em.I18n.t('services.reassign.step4.status.success.withManualSteps').format(App.format.role(this.get('controller.content.reassign.component_name')));
+      return Em.I18n.t('services.reassign.step4.status.success.withManualSteps').format(this.get('formattedComponentName'));
     } else {
-      return Em.I18n.t('services.reassign.step4.status.success').format(App.format.role(this.get('controller.content.reassign.component_name')),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'));
+      return Em.I18n.t('services.reassign.step4.status.success').format(this.get('formattedComponentName'),this.get('controller.content.reassignHosts.source'),this.get('controller.content.reassignHosts.target'));
     }
   }.property('controller.content.reassign.component_name','controller.content.reassignHosts.source','controller.content.reassignHosts.target'),
 

@@ -49,17 +49,13 @@ App.HostComponent = DS.Model.extend({
    * Based on <code>workStatus</code>
    * @returns {bool}
    */
-  isRunning: function () {
-    return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
-  }.property('workStatus'),
+  isRunning: Em.computed.existsIn('workStatus', ['STARTED', 'STARTING']),
 
   /**
    * Formatted <code>componentName</code>
    * @returns {String}
    */
-  displayName: function () {
-    return App.format.role(this.get('componentName'));
-  }.property('componentName'),
+  displayName: Em.computed.formatRole('componentName'),
 
   /**
    * Determine if component is master
@@ -109,11 +105,7 @@ App.HostComponent = DS.Model.extend({
    */
   isActive: Em.computed.equal('passiveState', 'OFF'),
 
-  passiveTooltip: function () {
-    if (!this.get('isActive')) {
-      return Em.I18n.t('hosts.component.passive.mode');
-    }
-  }.property('isActive'),
+  passiveTooltip: Em.computed.ifThenElse('isActive', '', Em.I18n.t('hosts.component.passive.mode')),
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';

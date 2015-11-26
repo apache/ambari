@@ -45,9 +45,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
    * Should Back-button be disabled
    * @type {boolean}
    */
-  isBackBtnDisabled: function() {
-    return this.get('testConnectionInProgress');
-  }.property('testConnectionInProgress'),
+  isBackBtnDisabled: Em.computed.alias('testConnectionInProgress'),
 
   /**
    * Should Next-button be disabled
@@ -72,9 +70,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
   },
 
 
-  isConfigsLoaded: function () {
-    return this.get('wizardController.stackConfigsLoaded');
-  }.property('wizardController.stackConfigsLoaded'),
+  isConfigsLoaded: Em.computed.alias('wizardController.stackConfigsLoaded'),
 
   /**
    * On load function

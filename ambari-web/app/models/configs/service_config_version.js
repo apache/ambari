@@ -23,9 +23,7 @@ var dateUtil = require('utils/date/date');
 
 App.ServiceConfigVersion = DS.Model.extend({
   serviceName: DS.attr('string'),
-  displayName: function() {
-    return App.format.role(this.get('serviceName'));
-  }.property('serviceName'),
+  displayName: Em.computed.formatRole('serviceName'),
   groupName: DS.attr('string'),
   groupId: DS.attr('number'),
   version: DS.attr('number'),
@@ -40,13 +38,9 @@ App.ServiceConfigVersion = DS.Model.extend({
   isDisplayed: DS.attr('boolean'),
   stackVersion: DS.attr('string'),
   isCompatible: DS.attr('boolean'),
-  canBeMadeCurrent: function () {
-    return this.get('isCompatible') && !this.get('isCurrent');
-  }.property('isCurrent', 'isCompatible'),
+  canBeMadeCurrent: Em.computed.and('isCompatible', '!isCurrent'),
   isDefault: Em.computed.equal('groupName', 'default'),
-  currentTooltip: function () {
-    return Em.I18n.t('dashboard.configHistory.table.current.tooltip').format(this.get('displayName'), this.get('configGroupName'));
-  }.property('displayName', 'configGroupName'),
+  currentTooltip: Em.computed.i18nFormat('dashboard.configHistory.table.current.tooltip', 'displayName', 'configGroupName'),
   configGroupName: function () {
     return this.get('isDefault') ? Em.I18n.t('common.default') : this.get('groupName');
   }.property('groupName','isDefault'),
@@ -65,12 +59,8 @@ App.ServiceConfigVersion = DS.Model.extend({
   moreNotesExists: function () {
     return (typeof this.get('notes') === 'string') ?  this.get('notes').length > 80 : false;
   }.property('notes'),
-  versionText: function () {
-    return Em.I18n.t('dashboard.configHistory.table.version.versionText').format(this.get('version'));
-  }.property('version'),
-  makeCurrentButtonText: function() {
-    return Em.I18n.t('dashboard.configHistory.info-bar.revert.versionButton').format(this.get('versionText'));
-  }.property('versionText'),
+  versionText: Em.computed.i18nFormat('dashboard.configHistory.table.version.versionText', 'version'),
+  makeCurrentButtonText: Em.computed.i18nFormat('dashboard.configHistory.info-bar.revert.versionButton', 'versionText'),
   createdDate: function () {
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),

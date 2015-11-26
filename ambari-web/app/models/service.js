@@ -22,9 +22,7 @@ require('utils/config');
 
 App.Service = DS.Model.extend({
   serviceName: DS.attr('string'),
-  displayName: function() {
-    return App.format.role(this.get('serviceName'));
-  }.property('serviceName'),
+  displayName: Em.computed.formatRole('serviceName'),
   passiveState: DS.attr('string'),
   workStatus: DS.attr('string'),
   rand: DS.attr('string'),

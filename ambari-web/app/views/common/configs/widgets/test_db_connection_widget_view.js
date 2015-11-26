@@ -62,10 +62,10 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   /** @property {String} user_passwd: password for the  user name to be used for performing db connection**/
   user_passwd: null,
 
+
+  someRequiredPropertyIsInvalid: Em.computed.someBy('requiredProperties', 'isValid', false),
   /** @property {boolean} isBtnDisabled - disable button on failed validation or active request **/
-  isBtnDisabled: function () {
-    return !this.get('requiredProperties').everyProperty('isValid') || this.get('isConnecting');
-  }.property('requiredProperties.@each.isValid', 'isConnecting'),
+  isBtnDisabled: Em.computed.or('someRequiredPropertyIsInvalid', 'isConnecting'),
   /** @property {object} requiredProperties - properties that necessary for database connection **/
   requiredProperties: [],
 

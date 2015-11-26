@@ -270,7 +270,7 @@ computed.sumProperties = generateComputedWithProperties(function (properties) {
   var sum = 0;
   for (var key in properties) {
     if (properties.hasOwnProperty(key)) {
-      sum += properties[key];
+      sum += Number(properties[key]);
     }
   }
   return sum;
@@ -399,6 +399,9 @@ computed.ltProperties = function (dependentKey1, dependentKey2) {
 computed.match = function (dependentKey, regexp) {
   return computed(dependentKey, function () {
     var value = get(this, dependentKey);
+    if (!regexp) {
+      return false;
+    }
     return regexp.test(value);
   });
 };
@@ -414,7 +417,11 @@ computed.match = function (dependentKey, regexp) {
  */
 computed.someBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    return get(this, collectionKey).someProperty(propertyName, neededValue);
+    var collection = get(this, collectionKey);
+    if (!collection) {
+      return false;
+    }
+    return collection.someProperty(propertyName, neededValue);
   });
 };
 
@@ -429,7 +436,11 @@ computed.someBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.everyBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    return get(this, collectionKey).everyProperty(propertyName, neededValue);
+    var collection = get(this, collectionKey);
+    if (!collection) {
+      return false;
+    }
+    return collection.everyProperty(propertyName, neededValue);
   });
 };
 
@@ -443,7 +454,11 @@ computed.everyBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.mapBy = function (collectionKey, propertyName) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    return get(this, collectionKey).mapProperty(propertyName);
+    var collection = get(this, collectionKey);
+    if (!collection) {
+      return [];
+    }
+    return collection.mapProperty(propertyName);
   });
 };
 
@@ -458,7 +473,11 @@ computed.mapBy = function (collectionKey, propertyName) {
  */
 computed.filterBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    return get(this, collectionKey).filterProperty(propertyName, neededValue);
+    var collection = get(this, collectionKey);
+    if (!collection) {
+      return [];
+    }
+    return collection.filterProperty(propertyName, neededValue);
   });
 };
 
@@ -473,7 +492,11 @@ computed.filterBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.findBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    return get(this, collectionKey).findProperty(propertyName, neededValue);
+    var collection = get(this, collectionKey);
+    if (!collection) {
+      return null;
+    }
+    return collection.findProperty(propertyName, neededValue);
   });
 };
 
@@ -537,8 +560,8 @@ computed.percents = function (dependentKey1, dependentKey2, accuracy) {
     accuracy = 0;
   }
   return computed(dependentKey1, dependentKey2, function () {
-    var v1 = get(this, dependentKey1);
-    var v2 = get(this, dependentKey2);
+    var v1 = Number(get(this, dependentKey1));
+    var v2 = Number(get(this, dependentKey2));
     var result = v1 / v2 * 100;
     if (0 === accuracy) {
       return Math.round(result);
@@ -577,7 +600,7 @@ computed.sumBy = function (collectionKey, propertyName) {
     }
     var sum = 0;
     collection.forEach(function (item) {
-      sum += get(item, propertyName);
+      sum += Number(get(item, propertyName));
     });
     return sum;
   });
@@ -594,6 +617,9 @@ computed.sumBy = function (collectionKey, propertyName) {
  */
 computed.i18nFormat = generateComputedWithKey(function (key, dependentValues) {
   var str = Em.I18n.t(key);
+  if (!str) {
+    return '';
+  }
   return str.format.apply(str, dependentValues);
 });
 

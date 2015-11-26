@@ -56,17 +56,10 @@ App.ServiceConfigCategory = Ember.Object.extend({
   }.property('name'),
 
 
-  isForMasterComponent: function () {
-    var masterServices = [ 'NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
-      'Hive Metastore', 'WebHCat Server', 'ZooKeeper Server', 'Ganglia' ];
+  isForMasterComponent: Em.computed.existsIn('name', ['NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
+    'Hive Metastore', 'WebHCat Server', 'ZooKeeper Server', 'Ganglia']),
 
-    return (masterServices.contains(this.get('name')));
-  }.property('name'),
-
-  isForSlaveComponent: function () {
-    var slaveComponents = ['DataNode', 'TaskTracker', 'RegionServer'];
-    return (slaveComponents.contains(this.get('name')));
-  }.property('name'),
+  isForSlaveComponent: Em.computed.existsIn('name', ['DataNode', 'TaskTracker', 'RegionServer']),
 
   slaveErrorCount: function () {
     var length = 0;

@@ -37,9 +37,7 @@ App.HDFSLinksView = App.LinkDashboardWidgetView.extend({
     this.calc();
   },
 
-  isHAEnabled: function() {
-    return !this.get('model.snameNode');
-  }.property('model.snameNode'),
+  isHAEnabled: Em.computed.not('model.snameNode'),
   isActiveNNValid: function () {
     return this.get('model.activeNameNode') != null;
   }.property('model.activeNameNode'),

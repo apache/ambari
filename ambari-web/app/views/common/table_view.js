@@ -172,9 +172,7 @@ App.TableView = Em.View.extend(App.UserPref, {
    * Return pagination information displayed on the page
    * @type {String}
    */
-  paginationInfo: function () {
-    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
-  }.property('filteredCount', 'endIndex'),
+  paginationInfo: Em.computed.i18nFormat('tableView.filters.paginationInfo', 'startIndex', 'endIndex', 'filteredCount'),
 
   paginationLeft: Ember.View.extend({
     tagName: 'a',

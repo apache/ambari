@@ -49,9 +49,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * rely on controller
    * @type {boolean}
    */
-  isControllerSupportsEnhancedConfigs: function() {
-    return ['wizardStep7Controller','mainServiceInfoConfigsController'].contains(this.get('name'));
-  }.property('name'),
+  isControllerSupportsEnhancedConfigs: Em.computed.existsIn('name', ['wizardStep7Controller','mainServiceInfoConfigsController']),
 
   /**
    * defines if initialValue of config can be used on current controller
@@ -117,9 +115,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * defines if change dependent group message should be shown
    * @type {boolean}
    */
-  showSelectGroupsPopup: function() {
-    return !this.get('selectedConfigGroup.isDefault') && this.get('selectedService.dependentServiceNames.length');
-  }.property('selectedConfigGroup.isDefault'),
+  showSelectGroupsPopup: Em.computed.and('!selectedConfigGroup.isDefault', 'selectedService.dependentServiceNames.length'),
 
   /**
    * set default values for dependentGroups

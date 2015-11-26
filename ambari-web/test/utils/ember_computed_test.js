@@ -202,9 +202,24 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop4')).to.equal(6);
     });
 
-    it('should be updated if some dependent vlaue is changed', function () {
+    it('should be updated if some dependent value is changed', function () {
       this.obj.set('prop1', 4);
       expect(this.obj.get('prop4')).to.equal(9);
+    });
+
+    it('should be updated if some dependent value is string', function () {
+      this.obj.set('prop1', '4');
+      expect(this.obj.get('prop4')).to.equal(9);
+    });
+
+    it('should be updated if some dependent value is string (2)', function () {
+      this.obj.set('prop1', '4.5');
+      expect(this.obj.get('prop4')).to.equal(9.5);
+    });
+
+    it('should be updated if some dependent value is null', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop4')).to.equal(5);
     });
 
   });
@@ -456,6 +471,11 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.be.false;
     });
 
+    it('`false` for null/undefined collection', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.be.false;
+    });
+
   });
 
   describe('#everyBy', function () {
@@ -473,6 +493,11 @@ describe('Ember.computed macros', function () {
 
     it('`false` if at least one collection item doesn\'t have needed property value', function () {
       this.obj.set('prop1.1.a', 3);
+      expect(this.obj.get('prop2')).to.be.false;
+    });
+
+    it('`false` for null/undefined collection', function () {
+      this.obj.set('prop1', null);
       expect(this.obj.get('prop2')).to.be.false;
     });
 
@@ -496,6 +521,11 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.eql([1, 2, 3, 4]);
     });
 
+    it('`[]` for null/undefined collection', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.eql([]);
+    });
+
   });
 
   describe('#filterBy', function () {
@@ -516,6 +546,11 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.eql([{a: 2}, {a: 2}, {a: 2}]);
     });
 
+    it('`[]` for null/undefined collection', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.eql([]);
+    });
+
   });
 
   describe('#findBy', function () {
@@ -534,6 +569,11 @@ describe('Ember.computed macros', function () {
     it('should filter dependent property (2)', function () {
       this.obj.get('prop1').pushObject({b: 3, a: 2});
       expect(this.obj.get('prop2')).to.eql({b: 1, a: 2});
+    });
+
+    it('`null` for null/undefined collection', function () {
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.be.null;
     });
 
   });
@@ -611,6 +651,26 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop4')).to.equal(28.57);
     });
 
+    it('should calculate percents (3)', function () {
+      this.obj.set('prop2', '35');
+      expect(this.obj.get('prop3')).to.equal(29);
+      expect(this.obj.get('prop4')).to.equal(28.57);
+    });
+
+    it('should calculate percents (4)', function () {
+      this.obj.set('prop1', 10.6);
+      this.obj.set('prop2', 100);
+      expect(this.obj.get('prop3')).to.equal(11);
+      expect(this.obj.get('prop4')).to.equal(10.60);
+    });
+
+    it('should calculate percents (5)', function () {
+      this.obj.set('prop1', '10.6');
+      this.obj.set('prop2', 100);
+      expect(this.obj.get('prop3')).to.equal(11);
+      expect(this.obj.get('prop4')).to.equal(10.60);
+    });
+
   });
 
   describe('#formatRole', function () {
@@ -685,7 +745,8 @@ describe('Ember.computed macros', function () {
         prop1: 'abc',
         prop2: 'cba',
         prop3: 'aaa',
-        prop4: Em.computed.i18nFormat('key1', 'prop1', 'prop2', 'prop3')
+        prop4: Em.computed.i18nFormat('key1', 'prop1', 'prop2', 'prop3'),
+        prop5: Em.computed.i18nFormat('not_existing_key', 'prop1', 'prop2', 'prop3')
       });
     });
 
@@ -704,6 +765,10 @@ describe('Ember.computed macros', function () {
     it('should format message (2)', function () {
       this.obj.set('prop1', 'aaa');
       expect(this.obj.get('prop4')).to.equal('aaa cba aaa');
+    });
+
+    it('empty string for not existing i18-key', function () {
+      expect(this.obj.get('prop5')).to.equal('');
     });
 
   });

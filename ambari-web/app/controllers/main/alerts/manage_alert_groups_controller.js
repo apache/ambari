@@ -76,9 +76,7 @@ App.ManageAlertGroupsController = Em.Controller.extend({
    * List of all global Alert Notifications
    * @type {App.AlertNotification[]}
    */
-  alertGlobalNotifications: function () {
-    return this.get('alertNotifications').filterProperty('global');
-  }.property('alertNotifications'),
+  alertGlobalNotifications: Em.computed.filterBy('alertNotifications', 'global', true),
 
   /**
    * @type {boolean}

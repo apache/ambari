@@ -35,9 +35,7 @@ App.RAHighAvailabilityWizardStep1Controller = Em.Controller.extend({
    * do not show is input-field is empty
    * @type {Boolean}
    */
-  showloadBalancerURLError: function () {
-    return this.get('content.loadBalancerURL') && !this.get('isloadBalancerURLValid');
-  }.property('isloadBalancerURLValid', 'content.loadBalancerURL'),
+  showloadBalancerURLError: Em.computed.and('content.loadBalancerURL', '!isloadBalancerURLValid'),
 
   /**
    * Define either Submit is disabled or enabled

@@ -58,13 +58,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   /**
    * Heatmap widget currently shown on the page
    */
-  activeWidget: function() {
-    if (this.get('widgets') && this.get('widgets').length) {
-      return this.get('widgets')[0];
-    } else {
-      return false;
-    }
-  }.property('widgets.@each'),
+  activeWidget: Em.computed.alias('widgets.firstObject'),
 
 
   /**
@@ -251,9 +245,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
     });
   },
 
-  hostToSlotMap: function () {
-    return this.get('selectedMetric.hostToSlotMap');
-  }.property('selectedMetric.hostToSlotMap'),
+  hostToSlotMap: Em.computed.alias('selectedMetric.hostToSlotMap'),
 
   /**
    * return class name for to be used for containing each rack.

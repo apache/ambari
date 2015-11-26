@@ -46,9 +46,7 @@ App.WizardWatcherController = Em.Controller.extend(App.UserPref, {
    * define whether Wizard is running
    * @type {boolean}
    */
-  isWizardRunning: function() {
-    return !Em.isNone(this.get('wizardUser'));
-  }.property('wizardUser'),
+  isWizardRunning: Em.computed.bool('wizardUser'),
 
   /**
    * @type {string}

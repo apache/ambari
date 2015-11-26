@@ -68,9 +68,7 @@ App.upgradeWizardView = Em.View.extend({
    * when downgrade already started
    * @type {boolean}
    */
-  isDowngradeAvailable: function () {
-    return !this.get('controller.isDowngrade') && this.get('controller.downgradeAllowed');
-  }.property('controller.isDowngrade', 'controller.downgradeAllowed'),
+  isDowngradeAvailable: Em.computed.and('!controller.isDowngrade', 'controller.downgradeAllowed'),
 
   /**
    * progress value is rounded to floor
@@ -164,9 +162,7 @@ App.upgradeWizardView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isManualProceedDisabled: function () {
-    return !this.get('isManualDone') || this.get('controller.requestInProgress');
-  }.property('isManualDone'),
+  isManualProceedDisabled: Em.computed.or('!isManualDone', 'controller.requestInProgress'),
 
   /**
    * if upgrade group is manual it should have manual item

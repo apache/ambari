@@ -623,13 +623,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      addComponentMsg: function () {
-        return Em.I18n.t('hosts.host.addComponent.msg').format(message);
-      }.property(),
+      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(message),
 
-      manualKerberosWarning: function () {
-        return isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '';
-      }.property(),
+      manualKerberosWarning: isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/addComponentPopup')
@@ -1347,9 +1343,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.ModalPopup.show({
       primary: Em.I18n.t('hosts.host.installComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
-      installComponentMessage: function () {
-        return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
-      }.property(),
+      installComponentMessage: Em.I18n.t('hosts.host.installComponent.msg').format(displayName),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
@@ -1551,9 +1545,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   showHbaseActiveWarning: function () {
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
-      message: function () {
-        return Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]);
-      }.property(),
+      message: Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]),
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
       }),
@@ -2051,9 +2043,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
-      showBodyEnd: function () {
-        return this.get('type') === 'runningList' || this.get('type') === 'masterList';
-      }.property(),
+      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList']),
       container: container,
       components: function(){
         var container = this.get('container');
@@ -2068,10 +2058,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }.property('type'),
       componentsStr: function () {
         return this.get('components').join(", ");
-      }.property(),
-      componentsBody: function () {
-        return Em.I18n.t('hosts.cant.do.popup.' + type + '.body').format(this.get('components').length);
-      }.property(),
+      }.property('components.[]'),
+      componentsBody: Em.computed.i18nFormat('hosts.cant.do.popup.' + type + '.body', 'components.length'),
       componentsBodyEnd: function () {
         if (this.get('showBodyEnd')) {
           return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end').format(App.get('components.decommissionAllowed').map(function(c){return App.format.role(c)}).join(", "));
@@ -2094,9 +2082,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
-      deletePopupBody: function () {
-        return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
-      }.property(),
+      deletePopupBody: Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName')),
       lastComponent: function () {
         if (container.lastComponents && container.lastComponents.length) {
           this.set('isChecked', false);

@@ -208,9 +208,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
       alertsNumberBinding: 'App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount',
 
-      header: function () {
-        return Em.I18n.t('alerts.fastAccess.popup.header').format(this.get('alertsNumber'));
-      }.property('alertsNumber'),
+      header: Em.computed.i18nFormat('alerts.fastAccess.popup.header', 'alertsNumber'),
 
       classNames: ['sixty-percent-width-modal', 'alerts-popup'],
 

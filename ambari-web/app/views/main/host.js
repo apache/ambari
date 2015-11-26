@@ -70,9 +70,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * return filtered number of all content number information displayed on the page footer bar
    * @returns {String}
    */
-  filteredContentInfo: function () {
-    return this.t('hosts.filters.filteredHostsInfo').format(this.get('filteredCount'), this.get('totalCount'));
-  }.property('filteredCount', 'totalCount'),
+  filteredContentInfo: Em.computed.i18nFormat('hosts.filters.filteredHostsInfo', 'filteredCount', 'totalCount'),
 
   /**
    * request latest data filtered by new parameters
@@ -106,9 +104,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    * Return pagination information displayed on the page
    * @type {String}
    */
-  paginationInfo: function () {
-    return this.t('tableView.filters.paginationInfo').format(this.get('startIndex'), this.get('endIndex'), this.get('filteredCount'));
-  }.property('startIndex', 'endIndex', 'filteredCount'),
+  paginationInfo: Em.computed.i18nFormat('tableView.filters.paginationInfo', 'startIndex', 'endIndex', 'filteredCount'),
 
   paginationLeftClass: function () {
     if (this.get("startIndex") > 1 && this.get('filteringComplete')) {

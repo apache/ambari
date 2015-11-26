@@ -552,12 +552,12 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
     return smallValid && largeValid ? Number(smallValue) > Number(largeValue) : false;
   }.property('configs.@each.value'),
 
+  someConfigIsInvalid: Em.computed.someBy('configs', 'isValid', false),
+
   /**
    * Define whether all configs are valid
    * @type {Boolean}
    */
-  hasErrors: function () {
-    return this.get('configs').someProperty('isValid', false) || this.get('hasThresholdsError');
-  }.property('configs.@each.isValid', 'hasThresholdsError')
+  hasErrors: Em.computed.or('someConfigIsInvalid', 'hasThresholdsError')
 
 });

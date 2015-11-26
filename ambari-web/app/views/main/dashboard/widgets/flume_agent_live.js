@@ -60,9 +60,7 @@ App.FlumeAgentUpView = App.TextDashboardWidgetView.extend({
     }
   }.property('model.hostComponents.length', 'flumeAgentsLive'),
 
-  content: function () {
-    return this.get('flumeAgentsLive').length + "/" + this.get('flumeAgentComponents').length;
-  }.property('flumeAgentComponents.length', 'flumeAgentsLive'),
+  content: Em.computed.concat('/', 'flumeAgentsLive.length', 'flumeAgentComponents.length'),
 
   statusObserver: function() {
     Em.run.once(this, 'filterStatusOnce');
