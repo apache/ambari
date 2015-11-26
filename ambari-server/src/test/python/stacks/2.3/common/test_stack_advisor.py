@@ -56,7 +56,7 @@ class TestHDP23StackAdvisor(TestCase):
     file = os.path.join(self.testDirectory, filename)
     with open(file, 'rb') as f:
       data = json.load(f)
-    return data    
+    return data
 
   @patch('__builtin__.open')
   @patch('os.path.exists')
@@ -81,13 +81,13 @@ class TestHDP23StackAdvisor(TestCase):
 
   def test_createComponentLayoutRecommendations_hawq_1_Host(self):
     """ Test that HAWQSTANDBY is not recommended on a single node cluster """
-    
+
     services = self.load_json("services-hawq-1-host.json")
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
     componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
     self.assertTrue('HAWQSTANDBY' in componentNames)
-    
+
     hosts = self.load_json("hosts-1-host.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     self.assertEquals(len(hostsList), 1)
@@ -96,9 +96,9 @@ class TestHDP23StackAdvisor(TestCase):
 
     recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
     recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
-    self.assertTrue('HAWQMASTER' in recommendedComponents) 
-    self.assertFalse('HAWQSTANDBY' in recommendedComponents) 
-    self.assertTrue('HAWQSEGMENT' in recommendedComponents) 
+    self.assertTrue('HAWQMASTER' in recommendedComponents)
+    self.assertFalse('HAWQSTANDBY' in recommendedComponents)
+    self.assertTrue('HAWQSEGMENT' in recommendedComponents)
 
 
   def test_createComponentLayoutRecommendations_hawq_3_Hosts(self):
@@ -109,19 +109,19 @@ class TestHDP23StackAdvisor(TestCase):
     componentsList = [item for sublist in componentsListList for item in sublist]
     componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
     self.assertTrue('HAWQSTANDBY' in componentNames)
-    
+
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     self.assertEquals(len(hostsList), 3)
 
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
-    
+
     recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
     recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
-    self.assertTrue('HAWQMASTER' in recommendedComponents) 
-    self.assertTrue('HAWQSTANDBY' in recommendedComponents) 
+    self.assertTrue('HAWQMASTER' in recommendedComponents)
+    self.assertTrue('HAWQSTANDBY' in recommendedComponents)
     self.assertTrue('HAWQSEGMENT' in recommendedComponents)
-    
+
     # make sure master components are not collocated
     for sublist in recommendedComponentsListList:
       hostComponents = [item["name"] for item in sublist]
@@ -135,28 +135,28 @@ class TestHDP23StackAdvisor(TestCase):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
     componentNames = [component["StackServiceComponents"]["component_name"] for component in componentsList]
-    self.assertFalse('HAWQMASTER' in componentNames) 
-    self.assertFalse('HAWQSTANDBY' in componentNames) 
+    self.assertFalse('HAWQMASTER' in componentNames)
+    self.assertFalse('HAWQSTANDBY' in componentNames)
     self.assertFalse('HAWQSEGMENT' in componentNames)
-    
+
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     self.assertEquals(len(hostsList), 3)
 
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
-    
+
     recommendedComponentsListList = [hostgroup["components"] for hostgroup in recommendations["blueprint"]["host_groups"]]
     recommendedComponents = [item["name"] for sublist in recommendedComponentsListList for item in sublist]
-    self.assertFalse('HAWQMASTER' in recommendedComponents) 
-    self.assertFalse('HAWQSTANDBY' in recommendedComponents) 
+    self.assertFalse('HAWQMASTER' in recommendedComponents)
+    self.assertFalse('HAWQSTANDBY' in recommendedComponents)
     self.assertFalse('HAWQSEGMENT' in recommendedComponents)
-      
+
 
   def fqdn_mock_result(value=None):
       return 'c6401.ambari.apache.org' if value is None else value
 
-      
-  @patch('socket.getfqdn', side_effect=fqdn_mock_result)  
+
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)
   def test_getComponentLayoutValidations_hawq_3_Hosts(self, socket_mock):
     """ Test layout validations for HAWQ components on a 3-node cluster """
 
@@ -169,14 +169,14 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqMasterHosts[0]), 1)
     self.assertEquals(len(hawqStandbyHosts[0]), 1)
     self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
-    
+
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     self.assertEquals(len(hostsList), 3)
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 0)
-    
+
     # case-2: HAWQ masters are collocated
     services = self.load_json("services-master_standby_colo-3-hosts.json")
     componentsListList = [service["components"] for service in services["services"]]
@@ -186,12 +186,12 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqMasterHosts[0]), 1)
     self.assertEquals(len(hawqStandbyHosts[0]), 1)
     self.assertEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
-    
+
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
     expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and HAWQ Master should not be deployed on the same host.', 'type': 'host-component', 'host': 'c6403.ambari.apache.org', 'level': 'ERROR'}
     self.assertEquals(validations[0], expected)
-    
+
     # case-3: HAWQ Master and Ambari Server are collocated
     services = self.load_json("services-master_ambari_colo-3-hosts.json")
     componentsListList = [service["components"] for service in services["services"]]
@@ -202,7 +202,7 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqStandbyHosts[0]), 1)
     self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
     self.assertEquals(hawqMasterHosts[0][0], "c6401.ambari.apache.org")
-    
+
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
     expected={'component-name': 'HAWQMASTER', 'message': 'HAWQ Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
@@ -218,14 +218,14 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertEquals(len(hawqStandbyHosts[0]), 1)
     self.assertNotEquals(hawqMasterHosts[0][0], hawqStandbyHosts[0][0])
     self.assertEquals(hawqStandbyHosts[0][0], "c6401.ambari.apache.org")
-    
+
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 1)
     expected={'component-name': 'HAWQSTANDBY', 'message': 'HAWQ Standby Master and Ambari Server should not be deployed on the same host. If you leave them collocated, make sure to set HAWQ Master Port property to a value different from the port number used by Ambari Server database.', 'type': 'host-component', 'host': 'c6401.ambari.apache.org', 'level': 'WARN'}
     self.assertEquals(validations[0], expected)
 
 
-  @patch('socket.getfqdn', side_effect=fqdn_mock_result)  
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)
   def test_getComponentLayoutValidations_nohawq_3_Hosts(self, socket_mock):
     """ Test no failures when there are no HAWQ components on a 3-node cluster """
 
@@ -237,7 +237,7 @@ class TestHDP23StackAdvisor(TestCase):
     hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
     self.assertEquals(len(hawqMasterHosts), 0)
     self.assertEquals(len(hawqStandbyHosts), 0)
-    
+
     hosts = self.load_json("hosts-3-hosts.json")
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
     self.assertEquals(len(hostsList), 3)
@@ -245,7 +245,44 @@ class TestHDP23StackAdvisor(TestCase):
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
     self.assertEquals(len(validations), 0)
 
-                           
+
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)
+  def test_getComponentLayoutValidations_sparkts_no_hive(self, socket_mock):
+    """ Test SparkTS is picked when Hive is not installed """
+
+    hosts = self.load_json("sparkts-host.json")
+    services = self.load_json("services-sparkts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+
+    sparkTS = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"]
+    hiveMetaStore = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"]
+    self.assertEquals(len(sparkTS), 1)
+    self.assertEquals(len(hiveMetaStore), 0)
+
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    expected = {'component-name': 'SPARK_THRIFTSERVER', 'message': 'SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed.', 'type': 'host-component', 'level': 'ERROR'}
+    self.assertEquals(validations[0], expected)
+
+
+  @patch('socket.getfqdn', side_effect=fqdn_mock_result)
+  def test_getComponentLayoutValidations_sparkts_with_hive(self, socket_mock):
+    """ Test SparkTS is picked when Hive is installed """
+
+    hosts = self.load_json("sparkts-host.json")
+    services = self.load_json("services-sparkts-hive.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+
+    sparkTS = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"]
+    hiveMetaStore = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"]
+    self.assertEquals(len(sparkTS), 1)
+    self.assertEquals(len(hiveMetaStore), 1)
+
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 0)
+
+
   def test_recommendHDFSConfigurations(self):
     configurations = {}
     clusterData = {
@@ -726,10 +763,10 @@ class TestHDP23StackAdvisor(TestCase):
         },
        'property_attributes': {
          'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
-         'hive.server2.authentication.pam.services': {'delete': 'true'}, 
-         'hive.server2.custom.authentication.class': {'delete': 'true'}, 
+         'hive.server2.authentication.pam.services': {'delete': 'true'},
+         'hive.server2.custom.authentication.class': {'delete': 'true'},
          'hive.server2.authentication.kerberos.principal': {'delete': 'true'},
-         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'}, 
+         'hive.server2.authentication.kerberos.keytab': {'delete': 'true'},
          'hive.server2.authentication.ldap.url': {'delete': 'true'},
          'hive.server2.tez.default.queues': {
            'entries': [{'value': 'queue1', 'label': 'queue1 queue'}, {'value': 'queue2', 'label': 'queue2 queue'}]

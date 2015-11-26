@@ -52,8 +52,15 @@
               <scope>host</scope>
               <auto-deploy>
                 <enabled>true</enabled>
-             </auto-deploy>
-           </dependency>
+              </auto-deploy>
+            </dependency>
+            <dependency>
+              <name>HIVE/HIVE_METASTORE</name>
+              <scope>cluster</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
           </dependencies>
           <commandScript>
             <script>scripts/spark_thrift_server.py</script>
