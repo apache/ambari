@@ -23,6 +23,7 @@ var App = require('app');
 App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/test_db_connection_widget'),
   classNames: ['widget'],
+  dbInfo: require('data/db_properties_info'),
 
   /** @property {string} btnCaption - text for button **/
   btnCaption: function () {
@@ -96,10 +97,9 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
 
   /**
    *  This function is used to set Database name and master host name
-   * @param requiredProperties
+   * @param requiredProperties: `config.stackConfigProperty.widget.required-properties` as stated in the theme
    */
   setDbProperties: function(requiredProperties) {
-    var dbInfo = require('data/db_properties_info');
     var dbProperties = {
       'db.connection.source.host' : 'masterHostName',
       'db.type' : 'db_type',
@@ -114,9 +114,6 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
       var fileName =  split[0] + '.xml';
       var configName =  split[1];
       var dbConfig = this.get('requiredProperties').filterProperty('filename',fileName).findProperty('name', configName);
-      if (key === 'db.type') {
-        dbConfig = dbInfo.dpPropertiesMap[dbConfig.value].db_type.toUpperCase();
-      }
       this.set(dbProperties[key], dbConfig);
     }
   },
@@ -195,13 +192,14 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
    **/
   createCustomAction: function () {
     var connectionProperties = this.getProperties('db_connection_url','user_name', 'user_passwd');
+    var db_name = this.dbInfo.dpPropertiesMap[this.get('db_type').value].db_type;
     var isServiceInstalled = App.Service.find(this.get('config.serviceName')).get('isLoaded');
     for (var key in connectionProperties) {
       if (connectionProperties.hasOwnProperty(key)) {
         connectionProperties[key] = connectionProperties[key].value;
       }
     }
-    var params = $.extend(true, {}, {db_name: this.get('db_type').toLowerCase()}, connectionProperties, this.get('ambariProperties'));
+    var params = $.extend(true, {}, {db_name: db_name}, connectionProperties, this.get('ambariProperties'));
     var filteredHosts =  Array.isArray(this.get('masterHostName.value')) ? this.get('masterHostName.value') : [this.get('masterHostName.value')];
     App.ajax.send({
       name: (isServiceInstalled) ? 'cluster.custom_action.create' : 'custom_action.create',
@@ -291,6 +289,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   },
 
   setResponseStatus: function (isSuccess) {
+    var db_type = this.dbInfo.dpPropertiesMap[this.get('db_type').value].db_type.toUpperCase();
     var isSuccess = isSuccess == 'success';
     this.setConnectingStatus(false);
     this.set('responseCaption', isSuccess ? Em.I18n.t('services.service.config.database.connection.success') : Em.I18n.t('services.service.config.database.connection.failed'));
@@ -298,7 +297,7 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
     this.set('isRequestResolved', true);
     if (this.get('logsPopup')) {
       var statusString = isSuccess ? 'common.success' : 'common.error';
-      this.set('logsPopup.header', Em.I18n.t('services.service.config.connection.logsPopup.header').format(this.get('db_type'), Em.I18n.t(statusString)));
+      this.set('logsPopup.header', Em.I18n.t('services.service.config.connection.logsPopup.header').format(db_type, Em.I18n.t(statusString)));
     }
   },
   /**
@@ -338,8 +337,9 @@ App.TestDbConnectionWidgetView = App.ConfigWidgetView.extend({
   showLogsPopup: function () {
     if (this.get('isConnectionSuccess')) return;
     var _this = this;
+    var db_type = this.dbInfo.dpPropertiesMap[this.get('db_type').value].db_type.toUpperCase();
     var statusString = this.get('isRequestResolved') ? 'common.error' : 'common.testing';
-    var popup = App.showAlertPopup(Em.I18n.t('services.service.config.connection.logsPopup.header').format(this.get('db_type'), Em.I18n.t(statusString)), null, function () {
+    var popup = App.showAlertPopup(Em.I18n.t('services.service.config.connection.logsPopup.header').format(db_type, Em.I18n.t(statusString)), null, function () {
       _this.set('logsPopup', null);
     });
     popup.reopen({
