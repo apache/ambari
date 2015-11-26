@@ -839,7 +839,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    * @return Returns an integer with the id for the next host record to be inserted.
    * @throws SQLException
    */
-  @Transactional
   Long populateHostsId(ResultSet resultSet) throws SQLException {
     Long hostId = 0L;
     if (resultSet != null) {
