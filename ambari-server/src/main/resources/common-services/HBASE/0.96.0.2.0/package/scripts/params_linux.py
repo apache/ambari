@@ -326,6 +326,7 @@ if has_ranger_admin:
 
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   xa_audit_db_is_enabled = config['configurations']['ranger-hbase-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+  xa_audit_hdfs_is_enabled = config['configurations']['ranger-hbase-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-hbase-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
   ssl_truststore_password = unicode(config['configurations']['ranger-hbase-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None

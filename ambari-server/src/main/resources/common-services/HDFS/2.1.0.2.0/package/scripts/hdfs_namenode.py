@@ -38,7 +38,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
 from utils import service, safe_zkfc_op, is_previous_fs_image
-from setup_ranger_hdfs import setup_ranger_hdfs
+from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -177,6 +177,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
 
     # Always run this on non-HA, or active NameNode during HA.
     create_hdfs_directories(is_active_namenode_cmd)
+    create_ranger_audit_hdfs_directories(is_active_namenode_cmd)
 
   elif action == "stop":
     import params

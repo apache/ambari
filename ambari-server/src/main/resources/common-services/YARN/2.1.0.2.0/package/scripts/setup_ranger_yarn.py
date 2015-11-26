@@ -28,6 +28,25 @@ def setup_ranger_yarn():
     else:
       Logger.info("YARN: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
+    if params.xml_configurations_supported and params.enable_ranger_yarn and params.xa_audit_hdfs_is_enabled:
+      params.HdfsResource("/ranger/audit",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hdfs_user,
+                         group=params.hdfs_user,
+                         mode=0755,
+                         recursive_chmod=True
+      )
+      params.HdfsResource("/ranger/audit/yarn",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.yarn_user,
+                         group=params.yarn_user,
+                         mode=0700,
+                         recursive_chmod=True
+      )
+      params.HdfsResource(None, action="execute")
+
     setup_ranger_plugin('hadoop-yarn-resourcemanager', 'yarn', 
                         params.downloaded_custom_connector, params.driver_curl_source,
                         params.driver_curl_target, params.java64_home,
