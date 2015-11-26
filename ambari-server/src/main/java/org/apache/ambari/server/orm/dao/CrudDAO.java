@@ -93,7 +93,7 @@ public class CrudDAO<E, K> {
    * @param entity entity to create
    */
   @Transactional
-  public void create(E entity) {
+  protected void create(E entity) {
     entityManagerProvider.get().persist(entity);
   }
 

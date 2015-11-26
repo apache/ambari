@@ -151,7 +151,6 @@ public class HostVersionEntity {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((hostEntity == null) ? 0 : hostEntity.hashCode());
-    result = prime * result + ((hostEntity == null) ? 0 : hostEntity.hashCode());
     result = prime * result + ((id == null) ? 0 : id.hashCode());
     result = prime * result + ((repositoryVersion == null) ? 0 : repositoryVersion.hashCode());
     result = prime * result + ((state == null) ? 0 : state.hashCode());

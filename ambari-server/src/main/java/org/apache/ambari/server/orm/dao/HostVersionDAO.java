@@ -58,6 +58,23 @@ public class HostVersionDAO extends CrudDAO<HostVersionEntity, Long> {
   }
 
   /**
+   * Construct a Host Version. Additionally this will update parent connection relations without
+   * forcing refresh of parent entity
+   * @param entity entity to create
+   */
+  @Override
+  @Transactional
+  public void create(HostVersionEntity entity) throws IllegalArgumentException{
+    // check if repository version is not missing, to avoid NPE
+    if (entity.getRepositoryVersion() == null) {
+      throw new IllegalArgumentException("RepositoryVersion argument is not set for the entity");
+    }
+
+    super.create(entity);
+    entity.getRepositoryVersion().updateHostVersionEntityRelation(entity);
+  }
+
+  /**
    * Retrieve all of the host versions for the given cluster name, stack name,
    * and stack version.
    *
