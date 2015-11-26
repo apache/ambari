@@ -39,7 +39,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
-    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]]:
+    hiveExists = "HIVE" in [service["StackServices"]["service_name"] for service in services["services"]]
+    sparkExists = "SPARK" in [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]] and not sparkExists:
       return parentItems
 
     childItems = []
@@ -73,7 +76,20 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                   "If you leave them collocated, make sure to set HAWQ Master Port property " \
                   "to a value different from the port number used by Ambari Server database."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
-    
+
+    if "SPARK_THRIFTSERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
+      if not "HIVE_SERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
+        message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
+        childItems.append( {"type": 'host-component', "level": 'ERROR', "message": messge, "component-name": 'SPARK_THRIFTSERVER'} )
+
+    hmsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"][0] if hiveExists else []
+    sparkTsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"][0] if sparkExists else []
+
+    # if Spark Thrift Server is deployed but no Hive Server is deployed
+    if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
+      message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
+      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
+
     parentItems.extend(childItems)
     return parentItems
 
@@ -567,7 +583,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                  "hive-site": self.validateHiveConfigurations},
         "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}        
+        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
