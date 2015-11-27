@@ -77,12 +77,12 @@ THP_FILE_REDHAT = "/sys/kernel/mm/redhat_transparent_hugepage/enabled"
 THP_FILE_UBUNTU = "/sys/kernel/mm/transparent_hugepage/enabled"
 
 class CheckHost(Script):
-  # Packages that are used to find repos (then repos are used to find other packages)
+  # Package prefixes that are used to find repos (then repos are used to find other packages)
   PACKAGES = [
     "hadoop", "zookeeper", "webhcat", "oozie", "ambari", "*-manager-server-db",
     "*-manager-daemons", "mahout", "spark", "falcon", "hbase", "kafka", "knox",
-    "slider", "sqoop", "storm", "pig", "flume","hcatalog", "phoenix", "ranger",
-    "accumulo", "hive_*"
+    "slider", "sqoop", "storm", "flume","hcatalog", "phoenix", "ranger", "accumulo", "hive_*",
+    "pig_", "pig-", "pig." # there's a default 'pigz' package which we should avoid
   ]
   
 
@@ -106,7 +106,7 @@ class CheckHost(Script):
   
   # ignore repos from the list of repos to be cleaned
   IGNORE_REPOS = [
-    "AMBARI", "HDP-UTILS", "BASE"
+    "AMBARI", "HDP-UTILS", "BASE", "EXTRAS"
   ]
   
   def __init__(self):
