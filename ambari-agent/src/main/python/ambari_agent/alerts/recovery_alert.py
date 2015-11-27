@@ -24,8 +24,8 @@ from alerts.base_alert import BaseAlert
 logger = logging.getLogger()
 
 # default recoveries counts
-DEFAULT_WARNING_RECOVERIES_COUNT = 1
-DEFAULT_CRITICAL_RECOVERIES_COUNT = 5
+DEFAULT_WARNING_RECOVERIES_COUNT = 2
+DEFAULT_CRITICAL_RECOVERIES_COUNT = 4
 
 UNKNOWN_COMPONENT = 'UNKNOWN_COMPONENT'
 class RecoveryAlert(BaseAlert):
