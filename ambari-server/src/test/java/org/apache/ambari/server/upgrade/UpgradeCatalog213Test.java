@@ -40,20 +40,8 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -64,6 +52,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.kerberos.*;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.easymock.Capture;
@@ -76,8 +65,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,6 +91,8 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertTrue;
 
+import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertNull;
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog213} unit tests.
  */
@@ -237,6 +230,7 @@ public class UpgradeCatalog213Test {
     Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
     Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
     Method updateAccumuloConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAccumuloConfigs");
+    Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateKnoxTopology = UpgradeCatalog213.class.getDeclaredMethod("updateKnoxTopology");
 
     UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
@@ -253,6 +247,7 @@ public class UpgradeCatalog213Test {
       .addMockedMethod(updateRangerEnvConfig)
       .addMockedMethod(updateHiveConfig)
       .addMockedMethod(updateAccumuloConfigs)
+      .addMockedMethod(updateKerberosDescriptorArtifacts)
       .addMockedMethod(updateKnoxTopology)
       .createMock();
 
@@ -282,6 +277,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateAccumuloConfigs();
     expectLastCall().once();
     upgradeCatalog213.updateKnoxTopology();
+    expectLastCall().once();
+    upgradeCatalog213.updateKerberosDescriptorArtifacts();
     expectLastCall().once();
 
     replay(upgradeCatalog213);
@@ -452,6 +449,60 @@ public class UpgradeCatalog213Test {
     mockInjector.getInstance(UpgradeCatalog213.class).updateStormConfigs();
     easyMockSupport.verifyAll();
   }
+
+  @Test
+  public void testUpdateKerberosDescriptorArtifact() throws Exception {
+    final KerberosDescriptorFactory kerberosDescriptorFactory = new KerberosDescriptorFactory();
+
+    KerberosServiceDescriptor serviceDescriptor;
+
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_kerberos_descriptor_2_1_3.json");
+    assertNotNull(systemResourceURL);
+
+    final KerberosDescriptor kerberosDescriptorOrig = kerberosDescriptorFactory.createInstance(new File(systemResourceURL.getFile()));
+    assertNotNull(kerberosDescriptorOrig);
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("HDFS");
+    assertNotNull(serviceDescriptor);
+    assertNotNull(serviceDescriptor.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorOrig.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNotNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
+
+    UpgradeCatalog213 upgradeMock = createMockBuilder(UpgradeCatalog213.class).createMock();
+
+    Capture<Map<String, Object>> updatedData = new Capture<Map<String, Object>>();
+
+    ArtifactEntity artifactEntity = createNiceMock(ArtifactEntity.class);
+    expect(artifactEntity.getArtifactData())
+        .andReturn(kerberosDescriptorOrig.toMap())
+        .once();
+
+    artifactEntity.setArtifactData(capture(updatedData));
+    expectLastCall().once();
+
+    replay(artifactEntity, upgradeMock);
+    upgradeMock.updateKerberosDescriptorArtifact(createNiceMock(ArtifactDAO.class), artifactEntity);
+    verify(artifactEntity, upgradeMock);
+
+    KerberosDescriptor kerberosDescriptorUpdated = new KerberosDescriptorFactory().createInstance(updatedData.getValue());
+    assertNotNull(kerberosDescriptorUpdated);
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("HDFS");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("hdfs"));
+
+    KerberosComponentDescriptor namenodeComponent = serviceDescriptor.getComponent("NAMENODE");
+    assertNotNull(namenodeComponent.getIdentity("hdfs"));
+
+    serviceDescriptor = kerberosDescriptorUpdated.getService("OOZIE");
+    assertNotNull(serviceDescriptor);
+    assertNull(serviceDescriptor.getIdentity("/HDFS/hdfs"));
+    assertNotNull(serviceDescriptor.getIdentity("/HDFS/NAMENODE/hdfs"));
+  }
+
+
 
   @Test
   public void testUpdateHbaseEnvConfig() throws AmbariException {

@@ -28,7 +28,9 @@ import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -36,6 +38,9 @@ import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -552,6 +557,86 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       }
     }
     return properties;
+  }
+
+  /**
+   * Iterates through a collection of AbstractKerberosDescriptorContainers to find and update
+   * identity descriptor references.
+   *
+   * @param descriptorMap    a String to AbstractKerberosDescriptorContainer map to iterate trough
+   * @param referenceName    the reference name to change
+   * @param newReferenceName the new reference name
+   */
+  protected void updateKerberosDescriptorIdentityReferences(Map<String, ? extends AbstractKerberosDescriptorContainer> descriptorMap,
+                                                          String referenceName,
+                                                          String newReferenceName) {
+    if (descriptorMap != null) {
+      for (AbstractKerberosDescriptorContainer kerberosServiceDescriptor : descriptorMap.values()) {
+        updateKerberosDescriptorIdentityReferences(kerberosServiceDescriptor, referenceName, newReferenceName);
+
+        if (kerberosServiceDescriptor instanceof KerberosServiceDescriptor) {
+          updateKerberosDescriptorIdentityReferences(((KerberosServiceDescriptor) kerberosServiceDescriptor).getComponents(),
+              referenceName, newReferenceName);
+        }
+      }
+    }
+  }
+
+  /**
+   * Given an AbstractKerberosDescriptorContainer, iterates through its contained identity descriptors
+   * to find ones matching the reference name to change.
+   * <p/>
+   * If found, the reference name is updated to the new name.
+   *
+   * @param descriptorContainer the AbstractKerberosDescriptorContainer to update
+   * @param referenceName       the reference name to change
+   * @param newReferenceName    the new reference name
+   */
+  protected void updateKerberosDescriptorIdentityReferences(AbstractKerberosDescriptorContainer descriptorContainer,
+                                                          String referenceName,
+                                                          String newReferenceName) {
+    if (descriptorContainer != null) {
+      KerberosIdentityDescriptor identity = descriptorContainer.getIdentity(referenceName);
+      if (identity != null) {
+        identity.setName(newReferenceName);
+      }
+    }
+  }
+
+  /**
+   * Update the stored Kerberos Descriptor artifacts to conform to the new structure.
+   * <p/>
+   * Finds the relevant artifact entities and iterates through them to process each independently.
+   */
+  protected void updateKerberosDescriptorArtifacts() throws AmbariException {
+    ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
+    List<ArtifactEntity> artifactEntities = artifactDAO.findByName("kerberos_descriptor");
+
+    if (artifactEntities != null) {
+      for (ArtifactEntity artifactEntity : artifactEntities) {
+        updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+      }
+    }
+  }
+
+
+
+  /**
+   * Update the specified Kerberos Descriptor artifact to conform to the new structure.
+   * <p/>
+   * On ambari version update some of identities can be moved between scopes(e.g. from service to component), so
+   * old identity need to be moved to proper place and all references for moved identity need to be updated.
+   * <p/>
+   * By default descriptor remains unchanged and this method must be overridden in child UpgradeCatalog to meet new
+   * ambari version changes in kerberos descriptors.
+   * <p/>
+   * The supplied ArtifactEntity is updated in place a merged back into the database.
+   *
+   * @param artifactDAO    the ArtifactDAO to use to store the updated ArtifactEntity
+   * @param artifactEntity the ArtifactEntity to update
+   */
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    // NOOP
   }
 
   @Override
