@@ -404,6 +404,7 @@ limitations under the License.
     <display-name>Database Username</display-name>
     <description>username to use against metastore database</description>
     <value-attributes>
+      <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
