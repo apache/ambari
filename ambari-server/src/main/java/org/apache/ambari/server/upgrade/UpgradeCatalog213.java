@@ -29,22 +29,8 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -53,6 +39,7 @@ import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.kerberos.*;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -313,6 +300,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateZookeeperLog4j();
     updateHiveConfig();
     updateAccumuloConfigs();
+    updateKerberosDescriptorArtifacts();
     updateKnoxTopology();
   }
 
@@ -465,6 +453,37 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("ALTER TABLE " + UPGRADE_TABLE + " ALTER column " + UPGRADE_TYPE_COL + " NOT NULL");
       } else {
         dbAccessor.alterColumn(UPGRADE_TABLE, new DBColumnInfo(UPGRADE_TYPE_COL, String.class, 32, null, false));
+      }
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+
+        if (kerberosDescriptor != null) {
+          KerberosServiceDescriptor hdfsService = kerberosDescriptor.getService("HDFS");
+          if(hdfsService != null) {
+            // before 2.1.3 hdfs indentity expected to be in HDFS service
+            KerberosIdentityDescriptor hdfsIdentity = hdfsService.getIdentity("hdfs");
+            KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
+            hdfsIdentity.setName("hdfs");
+            hdfsService.removeIdentity("hdfs");
+            namenodeComponent.putIdentity(hdfsIdentity);
+          }
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor, "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor.getServices(), "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
+        }
       }
     }
   }
