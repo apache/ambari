@@ -304,12 +304,24 @@
     <name>tez.runtime.io.sort.mb</name>
     <value>512</value>
     <description>The size of the sort buffer when output needs to be sorted</description>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.task.resource.memory.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>tez.runtime.unordered.output.buffer.size-mb</name>
     <value>100</value>
     <description>The size of the buffer when output does not require to be sorted</description>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.task.resource.memory.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
