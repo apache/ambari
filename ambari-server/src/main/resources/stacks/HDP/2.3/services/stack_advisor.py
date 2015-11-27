@@ -128,7 +128,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putTezProperty = self.putProperty(configurations, "tez-site")
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
-    taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
+    taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
+    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
     putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4))
 
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
