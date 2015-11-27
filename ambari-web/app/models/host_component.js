@@ -52,6 +52,14 @@ App.HostComponent = DS.Model.extend({
   isRunning: Em.computed.existsIn('workStatus', ['STARTED', 'STARTING']),
 
   /**
+   * Determines if component is not installed
+   * Based on <code>workStatus</code>
+   *
+   * @type {boolean}
+   */
+  isNotInstalled: Em.computed.existsIn('workStatus', ['INIT', 'INSTALL_FAILED']),
+
+  /**
    * Formatted <code>componentName</code>
    * @returns {String}
    */
@@ -245,6 +253,9 @@ App.HostComponentStatus = {
 
 App.HostComponentActionMap = {
   getMap: function(ctx) {
+    var NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE');
+    var RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
+    var RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -292,21 +303,21 @@ App.HostComponentActionMap = {
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
         cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
         isHidden: App.get('isHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !NN || NN.get('isNotInstalled')
       },
       TOGGLE_RM_HA: {
         action: 'enableRMHighAvailability',
         label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isRMHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !RM || RM.get('isNotInstalled')
       },
       TOGGLE_RA_HA: {
         action: 'enableRAHighAvailability',
         label: Em.I18n.t('admin.ra_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isRAHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !RA || RA.get('isNotInstalled')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
@@ -353,6 +364,6 @@ App.HostComponentActionMap = {
         isHidden: false,
         disabled: false
       }
-    }
+    };
   }
 };

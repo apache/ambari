@@ -144,6 +144,7 @@ describe('App.MainServiceItemView', function () {
           hostComponents: [
             Em.Object.create({
               componentName: 'NAMENODE',
+              isNotInstalled: true,
               isMaster: true,
               isSlave: false
             }),
@@ -220,7 +221,8 @@ describe('App.MainServiceItemView', function () {
             Em.Object.create({
               componentName: 'RESOURCEMANAGER',
               isMaster: true,
-              isSlave: false
+              isSlave: false,
+              isNotInstalled: false
             })
           ],
           result: [
@@ -420,7 +422,7 @@ describe('App.MainServiceItemView', function () {
       sinon.stub(App, 'get', function (k) {
         switch (k) {
           case 'isSingleNode':
-            return (view.get('controller.content.serviceName') == 'HDFS');
+            return view.get('controller.content.serviceName') == 'HDFS';
           case 'supports.autoRollbackHA':
           case 'isRMHaEnabled':
           case 'isHaEnabled':
@@ -504,39 +506,52 @@ describe('App.MainServiceItemView', function () {
 
     testCases.forEach(function (testCase) {
 
-      it('Maintenance for ' + testCase.serviceName + ' service', function () {
-        view.reopen({
-          controller: Em.Object.create({
-            content: Em.Object.create({
-              hostComponents: testCase.hostComponents,
-              slaveComponents: testCase.slaveComponents,
-              clientComponents: testCase.clientComponents,
-              serviceName: testCase.serviceName,
-              displayName: testCase.displayName,
-              serviceTypes: testCase.serviceTypes,
-              passiveState: 'OFF'
+      describe('Maintenance for ' + testCase.serviceName + ' service', function () {
+
+        beforeEach(function () {
+          view.reopen({
+            controller: Em.Object.create({
+              content: Em.Object.create({
+                hostComponents: testCase.hostComponents,
+                slaveComponents: testCase.slaveComponents,
+                clientComponents: testCase.clientComponents,
+                serviceName: testCase.serviceName,
+                displayName: testCase.displayName,
+                serviceTypes: testCase.serviceTypes,
+                passiveState: 'OFF'
+              }),
+              isSeveralClients: false,
+              clientComponents: [],
+              isStopDisabled: false
             }),
-            isSeveralClients: false,
-            clientComponents: [],
-            isStopDisabled: false
-          }),
-          mastersExcludedCommands: mastersExcludedCommands,
-          hasConfigTab: hasConfigTab
+            mastersExcludedCommands: mastersExcludedCommands,
+            hasConfigTab: hasConfigTab
+          });
+          if (testCase.controller) {
+            testCase.controller.forEach(function (item) {
+              Object.keys(item).forEach(function (key) {
+                view.set('controller.' + key, item[key]);
+              });
+            });
+          }
+          view.observeMaintenanceOnce();
         });
-        if (testCase.controller) {
-          testCase.controller.forEach(function (item) {
-            Object.keys(item).forEach(function (key) {
-              view.set('controller.' + key, item[key]);
+        testCase.result.forEach(function (option, index) {
+          Object.keys(option).forEach(function (key) {
+            it(option.action + ', key - ' + key, function () {
+              var r = view.get('maintenance')[index];
+              expect(Em.get(option, key)).to.eql(Em.get(r, key));
             });
           });
-        }
-        view.observeMaintenanceOnce();
-        expect(view.get('maintenance')).to.eql(testCase.result);
-        var oldMaintenance = JSON.parse(JSON.stringify(view.get('maintenance')));
-        view.set('controller.content.passiveState', 'ON');
-        view.observeMaintenanceOnce();
-        expect(view.get('maintenance')).to.not.eql(oldMaintenance);
-        expect(view.get('isMaintenanceSet')).to.be.true;
+        });
+
+        it('maintenance is updated', function () {
+          var oldMaintenance = JSON.parse(JSON.stringify(view.get('maintenance')));
+          view.set('controller.content.passiveState', 'ON');
+          view.observeMaintenanceOnce();
+          expect(view.get('maintenance')).to.not.eql(oldMaintenance);
+          expect(view.get('isMaintenanceSet')).to.be.true;
+        });
       });
 
     });
