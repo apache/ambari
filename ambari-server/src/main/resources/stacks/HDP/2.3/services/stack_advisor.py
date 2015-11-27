@@ -552,6 +552,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     if "tez-site" not in services["configurations"]:
       putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
@@ -575,6 +576,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putYarnSitePropertyAttributes('yarn.authorization-provider', 'delete', 'true')
 
+    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
+      if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
+        putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
+
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
       childValidators = {
@@ -582,7 +587,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                  "hive-site": self.validateHiveConfigurations},
         "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}
+        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+        "YARN": {"yarn-site": self.validateYARNConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
@@ -757,6 +763,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    yarn_site = properties
+    validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
+      yarn_resource_proxy_enabled = yarn_site['yarn.resourcemanager.proxy-user-privileges.enabled']
+      if yarn_resource_proxy_enabled.lower() == 'true':
+        validationItems.append({"config-name": 'yarn.resourcemanager.proxy-user-privileges.enabled',
+          "item": self.getWarnItem("If Ranger KMS service is installed set yarn.resourcemanager.proxy-user-privileges.enabled "\
+          "property value as false under yarn-site"
+        )})
+
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
