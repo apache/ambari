@@ -24,26 +24,57 @@ var slice = [].slice;
 
 var dataUtils = require('utils/data_manipulation');
 
+/**
+ * Returns hash with values of name properties from the context
+ * If <code>propertyName</code> starts with 'App.', <code>App</code> is used as context, <code>self</code> used otherwise
+ * If some <code>propertyName</code> starts with '!' its value will be inverted
+ *
+ * @param {object} self current context
+ * @param {string[]} propertyNames needed properties
+ * @returns {object} hash with needed values
+ */
 function getProperties(self, propertyNames) {
   var ret = {};
   for (var i = 0; i < propertyNames.length; i++) {
     var propertyName = propertyNames[i];
-    var value;
-    if (propertyName.startsWith('!')) {
-      propertyName = propertyName.substring(1);
-      value = !get(self, propertyName);
-    }
-    else {
-      value = get(self, propertyName);
-    }
+    var shouldBeInverted = propertyName.startsWith('!');
+    propertyName = shouldBeInverted ? propertyName.substr(1) : propertyName;
+    var isApp = propertyName.startsWith('App.');
+    var name = isApp ? propertyName.replace('App.', '') : propertyName;
+    var context = isApp ? App : self;
+    var value = get(context, name);
+    value = shouldBeInverted ? !value : value;
     ret[propertyName] = value;
   }
   return ret;
 }
 
+/**
+ * Returns value of named property from the context
+ * If <code>propertyName</code> starts with 'App.', <code>App</code> is used as context, <code>self</code> used otherwise
+ *
+ * @param {object} self current context
+ * @param {string} propertyName needed property
+ * @returns {*} needed value
+ */
+function smartGet(self, propertyName) {
+  var isApp = propertyName.startsWith('App.');
+  var name = isApp ? propertyName.replace('App.', '') : propertyName;
+  var context = isApp ? App : self;
+  return get(context, name)
+}
+
+/**
+ * Returns list with values of name properties from the context
+ * If <code>propertyName</code> starts with 'App.', <code>App</code> is used as context, <code>self</code> used otherwise
+ *
+ * @param {object} self current context
+ * @param {string[]} propertyNames neded properties
+ * @returns {array} list of needed values
+ */
 function getValues(self, propertyNames) {
   return propertyNames.map(function (propertyName) {
-    return get(self, propertyName);
+    return smartGet(self, propertyName);
   });
 }
 
@@ -87,6 +118,7 @@ function generateComputedWithValues(macro) {
  *
  * A computed property that returns true if the provided dependent property
  * is equal to the given value.
+ * App.*-keys are supported
  * Example*
  * ```javascript
  * var Hamster = Ember.Object.extend({
@@ -108,12 +140,13 @@ function generateComputedWithValues(macro) {
  */
 computed.equal = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) === value;
+    return smartGet(this, dependentKey) === value;
   }).cacheable();
 };
 
 /**
  * A computed property that returns true if the provided dependent property is not equal to the given value
+ * App.*-keys are supported
  *
  * @method notEqual
  * @param {string} dependentKey
@@ -122,12 +155,13 @@ computed.equal = function (dependentKey, value) {
  */
 computed.notEqual = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) !== value;
+    return smartGet(this, dependentKey) !== value;
   });
 };
 
 /**
  * A computed property that returns true if provided dependent properties are equal to the each other
+ * App.*-keys are supported
  *
  * @method equalProperties
  * @param {string} dependentKey1
@@ -136,12 +170,13 @@ computed.notEqual = function (dependentKey, value) {
  */
 computed.equalProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) === get(this, dependentKey2);
+    return smartGet(this, dependentKey1) === smartGet(this, dependentKey2);
   });
 };
 
 /**
  * A computed property that returns true if provided dependent properties are not equal to the each other
+ * App.*-keys are supported
  *
  * @method notEqualProperties
  * @param {string} dependentKey1
@@ -150,7 +185,7 @@ computed.equalProperties = function (dependentKey1, dependentKey2) {
  */
 computed.notEqualProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) !== get(this, dependentKey2);
+    return smartGet(this, dependentKey1) !== smartGet(this, dependentKey2);
   });
 };
 
@@ -205,6 +240,7 @@ computed.rejectMany = function (collectionKey, propertyName, valuesToReject) {
 
 /**
  * A computed property that returns trueValue if dependent value is true and falseValue otherwise
+ * App.*-keys are supported
  *
  * @method ifThenElse
  * @param {string} dependentKey
@@ -214,7 +250,7 @@ computed.rejectMany = function (collectionKey, propertyName, valuesToReject) {
  */
 computed.ifThenElse = function (dependentKey, trueValue, falseValue) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) ? trueValue : falseValue;
+    return smartGet(this, dependentKey) ? trueValue : falseValue;
   });
 };
 
@@ -222,6 +258,7 @@ computed.ifThenElse = function (dependentKey, trueValue, falseValue) {
  * A computed property that is equal to the logical 'and'
  * Takes any number of arguments
  * Returns true if all of them are truly, false - otherwise
+ * App.*-keys are supported
  *
  * @method and
  * @param {...string} dependentKeys
@@ -242,6 +279,7 @@ computed.and = generateComputedWithProperties(function (properties) {
  * A computed property that is equal to the logical 'or'
  * Takes any number of arguments
  * Returns true if at least one of them is truly, false - otherwise
+ * App.*-keys are supported
  *
  * @method or
  * @param {...string} dependentKeys
@@ -261,6 +299,7 @@ computed.or = generateComputedWithProperties(function (properties) {
 /**
  * A computed property that returns sum on the dependent properties values
  * Takes any number of arguments
+ * App.*-keys are supported
  *
  * @method sumProperties
  * @param {...string} dependentKeys
@@ -278,6 +317,7 @@ computed.sumProperties = generateComputedWithProperties(function (properties) {
 
 /**
  * A computed property that returns true if dependent value is greater or equal to the needed value
+ * App.*-keys are supported
  *
  * @method gte
  * @param {string} dependentKey
@@ -286,12 +326,13 @@ computed.sumProperties = generateComputedWithProperties(function (properties) {
  */
 computed.gte = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) >= value;
+    return smartGet(this, dependentKey) >= value;
   });
 };
 
 /**
  * A computed property that returns true if first dependent property is greater or equal to the second dependent property
+ * App.*-keys are supported
  *
  * @method gteProperties
  * @param {string} dependentKey1
@@ -300,12 +341,13 @@ computed.gte = function (dependentKey, value) {
  */
 computed.gteProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) >= get(this, dependentKey2);
+    return smartGet(this, dependentKey1) >= smartGet(this, dependentKey2);
   });
 };
 
 /**
  * A computed property that returns true if dependent property is less or equal to the needed value
+ * App.*-keys are supported
  *
  * @method lte
  * @param {string} dependentKey
@@ -314,12 +356,13 @@ computed.gteProperties = function (dependentKey1, dependentKey2) {
  */
 computed.lte = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) <= value;
+    return smartGet(this, dependentKey) <= value;
   });
 };
 
 /**
  * A computed property that returns true if first dependent property is less or equal to the second dependent property
+ * App.*-keys are supported
  *
  * @method lteProperties
  * @param {string} dependentKey1
@@ -328,12 +371,13 @@ computed.lte = function (dependentKey, value) {
  */
 computed.lteProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) <= get(this, dependentKey2);
+    return smartGet(this, dependentKey1) <= smartGet(this, dependentKey2);
   });
 };
 
 /**
  * A computed property that returns true if dependent value is greater than the needed value
+ * App.*-keys are supported
  *
  * @method gt
  * @param {string} dependentKey
@@ -342,12 +386,13 @@ computed.lteProperties = function (dependentKey1, dependentKey2) {
  */
 computed.gt = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) > value;
+    return smartGet(this, dependentKey) > value;
   });
 };
 
 /**
  * A computed property that returns true if first dependent property is greater than the second dependent property
+ * App.*-keys are supported
  *
  * @method gtProperties
  * @param {string} dependentKey1
@@ -356,12 +401,13 @@ computed.gt = function (dependentKey, value) {
  */
 computed.gtProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) > get(this, dependentKey2);
+    return smartGet(this, dependentKey1) > smartGet(this, dependentKey2);
   });
 };
 
 /**
  * A computed property that returns true if dependent value is less than the needed value
+ * App.*-keys are supported
  *
  * @method lt
  * @param {string} dependentKey
@@ -370,12 +416,13 @@ computed.gtProperties = function (dependentKey1, dependentKey2) {
  */
 computed.lt = function (dependentKey, value) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey) < value;
+    return smartGet(this, dependentKey) < value;
   });
 };
 
 /**
  * A computed property that returns true if first dependent property is less than the second dependent property
+ * App.*-keys are supported
  *
  * @method gtProperties
  * @param {string} dependentKey1
@@ -384,7 +431,7 @@ computed.lt = function (dependentKey, value) {
  */
 computed.ltProperties = function (dependentKey1, dependentKey2) {
   return computed(dependentKey1, dependentKey2, function () {
-    return get(this, dependentKey1) < get(this, dependentKey2);
+    return smartGet(this, dependentKey1) < smartGet(this, dependentKey2);
   });
 };
 
@@ -503,6 +550,7 @@ computed.findBy = function (collectionKey, propertyName, neededValue) {
 /**
  * A computed property that returns value equal to the dependent
  * Should be used as 'short-name' for deeply-nested values
+ * App.*-keys are supported
  *
  * @method alias
  * @param {string} dependentKey
@@ -510,7 +558,7 @@ computed.findBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.alias = function (dependentKey) {
   return computed(dependentKey, function () {
-    return get(this, dependentKey);
+    return smartGet(this, dependentKey);
   });
 };
 
@@ -548,6 +596,7 @@ computed.notExistsIn = function (dependentKey, neededValues) {
  * A computed property that returns result of calculation <code>(dependentProperty1/dependentProperty2 * 100)</code>
  * If accuracy is 0 (by default), result is rounded to integer
  * Otherwise - result is float with provided accuracy
+ * App.*-keys are supported
  *
  * @method percents
  * @param {string} dependentKey1
@@ -560,8 +609,8 @@ computed.percents = function (dependentKey1, dependentKey2, accuracy) {
     accuracy = 0;
   }
   return computed(dependentKey1, dependentKey2, function () {
-    var v1 = Number(get(this, dependentKey1));
-    var v2 = Number(get(this, dependentKey2));
+    var v1 = Number(smartGet(this, dependentKey1));
+    var v2 = Number(smartGet(this, dependentKey2));
     var result = v1 / v2 * 100;
     if (0 === accuracy) {
       return Math.round(result);
@@ -609,6 +658,7 @@ computed.sumBy = function (collectionKey, propertyName) {
 /**
  * A computed property that returns I18n-string formatted with dependent properties
  * Takes at least one argument
+ * App.*-keys are supported
  *
  * @param {string} key key in the I18n-messages
  * @param {...string} dependentKeys
@@ -626,6 +676,7 @@ computed.i18nFormat = generateComputedWithKey(function (key, dependentValues) {
 /**
  * A computed property that returns dependent values joined with separator
  * Takes at least one argument
+ * App.*-keys are supported
  *
  * @param {string} separator
  * @param {...string} dependentKeys
@@ -641,6 +692,7 @@ computed.concat = generateComputedWithKey(function (separator, dependentValues) 
  * Based on <code>Ember.isBlank</code>
  * Takes at least 1 argument
  * Dependent values order affects the result
+ * App.*-keys are supported
  *
  * @param {...string} dependentKeys
  * @method {firstNotBlank}
