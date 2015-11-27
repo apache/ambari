@@ -43,11 +43,11 @@
             },
             "warning": {
               "text": "Metrics Collector has been auto-started {1} times{0}.",
-              "count": 1
+              "count": 2
             },
             "critical": {
               "text": "Metrics Collector has been auto-started {1} times{0}.",
-              "count": 5
+              "count": 4
             }
           }
         }
