@@ -2335,7 +2335,9 @@ Em.I18n.translations = {
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning',
   'hosts.host.addComponent.HIVE_METASTORE':'Adding <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
+  'hosts.host.addComponent.WEBHCAT_SERVER':'Adding <i>WebHCat Server</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
   'hosts.host.deleteComponent.popup.deleteHiveMetastore':'Deleting <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
+  'hosts.host.deleteComponent.popup.deleteWebHCatServer':'Deleting <i>WebHCat Server</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
   'hosts.host.configs.save.note': 'This configuration is created by ambari while installing/deleting {0} component on a host',
 
   'hosts.component.passive.implied.host.mode.tooltip':'Cannot Turn Off Maintenance Mode because Host is in Maintenance Mode',
