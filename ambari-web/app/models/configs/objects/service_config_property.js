@@ -484,14 +484,10 @@ App.ServiceConfigProperty = Em.Object.extend({
           }
           break;
         case 'user':
-          if (!validator.isValidUNIXUser(value)){
-            this.set('errorMessage', 'Username is not valid');
-            isError = true;
-          }
-          break;
         case 'database':
+        case 'db_user':
           if (!validator.isValidDbName(value)){
-            this.set('errorMessage', 'Database is not valid');
+            this.set('errorMessage', 'Value is not valid');
             isError = true;
           }
           break;
