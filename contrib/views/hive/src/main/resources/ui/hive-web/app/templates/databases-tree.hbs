@@ -28,7 +28,7 @@
                   {{#each column in table.visibleColumns}}
                     <div>
                       <strong>{{column.name}}</strong>
-                      <span class="pull-right">{{column.type}}</span>
+                      <span class="pull-right">{{format-column-type column}}</span>
                     </div>
                   {{/each}}
                   {{#if table.canGetNextPage}}
