@@ -90,6 +90,7 @@ export default Ember.Object.create({
       name: 'hive.tez.container.size',
       validate: helpers.regexes.digits
     },
+
     {
       name: 'hive.prewarm.enabled',
       values: helpers.validationValues.bool
@@ -108,6 +109,10 @@ export default Ember.Object.create({
     },
     {
       name: 'hive.vectorized.execution.enabled',
+      values: helpers.validationValues.bool
+    },
+    {
+      name: 'hive.auto.convert.join',
       values: helpers.validationValues.bool
     },
     {
