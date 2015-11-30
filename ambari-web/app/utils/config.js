@@ -235,6 +235,7 @@ App.config = Em.Object.create({
       for (var index in properties) {
         var advancedConfig = App.configsCollection.getConfigByName(index, siteConfig.type);
         var serviceConfigObj = advancedConfig || this.createDefaultConfig(index, serviceName, filename, false);
+        this.restrictSecureProperties(serviceConfigObj);
 
         if (serviceConfigObj.isRequiredByAgent !== false) {
           var formattedValue = this.formatPropertyValue(serviceConfigObj, properties[index]);
@@ -250,6 +251,16 @@ App.config = Em.Object.create({
       }
     }, this);
     return configs;
+  },
+
+  /**
+   * put secure properties in read-only mode
+   * @param {object} config
+   */
+  restrictSecureProperties: function (config) {
+    var isReadOnly = config.isSecureConfig && App.get('isKerberosEnabled');
+    config.isReconfigurable = !isReadOnly;
+    config.isOverridable = !isReadOnly;
   },
 
   /**

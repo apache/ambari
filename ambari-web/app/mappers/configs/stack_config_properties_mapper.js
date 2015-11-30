@@ -143,7 +143,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           var staticConfigInfo = this.parseIt(config, this.get('configToPlain'));
           var v = Em.isNone(staticConfigInfo.recommendedValue) ? staticConfigInfo.recommendedValue : staticConfigInfo.value;
           staticConfigInfo.value = staticConfigInfo.recommendedValue = App.config.formatPropertyValue(staticConfigInfo, v);
-          staticConfigInfo.isSecure = App.config.getIsSecure(staticConfigInfo.name);
+          staticConfigInfo.isSecureConfig = App.config.getIsSecure(staticConfigInfo.name);
           staticConfigInfo.isUserProperty = false;
           App.configsCollection.add(staticConfigInfo);
 

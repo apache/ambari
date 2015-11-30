@@ -1010,5 +1010,62 @@ describe('App.config', function () {
           "index": 0
         })
     });
-  })
+  });
+
+  describe("#restrictSecureProperties()", function() {
+    var testCases = [
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: true
+        },
+        expected: {
+          isReconfigurable: false,
+          isOverridable: false
+        }
+      },
+      {
+        input: {
+          isSecureConfig: false,
+          isKerberosEnabled: true
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      },
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: false
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      },
+      {
+        input: {
+          isSecureConfig: false,
+          isKerberosEnabled: false
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("isSecureConfig = " + test.input.isSecureConfig + "; isKerberosEnabled = " + test.input.isKerberosEnabled, function() {
+        var config = {
+          isSecureConfig: test.input.isSecureConfig
+        };
+        App.set('isKerberosEnabled', test.input.isKerberosEnabled);
+        App.config.restrictSecureProperties(config);
+        expect(config.isReconfigurable).to.equal(test.expected.isReconfigurable);
+        expect(config.isOverridable).to.equal(test.expected.isOverridable);
+      });
+    });
+  });
 });

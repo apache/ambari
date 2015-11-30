@@ -38,6 +38,12 @@ module.exports = Em.Application.create({
   isPermissionDataLoaded: false,
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isKerberosEnabled: false,
+
+  /**
    * state of stack upgrade process
    * states:
    *  - INIT
