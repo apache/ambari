@@ -161,6 +161,8 @@ public class StackAdvisorBlueprintProcessorTest {
   private Map<String, HostGroup> createHostGroupMap() {
     Map<String, HostGroup> hgMap = Maps.newHashMap();
     hgMap.put("hg1", hostGroup);
+    hgMap.put("hg2", hostGroup);
+    hgMap.put("hg3", hostGroup);
     return hgMap;
   }
 
