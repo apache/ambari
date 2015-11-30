@@ -1184,6 +1184,12 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     regSearch = "\\{\\{regionserver_heapsize\\}\\}";
     replacement = "{{regionserver_heapsize}}m";
     content = content.replaceAll(regSearch, replacement);
+    regSearch = "export HBASE_HEAPSIZE=";
+    replacement = "#export HBASE_HEAPSIZE=";
+    content = content.replaceAll(regSearch, replacement);
+    content += "\n" +
+      "# The maximum amount of heap to use for hbase shell.\n" +
+      "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
     return content;
   }
 
