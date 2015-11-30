@@ -24,7 +24,7 @@
       {{view config.view
         value=config.value
         content=config.options
-        class="form-control"
+        classBinding=":form-control :slider-wiz-config-value config.className"
         disabled=config.readOnly
       }}
     </div>
