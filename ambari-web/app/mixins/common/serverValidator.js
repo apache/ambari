@@ -121,8 +121,11 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   loadServerSideConfigsRecommendations: function() {
-    // if extended controller doesn't support recommendations ignore this call but keep promise chain
-    if (!this.get('isControllerSupportsEnhancedConfigs')) {
+    /**
+     * if extended controller doesn't support recommendations or recommendations has been already loaded
+     * ignore this call but keep promise chain
+     */
+    if (!this.get('isControllerSupportsEnhancedConfigs') || !Em.isNone(this.get('recommendationsConfigs'))) {
       return $.Deferred().resolve().promise();
     }
     var recommendations = this.get('hostGroups');
