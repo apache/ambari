@@ -2675,7 +2675,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': false,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h1', 'h2'],
+        'hiveHosts': ['h1', 'h2', 'h4'],
         'title': 'adding HiveServer2'
       },
       {
@@ -2685,7 +2685,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': false,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h0', 'h1', 'h2'],
+        'hiveHosts': ['h0', 'h1', 'h2', 'h4'],
         'title': 'adding Hive Metastore'
       },
       {
@@ -2695,7 +2695,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': false,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h0', 'h1', 'h2'],
+        'hiveHosts': ['h0', 'h1', 'h2', 'h4'],
         'title': 'adding WebHCat Server'
       },
       {
@@ -2706,7 +2706,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': true,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h2'],
+        'hiveHosts': ['h2', 'h4'],
         'title': 'deleting Hive component'
       },
       {
@@ -2728,7 +2728,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': false,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h1'],
+        'hiveHosts': ['h1', 'h4'],
         'title': 'deleting host with Hive component'
       },
       {
@@ -2739,7 +2739,7 @@ describe('App.MainHostDetailsController', function () {
           'deleteHiveMetaStore': false,
           'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h1'],
+        'hiveHosts': ['h1', 'h4'],
         'title': 'deleting host with WebHCat Server'
       }
     ];
