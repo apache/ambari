@@ -325,8 +325,8 @@ App.ConfigsComparator = Em.Mixin.create({
       isMock: true,
       displayType: 'label'
     };
-    var category = App.config.identifyCategory(undefinedConfig);
-    undefinedConfig.category = category && category.name;
+    var isStackProperty = App.StackConfigProperty.find(App.config.configId(name, filename)).get('id');
+    undefinedConfig.category = App.config.getDefaultCategory(isStackProperty, filename);
     return App.ServiceConfigProperty.create(undefinedConfig);
   },
 
