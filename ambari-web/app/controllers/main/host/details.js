@@ -955,8 +955,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   getHiveHosts: function () {
     var
       hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName'),
+      webhcatHosts = App.HostComponent.find().filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('hostName'),
       hiveMetastoreHost = this.get('hiveMetastoreHost'),
       webhcatServerHost = this.get('webhcatServerHost');
+
+    hiveHosts = hiveHosts.concat(webhcatHosts).uniq();
 
     if (!!hiveMetastoreHost) {
       hiveHosts.push(hiveMetastoreHost);
