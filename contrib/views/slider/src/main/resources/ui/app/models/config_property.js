@@ -36,6 +36,9 @@ App.ConfigProperty = Em.Object.extend({
         return Em.TextField;
     }
   }.property('viewType'),
+  className: function () {
+    return "value-for-" + this.get('label').replace('.', '-');
+  }.property('viewType'),
   readOnly: false,
   //used for config with "select" view
   options: [],
