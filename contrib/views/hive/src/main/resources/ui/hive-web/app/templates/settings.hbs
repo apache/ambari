@@ -33,17 +33,20 @@
         <div class="form-group">
           <div class="input-group">
             <div class="input-group-addon">
-              {{typeahead-widget
-                  options=predefinedSettings
-                  excluded=excluded
-                  optionLabelPath="name"
-                  optionValuePath="name"
-                  selection=setting.key
-                  create="addKey"
-              }}
+
+              <div {{bind-attr keyname="setting.key.name"}} class="typeahead-container">
+                {{typeahead-widget
+                    options=predefinedSettings
+                    excluded=excluded
+                    optionLabelPath="name"
+                    optionValuePath="name"
+                    selection=setting.key
+                    safeValue = setting.key.name
+                    create="addKey"
+                }}
+              </div>
             </div>
             <div {{bind-attr class=":input-group-addon setting.valid::has-error"}}>
-
               <div class="setting-input-value">
                 {{#if setting.key.values}}
                   {{select-widget items=setting.key.values
