@@ -129,13 +129,15 @@ public class StackAdvisorBlueprintProcessor {
         Set<String> components = hgComponents.getValue();
 
         Set<String> hosts = bindingHostGroups.get(hgName);
-        for (String component : components) {
-          Set<String> componentHosts = componentHostsMap.get(component);
-          if (componentHosts == null) { // if was not initialized
-            componentHosts = new HashSet<String>();
-            componentHostsMap.put(component, componentHosts);
+        if (hosts != null) {
+          for (String component : components) {
+            Set<String> componentHosts = componentHostsMap.get(component);
+            if (componentHosts == null) { // if was not initialized
+              componentHosts = new HashSet<String>();
+              componentHostsMap.put(component, componentHosts);
+            }
+            componentHosts.addAll(hosts);
           }
-          componentHosts.addAll(hosts);
         }
       }
     }
