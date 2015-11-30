@@ -608,7 +608,7 @@ public class UpgradeCatalog213Test {
     String expectedContent = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}\n" +
       "\n" +
       "# The maximum amount of heap to use, in MB. Default is 1000.\n" +
-      "export HBASE_HEAPSIZE={{hbase_heapsize}}m\n" +
+      "#export HBASE_HEAPSIZE={{hbase_heapsize}}m\n" +
       "\n" +
       "{% if java_version &lt; 8 %}\n" +
       "export HBASE_MASTER_OPTS=\" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}}m -Xms{{hbase_heapsize}}m -Xmx{{hbase_heapsize}}m -Xmn{{hbase_master_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
@@ -616,7 +616,9 @@ public class UpgradeCatalog213Test {
       "{% else %}\n" +
       "export HBASE_MASTER_OPTS=\" -Xms{{hbase_heapsize}}m -Xmx{{hbase_heapsize}}m -Xmn{{hbase_master_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly\"\n" +
       "export HBASE_REGIONSERVER_OPTS=\" -Xmn{{regionserver_xmn_size}}m -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}}m -Xmx{{regionserver_heapsize}}m\"\n" +
-      "{% endif %}\n";
+      "{% endif %}\n\n" +
+      "# The maximum amount of heap to use for hbase shell.\n" +
+      "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
     String result = (String) updateAmsHbaseEnvContent.invoke(upgradeCatalog213, oldContent);
     Assert.assertEquals(expectedContent, result);
   }
