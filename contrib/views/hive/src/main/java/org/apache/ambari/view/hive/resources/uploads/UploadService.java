@@ -64,6 +64,7 @@ public class UploadService extends BaseService {
 
   final private String HIVE_META_STORE_LOCATION_KEY = "hive.metastore.warehouse.dir";
   final private String HIVE_SITE = "hive-site";
+  final private String HIVE_DEFAULT_DB = "default";
 
   @POST
   @Path("/preview")
@@ -173,7 +174,8 @@ public class UploadService extends BaseService {
     createdJobController.submit();
     getResourceManager().saveIfModified(createdJobController);
 
-    String filePath = databaseName + ".db/" + tableName + "/" + tableName + ".csv";
+    String filePath = (databaseName == null || databaseName.equals(HIVE_DEFAULT_DB)) ? "" : databaseName + ".db/";
+    filePath += tableName + "/" + tableName + ".csv";
 
     JSONObject jobObject = new JSONObject();
     jobObject.put("jobId", job.getId());
@@ -235,7 +237,6 @@ public class UploadService extends BaseService {
       BufferedReader br = new BufferedReader(r, 1); //
       br.readLine(); // TODO : remove the header line. Wrong if first record is beyond first endline
     }
-
 
     String basePath = getHiveMetaStoreLocation();
     if (null == basePath)
