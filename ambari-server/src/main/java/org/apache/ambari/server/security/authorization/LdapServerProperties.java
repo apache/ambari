@@ -53,7 +53,7 @@ public class LdapServerProperties {
   private String userSearchBase = "";
 
   private String groupSearchFilter;
-  private static final String userSearchFilter = "({attribute}={0})";
+  private static final String userSearchFilter = "(&({attribute}={0})(objectClass={userObjectClass}))";
 
   //LDAP pagination properties
   private boolean paginationEnabled = true;
@@ -138,7 +138,9 @@ public class LdapServerProperties {
   }
 
   public String getUserSearchFilter() {
-    return userSearchFilter.replace("{attribute}", usernameAttribute);
+    return userSearchFilter
+      .replace("{attribute}", usernameAttribute)
+      .replace("{userObjectClass}", userObjectClass);
   }
 
   public String getUsernameAttribute() {
