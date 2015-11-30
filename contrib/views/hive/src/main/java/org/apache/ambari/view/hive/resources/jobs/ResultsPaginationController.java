@@ -168,7 +168,7 @@ public class ResultsPaginationController {
 
   private static class ResultsResponse {
     private ArrayList<ColumnDescription> schema;
-    private ArrayList<Object[]> rows;
+    private ArrayList<String[]> rows;
     private int readCount;
     private boolean hasNext;
     private long offset;
@@ -183,10 +183,20 @@ public class ResultsPaginationController {
     }
 
     public void setRows(ArrayList<Object[]> rows) {
-      this.rows = rows;
+      if( null == rows ){
+        this.rows = null;
+      }
+      this.rows = new ArrayList<String[]>(rows.size());
+      for(Object[] row : rows ){
+        String[] strs = new String[row.length];
+        for( int colNum = 0 ; colNum < row.length ; colNum++ ){
+          strs[colNum] = String.valueOf(row[colNum]);
+        }
+        this.rows.add(strs);
+      }
     }
 
-    public ArrayList<Object[]> getRows() {
+    public ArrayList<String[]> getRows() {
       return rows;
     }
 
