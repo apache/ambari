@@ -113,8 +113,8 @@ export HBASE_CONF_DIR=${HBASE_CONF_DIR:-{{hbase_conf_dir}}}
 # Extra Java CLASSPATH elements. Optional.
 export HBASE_CLASSPATH=${HBASE_CLASSPATH}
 
-# The maximum amount of heap to use, in MB. Default is 1000.
-export HBASE_HEAPSIZE={{hbase_heapsize}}
+# The maximum amount of heap to use for hbase shell.
+export HBASE_SHELL_OPTS="-Xmx256m"
 
 # Extra Java runtime options.
 # Below are what we set by default. May only work with SUN JVM.
