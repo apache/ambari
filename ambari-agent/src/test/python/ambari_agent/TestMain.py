@@ -232,7 +232,7 @@ class TestMain(unittest.TestCase):
       main.stop_agent()
       kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-15', pid])
       kill_mock.assert_any_call(['ambari-sudo.sh', 'kill', '-9', pid])
-      sys_exit_mock.assert_called_with(1)
+      sys_exit_mock.assert_called_with(0)
 
     # Restore
     ProcessHelper.pidfile = oldpid

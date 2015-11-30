@@ -189,7 +189,7 @@ def stop_agent():
       res = runner.run([AMBARI_SUDO_BINARY, 'kill', '-9', str(pid)])
       if res['exitCode'] != 0:
         raise Exception("Error while performing agent stop. " + res['error'] + res['output'])
-    sys.exit(1)
+    sys.exit(0)
 
 def reset_agent(options):
   try:
