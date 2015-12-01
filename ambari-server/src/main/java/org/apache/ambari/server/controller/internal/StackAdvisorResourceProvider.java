@@ -266,8 +266,12 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
             siteMap.put(propertiesProperty, propertiesMap);
           }
 
-          String value = properties.get(property).toString();
-          propertiesMap.put(propertyName, value);
+          Object propVal = properties.get(property);
+          if (propVal != null)
+            propertiesMap.put(propertyName, propVal.toString());
+          else
+            LOG.info(String.format("No value specified for configuration property, name = %s ", property));
+
         } catch (Exception e) {
           LOG.debug(String.format("Error handling configuration property, name = %s", property), e);
           // do nothing

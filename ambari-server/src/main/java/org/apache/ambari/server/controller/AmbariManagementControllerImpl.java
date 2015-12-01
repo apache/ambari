@@ -1432,8 +1432,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             break;
           } else {
             for (Entry<String, String> property : requestConfigProperties.entrySet()) {
-              if (!StringUtils.equals(property.getValue(),clusterConfigProperties.get(property.getKey()))) {
-                isConfigurationCreationNeeded =true;
+              if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
+                isConfigurationCreationNeeded = true;
                 break;
               }
             }
