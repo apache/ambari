@@ -36,10 +36,10 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0/tars/hbase-1.1.1.2.3.0.0-2557.tar.gz</hbase.tar>
-    <hbase.folder>hbase-1.1.1.2.3.0.0-2557</hbase.folder>
-    <hadoop.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.0.0/tars/hadoop-2.7.1.2.3.0.0-2557.tar.gz</hadoop.tar>
-    <hadoop.folder>hadoop-2.7.1.2.3.0.0-2557</hadoop.folder>
+    <hbase.tar>http://private-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.4.0-3347/tars/hbase-1.1.2.2.3.4.0-3347.tar.gz</hbase.tar>
+    <hbase.folder>hbase-1.1.2.2.3.4.0-3347</hbase.folder>
+    <hadoop.tar>http://private-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.3.4.0-3347/tars/hadoop-2.7.1.2.3.4.0-3347.tar.gz</hadoop.tar>
+    <hadoop.folder>hadoop-2.7.1.2.3.4.0-3347</hadoop.folder>
     <hbase.winpkg.zip>https://msibuilds.blob.core.windows.net/hdp/2.x/2.2.4.2/2/hbase-0.98.4.2.2.4.2-0002-hadoop2.winpkg.zip</hbase.winpkg.zip>
     <hbase.winpkg.folder>hbase-0.98.4.2.2.4.2-0002-hadoop2</hbase.winpkg.folder>
     <hadoop.winpkg.zip>https://msibuilds.blob.core.windows.net/hdp/2.x/2.2.4.2/2/hadoop-2.6.0.2.2.4.2-0002.winpkg.zip</hadoop.winpkg.zip>
