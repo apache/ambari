@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import Script
 
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.resources.accounts import User
 from resource_management.core.resources.system import Directory, File, Execute
 from resource_management.core.source import Template
@@ -99,9 +100,16 @@ class Pxf(Script):
       shutil.copy2("{0}/pxf-privatehdp.classpath".format(params.pxf_conf_dir),
                    "{0}/pxf-private.classpath".format(params.pxf_conf_dir))
 
+    if params.security_enabled:
+      pxf_site_dict = dict(params.config['configurations']['pxf-site'])
+      pxf_site_dict['pxf.service.kerberos.principal'] = "{0}/_HOST@{1}".format(params.pxf_user, params.realm_name)
+      pxf_site = ConfigDictionary(pxf_site_dict)
+    else:
+      pxf_site = params.config['configurations']['pxf-site']
+
     XmlConfig("pxf-site.xml",
               conf_dir=params.pxf_conf_dir,
-              configurations=params.config['configurations']['pxf-site'],
+              configurations=pxf_site,
               configuration_attributes=params.config['configuration_attributes']['pxf-site'])
 
 
