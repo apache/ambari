@@ -20,14 +20,10 @@
     <i class="icon-ok"></i>&nbsp;<span>{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed.msg}}</span>
   {{/if}}
   {{#if view.fails.length}}
-    {{#if view.failTitle}}
-      <h4>{{view.failTitle}}</h4>
-    {{/if}}
-    {{#if view.failAlert}}
-      <div class="alert alert-warning">
-        {{view.failAlert}}
-      </div>
-    {{/if}}
+    <h4>{{view.failTitle}}</h4>
+    <div class="alert alert-warning">
+      {{view.failAlert}}
+    </div>
     <div class="limited-height-2">
       {{#each item in view.fails}}
         <i class="icon-remove"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>
@@ -36,14 +32,10 @@
     </div>
   {{/if}}
   {{#if view.warnings.length}}
-    {{#if view.warningTitle}}
-      <h4>{{view.warningTitle}}</h4>
-    {{/if}}
-    {{#if view.warningAlert}}
-      <div class="alert alert-warning">
-        {{view.warningAlert}}
-      </div>
-    {{/if}}
+    <h4>{{view.warningTitle}}</h4>
+    <div class="alert alert-warning">
+      {{view.warningAlert}}
+    </div>
     <div class="limited-height-2">
       {{#each item in view.warnings}}
         <i class="icon-warning-sign"></i>&nbsp;<span>{{item.UpgradeChecks.check}}</span>

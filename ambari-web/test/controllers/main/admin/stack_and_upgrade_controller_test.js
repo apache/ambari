@@ -454,7 +454,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
         expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
         if (item.check.id == 'CONFIG_MERGE') {
-          expect(App.showClusterCheckPopup.firstCall.args[2]).to.eql(item.configs);
+          expect(App.showClusterCheckPopup.firstCall.args[7]).to.eql(item.configs);
         }
       });
     });
