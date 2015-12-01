@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
@@ -51,8 +53,10 @@ import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -82,7 +86,20 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.captureBoolean;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createMockBuilder;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -335,7 +352,7 @@ public class AmbariManagementControllerImplTest {
 
     expect(service.getName()).andReturn("service");
     expect(service.getServiceComponent("component")).andThrow(
-        new ServiceComponentNotFoundException("cluster", "service", "component"));
+      new ServiceComponentNotFoundException("cluster", "service", "component"));
     expect(service.getDesiredStackVersion()).andReturn(stackId);
     expect(stackId.getStackName()).andReturn("stack");
     expect(stackId.getStackVersion()).andReturn("1.0");
@@ -345,7 +362,7 @@ public class AmbariManagementControllerImplTest {
     expect(service.getServiceComponents()).andReturn(componentsMap);
     expect(component1.getServiceComponentHosts()).andReturn(Collections.EMPTY_MAP);
     expect(component2.getServiceComponentHosts()).andReturn(
-        Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
+      Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     ComponentInfo compInfo = createNiceMock(ComponentInfo.class);
@@ -383,7 +400,7 @@ public class AmbariManagementControllerImplTest {
     expect(service.getServiceComponents()).andReturn(componentsMap);
     expect(component1.getServiceComponentHosts()).andReturn(Collections.EMPTY_MAP);
     expect(component2.getServiceComponentHosts()).andReturn(
-        Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
+      Collections.<String, ServiceComponentHost>singletonMap("anyHost", null));
 
     ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
     expect(serviceInfo.getClientComponent()).andReturn(null);
@@ -535,6 +552,71 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
     expect(cluster.getClusterName()).andReturn("clusterOld").times(2);
+
+    cluster.addSessionAttributes(anyObject(Map.class));
+    expectLastCall().once();
+
+    cluster.setClusterName("clusterNew");
+    expectLastCall();
+
+    // replay mocks
+    replay(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(actionManager, clusters, injector);
+    controller.updateClusters(setRequests, null);
+
+    // assert and verify
+    assertSame(controller, controllerCapture.getValue());
+    verify(actionManager, cluster, clusters, injector, clusterRequest, sessionManager);
+  }
+
+  /**
+   * Ensure that processing update request does not fail on configuration
+   * properties with no value specified (no value = null reference value)
+   */
+  @Test
+  public void testUpdateClustersWithNullConfigPropertyValues() throws Exception {
+    // member state mocks
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ActionManager actionManager = createNiceMock(ActionManager.class);
+    ClusterRequest clusterRequest = createNiceMock(ClusterRequest.class);
+
+    // requests
+    Set<ClusterRequest> setRequests = Collections.singleton(clusterRequest);
+
+    KerberosHelper kerberosHelper = createStrictMock(KerberosHelper.class);
+    // expectations
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(kerberosHelper);
+    expect(clusterRequest.getClusterName()).andReturn("clusterNew").anyTimes();
+    expect(clusterRequest.getClusterId()).andReturn(1L).anyTimes();
+
+    ConfigurationRequest configReq = new ConfigurationRequest();
+    final Map<String, String> configReqProps = Maps.newHashMap();
+    configReqProps.put("p1", null);
+    configReq.setProperties(configReqProps);
+
+    expect(clusterRequest.getDesiredConfig()).andReturn(ImmutableList.of(configReq)).anyTimes();
+    expect(clusters.getClusterById(1L)).andReturn(cluster).anyTimes();
+    expect(cluster.getClusterName()).andReturn("clusterOld").anyTimes();
+    expect(cluster.getConfigPropertiesTypes(anyObject(String.class))).andReturn(Maps.<PropertyInfo.PropertyType, Set<String>>newHashMap()).anyTimes();
+    expect(cluster.getDesiredConfigByType(anyObject(String.class))).andReturn(new ConfigImpl("config-type") {
+      @Override
+      public Map<String, Map<String, String>> getPropertiesAttributes() {
+        return Maps.newHashMap();
+      }
+
+      @Override
+      public Map<String, String> getProperties() {
+        return configReqProps;
+      }
+
+    }).anyTimes();
 
     cluster.addSessionAttributes(anyObject(Map.class));
     expectLastCall().once();
