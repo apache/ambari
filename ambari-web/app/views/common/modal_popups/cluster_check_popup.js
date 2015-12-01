@@ -22,30 +22,33 @@ var App = require('app');
  * popup to display requirements that are not met
  * for current action
  * @param data
- * @param header
- * @param failTitle
- * @param failAlert
- * @param warningTitle
- * @param warningAlert
- * @param callback
+ * @param popup
  * @param configs
  * @param upgradeVersion
  * @returns {*|void}
  */
-App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warningTitle, warningAlert, callback, configs, upgradeVersion) {
+App.showClusterCheckPopup = function (data, popup, configs, upgradeVersion) {
   var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
     warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
     hasConfigsMergeConflicts = !!(configs && configs.length),
-    popupBody = {
-      failTitle: failTitle,
-      failAlert: failAlert,
-      warningTitle: warningTitle,
-      warningAlert: warningAlert,
-      templateName: require('templates/common/modal_popups/cluster_check_dialog'),
-      fails: fails,
-      warnings: warnings,
-      hasConfigsMergeConflicts: hasConfigsMergeConflicts
-    };
+    primary,
+    secondary,
+    popupBody;
+  popup = popup || {};
+  primary = Em.isNone(popup.primary) ?
+    (fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway')) : popup.primary;
+  secondary = Em.isNone(popup.secondary) ? (fails.length ? false : Em.I18n.t('common.cancel')) : popup.secondary;
+  popupBody = {
+    failTitle: popup.failTitle,
+    failAlert: popup.failAlert,
+    warningTitle: popup.warningTitle,
+    warningAlert: popup.warningAlert,
+    templateName: require('templates/common/modal_popups/cluster_check_dialog'),
+    fails: fails,
+    warnings: warnings,
+    hasConfigsMergeConflicts: hasConfigsMergeConflicts,
+    isAllPassed: !fails.length && !warnings.length && !hasConfigsMergeConflicts
+  };
   if (hasConfigsMergeConflicts) {
     popupBody.configsMergeTable = Em.View.extend({
       templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
@@ -58,71 +61,15 @@ App.showClusterCheckPopup = function (data, header, failTitle, failAlert, warnin
     });
   }
   return App.ModalPopup.show({
-    primary: fails.length ? Em.I18n.t('common.dismiss') : Em.I18n.t('common.proceedAnyway'),
-    secondary: fails.length ? false : Em.I18n.t('common.cancel'),
-    header: header,
-    classNames: ['cluster-check-popup'],
-    bodyClass: Em.View.extend(popupBody),
-    onPrimary: function () {
-      if (!fails.length && callback) {
-        callback();
-      }
-      this._super();
-    }
-  });
-};
-
-
-/**
- * popup to display requirements that are not met
- * for current action
- * @param data
- * @param header
- * @param failTitle
- * @param failAlert
- * @param warningTitle
- * @param warningAlert
- * @param callback
- * @param configs
- * @param upgradeVersion
- * @returns {*|void}
- */
-App.showPreUpgradeCheckPopup = function (data, header, failTitle, failAlert, warningTitle, warningAlert, callback, configs, upgradeVersion) {
-  var fails = data.items.filterProperty('UpgradeChecks.status', 'FAIL'),
-    warnings = data.items.filterProperty('UpgradeChecks.status', 'WARNING'),
-    hasConfigsMergeConflicts = !!(configs && configs.length),
-    popupBody = {
-      failTitle: failTitle,
-      failAlert: failAlert,
-      warningTitle: warningTitle,
-      warningAlert: warningAlert,
-      templateName: require('templates/common/modal_popups/cluster_check_dialog'),
-      fails: fails,
-      warnings: warnings,
-      hasConfigsMergeConflicts: hasConfigsMergeConflicts,
-      isAllPassed: !fails.length && !warnings.length && !hasConfigsMergeConflicts.length
-    };
-  if (hasConfigsMergeConflicts) {
-    popupBody.configsMergeTable = Em.View.extend({
-      templateName: require('templates/main/admin/stack_upgrade/upgrade_configs_merge_table'),
-      configs: configs,
-      didInsertElement: function () {
-        App.tooltip($('.recommended-value'), {
-          title: upgradeVersion
-        });
-      }
-    });
-  }
-  return App.ModalPopup.show({
-    primary: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun'),
-    secondary: Em.I18n.t('common.cancel'),
-    header: header,
+    primary: primary,
+    secondary: secondary,
+    header: popup.header,
     classNames: ['cluster-check-popup'],
     bodyClass: Em.View.extend(popupBody),
     onPrimary: function () {
       this._super();
-      if (callback) {
-        callback();
+      if (!popup.noCallbackCondition && popup.callback) {
+        popup.callback();
       }
     }
   });

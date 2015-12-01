@@ -221,10 +221,18 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   runSecurityCheckSuccess: function (data, opt, params) {
     //TODO correct check
     if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
-      var header = Em.I18n.t('popup.clusterCheck.Security.header').format(params.label);
-      var title = Em.I18n.t('popup.clusterCheck.Security.title');
-      var alert = Em.I18n.t('popup.clusterCheck.Security.alert');
-      App.showClusterCheckPopup(data, header, title, alert);
+      var
+        hasFails = data.items.someProperty('UpgradeChecks.status', 'FAIL'),
+        header = Em.I18n.t('popup.clusterCheck.Security.header').format(params.label)
+         title = Em.I18n.t('popup.clusterCheck.Security.title')
+         alert = Em.I18n.t('popup.clusterCheck.Security.alert');
+
+      App.showClusterCheckPopup(data, {
+        header: header,
+        failTitle: title,
+        failAlert: alert,
+        noCallbackCondition: hasFails
+      });
     } else {
       this.startKerberosWizard();
     }
