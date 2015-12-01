@@ -1012,36 +1012,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
-          if (amsEnv != null) {
-            Map<String, String> amsEnvProperties = amsEnv.getProperties();
-
-            String metrics_collector_heapsize = amsEnvProperties.get("metrics_collector_heapsize");
-            String content = amsEnvProperties.get("content");
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("metrics_collector_heapsize", memoryToIntMb(metrics_collector_heapsize));
-            newProperties.put("content", updateAmsEnvContent(content));
-            updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
-          }
-          Config amsHbaseEnv = cluster.getDesiredConfigByType(AMS_HBASE_ENV);
-          if (amsHbaseEnv != null) {
-            Map<String, String> amsHbaseEnvProperties = amsHbaseEnv.getProperties();
-            String hbase_regionserver_heapsize = amsHbaseEnvProperties.get("hbase_regionserver_heapsize");
-            String regionserver_xmn_size = amsHbaseEnvProperties.get("regionserver_xmn_size");
-            String hbase_master_xmn_size = amsHbaseEnvProperties.get("hbase_master_xmn_size");
-            String hbase_master_maxperm_size = amsHbaseEnvProperties.get("hbase_master_maxperm_size");
-            String hbase_master_heapsize = amsHbaseEnvProperties.get("hbase_master_heapsize");
-            String content = amsHbaseEnvProperties.get("content");
-
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("hbase_regionserver_heapsize", memoryToIntMb(hbase_regionserver_heapsize));
-            newProperties.put("regionserver_xmn_size", memoryToIntMb(regionserver_xmn_size));
-            newProperties.put("hbase_master_xmn_size", memoryToIntMb(hbase_master_xmn_size));
-            newProperties.put("hbase_master_maxperm_size", memoryToIntMb(hbase_master_maxperm_size));
-            newProperties.put("hbase_master_heapsize", memoryToIntMb(hbase_master_heapsize));
-            newProperties.put("content", updateAmsHbaseEnvContent(content));
-            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_ENV, newProperties, true, true);
-          }
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
@@ -1158,44 +1128,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected String updateAmsEnvContent(String oldContent) {
-    if (oldContent == null) {
-      return null;
-    }
-    String regSearch = "export\\s*AMS_COLLECTOR_HEAPSIZE\\s*=\\s*\\{\\{metrics_collector_heapsize\\}\\}";
-    String replacement = "export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}m";
-    return oldContent.replaceAll(regSearch, replacement);
-  }
-
-  protected String updateAmsHbaseEnvContent(String content) {
-    if (content == null) {
-      return null;
-    }
-
-    String regSearch = "\\{\\{hbase_heapsize\\}\\}";
-    String replacement = "{{hbase_heapsize}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{hbase_master_maxperm_size\\}\\}";
-    replacement = "{{hbase_master_maxperm_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{hbase_master_xmn_size\\}\\}";
-    replacement = "{{hbase_master_xmn_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{regionserver_xmn_size\\}\\}";
-    replacement = "{{regionserver_xmn_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{regionserver_heapsize\\}\\}";
-    replacement = "{{regionserver_heapsize}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "export HBASE_HEAPSIZE=";
-    replacement = "#export HBASE_HEAPSIZE=";
-    content = content.replaceAll(regSearch, replacement);
-    content += "\n" +
-      "# The maximum amount of heap to use for hbase shell.\n" +
-      "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
-    return content;
-  }
-
   protected String updateHiveEnvContent(String hiveEnvContent) {
     if(hiveEnvContent == null) {
       return null;
@@ -1254,34 +1186,5 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         }
       } // else -- no special client-configuration is necessary.
     }
-  }
-
-  private String memoryToIntMb(String memorySize) {
-    if (memorySize == null) {
-      return "0";
-    }
-    Integer value = 0;
-    try {
-      value = Integer.parseInt(memorySize.replaceAll("\\D+", ""));
-    } catch (NumberFormatException ex) {
-      LOG.error(ex.getMessage());
-    }
-    char unit = memorySize.toUpperCase().charAt(memorySize.length() - 1);
-    // Recalculate memory size to Mb
-    switch (unit) {
-      case 'K':
-        value /= 1024;
-        break;
-      case 'B':
-        value /= (1024*1024);
-        break;
-      case 'G':
-        value *= 1024;
-        break;
-      case 'T':
-        value *= 1024*1024;
-        break;
-    }
-    return value.toString();
   }
 }
