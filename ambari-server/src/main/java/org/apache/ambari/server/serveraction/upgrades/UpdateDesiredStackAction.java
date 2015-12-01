@@ -27,9 +27,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.UpgradeResourceProvider;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
@@ -38,6 +40,8 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).
@@ -47,24 +51,29 @@ import com.google.inject.Inject;
  */
 public class UpdateDesiredStackAction extends AbstractServerAction {
 
-  private static final String COMMAND_PARAM_VERSION = VERSION;
-  private static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
-  private static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
-  private static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
+  /**
+   * Logger.
+   */
+  private static final Logger LOG = LoggerFactory.getLogger(UpdateDesiredStackAction.class);
+
+  public static final String COMMAND_PARAM_VERSION = VERSION;
+  public static final String COMMAND_DOWNGRADE_FROM_VERSION = "downgrade_from_version";
+  public static final String COMMAND_PARAM_DIRECTION = "upgrade_direction";
+  public static final String COMMAND_PARAM_UPGRADE_PACK = "upgrade_pack";
 
   /**
    * The original "current" stack of the cluster before the upgrade started.
    * This is the same regardless of whether the current direction is
    * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
    */
-  private static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
+  public static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
 
   /**
    * The target upgrade stack before the upgrade started. This is the same
    * regardless of whether the current direction is {@link Direction#UPGRADE} or
    * {@link Direction#DOWNGRADE}.
    */
-  private static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
+  public static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
 
   /**
    * The Cluster that this ServerAction implementation is executing on.
@@ -74,6 +83,12 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
 
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  /**
+   * The Ambari configuration.
+   */
+  @Inject
+  private Configuration m_configuration;
 
   @Override
   public CommandReport execute(ConcurrentMap<String, Object> requestSharedDataContext)
@@ -92,20 +107,34 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
     String clusterName = getExecutionCommand().getClusterName();
     UpgradePack upgradePack = ambariMetaInfo.getUpgradePacks(originalStackId.getStackName(), originalStackId.getStackVersion()).get(upgradePackName);
 
-    return updateDesiredStack(clusterName, originalStackId, targetStackId, version, direction, upgradePack);
+    Map<String, String> roleParams = getExecutionCommand().getRoleParams();
+
+    // Make a best attempt at setting the username
+    String userName;
+    if (roleParams != null && roleParams.containsKey(ServerAction.ACTION_USER_NAME)) {
+      userName = roleParams.get(ServerAction.ACTION_USER_NAME);
+    } else {
+      userName = m_configuration.getAnonymousAuditName();
+      LOG.warn(String.format("Did not receive role parameter %s, will save configs using anonymous username %s", ServerAction.ACTION_USER_NAME, userName));
+    }
+
+    return updateDesiredStack(clusterName, originalStackId, targetStackId, version, direction, upgradePack, userName);
   }
 
   /**
    * Set the cluster's Desired Stack Id during an upgrade.
    *
    * @param clusterName the name of the cluster the action is meant for
-   * @paran originalStackId the stack Id of the cluster before the upgrade.
-   * @paran targetStackId the stack Id that was desired for this upgrade.
+   * @param originalStackId the stack Id of the cluster before the upgrade.
+   * @param targetStackId the stack Id that was desired for this upgrade.
+   * @param direction direction, either upgrade or downgrade
+   * @param upgradePack Upgrade Pack to use
+   * @param userName username performing the action
    * @return the command report to return
    */
   private CommandReport updateDesiredStack(
       String clusterName, StackId originalStackId, StackId targetStackId,
-      String version, Direction direction, UpgradePack upgradePack)
+      String version, Direction direction, UpgradePack upgradePack, String userName)
       throws AmbariException, InterruptedException {
     StringBuilder out = new StringBuilder();
     StringBuilder err = new StringBuilder();
@@ -148,7 +177,7 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
       // Create Create new configurations that are a merge between the current stack and the desired stack
       // Also updates the desired stack version.
       UpgradeResourceProvider upgradeResourceProvider = new UpgradeResourceProvider(AmbariServer.getController());
-      upgradeResourceProvider.applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, upgradePack);
+      upgradeResourceProvider.applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, upgradePack, userName);
       String message = String.format("Success! Set cluster's %s Desired Stack Id to %s.\n", clusterName, targetStackId.getStackId());
       out.append(message);
 

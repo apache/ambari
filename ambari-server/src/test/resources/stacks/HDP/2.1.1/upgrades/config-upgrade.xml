@@ -24,6 +24,11 @@
         <changes>
           <definition xsi:type="configure" id="hdp_2_1_1_zk_post_upgrade">
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_1_1_zookeeper_new_config_type">
+            <type>zookeeper-newconfig</type>
+            <set key="fooKey" value="fooValue"/>
+          </definition>
         </changes>
       </component>
     </service>
@@ -39,6 +44,10 @@
             <type>hdfs-site</type>
             <key>myproperty</key>
             <value>mynewvalue</value>
+          </definition>
+          <definition xsi:type="configure" id="hdp_2_1_1_hdfs_new_config_type">
+            <type>hdfs-newconfig</type>
+            <set key="fooKey" value="fooValue"/>
           </definition>
         </changes>
       </component>
