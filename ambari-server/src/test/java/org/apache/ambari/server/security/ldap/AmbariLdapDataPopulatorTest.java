@@ -249,7 +249,7 @@ public class AmbariLdapDataPopulatorTest {
     expect(populator.getLdapGroups("group2")).andReturn(Collections.EMPTY_SET);
     LdapGroupDto externalGroup1 = createNiceMock(LdapGroupDto.class);
     LdapBatchDto batchInfo = new LdapBatchDto();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Set.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("group4")).andReturn(Collections.singleton(externalGroup1));
     expect(populator.getLdapGroups("group5")).andReturn(Collections.EMPTY_SET);
@@ -320,12 +320,12 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Set.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup1), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Set.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group1")).andReturn(Collections.singleton(externalGroup1));
@@ -399,10 +399,10 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
-    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Set.class));
+    populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup2), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
     expectLastCall();
     expect(populator.getLdapGroups("x*")).andReturn(externalGroups);
     expect(populator.getLdapGroups("group2")).andReturn(Collections.singleton(externalGroup2));
@@ -473,7 +473,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getLdapGroups("group*")).andReturn(externalGroups);
@@ -603,7 +603,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2, externalGroup3, externalGroup4);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
 
@@ -664,7 +664,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -728,7 +728,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -791,7 +791,7 @@ public class AmbariLdapDataPopulatorTest {
     LdapBatchDto batchInfo = new LdapBatchDto();
     Set<LdapGroupDto> externalGroups = createSet(externalGroup1, externalGroup2);
     for (LdapGroupDto externalGroup : externalGroups) {
-      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Set.class));
+      populator.refreshGroupMembers(eq(batchInfo), eq(externalGroup), anyObject(Map.class), anyObject(Map.class), anyObject(Set.class));
       expectLastCall();
     }
     expect(populator.getExternalLdapGroupInfo()).andReturn(externalGroups);
@@ -1344,19 +1344,28 @@ public class AmbariLdapDataPopulatorTest {
     expect(user3.isLdapUser()).andReturn(true).anyTimes();
     expect(user4.isLdapUser()).andReturn(false).anyTimes();
 
+    Group group1 = createNiceMock(Group.class);
+    Group group2 = createNiceMock(Group.class);
+    expect(group1.isLdapGroup()).andReturn(true).anyTimes();
+    expect(group2.isLdapGroup()).andReturn(true).anyTimes();
+    expect(group1.getGroupName()).andReturn("group1").anyTimes();
+    expect(group2.getGroupName()).andReturn("group2").anyTimes();
     Configuration configuration = createNiceMock(Configuration.class);
     Users users = createNiceMock(Users.class);
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
-
+    expect(ldapServerProperties.getGroupNamingAttr()).andReturn("cn").anyTimes();
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     replay(ldapTemplate, ldapServerProperties, users, configuration);
     replay(user1, user2, user3, user4);
+    replay(group1, group2);
 
     AmbariLdapDataPopulatorTestInstance populator = createMockBuilder(AmbariLdapDataPopulatorTestInstance.class)
-        .addMockedMethod("getLdapUserByMemberAttr")
-        .addMockedMethod("getInternalMembers")
-        .withConstructor(configuration, users)
-        .createNiceMock();
+      .addMockedMethod("getLdapUserByMemberAttr")
+      .addMockedMethod("getLdapGroupByMemberAttr")
+      .addMockedMethod("getInternalMembers")
+      .withConstructor(configuration, users)
+      .createNiceMock();
 
     LdapGroupDto externalGroup = createNiceMock(LdapGroupDto.class);
     expect(externalGroup.getGroupName()).andReturn("group1").anyTimes();
@@ -1380,9 +1389,10 @@ public class AmbariLdapDataPopulatorTest {
     replay(externalUser1, externalUser2, externalUser3, externalUser4);
     expect(populator.getLdapUserByMemberAttr("user1")).andReturn(externalUser1).anyTimes();
     expect(populator.getLdapUserByMemberAttr("user2")).andReturn(externalUser2).anyTimes();
-    expect(populator.getLdapUserByMemberAttr("user4")).andReturn(externalUser3).anyTimes();
+    expect(populator.getLdapUserByMemberAttr("user4")).andReturn(null).anyTimes();
+    expect(populator.getLdapGroupByMemberAttr("user4")).andReturn(externalGroup).anyTimes();
     expect(populator.getLdapUserByMemberAttr("user6")).andReturn(externalUser4).anyTimes();
-    expect(populator.getInternalMembers("group1")).andReturn(internalMembers);
+    expect(populator.getInternalMembers("group1")).andReturn(internalMembers).anyTimes();
     replay(populator);
 
     populator.setLdapTemplate(ldapTemplate);
@@ -1391,29 +1401,31 @@ public class AmbariLdapDataPopulatorTest {
     Map<String, User> internalUsers = new HashMap<String, User>();
     internalUsers.putAll(internalMembers);
     internalUsers.put("user2", user2);
+    Map<String, Group> internalGroups = new HashMap<String, Group>();
+    internalGroups.put("group2", group2);
 
-    populator.refreshGroupMembers(batchInfo, externalGroup, internalUsers, null);
+    populator.refreshGroupMembers(batchInfo, externalGroup, internalUsers, internalGroups, null);
 
     Set<String> groupMembersToAdd = new HashSet<String>();
     for (LdapUserGroupMemberDto ldapUserGroupMemberDto : batchInfo.getMembershipToAdd()) {
       groupMembersToAdd.add(ldapUserGroupMemberDto.getUserName());
     }
-    assertEquals(2, groupMembersToAdd.size());
+    assertEquals(3, groupMembersToAdd.size());
     assertTrue(groupMembersToAdd.contains("user2"));
     assertTrue(groupMembersToAdd.contains("user6"));
     Set<String> groupMembersToRemove = new HashSet<String>();
     for (LdapUserGroupMemberDto ldapUserGroupMemberDto : batchInfo.getMembershipToRemove()) {
       groupMembersToRemove.add(ldapUserGroupMemberDto.getUserName());
     }
-    assertEquals(1, groupMembersToRemove.size());
+    assertEquals(2, groupMembersToRemove.size());
     assertTrue(groupMembersToRemove.contains("user3"));
     assertEquals(1, batchInfo.getUsersToBeCreated().size());
     assertTrue(batchInfo.getUsersToBeCreated().contains("user6"));
-    assertEquals(2, batchInfo.getUsersToBecomeLdap().size());
+    assertEquals(1, batchInfo.getUsersToBecomeLdap().size());
     assertTrue(batchInfo.getUsersToBecomeLdap().contains("user1"));
-    assertTrue(batchInfo.getUsersToBecomeLdap().contains("user4"));
+    assertTrue(!batchInfo.getUsersToBecomeLdap().contains("user4"));
     assertTrue(batchInfo.getGroupsToBecomeLdap().isEmpty());
-    assertTrue(batchInfo.getGroupsToBeCreated().isEmpty());
+    assertEquals(1, batchInfo.getGroupsToBeCreated().size());
     assertTrue(batchInfo.getGroupsToBeRemoved().isEmpty());
     assertTrue(batchInfo.getUsersToBeRemoved().isEmpty());
     verify(populator.loadLdapTemplate(), populator);
@@ -1496,10 +1508,11 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(processor.getCookie()).andReturn(cookie).anyTimes();
     expect(cookie.getCookie()).andReturn(null).anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 
@@ -1532,10 +1545,11 @@ public class AmbariLdapDataPopulatorTest {
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
     expect(ldapServerProperties.isPaginationEnabled()).andReturn(false).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
+    expect(ldapServerProperties.getUsernameAttribute()).andReturn("uid").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
 
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), anyObject(SearchControls.class), capture(contextMapperCapture))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
 
