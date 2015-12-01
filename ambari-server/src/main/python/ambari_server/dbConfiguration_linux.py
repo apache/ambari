@@ -26,6 +26,7 @@ import socket
 import subprocess
 import sys
 import time
+import pwd
 
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.logging_utils import get_silent, get_verbose, print_error_msg, print_info_msg, print_warning_msg
@@ -407,6 +408,27 @@ class PGConfig(LinuxDBMSConfig):
     self._is_user_changed = PGConfig._is_jdbc_user_changed(self.database_username)
     print 'Default properties detected. Using built-in database.'
     self._store_local_properties(properties)
+
+  def _create_postgres_lock_directory(self):
+    postgres_user_uid = None
+    try:
+      postgres_user_uid = pwd.getpwnam("postgres").pw_uid
+    except KeyError:
+      print "WARNING: Unable to create /var/run/postgresql directory, because user [postgres] doesn't exist. Potentially," \
+            " postgresql service start can be failed."
+      return
+
+    try:
+      if not os.path.isdir("/var/run/postgresql"):
+        os.mkdir("/var/run/postgresql")
+    except Exception as e:
+      print "WARNING: Unable to create /var/run/postgresql directory. Potentially," \
+            " postgresql service start can be failed."
+      print "Unexpected error: " + str(e)
+      return
+
+    if postgres_user_uid:
+      os.chown("/var/run/postgresql", postgres_user_uid, -1)
 
   def _setup_local_database(self):
     print 'Checking PostgreSQL...'

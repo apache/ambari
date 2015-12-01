@@ -2534,16 +2534,26 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
-  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("os.path.isdir")
+  @patch("os.mkdir")
+  @patch("os.chown")
+  @patch("pwd.getpwnam")
+  @patch.object(OSCheck, "get_os_family")
   @patch.object(PGConfig, "_setup_local_server")
   @patch("ambari_server.dbConfiguration_linux.print_info_msg")
   @patch("ambari_server.dbConfiguration_linux.read_password")
   @patch("ambari_server.dbConfiguration_linux.get_validated_string_input")
   @patch("ambari_server.dbConfiguration.get_validated_string_input")
   @patch("ambari_server.serverSetup.get_YN_input")
-  def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, gvsi_2_mock, rp_mock, print_info_msg_mock, sls_mock):
+  def test_prompt_db_properties_postgre_adv(self, gyni_mock, gvsi_mock, gvsi_2_mock, rp_mock, print_info_msg_mock, sls_mock,
+                                            get_os_family_mock, get_pw_nam_mock, chown_mock, mkdir_mock, isdir_mock):
     gyni_mock.return_value = True
     list_of_return_values = ["ambari-server", "ambari", "ambari", "1"]
+    get_os_family_mock.return_value = OSConst.SUSE_FAMILY
+    pw = MagicMock()
+    pw.setattr('pw_uid', 0)
+    pw.setattr('pw_gid', 0)
+    get_pw_nam_mock.return_value = pw
 
     def side_effect(*args, **kwargs):
       return list_of_return_values.pop()
@@ -2582,11 +2592,15 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(dbmsConfig.database_username, "ambari")
     self.assertEqual(dbmsConfig.database_password, "bigdata")
 
+    isdir_mock.return_value = False
+
     dbmsConfig.configure_database(props)
 
     self.assertEqual(dbmsConfig.database_username, "ambari-server")
     self.assertEqual(dbmsConfig.database_password, "password")
     self.assertEqual(dbmsConfig.sid_or_sname, "sid")
+    self.assertTrue(chown_mock.called)
+    self.assertTrue(mkdir_mock.called)
     pass
 
   @not_for_platform(PLATFORM_WINDOWS)
@@ -2865,6 +2879,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("pwd.getpwnam")
   @patch("ambari_commons.firewall.run_os_command")
   @patch("os.path.exists")
   @patch("os.path.isfile")
@@ -2907,7 +2922,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  store_password_file_mock, get_ambari_properties_1_mock, get_ambari_properties_2_mock,
                  update_properties_mock, get_YN_input_1_mock, ensure_jdbc_driver_installed_mock,
                  remove_file_mock, isfile_mock, exists_mock,
-                 run_os_command_mock):
+                 run_os_command_mock, get_pw_nam_mock):
     hostname = "localhost"
     db_name = "db_ambari"
     postgres_schema = "sc_ambari"
@@ -2931,6 +2946,10 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     failed = False
     properties = Properties()
 
+    def side_effect(username):
+      raise KeyError("")
+
+    get_pw_nam_mock.side_effect = side_effect
     get_YN_input_mock.return_value = False
     isfile_mock.return_value = False
     verify_setup_allowed_method.return_value = 0
