@@ -19,7 +19,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.ambari.contrib.views</groupId>
     <artifactId>capacity-scheduler</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0.0-SNAPSHOT</version>
     <name>Capacity Scheduler</name>
 
     <parent>
@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hadoop-version}</version>
+            <version>${hadoop.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>tomcat</groupId>
@@ -81,7 +81,7 @@
         <dependency>
             <groupId>org.apache.ambari.contrib.views</groupId>
             <artifactId>ambari-views-utils</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>0.0.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
@@ -92,7 +92,6 @@
     </dependencies>
 
     <properties>
-      <hadoop-version>2.6.0</hadoop-version>
       <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
       <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
     </properties>

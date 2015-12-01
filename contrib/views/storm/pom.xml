@@ -28,7 +28,7 @@
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>storm-view</artifactId>
   <name>Storm_Monitoring</name>
-  <version>0.1.0</version>
+  <version>0.1.0.0</version>
   <description>Storm Monitoring View</description>
 
   <build>
