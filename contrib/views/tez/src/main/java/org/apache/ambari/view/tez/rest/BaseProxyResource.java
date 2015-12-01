@@ -19,7 +19,6 @@
 package org.apache.ambari.view.tez.rest;
 
 import com.google.inject.Inject;
-import org.apache.ambari.view.tez.exceptions.ProxyException;
 import org.apache.ambari.view.tez.utils.ProxyHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -28,13 +27,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-import java.net.URI;
-import java.net.URISyntaxException;
+import javax.ws.rs.core.*;
 import java.util.HashMap;
 
 /**
@@ -57,18 +50,6 @@ public abstract class BaseProxyResource {
     String response = proxyHelper.getResponse(url, new HashMap<String, String>());
 
     JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
-
-    // If the endpoint returns some other format apart from JSON,
-    // we will only redirect the request. This is required because UI may call
-    // the proxy endpoint to directly point to any URL of RM/ATS.
-    if (jsonObject == null) {
-      try {
-        return Response.temporaryRedirect(new URI(url)).build();
-      } catch (URISyntaxException e) {
-        throw new ProxyException("Failed to set the redirection url to : " + url + ".Internal Error.",
-          Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
-      }
-    }
     return Response.ok(jsonObject).type(MediaType.APPLICATION_JSON).build();
   }
 
