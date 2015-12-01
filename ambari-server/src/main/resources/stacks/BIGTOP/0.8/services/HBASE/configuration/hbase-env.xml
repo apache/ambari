@@ -25,11 +25,17 @@
     <name>hbase_log_dir</name>
     <value>/var/log/hbase</value>
     <description>Log Directories for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_pid_dir</name>
     <value>/var/run/hbase</value>
     <description>Pid Directory for HBase.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_regionserver_heapsize</name>
