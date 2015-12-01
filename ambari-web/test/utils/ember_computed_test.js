@@ -806,6 +806,10 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.be.false;
     });
 
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1']);
+    });
+
   });
 
   describe('#someBy', function () {
@@ -829,6 +833,10 @@ describe('Ember.computed macros', function () {
     it('`false` for null/undefined collection', function () {
       this.obj.set('prop1', null);
       expect(this.obj.get('prop2')).to.be.false;
+    });
+
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1.@each.a']);
     });
 
   });
@@ -856,6 +864,10 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.be.false;
     });
 
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1.@each.a']);
+    });
+
   });
 
   describe('#mapBy', function () {
@@ -879,6 +891,10 @@ describe('Ember.computed macros', function () {
     it('`[]` for null/undefined collection', function () {
       this.obj.set('prop1', null);
       expect(this.obj.get('prop2')).to.eql([]);
+    });
+
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1.@each.a']);
     });
 
   });
@@ -906,6 +922,10 @@ describe('Ember.computed macros', function () {
       expect(this.obj.get('prop2')).to.eql([]);
     });
 
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1.@each.a']);
+    });
+
   });
 
   describe('#findBy', function () {
@@ -929,6 +949,10 @@ describe('Ember.computed macros', function () {
     it('`null` for null/undefined collection', function () {
       this.obj.set('prop1', null);
       expect(this.obj.get('prop2')).to.be.null;
+    });
+
+    it('`prop2` has valid dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop2._dependentKeys).to.eql(['prop1.@each.a']);
     });
 
   });
@@ -1302,6 +1326,142 @@ describe('Ember.computed macros', function () {
 
     it('prop6 depends on blank values', function () {
       expect(this.obj.get('prop6')).to.be.null;
+    });
+
+  });
+
+  describe('#format', function () {
+
+    beforeEach(function () {
+
+      App.setProperties({
+        someAnotherKey: 'some value'
+      });
+
+      this.obj = Em.Object.create({
+        prop1: 'abc',
+        prop2: 'cba',
+        prop3: 'aaa',
+        prop4: Em.computed.format('{0} {1} {2}', 'prop1', 'prop2', 'prop3'),
+        prop5: Em.computed.format(null, 'prop1', 'prop2', 'prop3'),
+        prop6: Em.computed.format('{0} {1} {2}', 'App.someRandomTestingKey', 'prop2', 'prop3')
+      });
+    });
+
+    it('`prop4` check dependent keys', function () {
+      expect(Em.meta(this.obj).descs.prop4._dependentKeys).to.eql(['prop1', 'prop2', 'prop3']);
+    });
+
+    it('should format message', function () {
+      expect(this.obj.get('prop4')).to.equal('abc cba aaa');
+    });
+
+    it('should format message (2)', function () {
+      this.obj.set('prop1', 'aaa');
+      expect(this.obj.get('prop4')).to.equal('aaa cba aaa');
+    });
+
+    it('empty string for not existing i18-key', function () {
+      expect(this.obj.get('prop5')).to.equal('');
+    });
+
+    it('`prop6` depends on App.* key', function () {
+      expect(this.obj.get('prop6')).to.equal('some value cba aaa');
+      App.set('someAnotherKey', '');
+      expect(this.obj.get('prop6')).to.equal(' cba aaa');
+    });
+
+    it('prop6 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop6._dependentKeys).to.eql(['App.someRandomTestingKey', 'prop2', 'prop3']);
+    });
+
+  });
+
+  describe('#formatUnavailable', function () {
+
+    beforeEach(function () {
+      App.setProperties({
+        someAnotherKey: 1
+      });
+
+      this.obj = Em.Object.create({
+        prop1: 1,
+        prop2: Em.computed.formatUnavailable('prop1'),
+        prop3: Em.computed.formatUnavailable('App.someRandomTestingKey')
+      });
+    });
+
+    it('`value` is 1', function () {
+      expect(this.obj.get('prop2')).to.equal(1);
+      expect(this.obj.get('prop3')).to.equal(1);
+    });
+
+    it('`value` is 0', function () {
+      App.set('someAnotherKey', 0);
+      this.obj.set('prop1', 0);
+      expect(this.obj.get('prop2')).to.equal(0);
+      expect(this.obj.get('prop3')).to.equal(0);
+    });
+
+    it('`value` is `0`', function () {
+      App.set('someAnotherKey', '0');
+      this.obj.set('prop1', '0');
+      expect(this.obj.get('prop2')).to.equal('0');
+      expect(this.obj.get('prop3')).to.equal('0');
+    });
+
+    it('`value` is not numeric', function () {
+      App.set('someAnotherKey', null);
+      this.obj.set('prop1', null);
+      expect(this.obj.get('prop2')).to.equal('n/a');
+      expect(this.obj.get('prop3')).to.equal('n/a');
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['App.someRandomTestingKey']);
+    });
+
+  });
+
+  describe('#countBasedMessage', function () {
+
+    var msg0 = 'msg0';
+    var msg1 = 'msg1';
+    var msgM = 'msgM';
+
+    beforeEach(function () {
+      App.setProperties({
+        someAnotherKey: 1
+      });
+
+      this.obj = Em.Object.create({
+        prop1: 1,
+        prop2: Em.computed.countBasedMessage('prop1', msg0, msg1, msgM),
+        prop3: Em.computed.countBasedMessage('App.someRandomTestingKey', msg0, msg1, msgM)
+      });
+    });
+
+    it('`value` is 1', function () {
+      expect(this.obj.get('prop2')).to.equal(msg1);
+      expect(this.obj.get('prop3')).to.equal(msg1);
+    });
+
+    it('`value` is 0', function () {
+      App.set('someAnotherKey', 0);
+      this.obj.set('prop1', 0);
+      expect(this.obj.get('prop2')).to.equal(msg0);
+      expect(this.obj.get('prop3')).to.equal(msg0);
+    });
+
+    it('`value` is greater than 1', function () {
+      App.set('someAnotherKey', 3);
+      this.obj.set('prop1', 3);
+      expect(this.obj.get('prop2')).to.equal(msgM);
+      expect(this.obj.get('prop3')).to.equal(msgM);
+    });
+
+    it('prop3 dependent keys are valid', function () {
+      expect(Em.meta(this.obj).descs.prop3._dependentKeys).to.eql(['App.someRandomTestingKey']);
     });
 
   });
