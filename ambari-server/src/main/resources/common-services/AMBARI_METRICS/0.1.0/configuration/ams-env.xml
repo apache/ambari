@@ -83,7 +83,7 @@ export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
 export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 
 # AMS Collector heapsize
-export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}m
+export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
 
 # AMS Collector options
 export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
