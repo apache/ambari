@@ -685,6 +685,72 @@ class TestHiveMetastore(RMFTestCase):
   @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
   @patch("resource_management.libraries.functions.get_hdp_version")
+  def test_upgrade_metastore_schema_using_new_db(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
+    get_hdp_version_mock.return_value = '2.3.0.0-1234'
+
+    def side_effect(path):
+      if path == "/usr/hdp/2.2.7.0-1234/hive-server2/lib/mysql-connector-java.jar":
+        return True
+      if path == "/usr/hdp/current/hive-client/lib/mysql-connector-java.jar":
+        return True
+      if ".j2" in path:
+        return True
+      return False
+
+    os_path_exists_mock.side_effect = side_effect
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/hive-metastore-upgrade.json"
+
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_metastore.py",
+      classname = "HiveMetastore",
+      command = "upgrade_schema",
+      config_dict = json_content,
+      hdp_stack_version = self.STACK_VERSION,
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, ''), (0, None)],
+      mocks_dict = mocks_dict)
+
+
+    # we don't care about configure here - the strings are different anyway because this
+    # is an upgrade, so just pop those resources off of the call stack
+    self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
+      mode = 0755, recursive = True, cd_access = 'a')
+
+    self.assertResourceCalled('Execute', ('cp',
+     '--remove-destination',
+     '/usr/share/java/mysql-connector-java.jar',
+     '/usr/hdp/current/hive-metastore/lib/mysql-connector-java.jar'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/current/hive-metastore/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', ('cp',
+     '/usr/hdp/2.3.0.0-2557/hive/lib/mysql-connector-java.jar',
+     '/usr/hdp/2.3.2.0-2950/hive/lib'),
+        path = ['/bin', '/usr/bin/'],
+        sudo = True,
+    )
+    self.assertResourceCalled('File', '/usr/hdp/2.3.2.0-2950/hive/lib/mysql-connector-java.jar',
+        mode = 0644,
+    )
+    self.assertResourceCalled('Execute', '/usr/hdp/2.3.2.0-2950/hive/bin/schematool -dbType mysql -upgradeSchema',
+        logoutput = True,
+        environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-metastore/conf/conf.server'},
+        tries = 1,
+        user = 'hive',
+    )
+
+    self.assertNoMoreResources()
+
+  @patch("os.path.exists")
+  @patch("resource_management.core.shell.call")
+  @patch("resource_management.libraries.functions.get_hdp_version")
   def test_upgrade_sqla_metastore_schema_with_jdbc_download(self, get_hdp_version_mock, call_mock, os_path_exists_mock):
 
     get_hdp_version_mock.return_value = '2.3.0.0-1234'
