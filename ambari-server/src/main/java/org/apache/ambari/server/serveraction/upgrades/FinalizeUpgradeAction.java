@@ -163,7 +163,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         boolean hostHasCorrectVersionState = false;
         RepositoryVersionState hostVersionState = hostVersion.getState();
         switch( hostVersionState ){
-          case UPGRADED:{
+          case UPGRADED:
+          case CURRENT:{
             // if the state is correct, then do nothing
             hostHasCorrectVersionState = true;
             break;

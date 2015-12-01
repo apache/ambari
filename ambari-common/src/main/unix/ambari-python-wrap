@@ -19,9 +19,6 @@
 
 export PYTHONPATH=/usr/lib/python2.6/site-packages:/usr/lib/python2.6/site-packages/ambari_commons:$PYTHONPATH
 
-# reset settings
-unset PYTHON
-
 # checking for default Python 2
 if [ -a /usr/bin/python2 ] && [ -z "$PYTHON" ]; then
   PYTHON=/usr/bin/python2

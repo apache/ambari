@@ -76,9 +76,16 @@ App.MainServiceController = Em.ArrayController.extend({
     if (this.get('isStartStopAllClicked') == true) {
       return true;
     }
-    var startedServiceLength = this.get('content').filterProperty('healthStatus', 'green').length;
-    return (startedServiceLength === 0);
+    return !this.get('content').someProperty('healthStatus', 'green');
   }.property('isStartStopAllClicked', 'content.@each.healthStatus'),
+
+  /**
+   * Should "Refresh All"-button be disabled
+   * @type {bool}
+   */
+  isRestartAllRequiredDisabled: function () {
+    return !this.get('content').someProperty('isRestartRequired');
+  }.property('content.@each.isRestartRequired'),
 
   /**
    * @type {bool}
@@ -289,5 +296,57 @@ App.MainServiceController = Em.ArrayController.extend({
     }
     App.router.get('addServiceController').setDBProperty('onClosePath', 'main.services.index');
     App.router.transitionTo('main.serviceAdd');
+  },
+
+  /**
+   * Show confirmation popup and send request to restart all host components with stale_configs=true
+   */
+  restartAllRequired: function () {
+    var self = this;
+    var servicesList = [];
+    var hostComponentsToRestart = [];
+    App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
+      hostComponentsToRestart.push({
+        component_name: hostComponent.get('componentName'),
+        service_name: hostComponent.get('service.serviceName'),
+        hosts: hostComponent.get('hostName')
+      });
+      servicesList.push(hostComponent.get('service.displayName'));
+    });
+    return App.showConfirmationPopup(function () {
+      self.restartHostComponents(hostComponentsToRestart);
+    }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+  },
+
+  /**
+   * Send request restart host components from hostComponentsToRestart
+   * @returns {$.ajax}
+   */
+  restartHostComponents: function (hostComponentsToRestart) {
+    App.ajax.send({
+      name: 'restart.hostComponents',
+      sender: this,
+      data: {
+        context: 'Restart all required services',
+        resource_filters: hostComponentsToRestart,
+        operation_level: {
+          level: "CLUSTER",
+          cluster_name: App.get('clusterName')
+        }
+      },
+      success: 'restartAllRequiredSuccessCallback'
+    });
+  },
+
+  /**
+   * Success callback for restartAllRequired
+   */
+  restartAllRequiredSuccessCallback: function () {
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('userSettingsController').dataLoading('show_bg').done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
   }
 });

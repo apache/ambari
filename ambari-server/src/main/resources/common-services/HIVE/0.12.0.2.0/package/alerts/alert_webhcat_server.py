@@ -22,6 +22,8 @@ import ambari_simplejson as json # simplejson is much faster comparing to Python
 import socket
 import time
 import urllib2
+import traceback
+import logging
 
 from resource_management.core.environment import Environment
 from resource_management.core.resources import Execute
@@ -37,8 +39,8 @@ RESULT_CODE_CRITICAL = "CRITICAL"
 RESULT_CODE_UNKNOWN = "UNKNOWN"
 
 OK_MESSAGE = "WebHCat status was OK ({0:.3f}s response from {1})"
-CRITICAL_CONNECTION_MESSAGE = "Connection failed to {0}"
-CRITICAL_HTTP_MESSAGE = "HTTP {0} response from {1}"
+CRITICAL_CONNECTION_MESSAGE = "Connection failed to {0} + \n{1}"
+CRITICAL_HTTP_MESSAGE = "HTTP {0} response from {1} \n{2}"
 CRITICAL_WEBHCAT_STATUS_MESSAGE = 'WebHCat returned an unexpected status of "{0}"'
 CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE = "Unable to determine WebHCat health from unexpected JSON response"
 
@@ -71,6 +73,7 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 
 # default smoke user
 SMOKEUSER_DEFAULT = 'ambari-qa'
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -162,12 +165,12 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       # 0 indicates no connection
       if response_code == 0:
-        label = CRITICAL_CONNECTION_MESSAGE.format(query_url)
+        label = CRITICAL_CONNECTION_MESSAGE.format(query_url, traceback.format_exc())
         return (RESULT_CODE_CRITICAL, [label])
 
       # any other response aside from 200 is a problem
       if response_code != 200:
-        label = CRITICAL_HTTP_MESSAGE.format(response_code, query_url)
+        label = CRITICAL_HTTP_MESSAGE.format(response_code, query_url, traceback.format_exc())
         return (RESULT_CODE_CRITICAL, [label])
 
       # now that we have the http status and it was 200, get the content
@@ -176,8 +179,8 @@ def execute(configurations={}, parameters={}, host_name=None):
                                                       False, "WebHCat Server Status", smokeuser,
                                                       connection_timeout=curl_connection_timeout)
       json_response = json.loads(stdout)
-    except Exception, exception:
-      return (RESULT_CODE_CRITICAL, [str(exception)])
+    except:
+      return (RESULT_CODE_CRITICAL, [traceback.format_exc()])
   else:
     url_response = None
 
@@ -189,10 +192,10 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       json_response = json.loads(url_response.read())
     except urllib2.HTTPError as httpError:
-      label = CRITICAL_HTTP_MESSAGE.format(httpError.code, query_url)
+      label = CRITICAL_HTTP_MESSAGE.format(httpError.code, query_url, traceback.format_exc())
       return (RESULT_CODE_CRITICAL, [label])
     except:
-      label = CRITICAL_CONNECTION_MESSAGE.format(query_url)
+      label = CRITICAL_CONNECTION_MESSAGE.format(query_url, traceback.format_exc())
       return (RESULT_CODE_CRITICAL, [label])
     finally:
       if url_response is not None:
@@ -204,14 +207,14 @@ def execute(configurations={}, parameters={}, host_name=None):
 
   # if status is not in the response, we can't do any check; return CRIT
   if 'status' not in json_response:
-    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE])
+    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE + str(json_response)])
 
 
   # URL response received, parse it
   try:
     webhcat_status = json_response['status']
   except:
-    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE])
+    return (RESULT_CODE_CRITICAL, [CRITICAL_WEBHCAT_UNKNOWN_JSON_MESSAGE + "\n" + traceback.format_exc()])
 
 
   # proper JSON received, compare against known value

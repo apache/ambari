@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>spark_user</name>
     <display-name>Spark User</display-name>
@@ -46,11 +46,17 @@
     <name>spark_log_dir</name>
     <value>/var/log/spark</value>
     <description>Spark Log Dir</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
     <name>spark_pid_dir</name>
     <value>/var/run/spark</value>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <!-- spark-env.sh -->

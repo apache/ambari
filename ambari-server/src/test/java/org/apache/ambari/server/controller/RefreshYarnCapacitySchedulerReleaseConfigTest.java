@@ -57,7 +57,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   private AmbariMetaInfo ambariMetaInfo;
   private Clusters clusters;
   private ConfigHelper configHelper;
-  
+
   @Before
   public void setup() throws Exception {
 

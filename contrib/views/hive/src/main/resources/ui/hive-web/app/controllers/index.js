@@ -294,7 +294,7 @@ export default Ember.Controller.extend({
           return constants.namingConventions.explainPrefix + query;
         }
       } else {
-        return query.replace(/explain formatted|explain/gi, '');
+        return query;
       }
     });
 
@@ -660,6 +660,14 @@ export default Ember.Controller.extend({
 
     executeQuery: function (referrer, query) {
       var self = this;
+
+      var isExplainQuery = (self.get('openQueries.currentQuery.fileContent').toUpperCase().trim().indexOf(constants.namingConventions.explainPrefix) === 0);
+
+      if(isExplainQuery){
+        self.send('explainQuery');
+        return;
+      }
+
       var subroute;
 
       if (query) {

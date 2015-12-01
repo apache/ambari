@@ -136,9 +136,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * List of installed services
    * @type {Object[]}
    */
-  installedServices: function () {
-    return this.get('content.services').filterProperty('isInstalled');
-  }.property('content.services').cacheable(),
+  installedServices: Em.computed.filterBy('content.services', 'isInstalled', true),
 
   /**
    * Current cluster name
@@ -1056,13 +1054,37 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method createMasterHostComponents
    */
   createMasterHostComponents: function () {
+    var masterOnAllHosts = [];
+
+    this.get('content.services').filterProperty('isSelected').forEach(function (service) {
+      service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
+        if (component.get('isMaster')) {
+          masterOnAllHosts.push(component.get('componentName'));
+        }
+      }, this);
+    }, this);
+
     // create master components for only selected services.
     var selectedMasterComponents = this.get('content.masterComponentHosts').filter(function (_component) {
       return this.get('selectedServices').mapProperty('serviceName').contains(_component.serviceId)
     }, this);
     selectedMasterComponents.mapProperty('component').uniq().forEach(function (component) {
-      var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
-      this.registerHostsToComponent(hostNames, component);
+      if (masterOnAllHosts.length > 0) {
+        var compOnAllHosts = false;
+        for (var i=0; i < masterOnAllHosts.length; i++) {
+          if (component.component_name == masterOnAllHosts[i]) {
+            compOnAllHosts = true;
+            break;
+          }
+        }
+        if (!compOnAllHosts) {
+          var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
+          this.registerHostsToComponent(hostNames, component);
+        }
+      } else {
+        var hostNames = selectedMasterComponents.filterProperty('component', component).filterProperty('isInstalled', false).mapProperty('hostName');
+        this.registerHostsToComponent(hostNames, component);
+      }
     }, this);
   },
 
@@ -1079,6 +1101,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     });
     return clientsMap;
   },
+
   /**
    * Register slave components and clients
    * @uses registerHostsToComponent
@@ -1088,6 +1111,18 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var masterHosts = this.get('content.masterComponentHosts');
     var slaveHosts = this.get('content.slaveComponentHosts');
     var clients = this.get('content.clients').filterProperty('isInstalled', false);
+    var slaveOnAllHosts = [];
+    var clientOnAllHosts = [];
+
+    this.get('content.services').filterProperty('isSelected').forEach(function (service) {
+      service.get('serviceComponents').filterProperty('isRequiredOnAllHosts').forEach(function (component) {
+        if (component.get('isClient')) {
+          clientOnAllHosts.push(component.get('componentName'));
+        } else if (component.get('isSlave')) {
+          slaveOnAllHosts.push(component.get('componentName'));
+        }
+      }, this);
+    }, this);
 
     /**
      * Determines on which hosts client should be installed (based on availability of master components on hosts)
@@ -1105,8 +1140,24 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     slaveHosts.forEach(function (_slave) {
       if (_slave.componentName !== 'CLIENT') {
-        var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
-        this.registerHostsToComponent(hostNames, _slave.componentName);
+        if (slaveOnAllHosts.length > 0) {
+          var compOnAllHosts = false;
+          for (var i=0; i < slaveOnAllHosts.length; i++) {
+            if (_slave.component_name == slaveOnAllHosts[i]) {
+              // component with ALL cardinality should not
+              // registerHostsToComponent in createSlaveAndClientsHostComponents
+              compOnAllHosts = true;
+              break;
+            }
+          }
+          if (!compOnAllHosts) {
+            var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
+            this.registerHostsToComponent(hostNames, _slave.componentName);
+          }
+        } else {
+          var hostNames = _slave.hosts.filterProperty('isInstalled', false).mapProperty('hostName');
+          this.registerHostsToComponent(hostNames, _slave.componentName);
+        }
       }
       else {
         clients.forEach(function (_client) {
@@ -1122,8 +1173,24 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
               });
             }
           }
-          hostNames = hostNames.uniq();
-          this.registerHostsToComponent(hostNames, _client.component_name);
+          if (clientOnAllHosts.length > 0) {
+            var compOnAllHosts = false;
+            for (var i=0; i < clientOnAllHosts.length; i++) {
+              if (_client.component_name == clientOnAllHosts[i]) {
+                // component with ALL cardinality should not
+                // registerHostsToComponent in createSlaveAndClientsHostComponents
+                compOnAllHosts = true;
+                break;
+              }
+            }
+            if (!compOnAllHosts) {
+              hostNames = hostNames.uniq();
+              this.registerHostsToComponent(hostNames, _client.component_name);
+            }
+          } else {
+            hostNames = hostNames.uniq();
+            this.registerHostsToComponent(hostNames, _client.component_name);
+          }
         }, this);
       }
     }, this);
@@ -1222,6 +1289,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var masterHosts = this.get('content.masterComponentHosts');
 
     // add all components with cardinality == ALL of selected services
+
     var registeredHosts = this.getRegisteredHosts();
     var notInstalledHosts = registeredHosts.filterProperty('isInstalled', false);
     this.get('content.services').filterProperty('isSelected').forEach(function (service) {
@@ -1378,7 +1446,16 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       if (serviceConfigData.length) {
         allConfigData.pushObject(JSON.stringify({
           Clusters: {
-            desired_config: serviceConfigData
+            desired_config: serviceConfigData.map(function(item) {
+              var props = {};
+              Em.keys(item.properties).forEach(function(propName) {
+                if (item.properties[propName] !== null) {
+                  props[propName] = item.properties[propName];
+                }
+              });
+              item.properties = props;
+              return item;
+            })
           }
         }));
       }

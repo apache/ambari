@@ -343,149 +343,6 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#activateSpecialConfigs', function () {
-    var expected = [{
-       "smokeuser": {
-         "isEditable": true
-       },
-       "group": {
-         "isEditable": true
-       },
-       "services": [
-         {
-           "serviceName": "s1",
-           "isSelected": true,
-           "isInstalled": false
-         },
-         {
-           "serviceName": "s2",
-           "isSelected": false,
-           "isInstalled": false
-         },
-         {
-           "serviceName": "s3",
-           "isSelected": true,
-           "isInstalled": true
-         },
-         {
-           "serviceName": "s4",
-           "isSelected": false,
-           "isInstalled": false
-         },
-         {
-           "serviceName": "s5",
-           "isSelected": true,
-           "isInstalled": false
-         },
-         {
-           "serviceName": "s6",
-           "isSelected": false,
-           "isInstalled": false
-         },
-         {
-           "serviceName": "s7",
-           "isSelected": true,
-           "isInstalled": true
-         },
-         {
-           "serviceName": "s8",
-           "isSelected": false,
-           "isInstalled": false
-         }
-       ]
-      },[
-        {
-          "serviceName": "MISC",
-          "configs": [
-            {
-              "name": "smokeuser",
-              "value": {
-                "isEditable": true
-              },
-              "isEditable": false
-            },
-            {
-              "name": "user_group",
-              "value": {
-                "isEditable": true
-              },
-              "isEditable": false
-            },
-            {
-              "name": "kdc_type"
-            }
-          ]
-        },
-        {
-          "serviceName": "KERBEROS",
-          "configs": [
-            {
-              "name": "smokeuser",
-              "value": {
-                "isEditable": true
-              },
-              "isEditable": false
-            },
-            {
-              "name": "user_group",
-              "value": {
-                "isEditable": true
-              },
-              "isEditable": false
-            },
-            {
-              "name": "kdc_type"
-            }
-          ]
-        }
-      ]];
-      var allSelectedServiceNames = ['SLIDER', 'YARN'];
-      var configs = Em.A([Em.Object.create({
-        name: 'smokeuser',
-        value: ''
-      }),Em.Object.create({
-        name: 'user_group',
-        value: ''
-      }),Em.Object.create({
-        name: 'kdc_type',
-        value: ''
-      })]);
-      var stepConfigs = Em.A([Em.Object.create({serviceName: 'MISC', configs: configs}),
-                              Em.Object.create({serviceName: 'KERBEROS', configs: configs})]);
-      var content = Em.Object.create({
-        smokeuser: Em.Object.create({isEditable: true}),
-        group: Em.Object.create({isEditable: true}),
-        services: Em.A([
-          Em.Object.create({isSelected: true, isInstalled: false, serviceName: 's1'}),
-          Em.Object.create({isSelected: false, isInstalled: false, serviceName: 's2'}),
-          Em.Object.create({isSelected: true, isInstalled: true, serviceName: 's3'}),
-          Em.Object.create({isSelected: false, isInstalled: false, serviceName: 's4'}),
-          Em.Object.create({isSelected: true, isInstalled: false, serviceName: 's5'}),
-          Em.Object.create({isSelected: false, isInstalled: false, serviceName: 's6'}),
-          Em.Object.create({isSelected: true, isInstalled: true, serviceName: 's7'}),
-          Em.Object.create({isSelected: false, isInstalled: false, serviceName: 's8'})
-        ])
-      });
-    it('should return configs with true value', function () {
-      installerStep7Controller.set('wizardController', Em.Object.create(App.LocalStorage, {name: 'addServiceController'}));
-      installerStep7Controller.set('addMiscTabToPage',true);
-      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
-      installerStep7Controller.set('stepConfigs', stepConfigs);
-      installerStep7Controller.set('content', content);
-      installerStep7Controller.activateSpecialConfigs();
-      expect(JSON.parse(JSON.stringify(installerStep7Controller.get('content')))).to.be.eql(expected[0]);
-    });
-    it('should return stepsConfigs with true value', function () {
-      installerStep7Controller.set('wizardController', Em.Object.create(App.LocalStorage, {name: 'kerberosWizardController'}));
-      installerStep7Controller.set('addMiscTabToPage',true);
-      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
-      installerStep7Controller.set('stepConfigs', stepConfigs);
-      installerStep7Controller.set('content', content);
-      installerStep7Controller.activateSpecialConfigs();
-      expect(JSON.parse(JSON.stringify(installerStep7Controller.get('stepConfigs')))).to.be.eql(expected[1]);
-    });
-  });
-
   describe('#getConfigTagsSuccess', function () {
     beforeEach(function(){
       sinon.stub(App.StackService, 'find', function () {
@@ -649,68 +506,6 @@ describe('App.InstallerStep7Controller', function () {
       var group = {':': []};
       installerStep7Controller.selectConfigGroup({context: group});
       expect(installerStep7Controller.get('selectedConfigGroup')).to.eql(group);
-    });
-  });
-
-  describe('#resolveYarnConfigs', function () {
-    it('should set property to true', function () {
-      var allSelectedServiceNames = ['SLIDER', 'YARN'],
-        configs = [
-          {name: 'hadoop.registry.rm.enabled', value: 'false', recommendedValue: 'false'}
-        ],
-        expected = [
-          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
-        ];
-      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
-      installerStep7Controller.resolveYarnConfigs(configs);
-      expect(configs[0]).to.eql(expected[0]);
-    });
-
-    it('should set property to false', function () {
-      var allSelectedServiceNames = ['YARN'],
-        configs = [
-          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
-        ],
-        expected = [
-          {name: 'hadoop.registry.rm.enabled', value: 'false', recommendedValue: 'false'}
-        ];
-      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
-      installerStep7Controller.resolveYarnConfigs(configs);
-      expect(configs[0]).to.eql(expected[0]);
-    });
-
-    it('should skip setting property', function () {
-      var allSelectedServiceNames = ['YARN', 'SLIDER'],
-        configs = [
-          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
-        ],
-        expected = [
-          {name: 'hadoop.registry.rm.enabled', value: 'true', recommendedValue: 'true'}
-        ];
-      installerStep7Controller.reopen({allSelectedServiceNames: allSelectedServiceNames});
-      installerStep7Controller.resolveYarnConfigs(configs);
-      expect(configs[0]).to.eql(expected[0]);
-    });
-  });
-
-  describe('#resolveServiceDependencyConfigs', function () {
-    beforeEach(function () {
-      sinon.stub(installerStep7Controller, 'resolveYarnConfigs', Em.K);
-    });
-    afterEach(function () {
-      installerStep7Controller.resolveYarnConfigs.restore();
-    });
-    [
-      {serviceName: 'YARN', method: "resolveYarnConfigs"}
-    ].forEach(function(t) {
-      it("should call " + t.method + " if serviceName is " + t.serviceName, function () {
-        var configs = [
-          {},
-          {}
-        ];
-        installerStep7Controller.resolveServiceDependencyConfigs(t.serviceName, configs);
-        expect(installerStep7Controller[t.method].calledWith(configs)).to.equal(true);
-      });
     });
   });
 
@@ -1250,10 +1045,7 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(installerStep7Controller, 'clearStep', Em.K);
       sinon.stub(installerStep7Controller, 'getConfigTags', Em.K);
       sinon.stub(installerStep7Controller, 'setInstalledServiceConfigs', Em.K);
-      sinon.stub(installerStep7Controller, 'resolveServiceDependencyConfigs', Em.K);
-      sinon.stub(installerStep7Controller, 'setStepConfigs', Em.K);
       sinon.stub(installerStep7Controller, 'checkHostOverrideInstaller', Em.K);
-      sinon.stub(installerStep7Controller, 'activateSpecialConfigs', Em.K);
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
       sinon.stub(installerStep7Controller, 'applyServicesConfigs', Em.K);
       sinon.stub(App.router, 'send', Em.K);
@@ -1263,10 +1055,7 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.clearStep.restore();
       installerStep7Controller.getConfigTags.restore();
       installerStep7Controller.setInstalledServiceConfigs.restore();
-      installerStep7Controller.resolveServiceDependencyConfigs.restore();
-      installerStep7Controller.setStepConfigs.restore();
       installerStep7Controller.checkHostOverrideInstaller.restore();
-      installerStep7Controller.activateSpecialConfigs.restore();
       installerStep7Controller.selectProperService.restore();
       installerStep7Controller.applyServicesConfigs.restore();
       App.router.send.restore();
@@ -1295,14 +1084,11 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(App.config, 'fileConfigsIntoTextarea', function(configs) {
         return configs;
       });
-      sinon.stub(installerStep7Controller, 'resolveServiceDependencyConfigs', Em.K);
       sinon.stub(installerStep7Controller, 'loadServerSideConfigsRecommendations', function() {
         return $.Deferred().resolve();
       });
       sinon.stub(installerStep7Controller, 'checkHostOverrideInstaller', Em.K);
-      sinon.stub(installerStep7Controller, 'activateSpecialConfigs', Em.K);
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
-      sinon.stub(installerStep7Controller, 'setStepConfigs', Em.K);
       sinon.stub(App.router, 'send', Em.K);
       sinon.stub(App.StackService, 'find', function () {
         return {
@@ -1320,23 +1106,18 @@ describe('App.InstallerStep7Controller', function () {
     });
     afterEach(function () {
       App.config.fileConfigsIntoTextarea.restore();
-      installerStep7Controller.resolveServiceDependencyConfigs.restore();
       installerStep7Controller.loadServerSideConfigsRecommendations.restore();
       installerStep7Controller.checkHostOverrideInstaller.restore();
-      installerStep7Controller.activateSpecialConfigs.restore();
       installerStep7Controller.selectProperService.restore();
-      installerStep7Controller.setStepConfigs.restore();
       App.router.send.restore();
       App.StackService.find.restore();
     });
 
     it('should run some methods' , function () {
-     installerStep7Controller.applyServicesConfigs({name: 'configs'}, {name: 'storedConfigs'});
+     installerStep7Controller.applyServicesConfigs([{name: 'configs'}]);
      expect(installerStep7Controller.loadServerSideConfigsRecommendations.calledOnce).to.equal(true);
      expect(installerStep7Controller.get('isRecommendedLoaded')).to.equal(true);
-     expect(installerStep7Controller.setStepConfigs.calledOnce).to.equal(true);
      expect(installerStep7Controller.checkHostOverrideInstaller.calledOnce).to.equal(true);
-     expect(installerStep7Controller.activateSpecialConfigs.calledOnce).to.equal(true);
      expect(installerStep7Controller.selectProperService.calledOnce).to.equal(true);
     });
 
@@ -1344,24 +1125,18 @@ describe('App.InstallerStep7Controller', function () {
       {
         allSelectedServiceNames: ['YARN'],
         fileConfigsIntoTextarea: true,
-        m: 'should run fileConfigsIntoTextarea and resolveServiceDependencyConfigs',
-        resolveServiceDependencyConfigs: true
+        m: 'should run fileConfigsIntoTextarea'
       }
     ]).forEach(function(t) {
       it(t.m, function () {
         installerStep7Controller.reopen({
           allSelectedServiceNames: t.allSelectedServiceNames
         });
-        installerStep7Controller.applyServicesConfigs({name: 'configs'}, {name: 'storedConfigs'});
+        installerStep7Controller.applyServicesConfigs([{name: 'configs'}]);
         if (t.fileConfigsIntoTextarea) {
-          expect(App.config.fileConfigsIntoTextarea.calledWith({name: 'configs'}, 'capacity-scheduler.xml')).to.equal(true);
+          expect(App.config.fileConfigsIntoTextarea.calledWith([{name: 'configs'}], 'capacity-scheduler.xml')).to.equal(true);
         } else {
           expect(App.config.fileConfigsIntoTextarea.calledOnce).to.equal(false);
-        }
-        if (t.resolveServiceDependencyConfigs) {
-          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledWith(t.allSelectedServiceNames[0], {name: 'configs'})).to.equal(true);
-        } else {
-          expect(installerStep7Controller.resolveServiceDependencyConfigs.calledOnce).to.equal(false);
         }
       });
     });

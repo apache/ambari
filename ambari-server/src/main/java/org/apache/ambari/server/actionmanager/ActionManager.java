@@ -69,8 +69,7 @@ public class ActionManager {
     this.db = db;
     scheduler = new ActionScheduler(schedulerSleepTime, actionTimeout, db,
         actionQueue, fsm, 2, hostsMap, unitOfWork, ambariEventPublisher, configuration);
-    requestCounter = new AtomicLong(
-        db.getLastPersistedRequestIdWhenInitialized());
+    requestCounter = new AtomicLong(db.getLastPersistedRequestIdWhenInitialized());
     this.requestFactory = requestFactory;
   }
 
@@ -200,14 +199,6 @@ public class ActionManager {
 
   public List<HostRoleCommand> getAllTasksByRequestIds(Collection<Long> requestIds) {
     return db.getAllTasksByRequestIds(requestIds);
-  }
-
-  public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
-    // wrapping in new list as returned list may be Collections.emptyList() which doesn't support add()
-    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>(db.getTasksByRequestAndTaskIds(requestIds, taskIds));
-    tasks.addAll(topologyManager.getTasks(requestIds));
-
-    return tasks;
   }
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {

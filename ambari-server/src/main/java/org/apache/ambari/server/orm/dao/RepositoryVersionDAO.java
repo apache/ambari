@@ -45,6 +45,18 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     super(RepositoryVersionEntity.class);
   }
 
+
+  /**
+   * Creates entity.
+   *
+   * @param entity entity to create
+   */
+  @Override
+  @Transactional
+  public void create(RepositoryVersionEntity entity){
+    super.create(entity);
+  }
+
   /**
    * Retrieves repository version by name.
    *

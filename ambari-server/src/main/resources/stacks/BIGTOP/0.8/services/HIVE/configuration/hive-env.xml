@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hive_database_type</name>
     <value>postgres</value>
@@ -42,6 +42,9 @@
     <name>hive_database_name</name>
     <value>hive</value>
     <description>Database name.</description>
+    <value-attributes>
+      <type>database</type>
+    </value-attributes>
   </property>
   <property>
     <name>hive_dbroot</name>

@@ -37,8 +37,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
 
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -101,6 +99,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
@@ -111,9 +110,8 @@ import org.apache.ambari.server.state.ServiceComponentHostEventType;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
-import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
@@ -124,7 +122,9 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -186,6 +186,8 @@ public class ClusterImpl implements Cluster {
   private final Lock hostTransitionStateWriteLock = hostTransitionStateLock.writeLock();
 
   private ClusterEntity clusterEntity;
+
+  private long clusterId;
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -1219,7 +1221,8 @@ public class ClusterImpl implements Cluster {
    * UPGRADE_FAILED: at least one host in UPGRADE_FAILED
    * UPGRADED: all hosts are UPGRADED
    * UPGRADING: at least one host is UPGRADING, and the rest in UPGRADING|INSTALLED
-   * INSTALLED: all hosts in INSTALLED -OR- INSTALLED and NOT_REQUIRED
+   * UPGRADING: at least one host is UPGRADED, and the rest in UPGRADING|INSTALLED
+   * INSTALLED: all hosts in INSTALLED
    * INSTALL_FAILED: at least one host in INSTALL_FAILED
    * INSTALLING: all hosts in INSTALLING -or- INSTALLING and NOT_REQUIRED. Notice that if one host is CURRENT and another is INSTALLING, then the
    * effective version will be OUT_OF_SYNC.
@@ -1249,18 +1252,34 @@ public class ClusterImpl implements Cluster {
     if (stateToHosts.containsKey(RepositoryVersionState.UPGRADING) && !stateToHosts.get(RepositoryVersionState.UPGRADING).isEmpty()) {
       return RepositoryVersionState.UPGRADING;
     }
+    if (stateToHosts.containsKey(RepositoryVersionState.UPGRADED)
+        && !stateToHosts.get(RepositoryVersionState.UPGRADED).isEmpty()
+        && stateToHosts.get(RepositoryVersionState.UPGRADED).size() != totalHosts) {
+      // It is possible that a host has transitioned to UPGRADED state even before any other host has transitioned to UPGRADING state.
+      // Example: Host with single component ZOOKEEPER Server on it which is the first component to be upgraded.
+      return RepositoryVersionState.UPGRADING;
+    }
     if (stateToHosts.containsKey(RepositoryVersionState.INSTALLED) && stateToHosts.get(RepositoryVersionState.INSTALLED).size() == totalHosts) {
       return RepositoryVersionState.INSTALLED;
     }
-    if (stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) && !stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).isEmpty()) {
-      return RepositoryVersionState.INSTALL_FAILED;
+    if (stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) &&
+      !stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).isEmpty()) {
+      // Installation failed on some host(s). But
+      // cluster version state should transition to Install Failed only after
+      // all hosts have finished installation. Otherwise, UI will misbehave
+      // (hide progress dialog before installation is finished)
+      if (! stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ||
+        stateToHosts.get(RepositoryVersionState.INSTALLING).isEmpty()) {
+        return RepositoryVersionState.INSTALL_FAILED;
+      }
     }
 
     int totalInstalling = stateToHosts.containsKey(RepositoryVersionState.INSTALLING) ? stateToHosts.get(RepositoryVersionState.INSTALLING).size() : 0;
     int totalInstalled = stateToHosts.containsKey(RepositoryVersionState.INSTALLED) ? stateToHosts.get(RepositoryVersionState.INSTALLED).size() : 0;
     int totalNotRequired = stateToHosts.containsKey(RepositoryVersionState.NOT_REQUIRED) ? stateToHosts.get(RepositoryVersionState.NOT_REQUIRED).size() : 0;
+    int totalInstallFailed = stateToHosts.containsKey(RepositoryVersionState.INSTALL_FAILED) ? stateToHosts.get(RepositoryVersionState.INSTALL_FAILED).size() : 0;
 
-    if (totalInstalling + totalInstalled == totalHosts) {
+    if (totalInstalling + totalInstalled + totalInstallFailed == totalHosts) {
       return RepositoryVersionState.INSTALLING;
     }
 
@@ -1662,8 +1681,7 @@ public class ClusterImpl implements Cluster {
 
       if (state == RepositoryVersionState.CURRENT) {
         for (HostEntity hostEntity : clusterEntity.getHostEntities()) {
-          if (hostHasReportables(existingClusterVersion.getRepositoryVersion(),
-              hostEntity)) {
+          if (hostHasReportables(existingClusterVersion.getRepositoryVersion(), hostEntity)) {
             continue;
           }
 
@@ -1820,8 +1838,9 @@ public class ClusterImpl implements Cluster {
         return null;
       }
       for(Map.Entry<String, Config> entry: allConfigs.get(configType).entrySet()) {
-        if(entry.getValue().getVersion().equals(configVersion))
+        if(entry.getValue().getVersion().equals(configVersion)) {
           return entry.getValue();
+        }
       }
       return null;
     } finally {
@@ -2090,7 +2109,7 @@ public class ClusterImpl implements Cluster {
       Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
       Collection<String> types = new HashSet<String>();
 
-      for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
         if (e.isSelected() > 0) {
           DesiredConfig c = new DesiredConfig();
           c.setServiceName(null);
@@ -2382,12 +2401,14 @@ public class ClusterImpl implements Cluster {
     //disable all configs related to service
     if (serviceConfigEntity.getGroupId() == null) {
       Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-      for (ClusterConfigMappingEntity entity : clusterEntity.getConfigMappingEntities()) {
+      List<ClusterConfigMappingEntity> mappingEntities =
+          clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
+      for (ClusterConfigMappingEntity entity : mappingEntities) {
         if (configTypes.contains(entity.getType()) && entity.isSelected() > 0) {
           entity.setSelected(0);
+          clusterDAO.mergeConfigMapping(entity);
         }
       }
-      clusterEntity = clusterDAO.merge(clusterEntity);
 
       for (ClusterConfigEntity configEntity : serviceConfigEntity.getClusterConfigEntities()) {
         selectConfig(configEntity.getType(), configEntity.getTag(), user);
@@ -2444,12 +2465,14 @@ public class ClusterImpl implements Cluster {
 
   @Transactional
   void selectConfig(String type, String tag, String user) {
-    Collection<ClusterConfigMappingEntity> entities = clusterEntity.getConfigMappingEntities();
+    Collection<ClusterConfigMappingEntity> entities =
+        clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
 
     //disable previous config
     for (ClusterConfigMappingEntity e : entities) {
       if (e.isSelected() > 0 && e.getType().equals(type)) {
         e.setSelected(0);
+        clusterDAO.mergeConfigMapping(e);
       }
     }
 
@@ -2461,9 +2484,8 @@ public class ClusterImpl implements Cluster {
     entity.setUser(user);
     entity.setType(type);
     entity.setTag(tag);
-    entities.add(entity);
+    clusterDAO.persistConfigMapping(entity);
 
-    clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
   @Transactional
@@ -2518,7 +2540,7 @@ public class ClusterImpl implements Cluster {
 
     //add configs from this service
     Collection<String> configTypes = serviceConfigTypes.get(serviceName);
-    for (ClusterConfigMappingEntity mappingEntity : clusterEntity.getConfigMappingEntities()) {
+    for (ClusterConfigMappingEntity mappingEntity : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
       if (mappingEntity.isSelected() > 0 && configTypes.contains(mappingEntity.getType())) {
         ClusterConfigEntity configEntity =
           clusterDAO.findConfig(getClusterId(), mappingEntity.getType(), mappingEntity.getTag());
@@ -2538,7 +2560,7 @@ public class ClusterImpl implements Cluster {
     loadConfigurations();
     clusterGlobalLock.readLock().lock();
     try {
-      for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
         if (e.isSelected() > 0 && e.getType().equals(configType)) {
           return getConfig(e.getType(), e.getTag());
         }
@@ -2554,7 +2576,7 @@ public class ClusterImpl implements Cluster {
   public boolean isConfigTypeExists(String configType) {
     clusterGlobalLock.readLock().lock();
     try {
-      for (ClusterConfigMappingEntity e : clusterEntity.getConfigMappingEntities()) {
+      for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
         if (e.getType().equals(configType)) {
           return true;
         }
@@ -2944,7 +2966,7 @@ public class ClusterImpl implements Cluster {
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
-      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
 
       // disable previous config
       for (ClusterConfigMappingEntity e : configMappingEntities) {
@@ -2968,7 +2990,7 @@ public class ClusterImpl implements Cluster {
         }
       }
 
-      clusterEntity = clusterDAO.merge(clusterEntity);
+      clusterDAO.mergeConfigMappings(clusterConfigMappingEntities);
 
       cacheConfigurations();
     } finally {
@@ -3001,7 +3023,7 @@ public class ClusterImpl implements Cluster {
   @Override
   public Map<PropertyInfo.PropertyType, Set<String>> getConfigPropertiesTypes(String configType){
     try {
-      StackId stackId = this.getCurrentStackVersion();
+      StackId stackId = getCurrentStackVersion();
       StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
       return stackInfo.getConfigPropertiesTypes(configType);
     } catch (AmbariException e) {
@@ -3052,7 +3074,8 @@ public class ClusterImpl implements Cluster {
     clusterEntity = clusterDAO.merge(clusterEntity);
 
     // remove config mappings
-    Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+    Collection<ClusterConfigMappingEntity> configMappingEntities =
+        clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
     for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
       String removedClusterConfigType = removedClusterConfig.getType();
       String removedClusterConfigTag = removedClusterConfig.getTag();
@@ -3186,6 +3209,14 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
+
+  private ClusterEntity getClusterEntity() {
+    if (!clusterDAO.isManaged(clusterEntity)) {
+      clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
+    }
+    return clusterEntity;
+  }
 }
+
 
 

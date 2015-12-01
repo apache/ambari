@@ -1249,7 +1249,6 @@ public class ViewRegistryTest {
     expect(privilegeEntity.getPermission()).andReturn(permissionEntity);
     expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
 
-    expect(configuration.getApiAuthentication()).andReturn(true);
     replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
 
     Assert.assertTrue(registry.includeDefinition(viewEntity));
@@ -1270,7 +1269,6 @@ public class ViewRegistryTest {
     EasyMock.expectLastCall().andReturn(authorities);
     expect(viewEntity.getInstances()).andReturn(instances);
 
-    expect(configuration.getApiAuthentication()).andReturn(true);
     replay(securityHelper, viewEntity, configuration);
 
     Assert.assertFalse(registry.includeDefinition(viewEntity));
@@ -1302,7 +1300,6 @@ public class ViewRegistryTest {
     expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USER_PERMISSION).anyTimes();
     securityHelper.getCurrentAuthorities();
     EasyMock.expectLastCall().andReturn(authorities).anyTimes();
-    expect(configuration.getApiAuthentication()).andReturn(true);
     replay(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity, configuration);
 
     Assert.assertTrue(registry.includeDefinition(viewEntity));
@@ -1344,19 +1341,6 @@ public class ViewRegistryTest {
     serviceNames.add("HIVE");
 
     testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, false);
-  }
-
-  @Test
-  public void testIncludeDefinitionForNoApiAuthentication() {
-    ViewRegistry registry = ViewRegistry.getInstance();
-    ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-
-    expect(configuration.getApiAuthentication()).andReturn(false);
-    replay(securityHelper, viewEntity, configuration);
-
-    Assert.assertTrue(registry.includeDefinition(viewEntity));
-
-    verify(securityHelper, viewEntity, configuration);
   }
 
   @Test

@@ -19,6 +19,9 @@ limitations under the License.
 """
 
 from functions import calc_xmn_from_xms
+from functions import check_append_heap_property
+from functions import trim_heap_property
+
 from resource_management import *
 import status_params
 from ambari_commons import OSCheck
@@ -31,6 +34,15 @@ else:
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
+
+def get_combined_memory_mb(value1, value2):
+  try:
+    part1 = int(value1.strip()[:-1]) if value1.lower().strip()[-1:] == 'm' else int(value1)
+    part2 = int(value2.strip()[:-1]) if value2.lower().strip()[-1:] == 'm' else int(value2)
+    return str(part1 + part2) + 'm'
+  except:
+    return None
+pass
 
 #AMBARI_METRICS data
 ams_pid_dir = status_params.ams_collector_pid_dir
@@ -92,11 +104,18 @@ metrics_report_interval = default("/configurations/ams-site/timeline.metrics.sin
 metrics_collection_period = default("/configurations/ams-site/timeline.metrics.sink.collection.period", 60)
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
+hbase_classpath_additional = default("/configurations/ams-hbase-env/hbase_classpath_additional", None)
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
 regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regionserver_heapsize']
 
+# Check if hbase java options already have appended "m". If Yes, remove the trailing m.
+metrics_collector_heapsize = check_append_heap_property(str(metrics_collector_heapsize), "m")
+master_heapsize = check_append_heap_property(str(master_heapsize), "m")
+regionserver_heapsize = check_append_heap_property(str(regionserver_heapsize), "m")
+
 regionserver_xmn_max = default('/configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
 if regionserver_xmn_max:
+  regionserver_xmn_max = int(trim_heap_property(str(regionserver_xmn_max), "m"))
   regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
   regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 else:
@@ -106,9 +125,14 @@ pass
 hbase_master_xmn_size = config['configurations']['ams-hbase-env']['hbase_master_xmn_size']
 hbase_master_maxperm_size = config['configurations']['ams-hbase-env']['hbase_master_maxperm_size']
 
+# Check if hbase java options already have appended "m". If Yes, remove the trailing m.
+hbase_master_maxperm_size = check_append_heap_property(str(hbase_master_maxperm_size), "m")
+hbase_master_xmn_size = check_append_heap_property(str(hbase_master_xmn_size), "m")
+regionserver_xmn_size = check_append_heap_property(str(regionserver_xmn_size), "m")
+
 # Choose heap size for embedded mode as sum of master + regionserver
 if not is_hbase_distributed:
-  hbase_heapsize = master_heapsize + regionserver_heapsize
+  hbase_heapsize = get_combined_memory_mb(master_heapsize, regionserver_heapsize)
   if hbase_heapsize is None:
     hbase_heapsize = master_heapsize
 else:

@@ -40,7 +40,7 @@
                   &lt;/param&gt;
                   &lt;param&gt;
                       &lt;name&gt;service.url&lt;/name&gt;
-                      &lt;value&gt;http://{{knox_host_name}}:{{knox_port}}/gateway/idp/knoxsso/api/v1/websso&lt;/value&gt;
+                      &lt;value&gt;http://{{knox_host_name}}:{{knox_port}}/gateway/knoxsso/api/v1/websso&lt;/value&gt;
                   &lt;/param&gt;
                   &lt;param&gt;
                       &lt;name&gt;keystore.url&lt;/name&gt;
@@ -75,8 +75,8 @@
                 &lt;value&gt;true&lt;/value&gt;
               &lt;/param&gt;
               &lt;param&gt;
-                &lt;name&gt;knoxsso.cookie.max.age&lt;/name&gt;
-                &lt;value&gt;600&lt;/value&gt;
+                &lt;name&gt;knoxsso.token.ttl&lt;/name&gt;
+                &lt;value&gt;36000000&lt;/value&gt;
               &lt;/param&gt;
           &lt;/service&gt;
       

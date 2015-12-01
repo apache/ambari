@@ -66,9 +66,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
     this.$().popover('destroy');
   },
 
-  readOnly: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  readOnly: Em.computed.not('serviceConfig.isEditable')
 });
 
 App.SupportsDependentConfigs = Ember.Mixin.create({
@@ -251,14 +249,10 @@ App.ServiceConfigPasswordField = Ember.TextField.extend(App.ServiceConfigPopover
       }
     },
     valueBinding: 'parentView.serviceConfig.retypedPassword',
-    readOnly: function () {
-      return !this.get('parentView.serviceConfig.isEditable');
-    }.property('parentView.serviceConfig.isEditable')
+    readOnly: Em.computed.not('parentView.serviceConfig.isEditable')
   }),
 
-  readOnly: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable')
+  readOnly: Em.computed.not('serviceConfig.isEditable')
 
 });
 
@@ -384,9 +378,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     }
   },
 
-  disabled: function () {
-    return !this.get('serviceConfig.isEditable');
-  }.property('serviceConfig.isEditable'),
+  disabled: Em.computed.not('serviceConfig.isEditable'),
 
   //Set editDone false for all current category config text field parameter
   focusIn: function (event) {
@@ -484,9 +476,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
    * in this case some properties can have different behaviour
    * @type {boolean}
    */
-  inMSSQLWithIA: function() {
-    return this.get('serviceConfig.value') === 'Existing MSSQL Server database with integrated authentication';
-  }.property('serviceConfig.value'),
+  inMSSQLWithIA: Em.computed.equal('serviceConfig.value', 'Existing MSSQL Server database with integrated authentication'),
 
   /**
    * Radio button has very uncomfortable values for managing it's state
@@ -894,13 +884,9 @@ App.ServiceConfigMultipleHostsDisplay = Ember.Mixin.create(App.ServiceConfigHost
     }
   }.property('value'),
 
-  hasOneHost: function () {
-    return !Em.isArray(this.get('value')) || this.get('value').length === 1;
-  }.property('value'),
+  hasOneHost: Em.computed.equal('value.length', 1),
 
-  hasMultipleHosts: function () {
-    return Em.isArray(this.get('value')) && this.get('value').length > 1;
-  }.property('value'),
+  hasMultipleHosts: Em.computed.gt('value.length', 1),
 
   otherLength: function () {
     var len = this.get('value').length;
@@ -1023,9 +1009,7 @@ App.CheckDBConnectionView = Ember.View.extend({
     return '{0}_existing_{1}_host'.format(this.get('parentView.service.serviceName').toLowerCase(), this.get('databaseName').toLowerCase());
   }.property('databaseName'),
   /** @property {boolean} isBtnDisabled - disable button on failed validation or active request **/
-  isBtnDisabled: function() {
-    return !this.get('isValidationPassed') || this.get('isConnecting');
-  }.property('isValidationPassed', 'isConnecting'),
+  isBtnDisabled: Em.computed.or('!isValidationPassed', 'isConnecting'),
   /** @property {object} requiredProperties - properties that necessary for database connection **/
   requiredProperties: function() {
     var propertiesMap = {

@@ -84,7 +84,6 @@ class Controller(threading.Thread):
     self.heartbeat_stop_callback = heartbeat_stop_callback
     # List of callbacks that are called at agent registration
     self.registration_listeners = []
-    self.recovery_manager = RecoveryManager()
 
     # pull config directory out of config
     cache_dir = config.get('agent', 'cache_dir')
@@ -94,8 +93,11 @@ class Controller(threading.Thread):
     stacks_cache_dir = os.path.join(cache_dir, FileCache.STACKS_CACHE_DIRECTORY)
     common_services_cache_dir = os.path.join(cache_dir, FileCache.COMMON_SERVICES_DIRECTORY)
     host_scripts_cache_dir = os.path.join(cache_dir, FileCache.HOST_SCRIPTS_CACHE_DIRECTORY)
-    alerts_cache_dir = os.path.join(cache_dir, 'alerts')
-    cluster_config_cache_dir = os.path.join(cache_dir, 'cluster_configuration')
+    alerts_cache_dir = os.path.join(cache_dir, FileCache.ALERTS_CACHE_DIRECTORY)
+    cluster_config_cache_dir = os.path.join(cache_dir, FileCache.CLUSTER_CONFIGURATION_CACHE_DIRECTORY)
+    recovery_cache_dir = os.path.join(cache_dir, FileCache.RECOVERY_CACHE_DIRECTORY)
+
+    self.recovery_manager = RecoveryManager(recovery_cache_dir)
 
     self.cluster_configuration = ClusterConfiguration(cluster_config_cache_dir)
 
@@ -105,7 +107,8 @@ class Controller(threading.Thread):
 
     self.alert_scheduler_handler = AlertSchedulerHandler(alerts_cache_dir, 
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
-      self.alert_grace_period, self.cluster_configuration, config)
+      self.alert_grace_period, self.cluster_configuration, config,
+      self.recovery_manager)
 
     self.alert_scheduler_handler.start()
 

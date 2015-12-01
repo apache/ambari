@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>ganglia_conf_dir</name>
     <value>/etc/ganglia/hdp</value>

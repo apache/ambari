@@ -116,9 +116,7 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
     App.router.transitionTo('step5');
   },
 
-  isSubmitDisabled: function () {
-    return !["COMPLETED", "FAILED"].contains(this.get('status'));
-  }.property('status'),
+  isSubmitDisabled: Em.computed.notExistsIn('status', ['COMPLETED', 'FAILED']),
 
   confirmProperties: function () {
     var kdc_type = App.router.get('kerberosWizardController.content.kerberosOption'),

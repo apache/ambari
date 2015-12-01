@@ -221,6 +221,14 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
+  describe("#resetManualDone()", function() {
+    it("", function() {
+      view.set('isManualDone', true);
+      view.propertyDidChange('manualItem');
+      expect(view.get('isManualDone')).to.be.false;
+    });
+  });
+
   describe("#isManualProceedDisabled", function () {
     it("requestInProgress is false", function () {
       view.set('isManualDone', true);

@@ -17,22 +17,27 @@
  */
 package org.apache.ambari.server.state;
 
-import org.apache.ambari.server.state.stack.StackMetainfoXml;
+import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
+import java.io.ByteArrayInputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PropertyInfoTest {
 
@@ -88,5 +93,38 @@ public class PropertyInfoTest {
     assertEquals(2, attributes.size());
     assertEquals("value1", attributes.get("foo"));
     assertEquals("value2", attributes.get("bar"));
+  }
+
+  @Test
+  public void testUnknownPropertyType() throws Exception {
+    // Given
+    String xml =
+      "<property>\n"+
+      "  <name>prop_name</name>\n" +
+      "  <value>prop_val</value>\n" +
+      "  <property-type>PASSWORD USER UNRECOGNIZED_TYPE</property-type>\n" +
+      "  <description>test description</description>\n" +
+      "</property>";
+
+
+    // When
+    PropertyInfo propertyInfo = propertyInfoFrom(xml);
+
+    // Then
+    Set<PropertyInfo.PropertyType> expectedPropertyTypes = Sets.newHashSet(PropertyInfo.PropertyType.PASSWORD, PropertyInfo.PropertyType.USER);
+
+    assertEquals(expectedPropertyTypes, propertyInfo.getPropertyTypes());
+  }
+
+  public static PropertyInfo propertyInfoFrom(String xml) throws JAXBException {
+    JAXBContext jaxbCtx = JAXBContext.newInstance(PropertyInfo.class);
+    Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+
+    return unmarshaller.unmarshal(
+      new StreamSource(
+        new ByteArrayInputStream(xml.getBytes())
+      )
+      , PropertyInfo.class
+    ).getValue();
   }
 }

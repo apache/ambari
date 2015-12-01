@@ -33,7 +33,6 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.http.client.utils.URIBuilder;
@@ -209,7 +208,9 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
         timelineMetrics = metricCache.getAppTimelineMetricsFromCache(metricCacheKey);
       } else {
         try {
-          timelineMetrics = requestHelper.fetchTimelineMetrics(uriBuilder.toString());
+          timelineMetrics = requestHelper.fetchTimelineMetrics(uriBuilder,
+            temporalInfo.getStartTimeMillis(),
+            temporalInfo.getEndTimeMillis());
         } catch (IOException e) {
           timelineMetrics = null;
         }

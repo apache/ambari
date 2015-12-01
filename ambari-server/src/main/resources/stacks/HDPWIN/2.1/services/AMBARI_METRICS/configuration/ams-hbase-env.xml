@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hbase_log_dir</name>
     <value>c:\hadoop\logs\ams-hbase</value>

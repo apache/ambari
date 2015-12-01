@@ -39,6 +39,9 @@ App.MainAdminStackServicesView = Em.View.extend({
 
   didInsertElement: function () {
     if (!App.get('stackVersionsAvailable')) {
+      this.get('controller').loadStackVersionsToModel(true).done(function () {
+        App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+      });
       this.get('controller').loadRepositories();
     }
   },
@@ -88,7 +91,7 @@ App.MainAdminStackServicesView = Em.View.extend({
           });
           var cur_group = reposGroup.findProperty('name', group.name);
           if (!cur_group) {
-            var cur_group = Ember.Object.create({
+            cur_group = Ember.Object.create({
               name: group.name,
               repositories: []
             });
@@ -149,7 +152,7 @@ App.MainAdminStackServicesView = Em.View.extend({
    * Handler when editing any repo group BaseUrl
    * @method editGroupLocalRepository
    */
-  editGroupLocalRepository: function (event) {
+  editGroupLocalRepository: function () {
     var repos = this.get('allRepos');
     repos.forEach(function (targetRepo) {
       targetRepo.set('undo', targetRepo.get('baseUrl') != targetRepo.get('originalBaseUrl'));
@@ -196,9 +199,7 @@ App.MainAdminStackServicesView = Em.View.extend({
     var self = this;
     var id = data.url.split('/')[10] + '-' + data.url.split('/')[8];
     var targetRepo = this.get('allRepos').findProperty('id', id);
-    if (!targetRepo) {
-      return;
-    } else {
+    if (targetRepo) {
       App.ModalPopup.show({
         header: Em.I18n.t('admin.cluster.repositories.popup.header.fail'),
         primary: Em.I18n.t('common.saveAnyway'),
@@ -232,7 +233,6 @@ App.MainAdminStackServicesView = Em.View.extend({
    */
   doSaveRepoUrls: function (id, verifyBaseUrl) {
     var targetRepo = this.get('allRepos').findProperty('id', id);
-    var verifyBaseUrl = verifyBaseUrl;
     App.ajax.send({
       name: 'wizard.advanced_repositories.valid_url',
       sender: this,

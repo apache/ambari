@@ -48,6 +48,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
@@ -117,6 +118,10 @@ public class TopologyManagerTest {
   private ClusterController clusterController;
   @Mock(type = MockType.STRICT)
   private ResourceProvider resourceProvider;
+
+  @Mock(type = MockType.STRICT)
+  private Future mockFuture;
+
   private final Configuration stackConfig = new Configuration(new HashMap<String, Map<String, String>>(),
       new HashMap<String, Map<String, Map<String, String>>>());
   private final Configuration bpConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
@@ -295,7 +300,8 @@ public class TopologyManagerTest {
 
     expect(clusterController.ensureResourceProvider(anyObject(Resource.Type.class))).andReturn(resourceProvider);
 
-    executor.execute(capture(updateConfigTaskCapture));
+    expect(executor.submit(anyObject(AsyncCallableService.class))).andReturn(mockFuture);
+
     expectLastCall().times(1);
 
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
@@ -305,7 +311,8 @@ public class TopologyManagerTest {
 
     replay(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory, logicalRequest,
         configurationRequest, configurationRequest2, configurationRequest3, requestStatusResponse, executor,
-        persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider);
+        persistedState, securityConfigurationFactory, credentialStoreService, clusterController, resourceProvider,
+        mockFuture);
 
     Class clazz = TopologyManager.class;
 
@@ -321,10 +328,11 @@ public class TopologyManagerTest {
   public void tearDown() {
     verify(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState);
+        requestStatusResponse, executor, persistedState, mockFuture);
+
     reset(blueprint, stack, request, group1, group2, ambariContext, logicalRequestFactory,
         logicalRequest, configurationRequest, configurationRequest2, configurationRequest3,
-        requestStatusResponse, executor, persistedState);
+        requestStatusResponse, executor, persistedState, mockFuture);
   }
 
   @Test

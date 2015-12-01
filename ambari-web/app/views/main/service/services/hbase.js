@@ -58,9 +58,7 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
    */
   activeMaster: Em.computed.findBy('masters', 'haStatus', 'true'),
 
-  activeMasterTitle: function(){
-    return this.t('service.hbase.activeMaster');
-  }.property('activeMaster'),
+  activeMasterTitle: Em.I18n.t('service.hbase.activeMaster'),
 
   masterServerHeapSummary: function () {
     var heapUsed = this.get('service').get('heapMemoryUsed');

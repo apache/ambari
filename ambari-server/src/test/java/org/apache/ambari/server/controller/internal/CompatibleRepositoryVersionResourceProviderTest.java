@@ -278,7 +278,9 @@ public class CompatibleRepositoryVersionResourceProviderTest {
         Map<String, Object> propMap = resPropMap.get(resource);
         String stackVersion = propMap.get("stack_version").toString();
         if (versionToUpgradeTypesMap.containsKey(stackVersion)) {
-          assertEquals(versionToUpgradeTypesMap.get(stackVersion), (List<String>) propMap.get("upgrade_types"));
+          List<String> upgradeTypes = new ArrayList<>((List<String>)propMap.get("upgrade_types"));
+          Collections.sort(upgradeTypes);
+          assertEquals(versionToUpgradeTypesMap.get(stackVersion), upgradeTypes);
           count++;
         }
       }

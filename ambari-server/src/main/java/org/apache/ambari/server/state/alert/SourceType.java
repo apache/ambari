@@ -52,6 +52,11 @@ public enum SourceType {
   WEB,
 
   /**
+   * Source is a component state recovery results
+   */
+  RECOVERY,
+
+  /**
    * A server-side alert.
    */
   SERVER;

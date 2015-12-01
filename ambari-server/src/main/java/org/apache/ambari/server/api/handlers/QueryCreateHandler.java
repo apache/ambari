@@ -26,6 +26,7 @@ import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 import java.util.*;
 
@@ -178,6 +179,8 @@ public class QueryCreateHandler extends BaseManagementHandler {
       } else {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }
+    } catch (AuthorizationException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e));
     } catch (ResourceAlreadyExistsException e) {

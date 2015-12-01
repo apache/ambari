@@ -105,7 +105,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @type {bool}
    */
   isRetryDisabled: function() {
-    return (this.get('isBackDisabled')) ? this.get('isBackDisabled') : !this.get('bootHosts').filterProperty('bootStatus', 'FAILED').length;
+    return this.get('isBackDisabled') ? this.get('isBackDisabled') : !this.get('bootHosts').filterProperty('bootStatus', 'FAILED').length;
   }.property('bootHosts.@each.bootStatus', 'isBackDisabled'),
 
   /**

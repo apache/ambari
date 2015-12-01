@@ -34,9 +34,7 @@ App.ChartPieView = Em.View.extend({
     return Math.min(this.get('w'), this.get('h')) / 2 - this.get('strokeWidth');
   }.property('w', 'h'),
 
-  outerR:function () {
-    return this.get('r'); // - 10;
-  }.property('r'),
+  outerR: Em.computed.alias('r'),
 
   innerR:function () {
     return 0; // this.get('r') - 20;

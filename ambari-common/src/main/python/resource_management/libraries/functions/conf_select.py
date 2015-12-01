@@ -23,11 +23,12 @@ __all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
 import os
 import version
 import hdp_select
+import subprocess
 
 from resource_management.core import shell
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Directory, Link
 
 PACKAGE_DIRS = {
   "accumulo": [
@@ -202,7 +203,7 @@ def create(stack_name, package, version, dry_run = False):
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
-  code, stdout = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True)
+  code, stdout, stderr = shell.call(get_cmd(command, package, version), logoutput=False, quiet=False, sudo=True, stderr = subprocess.PIPE)
 
   # conf-select can set more than one directory
   # per package, so return that list, especially for dry_run
@@ -257,9 +258,23 @@ def select(stack_name, package, version, try_create=True):
           normalized_conf_dir = (os.path.normpath(conf_dir)).strip()
           normalized_current_dir = (os.path.normpath(real_path_of_current_dir)).strip()
           Logger.info("Normalized Conf Dir : {0}, Normalized Current Dir : {1}".format(normalized_conf_dir, normalized_current_dir))
-          if not os.path.isdir(normalized_conf_dir) and os.path.isdir(normalized_current_dir) and normalized_current_dir != normalized_conf_dir:
-            Logger.info("Creating Symlink : {0} -> {1}".format(normalized_conf_dir, normalized_current_dir))
-            os.symlink(normalized_current_dir, normalized_conf_dir)
+          if os.path.isdir(normalized_current_dir) and normalized_current_dir != normalized_conf_dir:
+            if not os.path.isdir(normalized_conf_dir) and not os.path.islink(normalized_conf_dir):
+              Link(normalized_conf_dir,
+                   to=normalized_current_dir)
+              Logger.info("{0} directory doesn't exist. Created Symlink : {1} -> {2}".format(normalized_conf_dir, normalized_conf_dir, normalized_current_dir))
+              return
+            # In case, 'normalized_conf_dir' does have a symlink and it's not the one mentioned in 'PACKAGE_DIRS',
+            # we remove the symlink and make it point to correct symlink.
+            if os.path.islink(normalized_conf_dir) and os.readlink(normalized_conf_dir) != normalized_current_dir:
+              Logger.info("{0} exists and points to incorrect path {1}".format(normalized_conf_dir, os.readlink(normalized_conf_dir)))
+              Link(normalized_conf_dir,
+                   action="delete")
+              Logger.info("Removed existing symlink for {0}".format(normalized_conf_dir))
+              Link(normalized_conf_dir,
+                   to=normalized_current_dir)
+              Logger.info("Created Symlink : {0} -> {1}".format(normalized_conf_dir, normalized_current_dir))
+
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   """

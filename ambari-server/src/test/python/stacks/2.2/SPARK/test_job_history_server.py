@@ -72,7 +72,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = 'spark',
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -89,7 +89,7 @@ class TestJobHistoryServer(RMFTestCase):
         action = ['delete'],
     )
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -136,7 +136,7 @@ class TestJobHistoryServer(RMFTestCase):
         user = 'spark',
     )
     self.assertNoMoreResources()
-    
+
   def test_stop_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
                    classname = "JobHistoryServer",
@@ -159,11 +159,13 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = False,
@@ -221,11 +223,13 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = True,
@@ -295,7 +299,7 @@ class TestJobHistoryServer(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-historyserver', version), sudo=True)

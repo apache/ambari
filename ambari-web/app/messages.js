@@ -25,6 +25,10 @@ Em.I18n.translations = {
   'app.reloadPopup.text': 'Trying to connect to server...',
   'app.reloadPopup.noClusterName.text': 'Failed to retrieve cluster name, trying to reload...',
   'app.reloadPopup.header': 'Reload Page',
+  'app.redirectIssuePopup.header': 'Login Redirect Issue',
+  'app.redirectIssuePopup.body': 'For single sign-on, make sure that Knox Gateway and Ambari Server are located on the same host or subdomain.' +
+    '<br/>Alternatively login as an Ambari local user using the local login page.<br />' +
+    '<a href="{0}" target="_blank">{0}</a>',
 
   'app.loadingPlaceholder': 'Loading...',
   'app.versionMismatchAlert.title': 'Ambari Server / Web Client Version Mismatch',
@@ -1875,8 +1879,11 @@ Em.I18n.translations = {
   'services.service.add':'Add Service',
   'services.service.startAll':'Start All',
   'services.service.stopAll':'Stop All',
+  'services.service.restartAllRequired':'Restart All Required',
   'services.service.startAll.confirmMsg' : 'You are about to start all services',
   'services.service.stopAll.confirmMsg' : 'You are about to stop all services',
+  'services.service.refreshAll.confirmMsg': '<p>You are about to restart {0}</p>' +
+    '<div class="alert alert-warning">This will trigger alerts as the service is restarted. To suppress alerts, turn on Maintenance Mode for services listed above prior to running Restart All Required</div>',
   'services.service.start.confirmMsg' : 'You are about to start {0}',
   'services.service.stop.confirmMsg' : 'You are about to stop {0}',
   'services.service.stop.confirmButton': 'Confirm Stop',
@@ -2314,7 +2321,9 @@ Em.I18n.translations = {
   'hosts.host.decommissioned':'Decommissioned',
   'hosts.host.decommissioning':'Decommissioning',
   'hosts.host.addComponent.HIVE_METASTORE':'Adding <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
+  'hosts.host.addComponent.WEBHCAT_SERVER':'Adding <i>WebHCat Server</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
   'hosts.host.deleteComponent.popup.deleteHiveMetastore':'Deleting <i>Hive Metastore</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
+  'hosts.host.deleteComponent.popup.deleteWebHCatServer':'Deleting <i>WebHCat Server</i> will reconfigure such properties:<ul><li>hive.metastore.uris</li><li>templeton.hive.properties</li></ul>',
   'hosts.host.configs.save.note': 'This configuration is created by ambari while installing/deleting {0} component on a host',
 
   'hosts.component.passive.implied.host.mode.tooltip':'Cannot Turn Off Maintenance Mode because Host is in Maintenance Mode',
@@ -2646,7 +2655,7 @@ Em.I18n.translations = {
   'rollingrestart.dialog.err.invalid.batchsize': 'Invalid restart batch size: {0}',
   'rollingrestart.dialog.err.invalid.waitTime': 'Invalid wait time between batches: {0}',
   'rollingrestart.dialog.err.invalid.toleratesize': 'Invalid failure toleration count: {0}',
-  'rollingrestart.dialog.warn.datanode.batch.size': 'Restarting more than one DataNode at a time is not recommended. Doing so can lead to data unavailability and/or possible loss of data being actively written to HFDS.',
+  'rollingrestart.dialog.warn.datanode.batch.size': 'Restarting more than one DataNode at a time is not recommended. Doing so can lead to data unavailability and/or possible loss of data being actively written to HDFS.',
   'rollingrestart.dialog.msg.serviceNotInMM':'Note: This will trigger alerts. To suppress alerts, turn on Maintenance Mode for {0} prior to triggering a rolling restart',
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0}s with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',

@@ -32,9 +32,7 @@ App.FailedHostsPopupBodyView = Em.View.extend({
   /**
    * @type {string}
    */
-  subHeader: function () {
-    return Em.I18n.t('admin.stackUpgrade.failedHosts.subHeader').format(this.get('parentView.content.hosts.length'));
-  }.property('parentView.content.hosts.length'),
+  subHeader: Em.computed.i18nFormat('admin.stackUpgrade.failedHosts.subHeader', 'parentView.content.hosts.length'),
 
   didInsertElement: function () {
     App.tooltip(this.$("[rel='UsageTooltip']"));

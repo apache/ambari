@@ -32,6 +32,12 @@ import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * RoleAuthorizationService is a read-only service responsible for role authorization resource requests.
+ * <p/>
+ * The result sets returned by this service are either the full set of available authorizations or
+ * those related to a particular permission.
+ */
 @Path("/authorizations/")
 public class RoleAuthorizationService extends BaseService {
   private String permissionId;

@@ -69,7 +69,7 @@ export default Ember.Service.extend({
               table.get('name');
 
     url += '.page?searchId&count=' + this.get('pageCount');
-    url += '&columns=3,5';
+    url += '&columns=3,5,6,8';
 
     if (searchTerm) {
       url += '&searchId=searchColumns' + '&like=' + searchTerm;
@@ -86,10 +86,12 @@ export default Ember.Service.extend({
         var columns;
 
         columns = data.rows.map(function (row) {
-          return Ember.Object.create({
-            name: row[0],
-            type: row[1]
-          });
+            return Ember.Object.create({
+              name: row[0],
+              type: row[1],
+              precision : row[2],
+              scale : row[3]
+            });
         });
 
         defer.resolve({

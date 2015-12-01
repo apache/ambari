@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>flume_conf_dir</name>
     <display-name>Flume Conf Dir</display-name>

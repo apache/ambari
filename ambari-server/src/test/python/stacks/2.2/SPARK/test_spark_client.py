@@ -39,7 +39,7 @@ class TestSparkClient(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertNoMoreResources()
-    
+
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
                    classname = "SparkClient",
@@ -56,11 +56,13 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',
@@ -84,17 +86,19 @@ class TestSparkClient(RMFTestCase):
         group = 'spark',
     )
 
-      
+
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
         owner = 'spark',
@@ -133,7 +137,7 @@ class TestSparkClient(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-client', version), sudo=True)

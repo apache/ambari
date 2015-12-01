@@ -51,5 +51,9 @@ App.MainDashboardController = Em.Controller.extend({
 
   stopAllService: function(event){
     App.router.get('mainServiceController').stopAllService(event);
+  },
+
+  restartAllRequired: function(event){
+    App.router.get('mainServiceController').restartAllRequired(event);
   }
 });

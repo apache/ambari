@@ -35,7 +35,7 @@ def setup_ranger_hdfs(upgrade_type=None):
       hdp_version = params.version
 
     if params.retryAble:
-        Logger.info("HDFS: Setup ranger: command retry enables thus retrying if ranger admin is down !")
+      Logger.info("HDFS: Setup ranger: command retry enables thus retrying if ranger admin is down !")
     else:
       Logger.info("HDFS: Setup ranger: command retry not enabled thus skipping if ranger admin is down !")
 
@@ -54,5 +54,32 @@ def setup_ranger_hdfs(upgrade_type=None):
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         hdp_version_override = hdp_version, skip_if_rangeradmin_down= not params.retryAble)
+  else:
+    Logger.info('Ranger admin not installed')
+
+def create_ranger_audit_hdfs_directories(check):
+  import params
+
+  if params.has_ranger_admin:
+    if params.xml_configurations_supported and params.enable_ranger_hdfs and params.xa_audit_hdfs_is_enabled:
+      params.HdfsResource("/ranger/audit",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hdfs_user,
+                         group=params.hdfs_user,
+                         mode=0755,
+                         recursive_chmod=True,
+                         only_if=check
+      )
+      params.HdfsResource("/ranger/audit/hdfs",
+                         type="directory",
+                         action="create_on_execute",
+                         owner=params.hdfs_user,
+                         group=params.hdfs_user,
+                         mode=0700,
+                         recursive_chmod=True,
+                         only_if=check
+      )
+      params.HdfsResource(None, action="execute", only_if=check)
   else:
     Logger.info('Ranger admin not installed')

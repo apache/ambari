@@ -38,6 +38,12 @@ module.exports = Em.Application.create({
   isPermissionDataLoaded: false,
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isKerberosEnabled: false,
+
+  /**
    * state of stack upgrade process
    * states:
    *  - INIT
@@ -57,7 +63,7 @@ module.exports = Em.Application.create({
 
   /**
    * flag is true when upgrade process is waiting for user action
-   * to procced, retry, perform manual steps etc.
+   * to proceed, retry, perform manual steps etc.
    * @returns {boolean}
    */
   upgradeHolding: function() {
@@ -76,9 +82,7 @@ module.exports = Em.Application.create({
    * RU is running
    * @type {boolean}
    */
-  upgradeIsRunning: function() {
-    return this.get('upgradeInProgress') || this.get('upgradeHolding');
-  }.property('upgradeInProgress', 'upgradeHolding'),
+  upgradeIsRunning: Em.computed.or('upgradeInProgress', 'upgradeHolding'),
 
   /**
    * flag is true when upgrade process is running or aborted
@@ -177,9 +181,7 @@ module.exports = Em.Application.create({
    * for now is used to disable move/HA actions
    * @type {boolean}
    */
-  isSingleNode: function() {
-    return this.get('allHostNames.length') === 1;
-  }.property('allHostNames.length'),
+  isSingleNode: Em.computed.equal('allHostNames.length', 1),
 
   allHostNames: [],
 
@@ -206,9 +208,7 @@ module.exports = Em.Application.create({
     return (stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.1") == -1 && stringUtils.compareVersions(this.get('currentStackVersionNumber'), "2.0") > -1);
   }.property('currentStackVersionNumber'),
 
-  isHadoopWindowsStack: function() {
-    return this.get('currentStackName') == "HDPWIN";
-  }.property('currentStackName'),
+  isHadoopWindowsStack: Em.computed.equal('currentStackName', 'HDPWIN'),
 
   /**
    * when working with enhanced configs we should rely on stack version
@@ -216,9 +216,7 @@ module.exports = Em.Application.create({
    * even if flag <code>supports.enhancedConfigs<code> is true
    * @type {boolean}
    */
-  isClusterSupportsEnhancedConfigs: function() {
-    return this.get('isHadoop22Stack') && this.get('supports.enhancedConfigs');
-  }.property('isHadoop22Stack', 'supports.enhancedConfigs'),
+  isClusterSupportsEnhancedConfigs: Em.computed.and('isHadoop22Stack', 'supports.enhancedConfigs'),
 
   /**
    * If NameNode High Availability is enabled

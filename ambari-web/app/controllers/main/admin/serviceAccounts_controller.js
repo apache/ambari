@@ -106,34 +106,10 @@ App.MainAdminServiceAccountsController = App.MainServiceInfoConfigsController.ex
     var configs = App.config.mergePredefinedWithSaved(serverConfigs, this.get('selectedService'));
     var miscConfigs = configs.filterProperty('displayType', 'user').filterProperty('category', 'Users and Groups');
     miscConfigs.setEach('isVisible', true);
-
-    // load specific users along the wizards which called <code>loadUsers</code> method
-    var wizardContentProperties = [
-      {key: 'group', configName: 'user_group'},
-      {key: 'smokeuser', configName: 'smokeuser'},
-      {key: 'hdfsUser', configName: 'hdfs_user'}
-    ];
-    wizardContentProperties.forEach(function(item) {
-      this.setContentProperty(item.key, item.configName, miscConfigs);
-    }, this);
-    this.set('users', miscConfigs.filterProperty('isVisible'));
+    this.set('users', miscConfigs);
     this.set('dataIsLoaded', true);
   },
-  /**
-   * set config value to property of "content"
-   * @param key
-   * @param configName
-   * @param misc_configs
-   * @return {Boolean}
-   */
-  setContentProperty: function (key, configName, misc_configs) {
-    var content = this.get('content');
-    if (key && configName && misc_configs.someProperty('name', configName) && content.get(key)) {
-      content.set(key, misc_configs.findProperty('name', configName).get("value"));
-      return true;
-    }
-    return false;
-  },
+
   /**
    * sort miscellaneous configs by specific order
    * @param sortOrder

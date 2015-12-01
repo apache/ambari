@@ -127,9 +127,7 @@ App.StackServiceComponent = DS.Model.extend({
    *
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
-  isMasterAddableInstallerWizard: function() {
-    return this.get('isMaster') && this.get('isMultipleAllowed') && !this.get('isMasterAddableOnlyOnHA') && !this.get('isNotAddableOnlyInInstall');
-  }.property('componentName'),
+  isMasterAddableInstallerWizard: Em.computed.and('isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA', '!isNotAddableOnlyInInstall'),
 
   /**
    * Master components with cardinality more than 1 (n+ or n-n) that could not be added in wizards

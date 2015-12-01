@@ -18,7 +18,7 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false">
+<configuration supports_final="false" supports_adding_forbidden="true">
   <property>
     <name>falcon_user</name>
     <display-name>Falcon User</display-name>

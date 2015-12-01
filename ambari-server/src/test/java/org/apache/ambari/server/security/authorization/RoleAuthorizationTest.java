@@ -16,33 +16,20 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller;
+package org.apache.ambari.server.security.authorization;
 
-public class TaskStatusRequest {
-  protected Long requestId;
-  protected Long taskId;
+import org.junit.Test;
 
-  public TaskStatusRequest() {
-  }
+import static org.junit.Assert.*;
 
-  public TaskStatusRequest(Long requestId, Long taskId) {
-    this.requestId = requestId;
-    this.taskId = taskId;
-  }
+public class RoleAuthorizationTest {
 
-  public Long getRequestId() {
-    return requestId;
-  }
-
-  public void setRequestId(Long requestId) {
-    this.requestId = requestId;
-  }
-
-  public Long getTaskId() {
-    return taskId;
-  }
-
-  public void setTaskId(Long taskId) {
-    this.taskId = taskId;
+  @Test
+  public void testTranslate() throws Exception {
+    assertEquals(RoleAuthorization.VIEW_USE, RoleAuthorization.translate("VIEW.USE"));
+    assertEquals(RoleAuthorization.SERVICE_VIEW_METRICS, RoleAuthorization.translate("SERVICE.VIEW_METRICS"));
+    assertEquals(RoleAuthorization.HOST_VIEW_METRICS, RoleAuthorization.translate("HOST.VIEW_METRICS"));
+    assertEquals(RoleAuthorization.CLUSTER_VIEW_METRICS, RoleAuthorization.translate("CLUSTER.VIEW_METRICS"));
+    assertEquals(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS, RoleAuthorization.translate("AMBARI.ADD_DELETE_CLUSTERS"));
   }
 }

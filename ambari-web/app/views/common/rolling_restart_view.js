@@ -160,9 +160,7 @@ App.RollingRestartView = Em.View.extend({
    * Formatted <code>hostComponentName</code>
    * @type {String}
    */
-  hostComponentDisplayName : function() {
-    return App.format.role(this.get('hostComponentName'));
-  }.property('hostComponentName'),
+  hostComponentDisplayName: Em.computed.formatRole('hostComponentName'),
 
   /**
    * List of all host components
@@ -209,9 +207,7 @@ App.RollingRestartView = Em.View.extend({
   /**
    * @type {String}
    */
-  restartMessage : function() {
-    return Em.I18n.t('rollingrestart.dialog.msg.restart').format(this.get('hostComponentDisplayName'))
-  }.property('hostComponentDisplayName'),
+  restartMessage: Em.computed.i18nFormat('rollingrestart.dialog.msg.restart', 'hostComponentDisplayName'),
 
   /**
    * @type {String}
@@ -231,14 +227,11 @@ App.RollingRestartView = Em.View.extend({
   /**
    * @type {String}
    */
-  batchSizeMessage : function() {
-    return Em.I18n.t('rollingrestart.dialog.msg.componentsAtATime').format(this.get('hostComponentDisplayName'));
-  }.property('hostComponentDisplayName'),
+  batchSizeMessage: Em.computed.i18nFormat('rollingrestart.dialog.msg.componentsAtATime', 'hostComponentDisplayName'),
 
   /**
    * @type {String}
    */
-  staleConfigsOnlyMessage : function() {
-    return Em.I18n.t('rollingrestart.dialog.msg.staleConfigsOnly').format(this.get('hostComponentDisplayName'));
-  }.property('hostComponentDisplayName')
+  staleConfigsOnlyMessage: Em.computed.i18nFormat('rollingrestart.dialog.msg.staleConfigsOnly', 'hostComponentDisplayName')
+
 });

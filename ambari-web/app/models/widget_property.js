@@ -220,8 +220,6 @@ App.WidgetPropertyTypes = [
       return validator.isValidFloat(value) && value > this.get('MIN_VALUE') && value <= this.get('MAX_VALUE');
     },
 
-    isValid: function () {
-      return this.get('isSmallValueValid') && this.get('isBigValueValid') ;
-    }.property( 'isSmallValueValid', 'isBigValueValid')
+    isValid: Em.computed.and('isSmallValueValid', 'isBigValueValid')
   }
 ];

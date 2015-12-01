@@ -33,20 +33,6 @@ import javax.persistence.*;
 public class ResourceTypeEntity {
 
   /**
-   * Admin resource type id constants.
-   */
-  public static final int AMBARI_RESOURCE_TYPE  = 1;
-  public static final int CLUSTER_RESOURCE_TYPE = 2;
-  public static final int VIEW_RESOURCE_TYPE    = 3;
-
-  /**
-   * Admin resource type name constants.
-   */
-  public static final String AMBARI_RESOURCE_TYPE_NAME  = "AMBARI";
-  public static final String CLUSTER_RESOURCE_TYPE_NAME = "CLUSTER";
-  public static final String VIEW_RESOURCE_TYPE_NAME    = "VIEW";
-
-  /**
    * The type id.
    */
   @Id

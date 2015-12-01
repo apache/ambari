@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hdfs_log_dir_prefix</name>
     <value>/var/log/hadoop</value>
@@ -196,6 +196,16 @@
     <description>Max number of processes limit setting for HDFS user.</description>
   </property>
 
+  <property>
+    <name>hdfs_user_keytab</name>
+    <description>HDFS keytab path</description>
+  </property>
+
+  <property>
+    <name>hdfs_principal_name</name>
+    <description>HDFS principal name</description>
+  </property>
+
   <!-- hadoop-env.sh -->
   <property>
     <name>content</name>
@@ -304,10 +314,12 @@ export HADOOP_IDENT_STRING=$USER
 
 # Add database libraries
 JAVA_JDBC_LIBS=""
-for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
-do
-  JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
-done
+if [ -d "/usr/share/java" ]; then
+  for jarFile in `ls /usr/share/java | grep -E "(mysql|ojdbc|postgresql|sqljdbc)" 2>/dev/null`
+  do
+    JAVA_JDBC_LIBS=${JAVA_JDBC_LIBS}:$jarFile
+  done
+fi
 
 # Add libraries required by nodemanager
 MAPREDUCE_LIBS={{mapreduce_libs_path}}

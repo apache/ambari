@@ -102,6 +102,11 @@ angular.module('ambariAdminConsole')
       url: '/clusters/:id/manageAccess',
       templateUrl: 'views/clusters/manageAccess.html',
       controller: 'ClustersManageAccessCtrl'
+    },
+    manageAccess2: {
+      url: '/clusters/:id/userAccessList',
+      templateUrl: 'views/clusters/userAccessList.html',
+      controller: 'UserAccessListCtrl'
     }
   },
   dashboard:{

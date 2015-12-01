@@ -315,42 +315,27 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
-      isHiveMetastore: function () {
-        return componentName == 'HIVE_METASTORE';
-      }.property(),
-      deleteHiveMetastoreMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'))
-      }),
-      isNimbus: function () {
-        return componentName == 'NIMBUS';
-      }.property(),
-      deleteNimbusMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteNimbus'))
-      }),
-      isRangerKMSServer: function () {
-        return componentName == 'RANGER_KMS_SERVER';
-      }.property(),
-      deleteRangerKMSServereMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteRangerKMSServer'))
-      }),
+      isHiveMetastore: componentName == 'HIVE_METASTORE',
+      isWebHCatServer: componentName == 'WEBHCAT_SERVER',
+      isNimbus: componentName == 'NIMBUS',
+      isRangerKMSServer: componentName == 'RANGER_KMS_SERVER',
+      isZkServer: componentName == 'ZOOKEEPER_SERVER',
+
+      deleteHiveMetastoreMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'),
+      deleteWebHCatServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteWebHCatServer'),
+      deleteNimbusMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteNimbus'),
+      deleteRangerKMSServereMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteRangerKMSServer'),
+      lastComponentError: Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName),
+      deleteComponentMsg: Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName),
+      deleteZkServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteZooKeeperServer'),
+
       isChecked: false,
       disablePrimary: Em.computed.not('isChecked'),
       lastComponent: function () {
         this.set('isChecked', !isLastComponent);
         return isLastComponent;
       }.property(),
-      isZkServer: function () {
-        return componentName == 'ZOOKEEPER_SERVER';
-      }.property(),
-      lastComponentError: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.warning').format(displayName))
-      }),
-      deleteComponentMsg: function () {
-        return Em.I18n.t('hosts.host.deleteComponent.popup.msg1').format(displayName);
-      }.property(),
-      deleteZkServerMsg: Em.View.extend({
-        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteZooKeeperServer'))
-      }),
+
       onPrimary: function () {
         var popup = this;
         self._doDeleteHostComponent(component, function () {
@@ -430,6 +415,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       });
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
+      this.loadConfigs('loadHiveConfigs');
+    } else if (data.componentName == 'WEBHCAT_SERVER') {
+      this.set('deleteWebHCatServer', true);
       this.loadConfigs('loadHiveConfigs');
     } else if (data.componentName == 'HIVE_SERVER') {
       this.set('deleteHiveServer', true);
@@ -586,6 +574,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           self.loadConfigs("loadHiveConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
+      case 'WEBHCAT_SERVER':
+        returnFunc = App.showConfirmationPopup(function () {
+          self.set('webhcatServerHost', hostName);
+          self.loadConfigs("loadHiveConfigs");
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
+        break;
       case 'NIMBUS':
         returnFunc = App.showConfirmationPopup(function () {
           self.set('nimbusHost', hostName);
@@ -623,13 +617,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      addComponentMsg: function () {
-        return Em.I18n.t('hosts.host.addComponent.msg').format(message);
-      }.property(),
+      addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(message),
 
-      manualKerberosWarning: function () {
-        return isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '';
-      }.property(),
+      manualKerberosWarning: isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/addComponentPopup')
@@ -839,6 +829,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   onLoadHiveConfigs: function (data) {
     var
       hiveMetastoreHost = this.get('hiveMetastoreHost'),
+      webhcatServerHost = this.get('webhcatServerHost'),
       hiveMSHosts = this.getHiveHosts(),
       hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(','),
       configs = {},
@@ -887,7 +878,11 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    this.saveConfigsBatch(groups, this.get('addHiveServer') ? 'HIVE_SERVER' : 'HIVE_METASTORE', hiveMetastoreHost);
+    var params = [groups];
+    var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
+    var host = webhcatServerHost || hiveMetastoreHost;
+    params.pushObjects([componentName, host]);
+    this.saveConfigsBatch.apply(this, params);
     this.set('addHiveServer', false);
   },
 
@@ -950,21 +945,38 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   deleteHiveMetaStore: false,
 
+  /**
+   * Delete WebHCat Server is performed
+   *
+   * @type {bool}
+   */
+  deleteWebHCatServer: false,
+
   getHiveHosts: function () {
     var
       hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName'),
-      hiveMetastoreHost = this.get('hiveMetastoreHost');
+      webhcatHosts = App.HostComponent.find().filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('hostName'),
+      hiveMetastoreHost = this.get('hiveMetastoreHost'),
+      webhcatServerHost = this.get('webhcatServerHost');
+
+    hiveHosts = hiveHosts.concat(webhcatHosts).uniq();
 
     if (!!hiveMetastoreHost) {
       hiveHosts.push(hiveMetastoreHost);
       this.set('hiveMetastoreHost', '');
     }
 
-    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore') || this.get('deleteHiveServer')) {
+    if (!!webhcatServerHost) {
+      hiveHosts.push(webhcatServerHost);
+      this.set('webhcatServerHost' ,'');
+    }
+
+    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore') || this.get('deleteHiveServer') || this.get('deleteWebHCatServer')) {
       this.set('deleteHiveMetaStore', false);
       this.set('deleteHiveServer', false);
+      this.set('deleteWebHCatServer', false);
       this.set('fromDeleteHost', false);
-      return hiveHosts.without(this.get('content.hostName'));
+      hiveHosts = hiveHosts.without(this.get('content.hostName'));
     }
     return hiveHosts.sort();
   },
@@ -1347,9 +1359,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     return App.ModalPopup.show({
       primary: Em.I18n.t('hosts.host.installComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
-      installComponentMessage: function () {
-        return Em.I18n.t('hosts.host.installComponent.msg').format(displayName);
-      }.property(),
+      installComponentMessage: Em.I18n.t('hosts.host.installComponent.msg').format(displayName),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/installComponentPopup')
       }),
@@ -1551,9 +1561,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   showHbaseActiveWarning: function () {
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
-      message: function () {
-        return Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]);
-      }.property(),
+      message: Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]),
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
       }),
@@ -2051,9 +2059,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.cant.do.popup.title'),
       type: type,
-      showBodyEnd: function () {
-        return this.get('type') === 'runningList' || this.get('type') === 'masterList';
-      }.property(),
+      showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList']),
       container: container,
       components: function(){
         var container = this.get('container');
@@ -2068,10 +2074,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }.property('type'),
       componentsStr: function () {
         return this.get('components').join(", ");
-      }.property(),
-      componentsBody: function () {
-        return Em.I18n.t('hosts.cant.do.popup.' + type + '.body').format(this.get('components').length);
-      }.property(),
+      }.property('components.[]'),
+      componentsBody: Em.computed.i18nFormat('hosts.cant.do.popup.' + type + '.body', 'components.length'),
       componentsBodyEnd: function () {
         if (this.get('showBodyEnd')) {
           return Em.I18n.t('hosts.cant.do.popup.' + type + '.body.end').format(App.get('components.decommissionAllowed').map(function(c){return App.format.role(c)}).join(", "));
@@ -2094,9 +2098,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.delete.popup.title'),
-      deletePopupBody: function () {
-        return Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName'));
-      }.property(),
+      deletePopupBody: Em.I18n.t('hosts.delete.popup.body').format(self.get('content.publicHostName')),
       lastComponent: function () {
         if (container.lastComponents && container.lastComponents.length) {
           this.set('isChecked', false);

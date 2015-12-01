@@ -19,9 +19,12 @@
 package org.apache.ambari.server.state;
 
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -71,6 +74,14 @@ public class PropertyInfo {
   @XmlElementWrapper(name="property_depended_by")
   private Set<PropertyDependencyInfo> dependedByProperties =
     new HashSet<PropertyDependencyInfo>();
+
+  //This method is called after all the properties (except IDREF) are unmarshalled for this object,
+  //but before this object is set to the parent object.
+  void afterUnmarshal(Unmarshaller unmarshaller, Object parent) {
+    // Iterate through propertyTypes and remove any unrecognized property types
+    // that may be introduced with custom service definitions
+    propertyTypes.remove(null);
+  }
 
   public PropertyInfo() {
 

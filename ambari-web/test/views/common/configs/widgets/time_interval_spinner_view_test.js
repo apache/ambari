@@ -253,7 +253,7 @@ describe('App.TimeIntervalSpinnerView', function () {
 
     beforeEach(function() {
       view.set('config', Em.Object.create({}));
-      stackConfigProperty = App.StackConfigProperty.createRecord({
+      stackConfigProperty = {
         name: 'p1', valueAttributes: {
           minimum: 1, maximum: 10, increment_step: 4, type: 'int', unit: 'seconds'
         },
@@ -264,7 +264,7 @@ describe('App.TimeIntervalSpinnerView', function () {
             }
           ]
         }
-      });
+      };
       view.set('config.stackConfigProperty', stackConfigProperty);
       view.set('config.isValid', true);
       view.set('maxValue', [{"value":10,"type":"hours","minValue":0,"maxValue":10,"incrementStep":1,"enabled":true},{"value":0,"type":"minutes","minValue":0,"maxValue":59,"incrementStep":1,"enabled":true}]);

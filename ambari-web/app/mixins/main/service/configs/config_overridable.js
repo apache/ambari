@@ -133,8 +133,11 @@ App.ConfigOverridable = Em.Mixin.create({
           var newConfigGroup = {
             id: serviceName + "_NEW_" + configGroups.length,
             name: newConfigGroupName,
+            is_default: false,
+            parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceId),
             description: Em.I18n.t('config.group.description.default').format(new Date().toDateString()),
             service_id: serviceId,
+            service_name: serviceId,
             hosts: [],
             desired_configs: []
           };
@@ -270,7 +273,7 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method updateConfigurationGroup
    */
   updateConfigurationGroup: function (configGroup, successCallback, errorCallback) {
-    var configSiteTags = configGroup.get('configSiteTags') || [];
+    var desiredConfigs = configGroup.get('desiredConfigs') || [];
     var putConfigGroup = {
       ConfigGroup: {
         group_name: configGroup.get('name'),
@@ -281,10 +284,10 @@ App.ConfigOverridable = Em.Mixin.create({
             host_name: h
           };
         }),
-        desired_configs: configSiteTags.map(function (cst) {
+        desired_configs: desiredConfigs.map(function (cst) {
           return {
-            type: cst.get('site'),
-            tag: cst.get('tag')
+            type: Em.get(cst, 'site') || Em.get(cst, 'type') ,
+            tag: Em.get(cst, 'tag')
           };
         })
       }

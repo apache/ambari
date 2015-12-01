@@ -172,7 +172,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         return metricCache.getAppTimelineMetricsFromCache(metricCacheKey);
       }
 
-      return requestHelper.fetchTimelineMetrics(metricCacheKey.getSpec());
+      Long startTime = (metricCacheKey.getTemporalInfo() != null) ? metricCacheKey.getTemporalInfo().getStartTimeMillis():null;
+      Long endTime = (metricCacheKey.getTemporalInfo() != null) ? metricCacheKey.getTemporalInfo().getEndTimeMillis():null;
+
+      return requestHelper.fetchTimelineMetrics(uriBuilder,startTime, endTime);
     }
 
 

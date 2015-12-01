@@ -211,9 +211,11 @@ App.StackService.configCategories = function () {
   var serviceConfigCategories = [];
   switch (this.get('serviceName')) {
     case 'HDFS':
+      serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode', showHost: true}));
+      if (!App.get('isHaEnabled')) {
+        serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode', showHost: true}));
+      }
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode', showHost: true}),
-        App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'DATANODE', displayName: 'DataNode', showHost: true}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
         App.ServiceConfigCategory.create({ name: 'NFS_GATEWAY', displayName: 'NFS Gateway', showHost: true})
@@ -328,7 +330,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'RangerSettings', displayName: 'Ranger Settings'}),
         App.ServiceConfigCategory.create({ name: 'UnixAuthenticationSettings', displayName: 'Unix Authentication Settings'}),
         App.ServiceConfigCategory.create({ name: 'ADSettings', displayName: 'AD Settings'}),
-        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'})
+        App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'}),
+        App.ServiceConfigCategory.create({ name: 'KnoxSSOSettings', displayName: 'Knox SSO Settings'})
       ]);
       break;
     case 'ACCUMULO':
@@ -371,16 +374,14 @@ App.StackService.configCategories = function () {
 
   // Add custom section for every configType to all the services
   configTypes.forEach(function (type) {
-    var configTypesWithNoCustomSection = ['capacity-scheduler','mapred-queue-acls','flume-conf', 'pig-properties','topology','users-ldif', 'admin-topology', 'knoxsso-topology'];
-    if (type.endsWith('-env') || type.endsWith('-log4j') || configTypesWithNoCustomSection.contains(type)) {
-      return;
+    if (Em.getWithDefault(this.get('configTypes')[type] || {}, 'supports.adding_forbidden', 'true') === 'false') {
+      serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
+        name: 'Custom ' + type,
+        displayName: Em.I18n.t('common.custom') + " " + type,
+        siteFileName: type + '.xml',
+        canAddProperty: true
+      }));
     }
-    serviceConfigCategories.pushObject(App.ServiceConfigCategory.create({
-      name: 'Custom ' + type,
-      displayName: Em.I18n.t('common.custom') + " " + type,
-      siteFileName: type + '.xml',
-      canAddProperty: true
-    }));
   }, this);
   return serviceConfigCategories;
 };

@@ -38,6 +38,7 @@ App.Host = DS.Model.extend({
   rack: DS.attr('string'),
   healthStatus: DS.attr('string'),
   lastHeartBeatTime: DS.attr('number'),
+  rawLastHeartBeatTime: DS.attr('number'),
   osType: DS.attr("string"),
   diskInfo: DS.attr('object'),
   loadOne:DS.attr('number'),
@@ -136,9 +137,7 @@ App.Host = DS.Model.extend({
    * Percent value of used disk space
    * @returns {Number}
    */
-  diskUsage: function() {
-    return (this.get('diskUsed')) / this.get('diskTotal') * 100;
-  }.property('diskUsed', 'diskTotal'),
+  diskUsage: Em.computed.percents('diskUsed', 'diskTotal', 2),
 
   /**
    * Format diskUsage to float with 2 digits

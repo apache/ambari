@@ -86,22 +86,24 @@ App.DataNodeComponentView = App.HostComponentView.extend(App.Decommissionable, {
     if (curObj) {
       var liveNodesJson = App.parseJSON(curObj.LiveNodes);
       // HDP-2 stack
-      if (liveNodesJson && liveNodesJson[hostName]) {
-        switch (liveNodesJson[hostName].adminState) {
-          case "In Service":
-            this.setStatusAs('INSERVICE');
-            break;
-          case "Decommission In Progress":
-            this.setStatusAs('DECOMMISSIONING');
-            break;
-          case "Decommissioned":
-            this.setStatusAs('DECOMMISSIONED');
-            break;
+      for (var hostPort in liveNodesJson) {
+        if(hostPort.indexOf(hostName) == 0) {
+          switch (liveNodesJson[hostPort].adminState) {
+            case "In Service":
+              this.setStatusAs('INSERVICE');
+              break;
+            case "Decommission In Progress":
+              this.setStatusAs('DECOMMISSIONING');
+              break;
+            case "Decommissioned":
+              this.setStatusAs('DECOMMISSIONED');
+              break;
+          }
+          return;
         }
-      } else {
-        // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
-        this.getDesiredAdminState();
       }
+      // if namenode is down, get desired_admin_state to decide if the user had issued a decommission
+      this.getDesiredAdminState();
     }
   }
 });

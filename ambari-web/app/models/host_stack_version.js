@@ -57,9 +57,7 @@ App.HostStackVersion = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  installEnabled: function () {
-    return ['OUT_OF_SYNC', 'INSTALL_FAILED'].contains(this.get('status'));
-  }.property('status'),
+  installEnabled: Em.computed.existsIn('status', ['OUT_OF_SYNC', 'INSTALL_FAILED']),
 
   installDisabled: Em.computed.not('installEnabled')
 });

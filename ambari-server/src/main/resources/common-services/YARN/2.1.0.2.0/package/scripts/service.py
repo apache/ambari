@@ -22,6 +22,7 @@ Ambari Agent
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.shell import as_user
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
@@ -37,13 +38,6 @@ def service(componentName, action='start', serviceName='yarn'):
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def service(componentName, action='start', serviceName='yarn'):
   import params
-
-  if componentName == 'timelineserver' and serviceName == 'yarn' and action == 'start':
-    File(params.ats_leveldb_lock_file,
-         action = "delete",
-         only_if = format("ls {params.ats_leveldb_lock_file}"),
-         ignore_failures = True
-    )
 
   if serviceName == 'mapreduce' and componentName == 'historyserver':
     delete_pid_file = True
@@ -62,17 +56,24 @@ def service(componentName, action='start', serviceName='yarn'):
 
   if action == 'start':
     daemon_cmd = format("{ulimit_cmd} {cmd} start {componentName}")
-    check_process = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+    check_process = as_user(format("ls {pid_file} && ps -p `cat {pid_file}`"), user=usr)
 
     # Remove the pid file if its corresponding process is not running.
     File(pid_file, action = "delete", not_if = check_process)
+
+    if componentName == 'timelineserver' and serviceName == 'yarn':
+      File(params.ats_leveldb_lock_file,
+         action = "delete",
+         only_if = format("ls {params.ats_leveldb_lock_file}"),
+         not_if = check_process,
+         ignore_failures = True
+      )
 
     # Attempt to start the process. Internally, this is skipped if the process is already running.
     Execute(daemon_cmd, user = usr, not_if = check_process)
 
     # Ensure that the process with the expected PID exists.
     Execute(check_process,
-            user=usr,
             not_if = check_process,
             tries=5,
             try_sleep=1,

@@ -19,21 +19,25 @@
 <div class="cluster-manage-access-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">{{clusterName}} Permissions</li>
+      <li class="active">{{clusterName}} Roles</li>
     </ol>
   </div>
   <hr>
+  <div class="pull-right">
+    <i class="glyphicon glyphicon-th-large layout-switch-icon"></i>
+    <i class="glyphicon glyphicon-list layout-switch-icon disabled" ng-click="switchToList()" tooltip="Switch&nbsp;to&nbsp;list&nbsp;view"></i>
+  </div>
   <table class="table">
     <thead>
       <tr>
-        <th class="col-sm-2" width="20%"><label>Permission</label></th>
-        <th class="col-sm-5" width="40%"><label>Grant permission to these users</label></th>
-        <th class="col-sm-5" width="40%"><label>Grant permission to these groups</label></th>
+        <th class="col-sm-2" width="20%"><label>Roles</label></th>
+        <th class="col-sm-5" width="40%"><label>Assign roles to these users</label></th>
+        <th class="col-sm-5" width="40%"><label>Assign roles to these groups</label></th>
       </tr>
     </thead>
     <tbody>
       <tr ng-repeat="permission in permissions">
-        <td><label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_name | translate}}</label></td>
+        <td><label class="" tooltip="{{permission.PermissionInfo.permission_name}}">{{permission.PermissionInfo.permission_label}}</label></td>
         <td>
           <div class="" ng-switch="isEditMode">
             <editable-list items-source="permissionsEdit[permission.PermissionInfo.permission_name].USER" resource-type="User" editable="true"></editable-list>

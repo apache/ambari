@@ -55,8 +55,8 @@ class TestSparkThriftServer(RMFTestCase):
     self.assert_configure_default()
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-thriftserver.sh --properties-file /usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf --driver-memory 1g',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid` >/dev/null 2>&1',
-        user = 'spark',
+        not_if = 'ls /var/run/spark/spark-hive-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-hive-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid` >/dev/null 2>&1',
+        user = 'hive',
     )
     self.assertNoMoreResources()
 
@@ -70,9 +70,9 @@ class TestSparkThriftServer(RMFTestCase):
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-thriftserver.sh',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        user = 'spark',
+        user = 'hive',
     )
-    self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid',
+    self.assertResourceCalled('File', '/var/run/spark/spark-hive-org.apache.spark.sql.hive.thriftserver.HiveThriftServer2-1.pid',
         action = ['delete'],
     )
     self.assertNoMoreResources()
@@ -82,11 +82,13 @@ class TestSparkThriftServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
+        mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
         security_enabled = False,
@@ -140,6 +142,7 @@ class TestSparkThriftServer(RMFTestCase):
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf',
         key_value_delimiter = ' ',
+        owner = 'hive',
         properties = self.getConfig()['configurations']['spark-thrift-sparkconf']
     )
 
@@ -159,7 +162,7 @@ class TestSparkThriftServer(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-thriftserver', version), sudo=True)

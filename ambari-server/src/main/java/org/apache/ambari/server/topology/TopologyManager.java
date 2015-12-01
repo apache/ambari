@@ -71,6 +71,9 @@ public class TopologyManager {
   public static final String TOPOLOGY_RESOLVED_TAG = "TOPOLOGY_RESOLVED";
   public static final String KDC_ADMIN_CREDENTIAL = "kdc.admin.credential";
 
+  private static final String CLUSTER_ENV_CONFIG_TYPE_NAME = "cluster-env";
+  private static final String CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME = "cluster_configure_task_timeout";
+
   private PersistedState persistedState;
   private ExecutorService executor = Executors.newSingleThreadExecutor();
   private Collection<String> hostsToIgnore = new HashSet<String>();
@@ -675,13 +678,32 @@ public class TopologyManager {
    * @param configurationRequest  configuration request to be executed
    */
   private void addClusterConfigRequest(ClusterTopology topology, ClusterConfigurationRequest configurationRequest) {
-    executor.execute(new ConfigureClusterTask(topology, configurationRequest));
+
+    String timeoutStr = topology.getConfiguration().getPropertyValue(CLUSTER_ENV_CONFIG_TYPE_NAME,
+        CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME);
+
+    long timeout = 1000 * 60 * 30; // 30 minutes
+    long delay = 100; //ms
+
+    if (timeoutStr != null) {
+      timeout = Long.parseLong(timeoutStr);
+      LOG.debug("ConfigureClusterTask timeout set to: {}", timeout);
+    } else {
+      LOG.debug("No timeout constraints found in configuration. Wired defaults will be applied.");
+    }
+
+    ConfigureClusterTask configureClusterTask = new ConfigureClusterTask(topology, configurationRequest);
+    AsyncCallableService<Boolean> asyncCallableService = new AsyncCallableService(configureClusterTask, timeout, delay,
+        Executors.newScheduledThreadPool(1));
+
+    executor.submit(asyncCallableService);
   }
 
-  private class ConfigureClusterTask implements Runnable {
+  // package protected for testing purposes
+  static class ConfigureClusterTask implements Callable<Boolean> {
+
     private ClusterConfigurationRequest configRequest;
     private ClusterTopology topology;
-
 
     public ConfigureClusterTask(ClusterTopology topology, ClusterConfigurationRequest configRequest) {
       this.configRequest = configRequest;
@@ -689,40 +711,32 @@ public class TopologyManager {
     }
 
     @Override
-    public void run() {
+    public Boolean call() throws Exception {
       LOG.info("TopologyManager.ConfigureClusterTask: Entering");
 
-      boolean completed = false;
-      boolean interrupted = false;
-
       Collection<String> requiredHostGroups = getTopologyRequiredHostGroups();
-      while (!completed && !interrupted) {
-        try {
-          Thread.sleep(100);
-        } catch (InterruptedException e) {
-          interrupted = true;
-          LOG.info("TopologyManager.ConfigureClusterTask: waiting thread interrupted by exception", e);
-          // reset interrupted flag on thread
-          Thread.interrupted();
-        }
-        completed = areRequiredHostGroupsResolved(requiredHostGroups);
+
+      if (!areRequiredHostGroupsResolved(requiredHostGroups)) {
+        LOG.debug("TopologyManager.ConfigureClusterTask - prerequisites for config request processing not yet " +
+            "satisfied");
+        throw new IllegalArgumentException("TopologyManager.ConfigureClusterTask - prerequisites for config " +
+            "request processing not yet  satisfied");
       }
 
-      LOG.info("TopologyManager.ConfigureClusterTask: All Required host groups are completed, Cluster Configuration can now begin");
-
-      if (!interrupted) {
-        try {
-          LOG.info("TopologyManager.ConfigureClusterTask: Setting Configuration on cluster");
-          // sets updated configuration on topology and cluster
+      try {
+          LOG.info("TopologyManager.ConfigureClusterTask: All Required host groups are completed, Cluster " +
+              "Configuration can now begin");
           configRequest.process();
         } catch (Exception e) {
-          // just logging and allowing config flag to be reset
           LOG.error("TopologyManager.ConfigureClusterTask: " +
-              "An exception occurred while attempting to process cluster configs and set on cluster: " + e);
-          e.printStackTrace();
-        }
+              "An exception occurred while attempting to process cluster configs and set on cluster: ", e);
+
+        // this will signal an unsuccessful run, retry will be triggered if required
+        throw new Exception(e);
       }
+
       LOG.info("TopologyManager.ConfigureClusterTask: Exiting");
+      return true;
     }
 
     /**
@@ -736,8 +750,8 @@ public class TopologyManager {
         requiredHostGroups = configRequest.getRequiredHostGroups();
       } catch (RuntimeException e) {
         // just log error and allow config topology update
-        LOG.error("TopologyManager.ConfigureClusterTask: An exception occurred while attempting to determine required host groups for config update " + e);
-        e.printStackTrace();
+        LOG.error("TopologyManager.ConfigureClusterTask: An exception occurred while attempting to determine required" +
+            " host groups for config update ", e);
         requiredHostGroups = Collections.emptyList();
       }
       return requiredHostGroups;

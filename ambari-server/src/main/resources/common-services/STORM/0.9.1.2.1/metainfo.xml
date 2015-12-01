@@ -129,6 +129,8 @@
         <config-type>ranger-storm-audit</config-type>
         <config-type>ranger-storm-policymgr-ssl</config-type>
         <config-type>ranger-storm-security</config-type>
+        <config-type>zookeeper-env</config-type>
+        <config-type>zoo.cfg</config-type>
       </configuration-dependencies>
     </service>
   </services>

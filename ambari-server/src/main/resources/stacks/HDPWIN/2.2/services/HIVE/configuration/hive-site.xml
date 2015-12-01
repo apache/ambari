@@ -404,6 +404,7 @@ limitations under the License.
     <display-name>Database Username</display-name>
     <description>username to use against metastore database</description>
     <value-attributes>
+      <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -1404,6 +1405,7 @@ limitations under the License.
     <display-name>Database Name</display-name>
     <description>Database name used as the Hive Metastore</description>
     <value-attributes>
+      <type>database</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

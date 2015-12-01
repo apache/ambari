@@ -21,6 +21,7 @@ limitations under the License.
 import urllib2
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import logging
+import traceback
 
 from ambari_commons.urllib_handlers import RefreshHeaderProcessor
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
@@ -42,7 +43,8 @@ EXECUTABLE_SEARCH_PATHS = '{{kerberos-env/executable_search_paths}}'
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
 
-logger = logging.getLogger()
+LOGGER_EXCEPTION_MESSAGE = "[Alert] NodeManager Health Summary on {0} fails:"
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -133,9 +135,8 @@ def execute(configurations={}, parameters={}, host_name=None):
         live_nodemanagers = json.loads(url_response_json["beans"][0]["LiveNodeManagers"])
       except ValueError, error:
         convert_to_json_failed = True
-        if logger.isEnabledFor(logging.DEBUG):
-          logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
-          format("NodeManager Health Summary", str(error)))
+        logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
+        format("NodeManager Health Summary", str(error)))
 
       if convert_to_json_failed:
         response_code, error_msg, time_millis  = curl_krb_request(env.tmp_dir, kerberos_keytab, kerberos_principal,
@@ -169,8 +170,8 @@ def execute(configurations={}, parameters={}, host_name=None):
       else:
         label = ERROR_LABEL.format(unhealthy_count, 's', 'are')
 
-  except Exception, e:
-    label = str(e)
+  except:
+    label = traceback.format_exc()
     result_code = 'UNKNOWN'
 
   return (result_code, [label])

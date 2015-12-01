@@ -201,9 +201,7 @@ App.AddNumberExpressionView = Em.TextField.extend({
  */
 App.AddMetricExpressionView = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/step2_add_metric'),
-  controller: function () {
-    return this.get('parentView.controller');
-  }.property('parentView.controller'),
+  controller: Em.computed.alias('parentView.controller'),
   elementId: function () {
     var expressionId = "_" + this.get('parentView').get('expression.id');
     return 'add-metric-menu' + expressionId;
@@ -366,9 +364,7 @@ App.AddMetricExpressionView = Em.View.extend({
           id: componentId + expressionId,
           aggregatorId: componentId + expressionId + '_aggregator',
           serviceName: serviceName,
-          showAggregateSelect: function () {
-            return this.get('level') === 'COMPONENT';
-          }.property('level'),
+          showAggregateSelect: Em.computed.equal('level', 'COMPONENT'),
           selectedMetric: null,
           selectedAggregation: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'),
           isAddEnabled: function () {

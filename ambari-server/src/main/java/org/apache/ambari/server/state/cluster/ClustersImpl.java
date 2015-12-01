@@ -18,9 +18,20 @@
 
 package org.apache.ambari.server.state.cluster;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.persistence.RollbackException;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -44,9 +55,11 @@ import org.apache.ambari.server.orm.dao.RequestOperationLevelDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
 import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -54,6 +67,7 @@ import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -71,18 +85,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import javax.persistence.RollbackException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ClustersImpl implements Clusters {
@@ -135,6 +140,8 @@ public class ClustersImpl implements Clusters {
   private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private SecurityHelper securityHelper;
+  @Inject
+  private TopologyLogicalTaskDAO topologyLogicalTaskDAO;
 
   /**
    * Data access object for stacks.
@@ -175,7 +182,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void loadClustersAndHosts() {
+  void loadClustersAndHosts() {
     for (ClusterEntity clusterEntity : clusterDAO.findAll()) {
       Cluster currentCluster = clusterFactory.create(clusterEntity);
       clusters.put(clusterEntity.getClusterName(), currentCluster);
@@ -218,11 +225,11 @@ public class ClustersImpl implements Clusters {
       }
 
       // create an admin resource to represent this cluster
-      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
       if (resourceTypeEntity == null) {
         resourceTypeEntity = new ResourceTypeEntity();
-        resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-        resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+        resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+        resourceTypeEntity.setName(ResourceType.CLUSTER.name());
         resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
       }
 
@@ -583,7 +590,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void mapHostClusterEntities(String hostName, Long clusterId) {
+  void mapHostClusterEntities(String hostName, Long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
 
@@ -717,10 +724,13 @@ public class ClustersImpl implements Clusters {
   @Override
   public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
     final Cluster cluster = getCluster(clusterName);
-    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{ add(cluster); }});
+    unmapHostFromClusters(hostname, new HashSet<Cluster>() {{
+      add(cluster);
+    }});
   }
 
-  public void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
+  @Transactional
+  void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
     Host host = null;
     HostEntity hostEntity = null;
 
@@ -765,7 +775,7 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void unmapHostClusterEntities(String hostName, long clusterId) {
+  void unmapHostClusterEntities(String hostName, long clusterId) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
 
@@ -773,11 +783,11 @@ public class ClustersImpl implements Clusters {
     clusterEntity.getHostEntities().remove(hostEntity);
 
     hostDAO.merge(hostEntity);
-    clusterDAO.merge(clusterEntity);
+    clusterDAO.merge(clusterEntity, true);
   }
 
   @Transactional
-  private void deleteConfigGroupHostMapping(Long hostId) throws AmbariException {
+  void deleteConfigGroupHostMapping(Long hostId) throws AmbariException {
     // Remove Config group mapping
     for (Cluster cluster : clusters.values()) {
       for (ConfigGroup configGroup : cluster.getConfigGroups().values()) {
@@ -822,7 +832,7 @@ public class ClustersImpl implements Clusters {
    * @throws AmbariException
    */
   @Transactional
-  private void deleteHostEntityRelationships(String hostname) throws AmbariException {
+  void deleteHostEntityRelationships(String hostname) throws AmbariException {
     checkLoaded();
 
     if (!hosts.containsKey(hostname)) {
@@ -845,6 +855,17 @@ public class ClustersImpl implements Clusters {
       hostDAO.refresh(entity);
 
       hostVersionDAO.removeByHostName(hostname);
+
+      // Remove blueprint tasks before hostRoleCommands
+      // TopologyLogicalTask owns the OneToOne relationship but Cascade is on HostRoleCommandEntity
+      if (entity.getHostRoleCommandEntities() != null) {
+        for (HostRoleCommandEntity hrcEntity : entity.getHostRoleCommandEntities()) {
+          if (hrcEntity.getTopologyLogicalTaskEntity() != null) {
+            topologyLogicalTaskDAO.remove(hrcEntity.getTopologyLogicalTaskEntity());
+            hrcEntity.setTopologyLogicalTaskEntity(null);
+          }
+        }
+      }
       entity.setHostRoleCommandEntities(null);
       hostRoleCommandDAO.removeByHostId(entity.getHostId());
 
@@ -874,8 +895,7 @@ public class ClustersImpl implements Clusters {
 
     Cluster cluster = findCluster(clusterName);
 
-    return (cluster == null && readOnly) || !configuration.getApiAuthentication()
-      || checkPermission(cluster, readOnly);
+    return (cluster == null && readOnly) || checkPermission(cluster, readOnly);
   }
 
   @Override

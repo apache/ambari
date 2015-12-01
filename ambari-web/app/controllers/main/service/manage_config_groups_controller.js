@@ -225,7 +225,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
     var modifiedGroups = this.get('hostsModifiedConfigGroups');
     return Em.keys(modifiedGroups).map(function (key) {
       return ignoreKeys.contains(key) ? 0 : Em.get(modifiedGroups[key], 'length');
-    }).reduce(Em.sum) > 0;
+    }).reduce(Em.sum, 0) > 0;
   }.property('hostsModifiedConfigGroups'),
 
   /**
@@ -690,7 +690,7 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],
-          configSiteTags: [],
+          desiredConfigs: [],
           properties: []
         });
         App.store.commit();

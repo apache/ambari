@@ -39,10 +39,7 @@ App.Tab = DS.Model.extend({
    * Number of the errors in all sections in the current tab
    * @type {number}
    */
-  errorsCount: function () {
-    var errors = this.get('sections').mapProperty('errorsCount');
-    return errors.length ? errors.reduce(Em.sum) : 0;
-  }.property('sections.@each.errorsCount'),
+  errorsCount: Em.computed.sumBy('sections', 'errorsCount'),
 
   /**
    * Class name used for tab switching

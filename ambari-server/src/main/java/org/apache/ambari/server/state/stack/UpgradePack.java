@@ -40,6 +40,8 @@ import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ServiceCheckGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Task;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents an upgrade pack.
@@ -47,6 +49,8 @@ import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
 @XmlRootElement(name="upgrade")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UpgradePack {
+
+  private static Logger LOG = LoggerFactory.getLogger(UpgradePack.class);
 
   /**
    * Name of the file without the extension, such as upgrade-2.2
@@ -317,7 +321,12 @@ public class UpgradePack {
           Map<String, ProcessingComponent> componentMap = m_process.get(svc.name);
 
           for (ProcessingComponent pc : svc.components) {
-            componentMap.put(pc.name, pc);
+            if (pc != null) {
+              componentMap.put(pc.name, pc);
+            } else {
+              LOG.warn("ProcessingService {} has null amongst it's values " +
+                "(total {} components)", svc.name, svc.components.size());
+            }
           }
         }
       }

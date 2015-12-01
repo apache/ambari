@@ -99,8 +99,8 @@ public class TestUsers {
 
     // create admin permission
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
-    resourceTypeEntity.setId(ResourceTypeEntity.AMBARI_RESOURCE_TYPE);
-    resourceTypeEntity.setName(ResourceTypeEntity.AMBARI_RESOURCE_TYPE_NAME);
+    resourceTypeEntity.setId(ResourceType.AMBARI.getId());
+    resourceTypeEntity.setName(ResourceType.AMBARI.name());
     resourceTypeDAO.create(resourceTypeEntity);
 
     ResourceEntity resourceEntity = new ResourceEntity();

@@ -794,13 +794,9 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
         }.property('siteProperties'),
 
-        runningHostsMessage: function () {
-          return Em.I18n.t('services.service.config.stopService.runningHostComponents').format(this.get('runningComponentCount'), this.get('runningHosts.length'));
-        }.property('runningComponentCount', 'runningHosts.length'),
+        runningHostsMessage: Em.computed.i18nFormat('services.service.config.stopService.runningHostComponents', 'runningComponentCount', 'runningHosts.length'),
 
-        unknownHostsMessage: function () {
-          return Em.I18n.t('services.service.config.stopService.unknownHostComponents').format(this.get('unknownComponentCount'), this.get('unknownHosts.length'));
-        }.property('unknownComponentCount', 'unknownHosts.length'),
+        unknownHostsMessage: Em.computed.i18nFormat('services.service.config.stopService.unknownHostComponents', 'unknownComponentCount', 'unknownHosts.length'),
 
         templateName: require('templates/main/service/info/configs_save_popup')
       })

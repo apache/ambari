@@ -99,6 +99,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
     this.set('isCompareMode', false);
     this.set('versionLoaded', false);
     this.set('selectedVersion', this.get('currentDefaultVersion'));
+    this.set('preSelectedConfigVersion', null);
     this.trackRequest(App.ajax.send({
       name: 'service.serviceConfigVersions.get.current',
       sender: this,
@@ -115,11 +116,19 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @param opt
    * @param params
    */
-  loadCurrentVersionsSuccess: function(data, opt, params) {
+  loadCurrentVersionsSuccess: function (data, opt, params) {
+    var self = this;
     App.configGroupsMapper.map(data, true, params.serviceNames.split(','));
-    this.set('selectedConfigGroup', App.ServiceConfigGroup.find().filterProperty('serviceName', this.get('content.serviceName')).findProperty('isDefault'));
-    this.parseConfigData(data);
-    this.loadConfigGroups(params.serviceNames.split(','));
+    this.loadConfigGroups(params.serviceNames.split(',')).done(function () {
+      if (self.get('isHostsConfigsPage')) {
+        self.set('selectedConfigGroup', App.ServiceConfigGroup.find().filterProperty('serviceName', self.get('content.serviceName')).find(function (cg) {
+              return !cg.get('isDefault') && cg.get('hosts').contains(self.get('host.hostName'));
+            }) || App.ServiceConfigGroup.find().filterProperty('serviceName', self.get('content.serviceName')).findProperty('isDefault'));
+      } else {
+        self.set('selectedConfigGroup', App.ServiceConfigGroup.find().filterProperty('serviceName', self.get('content.serviceName')).findProperty('isDefault'));
+      }
+      self.parseConfigData(data);
+    });
   },
 
   /**

@@ -26,9 +26,7 @@ App.RepositoryVersion = DS.Model.extend({
   stackVersionNumber: DS.attr('string'),
   operatingSystems: DS.hasMany('App.OS'),
   stackVersion: DS.belongsTo('App.StackVersion'),
-  stack: function () {
-    return this.get('stackVersionType') + " " + this.get('stackVersionNumber');
-  }.property('stackVersionType', 'stackVersionNumber'),
+  stack: Em.computed.concat(' ', 'stackVersionType', 'stackVersionNumber'),
 
   /**
    * status used until corresponding stack version get created
@@ -39,9 +37,7 @@ App.RepositoryVersion = DS.Model.extend({
   /**
    * @type {string}
    */
-  status: function () {
-    return this.get('stackVersion.state') || this.get('defaultStatus');
-  }.property('stackVersion.state', 'defaultStatus'),
+  status: Em.computed.firstNotBlank('stackVersion.state', 'defaultStatus'),
 
   /**
    * @type {Array}

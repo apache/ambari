@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -26,9 +26,12 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
+import java.util.Collection;
 
 /**
  * Represents an admin permission.
@@ -38,7 +41,7 @@ import javax.persistence.TableGenerator;
 @TableGenerator(name = "permission_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "permission_id_seq"
-    , initialValue = 5
+    , initialValue = 8
 )
 public class PermissionEntity {
 
@@ -84,6 +87,20 @@ public class PermissionEntity {
       @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false),
   })
   private ResourceTypeEntity resourceType;
+
+  /**
+   * The set of authorizations related to this permission.
+   *
+   * This value declares the granular details for which operations this PermissionEntity grants
+   * access.
+   */
+  @ManyToMany
+  @JoinTable(
+      name = "permission_roleauthorization",
+      joinColumns = {@JoinColumn(name = "permission_id")},
+      inverseJoinColumns = {@JoinColumn(name = "authorization_id")}
+  )
+  private Collection<RoleAuthorizationEntity> authorizations;
 
 
   // ----- PermissionEntity ---------------------------------------------------
@@ -160,8 +177,25 @@ public class PermissionEntity {
     this.resourceType = resourceType;
   }
 
+  /**
+   * Gets the collection of granular authorizations for this PermissionEntity
+   *
+   * @return a collection of granular authorizations
+   */
+  public Collection<RoleAuthorizationEntity> getAuthorizations() {
+    return authorizations;
+  }
 
-  // ----- Object overrides --------------------------------------------------
+  /**
+   * Sets the collection of granular authorizations for this PermissionEntity
+   *
+   * @param authorizations a collection of granular authorizations
+   */
+  public void setAuthorizations(Collection<RoleAuthorizationEntity> authorizations) {
+    this.authorizations = authorizations;
+  }
+
+// ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {
@@ -173,7 +207,8 @@ public class PermissionEntity {
     return !(id != null ? !id.equals(that.id) : that.id != null) &&
         !(permissionName != null ? !permissionName.equals(that.permissionName) : that.permissionName != null) &&
         !(permissionLabel != null ? !permissionLabel.equals(that.permissionLabel) : that.permissionLabel != null) &&
-        !(resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null);
+        !(resourceType != null ? !resourceType.equals(that.resourceType) : that.resourceType != null) &&
+        !(authorizations != null ? !authorizations.equals(that.authorizations) : that.authorizations != null);
   }
 
   @Override
@@ -182,6 +217,7 @@ public class PermissionEntity {
     result = 31 * result + (permissionName != null ? permissionName.hashCode() : 0);
     result = 31 * result + (permissionLabel != null ? permissionLabel.hashCode() : 0);
     result = 31 * result + (resourceType != null ? resourceType.hashCode() : 0);
+    result = 31 * result + (authorizations != null ? authorizations.hashCode() : 0);
     return result;
   }
 }

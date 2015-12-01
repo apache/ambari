@@ -718,9 +718,11 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
             warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
             configsMergeWarning = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"),
+            popupData = {
+              items: data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE')
+            },
             configs = [];
           if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
-            data.items = data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE');
             var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
             if (configsMergeCheckData) {
               configs = configsMergeCheckData.map(function (item) {
@@ -738,12 +740,21 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
               });
             }
           }
-          App.showPreUpgradeCheckPopup(data, header, failTitle, failAlert, warningTitle, warningAlert, function () {
-            self.runPreUpgradeCheckOnly.call(self, {
-              value: version.get('repositoryVersion'),
-              label: version.get('displayName'),
-              type: event.context.get('type')
-            });
+          App.showClusterCheckPopup(popupData, {
+            header: header,
+            failTitle: failTitle,
+            failAlert: failAlert,
+            warningTitle: warningTitle,
+            warningAlert: warningAlert,
+            primary: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.rerun'),
+            secondary: Em.I18n.t('common.cancel'),
+            callback: function () {
+              self.runPreUpgradeCheckOnly.call(self, {
+                value: version.get('repositoryVersion'),
+                label: version.get('displayName'),
+                type: event.context.get('type')
+              });
+            }
           }, configs, version.get('displayName'));
         }
       }),
@@ -958,7 +969,8 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     var self = this;
     if (data.items.someProperty('UpgradeChecks.status', 'FAIL') || data.items.someProperty('UpgradeChecks.status', 'WARNING')) {
       this.set('requestInProgress', false);
-      var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label),
+      var hasFails = data.items.someProperty('UpgradeChecks.status', 'FAIL'),
+        header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label),
         failTitle = Em.I18n.t('popup.clusterCheck.Upgrade.fail.title'),
         failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
         warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
@@ -984,8 +996,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           });
         }
       }
-      App.showClusterCheckPopup(data, header, failTitle, failAlert, warningTitle, warningAlert, function () {
-        self.upgrade(params);
+      App.showClusterCheckPopup(data, {
+        header: header,
+        failTitle: failTitle,
+        failAlert: failAlert,
+        warningTitle: warningTitle,
+        warningAlert: warningAlert,
+        noCallbackCondition: hasFails,
+        callback: function () {
+          self.upgrade(params);
+        }
       }, configs, params.label);
     } else {
       this.upgrade(params);
@@ -1467,7 +1487,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   restoreLastUpgrade: function(lastUpgradeData) {
     var self = this;
     var upgradeType = this.get('upgradeMethods').findProperty('type', lastUpgradeData.Upgrade.upgrade_type);
-    var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
 
     this.setDBProperties({
       upgradeId: lastUpgradeData.Upgrade.request_id,
@@ -1482,6 +1501,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       })
     });
     this.loadRepoVersionsToModel().done(function () {
+      var toVersion = App.RepositoryVersion.find().findProperty('repositoryVersion', lastUpgradeData.Upgrade.to_version);
       self.setDBProperty('upgradeVersion', toVersion && toVersion.get('displayName'));
       self.initDBProperties();
       self.loadUpgradeData(true);

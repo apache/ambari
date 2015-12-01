@@ -1331,3 +1331,21 @@ accordion .panel-group .panel{
   margin-top: 10px;
   margin-bottom: 10px;
 }
+
+.layout-switch-icon {
+  font-size: 20px;
+}
+
+.layout-switch-icon.disabled {
+  opacity: 0.4;
+  cursor: pointer;
+}
+
+.layout-switch-icon.disabled:hover {
+  opacity: 0.6;
+}
+
+thead.view-permission-header > tr > th {
+  border-top: 0px;
+  padding-top: 40px;
+}

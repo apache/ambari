@@ -531,31 +531,31 @@ describe('App.WizardStep2Controller', function () {
 
     it('should return value if hostsError is not empty', function () {
       controller.set('hostsError', 'error');
-      expect(controller.get('isSubmitDisabled').length).to.above(0);
+      expect(controller.get('isSubmitDisabled')).to.be.true;
     });
 
     it('should return value if sshKeyError is not empty', function () {
       controller.set('sshKeyError', 'error');
       controller.set('hostsError', '');
-      expect(controller.get('isSubmitDisabled').length).to.above(0);
+      expect(controller.get('isSubmitDisabled')).to.be.true;
     });
 
     it('should return value if sshUserError is not empty', function () {
       controller.set('sshUserError', 'error');
       controller.set('sshKeyError', '');
-      expect(controller.get('isSubmitDisabled').length).to.above(0);
+      expect(controller.get('isSubmitDisabled')).to.be.true;
     });
 
     it('should return value if agentUserError is not empty', function () {
       controller.set('agentUserError', 'error');
       controller.set('sshUserError', '');
-      expect(controller.get('isSubmitDisabled').length).to.above(0);
+      expect(controller.get('isSubmitDisabled')).to.be.true;
     });
 
     it('should return value if sshPortError is not empty', function () {
         controller.set('sshPortError', 'error');
         controller.set('agentUserError', '');
-        expect(controller.get('isSubmitDisabled').length).to.above(0);
+        expect(controller.get('isSubmitDisabled')).to.be.true;
     });
   });
 

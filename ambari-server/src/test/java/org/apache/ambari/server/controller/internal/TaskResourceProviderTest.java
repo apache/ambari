@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -33,17 +34,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.Role;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.TaskStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * TaskResourceProvider tests.
@@ -94,24 +102,32 @@ public class TaskResourceProviderTest {
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Task;
 
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
 
-    Set<TaskStatusResponse> allResponse = new HashSet<TaskStatusResponse>();
-    allResponse.add(new TaskStatusResponse(100L, 100, 100L, "HostName100", "", "", "", 0, "", "", 0L, (short) 0,
-        "commandDetail", "customCommandName", null, null));
+    Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+        type, PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), amc);
+
+    m_injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+
+    List<HostRoleCommandEntity> entities = new ArrayList<>();
+    HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
+    hostRoleCommandEntity.setRequestId(100L);
+    hostRoleCommandEntity.setTaskId(100L);
+    hostRoleCommandEntity.setStageId(100L);
+    hostRoleCommandEntity.setRole(Role.DATANODE);
+    hostRoleCommandEntity.setCustomCommandName("customCommandName");
+    hostRoleCommandEntity.setCommandDetail("commandDetail");
+    entities.add(hostRoleCommandEntity);
 
     // set expectations
-    expect(managementController.getTaskStatus(AbstractResourceProviderTest.Matcher.getTaskRequestSet(100L, 100L))).
-        andReturn(allResponse).once();
+    expect(hostRoleCommandDAO.findAll(EasyMock.anyObject(Request.class),
+        EasyMock.anyObject(Predicate.class))).andReturn(entities).once();
 
     // replay
-    replay(managementController);
-
-    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
-        type,
-        PropertyHelper.getPropertyIds(type),
-        PropertyHelper.getKeyPropertyIds(type),
-        managementController);
+    replay(hostRoleCommandDAO);
 
     Set<String> propertyIds = new HashSet<String>();
 
@@ -135,7 +151,7 @@ public class TaskResourceProviderTest {
     }
 
     // verify
-    verify(managementController);
+    verify(hostRoleCommandDAO);
   }
 
   @Test
@@ -236,7 +252,7 @@ public class TaskResourceProviderTest {
 
     verify(managementController);
   }
-  
+
   @Test
   public void testParseStructuredOutputForHostCheck() {
     Resource.Type type = Resource.Type.Task;
@@ -254,13 +270,13 @@ public class TaskResourceProviderTest {
 
     Assert.assertNotNull(result);
     Map<?,?> host_resolution_check = (Map<?,?>)result.get("host_resolution_check");
-    
+
     assertEquals(host_resolution_check.get("success_count"), 3);
     assertEquals(host_resolution_check.get("failed_count"), 1);
-    
+
     verify(managementController);
   }
-  
+
   @Test
   public void testInvalidStructuredOutput() {
     Resource.Type type = Resource.Type.Task;

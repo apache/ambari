@@ -127,9 +127,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
 
   }.property('service'),
 
-  selectedComponentDisplayName: function() {
-    return App.format.role(this.get('selectedComponentName'));
-  }.property('selectedComponentName'),
+  selectedComponentDisplayName: Em.computed.formatRole('selectedComponentName'),
 
   selectedSlaveComponent: function () {
     var selectedComponentName = this.get('selectedComponentName') ? this.get('selectedComponentName').displayName : null;
@@ -145,11 +143,7 @@ App.SlaveComponentGroupsController = Em.ArrayController.extend({
     return configs;
   }.property('selectedComponentName', 'stepConfigs.@each.configCategories', 'stepConfigs.@each.configCategories.@each.slaveConfigs'),
 
-  hosts: function () {
-    if (this.get('selectedSlaveComponent')) {
-      return this.get('selectedSlaveComponent').get('hosts');
-    }
-  }.property('selectedSlaveComponent'),
+  hosts: Em.computed.alias('selectedSlaveComponent.hosts'),
 
   groups: function () {
     var hosts = this.get('hosts');

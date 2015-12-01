@@ -17,9 +17,9 @@
  */
 
 var App = require('app');
-require('mappers/configs/config_versions_mapper');
+require('mappers/configs/service_config_version_mapper');
 
-describe.skip('App.configVersionsMapper', function () {
+describe.skip('App.serviceConfigVersionsMapper', function () {
 
   var allHosts = App.get('allHostNames');
   var defaultAllHosts = ['host1', 'host2', 'host3'];
@@ -76,7 +76,7 @@ describe.skip('App.configVersionsMapper', function () {
     ]};
 
     beforeEach(function () {
-      App.resetDsStoreTypeMap(App.ConfigVersion);
+      App.resetDsStoreTypeMap(App.ServiceConfigVersion);
       sinon.stub(App.store, 'commit', Em.K);
     });
     afterEach(function(){
@@ -84,34 +84,34 @@ describe.skip('App.configVersionsMapper', function () {
     });
 
     it('should not do anything as there is no json', function() {
-      App.configVersionsMapper.map(null);
-      expect(App.ConfigVersion.find().get('length')).to.equal(0);
+      App.serviceConfigVersionsMapper.map(null);
+      expect(App.ServiceConfigVersion.find().get('length')).to.equal(0);
     });
 
     it('should load data to model', function() {
-      App.configVersionsMapper.map(json);
-      expect(App.ConfigVersion.find().get('length')).to.equal(2);
-      expect(App.ConfigVersion.find().mapProperty('id')).to.eql(['SERVICE1_1','SERVICE2_4']);
+      App.serviceConfigVersionsMapper.map(json);
+      expect(App.ServiceConfigVersion.find().get('length')).to.equal(2);
+      expect(App.ServiceConfigVersion.find().mapProperty('id')).to.eql(['SERVICE1_1','SERVICE2_4']);
 
       //SERVICE1_1
-      expect(App.ConfigVersion.find('SERVICE1_1').get('createTime')).to.eql(1425979244738);
-      expect(App.ConfigVersion.find('SERVICE1_1').get('groupId')).to.eql(-1);
-      expect(App.ConfigVersion.find('SERVICE1_1').get('hosts')).to.eql(defaultAllHosts);
-      expect(App.ConfigVersion.find('SERVICE1_1').get('isCurrent')).to.be.true;
-      expect(App.ConfigVersion.find('SERVICE1_1').get('version')).to.eql(1);
-      expect(App.ConfigVersion.find('SERVICE1_1').get('notes')).to.eql("Initial configurations for SERVICE1");
-      expect(App.ConfigVersion.find('SERVICE1_1').get('serviceName')).to.eql("SERVICE1");
-      expect(App.ConfigVersion.find('SERVICE1_1').get('author')).to.eql("admin");
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('createTime')).to.eql(1425979244738);
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('groupId')).to.eql(-1);
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('hosts')).to.eql(defaultAllHosts);
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('isCurrent')).to.be.true;
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('version')).to.eql(1);
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('notes')).to.eql("Initial configurations for SERVICE1");
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('serviceName')).to.eql("SERVICE1");
+      expect(App.ServiceConfigVersion.find('SERVICE1_1').get('author')).to.eql("admin");
 
       //SERVICE1_2
-      expect(App.ConfigVersion.find('SERVICE2_4').get('createTime')).to.eql(1426088137115);
-      expect(App.ConfigVersion.find('SERVICE2_4').get('groupId')).to.eql(2);
-      expect(App.ConfigVersion.find('SERVICE2_4').get('hosts')).to.eql(["host1"]);
-      expect(App.ConfigVersion.find('SERVICE2_4').get('isCurrent')).to.be.false;
-      expect(App.ConfigVersion.find('SERVICE2_4').get('version')).to.eql(4);
-      expect(App.ConfigVersion.find('SERVICE2_4').get('notes')).to.eql("");
-      expect(App.ConfigVersion.find('SERVICE2_4').get('serviceName')).to.eql("SERVICE2");
-      expect(App.ConfigVersion.find('SERVICE2_4').get('author')).to.eql("admin");
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('createTime')).to.eql(1426088137115);
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('groupId')).to.eql(2);
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('hosts')).to.eql(["host1"]);
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('isCurrent')).to.be.false;
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('version')).to.eql(4);
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('notes')).to.eql("");
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('serviceName')).to.eql("SERVICE2");
+      expect(App.ServiceConfigVersion.find('SERVICE2_4').get('author')).to.eql("admin");
     });
   });
 

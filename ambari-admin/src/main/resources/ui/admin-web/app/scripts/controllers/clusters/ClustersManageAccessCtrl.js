@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ClustersManageAccessCtrl', ['$scope', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', function($scope, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver) {
+.controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver) {
   $scope.identity = angular.identity;
   function reloadClusterData(){
     PermissionLoader.getClusterPermissions({
@@ -69,4 +69,8 @@ angular.module('ambariAdminConsole')
       $scope.save();
     }
   }, true);
+
+  $scope.switchToList = function() {
+    $location.url('/clusters/' + $routeParams.id + '/userAccessList');
+  }
 }]);

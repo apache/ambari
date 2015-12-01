@@ -124,10 +124,8 @@ App.ServiceConfigProperty = Em.Object.extend({
   isRequired: true, // by default a config property is required
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
-  isNotEditable: Ember.computed.not('isEditable'),
-  hideFinalIcon: function () {
-    return (!this.get('isFinal')) && this.get('isNotEditable');
-  }.property('isFinal', 'isNotEditable'),
+  isNotEditable: Em.computed.not('isEditable'),
+  hideFinalIcon: Em.computed.and('!isFinal', 'isNotEditable'),
   isVisible: true,
   isMock: false, // mock config created created only to displaying
   isRequiredByAgent: true, // Setting it to true implies property will be stored in configuration
@@ -276,9 +274,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   /**
    * Don't show "Undo" for hosts on Installer Step7
    */
-  cantBeUndone: function() {
-    return ["componentHost", "componentHosts", "radio button"].contains(this.get('displayType'));
-  }.property('displayType'),
+  cantBeUndone: Em.computed.existsIn('displayType', ["componentHost", "componentHosts", "radio button"]),
 
   isValid: Em.computed.equal('errorMessage', ''),
 
@@ -430,6 +426,14 @@ App.ServiceConfigProperty = Em.Object.extend({
           // retypedPassword is set by the retypePasswordView child view of App.ServiceConfigPasswordField
           if (value !== this.get('retypedPassword')) {
             this.set('errorMessage', 'Passwords do not match');
+            isError = true;
+          }
+          break;
+        case 'user':
+        case 'database':
+        case 'db_user':
+          if (!validator.isValidDbName(value)){
+            this.set('errorMessage', 'Value is not valid');
             isError = true;
           }
           break;

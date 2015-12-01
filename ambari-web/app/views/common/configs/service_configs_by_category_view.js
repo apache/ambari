@@ -80,9 +80,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * Without this property, all serviceConfigs Objects will show up even if some was collapsed before.
    * @type {boolean}
    */
-  isCategoryBodyVisible: function () {
-    return this.get('category.isCollapsed') ? "display: none;" : "display: block;"
-  }.property('serviceConfigs.length'),
+  isCategoryBodyVisible: Em.computed.ifThenElse('category.isCollapsed', 'display: none;', 'display: block;'),
 
   /**
    * Should we show config group or not
@@ -321,7 +319,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       selector: '[data-toggle=tooltip]',
       placement: 'top'
     });
-    this.updateReadOnlyFlags();
     this.filteredCategoryConfigs();
     Em.run.next(function () {
       self.updateReadOnlyFlags();
@@ -354,6 +351,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       savedValue: null,
       recommendedValue: null,
       supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
+      supportsAddingForbidden: false, //Can add a new property implies the given categrary allows adding new properties...
       filename: propertyObj.filename || '',
       isUserProperty: true,
       isNotSaved: true,

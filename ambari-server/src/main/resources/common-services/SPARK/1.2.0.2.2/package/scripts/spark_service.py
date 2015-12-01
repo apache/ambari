@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import socket
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
@@ -49,10 +50,15 @@ def spark_service(name, action):
               not_if=historyserver_no_op_test)
 
     elif name == 'sparkthriftserver':
+      if params.security_enabled:
+        hive_principal = params.hive_kerberos_principal.replace('_HOST', socket.getfqdn().lower())
+        hive_kinit_cmd = format("{kinit_path_local} -kt {hive_kerberos_keytab} {hive_principal}; ")
+        Execute(hive_kinit_cmd, user=params.hive_user)
+
       thriftserver_no_op_test = format(
       'ls {spark_thrift_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_thrift_server_pid_file}` >/dev/null 2>&1')
       Execute(format('{spark_thrift_server_start} --properties-file {spark_thrift_server_conf_file} {spark_thrift_cmd_opts_properties}'),
-              user=params.spark_user,
+              user=params.hive_user,
               environment={'JAVA_HOME': params.java_home},
               not_if=thriftserver_no_op_test
       )
@@ -68,7 +74,7 @@ def spark_service(name, action):
 
     elif name == 'sparkthriftserver':
       Execute(format('{spark_thrift_server_stop}'),
-              user=params.spark_user,
+              user=params.hive_user,
               environment={'JAVA_HOME': params.java_home}
       )
       File(params.spark_thrift_server_pid_file,

@@ -74,25 +74,27 @@ module.exports = App.WizardRoute.extend({
           controller.clearTasksData();
           controller.finish();
           App.get('router.updateController').set('isWorking', true);
-          if (App.get('testMode')) {
-            App.get('router').transitionTo('adminKerberos.index');
-            Em.run.next(function() {
-              location.reload();
-            });
-          }
-          App.router.get('wizardWatcherController').resetUser();
-          App.clusterStatus.setClusterStatus({
-            clusterName: App.router.getClusterName(),
-            clusterState: 'DEFAULT',
-            localdb: App.db.data
-          }, {
-            alwaysCallback: function () {
-              self.hide();
-              App.get('router').transitionTo(exitPath);
+          controller.discardChanges().then(function() {
+            if (App.get('testMode')) {
+              App.get('router').transitionTo('adminKerberos.index');
               Em.run.next(function() {
                 location.reload();
               });
             }
+            App.router.get('wizardWatcherController').resetUser();
+            App.clusterStatus.setClusterStatus({
+              clusterName: App.router.getClusterName(),
+              clusterState: 'DEFAULT',
+              localdb: App.db.data
+            }, {
+              alwaysCallback: function () {
+                self.hide();
+                App.get('router').transitionTo(exitPath);
+                Em.run.next(function() {
+                  location.reload();
+                });
+              }
+            });
           });
         }
       });
@@ -246,7 +248,7 @@ module.exports = App.WizardRoute.extend({
       var step5Controller = router.get('kerberosWizardStep5Controller');
       var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
       kerberosWizardController.cacheStepConfigValues(router.get('kerberosWizardStep4Controller'));
-      step5Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
+      step5Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result) {
         if (result === 'error' && data.status === 409) {
           step5Controller.putKerberosDescriptor(kerberosDescriptor);
         } else {

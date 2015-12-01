@@ -104,10 +104,7 @@ App.AlertConfigProperty = Ember.Object.extend({
    * if false - label is shown after input
    * @type {Boolean}
    */
-  isPreLabeled: function () {
-    var afterLabeledTypes = ['radioButton'];
-    return !afterLabeledTypes.contains(this.get('displayType'));
-  }.property('displayType'),
+  isPreLabeled: Em.computed.notExistsIn('displayType', ['radioButton']),
 
   /**
    * value converted to appropriate format for sending to server

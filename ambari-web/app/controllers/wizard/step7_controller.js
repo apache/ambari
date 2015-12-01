@@ -205,6 +205,23 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   filter: '',
 
   /**
+   * list of dependencies that are user to set init value of config
+   *
+   * @type {Object}
+   */
+  configDependencies: function() {
+    var dependencies = {
+      'sliderSelected': this.get('allSelectedServiceNames').contains('SLIDER')
+    };
+    var hiveMetastore = App.configsCollection.getConfigByName('hive.metastore.uris', 'hive-site.xml');
+    var clientPort = App.configsCollection.getConfigByName('clientPort', 'zoo.cfg.xml');
+
+    if (hiveMetastore) dependencies['hive.metastore.uris'] = hiveMetastore.recommendedValue;
+    if (clientPort) dependencies['clientPort']  = clientPort.recommendedValue;
+    return dependencies
+  }.property('allSelectedServiceNames'),
+
+  /**
    * List of filters for config properties to populate filter combobox
    */
   propertyFilters: [
@@ -415,8 +432,70 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }, this);
     }, this);
     this.set('preSelectedConfigGroup', App.ServiceConfigGroup.find(App.ServiceConfigGroup.getParentConfigGroupId(serviceName)));
-    App.config.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'), this.onLoadOverrides, this);
+    this.loadServiceConfigGroupOverrides(service.get('configs'), loadedGroupToOverrideSiteToTagMap, service.get('configGroups'));
   },
+
+  /**
+   * Get properties from server by type and tag with properties, that belong to group
+   * push them to common {serviceConfigs} and call callback function
+   */
+  loadServiceConfigGroupOverrides: function (serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups) {
+    var configKeyToConfigMap = {};
+    serviceConfigs.forEach(function (item) {
+      if (!configKeyToConfigMap[item.filename]) {
+        configKeyToConfigMap[item.filename] = {};
+      }
+      configKeyToConfigMap[item.filename][item.name] = item;
+    });
+    var typeTagToGroupMap = {};
+    var urlParams = [];
+    for (var group in loadedGroupToOverrideSiteToTagMap) {
+      var overrideTypeTags = loadedGroupToOverrideSiteToTagMap[group];
+      for (var type in overrideTypeTags) {
+        var tag = overrideTypeTags[type];
+        typeTagToGroupMap[type + "///" + tag] = configGroups.findProperty('name', group);
+        urlParams.push('(type=' + type + '&tag=' + tag + ')');
+      }
+    }
+    var params = urlParams.join('|');
+    if (urlParams.length) {
+      App.ajax.send({
+        name: 'config.host_overrides',
+        sender: this,
+        data: {
+          params: params,
+          configKeyToConfigMap: configKeyToConfigMap,
+          typeTagToGroupMap: typeTagToGroupMap,
+          serviceConfigs: serviceConfigs
+        },
+        success: 'loadServiceConfigGroupOverridesSuccess'
+      });
+    } else {
+      this.onLoadOverrides(serviceConfigs);
+    }
+  },
+
+  loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
+    data.items.forEach(function (config) {
+      var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
+      var properties = config.properties;
+      for (var prop in properties) {
+        var fileName = App.config.getOriginalFileName(config.type);
+        var serviceConfig = !!params.configKeyToConfigMap[fileName] ? params.configKeyToConfigMap[fileName][prop] : false;
+        var hostOverrideValue = App.config.formatPropertyValue(serviceConfig, properties[prop]);
+        var hostOverrideIsFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
+        if (serviceConfig) {
+          // Value of this property is different for this host.
+          if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
+          serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
+        } else {
+          params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, config, group));
+        }
+      }
+    });
+    this.onLoadOverrides(params.serviceConfigs);
+  },
+
 
   onLoadOverrides: function (configs) {
     var serviceName = configs[0].serviceName,
@@ -537,37 +616,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   *  Resolve dependency between configs.
-   *  @param serviceName {String}
-   *  @param configs {Ember.Enumerable}
-   */
-  resolveServiceDependencyConfigs: function (serviceName, configs) {
-    switch (serviceName) {
-      case 'YARN':
-        this.resolveYarnConfigs(configs);
-        break;
-    }
-  },
-
-  /**
-   * Update some Storm configs
-   * If SLIDER is selected to install or already installed,
-   * some Yarn properties must be changed
-   * @param {Ember.Enumerable} configs
-   * @method resolveYarnConfigs
-   */
-  resolveYarnConfigs: function (configs) {
-    var cfgToChange = configs.findProperty('name', 'hadoop.registry.rm.enabled');
-    if (cfgToChange) {
-      var res = this.get('allSelectedServiceNames').contains('SLIDER').toString();
-      if (Em.get(cfgToChange, 'value') !== res) {
-        Em.set(cfgToChange, 'recommendedValue', res);
-        Em.set(cfgToChange, 'value', res);
-      }
-    }
-  },
-
-  /**
    * On load function
    * @method loadStep
    */
@@ -589,13 +637,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.resolveConfigThemeConditions(configs);
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
-    if (this.get('wizardController.name') === 'addServiceController') {
+    if (this.get('wizardController.name') === 'addServiceController' && !this.get('content.serviceConfigProperties.length')) {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
         configs = self.setInstalledServiceConfigs(configs, loadedConfigs, self.get('installedServiceNames'));
-        self.applyServicesConfigs(configs, storedConfigs);
+        self.applyServicesConfigs(configs);
       });
     } else {
-      this.applyServicesConfigs(configs, storedConfigs);
+      this.applyServicesConfigs(configs);
     }
   },
 
@@ -636,47 +684,50 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     });
   },
 
-  applyServicesConfigs: function (configs, storedConfigs) {
+  applyServicesConfigs: function (configs) {
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-
-    ["YARN"].forEach(function (serviceName) {
-      if (this.get('allSelectedServiceNames').contains(serviceName)) {
-        this.resolveServiceDependencyConfigs(serviceName, configs);
-      }
-    }, this);
-    //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
-    var serviceConfigs = this.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'));
-    this.setStepConfigs(serviceConfigs);
+    var stepConfigs = this.createStepConfigs();
+    var serviceConfigs = this.renderConfigs(stepConfigs, configs);
+    // if HA is enabled -> Make some reconfigurations
+    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled')) {
+      serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+    }
+    this.set('stepConfigs', serviceConfigs);
     this.checkHostOverrideInstaller();
-    this.activateSpecialConfigs();
     this.selectProperService();
     var self = this;
     var rangerService = App.StackService.find().findProperty('serviceName', 'RANGER');
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
-    if (this.get('content.serviceConfigProperties.length') > 0) {
-      this.completeConfigLoading();
-    } else {
-      this.loadServerSideConfigsRecommendations().always(function () {
-        if (self.get('wizardController.name') == 'addServiceController') {
-          // for Add Service just remove or add dependent properties and ignore config values changes
-          // for installed services only
-          self.addRemoveDependentConfigs(self.get('installedServiceNames'));
-          self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
-        }
-        // * add dependencies based on recommendations
-        // * update config values with recommended
-        // * remove properties received from recommendations
-        self.updateDependentConfigs();
-        self.completeConfigLoading();
-      });
+    this.loadServerSideConfigsRecommendations().always(function() {
+      self.updateConfigsRecommendations();
+      self.completeConfigLoading();
+    });
+  },
+
+  /**
+   * update dependent configs based on recommendations from
+   * stack adviser
+   *
+   * @method updateConfigsRecommendations
+   */
+  updateConfigsRecommendations: function() {
+    if (this.get('wizardController.name') == 'addServiceController') {
+      // for Add Service just remove or add dependent properties and ignore config values changes
+      // for installed services only
+      this.addRemoveDependentConfigs(this.get('installedServiceNames'));
+      this.clearDependenciesForInstalledServices(this.get('installedServiceNames'), this.get('stepConfigs'));
     }
+    // * add dependencies based on recommendations
+    // * update config values with recommended
+    // * remove properties received from recommendations
+    this.updateDependentConfigs();
   },
 
   completeConfigLoading: function() {
@@ -726,130 +777,90 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   /**
-   * Set init <code>stepConfigs</code> value
-   * Set <code>selected</code> for addable services if addServiceController is used
-   * Remove SNameNode if HA is enabled (and if addServiceController is used)
-   * @param {Ember.Object[]} serviceConfigs
-   * @method setStepConfigs
+   * Create stepConfigs array with all info except configs list
+   *
+   * @return {Object[]}
+   * @method createStepConfigs
    */
-  setStepConfigs: function (serviceConfigs) {
-    if (this.get('wizardController.name') === 'addServiceController') {
-      serviceConfigs.setEach('showConfig', true);
-      serviceConfigs.setEach('selected', false);
-      this.get('selectedServiceNames').forEach(function (serviceName) {
-        if (!serviceConfigs.findProperty('serviceName', serviceName)) return;
-        serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
-      }, this);
-      this.get('installedServiceNames').forEach(function (serviceName) {
-        var serviceConfigObj = serviceConfigs.findProperty('serviceName', serviceName);
-        var isInstallableService = App.StackService.find(serviceName).get('isInstallable');
-        if (!isInstallableService) serviceConfigObj.set('showConfig', false);
-      }, this);
-      // if HA is enabled -> Remove SNameNode
-      if (App.get('isHaEnabled')) {
-        var c = serviceConfigs.findProperty('serviceName', 'HDFS').configs,
-          removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
-        removedConfigs.setEach('isVisible', false);
-        serviceConfigs.findProperty('serviceName', 'HDFS').configs = c;
-
-        serviceConfigs = this._reconfigureServicesOnNnHa(serviceConfigs);
+  createStepConfigs: function() {
+    var stepConfigs = [];
+    App.config.get('preDefinedServiceConfigs').forEach(function (service) {
+      var serviceName = service.get('serviceName');
+      if (['MISC'].concat(this.get('allSelectedServiceNames')).contains(serviceName)) {
+        var serviceConfig = App.config.createServiceConfig(serviceName);
+        serviceConfig.set('showConfig', App.StackService.find(serviceName).get('isInstallable'));
+        if (this.get('wizardController.name') == 'addServiceController') {
+          serviceConfig.set('selected', !this.get('installedServiceNames').concat('MISC').contains(serviceName));
+          if (serviceName === 'MISC') {
+            serviceConfig.set('configCategories', serviceConfig.get('configCategories').rejectProperty('name', 'Notifications'));
+          }
+        } else if (this.get('wizardController.name') == 'kerberosWizardController') {
+          serviceConfig.set('showConfig', true);
+        }
+        stepConfigs.pushObject(serviceConfig);
       }
-    }
-
-    // Remove Notifications from MISC if it isn't Installer Controller
-    if (this.get('wizardController.name') !== 'installerController') {
-      var miscService = serviceConfigs.findProperty('serviceName', 'MISC');
-      if (miscService) {
-        c = miscService.configs;
-        removedConfigs = c.filterProperty('category', 'Notifications');
-        removedConfigs.map(function (config) {
-          c = c.without(config);
-        });
-        miscService.configs = c;
-      }
-    }
-    this.set('stepConfigs', serviceConfigs);
+    }, this);
+    return stepConfigs;
   },
 
   /**
    * render configs, distribute them by service
    * and wrap each in ServiceConfigProperty object
+   * @param stepConfigs
    * @param configs
-   * @param storedConfigs
-   * @param allSelectedServiceNames
-   * @param installedServiceNames
    * @return {App.ServiceConfig[]}
    */
-  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames) {
+  renderConfigs: function (stepConfigs, configs) {
     var localDB = {
       hosts: this.get('wizardController.content.hosts'),
       masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
       slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
-    var renderedServiceConfigs = [];
-    var services = [];
+    var configsByService = {}, dependencies = this.get('configDependencies');
 
-    App.config.get('preDefinedServiceConfigs').forEach(function (serviceConfig) {
-      var serviceName = serviceConfig.get('serviceName');
-      if (allSelectedServiceNames.contains(serviceName) || serviceName === 'MISC') {
-        if (!installedServiceNames.contains(serviceName) || serviceName === 'MISC') {
-          serviceConfig.set('showConfig', true);
-        }
-        services.push(serviceConfig);
+    stepConfigs.forEach(function (service) {
+      if (!configsByService[service.get('serviceName')])  {
+        configsByService[service.get('serviceName')] = service.get('configs');
       }
-    });
-    services.forEach(function (service) {
-      var configsByService = [];
-      var dependencies = {};
-      var serviceConfigs = [];
+      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
+        this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
+      }
+    }, this);
 
-      configs.forEach(function (config) {
-        if (config.serviceName === service.get('serviceName')) {
-          serviceConfigs.push(config);
-        }
-        if (config.filename === 'hive-site.xml' && config.name === 'hive.metastore.uris') {
-          dependencies['hive.metastore.uris'] = config.recommendedValue;
-        }
-        if (config.filename === 'zoo.cfg.xml' && config.name === 'clientPort') {
-          dependencies['clientPort'] = config.recommendedValue;
-        }
-      }, this);
-      serviceConfigs.forEach(function (_config) {
+    configs.forEach(function (_config) {
+      if (configsByService[_config.serviceName]) {
         var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
         this.updateHostOverrides(serviceConfigProperty, _config);
-        if (!storedConfigs && !serviceConfigProperty.get('hasInitialValue')) {
+        if (this.get('wizardController.name') === 'addServiceController') {
+          this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
+        }
+        if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
           App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
         }
         serviceConfigProperty.validate();
-        configsByService.pushObject(serviceConfigProperty);
-      }, this);
-      var serviceConfig = App.config.createServiceConfig(service.get('serviceName'));
-      serviceConfig.set('showConfig', service.get('showConfig'));
-      serviceConfig.set('configs', configsByService);
-      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
-        this.addHostNamesToConfigs(serviceConfig, localDB.masterComponentHosts, localDB.slaveComponentHosts);
+        configsByService[_config.serviceName].pushObject(serviceConfigProperty);
       }
-      renderedServiceConfigs.push(serviceConfig);
     }, this);
-    return renderedServiceConfigs;
+    return stepConfigs;
   },
 
   /**
    * Add host name properties to appropriate categories (for installer and add service)
-   * @param serviceConfig
-   * @param masterComponents
-   * @param slaveComponents
+   *
+   * @param {Object} serviceConfig
+   * @param {Object[]} masterComponents - info from localStorage
+   * @param {Object[]} slaveComponents - info from localStorage
    */
   addHostNamesToConfigs: function(serviceConfig, masterComponents, slaveComponents) {
     serviceConfig.get('configCategories').forEach(function(c) {
       if (c.showHost) {
         var value = [];
         var componentName = c.name;
-        var masters = masterComponents.filterProperty('component', componentName);
+        var masters = masterComponents && masterComponents.filterProperty('component', componentName);
         if (masters.length) {
           value = masters.mapProperty('hostName');
         } else {
-          var slaves = slaveComponents.findProperty('componentName', componentName);
+          var slaves = slaveComponents && slaveComponents.findProperty('componentName', componentName);
           if (slaves) {
             value = slaves.hosts.mapProperty('hostName');
           }
@@ -991,6 +1002,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configsMap[configSite.type] = configSite.properties || {};
     });
     var allConfigs = configs.filter(function (_config) {
+      // filter out alert_notification configs on add service //TODO find better place for this!
+      if (_config.filename === 'alert_notification') return false;
       if ((['MISC'].concat(installedServiceNames).contains(_config.serviceName))) {
         var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
         var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
@@ -1003,13 +1016,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           }
           _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
           _config.hasInitialValue = true;
+          this.updateDependencies(_config);
           delete configsMap[type][_config.name];
           return true;
         }
       } else {
         return true;
       }
-    });
+    }, this);
     //add user properties
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
@@ -1024,6 +1038,19 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       });
     });
     return allConfigs;
+  },
+
+  /**
+   * update dependencies according to current config value
+   *
+   * @param config
+   */
+  updateDependencies: function(config) {
+    if (config.name === 'hive.metastore.uris' && config.filename === 'hive-site.xml') {
+      this.get('configDependencies')['hive.metastore.uris'] = config.savedValue;
+    } else if (config.name === 'clientPort' && config.filename === 'hive-site.xml') {
+      this.get('configDependencies')['clientPort'] = config.savedValue;
+    }
   },
 
   /**
@@ -1205,32 +1232,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   manageConfigurationGroup: function () {
     App.router.get('manageConfigGroupsController').manageConfigurationGroups(this);
-  },
-
-  /**
-   * Make some configs visible depending on active services
-   * @method activateSpecialConfigs
-   */
-  activateSpecialConfigs: function () {
-    if (this.get('addMiscTabToPage')) {
-      var serviceToShow = this.get('selectedServiceNames').concat('MISC');
-      var miscConfigs = this.get('stepConfigs').findProperty('serviceName', 'MISC').configs;
-      if (this.get('wizardController.name') == "addServiceController") {
-        miscConfigs.findProperty('name', 'smokeuser').set('isEditable', false);
-        miscConfigs.findProperty('name', 'user_group').set('isEditable', false);
-        if (this.get('content.smokeuser')) {
-          miscConfigs.findProperty('name', 'smokeuser').set('value', this.get('content.smokeuser'));
-        }
-        if (this.get('content.group')) {
-          miscConfigs.findProperty('name', 'user_group').set('value', this.get('content.group'));
-        }
-      }
-    }
-    var wizardController = this.get('wizardController');
-    if (wizardController.get('name') === "kerberosWizardController")  {
-      var kerberosConfigs =  this.get('stepConfigs').findProperty('serviceName', 'KERBEROS').configs;
-      kerberosConfigs.findProperty('name', 'kdc_type').set('value', wizardController.get('content.kerberosOption'));
-    }
   },
 
   /**

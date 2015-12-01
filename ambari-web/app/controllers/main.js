@@ -256,6 +256,7 @@ App.MainController = Em.Controller.extend({
             }
           }),
           onPrimary: function() {
+            scope.keepActive();
             scope.userTimeOutModal.hide();
             delete scope.userTimeOutModal;
           },

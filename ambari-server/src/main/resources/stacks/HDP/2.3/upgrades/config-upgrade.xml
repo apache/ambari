@@ -245,6 +245,12 @@
             <set key="yarn.timeline-service.state-store-class" value="org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore"/>
             <transfer operation="copy" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path" default-value="/hadoop/yarn/timeline"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_yarn_keep_ats_v1">
+            <type>yarn-site</type>
+            <set key="yarn.timeline-service.version" value="1.0"/>
+            <set key="yarn.timeline-service.store-class" value="org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore"/>
+          </definition>
         </changes>
       </component>
 
@@ -473,18 +479,22 @@
     <service name="TEZ">
       <component name="TEZ_CLIENT">
         <changes>
-          <definition xsi:type="configure"
-                id="hdp_2_3_0_0_tez_client_adjust_properties">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties">
             <type>tez-site</type>
             <set key="tez.am.view-acls" value="*"/>
             <set key="tez.task.generate.counters.per.io" value="true"/>
           </definition>
 
-          <definition xsi:type="configure"
-                id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property">
             <type>tez-site</type>
             <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1">
+            <type>tez-site</type>
+            <set key="tez.history.logging.service.class" value="org.apache.tez.dag.history.logging.ats.ATSHistoryLoggingService"/>
+          </definition>
+
         </changes>
       </component>
     </service>

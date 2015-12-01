@@ -70,6 +70,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -714,6 +715,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       for (ClusterConfigMappingEntity configMapping : cluster.getConfigMappingEntities()) {
         if (configMapping.getType().equals(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG)) {
           configMapping.setSelected(0);
+          clusterDAO.mergeConfigMapping(configMapping);
         }
       }
       clusterDAO.merge(cluster);
@@ -1321,7 +1323,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       userDAO.merge(user);
     }
 
-    final ResourceTypeEntity clusterResourceType = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    final ResourceTypeEntity clusterResourceType = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     for (ClusterEntity cluster: clusterDAO.findAll()) {
       final ResourceEntity resourceEntity = new ResourceEntity();
       resourceEntity.setResourceType(clusterResourceType);

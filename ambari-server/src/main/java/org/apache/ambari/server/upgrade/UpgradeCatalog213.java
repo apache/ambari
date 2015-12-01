@@ -18,6 +18,48 @@
 
 package org.apache.ambari.server.upgrade;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.*;
+import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.state.kerberos.*;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
+import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
+import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.StringWriter;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -33,50 +75,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.DaoUtils;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
-import org.apache.ambari.server.orm.dao.UpgradeDAO;
-import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.orm.entities.UpgradeEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.RepositoryVersionState;
-import org.apache.ambari.server.state.SecurityType;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.alert.SourceType;
-import org.apache.ambari.server.state.stack.upgrade.Direction;
-import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
-import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
-import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
-
 /**
  * Upgrade catalog for version 2.1.3.
  */
@@ -85,6 +83,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String STORM_SITE = "storm-site";
   private static final String HDFS_SITE_CONFIG = "hdfs-site";
+  private static final String TOPOLOGY_CONFIG = "topology";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_ENV_CONFIG = "kafka-env";
   private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS = "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
@@ -135,6 +134,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String SECURITY_DESCRIPTOR_REF_COLUMN = "security_descriptor_reference";
 
   private static final String STAGE_TABLE = "stage";
+
+  private static final String KNOX_SERVICE = "KNOX";
 
   /**
    * Logger.
@@ -299,6 +300,102 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateZookeeperLog4j();
     updateHiveConfig();
     updateAccumuloConfigs();
+    updateKerberosDescriptorArtifacts();
+    updateKnoxTopology();
+  }
+
+  protected void updateKnoxTopology() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config topology = cluster.getDesiredConfigByType(TOPOLOGY_CONFIG);
+      if (topology != null) {
+        String content = topology.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          Document topologyXml = convertStringToDocument(content);
+          if (topologyXml != null) {
+            Element root = topologyXml.getDocumentElement();
+            if (root != null)  {
+              NodeList providerNodes = root.getElementsByTagName("provider");
+              boolean authorizationProviderExists = false;
+              try {
+                for (int i = 0; i < providerNodes.getLength(); i++) {
+                  Node providerNode = providerNodes.item(i);
+                  NodeList childNodes = providerNode.getChildNodes();
+                  for (int k = 0; k < childNodes.getLength(); k++) {
+                    Node child = childNodes.item(k);
+                    child.normalize();
+                    String childTextContent = child.getTextContent();
+                    if (childTextContent != null && childTextContent.toLowerCase().equals("authorization")) {
+                      authorizationProviderExists = true;
+                      break;
+                    }
+                  }
+                  if (authorizationProviderExists) {
+                    break;
+                  }
+                }
+              } catch(Exception e) {
+                e.printStackTrace();
+                LOG.error("Error occurred during check 'authorization' provider already exists in topology." + e);
+                return;
+              }
+              if (!authorizationProviderExists) {
+                NodeList nodeList = root.getElementsByTagName("gateway");
+                if (nodeList != null && nodeList.getLength() > 0) {
+                  boolean rangerPluginEnabled = isRangerPluginEnabled(cluster);
+
+                  Node gatewayNode = nodeList.item(0);
+                  Element newProvider = topologyXml.createElement("provider");
+
+                  Element role = topologyXml.createElement("role");
+                  role.appendChild(topologyXml.createTextNode("authorization"));
+                  newProvider.appendChild(role);
+
+                  Element name = topologyXml.createElement("name");
+                  if (rangerPluginEnabled) {
+                    name.appendChild(topologyXml.createTextNode("XASecurePDPKnox"));
+                  } else {
+                    name.appendChild(topologyXml.createTextNode("AclsAuthz"));
+                  }
+                  newProvider.appendChild(name);
+
+                  Element enabled = topologyXml.createElement("enabled");
+                  enabled.appendChild(topologyXml.createTextNode("true"));
+                  newProvider.appendChild(enabled);
+
+
+                  gatewayNode.appendChild(newProvider);
+
+                  DOMSource topologyDomSource = new DOMSource(root);
+                  StringWriter writer = new StringWriter();
+                  try {
+                    Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                    transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+                    transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                    transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                    transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "5");
+                    transformer.transform(topologyDomSource, new StreamResult(writer));
+                  } catch (TransformerConfigurationException e) {
+                    e.printStackTrace();
+                    LOG.error("Unable to create transformer instance, to convert Document(XML) to String. " + e);
+                    return;
+                  } catch (TransformerException e) {
+                    e.printStackTrace();
+                    LOG.error("Unable to transform Document(XML) to StringWriter. " + e);
+                    return;
+                  }
+
+                  content = writer.toString();
+                  Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+                  updateConfigurationPropertiesForCluster(cluster, TOPOLOGY_CONFIG, updates, true, false);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -503,6 +600,38 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+
+        if (kerberosDescriptor != null) {
+          KerberosServiceDescriptor hdfsService = kerberosDescriptor.getService("HDFS");
+          if(hdfsService != null) {
+            // before 2.1.3 hdfs indentity expected to be in HDFS service
+            KerberosIdentityDescriptor hdfsIdentity = hdfsService.getIdentity("hdfs");
+            KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
+            hdfsIdentity.setName("hdfs");
+            hdfsService.removeIdentity("hdfs");
+            namenodeComponent.putIdentity(hdfsIdentity);
+          }
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor, "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor.getServices(), "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
+        }
+      }
+    }
+  }
+
+  /**
+   * If still on HDP 2.1, then no repo versions exist, so need to bootstrap the HDP 2.1 repo version,
    * If still on HDP 2.1, then no repo versions exist, so need to bootstrap the HDP 2.1 repo version,
    * and mark it as CURRENT in the cluster_version table for the cluster, as well as the host_version table
    * for all hosts.
@@ -837,7 +966,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           }
           if (stackId != null && stackId.getStackName().equals("HDP") &&
               VersionUtils.compareVersions(stackId.getStackVersion(), "2.2") >= 0) {
-            if (content.indexOf("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m") < 0) {
+            if (!content.contains("MaxDirectMemorySize={{hbase_max_direct_memory_size}}m")) {
               String newPartOfContent = "\n\nexport HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS {% if hbase_max_direct_memory_size %} -XX:MaxDirectMemorySize={{hbase_max_direct_memory_size}}m {% endif %}\"\n\n";
               content += newPartOfContent;
               updateConfig = true;
@@ -883,42 +1012,12 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
-          Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
-          if (amsEnv != null) {
-            Map<String, String> amsEnvProperties = amsEnv.getProperties();
-
-            String metrics_collector_heapsize = amsEnvProperties.get("metrics_collector_heapsize");
-            String content = amsEnvProperties.get("content");
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("metrics_collector_heapsize", memoryToIntMb(metrics_collector_heapsize));
-            newProperties.put("content", updateAmsEnvContent(content));
-            updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
-          }
-          Config amsHbaseEnv = cluster.getDesiredConfigByType(AMS_HBASE_ENV);
-          if (amsHbaseEnv != null) {
-            Map<String, String> amsHbaseEnvProperties = amsHbaseEnv.getProperties();
-            String hbase_regionserver_heapsize = amsHbaseEnvProperties.get("hbase_regionserver_heapsize");
-            String regionserver_xmn_size = amsHbaseEnvProperties.get("regionserver_xmn_size");
-            String hbase_master_xmn_size = amsHbaseEnvProperties.get("hbase_master_xmn_size");
-            String hbase_master_maxperm_size = amsHbaseEnvProperties.get("hbase_master_maxperm_size");
-            String hbase_master_heapsize = amsHbaseEnvProperties.get("hbase_master_heapsize");
-            String content = amsHbaseEnvProperties.get("content");
-
-            Map<String, String> newProperties = new HashMap<>();
-            newProperties.put("hbase_regionserver_heapsize", memoryToIntMb(hbase_regionserver_heapsize));
-            newProperties.put("regionserver_xmn_size", memoryToIntMb(regionserver_xmn_size));
-            newProperties.put("hbase_master_xmn_size", memoryToIntMb(hbase_master_xmn_size));
-            newProperties.put("hbase_master_maxperm_size", memoryToIntMb(hbase_master_maxperm_size));
-            newProperties.put("hbase_master_heapsize", memoryToIntMb(hbase_master_heapsize));
-            newProperties.put("content", updateAmsHbaseEnvContent(content));
-            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_ENV, newProperties, true, true);
-          }
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
 
-            //Changed AMS result set limit from 5760 to 11520.
-            newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(11520));
+            //Changed AMS result set limit from 5760 to 15840.
+            newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(15840));
 
             //Interval
             newProperties.put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
@@ -1029,38 +1128,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected String updateAmsEnvContent(String oldContent) {
-    if (oldContent == null) {
-      return null;
-    }
-    String regSearch = "export\\s*AMS_COLLECTOR_HEAPSIZE\\s*=\\s*\\{\\{metrics_collector_heapsize\\}\\}";
-    String replacement = "export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}m";
-    return oldContent.replaceAll(regSearch, replacement);
-  }
-
-  protected String updateAmsHbaseEnvContent(String content) {
-    if (content == null) {
-      return null;
-    }
-
-    String regSearch = "\\{\\{hbase_heapsize\\}\\}";
-    String replacement = "{{hbase_heapsize}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{hbase_master_maxperm_size\\}\\}";
-    replacement = "{{hbase_master_maxperm_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{hbase_master_xmn_size\\}\\}";
-    replacement = "{{hbase_master_xmn_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{regionserver_xmn_size\\}\\}";
-    replacement = "{{regionserver_xmn_size}}m";
-    content = content.replaceAll(regSearch, replacement);
-    regSearch = "\\{\\{regionserver_heapsize\\}\\}";
-    replacement = "{{regionserver_heapsize}}m";
-    content = content.replaceAll(regSearch, replacement);
-    return content;
-  }
-
   protected String updateHiveEnvContent(String hiveEnvContent) {
     if(hiveEnvContent == null) {
       return null;
@@ -1078,7 +1145,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       String newHeapSizeRegex = "export HADOOP_HEAPSIZE={{hive_heapsize}} # Setting for HiveServer2 and Client\n" +
               "fi\n" +
               "\n" +
-              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"";
+              "export HADOOP_CLIENT_OPTS=\"$HADOOP_CLIENT_OPTS  -Xmx${HADOOP_HEAPSIZE}m\"\n";
       return hiveEnvContent.replaceAll(oldHeapSizeRegex, Matcher.quoteReplacement(newHeapSizeRegex));
     }
   }
@@ -1119,34 +1186,5 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         }
       } // else -- no special client-configuration is necessary.
     }
-  }
-
-  private String memoryToIntMb(String memorySize) {
-    if (memorySize == null) {
-      return "0";
-    }
-    Integer value = 0;
-    try {
-      value = Integer.parseInt(memorySize.replaceAll("\\D+", ""));
-    } catch (NumberFormatException ex) {
-      LOG.error(ex.getMessage());
-    }
-    char unit = memorySize.toUpperCase().charAt(memorySize.length() - 1);
-    // Recalculate memory size to Mb
-    switch (unit) {
-      case 'K':
-        value /= 1024;
-        break;
-      case 'B':
-        value /= (1024*1024);
-        break;
-      case 'G':
-        value *= 1024;
-        break;
-      case 'T':
-        value *= 1024*1024;
-        break;
-    }
-    return value.toString();
   }
 }

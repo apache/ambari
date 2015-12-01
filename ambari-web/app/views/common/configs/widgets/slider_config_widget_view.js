@@ -354,8 +354,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     ticks.push(this.valueForTick(maxMirrorValue));
     ticks = ticks.uniq();
     ticks.forEach(function (tick, index, items) {
-      ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
-    });
+      var label = '';
+      if ((items.length < 5 || index % 2 === 0 || items.length - 1 == index)) {
+        label = this.formatTickLabel(tick, ' ');
+      }
+      ticksLabels.push(label);
+    }, this);
 
     ticks = ticks.uniq();
 
@@ -407,12 +411,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       tooltip: 'always',
       ticks_labels: ticksLabels,
       step: mirrorStep,
-      formatter: function(val) {
-        if (Em.isArray(val)) {
-          return val[0] + self.get('unitLabel');
-        } else {
-          return val + self.get('unitLabel');
-        }
+      formatter: function (val) {
+        var labelValue = Em.isArray(val) ? val[0] : val;
+        return self.formatTickLabel(labelValue);
       }
     });
 
@@ -562,7 +563,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @method changeBoundariesOnce
    */
   changeBoundariesOnce: function () {
-    var self = this;
     if ($.mocho) {
       //temp fix as it can broke test that doesn't have any connection with this method
       return;
@@ -648,6 +648,31 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       return true;
     }
     return false;
+  },
+
+  /**
+   * Returns formatted value of slider label
+   * @param tick - starting value
+   * @param separator - will be inserted between value and unit
+   * @returns {string}
+   */
+  formatTickLabel: function (tick, separator) {
+    var label,
+      separator = separator || '',
+      valueLabel = tick,
+      units = ['B', 'KB', 'MB', 'GB', 'TB'],
+      unitLabel = this.get('unitLabel'),
+      unitLabelIndex = units.indexOf(unitLabel);
+    if (unitLabelIndex > -1) {
+      while (tick > 9999 && unitLabelIndex < units.length - 1) {
+        tick /= 1024;
+        unitLabelIndex++;
+      }
+      unitLabel = units[unitLabelIndex];
+      valueLabel = this._extraRound(tick);
+    }
+    label = valueLabel + separator + unitLabel;
+    return label;
   }
 
 });

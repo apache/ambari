@@ -314,4 +314,29 @@ describe('App.HostComponent', function() {
       });
     });
   });
+
+  describe('#isNotInstalled', function () {
+
+    Em.A([
+      {
+        p: {workStatus: 'INIT'},
+        e: true
+      },
+      {
+        p: {workStatus: 'INSTALL_FAILED'},
+        e: true
+      },
+      {
+        p: {workStatus: 'STARTED'},
+        e: false
+      }
+    ]).forEach(function (test, index) {
+      it('#' + (index + 1), function() {
+        hc.setProperties(test.p);
+        expect(hc.get('isNotInstalled')).to.equal(test.e);
+      });
+    });
+
+  });
+
 });

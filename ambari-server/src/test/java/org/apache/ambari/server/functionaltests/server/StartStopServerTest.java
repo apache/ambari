@@ -18,13 +18,8 @@
 
 package org.apache.ambari.server.functionaltests.server;
 
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.Properties;
 
 import static org.junit.Assert.assertTrue;
 
@@ -39,7 +34,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonArray;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import org.apache.http.HttpStatus;
 
@@ -47,63 +41,8 @@ import org.apache.http.HttpStatus;
  * Simple test that starts the local ambari server,
  * tests it's status and shuts down the server.
  */
-public class StartStopServerTest {
-  /**
-   * Run the ambari server on a thread.
-   */
-  private Thread serverThread = null;
-
-  /**
-   * Instance of the local ambari server, which wraps the actual
-   * ambari server with test configuration.
-   */
-  private LocalAmbariServer server = null;
-
-  /**
-   * Server port
-   */
-  private static int serverPort = 9995;
-
-  /**
-   * Server URL
-   */
-  private static String SERVER_URL_FORMAT = "http://localhost:%d";
-
-  /**
-   * Test URL for GETting the status of the ambari server
-   */
-  private static String stacksPath = "/api/v1/stacks";
-
-  /**
-   * Start our local server on a thread so that it does not block.
-   * @throws Exception
-   */
-  @Before
-  public void setup() throws Exception {
-    InMemoryDefaultTestModule testModule = new InMemoryDefaultTestModule();
-    Properties properties = testModule.getProperties();
-    properties.setProperty(Configuration.AGENT_USE_SSL, "false");
-    properties.setProperty(Configuration.CLIENT_API_PORT_KEY, Integer.toString(serverPort));
-    server = new LocalAmbariServer(testModule);
-    serverThread = new Thread(server);
-    serverThread.start();
-    serverThread.join(20000);     // Give a few seconds for the ambari server to start up
-  }
-
-  /**
-   * Shut down our local server.
-   * @throws Exception
-   */
-  @After
-  public void teardown() throws Exception {
-    if (serverThread != null) {
-      serverThread.interrupt();
-    }
-    if (server != null) {
-      server.stopServer();
-    }
-  }
-
+@Ignore
+public class StartStopServerTest extends ServerTestBase {
   /**
    * Waits for the ambari server to startup and then checks it's
    * status by querying /api/v1/stacks (does not touch the DB)
@@ -127,6 +66,10 @@ public class StartStopServerTest {
      * }
      */
 
+    /**
+     * Test URL for GETting the status of the ambari server
+     */
+    String stacksPath = "/api/v1/stacks";
     String stacksUrl = String.format(SERVER_URL_FORMAT, serverPort) + stacksPath;
     HttpClient httpClient = new HttpClient();
     GetMethod getMethod = new GetMethod(stacksUrl);

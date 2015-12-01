@@ -18,15 +18,13 @@
 
 package org.apache.ambari.server.functionaltests.server;
 
+import com.google.inject.Inject;
 import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.google.inject.Guice;
 import com.google.inject.Injector;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.configuration.Configuration;
 
 /**
 * Wrap AmbariServer as a testable unit.
@@ -40,20 +38,10 @@ public class LocalAmbariServer implements Runnable {
    */
   private AmbariServer ambariServer = null;
 
-  private Injector injector = null;
+  @Inject
+  private Injector injector;
 
-  private InMemoryDefaultTestModule module = null;
-
-  /**
-   * Default constructor using the default implementation of InMemoryDefaultTestModule.
-   */
-  public LocalAmbariServer() { this.module = new InMemoryDefaultTestModule(); }
-
-  /**
-   * Overloaded constructor for sub-classed InMemoryDefaultTestModule implementations.
-   * @param module
-   */
-  public LocalAmbariServer(InMemoryDefaultTestModule module) { this.module = module; }
+  public LocalAmbariServer() {}
 
   /**
    * Thread entry point.
@@ -76,16 +64,6 @@ public class LocalAmbariServer implements Runnable {
    * @throws Exception
    */
   private void startServer() throws Exception {
-    /**
-     * Specify the temp folder as the source for certificate keys.
-     * Without this, the CertificateManager will generate the keys
-     * in the current folder (ambari-server) causing issues with
-     * rat check.
-     */
-    String tmpDir = System.getProperty("java.io.tmpdir");
-    this.module.getProperties().setProperty(Configuration.SRVR_KSTR_DIR_KEY, tmpDir);
-    injector = Guice.createInjector(this.module);
-
     try {
       LOG.info("Attempting to start ambari server...");
 
@@ -99,6 +77,7 @@ public class LocalAmbariServer implements Runnable {
     } catch (Throwable t) {
       LOG.error("Failed to run the Ambari Server", t);
       stopServer();
+      throw t;
     }
   }
 

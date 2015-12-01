@@ -38,7 +38,6 @@ App.KerberosWizardStep8Controller = App.KerberosProgressPageController.extend({
     });
   },
 
-  isSubmitDisabled: function () {
-    return !["COMPLETED", "FAILED"].contains(this.get('status'));
-  }.property('status')
+  isSubmitDisabled: Em.computed.notExistsIn('status', ['COMPLETED', 'FAILED'])
+
 });

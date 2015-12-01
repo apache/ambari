@@ -59,7 +59,13 @@ def ams_service(name, action):
                   action='delete'
         )
 
-      daemon_cmd = format("{cmd} start")
+
+      if params.security_enabled:
+        kinit_cmd = format("{kinit_path_local} -kt {ams_collector_keytab_path} {ams_collector_jaas_princ};")
+        daemon_cmd = format("{kinit_cmd} {cmd} start")
+      else:
+        daemon_cmd = format("{cmd} start")
+
       Execute(daemon_cmd,
               user=params.ams_user
       )

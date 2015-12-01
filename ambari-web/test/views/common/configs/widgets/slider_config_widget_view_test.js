@@ -465,7 +465,7 @@ describe('App.SliderConfigWidgetView', function () {
 
     beforeEach(function() {
       viewInt.set('config', {});
-      stackConfigProperty = App.StackConfigProperty.createRecord({name: 'p1', widget: { units: [ { 'unit-name': "int"}]}, valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}});
+      stackConfigProperty = {name: 'p1', widget: { units: [ { 'unit-name': "int"}]}, valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}};
       viewInt.set('config.stackConfigProperty', stackConfigProperty);
       viewInt.set('config.isValid', true);
     });
@@ -517,6 +517,62 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewInt.get('warnMessage')).to.equal('');
       expect(viewInt.get('issueMessage')).to.equal('');
     });
+  });
+
+  describe('#formatTickLabel', function () {
+
+    var bytesView,
+      cases = [
+        {
+          unitLabel: 'B',
+          tick: 1024,
+          result: '1024B',
+          title: 'no conversion'
+        },
+        {
+          unitLabel: 'KB',
+          tick: 10240,
+          result: '10MB',
+          title: 'one exponent up conversion'
+        },
+        {
+          unitLabel: 'MB',
+          tick: 10000,
+          result: '9.766GB',
+          title: 'rounding to three decimals'
+        },
+        {
+          unitLabel: 'GB',
+          tick: 10752,
+          separator: ' ',
+          result: '10.5 TB',
+          title: 'rounding to less than three decimals, custom separator'
+        },
+        {
+          unitLabel: 'B',
+          tick: 20971520,
+          result: '20MB',
+          title: 'several exponents up conversion'
+        },
+        {
+          unitLabel: 'TB',
+          tick: 10000,
+          result: '10000TB',
+          title: 'no conversions for the highest exponent unit'
+        }
+      ];
+
+    beforeEach(function () {
+      bytesView = App.SliderConfigWidgetView.create();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        bytesView.set('unitLabel', item.unitLabel);
+        expect(bytesView.formatTickLabel(item.tick, item.separator)).to.equal(item.result);
+      });
+    });
+
   });
 
 });

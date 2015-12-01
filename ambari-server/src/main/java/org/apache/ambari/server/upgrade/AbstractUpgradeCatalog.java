@@ -17,11 +17,44 @@
  */
 package org.apache.ambari.server.upgrade;
 
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.configuration.Configuration.DatabaseType;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.MetainfoEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.kerberos.AbstractKerberosDescriptorContainer;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+
+import javax.persistence.EntityManager;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.StringReader;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -30,33 +63,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.persistence.EntityManager;
-
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.configuration.Configuration.DatabaseType;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.utils.VersionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Maps;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
 
 public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
@@ -83,9 +89,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   private static final String CONFIGURATION_TYPE_HIVE_SITE = "hive-site";
   private static final String CONFIGURATION_TYPE_HDFS_SITE = "hdfs-site";
+  private static final String CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES = "ranger-knox-plugin-properties";
 
   private static final String PROPERTY_DFS_NAMESERVICES = "dfs.nameservices";
   private static final String PROPERTY_HIVE_SERVER2_AUTHENTICATION = "hive.server2.authentication";
+  private static final String PROPERTY_RANGER_KNOX_PLUGIN_ENABLED = "ranger-knox-plugin-enabled";
 
   private static final Logger LOG = LoggerFactory.getLogger
     (AbstractUpgradeCatalog.class);
@@ -165,6 +173,35 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
 
   protected static UpgradeCatalog getUpgradeCatalog(String version) {
     return upgradeCatalogMap.get(version);
+  }
+
+  protected static Document convertStringToDocument(String xmlStr) {
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder;
+    Document doc = null;
+
+    try
+    {
+      builder = factory.newDocumentBuilder();
+      doc = builder.parse( new InputSource( new StringReader( xmlStr ) ) );
+    } catch (Exception e) {
+      LOG.error("Error during convertation from String \"" + xmlStr + "\" to Xml!", e);
+    }
+    return doc;
+  }
+
+  protected static boolean isRangerPluginEnabled(Cluster cluster) {
+    boolean isRangerPluginEnabled = false;
+    if (cluster != null) {
+      Config rangerKnoxPluginProperties = cluster.getDesiredConfigByType(CONFIGURATION_TYPE_RANGER_KNOX_PLUGIN_PROPERTIES);
+      if (rangerKnoxPluginProperties != null) {
+        String rangerKnoxPluginEnabled = rangerKnoxPluginProperties.getProperties().get(PROPERTY_RANGER_KNOX_PLUGIN_ENABLED);
+        if (StringUtils.isNotEmpty(rangerKnoxPluginEnabled)) {
+          isRangerPluginEnabled = rangerKnoxPluginEnabled.toLowerCase().equals("yes");
+        }
+      }
+    }
+    return isRangerPluginEnabled;
   }
 
   protected static class VersionComparator implements Comparator<UpgradeCatalog> {
@@ -520,6 +557,86 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
       }
     }
     return properties;
+  }
+
+  /**
+   * Iterates through a collection of AbstractKerberosDescriptorContainers to find and update
+   * identity descriptor references.
+   *
+   * @param descriptorMap    a String to AbstractKerberosDescriptorContainer map to iterate trough
+   * @param referenceName    the reference name to change
+   * @param newReferenceName the new reference name
+   */
+  protected void updateKerberosDescriptorIdentityReferences(Map<String, ? extends AbstractKerberosDescriptorContainer> descriptorMap,
+                                                          String referenceName,
+                                                          String newReferenceName) {
+    if (descriptorMap != null) {
+      for (AbstractKerberosDescriptorContainer kerberosServiceDescriptor : descriptorMap.values()) {
+        updateKerberosDescriptorIdentityReferences(kerberosServiceDescriptor, referenceName, newReferenceName);
+
+        if (kerberosServiceDescriptor instanceof KerberosServiceDescriptor) {
+          updateKerberosDescriptorIdentityReferences(((KerberosServiceDescriptor) kerberosServiceDescriptor).getComponents(),
+              referenceName, newReferenceName);
+        }
+      }
+    }
+  }
+
+  /**
+   * Given an AbstractKerberosDescriptorContainer, iterates through its contained identity descriptors
+   * to find ones matching the reference name to change.
+   * <p/>
+   * If found, the reference name is updated to the new name.
+   *
+   * @param descriptorContainer the AbstractKerberosDescriptorContainer to update
+   * @param referenceName       the reference name to change
+   * @param newReferenceName    the new reference name
+   */
+  protected void updateKerberosDescriptorIdentityReferences(AbstractKerberosDescriptorContainer descriptorContainer,
+                                                          String referenceName,
+                                                          String newReferenceName) {
+    if (descriptorContainer != null) {
+      KerberosIdentityDescriptor identity = descriptorContainer.getIdentity(referenceName);
+      if (identity != null) {
+        identity.setName(newReferenceName);
+      }
+    }
+  }
+
+  /**
+   * Update the stored Kerberos Descriptor artifacts to conform to the new structure.
+   * <p/>
+   * Finds the relevant artifact entities and iterates through them to process each independently.
+   */
+  protected void updateKerberosDescriptorArtifacts() throws AmbariException {
+    ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
+    List<ArtifactEntity> artifactEntities = artifactDAO.findByName("kerberos_descriptor");
+
+    if (artifactEntities != null) {
+      for (ArtifactEntity artifactEntity : artifactEntities) {
+        updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
+      }
+    }
+  }
+
+
+
+  /**
+   * Update the specified Kerberos Descriptor artifact to conform to the new structure.
+   * <p/>
+   * On ambari version update some of identities can be moved between scopes(e.g. from service to component), so
+   * old identity need to be moved to proper place and all references for moved identity need to be updated.
+   * <p/>
+   * By default descriptor remains unchanged and this method must be overridden in child UpgradeCatalog to meet new
+   * ambari version changes in kerberos descriptors.
+   * <p/>
+   * The supplied ArtifactEntity is updated in place a merged back into the database.
+   *
+   * @param artifactDAO    the ArtifactDAO to use to store the updated ArtifactEntity
+   * @param artifactEntity the ArtifactEntity to update
+   */
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    // NOOP
   }
 
   @Override

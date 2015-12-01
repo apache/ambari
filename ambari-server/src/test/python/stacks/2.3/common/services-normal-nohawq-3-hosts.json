@@ -2203,7 +2203,6 @@
     "jdk1.8.desc" : "Oracle JDK 1.8 + Java Cryptography Extension (JCE) Policy Files 8",
     "server.fqdn.service.url" : "http://169.254.169.254/latest/meta-data/public-hostname",
     "metadata.path" : "/var/lib/ambari-server/resources/stacks",
-    "api.authenticate" : "true",
     "views.request.connect.timeout.millis" : "5000",
     "skip.service.checks" : "false",
     "stackadvisor.script" : "/var/lib/ambari-server/resources/scripts/stack_advisor.py",

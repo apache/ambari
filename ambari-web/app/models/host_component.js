@@ -49,17 +49,21 @@ App.HostComponent = DS.Model.extend({
    * Based on <code>workStatus</code>
    * @returns {bool}
    */
-  isRunning: function () {
-    return (this.get('workStatus') == 'STARTED' || this.get('workStatus') == 'STARTING');
-  }.property('workStatus'),
+  isRunning: Em.computed.existsIn('workStatus', ['STARTED', 'STARTING']),
+
+  /**
+   * Determines if component is not installed
+   * Based on <code>workStatus</code>
+   *
+   * @type {boolean}
+   */
+  isNotInstalled: Em.computed.existsIn('workStatus', ['INIT', 'INSTALL_FAILED']),
 
   /**
    * Formatted <code>componentName</code>
    * @returns {String}
    */
-  displayName: function () {
-    return App.format.role(this.get('componentName'));
-  }.property('componentName'),
+  displayName: Em.computed.formatRole('componentName'),
 
   /**
    * Determine if component is master
@@ -109,11 +113,7 @@ App.HostComponent = DS.Model.extend({
    */
   isActive: Em.computed.equal('passiveState', 'OFF'),
 
-  passiveTooltip: function () {
-    if (!this.get('isActive')) {
-      return Em.I18n.t('hosts.component.passive.mode');
-    }
-  }.property('isActive'),
+  passiveTooltip: Em.computed.ifThenElse('isActive', '', Em.I18n.t('hosts.component.passive.mode')),
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';
@@ -253,6 +253,9 @@ App.HostComponentStatus = {
 
 App.HostComponentActionMap = {
   getMap: function(ctx) {
+    var NN = ctx.get('controller.content.hostComponents').findProperty('componentName', 'NAMENODE');
+    var RM = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
+    var RA = ctx.get('controller.content.hostComponents').findProperty('componentName', 'RANGER_ADMIN');
     return {
       RESTART_ALL: {
         action: 'restartAllHostComponents',
@@ -300,21 +303,21 @@ App.HostComponentActionMap = {
         label: App.get('isHaEnabled') ? Em.I18n.t('admin.highAvailability.button.disable') : Em.I18n.t('admin.highAvailability.button.enable'),
         cssClass: App.get('isHaEnabled') ? 'icon-arrow-down' : 'icon-arrow-up',
         isHidden: App.get('isHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !NN || NN.get('isNotInstalled')
       },
       TOGGLE_RM_HA: {
         action: 'enableRMHighAvailability',
         label: Em.I18n.t('admin.rm_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isRMHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !RM || RM.get('isNotInstalled')
       },
       TOGGLE_RA_HA: {
         action: 'enableRAHighAvailability',
         label: Em.I18n.t('admin.ra_highAvailability.button.enable'),
         cssClass: 'icon-arrow-up',
         isHidden: App.get('isRAHaEnabled'),
-        disabled: App.get('isSingleNode')
+        disabled: App.get('isSingleNode') || !RA || RA.get('isNotInstalled')
       },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
@@ -361,6 +364,6 @@ App.HostComponentActionMap = {
         isHidden: false,
         disabled: false
       }
-    }
+    };
   }
 };

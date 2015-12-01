@@ -81,6 +81,10 @@ def service(name, action = 'start'):
     if os.path.exists(pid_file):
       pid = get_user_call_output.get_user_call_output(format("! test -f {pid_file} ||  cat {pid_file}"), user=params.storm_user)[1]
 
+      # if multiple processes are running (for example user can start logviewer from console)
+      # there can be more than one id
+      pid = pid.replace("\n", " ")
+
       Execute(format("{sudo} kill {pid}"),
         not_if = process_dont_exist)
 

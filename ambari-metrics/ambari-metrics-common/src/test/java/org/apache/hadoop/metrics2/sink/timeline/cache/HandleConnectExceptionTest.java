@@ -18,12 +18,10 @@
 package org.apache.hadoop.metrics2.sink.timeline.cache;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
 import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
@@ -31,27 +29,40 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.easymock.EasyMock.expect;
+import static org.powermock.api.easymock.PowerMock.createNiceMock;
+import static org.powermock.api.easymock.PowerMock.expectNew;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AbstractTimelineMetricsSink.class, URL.class,
+  HttpURLConnection.class})
 public class HandleConnectExceptionTest {
   private static final String COLLECTOR_URL = "collector";
-  @Mock private HttpClient client;
   private TestTimelineMetricsSink sink;
   
-  @Before public void init(){
+  @Before
+  public void init(){
     sink = new TestTimelineMetricsSink();
-    sink.setHttpClient(client);
-    
+    OutputStream os = createNiceMock(OutputStream.class);
+    HttpURLConnection connection = createNiceMock(HttpURLConnection.class);
+    URL url = createNiceMock(URL.class);
+
     try {
-      Mockito.when(client.executeMethod(Mockito.<HttpMethod>any())).thenThrow(new ConnectException());
-    } catch (IOException e) {
+      expectNew(URL.class, "collector").andReturn(url);
+      expect(url.openConnection()).andReturn(connection).once();
+      expect(connection.getOutputStream()).andReturn(os).once();
+      expect(connection.getResponseCode()).andThrow(new IOException());
+
+      replayAll();
+    } catch (Exception e) {
       //no-op
     }
-  } 
-  
+  }
+
   @Test
   public void handleTest(){
     try{
@@ -63,6 +74,7 @@ public class HandleConnectExceptionTest {
       Assert.fail(e.getMessage());
     }
   }
+
   class TestTimelineMetricsSink extends AbstractTimelineMetricsSink{
     @Override
     protected String getCollectorUri() {
@@ -75,7 +87,7 @@ public class HandleConnectExceptionTest {
     }
 
     @Override
-    public void emitMetrics(TimelineMetrics metrics) throws IOException {
+    public void emitMetrics(TimelineMetrics metrics) {
       super.emitMetrics(metrics);
     }
   }

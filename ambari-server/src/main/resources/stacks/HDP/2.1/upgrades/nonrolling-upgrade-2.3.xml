@@ -243,6 +243,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
       </execute-stage>
 
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_keep_ats_v1"/>
+      </execute-stage>
+
       <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
       </execute-stage>
@@ -281,6 +285,10 @@
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+      </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
       </execute-stage>
 
       <!--HIVE-->
@@ -791,36 +799,69 @@
 
     <service name="STORM">
       <component name="NIMBUS">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
 
-      <component name="STORM_REST_API">
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DRPC_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
+
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+          </task>
+        </post-upgrade>
       </component>
     </service>
-    
+
     <service name="FLUME">
       <component name="FLUME_HANDLER">
         <upgrade>

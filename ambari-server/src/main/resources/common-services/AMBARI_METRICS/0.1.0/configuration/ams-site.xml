@@ -357,10 +357,10 @@
   </property>
   <property>
     <name>timeline.metrics.service.default.result.limit</name>
-    <value>11520</value>
+    <value>15840</value>
     <description>
       Max result limit on number of rows returned. Calculated as follows:
-      8 aggregate metrics/min * 60 * 24 : Retrieve MINUTE data for 24 hours.
+      22 aggregate metrics/min * 2 * 60 * 6 : Retrieve 10 SECOND data for 2 hours.
     </description>
     <display-name>Metrics service default result limit</display-name>
     <value-attributes>
@@ -406,6 +406,9 @@
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>timeline.metrics.service.cluster.aggregator.appIds</name>

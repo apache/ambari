@@ -839,8 +839,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    * @return Returns an integer with the id for the next host record to be inserted.
    * @throws SQLException
    */
-  @Transactional
-  private Long populateHostsId(ResultSet resultSet) throws SQLException {
+  Long populateHostsId(ResultSet resultSet) throws SQLException {
     Long hostId = 0L;
     if (resultSet != null) {
       try {
@@ -1008,36 +1007,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     updateKerberosDescriptorArtifacts();
   }
 
-
   /**
-   * Update the stored Kerberos Descriptor artifacts to conform to the new structure.
-   * <p/>
-   * Finds the relevant artifact entities and iterates through them to process each independently.
+   * {@inheritDoc}
    */
-  protected void updateKerberosDescriptorArtifacts() throws AmbariException {
-    ArtifactDAO artifactDAO = injector.getInstance(ArtifactDAO.class);
-    List<ArtifactEntity> artifactEntities = artifactDAO.findByName("kerberos_descriptor");
-
-    if (artifactEntities != null) {
-      for (ArtifactEntity artifactEntity : artifactEntities) {
-        updateKerberosDescriptorArtifact(artifactDAO, artifactEntity);
-      }
-    }
-  }
-
-  /**
-   * Update the specified Kerberos Descriptor artifact to conform to the new structure.
-   * <p/>
-   * To conform to the new Kerberos Descriptor structure, the global "hdfs" identity (if exists)
-   * must be moved to the set of identities under the HDFS service.  If no HDFS service exists, one
-   * is created to hold only the "hdfs" identity descriptor. Then, any identity descriptor references
-   * to "/hdfs" must be changed to "/HDFS/hdfs" to point to the moved "hdfs" identity descriptor.
-   * <p/>
-   * The supplied ArtifactEntity is updated in place a merged back into the database.
-   *
-   * @param artifactDAO    the ArtifactDAO to use to store the updated ArtifactEntity
-   * @param artifactEntity the ArtifactEntity to update
-   */
+  @Override
   protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
     if (artifactEntity != null) {
       Map<String, Object> data = artifactEntity.getArtifactData();
@@ -1084,50 +1057,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
           artifactEntity.setArtifactData(kerberosDescriptor.toMap());
           artifactDAO.merge(artifactEntity);
         }
-      }
-    }
-  }
-
-  /**
-   * Iterates through a collection of AbstractKerberosDescriptorContainers to find and update
-   * identity descriptor references.
-   *
-   * @param descriptorMap    a String to AbstractKerberosDescriptorContainer map to iterate trough
-   * @param referenceName    the reference name to change
-   * @param newReferenceName the new reference name
-   */
-  private void updateKerberosDescriptorIdentityReferences(Map<String, ? extends AbstractKerberosDescriptorContainer> descriptorMap,
-                                                          String referenceName,
-                                                          String newReferenceName) {
-    if (descriptorMap != null) {
-      for (AbstractKerberosDescriptorContainer kerberosServiceDescriptor : descriptorMap.values()) {
-        updateKerberosDescriptorIdentityReferences(kerberosServiceDescriptor, referenceName, newReferenceName);
-
-        if (kerberosServiceDescriptor instanceof KerberosServiceDescriptor) {
-          updateKerberosDescriptorIdentityReferences(((KerberosServiceDescriptor) kerberosServiceDescriptor).getComponents(),
-              referenceName, newReferenceName);
-        }
-      }
-    }
-  }
-
-  /**
-   * Given an AbstractKerberosDescriptorContainer, iterates through its contained identity descriptors
-   * to find ones matching the reference name to change.
-   * <p/>
-   * If found, the reference name is updated to the new name.
-   *
-   * @param descriptorContainer the AbstractKerberosDescriptorContainer to update
-   * @param referenceName       the reference name to change
-   * @param newReferenceName    the new reference name
-   */
-  private void updateKerberosDescriptorIdentityReferences(AbstractKerberosDescriptorContainer descriptorContainer,
-                                                          String referenceName,
-                                                          String newReferenceName) {
-    if (descriptorContainer != null) {
-      KerberosIdentityDescriptor identity = descriptorContainer.getIdentity(referenceName);
-      if (identity != null) {
-        identity.setName(newReferenceName);
       }
     }
   }

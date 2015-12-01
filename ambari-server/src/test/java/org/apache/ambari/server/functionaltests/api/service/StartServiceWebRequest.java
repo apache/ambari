@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,19 +16,23 @@
  * limitations under the License.
  */
 
+package org.apache.ambari.server.functionaltests.api.service;
 
-var App = require('app');
+import org.apache.ambari.server.functionaltests.api.ConnectionParams;
+import org.apache.ambari.server.state.State;
 
-App.ConfigVersion = App.ServiceConfigVersion.extend({
-  configProperties: DS.hasMany('App.ConfigProperty'),
-
-  /**
-   * this flag is true when we compare some version with
-   * this config version
-   * this flag make influence on displaying properties
-   * @property {boolean} [isForCompare=false]
-   */
-  isForCompare: DS.attr('boolean', {defaultValue: false})
-});
-
-App.ConfigVersion.FIXTURES = [];
+/**
+ * Starts a service by updating it's state to STARTED.
+ */
+public class StartServiceWebRequest extends SetServiceStateWebRequest {
+    /**
+     * Updates the state of the specified service to STARTED.
+     *
+     * @param params - Ambari server connection information.
+     * @param clusterName - Existing cluster name.
+     * @param serviceName - Service to be started.
+     */
+    public StartServiceWebRequest(ConnectionParams params, String clusterName, String serviceName) {
+        super(params, clusterName, serviceName, State.STARTED, "Start service");
+    }
+}

@@ -387,9 +387,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           this.retypePasswordValidation();
         },
 
-        isEmailMethodSelected: function () {
-          return this.get('controller.inputFields.method.value') === 'EMAIL';
-        }.property('controller.inputFields.method.value'),
+        isEmailMethodSelected: Em.computed.equal('controller.inputFields.method.value', 'EMAIL'),
 
         methodObserver: function () {
           var currentMethod = this.get('controller.inputFields.method.value'),
@@ -605,9 +603,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
 
       primary: Em.I18n.t('common.save'),
 
-      disablePrimary: function () {
-        return this.get('isSaving') || this.get('hasErrors');
-      }.property('isSaving', 'hasErrors'),
+      disablePrimary: Em.computed.or('isSaving', 'hasErrors'),
 
       onPrimary: function () {
         this.set('isSaving', true);

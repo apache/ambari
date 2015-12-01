@@ -43,9 +43,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
    */
   activeMaster: Em.computed.findBy('masters', 'haStatus', 'true'),
 
-  activeMasterTitle: function(){
-    return this.t('service.hbase.activeMaster');
-  }.property('activeMaster'),
+  activeMasterTitle: Em.I18n.t('service.hbase.activeMaster'),
 
   hbaseMasterWebUrl: function () {
     if (this.get('activeMaster.host') && this.get('activeMaster.host').get('publicHostName')) {

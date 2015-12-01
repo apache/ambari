@@ -163,7 +163,7 @@ public class ExecutionScheduleManagerTest {
   }
 
   @Transactional
-  private RequestExecution createRequestExecution(boolean addSchedule)
+  RequestExecution createRequestExecution(boolean addSchedule)
       throws Exception {
     Batch batches = new Batch();
     Schedule schedule = new Schedule();

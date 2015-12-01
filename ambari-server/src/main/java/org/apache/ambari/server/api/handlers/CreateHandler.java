@@ -22,6 +22,7 @@ import org.apache.ambari.server.api.resources.*;
 import org.apache.ambari.server.api.services.*;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 
 /**
@@ -47,6 +48,8 @@ public class CreateHandler extends BaseManagementHandler {
         result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
       }
 
+    } catch (AuthorizationException e) {
+      result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
     } catch (UnsupportedPropertyException e) {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (NoSuchParentResourceException e) {
@@ -54,7 +57,7 @@ public class CreateHandler extends BaseManagementHandler {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.NOT_FOUND, e.getMessage()));
     } catch (SystemException e) {
       if (LOG.isErrorEnabled()) {
-        LOG.error("Caught a system exception while attempting to create a resource: {}", e.getMessage());
+        LOG.error("Caught a system exception while attempting to create a resource: {}", e.getMessage(), e);
       }
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
     } catch (ResourceAlreadyExistsException e) {
@@ -63,7 +66,7 @@ public class CreateHandler extends BaseManagementHandler {
       result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.BAD_REQUEST, e.getMessage()));
     } catch (RuntimeException e) {
       if (LOG.isErrorEnabled()) {
-        LOG.error("Caught a runtime exception while attempting to create a resource", e);
+        LOG.error("Caught a runtime exception while attempting to create a resource: {}", e.getMessage(), e);
       }
       //result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e.getMessage()));
       throw e;

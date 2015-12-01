@@ -216,13 +216,13 @@ class TestFalconServer(RMFTestCase):
      '-zcvhf',
      '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
      '/usr/hdp/current/falcon-server/conf'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-zcvhf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      u'/hadoop/falcon'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', u'2.2.1.0-2135'),
         sudo = True,
@@ -232,14 +232,14 @@ class TestFalconServer(RMFTestCase):
      '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
      '-C',
      '/usr/hdp/current/falcon-server/conf/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      '-C',
      u'/hadoop/falcon/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Directory', '/tmp/falcon-upgrade-backup',
         action = ['delete'],
@@ -535,7 +535,7 @@ class TestFalconServer(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
@@ -546,14 +546,14 @@ class TestFalconServer(RMFTestCase):
      '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
      '-C',
      '/usr/hdp/current/falcon-server/conf/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Execute', ('tar',
      '-xvf',
      '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
      '-C',
      u'/hadoop/falcon/'),
-        sudo = True,
+        sudo = True, tries = 3, try_sleep = 1,
     )
     self.assertResourceCalled('Directory', '/tmp/falcon-upgrade-backup',
         action = ['delete'],

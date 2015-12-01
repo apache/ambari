@@ -22,9 +22,7 @@ App.StackVersion = DS.Model.extend({
   clusterName: DS.attr('string'),
   stack: DS.attr('string'),
   version: DS.attr('string'),
-  name: function() {
-    return this.get('stack') + " " + this.get('version');
-  }.property('stack', 'version'),
+  name: Em.computed.concat(' ', 'stack', 'version'),
   state: DS.attr('string'),
   repositoryVersion: DS.belongsTo('App.RepositoryVersion'),
   notInstalledHosts: DS.attr('array'),

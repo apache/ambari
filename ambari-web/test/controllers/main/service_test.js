@@ -330,4 +330,107 @@ describe('App.MainServiceController', function () {
 
   });
 
+  describe('#isRestartAllRequiredDisabled', function () {
+
+    it('should be false if there is at least one service with isRestartRequired=true', function () {
+      mainServiceController.reopen({
+        content: [
+          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: true}
+        ]
+      });
+      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.false;
+    });
+
+    it('should be true if there is no services with isRestartRequired=true', function () {
+      mainServiceController.reopen({
+        content: [
+          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: false}
+        ]
+      });
+      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.true;
+    });
+
+  });
+
+  describe('#restartAllRequired', function () {
+
+    beforeEach(function () {
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.spy(mainServiceController, 'restartHostComponents');
+      sinon.stub(App.HostComponent, 'find', function() {
+        return [
+          Em.Object.create({
+            componentName: 'componentName1',
+            hostName: 'hostName1',
+            service: {
+              serviceName: 'serviceName1',
+              displayName: 'displayName1'
+            },
+            staleConfigs: true
+          }),
+          Em.Object.create({
+            componentName: 'componentName2',
+            hostName: 'hostName2',
+            service: {
+              serviceName: 'serviceName2',
+              displayName: 'displayName2'
+            },
+            staleConfigs: true
+          }),
+          Em.Object.create({
+            componentName: 'componentName3',
+            hostName: 'hostName3',
+            service: {
+              serviceName: 'serviceName3',
+              displayName: 'displayName3'
+            },
+            staleConfigs: false
+          })
+        ];
+      });
+    });
+
+    afterEach(function () {
+      App.HostComponent.find.restore();
+      App.showConfirmationPopup.restore();
+      mainServiceController.restartHostComponents.restore();
+    });
+
+    it('should show confirmation popup with list of services and call restartHostComponents after confirmation', function () {
+      var popup = mainServiceController.restartAllRequired();
+      popup.onPrimary();
+      expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
+      expect(mainServiceController.restartHostComponents.calledWith([
+        {
+          component_name: 'componentName1',
+          service_name: 'serviceName1',
+          hosts: 'hostName1'
+        },
+        {
+          component_name: 'componentName2',
+          service_name: 'serviceName2',
+          hosts: 'hostName2'
+        }
+      ])).to.be.true;
+    });
+
+  });
+
+  describe('#restartHostComponents', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it('should send ajax request', function () {
+      mainServiceController.restartHostComponents();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+  });
+
 });

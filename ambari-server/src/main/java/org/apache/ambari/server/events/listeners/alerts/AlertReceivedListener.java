@@ -268,7 +268,7 @@ public class AlertReceivedListener {
    * @param toCreateHistoryAndMerge - create new history, merge alert
    */
   @Transactional
-  private void saveEntities(Map<Alert, AlertCurrentEntity> toCreate,
+  void saveEntities(Map<Alert, AlertCurrentEntity> toCreate,
       Map<Alert, AlertCurrentEntity> toMerge,
       Map<Alert, AlertCurrentEntity> toCreateHistoryAndMerge) {
     for (Map.Entry<Alert, AlertCurrentEntity> entry : toCreate.entrySet()) {

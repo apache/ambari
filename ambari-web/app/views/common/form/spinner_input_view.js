@@ -94,9 +94,7 @@ App.SpinnerInputView = Em.View.extend({
    * Input should be disabled, if whole widget is disabled or if its unit is less than step_increment value
    * @type {boolean}
    */
-  computedDisabled: function () {
-    return !this.get('content.enabled') || this.get('disabled');
-  }.property('disabled', 'content.enabled'),
+  computedDisabled: Em.computed.or('!content.enabled', 'disabled'),
 
   incrementValue: function () {
     this.setValue(true);

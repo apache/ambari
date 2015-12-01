@@ -46,6 +46,14 @@
               {{t services.service.stopAll}}
             </a>
           </li>
+          <li {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}>
+            <a href="#" data-toggle="modal"
+              {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}
+              {{action "restartAllRequired" target="controller"}}>
+              <i {{bindAttr class=":icon-repeat controller.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+              {{t services.service.restartAllRequired}}
+            </a>
+          </li>
       </ul>
     </div>
   </div>

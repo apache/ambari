@@ -236,9 +236,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * Disable "Add" button if components can't be added to the current host
    * @type {bool}
    */
-  addComponentDisabled: function() {
-    return (!this.get('isAddComponent')) || (this.get('addableComponents.length') == 0);
-  }.property('isAddComponent', 'addableComponents.length'),
+  addComponentDisabled: Em.computed.or('!isAddComponent', '!addableComponents.length'),
 
   /**
    * List of client's that may be installed to the current host
@@ -293,9 +291,9 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
    * @type {String}
    */
   timeSinceHeartBeat: function () {
-    var d = this.get('content.lastHeartBeatTime');
+    var d = this.get('content.rawLastHeartBeatTime');
     return d ? $.timeago(d) : '';
-  }.property('content.lastHeartBeatTime'),
+  }.property('content.rawLastHeartBeatTime'),
 
   /**
    * Get clients with custom commands

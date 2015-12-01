@@ -95,6 +95,7 @@
       Oozie DataBase Name
     </description>
     <value-attributes>
+      <type>database</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>
@@ -107,6 +108,7 @@
       Database user name to use to connect to the database
     </description>
     <value-attributes>
+      <type>db_user</type>
       <overridable>false</overridable>
     </value-attributes>
   </property>

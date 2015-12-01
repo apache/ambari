@@ -61,7 +61,7 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
     beeline_url.append('principal={key}')
     Execute(kinitcmd, user=smokeuser)
 
-  cmd = "! beeline -u '%s' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL' -e 'Error'" % \
+  cmd = "! beeline -u '%s' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
         format(";".join(beeline_url))
   Execute(cmd,
           user=smokeuser,

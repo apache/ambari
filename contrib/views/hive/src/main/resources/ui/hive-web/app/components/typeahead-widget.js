@@ -31,6 +31,21 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
 
     if($('.selectize-input')) {$('.selectize-input').addClass( "mozBoxSizeFix" );}
 
+    var currentKeyName = this.get('safeValue');
+    var currentTypehead = $('*[keyname="' + currentKeyName +'"]');
+
+    if (currentTypehead.find($('.selectize-input')).has('.item').length == 0) {
+      currentTypehead.find($('.selectize-input')).addClass("has-options has-items ");
+
+      currentTypehead.find($('.selectized option:selected')).val(currentKeyName);
+      currentTypehead.find($('.selectized option:selected')).text(currentKeyName);
+
+      currentTypehead.find($('.selectize-input input')).css({'opacity': 0 , 'position': 'absolute' , 'left': '-10000px'});
+
+      var itemHtml = '<div data-value=' + currentKeyName + ' class=item >' + currentKeyName + '</div>';
+      currentTypehead.find($('.selectize-input')).append( itemHtml );
+
+    }
   },
 
   removeExcludedObserver: function () {

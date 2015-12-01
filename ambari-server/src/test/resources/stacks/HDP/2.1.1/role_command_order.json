@@ -3,7 +3,7 @@
   "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
   "general_deps" : {
     "_comment" : "dependencies for all cases",
-    "HBASE_MASTER-START": ["ZOOKEEPER_SERVER-START, ZOOKEEPER_SERVER-START"],
+    "HBASE_MASTER-START": ["ZOOKEEPER_SERVER-START"],
     "OOZIE_SERVER-START": ["JOBTRACKER-START", "TASKTRACKER-START"],
     "WEBHCAT_SERVER-START": ["TASKTRACKER-START", "HIVE_SERVER-START"],
     "HIVE_METASTORE-START": ["MYSQL_SERVER-START"],

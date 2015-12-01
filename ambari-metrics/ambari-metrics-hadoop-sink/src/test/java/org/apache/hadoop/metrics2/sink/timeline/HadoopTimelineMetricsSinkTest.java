@@ -31,24 +31,29 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
+import java.io.OutputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.hadoop.metrics2.AbstractMetric;
 import org.apache.hadoop.metrics2.MetricsRecord;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
+@RunWith(PowerMockRunner.class)
 public class HadoopTimelineMetricsSinkTest {
 
   @Test
+  @PrepareForTest({URL.class, OutputStream.class})
   public void testPutMetrics() throws Exception {
     HadoopTimelineMetricsSink sink = new HadoopTimelineMetricsSink();
 
@@ -82,11 +87,6 @@ public class HadoopTimelineMetricsSinkTest {
       }
     }).once();
 
-
-    HttpClient httpClient = createNiceMock(HttpClient.class);
-
-    expect(httpClient.executeMethod(anyObject(PostMethod.class))).andReturn(200).once(); //metrics send only once due to caching
-
     AbstractMetric metric = createNiceMock(AbstractMetric.class);
     expect(metric.name()).andReturn("metricName").anyTimes();
     expect(metric.value()).andReturn(9.5687).anyTimes();
@@ -105,9 +105,8 @@ public class HadoopTimelineMetricsSinkTest {
     expect(record.metrics()).andReturn(Arrays.asList(metric)).anyTimes();
 
 
-    replay(conf, httpClient, record, metric);
+    replay(conf, record, metric);
 
-    sink.setHttpClient(httpClient);
     sink.init(conf);
 
     sink.putMetrics(record);
@@ -116,7 +115,7 @@ public class HadoopTimelineMetricsSinkTest {
 
     sink.putMetrics(record);
 
-    verify(conf, httpClient, record, metric);
+    verify(conf, record, metric);
   }
 
   @Test

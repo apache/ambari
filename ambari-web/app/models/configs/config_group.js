@@ -138,9 +138,7 @@ App.ServiceConfigGroup = DS.Model.extend({
     return availableHosts;
   }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each', 'clusterHosts'),
 
-  isAddHostsDisabled: function () {
-    return (this.get('isDefault') || this.get('availableHosts.length') === 0);
-  }.property('availableHosts.length'),
+  isAddHostsDisabled: Em.computed.or('isDefault', '!availableHosts.length'),
 
   /**
    * @type {Array}

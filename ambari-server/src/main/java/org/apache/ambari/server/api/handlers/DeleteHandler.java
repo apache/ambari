@@ -30,6 +30,7 @@ import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 
 /**
  * Responsible for delete requests.
@@ -49,6 +50,8 @@ public class DeleteHandler extends BaseManagementHandler implements RequestHandl
         } else {
           result.setResultStatus(new ResultStatus(ResultStatus.STATUS.ACCEPTED));
         }
+      } catch (AuthorizationException e) {
+        result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.FORBIDDEN, e.getMessage()));
       } catch (SystemException e) {
         result = new ResultImpl(new ResultStatus(ResultStatus.STATUS.SERVER_ERROR, e));
       } catch (NoSuchParentResourceException e) {

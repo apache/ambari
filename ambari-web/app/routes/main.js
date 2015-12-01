@@ -639,14 +639,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             //if service is not existed then route to default service
             if (item.get('isLoaded')) {
               if (router.get('mainServiceItemController.isConfigurable')) {
-                // HDFS service config page requires service metrics information to determine NameNode HA state and hide SNameNode category
-                if (item.get('serviceName') === 'HDFS') {
-                  router.get('mainController').isLoading.call(router.get('clusterController'), 'isServiceContentFullyLoaded').done(function () {
-                    router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
-                  });
-                } else {
-                  router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
-                }
+                router.get('mainServiceItemController').connectOutlet('mainServiceInfoConfigs', item);
               }
               else {
                 // if service doesn't have configs redirect to summary

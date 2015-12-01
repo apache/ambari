@@ -18,16 +18,21 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.metrics.timeline.cache.TimelineMetricCacheProvider;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
@@ -45,12 +50,6 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Management controller interface.
@@ -166,18 +165,6 @@ public interface AmbariManagementController {
       Set<ConfigurationRequest> requests) throws AmbariException;
 
   /**
-   * Gets the task status identified by the given request objects.
-   *
-   * @param requests   the request objects
-   *
-   * @return  a set of task status responses
-   *
-   * @throws AmbariException if the configurations could not be read
-   */
-  public Set<TaskStatusResponse> getTaskStatus(Set<TaskStatusRequest> requests)
-      throws AmbariException;
-
-  /**
    * Get service config version history
    * @param requests service config version requests
    * @return service config versions
@@ -196,7 +183,7 @@ public interface AmbariManagementController {
    * @throws AmbariException if the users could not be read
    */
   public Set<UserResponse> getUsers(Set<UserRequest> requests)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Gets the user groups identified by the given request objects.
@@ -249,7 +236,7 @@ public interface AmbariManagementController {
    *
    * @throws AmbariException if the resources cannot be updated
    */
-  public void updateUsers(Set<UserRequest> requests) throws AmbariException;
+  public void updateUsers(Set<UserRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Updates the groups specified.

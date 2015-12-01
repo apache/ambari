@@ -18,13 +18,18 @@
 
 package org.apache.ambari.server.security.authorization.internal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,21 +53,42 @@ public class InternalAuthenticationToken implements Authentication {
   private boolean authenticated = false;
 
 
+  /**
+   * Sets up a privilege entity to be one that an administrative user would have.
+   */
   private static void createAdminPrivilegeEntity(PrivilegeEntity entity) {
     PermissionEntity pe = new PermissionEntity();
     pe.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     pe.setPermissionName(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION_NAME);
-    
+    pe.setAuthorizations(createAdminAuthorizations());
     entity.setPermission(pe);
     
     ResourceEntity resource = new ResourceEntity();
     resource.setId(1L);
     
     ResourceTypeEntity rte = new ResourceTypeEntity();
-    rte.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-    rte.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+    rte.setId(ResourceType.AMBARI.getId());
+    rte.setName(ResourceType.AMBARI.name());
     resource.setResourceType(rte);
     entity.setResource(resource);
+  }
+
+  /**
+   * Creates the collection of RoleAuthorizationEntity objects that an administrative user would have.
+   *
+   * @return a collection of RoleAuthorizationEntity objects
+   */
+  private static Collection<RoleAuthorizationEntity> createAdminAuthorizations() {
+    List<RoleAuthorizationEntity> authorizations = new ArrayList<RoleAuthorizationEntity>();
+
+    for (RoleAuthorization roleAuthorization : RoleAuthorization.values()) {
+      RoleAuthorizationEntity re = new RoleAuthorizationEntity();
+      re.setAuthorizationId(roleAuthorization.getId());
+      re.setAuthorizationName(roleAuthorization.name());
+      authorizations.add(re);
+    }
+
+    return authorizations;
   }
 
   public InternalAuthenticationToken(String tokenString) {

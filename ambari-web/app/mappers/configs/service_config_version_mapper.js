@@ -18,14 +18,14 @@
 
 var App = require('app');
 
-App.configVersionsMapper = App.QuickDataMapper.create({
-  model: App.ConfigVersion,
-  propertyModel: App.ConfigProperty,
+App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
+  model: App.ServiceConfigVersion,
   config: {
     service_name: 'service_name',
     service_id: 'service_name',
     version: "service_config_version",
     create_time: 'createtime',
+    raw_create_time: 'createtime',
     group_id: 'group_id',
     group_name: 'group_name',
     hosts: 'hosts',
@@ -33,71 +33,43 @@ App.configVersionsMapper = App.QuickDataMapper.create({
     notes: 'service_config_version_note',
     is_current: 'is_current',
     index: 'index',
-    is_for_compare: 'is_for_compare'
+    stack_version: 'stack_id',
+    is_compatible: 'is_cluster_compatible'
   },
-
-  map: function (json, isForCompare) {
-    console.time("App.configVersionsMapper execution time");
-    var configVersions = [];
+  map: function (json) {
+    console.time('App.serviceConfigVersionsMapper');
+    var result = [];
     var itemIds = {};
     var serviceToHostMap = {};
-    var requestedProperties = [];
+    var currentVersionsMap = {};
 
     if (json && json.items) {
+      App.ServiceConfigVersion.find().forEach(function (v) {
+        if (v.get('isCurrent')) {
+          currentVersionsMap[v.get('serviceName') + "_" + v.get('groupName')] = v;
+        }
+      });
+
       json.items.forEach(function (item, index) {
         var parsedItem = this.parseIt(item, this.get('config'));
-        parsedItem.id = parsedItem.service_name + '_' + parsedItem.version;
+        parsedItem.id = this.makeId(parsedItem.service_name, parsedItem.version);
         parsedItem.is_requested = true;
+        parsedItem.create_time = App.dateTimeWithTimeZone(parsedItem.create_time);
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
-        parsedItem.config_properties = [];
-        parsedItem.is_for_compare = Boolean(isForCompare);
-
         if (serviceToHostMap[item.service_name]) {
           serviceToHostMap[item.service_name] = serviceToHostMap[item.service_name].concat(item.hosts);
         } else {
           serviceToHostMap[item.service_name] = item.hosts;
         }
 
-        /**
-         * parsing config properties for config version
-         * @type {Array}
-         */
-        var properties = [];
-        if (item.configurations) {
-          item.configurations.forEach(function(config) {
-            var type = config.type;
-            var properties_array = Object.keys(config.properties);
-            for (var i = 0; i < properties_array.length; i++) {
-              var key = properties_array[i];
-
-              var property = {
-                id: key  + '_' + type + '_' + item.service_config_version,
-                name: key,
-                file_name: App.config.getOriginalFileName(type),
-                config_version_id: parsedItem.id,
-                stack_config_property_id: key  + '_' + type
-              };
-              property.value = property.recommended_value = config.properties[key];
-              property.is_final = property.recommended_is_final = !!item.properties_attributes && item.properties_attributes.final[key] === "true";
-
-              properties.push(property);
-              requestedProperties.push(property.id);
-            }
-          }, this);
+        // if loaded only latest versions(later than current), then current version should be reset
+        if (parsedItem.is_current && currentVersionsMap[parsedItem.service_name + "_" + parsedItem.group_name]) {
+          currentVersionsMap[parsedItem.service_name + "_" + parsedItem.group_name].set('isCurrent', false);
         }
-        parsedItem.config_properties = parsedItem.config_properties.concat(properties.mapProperty('id'));
-
-        App.store.loadMany(this.get('propertyModel'), properties);
-
-        configVersions.push(parsedItem);
+        result.push(parsedItem);
       }, this);
 
-      this.get('model').find().forEach(function (item) {
-        if (!itemIds[item.get('id')]) {
-          item.set('isRequested', false);
-        }
-      });
       var itemTotal = parseInt(json.itemTotal);
       if (!isNaN(itemTotal)) {
         App.router.set('mainConfigHistoryController.filteredCount', itemTotal);
@@ -113,31 +85,33 @@ App.configVersionsMapper = App.QuickDataMapper.create({
         for (var i = 0; i < serviceToHostMap[sName].length; i++) {
           defaultHostNames = defaultHostNames.without(serviceToHostMap[sName][i]);
         }
-        var defVer = configVersions.find(function(v) {
+        var defVer = result.find(function(v) {
           return v.is_current && v.group_id == -1 && v.service_name == sName;
         });
         if (defVer) {
           defVer.hosts = defaultHostNames;
         }
       });
-      App.store.commit();
-      App.store.loadMany(this.get('model'), configVersions);
 
-      this.deleteUnusedProperties(requestedProperties);
+      // If on config history page, need to clear the model
+      if (App.router.get('currentState.name') === 'configHistory') {
+        this.get('model').find().clear();
+      }
+      App.store.commit();
+      App.store.loadMany(this.get('model'), result);
+      console.timeEnd('App.serviceConfigVersionsMapper');
     }
-    console.timeEnd("App.configVersionsMapper execution time");
   },
 
-
   /**
-   * delete unused Properties
-   * @param requestedProperties
+   * Conventional method to generate id for instances of <code>App.ServiceConfigVersion</code> model.
+   *
+   * @param {String} serviceName
+   * @param {Number|String} version
+   * @returns {String}
    */
-  deleteUnusedProperties: function(requestedProperties) {
-    App.ConfigProperty.find().filterProperty('id').forEach(function(p) {
-      if (!requestedProperties.contains(p.get('id'))) {
-        this.deleteRecord(p);
-      }
-    }, this);
+  makeId: function(serviceName, version) {
+    return serviceName + '_' + version;
   }
+
 });

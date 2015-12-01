@@ -146,7 +146,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
       else {
         return value.map(function(item) {
           return self._convertToSingleValue(item.value, item.type, toUnit[0]);
-        }).reduce(Em.sum);
+        }).reduce(Em.sum, 0);
       }
     }
   },

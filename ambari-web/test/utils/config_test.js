@@ -469,6 +469,65 @@ describe('App.config', function () {
 
   });
 
+  describe('#shouldSupportAddingForbidden', function () {
+
+    var cases = [
+      {
+        shouldSupportAddingForbidden: false,
+        title: 'no service name specified'
+      },
+      {
+        serviceName: 's0',
+        shouldSupportAddingForbidden: false,
+        title: 'no filename specified'
+      },
+      {
+        serviceName: 'MISC',
+        shouldSupportAddingForbidden: false,
+        title: 'MISC'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-site',
+        shouldSupportAddingForbidden: true,
+        title: 'adding forbidden supported'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-properties',
+        shouldSupportAddingForbidden: false,
+        title: 'adding forbidden not supported'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          serviceName: 's0',
+          configTypes: {
+            's0-size': {},
+            's0-properties': {}
+          }
+        })
+      ]);
+      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
+        supportsAddingForbidden: ['s0-site']
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.config.getConfigTypesInfoFromService.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(App.config.shouldSupportAddingForbidden(item.serviceName, item.filename)).to.equal(item.shouldSupportAddingForbidden);
+      });
+    });
+
+  });
+
   describe('#removeRangerConfigs', function () {
 
     it('should remove ranger configs and categories', function () {
@@ -783,6 +842,7 @@ describe('App.config', function () {
       recommendedValue: null,
       recommendedIsFinal: null,
       supportsFinal: true,
+      supportsAddingForbidden: false,
       serviceName: 'pServiceName',
       displayName: 'pName',
       displayType: 'pDisplayType',
@@ -950,5 +1010,62 @@ describe('App.config', function () {
           "index": 0
         })
     });
-  })
+  });
+
+  describe("#restrictSecureProperties()", function() {
+    var testCases = [
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: true
+        },
+        expected: {
+          isReconfigurable: false,
+          isOverridable: false
+        }
+      },
+      {
+        input: {
+          isSecureConfig: false,
+          isKerberosEnabled: true
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      },
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: false
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      },
+      {
+        input: {
+          isSecureConfig: false,
+          isKerberosEnabled: false
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      }
+    ];
+
+    testCases.forEach(function(test) {
+      it("isSecureConfig = " + test.input.isSecureConfig + "; isKerberosEnabled = " + test.input.isKerberosEnabled, function() {
+        var config = {
+          isSecureConfig: test.input.isSecureConfig
+        };
+        App.set('isKerberosEnabled', test.input.isKerberosEnabled);
+        App.config.restrictSecureProperties(config);
+        expect(config.isReconfigurable).to.equal(test.expected.isReconfigurable);
+        expect(config.isOverridable).to.equal(test.expected.isOverridable);
+      });
+    });
+  });
 });

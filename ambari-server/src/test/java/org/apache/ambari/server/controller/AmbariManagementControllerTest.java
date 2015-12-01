@@ -18,13 +18,41 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import junit.framework.Assert;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.StringReader;
+import java.lang.reflect.Type;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -54,7 +82,11 @@ import org.apache.ambari.server.controller.internal.HostResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
+import org.apache.ambari.server.controller.internal.TaskResourceProvider;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -63,14 +95,17 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -112,6 +147,7 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -119,39 +155,15 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import java.io.StringReader;
-import java.lang.reflect.Type;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import junit.framework.Assert;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class AmbariManagementControllerTest {
 
@@ -200,10 +212,19 @@ public class AmbariManagementControllerTest {
   private OrmTestHelper helper;
   private StageFactory stageFactory;
   private HostDAO hostDAO;
+  private HostRoleCommandDAO hostRoleCommandDAO;
   private TopologyManager topologyManager;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
+
+  @BeforeClass
+  public static void setupAuthentication() {
+    // Set authenticated user so that authorization checks will pass
+    InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
+    authenticationToken.setAuthenticated(true);
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+  }
 
   @Before
   public void setup() throws Exception {
@@ -229,7 +250,8 @@ public class AmbariManagementControllerTest {
     helper = injector.getInstance(OrmTestHelper.class);
     stageFactory = injector.getInstance(StageFactory.class);
     hostDAO = injector.getInstance(HostDAO.class);
-     topologyManager = injector.getInstance(TopologyManager.class);
+    hostRoleCommandDAO = injector.getInstance(HostRoleCommandDAO.class);
+    topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
     ActionManager.setTopologyManager(topologyManager);
   }
@@ -1994,24 +2016,25 @@ public class AmbariManagementControllerTest {
       }
     }
 
-    Set<TaskStatusRequest> taskRequests = new HashSet<TaskStatusRequest>();
-    TaskStatusRequest t1, t2;
-    t1 = new TaskStatusRequest();
-    t2 = new TaskStatusRequest();
-    t1.setRequestId(trackAction.getRequestId());
-    taskRequests.add(t1);
-    Set<TaskStatusResponse> taskResponses =
-        controller.getTaskStatus(taskRequests);
-    Assert.assertEquals(5, taskResponses.size());
+    org.apache.ambari.server.controller.spi.Request request = PropertyHelper.getReadRequest(
+        TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID,
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID,
+        TaskResourceProvider.TASK_STAGE_ID_PROPERTY_ID);
 
-    t1.setTaskId(1L);
-    t2.setRequestId(trackAction.getRequestId());
-    t2.setTaskId(2L);
-    taskRequests.clear();
-    taskRequests.add(t1);
-    taskRequests.add(t2);
-    taskResponses = controller.getTaskStatus(taskRequests);
-    Assert.assertEquals(2, taskResponses.size());
+    Predicate predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(
+            trackAction.getRequestId()).toPredicate();
+
+    List<HostRoleCommandEntity> entities = hostRoleCommandDAO.findAll(request, predicate);
+    Assert.assertEquals(5, entities.size());
+
+    predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(
+            trackAction.getRequestId()).and().property(
+                TaskResourceProvider.TASK_ID_PROPERTY_ID).equals(1L).toPredicate();
+
+    entities = hostRoleCommandDAO.findAll(request, predicate);
+    Assert.assertEquals(1, entities.size());
 
     // manually change live state to installed as no running action manager
     for (ServiceComponent sc :
@@ -8094,76 +8117,41 @@ public class AmbariManagementControllerTest {
     request = new Request(stages, clusters);
     actionDB.persistActions(request);
 
+    org.apache.ambari.server.controller.spi.Request spiRequest = PropertyHelper.getReadRequest(
+        TaskResourceProvider.TASK_CLUSTER_NAME_PROPERTY_ID,
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID,
+        TaskResourceProvider.TASK_STAGE_ID_PROPERTY_ID);
 
-    Set<TaskStatusRequest> taskStatusRequests;
-    Set<TaskStatusResponse> taskStatusResponses;
+    // request ID 1 has 3 tasks
+    Predicate predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId1).toPredicate();
 
-    //check count of tasks by requestId1
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId1, null));
-      }
-    };
-    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
-    assertEquals(3, taskStatusResponses.size());
+    List<HostRoleCommandEntity> entities = hostRoleCommandDAO.findAll(spiRequest, predicate);
+    Assert.assertEquals(3, entities.size());
 
-    //check a taskId that requested by requestId1 and task id
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId1, 2L));
-      }
-    };
-    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
-    assertEquals(1, taskStatusResponses.size());
-    assertEquals(2L, taskStatusResponses.iterator().next().getTaskId());
+    // request just a task by ID
+    predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId1).and().property(
+            TaskResourceProvider.TASK_ID_PROPERTY_ID).equals(2L).toPredicate();
 
-    //check count of tasks by requestId2
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId2, null));
-      }
-    };
-    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
-    assertEquals(2, taskStatusResponses.size());
+    entities = hostRoleCommandDAO.findAll(spiRequest, predicate);
+    Assert.assertEquals(1, entities.size());
 
-    //check a taskId that requested by requestId2 and task id
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId2, 5L));
-      }
-    };
-    taskStatusResponses = controller.getTaskStatus(taskStatusRequests);
-    assertEquals(5L, taskStatusResponses.iterator().next().getTaskId());
+    // request ID 2 has 2 tasks
+    predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId2).toPredicate();
 
-    //check that a sever-side action is reported back properly (namely the hostname value of the repsonse)
-    taskStatusResponses = controller.getTaskStatus(Collections.singleton(new TaskStatusRequest(requestId3, null)));
-    assertEquals(1, taskStatusResponses.size());
-    TaskStatusResponse response = taskStatusResponses.iterator().next();
-    assertNotNull(response);
-    assertEquals(6L, response.getTaskId());
-    // The host name for the task should be the same as what StageUtils#getHostName returns since
-    // the host was specified as null when
-    assertEquals(StageUtils.getHostName(), response.getHostName());
+    entities = hostRoleCommandDAO.findAll(spiRequest, predicate);
+    Assert.assertEquals(2, entities.size());
 
-    //verify that task from second request (requestId2) does not present in first request (requestId1)
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId1, 5L));
-      }
-    };
-    expectedException.expect(ObjectNotFoundException.class);
-    expectedException.expectMessage("Task resource doesn't exist.");
-    controller.getTaskStatus(taskStatusRequests);
+    // a single task from request 1 and all tasks from request 2 will total 3
+    predicate = new PredicateBuilder().property(
+        TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId1).and().property(
+            TaskResourceProvider.TASK_ID_PROPERTY_ID).equals(2L).or().property(
+                TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals(requestId2).toPredicate();
 
-    //verify that task from first request (requestId1) does not present in second request (requestId2)
-    taskStatusRequests = new HashSet<TaskStatusRequest>(){
-      {
-        add(new TaskStatusRequest(requestId2, 2L));
-      }
-    };
-    expectedException.expect(ObjectNotFoundException.class);
-    expectedException.expectMessage("Task resource doesn't exist.");
-    controller.getTaskStatus(taskStatusRequests);
+    entities = hostRoleCommandDAO.findAll(spiRequest, predicate);
+    Assert.assertEquals(3, entities.size());
   }
 
   @Test

@@ -531,6 +531,7 @@
         <pre-downgrade/> <!--  no-op to prevent config changes on downgrade -->
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
+          <task xsi:type="configure" id="hdp_2_3_0_0_yarn_keep_ats_v1"/>
         </pre-upgrade>
 
         <upgrade>
@@ -615,8 +616,8 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+          <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>

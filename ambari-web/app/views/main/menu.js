@@ -83,9 +83,7 @@ App.MainMenuView = Em.CollectionView.extend({
       return App.router.get('mainHostController.hostsCountMap.health-status-CRITICAL') > 0;
     }.property('content.hasAlertsLabel', 'alertsCount'),
 
-    hasAlertsLabel: function () {
-      return this.get('content.hasAlertsLabel') && this.get('alertsCount') > 0;
-    }.property('content.hasAlertsLabel', 'alertsCount'),
+    hasAlertsLabel: Em.computed.and('content.hasAlertsLabel', 'alertsCount'),
 
     templateName: require('templates/main/menu_item'),
 

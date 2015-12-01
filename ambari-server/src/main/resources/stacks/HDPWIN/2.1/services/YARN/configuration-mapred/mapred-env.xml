@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>mapred_log_dir_prefix</name>
     <value>c:\hadoop\logs\hadoop-mapreduce</value>

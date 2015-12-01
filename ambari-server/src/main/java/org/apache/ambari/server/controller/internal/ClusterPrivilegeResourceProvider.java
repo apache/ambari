@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,8 +28,10 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,6 +61,8 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     propertyIds.add(PRIVILEGE_CLUSTER_NAME_PROPERTY_ID);
     propertyIds.add(PRIVILEGE_ID_PROPERTY_ID);
     propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
+    propertyIds.add(PERMISSION_NAME_PROPERTY_ID);
+    propertyIds.add(PERMISSION_LABEL_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_NAME_PROPERTY_ID);
     propertyIds.add(PRINCIPAL_TYPE_PROPERTY_ID);
   }
@@ -72,17 +76,6 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
     keyPropertyIds.put(Resource.Type.ClusterPrivilege, PRIVILEGE_ID_PROPERTY_ID);
   }
 
-  /**
-   * The built-in VIEW.USER permission.
-   */
-  private final PermissionEntity clusterReadPermission;
-
-  /**
-   * The built-in VIEW.USER permission.
-   */
-  private final PermissionEntity clusterOperatePermission;
-
-
   // ----- Constructors ------------------------------------------------------
 
   /**
@@ -90,8 +83,12 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
    */
   public ClusterPrivilegeResourceProvider() {
     super(propertyIds, keyPropertyIds, Resource.Type.ClusterPrivilege);
-    clusterReadPermission = permissionDAO.findById(PermissionEntity.CLUSTER_USER_PERMISSION);
-    clusterOperatePermission = permissionDAO.findById(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_ASSIGN_ROLES);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredGetAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
 
@@ -103,7 +100,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
    * @param dao  the cluster data access object
    */
   public static void init(ClusterDAO dao) {
-    clusterDAO  = dao;
+    clusterDAO = dao;
   }
 
 
@@ -163,9 +160,7 @@ public class ClusterPrivilegeResourceProvider extends PrivilegeResourceProvider<
 
   @Override
   protected PermissionEntity getPermission(String permissionName, ResourceEntity resourceEntity) throws AmbariException {
-    return (permissionName.equals(PermissionEntity.CLUSTER_USER_PERMISSION_NAME)) ? clusterReadPermission :
-        permissionName.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION_NAME) ? clusterOperatePermission :
-        super.getPermission(permissionName, resourceEntity);
+    return super.getPermission(permissionName, resourceEntity);
   }
 }
 

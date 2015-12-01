@@ -42,6 +42,7 @@ import org.apache.ambari.server.orm.entities.ViewEntityTest;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.ViewRegistryTest;
@@ -50,6 +51,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -137,6 +139,7 @@ public class ViewPrivilegeResourceProviderTest {
     expect(userEntity.getPrincipal()).andReturn(principalEntity).anyTimes();
     expect(userEntity.getUserName()).andReturn("joe").anyTimes();
     expect(permissionEntity.getPermissionName()).andReturn("VIEW.USER").anyTimes();
+    expect(permissionEntity.getPermissionLabel()).andReturn("View User").anyTimes();
     expect(principalEntity.getPrincipalType()).andReturn(principalTypeEntity).anyTimes();
     expect(principalTypeEntity.getName()).andReturn("USER").anyTimes();
 
@@ -148,6 +151,8 @@ public class ViewPrivilegeResourceProviderTest {
     replay(privilegeDAO, userDAO, groupDAO, principalDAO, permissionDAO, resourceDAO, privilegeEntity, resourceEntity,
         userEntity, principalEntity, permissionEntity, principalTypeEntity);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
+
     PrivilegeResourceProvider provider = new ViewPrivilegeResourceProvider();
     Set<Resource> resources = provider.getResources(PropertyHelper.getReadRequest(), null);
 
@@ -156,6 +161,7 @@ public class ViewPrivilegeResourceProviderTest {
     Resource resource = resources.iterator().next();
 
     Assert.assertEquals("VIEW.USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_NAME_PROPERTY_ID));
+    Assert.assertEquals("View User", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PERMISSION_LABEL_PROPERTY_ID));
     Assert.assertEquals("joe", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_NAME_PROPERTY_ID));
     Assert.assertEquals("USER", resource.getPropertyValue(AmbariPrivilegeResourceProvider.PRINCIPAL_TYPE_PROPERTY_ID));
 

@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
   <property>
     <name>hive.client.heapsize</name>
     <value>512</value>
@@ -80,6 +80,7 @@
     <value>hive</value>
     <description>Database name.</description>
     <value-attributes>
+      <type>database</type>
       <visible>false</visible>
       <editable-only-at-install>true</editable-only-at-install>
       <overridable>false</overridable>

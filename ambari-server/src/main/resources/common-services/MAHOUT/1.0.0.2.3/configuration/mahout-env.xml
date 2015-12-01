@@ -20,7 +20,7 @@
  */
 -->
 
-<configuration>
+<configuration supports_adding_forbidden="true">
     <property>
         <name>mahout_user</name>
         <display-name>Mahout User</display-name>

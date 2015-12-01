@@ -67,7 +67,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       sinon.stub(App.Service, 'find').returns(Em.A([
         { serviceName: 'HDFS' }
       ]));
-      sinon.stub(App.config, 'get').withArgs('preDefinedSiteProperties').returns([
+      sinon.stub(App.configsCollection, 'getAll').returns([
         {
           name: 'hadoop.security.auth_to_local',
           displayType: 'multiLine'
@@ -79,7 +79,7 @@ describe('App.KerberosWizardStep4Controller', function() {
 
     after(function() {
       App.Service.find.restore();
-      App.config.get.restore();
+      App.configsCollection.getAll.restore();
       App.router.get.restore();
     });
 

@@ -145,21 +145,21 @@ public class UserDAO {
   @Transactional
   public void create(Set<UserEntity> users) {
     for (UserEntity user: users) {
-      user.setUserName(user.getUserName().toLowerCase());
+//      user.setUserName(user.getUserName().toLowerCase());
       entityManagerProvider.get().persist(user);
     }
   }
 
   @Transactional
   public UserEntity merge(UserEntity user) {
-    user.setUserName(user.getUserName().toLowerCase());
+//    user.setUserName(user.getUserName().toLowerCase());
     return entityManagerProvider.get().merge(user);
   }
 
   @Transactional
   public void merge(Set<UserEntity> users) {
     for (UserEntity user: users) {
-      user.setUserName(user.getUserName().toLowerCase());
+//      user.setUserName(user.getUserName().toLowerCase());
       entityManagerProvider.get().merge(user);
     }
   }

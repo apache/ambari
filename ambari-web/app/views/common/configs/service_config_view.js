@@ -152,7 +152,8 @@ App.ServiceConfigView = Em.View.extend({
 
     if (controller.get('selectedConfigGroup')) {
       controller.get('selectedService.configCategories').filterProperty('siteFileName').forEach(function (config) {
-        config.set('customCanAddProperty', config.get('canAddProperty'));
+        var supportsAddingForbidden = App.config.shouldSupportAddingForbidden(controller.get('selectedService').serviceName, config.siteFileName); //true if the UI should not display the Custom ... section
+        config.set('customCanAddProperty', !supportsAddingForbidden);
       });
     }
 

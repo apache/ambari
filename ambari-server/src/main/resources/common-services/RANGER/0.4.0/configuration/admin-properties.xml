@@ -72,7 +72,7 @@
   <property>
     <name>db_root_user</name>
     <value>root</value>
-    <display-name>Database Admintrator (DBA) username</display-name>
+    <display-name>Database Administrator (DBA) username</display-name>
     <description>Database admin user. This user should have DBA permission to create the Ranger Database and Ranger Database User</description>
     <value-attributes>
       <overridable>false</overridable>
@@ -83,7 +83,7 @@
     <name>db_root_password</name>
     <value></value>
     <property-type>PASSWORD</property-type>
-    <display-name>Database Admintrator (DBA) password</display-name>
+    <display-name>Database Administrator (DBA) password</display-name>
     <description>Database password for the database admin username</description>
     <value-attributes>
       <type>password</type>

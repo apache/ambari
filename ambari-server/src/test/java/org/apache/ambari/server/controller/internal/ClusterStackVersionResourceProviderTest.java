@@ -74,6 +74,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -358,11 +359,11 @@ public class ClusterStackVersionResourceProviderTest {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     Assert.assertNotNull(stackEntity);
 
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     if (resourceTypeEntity == null) {
       resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+      resourceTypeEntity.setName(ResourceType.CLUSTER.name());
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
     ResourceEntity resourceEntity = new ResourceEntity();
@@ -504,11 +505,11 @@ public class ClusterStackVersionResourceProviderTest {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
     Assert.assertNotNull(stackEntity);
 
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     if (resourceTypeEntity == null) {
       resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+      resourceTypeEntity.setName(ResourceType.CLUSTER.name());
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
     ResourceEntity resourceEntity = new ResourceEntity();

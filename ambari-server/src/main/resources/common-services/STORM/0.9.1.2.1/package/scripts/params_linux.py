@@ -29,9 +29,10 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_bare_principal import get_bare_principal
 from resource_management.libraries.script import Script
-
-
-
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import get_kinit_path
 
 # server configurations
 config = Script.get_config()
@@ -215,7 +216,11 @@ if has_ranger_admin:
   elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
+    colon_count = xa_db_host.count(':')
+    if colon_count == 2 or colon_count == 0:
+      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+    else:
+      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
@@ -256,6 +261,7 @@ if has_ranger_admin:
 
   ranger_audit_solr_urls = config['configurations']['ranger-admin-site']['ranger.audit.solr.urls']
   xa_audit_db_is_enabled = config['configurations']['ranger-storm-audit']['xasecure.audit.destination.db'] if xml_configurations_supported else None
+  xa_audit_hdfs_is_enabled = config['configurations']['ranger-storm-audit']['xasecure.audit.destination.hdfs'] if xml_configurations_supported else None
   ssl_keystore_password = unicode(config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
   ssl_truststore_password = unicode(config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
   credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
@@ -263,3 +269,31 @@ if has_ranger_admin:
   #For SQLA explicitly disable audit to DB for Ranger
   if xa_audit_db_flavor == 'sqla':
     xa_audit_db_is_enabled = False
+
+namenode_hosts = default("/clusterHostInfo/namenode_host", [])
+has_namenode = not len(namenode_hosts) == 0
+
+hdfs_user = config['configurations']['hadoop-env']['hdfs_user'] if has_namenode else None
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab'] if has_namenode else None
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name'] if has_namenode else None
+hdfs_site = config['configurations']['hdfs-site'] if has_namenode else None
+default_fs = config['configurations']['core-site']['fs.defaultFS'] if has_namenode else None
+hadoop_bin_dir = hdp_select.get_hadoop_dir("bin") if has_namenode else None
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir() if has_namenode else None
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+import functools
+#create partial functions with common arguments for every HdfsResource call
+#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
+  security_enabled = security_enabled,
+  keytab = hdfs_user_keytab,
+  kinit_path_local = kinit_path_local,
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
+)

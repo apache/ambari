@@ -526,6 +526,15 @@ describe('App.MainHostDetailsController', function () {
       controller.addComponent(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });
+    it('add WEBHCAT_SERVER', function () {
+      var event = {
+        context: Em.Object.create({
+          componentName: 'WEBHCAT_SERVER'
+        })
+      };
+      controller.addComponent(event);
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
     it('add slave component', function () {
       var event = {
         context: Em.Object.create({
@@ -2969,39 +2978,75 @@ describe('App.MainHostDetailsController', function () {
         'input': {
           'hiveMetastoreHost': '',
           'fromDeleteHost': false,
-          'deleteHiveMetaStore': false
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h1', 'h2'],
+        'hiveHosts': ['h1', 'h2', 'h4'],
         'title': 'adding HiveServer2'
       },
       {
         'input': {
           'hiveMetastoreHost': 'h0',
           'fromDeleteHost': false,
-          'deleteHiveMetaStore': false
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h0', 'h1', 'h2'],
+        'hiveHosts': ['h0', 'h1', 'h2', 'h4'],
         'title': 'adding Hive Metastore'
+      },
+      {
+        'input': {
+          'webhcatServerHost': 'h0',
+          'fromDeleteHost': false,
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': false
+        },
+        'hiveHosts': ['h0', 'h1', 'h2', 'h4'],
+        'title': 'adding WebHCat Server'
       },
       {
         'input': {
           'hiveMetastoreHost': '',
           'content.hostName': 'h1',
           'fromDeleteHost': false,
-          'deleteHiveMetaStore': true
+          'deleteHiveMetaStore': true,
+          'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h2'],
+        'hiveHosts': ['h2', 'h4'],
         'title': 'deleting Hive component'
+      },
+      {
+        'input': {
+          'hiveMetastoreHost': '',
+          'content.hostName': 'h4',
+          'fromDeleteHost': false,
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': true
+        },
+        'hiveHosts': ['h1', 'h2'],
+        'title': 'deleting WebHCat Server'
       },
       {
         'input': {
           'hiveMetastoreHost': '',
           'content.hostName': 'h2',
           'fromDeleteHost': true,
-          'deleteHiveMetaStore': false
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': false
         },
-        'hiveHosts': ['h1'],
+        'hiveHosts': ['h1', 'h4'],
         'title': 'deleting host with Hive component'
+      },
+      {
+        'input': {
+          'webhcatServerHost': '',
+          'content.hostName': 'h2',
+          'fromDeleteHost': true,
+          'deleteHiveMetaStore': false,
+          'deleteWebHCatServer': false
+        },
+        'hiveHosts': ['h1', 'h4'],
+        'title': 'deleting host with WebHCat Server'
       }
     ];
 
@@ -3018,6 +3063,10 @@ describe('App.MainHostDetailsController', function () {
         {
           componentName: 'HIVE_SERVER',
           hostName: 'h3'
+        },
+        {
+          componentName: 'WEBHCAT_SERVER',
+          hostName: 'h4'
         }
       ]);
     });
@@ -3031,8 +3080,9 @@ describe('App.MainHostDetailsController', function () {
         Em.keys(item.input).forEach(function (key) {
           controller.set(key, item.input[key]);
         });
-        expect(controller.getHiveHosts()).to.eql(item.hiveHosts);
+        expect(controller.getHiveHosts().toArray()).to.eql(item.hiveHosts);
         expect(controller.get('hiveMetastoreHost')).to.be.empty;
+        expect(controller.get('webhcatServerHost')).to.be.empty;
         expect(controller.get('fromDeleteHost')).to.be.false;
         expect(controller.get('deleteHiveMetaStore')).to.be.false;
       });

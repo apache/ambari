@@ -57,6 +57,7 @@ public class LdapServerPropertiesTest {
     ldapServerProperties.setUseSsl(false);
     ldapServerProperties.setPrimaryUrl("1.2.3.4:389");
     ldapServerProperties.setUsernameAttribute("uid");
+    ldapServerProperties.setUserObjectClass("dummyObjectClass");
   }
 
   @Test
@@ -76,9 +77,9 @@ public class LdapServerPropertiesTest {
 
   @Test
   public void testGetUserSearchFilter() throws Exception {
-    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(uid={0})", ldapServerProperties.getUserSearchFilter());
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(uid={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter());
     ldapServerProperties.setUsernameAttribute("anotherName");
-    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(anotherName={0})", ldapServerProperties.getUserSearchFilter());
+    assertEquals(INCORRECT_USER_SEARCH_FILTER, "(&(anotherName={0})(objectClass=dummyObjectClass))", ldapServerProperties.getUserSearchFilter());
   }
 
   @Test

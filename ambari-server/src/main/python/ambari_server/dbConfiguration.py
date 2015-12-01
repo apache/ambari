@@ -20,7 +20,7 @@ limitations under the License.
 import glob
 import os
 
-from ambari_commons import OSConst
+from ambari_commons import OSConst, OSCheck
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_silent, print_error_msg, print_info_msg, print_warning_msg, set_silent
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -124,6 +124,9 @@ class DBMSConfig(object):
       #DB setup should be done last after doing any setup.
       if self._is_local_database():
         self._setup_local_server(properties)
+        # this issue appears only for Suse. Postgres need /var/run/postgresql dir but do not create it
+        if OSCheck.is_suse_family():
+          self._create_postgres_lock_directory()
       else:
         self._setup_remote_server(properties)
     return result
@@ -211,6 +214,9 @@ class DBMSConfig(object):
     #  go the classic Linux way
     #linux_prompt_db_properties(args)
     return False
+
+  def _create_postgres_lock_directory(self):
+    pass
 
   def _setup_local_server(self, properties):
     pass

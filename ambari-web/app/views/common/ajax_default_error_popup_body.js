@@ -51,9 +51,7 @@ App.AjaxDefaultErrorPopupBodyView = Em.View.extend({
    * Status code string
    * @type {string}
    */
-  statusCode: function () {
-    return Em.I18n.t('utils.ajax.defaultErrorPopupBody.statusCode').format(this.get('status'));
-  }.property('status'),
+  statusCode: Em.computed.i18nFormat('utils.ajax.defaultErrorPopupBody.statusCode', 'status'),
 
   /**
    * Indicates if error message should be displayed
@@ -65,8 +63,6 @@ App.AjaxDefaultErrorPopupBodyView = Em.View.extend({
    * HTTP response error description
    * @type {string}
    */
-  api: function () {
-    return Em.I18n.t('utils.ajax.defaultErrorPopupBody.message').format(this.get('type'), this.get('url'));
-  }.property('type', 'url')
+  api: Em.computed.i18nFormat('utils.ajax.defaultErrorPopupBody.message', 'type', 'url')
 
 });

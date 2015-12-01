@@ -69,6 +69,11 @@
             <version>1.9</version>
         </dependency>
         <dependency>
+          <groupId>commons-validator</groupId>
+          <artifactId>commons-validator</artifactId>
+          <version>1.4.1</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.ambari</groupId>
             <artifactId>ambari-views</artifactId>
             <scope>provided</scope>

@@ -51,9 +51,7 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    * Config with flag for user auth in the notification
    * @type {App.ServiceConfigProperty}
    */
-  useAuthConfig: function () {
-    return this.get('categoryConfigs').findProperty('name', 'smtp_use_auth');
-  }.property(),
+  useAuthConfig: Em.computed.findBy('categoryConfigs', 'name', 'smtp_use_auth'),
 
   /**
    * Empty categoryConfigsAll means that user isn't at Installer, so manage notification view shouldn't be processed

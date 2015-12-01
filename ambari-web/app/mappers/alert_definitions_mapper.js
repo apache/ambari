@@ -122,6 +122,7 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
           // new values will be parsed in the another mapper, so for now just use old values
           alertDefinition.summary = oldAlertDefinition.get('summary');
           alertDefinition.last_triggered = oldAlertDefinition.get('lastTriggered');
+          alertDefinition.last_triggered_raw = oldAlertDefinition.get('lastTriggeredRaw');
         }
 
         alertDefinitionsToDelete = alertDefinitionsToDelete.without(alertDefinition.id);
@@ -173,6 +174,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
             break;
           case 'SERVER':
             alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('serverConfig'))));
+            break;
+          case 'RECOVERY':
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('uriConfig'))));
             break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);

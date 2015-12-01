@@ -17,7 +17,7 @@ limitations under the License.
 
 """
 import os.path
-
+import time
 
 from resource_management.core import shell
 from resource_management.core.source import Template
@@ -38,7 +38,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 
 from utils import service, safe_zkfc_op, is_previous_fs_image
-from setup_ranger_hdfs import setup_ranger_hdfs
+from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -143,9 +143,8 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
         check_for_safemode_off = True
         msg = "Must wait to leave safemode since High Availability is enabled during a Stack Upgrade"
       else:
-        # During normal operations, the NameNode is expected to be up.
-        code, out = shell.call(is_active_namenode_cmd, logoutput=True) # If active NN, code will be 0
-        if code == 0: # active
+        Logger.info("Wait for NameNode to become active.")
+        if is_active_namenode(hdfs_binary): # active
           check_for_safemode_off = True
           msg = "Must wait to leave safemode since High Availability is enabled and this is the Active NameNode."
         else:
@@ -178,6 +177,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
 
     # Always run this on non-HA, or active NameNode during HA.
     create_hdfs_directories(is_active_namenode_cmd)
+    create_ranger_audit_hdfs_directories(is_active_namenode_cmd)
 
   elif action == "stop":
     import params
@@ -434,3 +434,33 @@ def bootstrap_standby_namenode(params, use_path=False):
   except Exception as ex:
     Logger.error('Bootstrap standby namenode threw an exception. Reason %s' %(str(ex)))
   return False
+
+
+def is_active_namenode(hdfs_binary):
+  """
+  Checks if current NameNode is active. Waits up to 30 seconds. If other NameNode is active returns False.
+  :return: True if current NameNode is active, False otherwise
+  """
+  import params
+
+  if params.dfs_ha_enabled:
+    is_active_this_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+    is_active_other_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {other_namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
+
+    for i in range(0, 5):
+      code, out = shell.call(is_active_this_namenode_cmd) # If active NN, code will be 0
+      if code == 0: # active
+        return True
+
+      code, out = shell.call(is_active_other_namenode_cmd) # If other NN is active, code will be 0
+      if code == 0: # other NN is active
+        return False
+
+      if i < 4: # Do not sleep after last iteration
+        time.sleep(6)
+
+    Logger.info("Active NameNode is not found.")
+    return False
+
+  else:
+    return True

@@ -29,6 +29,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 import org.apache.http.NameValuePair;
@@ -333,8 +334,18 @@ public class GangliaPropertyProviderTest {
     uriBuilder.setParameter("r", "1");
 
     String expected = uriBuilder.toString();
-    
-    Assert.assertEquals(expected, streamProvider.getLastSpec());
+
+    // Depends on hashing, string representation can be different
+    List<String> components = Arrays.asList(new String[]{"HDPJobTracker", "HDPHBaseMaster", "HDPResourceManager", "HDPFlumeServer",
+        "HDPSlaves", "HDPHistoryServer", "HDPJournalNode", "HDPTaskTracker", "HDPHBaseRegionServer", "HDPNameNode"});
+    List<String> hosts = Arrays.asList(new String[]{"domU-12-31-39-0E-34-E3.compute-1.internal", "domU-12-31-39-0E-34-E1.compute-1.internal",
+        "domU-12-31-39-0E-34-E2.compute-1.internal"});
+    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+
+    Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
+    Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 236 + httpsVariation), components, "%2C", 0, 0));
+    Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(239 + httpsVariation, 368 + httpsVariation), hosts, "%2C", 0, 0));
+    Assert.assertEquals(expected.substring(369 + httpsVariation), streamProvider.getLastSpec().substring(369 + httpsVariation));
 
     for (Resource res : resources) {
       Assert.assertEquals(2, PropertyHelper.getProperties(res).size());
@@ -549,8 +560,14 @@ public class GangliaPropertyProviderTest {
 
     String expected = (configuration.isGangliaSSL() ? "https" : "http") +
         "://domU-12-31-39-0E-34-E1.compute-1.internal/cgi-bin/rrd.py?c=HDPFlumeServer%2CHDPSlaves&h=ip-10-39-113-33.ec2.internal&m=";
-    
-    Assert.assertTrue(streamProvider.getLastSpec().startsWith(expected));
+
+    // Depends on hashing, string representation can be different
+    List<String> components = Arrays.asList(new String[]{"HDPFlumeServer", "HDPSlaves"});
+    int httpsVariation = configuration.isGangliaSSL() ? 1 : 0;
+
+    Assert.assertEquals(expected.substring(0, 66 + httpsVariation), streamProvider.getLastSpec().substring(0, 66 + httpsVariation));
+    Assert.assertTrue(CollectionPresentationUtils.isStringPermutationOfCollection(streamProvider.getLastSpec().substring(66 + httpsVariation, 92 + httpsVariation), components, "%2C", 0, 0));
+    Assert.assertTrue(streamProvider.getLastSpec().substring(92 + httpsVariation).startsWith(expected.substring(92 + httpsVariation)));
 
     Assert.assertEquals(33, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));

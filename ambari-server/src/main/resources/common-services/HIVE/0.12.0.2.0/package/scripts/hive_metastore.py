@@ -24,6 +24,7 @@ from resource_management.core.resources.system import Execute, Directory
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.version import compare_versions
@@ -98,12 +99,13 @@ class HiveMetastoreDefault(HiveMetastore):
   def pre_upgrade_restart(self, env, upgrade_type=None):
     Logger.info("Executing Metastore Stack Upgrade pre-restart")
     import params
+
     env.set_params(params)
 
-    if Script.is_hdp_stack_greater_or_equal("2.3"):
-      # ensure that configurations are written out before trying to upgrade the schema
-      # since the schematool needs configs and doesn't know how to use the hive conf override
-      self.configure(env)
+    is_stack_hdp_23 = Script.is_hdp_stack_greater_or_equal("2.3")
+    is_upgrade = params.upgrade_direction == Direction.UPGRADE
+
+    if is_stack_hdp_23 and is_upgrade:
       self.upgrade_schema(env)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
@@ -171,10 +173,19 @@ class HiveMetastoreDefault(HiveMetastore):
     The metastore schema upgrade requires a database driver library for most
     databases. During an upgrade, it's possible that the library is not present,
     so this will also attempt to copy/download the appropriate driver.
+
+    This function will also ensure that configurations are written out to disk before running
+    since the new configs will most likely not yet exist on an upgrade.
+
+    Should not be invoked for a DOWNGRADE; Metastore only supports schema upgrades.
     """
     Logger.info("Upgrading Hive Metastore Schema")
     import params
     env.set_params(params)
+
+    # ensure that configurations are written out before trying to upgrade the schema
+    # since the schematool needs configs and doesn't know how to use the hive conf override
+    self.configure(env)
 
     if params.security_enabled:
       kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")

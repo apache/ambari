@@ -75,6 +75,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -213,11 +214,11 @@ public class ClusterTest {
 
     String clusterName = "c1";
 
-    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceType.CLUSTER.getId());
     if (resourceTypeEntity == null) {
       resourceTypeEntity = new ResourceTypeEntity();
-      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
-      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+      resourceTypeEntity.setName(ResourceType.CLUSTER.name());
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
     ResourceEntity resourceEntity = new ResourceEntity();
@@ -1642,14 +1643,35 @@ public class ClusterTest {
     c1.transitionClusterVersion(stackId, stackVersion,
         RepositoryVersionState.INSTALLING);
 
+    // Installation on one host fails (other is continuing)
+    hv1.setState(RepositoryVersionState.INSTALL_FAILED);
+    hostVersionDAO.merge(hv1);
+    // Check that cluster version is still in a non-final state
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+      RepositoryVersionState.INSTALLING);
+
+    h2.setState(HostState.HEALTHY);
+    hv2.setState(RepositoryVersionState.INSTALLED);
+    hostVersionDAO.merge(hv2);
+    // Now both cluster versions are in a final state, so
+    // cluster version state changes to final state
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+        RepositoryVersionState.INSTALL_FAILED);
+
+    // Retry by going back to INSTALLING
+    c1.transitionClusterVersion(stackId, stackVersion,
+      RepositoryVersionState.INSTALLING);
+
     h2.setState(HostState.HEALTHY);
     hv2.setState(RepositoryVersionState.INSTALLED);
     hostVersionDAO.merge(hv2);
     c1.recalculateClusterVersionState(repositoryVersionEntity);
     checkStackVersionState(stackId, stackVersion,
-        RepositoryVersionState.INSTALLING);
+      RepositoryVersionState.INSTALLING);
 
-    // Make one host fail
+    // Make the last host fail
     hv1.setState(RepositoryVersionState.INSTALL_FAILED);
     hostVersionDAO.merge(hv1);
     c1.recalculateClusterVersionState(repositoryVersionEntity);
@@ -1672,6 +1694,14 @@ public class ClusterTest {
     c1.recalculateClusterVersionState(repositoryVersionEntity);
     checkStackVersionState(stackId, stackVersion,
         RepositoryVersionState.UPGRADING);
+
+    hv1.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDAO.merge(hv1);
+    c1.recalculateClusterVersionState(repositoryVersionEntity);
+    checkStackVersionState(stackId, stackVersion,
+        RepositoryVersionState.UPGRADING);
+    // reset host1 state
+    hv1.setState(RepositoryVersionState.UPGRADING);
 
     hv2.setState(RepositoryVersionState.UPGRADING);
     hostVersionDAO.merge(hv2);

@@ -56,6 +56,9 @@
     than '/tmp' (The '/tmp' directory is often cleared on
     machine restart).
     </description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.local.dir</name>

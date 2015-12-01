@@ -93,7 +93,11 @@ if db_flavor == 'mysql':
 elif db_flavor == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  db_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
+  colon_count = db_host.count(':')
+  if colon_count == 2 or colon_count == 0:
+    db_jdbc_url = format('jdbc:oracle:thin:@{db_host}')
+  else:
+    db_jdbc_url = format('jdbc:oracle:thin:@//{db_host}')
   db_jdbc_driver = "oracle.jdbc.OracleDriver"
   jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
 elif db_flavor == 'postgres':
@@ -136,7 +140,11 @@ if has_ranger_admin:
   elif xa_audit_db_flavor == 'oracle':
     jdbc_jar = "ojdbc6.jar"
     jdbc_symlink = "oracle-jdbc-driver.jar"
-    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    colon_count = xa_db_host.count(':')
+    if colon_count == 2 or colon_count == 0:
+      audit_jdbc_url = format('jdbc:oracle:thin:@{xa_db_host}')
+    else:
+      audit_jdbc_url = format('jdbc:oracle:thin:@//{xa_db_host}')
     jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor == 'postgres':
     jdbc_jar = "postgresql.jar"
@@ -183,3 +191,7 @@ ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr
 #For SQLA explicitly disable audit to DB for Ranger
 if xa_audit_db_flavor == 'sqla':
   xa_audit_db_is_enabled = False
+current_host = config['hostname']
+ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
+if current_host in ranger_kms_hosts:
+  kms_host = current_host

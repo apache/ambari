@@ -587,6 +587,16 @@ CREATE TABLE ambari.adminpermission (
   permission_label VARCHAR(255),
   PRIMARY KEY(permission_id));
 
+CREATE TABLE ambari.roleauthorization (
+  authorization_id VARCHAR(100) NOT NULL,
+  authorization_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY(authorization_id));
+
+CREATE TABLE ambari.permission_roleauthorization (
+  permission_id BIGINT NOT NULL,
+  authorization_id VARCHAR(100) NOT NULL,
+  PRIMARY KEY(permission_id, authorization_id));
+
 CREATE TABLE ambari.adminprivilege (
   privilege_id BIGINT,
   permission_id BIGINT NOT NULL,
@@ -599,6 +609,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.adminresource TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipaltype TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprincipal TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminpermission TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.roleauthorization TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.permission_roleauthorization TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprivilege TO :username;
 
 CREATE TABLE ambari.repo_version (
@@ -799,6 +811,8 @@ ALTER TABLE ambari.serviceconfighosts ADD CONSTRAINT FK_scvhosts_host_id FOREIGN
 ALTER TABLE ambari.adminresource ADD CONSTRAINT FK_resource_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id);
 ALTER TABLE ambari.adminprincipal ADD CONSTRAINT FK_principal_principal_type_id FOREIGN KEY (principal_type_id) REFERENCES ambari.adminprincipaltype(principal_type_id);
 ALTER TABLE ambari.adminpermission ADD CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id);
+ALTER TABLE ambari.permission_roleauthorization ADD CONSTRAINT FK_permission_roleauthorization_permission_id FOREIGN KEY (permission_id) REFERENCES ambari.adminpermission(permission_id);
+ALTER TABLE ambari.permission_roleauthorization ADD CONSTRAINT FK_permission_roleauthorization_authorization_id FOREIGN KEY (authorization_id) REFERENCES ambari.roleauthorization(authorization_id);
 ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_permission_id FOREIGN KEY (permission_id) REFERENCES ambari.adminpermission(permission_id);
 ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 ALTER TABLE ambari.viewmain ADD CONSTRAINT FK_view_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id);
@@ -1141,7 +1155,227 @@ insert into ambari.adminpermission(permission_id, permission_name, resource_type
   UNION ALL
   SELECT 3, 'CLUSTER.ADMINISTRATOR', 2, 'Cluster Administrator'
   UNION ALL
-  SELECT 4, 'VIEW.USER', 3, 'View User';
+  SELECT 4, 'VIEW.USER', 3, 'View User'
+  UNION ALL
+  SELECT 5, 'CLUSTER.OPERATOR', 2, 'Cluster Operator'
+  UNION ALL
+  SELECT 6, 'SERVICE.ADMINISTRATOR', 2, 'Service Administrator'
+  UNION ALL
+  SELECT 7, 'SERVICE.OPERATOR', 2, 'Service Operator';
+
+INSERT INTO ambari.roleauthorization(authorization_id, authorization_name)
+  SELECT 'VIEW.USE', 'Use View' UNION ALL
+  SELECT 'SERVICE.VIEW_METRICS', 'View metrics' UNION ALL
+  SELECT 'SERVICE.VIEW_STATUS_INFO', 'View status information' UNION ALL
+  SELECT 'SERVICE.VIEW_CONFIGS', 'View configurations' UNION ALL
+  SELECT 'SERVICE.COMPARE_CONFIGS', 'Compare configurations' UNION ALL
+  SELECT 'SERVICE.VIEW_ALERTS', 'View service alerts' UNION ALL
+  SELECT 'SERVICE.START_STOP', 'Start/Stop/Restart Service' UNION ALL
+  SELECT 'SERVICE.DECOMMISSION_RECOMMISSION', 'Decommission/recommission' UNION ALL
+  SELECT 'SERVICE.RUN_SERVICE_CHECK', 'Run service checks' UNION ALL
+  SELECT 'SERVICE.TOGGLE_MAINTENANCE', 'Turn on/off maintenance mode' UNION ALL
+  SELECT 'SERVICE.RUN_CUSTOM_COMMAND', 'Perform service-specific tasks' UNION ALL
+  SELECT 'SERVICE.MODIFY_CONFIGS', 'Modify configurations' UNION ALL
+  SELECT 'SERVICE.MANAGE_CONFIG_GROUPS', 'Manage configuration groups' UNION ALL
+  SELECT 'SERVICE.MOVE', 'Move to another host' UNION ALL
+  SELECT 'SERVICE.ENABLE_HA', 'Enable HA' UNION ALL
+  SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service alerts' UNION ALL
+  SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add Service to cluster' UNION ALL
+  SELECT 'HOST.VIEW_METRICS', 'View metrics' UNION ALL
+  SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' UNION ALL
+  SELECT 'HOST.VIEW_CONFIGS', 'View configuration' UNION ALL
+  SELECT 'HOST.TOGGLE_MAINTENANCE', 'Turn on/off maintenance mode' UNION ALL
+  SELECT 'HOST.ADD_DELETE_COMPONENTS', 'Install components' UNION ALL
+  SELECT 'HOST.ADD_DELETE_HOSTS', 'Add/Delete hosts' UNION ALL
+  SELECT 'CLUSTER.VIEW_METRICS', 'View metrics' UNION ALL
+  SELECT 'CLUSTER.VIEW_STATUS_INFO', 'View status information' UNION ALL
+  SELECT 'CLUSTER.VIEW_CONFIGS', 'View configuration' UNION ALL
+  SELECT 'CLUSTER.VIEW_STACK_DETAILS', 'View stack version details' UNION ALL
+  SELECT 'CLUSTER.VIEW_ALERTS', 'View alerts' UNION ALL
+  SELECT 'CLUSTER.TOGGLE_ALERTS', 'Enable/disable alerts' UNION ALL
+  SELECT 'CLUSTER.TOGGLE_KERBEROS', 'Enable/disable Kerberos' UNION ALL
+  SELECT 'CLUSTER.UPGRADE_DOWNGRADE_STACK', 'Upgrade/downgrade stack' UNION ALL
+  SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' UNION ALL
+  SELECT 'AMBARI.SET_SERVICE_USERS_GROUPS', 'Set service users and groups' UNION ALL
+  SELECT 'AMBARI.RENAME_CLUSTER', 'Rename clusters' UNION ALL
+  SELECT 'AMBARI.MANAGE_USERS', 'Manage users' UNION ALL
+  SELECT 'AMBARI.MANAGE_GROUPS', 'Manage groups' UNION ALL
+  SELECT 'AMBARI.MANAGE_VIEWS', 'Manage Ambari Views' UNION ALL
+  SELECT 'AMBARI.ASSIGN_ROLES', 'Assign roles' UNION ALL
+  SELECT 'AMBARI.MANAGE_STACK_VERSIONS', 'Manage stack versions' UNION ALL
+  SELECT 'AMBARI.EDIT_STACK_REPOS', 'Edit stack repository URLs';
+
+-- Set authorizations for View User role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'VIEW.USE' FROM ambari.adminpermission WHERE permission_name='VIEW.USER';
+
+-- Set authorizations for Cluster User role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.USER';
+
+-- Set authorizations for Service Operator role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.START_STOP' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.DECOMMISSION_RECOMMISSION' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_SERVICE_CHECK' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.OPERATOR';
+
+-- Set authorizations for Service Administrator role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.START_STOP' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.DECOMMISSION_RECOMMISSION' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_SERVICE_CHECK' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR';
+
+-- Set authorizations for Cluster Operator role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.START_STOP' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.DECOMMISSION_RECOMMISSION' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_SERVICE_CHECK' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_COMPONENTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_HOSTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.OPERATOR';
+
+-- Set authorizations for Cluster Administrator role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.START_STOP' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.DECOMMISSION_RECOMMISSION' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_SERVICE_CHECK' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ADD_DELETE_SERVICES' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_COMPONENTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_HOSTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM ambari.adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
+
+-- Set authorizations for Administrator role
+INSERT INTO ambari.permission_roleauthorization(permission_id, authorization_id)
+  SELECT permission_id, 'VIEW.USE' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.COMPARE_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.START_STOP' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.DECOMMISSION_RECOMMISSION' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_SERVICE_CHECK' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MOVE' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ENABLE_HA' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.ADD_DELETE_SERVICES' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.TOGGLE_MAINTENANCE' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_COMPONENTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'HOST.ADD_DELETE_HOSTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_METRICS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STATUS_INFO' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_CONFIGS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_STACK_DETAILS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.VIEW_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.ADD_DELETE_CLUSTERS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.SET_SERVICE_USERS_GROUPS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.RENAME_CLUSTER' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_USERS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_GROUPS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_VIEWS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.ASSIGN_ROLES' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.MANAGE_STACK_VERSIONS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'AMBARI.EDIT_STACK_REPOS' FROM ambari.adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR';
 
 INSERT INTO ambari.adminprivilege (privilege_id, permission_id, resource_id, principal_id)
   SELECT 1, 1, 1, 1;

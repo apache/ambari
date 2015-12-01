@@ -21,6 +21,8 @@ limitations under the License.
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import socket
 import urllib2
+import logging
+import traceback
 from ambari_commons import OSCheck
 from ambari_commons.inet_utils import resolve_address
 from resource_management.libraries.functions.curl_krb_request import curl_krb_request
@@ -36,7 +38,7 @@ YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
 
 OK_MESSAGE = 'NodeManager Healthy'
 CRITICAL_CONNECTION_MESSAGE = 'Connection failed to {0} ({1})'
-CRITICAL_HTTP_STATUS_MESSAGE = 'HTTP {0} returned from {1} ({2})'
+CRITICAL_HTTP_STATUS_MESSAGE = 'HTTP {0} returned from {1} ({2}) \n{3}'
 CRITICAL_NODEMANAGER_STATUS_MESSAGE = 'NodeManager returned an unexpected status of "{0}"'
 CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager health from unexpected JSON response'
 
@@ -50,6 +52,9 @@ NODEMANAGER_DEFAULT_PORT = 8042
 
 CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
+
+LOGGER_EXCEPTION_MESSAGE = "[Alert] NodeManager Health on {0} fails:"
+logger = logging.getLogger('ambari_alerts')
 
 def get_tokens():
   """
@@ -161,11 +166,11 @@ def execute(configurations={}, parameters={}, host_name=None):
       json_response = json.loads(url_response.read())
   except urllib2.HTTPError, httpError:
     label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
-      str(httpError))
+      str(httpError), traceback.format_exc())
 
     return (RESULT_CODE_CRITICAL, [label])
-  except Exception, exception:
-    label = CRITICAL_CONNECTION_MESSAGE.format(query, str(exception))
+  except:
+    label = CRITICAL_CONNECTION_MESSAGE.format(query, traceback.format_exc())
     return (RESULT_CODE_CRITICAL, [label])
 
   # URL response received, parse it
@@ -176,7 +181,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     # convert boolean to string
     node_healthy = str(node_healthy)
   except:
-    return (RESULT_CODE_CRITICAL, [query])
+    return (RESULT_CODE_CRITICAL, [query + "\n" + traceback.format_exc()])
   finally:
     if url_response is not None:
       try:

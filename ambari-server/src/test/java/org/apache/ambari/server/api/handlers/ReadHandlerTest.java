@@ -26,6 +26,7 @@ import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultStatus;
 import org.apache.ambari.server.controller.spi.*;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.easymock.Capture;
 import org.junit.Test;
 
@@ -294,5 +295,39 @@ public class ReadHandlerTest {
     assertEquals(ResultStatus.STATUS.NOT_FOUND, result.getStatus().getStatus());
     assertEquals(exception.getMessage(), result.getStatus().getMessage());
     verify(request, resource, query);
+  }
+
+  @Test
+  public void testHandleRequest__AuthorizationException() throws Exception {
+    Request request = createStrictMock(Request.class);
+    ResourceInstance resource = createStrictMock(ResourceInstance.class);
+    Query query = createMock(Query.class);
+    Predicate predicate = createMock(Predicate.class);
+    Renderer renderer = new DefaultRenderer();
+
+    expect(request.getResource()).andReturn(resource);
+    expect(resource.getQuery()).andReturn(query);
+
+    expect(request.getPageRequest()).andReturn(null);
+    expect(request.getSortRequest()).andReturn(null);
+    expect(request.getRenderer()).andReturn(renderer);
+    expect(request.getFields()).andReturn(Collections.<String, TemporalInfo>emptyMap());
+
+    expect(request.getQueryPredicate()).andReturn(predicate);
+    query.setUserPredicate(predicate);
+    query.setPageRequest(null);
+    query.setSortRequest(null);
+    query.setRenderer(renderer);
+    AuthorizationException authorizationException = new AuthorizationException("testMsg");
+    expect(query.execute()).andThrow(authorizationException);
+
+    replay(request, resource, query, predicate);
+
+    //test
+    ReadHandler handler = new ReadHandler();
+    Result result = handler.handleRequest(request);
+    assertEquals(ResultStatus.STATUS.FORBIDDEN, result.getStatus().getStatus());
+    assertEquals(authorizationException.getMessage(), result.getStatus().getMessage());
+    verify(request, resource, query, predicate);
   }
 }

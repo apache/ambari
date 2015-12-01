@@ -83,9 +83,7 @@ App.WizardStep1View = Em.View.extend({
    * Enable error count badge
    * @type {bool}
    */
-  showErrorsWarningCount: function () {
-    return this.get('isSubmitDisabled') && !!this.get('totalErrorCnt');
-  }.property('isSubmitDisabled', 'totalErrorCnt'),
+  showErrorsWarningCount: Em.computed.and('isSubmitDisabled', 'totalErrorCnt'),
 
   /**
    * Verify if some invalid repo-urls exist

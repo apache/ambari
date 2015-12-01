@@ -18,7 +18,11 @@
 package org.apache.ambari.server.serveraction.upgrades;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
-import com.google.inject.Inject;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -33,11 +37,7 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * Action that represents updating the Desired Stack Id during the middle of a stack upgrade (typically NonRolling).
@@ -113,7 +113,7 @@ public class UpdateDesiredStackAction extends AbstractServerAction {
     try {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
-      out.append(String.format("Params: %s %s %s %s %s %s",
+      out.append(String.format("Params: %s %s %s %s %s %s\n",
           clusterName, originalStackId.getStackId(), targetStackId.getStackId(), version, direction.getText(false), upgradePack.getName()));
 
       out.append(String.format("Checking if can update the Desired Stack Id to %s. The cluster's current Stack Id is %s\n", targetStackId.getStackId(), currentClusterStackId.getStackId()));

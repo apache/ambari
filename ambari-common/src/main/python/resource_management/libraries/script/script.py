@@ -131,7 +131,6 @@ class Script(object):
       del Script.structuredOut["securityStateErrorInfo"]
 
   def put_structured_out(self, sout):
-    curr_content = Script.structuredOut.copy()
     Script.structuredOut.update(sout)
     try:
       with open(self.stroutfile, 'w') as fp:
@@ -462,10 +461,12 @@ class Script(object):
       pass
 
     restart_type = ""
+    direction = None
     if config is not None:
       command_params = config["commandParams"] if "commandParams" in config else None
       if command_params is not None:
         restart_type = command_params["restart_type"] if "restart_type" in command_params else ""
+        direction = command_params["upgrade_direction"] if "upgrade_direction" in command_params else None
 
     upgrade_type = None
     if restart_type.lower() == "rolling_upgrade":
@@ -474,6 +475,14 @@ class Script(object):
       upgrade_type = UPGRADE_TYPE_NON_ROLLING
 
     is_stack_upgrade = upgrade_type is not None
+
+    # need this before actually executing so that failures still report upgrade info
+    if is_stack_upgrade:
+      upgrade_info = {"upgrade_type": restart_type}
+      if direction is not None:
+        upgrade_info["direction"] = direction.upper()
+
+      Script.structuredOut.update(upgrade_info)
 
     if componentCategory and componentCategory.strip().lower() == 'CLIENT'.lower():
       if is_stack_upgrade:
@@ -524,6 +533,7 @@ class Script(object):
 
     if self.should_expose_component_version("restart"):
       self.save_component_version_to_structured_out()
+
 
   # TODO, remove after all services have switched to post_upgrade_restart
   def post_rolling_restart(self, env):

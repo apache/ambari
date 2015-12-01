@@ -21,6 +21,9 @@
     <display-name>HAWQ Master</display-name>
     <value>localhost</value>
     <description>The host name of HAWQ master.</description>
+    <value-attributes>
+      <type>componentHost</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -28,6 +31,9 @@
     <display-name>HAWQ Standby Master</display-name>
     <value>localhost</value>
     <description>The host name of HAWQ standby.</description>
+    <value-attributes>
+      <type>componentHost</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -35,6 +41,9 @@
     <display-name>HAWQ Master Port</display-name>
     <value>5432</value>
     <description>The port of HAWQ master.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -42,6 +51,9 @@
     <display-name>HAWQ Segment Port</display-name>
     <value>40000</value>
     <description>The port of HAWQ segment.</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -56,6 +68,9 @@
     <display-name>HAWQ Master Directory</display-name>
     <value>/data/hawq/master</value>
     <description>The directory of HAWQ master.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -63,6 +78,9 @@
     <display-name>HAWQ Segment Directory</display-name>
     <value>/data/hawq/segment</value>
     <description>The directory of HAWQ segment.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property> 
 
   <property>
@@ -70,6 +88,9 @@
     <display-name>HAWQ Master Temp Directory</display-name>
     <value>/tmp</value>
     <description>The temporary directory reserved for HAWQ master.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -77,6 +98,9 @@
     <display-name>HAWQ Segment Temp Directory</display-name>
     <value>/tmp</value>
     <description>The temporary directory reserved for HAWQ segment.</description>
+    <value-attributes>
+      <type>directory</type>
+    </value-attributes>
   </property>
 
   <!-- HAWQ resource manager parameters -->

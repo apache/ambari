@@ -59,12 +59,8 @@ App.TimeRangeWidget = Em.View.extend({
   presetView:Em.View.extend({
     tagName:'li',
     classNameBindings:['disabled'],
-    disabled:function () {
-      return this.get('isActive') ? "disabled" : false;
-    }.property('isActive'),
-    isActive:function () {
-      return this.get('preset.value') == this.get('widget.chosenPreset.value');
-    }.property('widget.chosenPreset'),
+    disabled: Em.computed.ifThenElse('isActive', 'disabled', false),
+    isActive: Em.computed.equalProperties('preset.value', 'widget.chosenPreset.value'),
     template:Em.Handlebars.compile('<a {{action activate view.preset target="view.widget" href="true" }}>{{unbound view.preset.label}}</a>')
   }),
 

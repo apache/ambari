@@ -124,7 +124,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   sshKeyError: function () {
-    if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshKey').trim())) {
+    if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('useSSH') && Em.isBlank(this.get('sshKey'))) {
       return Em.I18n.t('installer.step2.sshKey.error.required');
     }
     return null;
@@ -135,7 +135,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   sshUserError: function () {
-    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshUser').trim())) {
+    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isBlank(this.get('sshUser'))) {
       return Em.I18n.t('installer.step2.sshUser.required');
     }
     return null;
@@ -146,7 +146,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   sshPortError: function () {
-    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshPort').trim() ))  {
+    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isBlank(this.get('sshPort')))  {
       return Em.I18n.t('installer.step2.sshPort.required');
     }
     return null;
@@ -157,7 +157,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   agentUserError: function () {
-    if (App.get('supports.customizeAgentUserAccount') && this.get('manualInstall') === false && Em.isEmpty(this.get('agentUser').trim())) {
+    if (App.get('supports.customizeAgentUserAccount') && this.get('manualInstall') === false && Em.isBlank(this.get('agentUser'))) {
       return Em.I18n.t('installer.step2.sshUser.required');
     }
     return null;

@@ -39,4 +39,59 @@
         }}
     </label>
   </div>
+  <div>
+    {{#unless view.isAdmin}}
+      <table class="table">
+        <thead>
+        <tr>
+          <th>Cluster</th>
+          <th>Cluster Role</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{#each cluster in view.privileges.clusters}}
+          <tr>
+            <td>
+              <span class="glyphicon glyphicon-cloud"></span>
+              <span>{{cluster.name}}</span>
+            </td>
+            <td>
+              {{#each privilege in cluster.privileges}}
+                <span tooltip="{{privilege}}">{{privilege}}&nbsp;</span>
+              {{/each}}
+            </td>
+          </tr>
+        {{/each}}
+        </tbody>
+        <thead class="view-permission-header">
+        <tr>
+          <th>View</th>
+          <th>View Permissions</th>
+        </tr>
+        </thead>
+        <tbody ng-hide="user.admin">
+        {{#each v in view.privileges.views}}
+          <tr>
+            <td>
+              <span class="glyphicon glyphicon-th"></span>
+              <span>{{v.instance_name}}</span>
+            </td>
+            <td>
+              {{#each privilege in v.privileges}}
+                <span tooltip="{{privilege}}" >{{privilege}}&nbsp;</span>
+              {{/each}}
+            </td>
+          </tr>
+        {{/each}}
+        </tbody>
+      </table>
+    {{/unless}}
+    {{#if view.isAdmin}}
+      <div class="alert alert-info">This user is an Ambari Admin and has all privileges.</div>
+    {{else}}
+      {{#unless view.privileges}}
+        <div class="alert alert-info">This user does not have any privileges.</div>
+      {{/unless}}
+    {{/if}}
+  </div>
 </div>

@@ -56,7 +56,24 @@ App.Router = Em.Router.extend({
   backBtnForHigherStep: false,
   transitionInProgress: false,
 
+  /**
+   * Path for local login page. This page will be always accessible without
+   * redirect to auth server different from ambari-server. Used in some types of
+   * authorizations like knox sso.
+   *
+   * @type {string}
+   */
   localUserAuthUrl: '/login/local',
+
+  /**
+   * LocalStorage property <code>redirectsCount</code> from <code>tmp</code> namespace
+   * will be incremented by each redirect action performed by UI and reset on success login.
+   * <code>redirectsLimitCount</code> determines maximum redirect tries. When redirects count overflow
+   * then something goes wrong and we have to inform user about the problem.
+   *
+   * @type {number}
+   */
+  redirectsLimitCount: 0,
 
   /**
    * Is true, if cluster.provisioning_state is equal to 'INSTALLED'
@@ -240,6 +257,7 @@ App.Router = Em.Router.extend({
     this.setAuthenticated(true);
     this.setLoginName(userName);
     this.setUser(App.User.find().findProperty('id', userName));
+    App.db.set('tmp', 'redirectsCount', 0);
   },
 
   /**
@@ -253,7 +271,7 @@ App.Router = Em.Router.extend({
 
   login: function () {
     var controller = this.get('loginController');
-    var loginName = controller.get('loginName').toLowerCase();
+    var loginName = controller.get('loginName');
     controller.set('loginName', loginName);
     var hash = misc.utf8ToB64(loginName + ":" + controller.get('password'));
     var usr = '';
@@ -307,7 +325,7 @@ App.Router = Em.Router.extend({
     }
   },
 
-  loginErrorCallback: function(request, ajaxOptions, error, opt) {
+  loginErrorCallback: function(request) {
     var controller = this.get('loginController');
     this.setAuthenticated(false);
     if (request.status == 403) {
@@ -564,12 +582,69 @@ App.Router = Em.Router.extend({
     }
   },
 
-  redirectByURL: function(url) {
-    window.location.href = url;
+
+  /**
+   * Increment redirect count if <code>redirected</code> parameter passed.
+   */
+  handleUIRedirect: function() {
+    if (/(\?|&)redirected=/.test(location.hash)) {
+      var redirectsCount = App.db.get('tmp', 'redirectsCount') || 0;
+      App.db.set('tmp', 'redirectsCount', ++redirectsCount);
+    }
   },
 
+  /**
+   * <code>window.location</code> setter. Will add query param which determines that we redirect user
+   * @param {string} url - url to navigate
+   */
+  redirectByURL: function(url) {
+    var suffix = "?redirected=true";
+    var redirectsCount = App.db.get('tmp', 'redirectsCount') || 0;
+    if (redirectsCount > this.get('redirectsLimitCount')) {
+      this.showRedirectIssue();
+      return;
+    }
+    // skip adding redirected parameter if added
+    if (/(\?|&)redirected=/.test(location.hash)) {
+      this.setLocationUrl(url);
+      return;
+    }
+    // detect if query params were assigned and replace "?" with "&" for suffix param
+    if (/\?\w+=/.test(location.hash)) {
+      suffix = suffix.replace('?', '&');
+    }
+    this.setLocationUrl(url + suffix);
+  },
+
+  /**
+   * Convenient method to set <code>window.location</code>.
+   * Useful for faking url manipulation in tests.
+   *
+   * @param {string} url
+   */
+  setLocationUrl: function(url) {
+    window.location = url;
+  },
+
+  /**
+   * Convenient method to get current <code>window.location</code>.
+   * Useful for faking url manipulation in tests.
+   */
   getCurrentLocationUrl: function() {
     return window.location.href;
+  },
+
+  /**
+   * Inform user about redirect issue in modal popup.
+   *
+   * @returns {App.ModalPopup}
+   */
+  showRedirectIssue: function() {
+    var bodyMessage = Em.I18n.t('app.redirectIssuePopup.body').format(location.origin + '/#' + this.get('localUserAuthUrl'));
+    var popupHeader = Em.I18n.t('app.redirectIssuePopup.header');
+    var popup = App.showAlertPopup(popupHeader, bodyMessage);
+    popup.set('encodeBody', false);
+    return popup;
   },
 
   root: Em.Route.extend({
@@ -580,6 +655,7 @@ App.Router = Em.Router.extend({
 
     enter: function(router){
       router.initAdmin();
+      router.handleUIRedirect();
     },
 
     login: Em.Route.extend({

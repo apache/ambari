@@ -39,7 +39,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
-    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]]:
+    hiveExists = "HIVE" in [service["StackServices"]["service_name"] for service in services["services"]]
+    sparkExists = "SPARK" in [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]] and not sparkExists:
       return parentItems
 
     childItems = []
@@ -73,7 +76,20 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                   "If you leave them collocated, make sure to set HAWQ Master Port property " \
                   "to a value different from the port number used by Ambari Server database."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
-    
+
+    if "SPARK_THRIFTSERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
+      if not "HIVE_SERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
+        message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
+        childItems.append( {"type": 'host-component', "level": 'ERROR', "message": messge, "component-name": 'SPARK_THRIFTSERVER'} )
+
+    hmsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"][0] if hiveExists else []
+    sparkTsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"][0] if sparkExists else []
+
+    # if Spark Thrift Server is deployed but no Hive Server is deployed
+    if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
+      message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
+      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
+
     parentItems.extend(childItems)
     return parentItems
 
@@ -112,8 +128,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     putTezProperty = self.putProperty(configurations, "tez-site")
     # remove 2gb limit for tez.runtime.io.sort.mb
     # in HDP 2.3 "tez.runtime.sorter.class" is set by default to PIPELINED, in other case comment calculation code below
-    taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
-    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
+    taskResourceMemory = int(configurations["tez-site"]["properties"]["tez.task.resource.memory.mb"])
     putTezProperty("tez.runtime.io.sort.mb", int(taskResourceMemory * 0.4))
 
     if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
@@ -426,7 +441,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         ranger_db_privelege_url_dict = {
           'MYSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:mysql://' + rangerDbHost},
           'ORACLE': {'ranger_privelege_user_jdbc_url': 'jdbc:oracle:thin:@//' + rangerDbHost + ':1521'},
-          'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + rangerDbHost + ':5432'},
+          'POSTGRES': {'ranger_privelege_user_jdbc_url': 'jdbc:postgresql://' + rangerDbHost + ':5432/postgres'},
           'MSSQL': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlserver://' + rangerDbHost + ';'},
           'SQLA': {'ranger_privelege_user_jdbc_url': 'jdbc:sqlanywhere:host=' + rangerDbHost + ';'}
         }
@@ -537,6 +552,13 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     super(HDP23StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnSiteProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnSitePropertyAttributes = self.putPropertyAttribute(configurations, "yarn-site")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    if "tez-site" not in services["configurations"]:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', '')
+    else:
+      putYarnSiteProperty('yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes', 'org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl')
+
     if "ranger-env" in services["configurations"] and "ranger-yarn-plugin-properties" in services["configurations"] and \
         "ranger-yarn-plugin-enabled" in services["configurations"]["ranger-env"]["properties"]:
       putYarnRangerPluginProperty = self.putProperty(configurations, "ranger-yarn-plugin-properties", services)
@@ -554,6 +576,10 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     else:
       putYarnSitePropertyAttributes('yarn.authorization-provider', 'delete', 'true')
 
+    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
+      if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
+        putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
+
   def getServiceConfigurationValidators(self):
       parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
       childValidators = {
@@ -561,7 +587,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
                  "hive-site": self.validateHiveConfigurations},
         "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations}        
+        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+        "YARN": {"yarn-site": self.validateYARNConfigurations}
       }
       self.mergeValidators(parentValidators, childValidators)
       return parentValidators
@@ -736,6 +763,19 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "kafka-broker")
 
+  def validateYARNConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    yarn_site = properties
+    validationItems = []
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'RANGER_KMS' in servicesList and 'KERBEROS' in servicesList:
+      yarn_resource_proxy_enabled = yarn_site['yarn.resourcemanager.proxy-user-privileges.enabled']
+      if yarn_resource_proxy_enabled.lower() == 'true':
+        validationItems.append({"config-name": 'yarn.resourcemanager.proxy-user-privileges.enabled',
+          "item": self.getWarnItem("If Ranger KMS service is installed set yarn.resourcemanager.proxy-user-privileges.enabled "\
+          "property value as false under yarn-site"
+        )})
+
+    return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
   def isComponentUsingCardinalityForLayout(self, componentName):
-    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER']
+    return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']

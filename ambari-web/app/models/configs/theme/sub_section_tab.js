@@ -83,12 +83,16 @@ App.SubSectionTab = DS.Model.extend({
   }.property('configs.@each.isHiddenByFilter'),
 
   /**
+   * @type {boolean}
+   */
+  someConfigIsVisible: Em.computed.someBy('configs', 'isVisible', true),
+
+  /**
    * Determines if subsection is visible
    * @type {boolean}
    */
-  isVisible: function () {
-    return !this.get('isHiddenByFilter') && !this.get('isHiddenByConfig') && this.get('configs').someProperty('isVisible', true);
-  }.property('isHiddenByFilter', 'isHiddenByConfig', 'configs.@each.isVisible')
+  isVisible: Em.computed.and('!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible')
+
 });
 
 

@@ -55,7 +55,7 @@ import org.apache.ambari.server.orm.entities.UserEntity;
 /**
  * Abstract resource provider for privilege resources.
  */
-public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvider {
+public abstract class PrivilegeResourceProvider<T> extends AbstractAuthorizedResourceProvider {
 
   /**
    * Data access object used to obtain privilege entities.
@@ -92,6 +92,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
    */
   public static final String PRIVILEGE_ID_PROPERTY_ID    = "PrivilegeInfo/privilege_id";
   public static final String PERMISSION_NAME_PROPERTY_ID = "PrivilegeInfo/permission_name";
+  public static final String PERMISSION_LABEL_PROPERTY_ID = "PrivilegeInfo/permission_label";
   public static final String PRINCIPAL_NAME_PROPERTY_ID  = "PrivilegeInfo/principal_name";
   public static final String PRINCIPAL_TYPE_PROPERTY_ID  = "PrivilegeInfo/principal_type";
 
@@ -159,7 +160,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  public RequestStatus createResourcesAuthorized(Request request)
       throws SystemException, UnsupportedPropertyException,
       ResourceAlreadyExistsException, NoSuchParentResourceException {
     for (Map<String, Object> properties : request.getProperties()) {
@@ -171,7 +172,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  public Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     Set<Resource> resources    = new HashSet<Resource>();
     Set<String>   requestedIds = getRequestPropertyIds(request, predicate);
@@ -232,7 +233,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  public RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getUpdateCommand(request, predicate));
     notifyUpdate(resourceType, request, predicate);
@@ -240,7 +241,7 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  public RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     modifyResources(getDeleteCommand(predicate));
     notifyDelete(resourceType, predicate);
@@ -295,6 +296,8 @@ public abstract class PrivilegeResourceProvider<T> extends AbstractResourceProvi
         privilegeEntity.getId(), requestedIds);
     setResourceProperty(resource, PERMISSION_NAME_PROPERTY_ID,
         privilegeEntity.getPermission().getPermissionName(), requestedIds);
+    setResourceProperty(resource, PERMISSION_LABEL_PROPERTY_ID,
+        privilegeEntity.getPermission().getPermissionLabel(), requestedIds);
 
     PrincipalEntity principal   = privilegeEntity.getPrincipal();
     Long            principalId = principal.getId();

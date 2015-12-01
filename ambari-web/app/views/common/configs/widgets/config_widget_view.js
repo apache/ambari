@@ -102,9 +102,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   /**
    * @type {boolean}
    */
-  showPencil: function () {
-    return this.get('supportSwitchToTextBox') && !this.get('disabled');
-  }.property('supportSwitchToTextBox', 'disabled'),
+  showPencil: Em.computed.and('supportSwitchToTextBox', '!disabled'),
 
   /**
    * Alias to <code>config.isOriginalSCP</code>
@@ -232,9 +230,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * Config name to display.
    * @type {String}
    */
-  configLabel: function() {
-    return this.get('config.stackConfigProperty.displayName') || this.get('config.displayName') || this.get('config.name');
-  }.property('config.name', 'config.displayName'),
+  configLabel: Em.computed.firstNotBlank('config.stackConfigProperty.displayName', 'config.displayName', 'config.name'),
 
 
   /**

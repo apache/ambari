@@ -159,6 +159,23 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   }
 
   /**
+   * Construct a Cluster Version. Additionally this will update parent connection relations without
+   * forcing refresh of parent entity
+   * @param entity entity to create
+   */
+  @Override
+  @Transactional
+  public void create(ClusterVersionEntity entity) throws IllegalArgumentException {
+    // check if repository version is not missing, to avoid NPE
+    if (entity.getRepositoryVersion() == null) {
+      throw new IllegalArgumentException("RepositoryVersion argument is not set for the entity");
+    }
+
+    super.create(entity);
+    entity.getRepositoryVersion().updateClusterVersionEntityRelation(entity);
+  }
+
+  /**
    * Construct a Cluster Version and return it. This is primarily used to be able to construct the object and mock
    * the function call.
    * @param cluster Cluster

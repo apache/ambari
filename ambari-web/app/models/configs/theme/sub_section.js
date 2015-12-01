@@ -100,7 +100,7 @@ App.SubSection = DS.Model.extend({
    */
   errorsCount: function () {
     var visibleTabs = this.get('subSectionTabs').filterProperty('isVisible');
-    var subSectionTabsErrors = visibleTabs.length ? visibleTabs.mapProperty('errorsCount').reduce(function(p, c) { return p + c; }) : 0;
+    var subSectionTabsErrors = visibleTabs.length ? visibleTabs.mapProperty('errorsCount').reduce(Em.sum, 0) : 0;
     return subSectionTabsErrors + this.get('configs').filter(function(config) {
       return config.get('isVisible') && (!config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false));
     }).length;
@@ -109,9 +109,7 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  addLeftVerticalSplitter: function() {
-    return !this.get('isFirstColumn') && this.get('leftVerticalSplitter');
-  }.property('isFirstColumn', 'leftVerticalSplitter'),
+  addLeftVerticalSplitter: Em.computed.and('!isFirstColumn', 'leftVerticalSplitter'),
 
   /**
    * @type {boolean}
@@ -121,9 +119,7 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
-  showTopSplitter: function() {
-    return !this.get('isFirstRow') && !this.get('border');
-  }.property('isFirstRow', 'border'),
+  showTopSplitter: Em.computed.and('!isFirstRow', '!border'),
 
   /**
    * @type {boolean}
@@ -181,12 +177,16 @@ App.SubSection = DS.Model.extend({
   }.property('configs.@each.isHiddenByFilter'),
 
   /**
+   * @type {boolean}
+   */
+  someConfigIsVisible: Em.computed.someBy('configs', 'isVisible', true),
+
+  /**
    * Determines if subsection is visible
    * @type {boolean}
    */
-  isSectionVisible: function () {
-    return !this.get('isHiddenByFilter') && !this.get('isHiddenByConfig') && this.get('configs').someProperty('isVisible', true);
-  }.property('isHiddenByFilter', 'configs.@each.isVisible', 'isHiddenByConfig')
+  isSectionVisible: Em.computed.and('!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible')
+
 });
 
 

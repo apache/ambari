@@ -216,7 +216,7 @@ public class UpgradeCatalog210Test {
       UpgradeCatalog210.class.getDeclaredMethod("removeStormRestApiServiceComponent");
 
     Method updateKerberosDescriptorArtifacts =
-      UpgradeCatalog210.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
+      AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
 
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
         .addMockedMethod(addNewConfigurationsFromXml)

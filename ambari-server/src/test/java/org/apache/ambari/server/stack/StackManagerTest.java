@@ -618,7 +618,7 @@ public class StackManagerTest {
     Map<String, Object>  optionalNoGlusterfs  = (Map<String, Object>) roleCommandOrder.get("optional_no_glusterfs");
     assertTrue(optionalNoGlusterfs.containsKey("SECONDARY_NAMENODE-START"));
     ArrayList<String> hbaseMasterStartValues = (ArrayList<String>) generalDeps.get("HBASE_MASTER-START");
-    assertTrue(hbaseMasterStartValues.get(0).equals("ZOOKEEPER_SERVER-START, ZOOKEEPER_SERVER-START"));
+    assertTrue(hbaseMasterStartValues.get(0).equals("ZOOKEEPER_SERVER-START"));
 
     assertTrue(optionalNoGlusterfs.containsKey("NAMENODE-STOP"));
     ArrayList<String> nameNodeStopValues = (ArrayList<String>) optionalNoGlusterfs.get("NAMENODE-STOP");

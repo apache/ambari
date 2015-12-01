@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
@@ -57,7 +58,7 @@ import com.google.inject.Provider;
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
     @UniqueConstraint(columnNames = {"display_name"}),
-    @UniqueConstraint(columnNames = {"stack", "version"})
+    @UniqueConstraint(columnNames = {"stack_id", "version"})
 })
 @TableGenerator(name = "repository_version_id_generator",
     table = "ambari_sequences",
@@ -106,10 +107,10 @@ public class RepositoryVersionEntity {
   private RepositoryType type = RepositoryType.STANDARD;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
-  private Collection<ClusterVersionEntity> clusterVersionEntities;
+  private Set<ClusterVersionEntity> clusterVersionEntities;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
-  private Collection<HostVersionEntity> hostVersionEntities;
+  private Set<HostVersionEntity> hostVersionEntities;
 
   @ElementCollection(targetClass = Component.class)
   @CollectionTable(name = "repo_version_component", joinColumns = @JoinColumn(name = "repo_version_id"))
@@ -127,6 +128,22 @@ public class RepositoryVersionEntity {
     this.version = version;
     this.displayName = displayName;
     this.operatingSystems = operatingSystems;
+  }
+
+  /**
+   * Update one-to-many relation without rebuilding the whole entity
+   * @param entity many-to-one entity
+   */
+  public void updateClusterVersionEntityRelation(ClusterVersionEntity entity){
+    clusterVersionEntities.add(entity);
+  }
+
+  /**
+   * Update one-to-many relation without rebuilding the whole entity
+   * @param entity many-to-one entity
+   */
+  public void updateHostVersionEntityRelation(HostVersionEntity entity){
+    hostVersionEntities.add(entity);
   }
 
   public Long getId() {

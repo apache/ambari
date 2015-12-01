@@ -79,6 +79,7 @@ App.themesMapper = App.QuickDataMapper.create({
       this.mapThemeWidgets(item);
     }, this);
 
+    App.store.commit();
     App.store.loadMany(this.get("tabModel"), tabs);
     App.store.commit();
     console.timeEnd('App.themesMapper execution time');

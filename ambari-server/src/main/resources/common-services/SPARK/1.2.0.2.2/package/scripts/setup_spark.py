@@ -34,6 +34,7 @@ def setup_spark(env, type, action = None):
   Directory([params.spark_pid_dir, params.spark_log_dir],
             owner=params.spark_user,
             group=params.user_group,
+            mode=0775,
             recursive=True
   )
   if type == 'server' and action == 'config':
@@ -81,10 +82,9 @@ def setup_spark(env, type, action = None):
           group=params.spark_group,
           mode=0644)
 
-  # thrift server is not supported until HDP 2.3 or higher
-  if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') >= 0 \
-      and 'spark-thrift-sparkconf' in params.config['configurations']:
+  if params.has_spark_thriftserver:
     PropertiesFile(params.spark_thrift_server_conf_file,
       properties = params.config['configurations']['spark-thrift-sparkconf'],
+      owner = params.hive_user,
       key_value_delimiter = " ",
     )
