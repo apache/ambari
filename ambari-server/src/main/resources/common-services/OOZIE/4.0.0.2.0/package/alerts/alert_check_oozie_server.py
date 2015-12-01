@@ -93,18 +93,14 @@ def get_check_command(oozie_url, host_name, configurations):
   return (command, None, None)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def get_check_command(oozie_url, host_name, configurations, parameters):
+def get_check_command(oozie_url, host_name, configurations, parameters, only_kinit):
   kerberos_env = None
 
   user = USER_DEFAULT
   if USER_KEY in configurations:
     user = configurations[USER_KEY]
 
-  security_enabled = False
-  if SECURITY_ENABLED in configurations:
-    security_enabled = str(configurations[SECURITY_ENABLED]).upper() == 'TRUE'
-
-  if security_enabled:
+  if is_security_enabled(configurations):
     # defaults
     user_keytab = USER_KEYTAB_DEFAULT
     user_principal = USER_PRINCIPAL_DEFAULT
@@ -136,12 +132,17 @@ def get_check_command(oozie_url, host_name, configurations, parameters):
 
     klist_path_local = get_klist_path(kerberos_executable_search_paths)
     kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
+    kinit_part_command = format("{kinit_path_local} -l 5m20s -c {ccache_file} -kt {user_keytab} {user_principal}; ")
 
     # Determine if we need to kinit by testing to see if the relevant cache exists and has
     # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
     # it kinits we do but recover quickly when keytabs are regenerated
 
-    kinit_command = "{0} -s {1} || ".format(klist_path_local, ccache_file) + format("{kinit_path_local} -l 5m20s -c {ccache_file} -kt {user_keytab} {user_principal}; ")
+    if only_kinit:
+      kinit_command = kinit_part_command
+    else:
+      kinit_command = "{0} -s {1} || ".format(klist_path_local, ccache_file) + kinit_part_command
+
     Execute(kinit_command, environment=kerberos_env, user=user)
 
   # oozie configuration directory uses a symlink when > HDP 2.2
@@ -197,8 +198,19 @@ def execute(configurations={}, parameters={}, host_name=None):
   if https_port is None:
     oozie_url = oozie_url.replace(urlparse(oozie_url).hostname, host_name)
 
+  (code, msg) = get_check_result(oozie_url, host_name, configurations, parameters, False)
+
+  # sometimes real lifetime for ticket is less than we have set(5m20s aS of now)
+  # so i've added this double check with rekinit command to be sure thaT it's not problem with ticket lifetime
+  if is_security_enabled(configurations) and code == RESULT_CODE_CRITICAL:
+    (code, msg) = get_check_result(oozie_url, host_name, configurations, parameters, True)
+
+  return (code, msg)
+
+
+def get_check_result(oozie_url, host_name, configurations, parameters, only_kinit):
   try:
-    command, env, user = get_check_command(oozie_url, host_name, configurations, parameters)
+    command, env, user = get_check_command(oozie_url, host_name, configurations, parameters, only_kinit)
     # execute the command
     Execute(command, environment=env, user=user)
 
@@ -207,3 +219,10 @@ def execute(configurations={}, parameters={}, host_name=None):
     return (RESULT_CODE_UNKNOWN, [str(ex)])
   except Exception, ex:
     return (RESULT_CODE_CRITICAL, [str(ex)])
+
+def is_security_enabled(configurations):
+  security_enabled = False
+  if SECURITY_ENABLED in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED]).upper() == 'TRUE'
+
+  return security_enabled
