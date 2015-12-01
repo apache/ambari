@@ -351,6 +351,8 @@ public class StageUtils {
     }
 
     // add components from topology manager
+
+    Map<String, SortedSet<Integer>> hostRolesInfoFromTopology = new HashMap<String, SortedSet<Integer>>();
     for (Map.Entry<String, Collection<String>> entry : pendingHostComponents.entrySet()) {
       String hostname = entry.getKey();
       Collection<String> hostComponents = entry.getValue();
@@ -374,11 +376,11 @@ public class StageUtils {
         }
 
         if (roleName != null) {
-          SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+          SortedSet<Integer> hostsForComponentsHost = hostRolesInfoFromTopology.get(roleName);
 
           if (hostsForComponentsHost == null) {
             hostsForComponentsHost = new TreeSet<Integer>();
-            hostRolesInfo.put(roleName, hostsForComponentsHost);
+            hostRolesInfoFromTopology.put(roleName, hostsForComponentsHost);
           }
 
           int hostIndex = hostsList.indexOf(hostname);
@@ -393,6 +395,13 @@ public class StageUtils {
             throw new RuntimeException("Unable to get host index for host: " + hostname);
           }
         }
+      }
+    }
+
+    // merge host roles
+    for (Map.Entry<String, SortedSet<Integer>> entry : hostRolesInfoFromTopology.entrySet()) {
+      if (isOverrideHostRoleNeeded(entry, hostRolesInfo, allHosts, pendingHostComponents)) {
+        hostRolesInfo.put(entry.getKey(), entry.getValue());
       }
     }
 
@@ -541,6 +550,10 @@ public class StageUtils {
     return result;
   }
 
+  public static String getHostName() {
+    return server_hostname;
+  }
+
   /**
    * Splits a range to its explicit set of values.
    * <p/>
@@ -578,7 +591,16 @@ public class StageUtils {
     return rangeItem;
   }
 
-  public static String getHostName() {
-    return server_hostname;
+  /**
+   * It determines to replace host roles if the number of components lower in the cluster than in the blueprint
+   * or when all of the hosts are not available from {@link Cluster} object.
+   */
+  private static boolean isOverrideHostRoleNeeded(Entry<String, SortedSet<Integer>> hostRoleEntry,
+                                                  Map<String, SortedSet<Integer>> hostRolesInfo,
+                                                  Collection<Host> allHosts,
+                                                  Map<String, Collection<String>> pendingHostComponents) {
+    Set<Integer> hostRole = hostRolesInfo.get(hostRoleEntry.getKey());
+    return (allHosts.size() != pendingHostComponents.size() || (hostRole == null ||
+      (!hostRole.isEmpty() && hostRole.size() < hostRoleEntry.getValue().size())));
   }
 }
