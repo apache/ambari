@@ -250,7 +250,9 @@ App.MainController = Em.Controller.extend({
               setInterval(function(){self.countDown();}, 1000)
             },
             countDown: function() {
-              this.set('remainTime', this.get('remainTime') - 1);
+              if (this.get('remainTime') > 0) {
+                this.set('remainTime', this.get('remainTime') - 1);
+              }
               if (this.get('remainTime') == 0) {
                 App.router.logOff({});
               }
