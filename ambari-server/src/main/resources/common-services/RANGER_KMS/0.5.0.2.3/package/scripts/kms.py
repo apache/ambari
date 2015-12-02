@@ -36,6 +36,7 @@ from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 import re
+import time
 
 def password_validation(password, key):
   import params
@@ -276,20 +277,16 @@ def enable_kms_plugin():
   import params
 
   if params.has_ranger_admin:
-    ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
-    ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
-    response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
-    if response_code is not None and response_code == 200:
-      user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
+    count = 0
+    while count < 5:
+      ranger_flag = check_ranger_service()
+      if ranger_flag:
+        break
+      else:
+        time.sleep(5) # delay for 5 seconds
+        count = count + 1
     else:
-      raise Fail('Ranger service is not started on given host')   
-
-    if user_resp_code is not None and user_resp_code == 200:
-      get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
-      if not get_repo_flag:
-        create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
-    else:
-      raise Fail('Ambari admin user creation failed')
+      Logger.error("Ranger service is not reachable after {0} tries".format(count))
 
     current_datetime = datetime.now()
 
@@ -353,6 +350,31 @@ def enable_kms_plugin():
       mode = 0640
       )
   
+def check_ranger_service():
+  import params
+
+  ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
+  ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
+  response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
+
+  if response_code is not None and response_code == 200:
+    user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
+    if user_resp_code is not None and user_resp_code == 200:
+      get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
+      if not get_repo_flag:
+        create_repo_flag = create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
+        if create_repo_flag:
+          return True
+        else:
+          return False
+      else:
+        return True
+    else:
+      Logger.error('Ambari admin user creation failed')
+      return False
+  else:
+    Logger.error('Ranger service is not reachable host')
+    return False
 
 def create_repo(url, data, usernamepassword):
   try:
@@ -369,13 +391,17 @@ def create_repo(url, data, usernamepassword):
     response = json.loads(json.JSONEncoder().encode(result.read()))
     if response_code == 200:
       Logger.info('Repository created Successfully')
+      return True
     else:
       Logger.info('Repository not created')
+      return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      raise Fail("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
+      Logger.error("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
+      return False
     else:
-      raise Fail("Error creating service. Reason - {0}.".format(e.reason))
+      Logger.error("Error creating service. Reason - {0}.".format(e.reason))
+      return False
 
 def get_repo(url, name, usernamepassword):
   try:
@@ -401,6 +427,8 @@ def get_repo(url, name, usernamepassword):
       return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      raise Fail("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
+      Logger.error("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
+      return False
     else:
-      raise Fail("Error getting {0} service. Reason - {1}.".format(name, e.reason))
+      Logger.error("Error getting {0} service. Reason - {1}.".format(name, e.reason))
+      return False
