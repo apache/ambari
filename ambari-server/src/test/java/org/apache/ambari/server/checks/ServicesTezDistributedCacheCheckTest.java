@@ -56,8 +56,6 @@ public class ServicesTezDistributedCacheCheckTest {
       }
     };
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     servicesTezDistributedCacheCheck.config = config;
 
   }

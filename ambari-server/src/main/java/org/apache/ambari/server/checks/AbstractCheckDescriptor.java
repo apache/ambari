@@ -133,40 +133,6 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Gets the earliest stack that the upgrade check is compatible with. By
-   * default, all checks will return rolling.upgrade.min.stack since this is the
-   * first stack version that supports automated upgrades.
-   *
-   * @return the earliest stack that the upgrade check is compatible with, or
-   *         {@code null} for all.
-   */
-  public StackId getSourceStack(){
-    String minStackId = config.getRollingUpgradeMinStack();
-    if(minStackId == null || minStackId.isEmpty()) {
-      return null;
-    }
-    return new StackId(minStackId);
-  }
-
-  /**
-   * Gets the most recent stack that the upgrade check is compatible with. By
-   * default, this will return rolling.upgrade.max.stack, which is typically
-   * set to null to indicate all future stacks are compatible.
-   * If an upgrade check is not compatible with a future stack, then
-   * this method should be overridden.
-   *
-   * @return the most recent stack that the upgrade check is compatible with, or
-   *         {@code null} for all.
-   */
-  public StackId getTargetStack() {
-    String maxStackId = config.getRollingUpgradeMaxStack();
-    if(maxStackId == null || maxStackId.isEmpty()) {
-      return null;
-    }
-    return new StackId(maxStackId);
-  }
-
-  /**
    * Executes check against given cluster.
    *
    * @param prerequisiteCheck dto for upgrade check results

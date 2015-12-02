@@ -74,8 +74,6 @@ public class InstallPackagesCheckTest {
     checkRequest.setTargetStackId(targetStackId);
     InstallPackagesCheck ipc = new InstallPackagesCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     ipc.config = config;
 
     Assert.assertTrue(ipc.isApplicable(checkRequest));

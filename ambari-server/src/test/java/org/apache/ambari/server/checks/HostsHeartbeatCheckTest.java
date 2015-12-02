@@ -52,8 +52,6 @@ public class HostsHeartbeatCheckTest {
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
     HostsHeartbeatCheck hhc = new HostsHeartbeatCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     hhc.config = config;
 
     Assert.assertTrue(hhc.isApplicable(checkRequest));

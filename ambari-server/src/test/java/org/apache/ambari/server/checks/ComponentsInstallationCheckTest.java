@@ -69,8 +69,6 @@ public class ComponentsInstallationCheckTest {
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
     ComponentsInstallationCheck cic = new ComponentsInstallationCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     cic.config = config;
 
     Assert.assertTrue(cic.isApplicable(checkRequest));

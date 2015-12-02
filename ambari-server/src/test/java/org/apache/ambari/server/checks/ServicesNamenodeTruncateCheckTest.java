@@ -72,8 +72,6 @@ public class ServicesNamenodeTruncateCheckTest {
     replay(m_clusters, cluster, config);
 
     Configuration configuration = EasyMock.createMock(Configuration.class);
-    expect(configuration.getRollingUpgradeMinStack()).andReturn("HDP-2.2").anyTimes();
-    expect(configuration.getRollingUpgradeMaxStack()).andReturn("").anyTimes();
     replay(configuration);
     m_check.config = configuration;
 

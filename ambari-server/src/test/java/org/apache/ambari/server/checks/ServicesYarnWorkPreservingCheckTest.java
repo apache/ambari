@@ -57,8 +57,6 @@ public class ServicesYarnWorkPreservingCheckTest {
       }
     };
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     servicesYarnWorkPreservingCheck.config = config;
   }
 

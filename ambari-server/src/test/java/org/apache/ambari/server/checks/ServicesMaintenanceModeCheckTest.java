@@ -51,8 +51,6 @@ public class ServicesMaintenanceModeCheckTest {
 
     ServicesMaintenanceModeCheck smmc = new ServicesMaintenanceModeCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     smmc.config = config;
     Assert.assertTrue(smmc.isApplicable(checkRequest));
   }

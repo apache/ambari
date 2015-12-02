@@ -90,8 +90,6 @@ public class ConfigurationMergeCheckTest {
 
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
     Configuration config = EasyMock.createMock(Configuration.class);
-    expect(config.getRollingUpgradeMinStack()).andReturn("HDP-2.2").anyTimes();
-    expect(config.getRollingUpgradeMaxStack()).andReturn("").anyTimes();
     replay(config);
     cmc.config = config;
 

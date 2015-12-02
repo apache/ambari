@@ -60,8 +60,6 @@ public class MapReduce2JobHistoryStatePreservingCheckTest {
       }
     };
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     m_check.config = config;
   }
 
