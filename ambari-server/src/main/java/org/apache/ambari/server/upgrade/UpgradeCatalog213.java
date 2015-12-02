@@ -1019,6 +1019,15 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_ENV, newProperties, true, true);
           }
 
+          Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
+          if (amsHbaseEnv != null) {
+            Map<String, String> amsHbaseEnvProperties = amsEnv.getProperties();
+            String content = amsHbaseEnvProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsEnvContent(content));
+            updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
+          }
+
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
@@ -1059,6 +1068,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     content += "\n" +
       "# The maximum amount of heap to use for hbase shell.\n" +
       "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
+    return content;
+  }
+
+  protected String updateAmsEnvContent(String content) {
+    if (content == null) {
+      return null;
+    }
+    if (!content.contains("AMS_COLLECTOR_GC_OPTS")) {
+      content += "\n" +
+        "# AMS Collector GC options\n" +
+        "export AMS_COLLECTOR_GC_OPTS=\"-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 " +
+        "-XX:+UseCMSInitiatingOccupancyOnly -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps " +
+        "-XX:+UseGCLogFileRotation -XX:GCLogFileSize=10M " +
+        "-Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`\"\n" +
+        "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n";
+    }
     return content;
   }
 
