@@ -94,6 +94,16 @@ public class ATSParser implements IATSParser {
   @Override
   public TezDagId getTezDAGByName(String name) {
     JSONArray tezDagEntities = (JSONArray) delegate.tezDagByName(name).get("entities");
+    return parseTezDag(tezDagEntities);
+  }
+
+  @Override
+  public TezDagId getTezDAGByEntity(String entity) {
+    JSONArray tezDagEntities = (JSONArray) delegate.tezDagByEntity(entity).get("entities");
+    return parseTezDag(tezDagEntities);
+  }
+
+  private TezDagId parseTezDag(JSONArray tezDagEntities) {
     assert tezDagEntities.size() <= 1;
     if (tezDagEntities.size() == 0) {
       return new TezDagId();
@@ -150,6 +160,10 @@ public class ATSParser implements IATSParser {
       }
       parsedJob.dagNames = dagIds;
       parsedJob.stages = stagesList;
+    }
+
+    if (otherinfo.get("VERSION") != null) {
+      parsedJob.version = (Long) otherinfo.get("VERSION");
     }
     return parsedJob;
   }

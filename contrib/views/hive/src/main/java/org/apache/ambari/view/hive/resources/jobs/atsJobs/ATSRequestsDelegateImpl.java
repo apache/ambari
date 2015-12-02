@@ -97,10 +97,23 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   }
 
   @Override
+  public JSONObject tezDagByEntity(String entity) {
+    String tezDagEntityUrl = tezDagEntityUrl(entity);
+    String response = readFromWithDefault(tezDagEntityUrl, EMPTY_ENTITIES_JSON);
+    return (JSONObject) JSONValue.parse(response);
+  }
+
+  private String tezDagEntityUrl(String entity) {
+    return atsUrl + "/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=callerId:" + entity;
+  }
+
+  @Override
   public JSONObject tezVerticesListForDAG(String dagId) {
     String response = readFromWithDefault(tezVerticesListForDAGUrl(dagId), "{ \"entities\" : [  ] }");
     return (JSONObject) JSONValue.parse(response);
   }
+
+
 
   protected String readFromWithDefault(String atsUrl, String defaultResponse) {
     String response;
