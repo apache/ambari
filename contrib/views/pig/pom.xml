@@ -85,7 +85,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
         <exclusions>
             <exclusion>
                 <groupId>tomcat</groupId>
@@ -96,7 +96,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
         <exclusions>
             <exclusion>
                 <groupId>tomcat</groupId>
@@ -122,7 +122,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -139,7 +139,6 @@
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <hadoop-version>2.2.0</hadoop-version>
     <ambari.version>2.0.0.0-SNAPSHOT</ambari.version>
     <ui.directory>${basedir}/src/main/resources/ui/pig-web</ui.directory>
   </properties>
