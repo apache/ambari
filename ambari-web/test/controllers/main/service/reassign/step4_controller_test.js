@@ -38,6 +38,14 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   describe('#setAdditionalConfigs()', function () {
 
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('isHaEnabled').returns(true);
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
     it('Component is absent', function () {
       controller.set('additionalConfigsMap', []);
       var configs = {};
@@ -72,6 +80,24 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           'property2': 'host1:2222'
         }
       });
+    });
+
+    it('ignore some configs for NameNode after HA', function () {
+      controller.set('additionalConfigsMap', [
+        {
+          componentName: 'NAMENODE',
+          configs: {
+            'test-site': {
+              'fs.defaultFS': '<replace-value>:1111',
+              'dfs.namenode.rpc-address': '<replace-value>:1111'
+            }
+          }
+        }
+      ]);
+      var configs = {'test-site': {}};
+
+      expect(controller.setAdditionalConfigs(configs, 'NAMENODE', 'host1')).to.be.true;
+      expect(configs).to.eql({'test-site': {}});
     });
   });
 

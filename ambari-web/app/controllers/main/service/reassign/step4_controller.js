@@ -297,7 +297,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       if (additionalConfigs.hasOwnProperty(site)) {
         for (var property in additionalConfigs[site]) {
           if (additionalConfigs[site].hasOwnProperty(property)) {
-            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && property === 'fs.defaultFS') continue;
+            if (App.get('isHaEnabled') && componentName === 'NAMENODE' && (property === 'fs.defaultFS' || property === 'dfs.namenode.rpc-address')) continue;
 
             configs[site][property] = additionalConfigs[site][property].replace('<replace-value>', replaceValue);
           }
