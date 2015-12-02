@@ -38,4 +38,6 @@ public interface ATSRequestsDelegate {
   JSONObject tezDagByName(String name);
 
   JSONObject tezVerticesListForDAG(String dagId);
+
+  JSONObject tezDagByEntity(String entity);
 }

@@ -23,6 +23,8 @@ import org.json.simple.JSONObject;
 import java.util.List;
 
 public class HiveQueryId {
+  public static long ATS_15_RESPONSE_VERSION = 2; // version returned from ATS 1.5 release
+
   public String url;
 
   public String entity;
@@ -36,4 +38,5 @@ public class HiveQueryId {
   public long duration;
   public String operationId;
   public String user;
+  public long version;
 }
