@@ -380,6 +380,13 @@ body {
   }
 }
 
+.ellipsis{
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  display:inline-block;
+}
+
 .databases {
   max-height: 500px;
   overflow-y: auto;
@@ -389,8 +396,30 @@ body {
 
     .columns {
       padding-left: 10px;
+      .column-name{
+        width: 10em;
+        font-weight: bold;
+        @extend .ellipsis;
+      }
     }
   }
+}
+
+@media only screen and (max-width : 992px) {
+  .databases {
+    .tables {
+      .columns {
+        .column-name{
+          width: 5em;
+        }
+      }
+    }
+  }
+}
+
+.collapsible-row {
+  width: 13em;
+  @extend .ellipsis;
 }
 
 .selectize-control.plugin-remove_button [data-value] {
@@ -584,4 +613,8 @@ tree-view ul li {
 #isFirstRowHeader {
   box-shadow: none;
   width: inherit;
+}
+
+.widget-controls {
+  padding-right: 10px;
 }
