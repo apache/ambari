@@ -756,6 +756,22 @@ public class UpgradeCatalog213Test {
   }
 
   @Test
+  public void testUpdateAmsEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method updateAmsEnvContent = UpgradeCatalog213.class.getDeclaredMethod("updateAmsEnvContent", String.class);
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String oldContent = "some_content";
+
+    String expectedContent = "some_content" + "\n" +
+      "# AMS Collector GC options\n" +
+      "export AMS_COLLECTOR_GC_OPTS=\"-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=70 " +
+      "-XX:+UseCMSInitiatingOccupancyOnly -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps " +
+      "-XX:+UseGCLogFileRotation -XX:GCLogFileSize=10M " +
+      "-Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`\"\n" +
+      "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n";
+    String result = (String) updateAmsEnvContent.invoke(upgradeCatalog213, oldContent);
+    Assert.assertEquals(expectedContent, result);
+  }
+  
   public void testUpdateKafkaConfigs() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
