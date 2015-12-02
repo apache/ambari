@@ -378,11 +378,10 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="HDFS_LEAFE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+    <group xsi:type="cluster" name="HDFS_LEAVE_SAFEMODE" title="HDFS - Wait to leave Safemode">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <direction>UPGRADE</direction>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
         <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">

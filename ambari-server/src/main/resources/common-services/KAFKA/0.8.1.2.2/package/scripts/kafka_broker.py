@@ -38,10 +38,10 @@ class KafkaBroker(Script):
   def install(self, env):
     self.install_packages(env)
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    kafka()
+    kafka(upgrade_type=upgrade_type)
 
   def pre_upgrade_restart(self, env, upgrade_type=None):
     import params
@@ -64,13 +64,13 @@ class KafkaBroker(Script):
 
       if compare_versions(src_version, '2.3.4.0') < 0 and compare_versions(dst_version, '2.3.4.0') >= 0:
         # Calling the acl migration script requires the configs to be present.
-        self.configure(env)
+        self.configure(env, upgrade_type=upgrade_type)
         upgrade.run_migration(env, upgrade_type)
 
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
-    self.configure(env)
+    self.configure(env, upgrade_type=upgrade_type)
     if params.is_supported_kafka_ranger:
       setup_ranger_kafka() #Ranger Kafka Plugin related call 
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh ; {params.kafka_bin} start')
