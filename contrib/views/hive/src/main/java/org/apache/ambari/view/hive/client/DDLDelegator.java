@@ -118,7 +118,7 @@ public class DDLDelegator {
     else
       like = ".*" + like + ".*";
     final String finalLike = like;
-    TGetColumnsResp resp = new HiveCall<TGetColumnsResp>(connection) {
+    TGetColumnsResp resp = new HiveCall<TGetColumnsResp>(connection,session) {
       @Override
       public TGetColumnsResp body() throws HiveClientException {
 

@@ -19,21 +19,60 @@
 package org.apache.ambari.view.hive.client;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.hive.service.cli.thrift.TSessionHandle;
+import org.apache.hive.service.cli.thrift.TStatus;
+import org.apache.hive.service.cli.thrift.TStatusCode;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public abstract class HiveCall <T> {
   private final static Logger LOG =
       LoggerFactory.getLogger(HiveCall.class);
 
   protected final Connection conn;
+  protected final TSessionHandle sessionHandle;
 
   public HiveCall(Connection connection) {
+    this(connection,null);
+  }
+
+  public HiveCall(Connection connection, TSessionHandle sessionHandle) {
     this.conn = connection;
+    this.sessionHandle = sessionHandle;
   }
 
   public abstract T body() throws HiveClientException;
+
+  public boolean validateSession(T t) throws HiveClientException {
+    //invalidate a session
+    try {
+      Method m = t.getClass().getMethod("getStatus");
+      if (m != null) {
+        TStatus status = (TStatus) m.invoke(t);
+        if (status.getStatusCode().equals(TStatusCode.ERROR_STATUS) &&
+          status.getErrorMessage().startsWith("Invalid SessionHandle: SessionHandle")) {
+          try {
+            conn.invalidateSessionBySessionHandle(sessionHandle);
+          } catch (HiveClientException e) {
+            LOG.error(e.getMessage(),e);
+          }
+          throw new HiveClientException("Please Retry." + status.getErrorMessage(), null);
+          //return false;
+        }
+      }
+    } catch (NoSuchMethodException e) {
+
+    } catch (InvocationTargetException e) {
+
+    } catch (IllegalAccessException e) {
+
+    }
+    return true;
+  }
 
   public T call() throws HiveClientException {
     T result = null;
@@ -60,6 +99,9 @@ public abstract class HiveCall <T> {
 
         synchronized (conn) {
           result = body();
+          if(sessionHandle !=null) {
+            this.validateSession(result);
+          }
         }
 
       } catch (HiveClientException ex) {
