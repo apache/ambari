@@ -4220,6 +4220,13 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("a1", task.getRole().name());
     Assert.assertEquals("h1", task.getHostName());
     ExecutionCommand cmd = task.getExecutionCommandWrapper().getExecutionCommand();
+    // h1 has only DATANODE, NAMENODE, CLIENT sch's
+    Assert.assertEquals("h1", cmd.getHostname());
+    Assert.assertFalse(cmd.getLocalComponents().isEmpty());
+    Assert.assertTrue(cmd.getLocalComponents().contains(Role.DATANODE.name()));
+    Assert.assertTrue(cmd.getLocalComponents().contains(Role.NAMENODE.name()));
+    Assert.assertTrue(cmd.getLocalComponents().contains(Role.HDFS_CLIENT.name()));
+    Assert.assertFalse(cmd.getLocalComponents().contains(Role.RESOURCEMANAGER.name()));
     Type type = new TypeToken<Map<String, String>>(){}.getType();
     Map<String, String> hostParametersStage = StageUtils.getGson().fromJson(stage.getHostParamsStage(), type);
     Map<String, String> commandParametersStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
@@ -4272,6 +4279,13 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
+    // h2 has only DATANODE sch
+    Assert.assertEquals("h2", cmd.getHostname());
+    Assert.assertFalse(cmd.getLocalComponents().isEmpty());
+    Assert.assertTrue(cmd.getLocalComponents().contains(Role.DATANODE.name()));
+    Assert.assertFalse(cmd.getLocalComponents().contains(Role.NAMENODE.name()));
+    Assert.assertFalse(cmd.getLocalComponents().contains(Role.HDFS_CLIENT.name()));
+    Assert.assertFalse(cmd.getLocalComponents().contains(Role.RESOURCEMANAGER.name()));
 
     hosts = new ArrayList<String>() {{add("h3");}};
     resourceFilters.clear();
@@ -10394,6 +10408,7 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
+    Assert.assertTrue(cmd.getLocalComponents().isEmpty());
 
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
@@ -10436,6 +10451,7 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
+    Assert.assertTrue(cmd.getLocalComponents().isEmpty());
 
     Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }

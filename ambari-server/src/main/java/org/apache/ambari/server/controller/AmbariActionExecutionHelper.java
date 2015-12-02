@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -429,10 +430,14 @@ public class AmbariActionExecutionHelper {
         }
       }
 
-      // Generate cluster host info
       if (null != cluster) {
+        // Generate cluster host info
         execCmd.setClusterHostInfo(
           StageUtils.getClusterHostInfo(cluster));
+        // Generate localComponents
+        for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
+          execCmd.getLocalComponents().add(sch.getServiceComponentName());
+        }
       }
     }
   }

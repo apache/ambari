@@ -2554,6 +2554,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ec.setClusterHostInfo(
         StageUtils.getClusterHostInfo(cluster));
 
+    if (null != cluster) {
+      // Generate localComponents
+      for (ServiceComponentHost sch : cluster.getServiceComponentHosts(scHost.getHostName())) {
+        ec.getLocalComponents().add(sch.getServiceComponentName());
+      }
+    }
+
     // Hack - Remove passwords from configs
     if ((ec.getRole().equals(Role.HIVE_CLIENT.toString()) ||
             ec.getRole().equals(Role.WEBHCAT_SERVER.toString()) ||

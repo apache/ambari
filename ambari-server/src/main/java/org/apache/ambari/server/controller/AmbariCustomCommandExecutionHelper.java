@@ -550,6 +550,11 @@ public class AmbariCustomCommandExecutionHelper {
     execCmd.setClusterHostInfo(
         StageUtils.getClusterHostInfo(cluster));
 
+    // Generate localComponents
+    for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostname)) {
+      execCmd.getLocalComponents().add(sch.getServiceComponentName());
+    }
+
     Map<String, String> commandParams = new TreeMap<String, String>();
 
     //Propagate HCFS service type info
@@ -888,7 +893,7 @@ public class AmbariCustomCommandExecutionHelper {
    *
    * @param actionExecutionContext  received request to execute a command
    * @param stage                   the initial stage for task creation
-   * @param retryAllowed            indicates whether the the command allows retry
+   * @param requestParams           the request params
    *
    * @throws AmbariException if the commands can not be added
    */
