@@ -58,11 +58,26 @@ App.AddSecurityConfigs = Em.Mixin.create({
 
   /**
    * Generate stack descriptor configs.
+   *  - Load kerberos artifacts from stack endpoint
+   *  - Load kerberos artifacts from cluster resource and merge them with stack descriptor.
+   * When cluster descriptor is absent then stack artifacts used.
    *
    * @returns {$.Deferred}
    */
   getDescriptorConfigs: function () {
-    return this.loadDescriptorConfigs().pipe(this.createServicesStackDescriptorConfigs.bind(this));
+    var dfd = $.Deferred();
+    var self = this;
+    this.loadStackDescriptorConfigs().then(function(data) {
+      var stackArtifacts = data;
+      self.loadClusterDescriptorConfigs().then(function(clusterArtifacts) {
+        dfd.resolve(self.createServicesStackDescriptorConfigs($.extend(true, {}, stackArtifacts, clusterArtifacts)));
+      }, function() {
+        dfd.resolve(self.createServicesStackDescriptorConfigs(stackArtifacts));
+      });
+    }, function() {
+      dfd.reject();
+    });
+    return dfd.promise();
   },
 
   /**
@@ -330,7 +345,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
         }, this);
       } else if (Object.keys(configurations).contains(config.name) && config.filename === 'stackConfigs') {
         configurations[config.name] = config.value;
-        isConfigUpdated = true
+        isConfigUpdated = true;
       }
     }
     return isConfigUpdated;
