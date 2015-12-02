@@ -223,9 +223,9 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
       var
         hasFails = data.items.someProperty('UpgradeChecks.status', 'FAIL'),
-        header = Em.I18n.t('popup.clusterCheck.Security.header').format(params.label)
-         title = Em.I18n.t('popup.clusterCheck.Security.title')
-         alert = Em.I18n.t('popup.clusterCheck.Security.alert');
+        header = Em.I18n.t('popup.clusterCheck.Security.header').format(params.label),
+        title = Em.I18n.t('popup.clusterCheck.Security.title'),
+        alert = Em.I18n.t('popup.clusterCheck.Security.alert');
 
       App.showClusterCheckPopup(data, {
         header: header,
@@ -280,25 +280,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
         success: 'getSecurityStatusSuccessCallback',
         error: 'errorCallback'
       })
-        .always(this.getSecurityType.bind(this))
-        .always(function () {
-          // check for kerberos descriptor artifact
-          if (self.get('securityEnabled')) {
-            self.loadClusterDescriptorConfigs().then(function () {
-              dfd.resolve();
-            }, function () {
-              // if kerberos descriptor doesn't exist in cluster artifacts get the default descriptor
-              self.loadStackDescriptorConfigs().then(function () {
-                self.set('defaultKerberosLoaded', true);
-                dfd.resolve();
-              }, function () {
-                self.set('securityEnabled', false);
-                dfd.resolve();
-              });
-            });
-          } else {
+        .always(function() {
+          self.getSecurityType(function() {
             dfd.resolve();
-          }
+          });
         });
     }
     return dfd.promise();
@@ -421,6 +406,12 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }
   },
 
+  /**
+   * Determines security type.
+   *
+   * @param {function} [callback] callback function to execute
+   * @returns {$.Deferred|null}
+   */
   getSecurityType: function (callback) {
     if (this.get('securityEnabled') || App.get('isKerberosEnabled')) {
       if (!this.get('kdc_type')) {
