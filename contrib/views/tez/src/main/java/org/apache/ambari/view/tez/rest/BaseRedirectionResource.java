@@ -18,49 +18,34 @@
 
 package org.apache.ambari.view.tez.rest;
 
-import com.google.inject.Inject;
 import org.apache.ambari.view.tez.exceptions.ProxyException;
-import org.apache.ambari.view.tez.utils.ProxyHelper;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.util.HashMap;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
- * Base class for the proxy resources
+ * Base class for resources which will redirect the call to the active URL by fetching the current active URL.
+ * Ex: To redirect a endpoint to active RM/ATS url.
  */
-public abstract class BaseProxyResource {
-
-  private ProxyHelper proxyHelper;
-
-  @Inject
-  public BaseProxyResource(ProxyHelper proxyHelper) {
-    this.proxyHelper = proxyHelper;
-  }
+public abstract class BaseRedirectionResource {
 
   @Path("/{endpoint:.+}")
   @GET
-  @Produces({MediaType.APPLICATION_JSON})
   public Response getData(@Context UriInfo uriInfo, @PathParam("endpoint") String endpoint) {
     String url = getProxyUrl(endpoint, uriInfo.getQueryParameters());
-    String response = proxyHelper.getResponse(url, new HashMap<String, String>());
-
-    JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
-
-    if (jsonObject == null) {
-      throw new ProxyException("Failed to parse JSON from URL : " + url + ".Internal Error.",
-        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response);
+    try {
+      return Response.temporaryRedirect(new URI(url)).build();
+    } catch (URISyntaxException e) {
+      throw new ProxyException("Failed to set the redirection url to : " + url + ".Internal Error.",
+        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), e.getMessage());
     }
-    return Response.ok(jsonObject).type(MediaType.APPLICATION_JSON).build();
   }
 
   public abstract String getProxyUrl(String endpoint, MultivaluedMap<String, String> queryParams);
