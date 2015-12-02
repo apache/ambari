@@ -115,10 +115,11 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
 
-    is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
     if params.dfs_ha_enabled:
+      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
+      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = True
     
     # During NonRolling Upgrade, both NameNodes are initially down,
