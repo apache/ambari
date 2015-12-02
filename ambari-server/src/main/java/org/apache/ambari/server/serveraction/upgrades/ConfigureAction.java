@@ -17,16 +17,10 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
@@ -52,10 +46,15 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinitio
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.commons.lang.StringUtils;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * The {@link ConfigureAction} is used to alter a configuration property during
@@ -326,11 +325,13 @@ public class ConfigureAction extends AbstractServerAction {
             outputBuffer.append(MessageFormat.format("Deleted all keys from {0}\n", configType));
 
             for (String keeper : transfer.keepKeys) {
-              newValues.put(keeper, base.get(keeper));
+              if (base.containsKey(keeper) && base.get(keeper) != null) {
+                newValues.put(keeper, base.get(keeper));
 
-              // append standard output
-              outputBuffer.append(MessageFormat.format("Preserved {0}/{1} after delete\n",
+                // append standard output
+                outputBuffer.append(MessageFormat.format("Preserved {0}/{1} after delete\n",
                   configType, keeper));
+              }
             }
 
             // !!! with preserved edits, find the values that are different from
