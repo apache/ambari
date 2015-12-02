@@ -97,11 +97,11 @@ public class UpgradeCatalog220Test extends EasyMockSupport {
     dbAccessor.createTable(eq("permission_roleauthorization"), capture(columnsCapturePermissionRoleAuthorization), eq("permission_id"), eq("authorization_id"));
     expectLastCall();
 
-    dbAccessor.addFKConstraint("permission_roleauthorization", "FK_permission_roleauthorization_permission_id",
+    dbAccessor.addFKConstraint("permission_roleauthorization", "FK_permission_roleauth_pid",
         "permission_id", "adminpermission", "permission_id", false);
     expectLastCall();
 
-    dbAccessor.addFKConstraint("permission_roleauthorization", "FK_permission_roleauthorization_authorization_id",
+    dbAccessor.addFKConstraint("permission_roleauthorization", "FK_permission_roleauth_aid",
         "authorization_id", "roleauthorization", "authorization_id", false);
     expectLastCall();
 

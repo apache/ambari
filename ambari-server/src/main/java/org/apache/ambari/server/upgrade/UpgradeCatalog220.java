@@ -337,10 +337,10 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo(ROLE_AUTHORIZATION_ID_COL, String.class, 100, null, false));
     dbAccessor.createTable(PERMISSION_ROLE_AUTHORIZATION_TABLE, columns, PERMISSION_ID_COL, ROLE_AUTHORIZATION_ID_COL);
 
-    dbAccessor.addFKConstraint(PERMISSION_ROLE_AUTHORIZATION_TABLE, "FK_permission_roleauthorization_permission_id",
+    dbAccessor.addFKConstraint(PERMISSION_ROLE_AUTHORIZATION_TABLE, "FK_permission_roleauth_pid",
         PERMISSION_ID_COL, ADMIN_PERMISSION_TABLE, PERMISSION_ID_COL, false);
 
-    dbAccessor.addFKConstraint(PERMISSION_ROLE_AUTHORIZATION_TABLE, "FK_permission_roleauthorization_authorization_id",
+    dbAccessor.addFKConstraint(PERMISSION_ROLE_AUTHORIZATION_TABLE, "FK_permission_roleauth_aid",
         ROLE_AUTHORIZATION_ID_COL, ROLE_AUTHORIZATION_TABLE, ROLE_AUTHORIZATION_ID_COL, false);
   }
 
