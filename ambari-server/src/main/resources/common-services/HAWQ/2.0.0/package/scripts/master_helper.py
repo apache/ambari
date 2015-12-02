@@ -79,9 +79,6 @@ def __create_local_dirs():
   utils.create_dir_as_hawq_user(params.hawq_master_dir)
   utils.create_dir_as_hawq_user(params.hawq_master_temp_dir.split(','))
 
-  Execute("chown {0}:{1} {2}".format(constants.hawq_user, constants.hawq_group, os.path.dirname(params.hawq_master_dir)),
-          user=constants.root_user, timeout=constants.default_exec_timeout)
-
   Execute("chmod 700 {0}".format(params.hawq_master_dir), user=constants.root_user, timeout=constants.default_exec_timeout)
 
 
