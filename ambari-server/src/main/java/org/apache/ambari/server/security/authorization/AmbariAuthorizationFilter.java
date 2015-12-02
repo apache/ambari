@@ -256,6 +256,7 @@ public class AmbariAuthorizationFilter implements Filter {
    */
   private boolean authorizationPerformedInternally(String requestURI) {
     return requestURI.matches(API_USERS_ALL_PATTERN) ||
+        requestURI.matches(API_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
   }
 

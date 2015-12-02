@@ -221,7 +221,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
     urlTests.put("/api/v1/users/user2", "POST", true);
-    urlTests.put("/api/v1/groups", "GET", false);
+    urlTests.put("/api/v1/groups", "GET", true);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
@@ -254,7 +254,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
     urlTests.put("/api/v1/users/user2", "POST", true);
-    urlTests.put("/api/v1/groups", "GET", false);
+    urlTests.put("/api/v1/groups", "GET", true);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);
@@ -287,7 +287,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
     urlTests.put("/api/v1/users/user2", "POST", true);
-    urlTests.put("/api/v1/groups", "GET", false);
+    urlTests.put("/api/v1/groups", "GET", true);
     urlTests.put("/api/v1/ldap_sync_events", "GET", false);
     urlTests.put("/any/other/URL", "GET", true);
     urlTests.put("/any/other/URL", "POST", false);

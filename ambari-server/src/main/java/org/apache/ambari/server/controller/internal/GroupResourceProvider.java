@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -36,6 +37,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 /**
  * Resource provider for group resources.
@@ -63,10 +65,16 @@ class GroupResourceProvider extends AbstractControllerResourceProvider {
                        Map<Resource.Type, String> keyPropertyIds,
                        AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    EnumSet<RoleAuthorization> manageUserAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS);
+    setRequiredCreateAuthorizations(manageUserAuthorizations);
+    setRequiredGetAuthorizations(manageUserAuthorizations);
+    setRequiredUpdateAuthorizations(manageUserAuthorizations);
+    setRequiredDeleteAuthorizations(manageUserAuthorizations);
   }
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -88,7 +96,7 @@ class GroupResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<GroupRequest> requests = new HashSet<GroupRequest>();
@@ -131,7 +139,7 @@ class GroupResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<GroupRequest> requests = new HashSet<GroupRequest>();
 
@@ -152,7 +160,7 @@ class GroupResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<GroupRequest> requests = new HashSet<GroupRequest>();
 

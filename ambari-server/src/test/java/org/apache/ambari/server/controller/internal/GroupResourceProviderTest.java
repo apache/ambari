@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.GroupRequest;
 import org.apache.ambari.server.controller.GroupResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -39,15 +40,35 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * GroupResourceProvider tests.
  */
 public class GroupResourceProviderTest {
+
+  @Before
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResources_Administrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Group;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -57,6 +78,8 @@ public class GroupResourceProviderTest {
 
     // replay
     replay(managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -84,7 +107,16 @@ public class GroupResourceProviderTest {
   }
 
   @Test
-  public void testGetResources() throws Exception {
+  public void testGetResources_Administrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  public void testGetResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Group;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -98,6 +130,8 @@ public class GroupResourceProviderTest {
 
     // replay
     replay(managementController);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -125,12 +159,59 @@ public class GroupResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
-    // currently provider.updateResources() does nothing, nothing to test
+  public void testUpdateResources_Adminstrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ClusterAdminstrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
+    Resource.Type type = Resource.Type.Group;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
+    Set<GroupRequest> requests = AbstractResourceProviderTest.Matcher.getGroupRequestSet("engineering");
+
+    // set expectations
+    managementController.updateGroups(requests);
+
+    // replay
+    replay(managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    Request request = PropertyHelper.getUpdateRequest(properties, null);
+    Predicate predicate = new PredicateBuilder().property(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID).
+        equals("engineering").toPredicate();
+
+    provider.updateResources(request, predicate);
+
+    // verify
+    verify(managementController, response);
   }
 
   @Test
-  public void testDeleteResources() throws Exception {
+  public void testDeleteResources_Administrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Group;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -141,6 +222,8 @@ public class GroupResourceProviderTest {
 
     // replay
     replay(managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,

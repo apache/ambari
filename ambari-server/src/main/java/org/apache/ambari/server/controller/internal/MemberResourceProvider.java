@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
@@ -70,10 +72,16 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
                           @Assisted Map<Resource.Type, String> keyPropertyIds,
                           @Assisted AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
+
+    EnumSet<RoleAuthorization> manageUserAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_USERS);
+    setRequiredCreateAuthorizations(manageUserAuthorizations);
+    setRequiredGetAuthorizations(manageUserAuthorizations);
+    setRequiredUpdateAuthorizations(manageUserAuthorizations);
+    setRequiredDeleteAuthorizations(manageUserAuthorizations);
   }
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
              UnsupportedPropertyException,
              ResourceAlreadyExistsException,
@@ -96,7 +104,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
 
   @Override
   @Transactional
-  public Set<Resource> getResources(Request request, Predicate predicate) throws
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<MemberRequest> requests = new HashSet<MemberRequest>();
@@ -134,7 +142,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(final Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<MemberRequest> requests = new HashSet<MemberRequest>();
@@ -160,7 +168,7 @@ public class MemberResourceProvider extends AbstractControllerResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<MemberRequest> requests = new HashSet<MemberRequest>();

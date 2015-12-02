@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -18,20 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.MemberResponse;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -40,27 +34,54 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import static org.easymock.EasyMock.*;
 
 /**
  * MemberResourceProvider tests.
  */
 public class MemberResourceProviderTest {
+
+  @Before
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResources_Administrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResources_ClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Member;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    ResourceProvider memberResourceProvider = createNiceMock(MemberResourceProvider.class);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
-    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class),
-        eq(managementController))).andReturn(memberResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class), eq(managementController)))
+        .andReturn(new MemberResourceProvider(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), managementController)).anyTimes();
+
+    managementController.createMembers(AbstractResourceProviderTest.Matcher.getMemberRequestSet("engineering", "joe"));
+    expectLastCall().atLeastOnce();
+
     // replay
-    replay(managementController, response, resourceProviderFactory, memberResourceProvider);
+    replay(managementController, response, resourceProviderFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -89,22 +110,83 @@ public class MemberResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testGetResources_Administrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResources_ClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Member;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    ResourceProvider memberResourceProvider = createNiceMock(MemberResourceProvider.class);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class), eq(managementController)))
+        .andReturn(new MemberResourceProvider(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), managementController)).anyTimes();
+
+    expect(managementController.getMembers(AbstractResourceProviderTest.Matcher.getMemberRequestSet(null, null)))
+        .andReturn(Collections.<MemberResponse>emptySet())
+        .atLeastOnce();
+
+    // replay
+    replay(managementController, response, resourceProviderFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+    // create the request
+    Request request = PropertyHelper.getReadRequest(null, null);
+    Predicate predicate = new PredicateBuilder().property(GroupResourceProvider.GROUP_GROUPNAME_PROPERTY_ID).
+        equals("engineering").toPredicate();
+
+    provider.getResources(request, predicate);
+
+    // verify
+    verify(managementController, response);
+  }
+
+  @Test
+  public void testUpdateResources_Administrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResources_ClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
+    Resource.Type type = Resource.Type.Member;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     // set expectations
-    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class),
-        eq(managementController))).andReturn(memberResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class), eq(managementController)))
+        .andReturn(new MemberResourceProvider(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), managementController)).anyTimes();
+
+    managementController.updateMembers(AbstractResourceProviderTest.Matcher.getMemberRequestSet("engineering", "joe"));
+    expectLastCall().atLeastOnce();
 
     // replay
-    replay(managementController, response, resourceProviderFactory, memberResourceProvider);
+    replay(managementController, response, resourceProviderFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -131,22 +213,35 @@ public class MemberResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResources() throws Exception {
+  public void testDeleteResources_Administrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResources_ClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Member;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    ResourceProvider memberResourceProvider = createNiceMock(MemberResourceProvider.class);
 
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     // set expectations
-    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class),
-        eq(managementController))).andReturn(memberResourceProvider).anyTimes();
+    expect(resourceProviderFactory.getMemberResourceProvider(anyObject(Set.class), anyObject(Map.class), eq(managementController)))
+        .andReturn(new MemberResourceProvider(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), managementController)).anyTimes();
+
+    managementController.deleteMembers(AbstractResourceProviderTest.Matcher.getMemberRequestSet("engineering", null));
+    expectLastCall().atLeastOnce();
 
     // replay
-    replay(managementController, response, resourceProviderFactory, memberResourceProvider);
+    replay(managementController, response, resourceProviderFactory);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
