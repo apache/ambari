@@ -37,7 +37,7 @@ App.ConfigProperty = Em.Object.extend({
     }
   }.property('viewType'),
   className: function () {
-    return "value-for-" + this.get('label').replace('.', '-');
+    return "value-for-" + this.get('label').replace(/\./g, "-");
   }.property('viewType'),
   readOnly: false,
   //used for config with "select" view
