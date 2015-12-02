@@ -426,7 +426,7 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
         tries=180,
         try_sleep=10,
         user="hdfs",
@@ -523,7 +523,7 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
         tries=180,
         try_sleep=10,
         user="hdfs",
@@ -626,7 +626,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
         tries=180,
         try_sleep=10,
         user="hdfs",
@@ -729,7 +729,7 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
         tries=180,
         try_sleep=10,
         user="hdfs",
@@ -831,7 +831,7 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
         tries=180,
         try_sleep=10,
         user="hdfs",
@@ -941,7 +941,7 @@ class TestNamenode(RMFTestCase):
                               environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
                               not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
                               )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
                               tries=180,
                               try_sleep=10,
                               user="hdfs",
