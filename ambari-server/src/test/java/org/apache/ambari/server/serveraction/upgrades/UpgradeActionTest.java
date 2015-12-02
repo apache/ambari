@@ -22,6 +22,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +40,9 @@ import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -51,6 +55,7 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -66,6 +71,8 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.UpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -88,7 +95,7 @@ public class UpgradeActionTest {
   private static final String HDP_2_1_1_0 = "2.1.1.0-1";
   private static final String HDP_2_1_1_1 = "2.1.1.1-2";
 
-  private static final String HDP_2_2_1_0 = "2.2.0.1-3";
+  private static final String HDP_2_2_0_1 = "2.2.0.1-3";
 
   private static final StackId HDP_21_STACK = new StackId("HDP-2.1.1");
   private static final StackId HDP_22_STACK = new StackId("HDP-2.2.0");
@@ -97,11 +104,18 @@ public class UpgradeActionTest {
 
   private Injector m_injector;
 
+  private AmbariManagementController amc;
+
+  private AmbariMetaInfo ambariMetaInfo;
+
   @Inject
   private OrmTestHelper m_helper;
 
   @Inject
   private RepositoryVersionDAO repoVersionDAO;
+
+  @Inject
+  private Clusters clusters;
 
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
@@ -130,6 +144,14 @@ public class UpgradeActionTest {
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
     m_injector.getInstance(UnitOfWork.class).begin();
+
+    // Initialize AmbariManagementController
+    amc = m_injector.getInstance(AmbariManagementController.class);
+    ambariMetaInfo = m_injector.getInstance(AmbariMetaInfo.class);
+
+    Field field = AmbariServer.class.getDeclaredField("clusterController");
+    field.setAccessible(true);
+    field.set(null, amc);
   }
 
   @After
@@ -142,7 +164,6 @@ public class UpgradeActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     clusters.addCluster(clusterName, sourceStack);
 
     Cluster c = clusters.getCluster(clusterName);
@@ -309,6 +330,94 @@ public class UpgradeActionTest {
     hostVersionDAO.create(entity);
   }
 
+  /***
+   * During an Express Upgrade that crosses a stack version, Ambari calls UpdateDesiredStackAction
+   * in order to change the stack and apply configs.
+   * The configs that are applied must be saved with the username that is passed in the role params.
+   */
+  @Test
+  public void testExpressUpgradeUpdateDesiredStackAction() throws Exception {
+    StackId sourceStack = HDP_21_STACK;
+    StackId targetStack = HDP_22_STACK;
+    String sourceRepo = HDP_2_1_1_0;
+    String targetRepo = HDP_2_2_0_1;
+
+    // Must be a NON_ROLLING upgrade that jumps stacks in order for it to apply config changes.
+    // That upgrade pack has changes for ZK and NameNode.
+    String upgradePackName = "upgrade_nonrolling_new_stack";
+
+    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
+
+    Map<String, UpgradePack> packs = metaInfo.getUpgradePacks(sourceStack.getStackName(), sourceStack.getStackVersion());
+    Assert.assertTrue(packs.containsKey(upgradePackName));
+
+    makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
+
+    RepositoryVersionEntity targetRve = repoVersionDAO.findByStackNameAndVersion("HDP", targetRepo);
+    Assert.assertNotNull(targetRve);
+
+    Cluster cluster = clusters.getCluster("c1");
+
+    // Install ZK and HDFS with some components
+    Service zk = installService(cluster, "ZOOKEEPER");
+    addServiceComponent(cluster, zk, "ZOOKEEPER_SERVER");
+    addServiceComponent(cluster, zk, "ZOOKEEPER_CLIENT");
+    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_SERVER", "h1");
+    createNewServiceComponentHost(cluster, "ZOOKEEPER", "ZOOKEEPER_CLIENT", "h1");
+
+    Service hdfs = installService(cluster, "HDFS");
+    addServiceComponent(cluster, hdfs, "NAMENODE");
+    addServiceComponent(cluster, hdfs, "DATANODE");
+    createNewServiceComponentHost(cluster, "HDFS", "NAMENODE", "h1");
+    createNewServiceComponentHost(cluster, "HDFS", "DATANODE", "h1");
+
+    // Create some configs
+    createConfigs(cluster);
+    Collection<Config> configs = cluster.getAllConfigs();
+    Assert.assertFalse(configs.isEmpty());
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_ORIGINAL_STACK, sourceStack.getStackId());
+    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_TARGET_STACK, targetStack.getStackId());
+    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_DIRECTION, Direction.UPGRADE.toString());
+    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_VERSION, targetRepo);
+    commandParams.put(UpdateDesiredStackAction.COMMAND_PARAM_UPGRADE_PACK, upgradePackName);
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    Map<String, String> roleParams = new HashMap<>();
+
+    // User that is performing the config changes
+    String userName = "admin";
+    roleParams.put(ServerAction.ACTION_USER_NAME, userName);
+    executionCommand.setRoleParams(roleParams);
+    executionCommand.setClusterName("c1");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    // Call the action to change the desired stack and apply the configs from the Config Pack called by the Upgrade Pack.
+    UpdateDesiredStackAction action = m_injector.getInstance(UpdateDesiredStackAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+
+    List<ServiceConfigVersionResponse> configVersionsAfter = cluster.getServiceConfigVersions();
+    Assert.assertFalse(configVersionsAfter.isEmpty());
+    boolean atLeastOneCreated = false;
+    for (ServiceConfigVersionResponse configResponse : configVersionsAfter) {
+      if (configResponse.getIsCurrent() && configResponse.getVersion() > 1L && configResponse.getUserName().equals(userName)) {
+        atLeastOneCreated = true;
+        break;
+      }
+    }
+    // The user should have created at least one version.
+    Assert.assertTrue(atLeastOneCreated);
+  }
+
   @Test
   public void testFinalizeDowngrade() throws Exception {
     StackId sourceStack = HDP_21_STACK;
@@ -366,7 +475,6 @@ public class UpgradeActionTest {
     // Verify the repo before calling Finalize
     AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster("c1");
 
@@ -430,7 +538,6 @@ public class UpgradeActionTest {
     // Verify the repo before calling Finalize
     AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(AmbariCustomCommandExecutionHelper.class);
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     Host host = clusters.getHost("h1");
     Cluster cluster = clusters.getCluster("c1");
 
@@ -478,11 +585,10 @@ public class UpgradeActionTest {
     StackId sourceStack = HDP_21_STACK;
     StackId targetStack = HDP_22_STACK;
     String sourceRepo = HDP_2_1_1_0;
-    String targetRepo = HDP_2_2_1_0;
+    String targetRepo = HDP_2_2_0_1;
 
     makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
 
     // setup the cluster for the upgrade across stacks
@@ -531,11 +637,9 @@ public class UpgradeActionTest {
     StackId sourceStack = HDP_21_STACK;
     StackId targetStack = HDP_22_STACK;
     String sourceRepo = HDP_2_1_1_0;
-    String targetRepo = HDP_2_2_1_0;
+    String targetRepo = HDP_2_2_0_1;
 
     makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
-
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
 
     // install HDFS with some components
@@ -559,7 +663,7 @@ public class UpgradeActionTest {
     // verify we have configs in both HDP stacks
     cluster = clusters.getCluster("c1");
     Collection<Config> configs = cluster.getAllConfigs();
-    assertEquals(6, configs.size());
+    assertEquals(8, configs.size());
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put(FinalizeUpgradeAction.UPGRADE_DIRECTION_KEY, "downgrade");
@@ -602,7 +706,7 @@ public class UpgradeActionTest {
     // verify we have configs in only 1 stack
     cluster = clusters.getCluster("c1");
     configs = cluster.getAllConfigs();
-    assertEquals(3, configs.size());
+    assertEquals(4, configs.size());
 
     hosts = dao.findByClusterStackAndVersion("c1", targetStack, targetRepo);
     assertFalse(hosts.isEmpty());
@@ -623,11 +727,10 @@ public class UpgradeActionTest {
     StackId sourceStack = HDP_21_STACK;
     StackId targetStack = HDP_22_STACK;
     String sourceRepo = HDP_2_1_1_0;
-    String targetRepo = HDP_2_2_1_0;
+    String targetRepo = HDP_2_2_0_1;
 
     makeCrossStackUpgradeCluster(sourceStack, sourceRepo, targetStack, targetRepo);
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getCluster("c1");
 
     Service service = installService(cluster, "HDFS");
@@ -752,18 +855,24 @@ public class UpgradeActionTest {
     properties.put("a", "a1");
     properties.put("b", "b1");
 
-    Config c1 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, m_injector);
-    properties.put("c", "c1");
-    properties.put("d", "d1");
+    Config c1 = new ConfigImpl(cluster, "zookeeper-env", properties, propertiesAttributes, m_injector);
+    properties.put("zookeeper_a", "value_1");
+    properties.put("zookeeper_b", "value_2");
 
-    Config c2 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, m_injector);
-    Config c3 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, m_injector);
+    Config c2 = new ConfigImpl(cluster, "hdfs-site", properties, propertiesAttributes, m_injector);
+    properties.put("hdfs_a", "value_3");
+    properties.put("hdfs_b", "value_4");
+
+    Config c3 = new ConfigImpl(cluster, "core-site", properties, propertiesAttributes, m_injector);
+    Config c4 = new ConfigImpl(cluster, "foo-site", properties, propertiesAttributes, m_injector);
 
     cluster.addConfig(c1);
     cluster.addConfig(c2);
     cluster.addConfig(c3);
+    cluster.addConfig(c4);
     c1.persist();
     c2.persist();
     c3.persist();
+    c4.persist();
   }
 }

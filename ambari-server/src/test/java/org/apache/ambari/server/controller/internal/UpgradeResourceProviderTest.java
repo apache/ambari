@@ -1021,7 +1021,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     UpgradePack upgrade = upgradePacks.get("upgrade_to_new_stack");
-    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade);
+    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade, "admin");
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
     Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");

@@ -672,6 +672,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
     ConfigHelper configHelper = getManagementController().getConfigHelper();
+    String userName = getManagementController().getAuthName();
 
     // the version being upgraded or downgraded to (ie 2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
@@ -765,7 +766,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (pack.getType() == UpgradeType.ROLLING) {
       // Desired configs must be set before creating stages because the config tag
       // names are read and set on the command for filling in later
-      applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, pack);
+      applyStackAndProcessConfigurations(targetStackId.getStackName(), cluster, version, direction, pack, userName);
     }
 
     // Resolve or build a proper config upgrade pack
@@ -903,14 +904,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param upgradePack
    *          upgrade pack used for upgrade or downgrade. This is needed to determine
    *          which services are effected.
+   * @param userName
+   *          username performing the action
    * @throws AmbariException
    */
-  public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack)
+  public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack, String userName)
       throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs", version);
       return;
+    }
+
+    if (null == userName) {
+      userName = getManagementController().getAuthName();
     }
 
     // if the current and target stacks are the same (ie HDP 2.2.0.0 -> 2.2.1.0)
@@ -937,7 +944,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, Map<String, String>> newConfigurationsByType = null;
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    // TODO AMBARI-12698, handle jumping across several stacks
     if (direction == Direction.UPGRADE) {
       // populate a map of default configurations for the old stack (this is
       // used when determining if a property has been customized and should be
@@ -1074,7 +1080,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // !!! configs must be created after setting the stack version
     if (null != newConfigurationsByType) {
       configHelper.createConfigTypes(cluster, getManagementController(), newConfigurationsByType,
-          getManagementController().getAuthName(), "Configuration created for Upgrade");
+          userName, "Configuration created for Upgrade");
     }
   }
 
