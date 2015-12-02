@@ -405,7 +405,7 @@ public class UpgradeCatalog213Test {
     expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
       put("normal", mockClusterExpected);
     }}).atLeastOnce();
-    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP","2.2"));
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2"));
 
     expect(mockClusterExpected.getDesiredConfigByType("hbase-env")).andReturn(mockHbaseEnv).atLeastOnce();
     expect(mockHbaseEnv.getProperties()).andReturn(propertiesHbaseEnv).atLeastOnce();
@@ -700,6 +700,26 @@ public class UpgradeCatalog213Test {
     easyMockSupport.replayAll();
     mockInjector.getInstance(UpgradeCatalog213.class).updateHDFSConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateAmsHbaseEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method updateAmsHbaseEnvContent = UpgradeCatalog213.class.getDeclaredMethod("updateAmsHbaseEnvContent", String.class);
+    UpgradeCatalog213 upgradeCatalog213 = new UpgradeCatalog213(injector);
+    String oldContent = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}\n" +
+      "\n" +
+      "# The maximum amount of heap to use, in MB. Default is 1000.\n" +
+      "export HBASE_HEAPSIZE={{hbase_heapsize}}\n";
+
+    String expectedContent = "export HBASE_CLASSPATH=${HBASE_CLASSPATH}\n" +
+      "\n" +
+      "# The maximum amount of heap to use, in MB. Default is 1000.\n" +
+      "#export HBASE_HEAPSIZE={{hbase_heapsize}}\n" +
+      "\n" +
+      "# The maximum amount of heap to use for hbase shell.\n" +
+      "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
+    String result = (String) updateAmsHbaseEnvContent.invoke(upgradeCatalog213, oldContent);
+    Assert.assertEquals(expectedContent, result);
   }
 
   @Test

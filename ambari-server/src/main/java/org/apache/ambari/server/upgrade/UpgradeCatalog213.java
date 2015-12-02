@@ -229,7 +229,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   protected void executeStageDDLUpdates() throws SQLException {
     dbAccessor.addColumn(STAGE_TABLE,
-            new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
+      new DBAccessor.DBColumnInfo("supports_auto_skip_failure", Integer.class, 1, 0, false));
   }
 
   /**
@@ -1009,6 +1009,16 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
       if (clusterMap != null && !clusterMap.isEmpty()) {
         for (final Cluster cluster : clusterMap.values()) {
+
+          Config amsHbaseEnv = cluster.getDesiredConfigByType(AMS_HBASE_ENV);
+          if (amsHbaseEnv != null) {
+            Map<String, String> amsHbaseEnvProperties = amsHbaseEnv.getProperties();
+            String content = amsHbaseEnvProperties.get("content");
+            Map<String, String> newProperties = new HashMap<>();
+            newProperties.put("content", updateAmsHbaseEnvContent(content));
+            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_ENV, newProperties, true, true);
+          }
+
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
             Map<String, String> newProperties = new HashMap<>();
@@ -1037,6 +1047,19 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       }
     }
 
+  }
+
+  protected String updateAmsHbaseEnvContent(String content) {
+    if (content == null) {
+      return null;
+    }
+    String regSearch = "export HBASE_HEAPSIZE=";
+    String replacement = "#export HBASE_HEAPSIZE=";
+    content = content.replaceAll(regSearch, replacement);
+    content += "\n" +
+      "# The maximum amount of heap to use for hbase shell.\n" +
+      "export HBASE_SHELL_OPTS=\"-Xmx256m\"\n";
+    return content;
   }
 
   protected void updateKafkaConfigs() throws AmbariException {
