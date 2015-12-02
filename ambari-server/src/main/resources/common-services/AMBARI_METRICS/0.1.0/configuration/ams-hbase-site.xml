@@ -187,6 +187,14 @@
     </description>
   </property>
   <property>
+    <name>hbase.hregion.max.filesize</name>
+    <value>4294967296</value>
+    <description>
+      Maximum HFile size. If the sum of the sizes of a region’s HFiles has grown
+      to exceed this value, the region is split in two. Default is 10Gb.
+    </description>
+  </property>
+  <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
     <value>4</value>
     <description>

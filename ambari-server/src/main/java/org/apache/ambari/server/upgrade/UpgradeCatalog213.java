@@ -86,10 +86,14 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String TOPOLOGY_CONFIG = "topology";
   private static final String KAFKA_BROKER = "kafka-broker";
   private static final String KAFKA_ENV_CONFIG = "kafka-env";
-  private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS = "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
+  private static final String KAFKA_ENV_CONTENT_KERBEROS_PARAMS =
+    "export KAFKA_KERBEROS_PARAMS={{kafka_kerberos_params}}";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String AMS_SITE = "ams-site";
+  private static final String AMS_HBASE_SITE = "ams-hbase-site";
+  private static final String AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY =
+    "zookeeper.session.timeout.localHBaseCluster";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
   private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
@@ -214,9 +218,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   private void executeBlueprintDDLUpdates() throws AmbariException, SQLException {
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_TYPE_COLUMN,
-        String.class, 32, "NONE", false));
+      String.class, 32, "NONE", false));
     dbAccessor.addColumn(BLUEPRINT_TABLE, new DBAccessor.DBColumnInfo(SECURITY_DESCRIPTOR_REF_COLUMN,
-        String.class, null, null, true));
+      String.class, null, null, true));
   }
 
   /**
@@ -1051,6 +1055,18 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             newProperties.put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
+          }
+
+          Config amsHbaseSite = cluster.getDesiredConfigByType(AMS_HBASE_SITE);
+          if (amsHbaseSite != null) {
+            Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
+            String zkTimeout = amsHbaseSiteProperties.get(AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY);
+            // if old default, set new default
+            if ("20000".equals(zkTimeout)) {
+              Map<String, String> newProperties = new HashMap<>();
+              newProperties.put(AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY, "120000");
+              updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
+            }
           }
         }
       }
