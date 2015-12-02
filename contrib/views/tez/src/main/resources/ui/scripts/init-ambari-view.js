@@ -164,6 +164,9 @@ function setConfigs() {
       aminfo: '%@rmproxy/proxy/__app_id__/ws/v1/tez'.fmt(resourcesPrefix),
       aminfoV2: '%@rmproxy/proxy/__app_id__/ws/v2/tez'.fmt(resourcesPrefix),
       cluster: '%@rmproxy/ws/v1/cluster'.fmt(resourcesPrefix)
+    },
+    otherNamespace: {
+      cluster: '%@rmredirect/cluster'.fmt(resourcesPrefix)
     }
   });
 
