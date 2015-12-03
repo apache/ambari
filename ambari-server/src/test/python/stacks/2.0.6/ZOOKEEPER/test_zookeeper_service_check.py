@@ -32,11 +32,14 @@ class TestServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('File', '/tmp/zkSmoke.out',
+                              action=['delete']
+    )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
                        mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 False /usr/bin/kinit no_keytab no_principal',
+    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 False /usr/bin/kinit no_keytab no_principal /tmp/zkSmoke.out',
                        logoutput = True,
                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                        tries = 3,
@@ -52,11 +55,14 @@ class TestServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('File', '/tmp/zkSmoke.out',
+                              action=['delete']
+    )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
                        mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 True /usr/bin/kinit /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',
+    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/lib/zookeeper/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 True /usr/bin/kinit /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM /tmp/zkSmoke.out',
                        logoutput = True,
                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                        tries = 3,
@@ -72,11 +78,14 @@ class TestServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('File', '/tmp/zkSmoke.out',
+                              action=['delete']
+    )
     self.assertResourceCalled('File', '/tmp/zkSmoke.sh',
                        content = StaticFile('zkSmoke.sh'),
                        mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/hdp/current/zookeeper-client/bin/zkCli.sh ambari-qa /usr/hdp/current/zookeeper-client/conf 2181 False /usr/bin/kinit no_keytab no_principal',
+    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/hdp/current/zookeeper-client/bin/zkCli.sh ambari-qa /usr/hdp/current/zookeeper-client/conf 2181 False /usr/bin/kinit no_keytab no_principal /tmp/zkSmoke.out',
                        logoutput = True,
                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                        tries = 3,

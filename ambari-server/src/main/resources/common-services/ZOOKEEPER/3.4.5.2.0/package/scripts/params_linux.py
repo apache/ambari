@@ -19,6 +19,7 @@ Ambari Agent
 
 """
 import status_params
+import os
 
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -45,6 +46,7 @@ zk_home = "/usr"
 zk_bin = "/usr/lib/zookeeper/bin"
 zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
 config_dir = "/etc/zookeeper/conf"
+zk_smoke_out = os.path.join(tmp_dir, "zkSmoke.out")
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
