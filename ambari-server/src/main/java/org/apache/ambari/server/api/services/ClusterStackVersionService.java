@@ -124,7 +124,7 @@ public class ClusterStackVersionService extends BaseService {
 
   /**
    * Handles: POST /{clustername}/stack_versions requests
-   * triggering Finalize during manual Rolling Upgrade
+   * triggering Finalize during manual Stack Upgrade
    *
    * @param body        http body
    * @param headers     http headers

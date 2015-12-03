@@ -449,7 +449,7 @@ class Controller(threading.Thread):
     """
     In Ambari 2.1.2, we moved the dfs_data_dir_mount.hist to a static location
     because /etc/hadoop/conf points to a symlink'ed location that would change during
-    Rolling Upgrade.
+    Stack Upgrade.
     """
     try:
       if compare_versions(self.version, "2.1.2") >= 0:

@@ -22,7 +22,7 @@ __all__ = ["Direction", "SafeMode"]
 
 class Direction:
   """
-  Rolling Upgrade direction
+  Stack Upgrade direction
   """
   UPGRADE = "upgrade"
   DOWNGRADE = "downgrade"

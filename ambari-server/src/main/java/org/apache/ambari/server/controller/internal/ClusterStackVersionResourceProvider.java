@@ -534,7 +534,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   /**
    * The only appliance of this method is triggering Finalize during
-   * manual Rolling Upgrade
+   * manual Stack Upgrade
    */
   @Override
   public RequestStatus updateResources(Request request, Predicate predicate)

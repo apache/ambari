@@ -38,6 +38,7 @@ class TestPackageResource(TestCase):
     call_mock.return_value= (1, '')
     with Environment('/') as env:
       Package("some_package",
+        logoutput = False
       )
     call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
  call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'}),
@@ -54,6 +55,7 @@ class TestPackageResource(TestCase):
     shell_mock.return_value = (0, '')
     with Environment('/') as env:
       Package("some_package",
+        logoutput = False
       )
     call_mock.assert_has_calls([call("dpkg --get-selections | grep -v deinstall | awk '{print $1}' | grep ^some-package$"),
  call(['/usr/bin/apt-get', '-q', '-o', 'Dpkg::Options::=--force-confdef', '--allow-unauthenticated', '--assume-yes', 'install', 'some-package'], logoutput=False, sudo=True, env={'DEBIAN_FRONTEND': 'noninteractive'})])
@@ -96,6 +98,7 @@ class TestPackageResource(TestCase):
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
     with Environment('/') as env:
       Package("some_package",
+        logoutput = False
       )
     self.assertTrue(sys.modules['rpm'].TransactionSet.return_value.dbMatch.called)
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package'], logoutput=False, sudo=True)
@@ -108,6 +111,7 @@ class TestPackageResource(TestCase):
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packag'}]
     with Environment('/') as env:
       Package("some_package*",
+        logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package*'], logoutput=False, sudo=True)
 
@@ -132,6 +136,7 @@ class TestPackageResource(TestCase):
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_packages'}]
     with Environment('/') as env:
       Package("some_package",
+        logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'install', '--auto-agree-with-licenses', '--no-confirm', 'some_package'], logoutput=False, sudo=True)
 
@@ -175,7 +180,8 @@ class TestPackageResource(TestCase):
   @patch.object(System, "os_family", new = 'redhat')
   def test_action_install_use_repos_rhel(self, shell_mock):
     with Environment('/') as env:
-      Package("some_package", use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885']
+      Package("some_package", use_repos=['HDP-UTILS-2.2.0.1-885', 'HDP-2.2.0.1-885'],
+              logoutput = False
               )
     self.assertEquals(shell_mock.call_args[0][0],
                       ['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install',
@@ -203,7 +209,8 @@ class TestPackageResource(TestCase):
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
-              action = "remove"
+              action = "remove",
+              logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'erase', 'some_package'], logoutput=False, sudo=True)
 
@@ -217,7 +224,8 @@ class TestPackageResource(TestCase):
     sys.modules['rpm'].TransactionSet.return_value.dbMatch.return_value = [{'name':'some_package'}]
     with Environment('/') as env:
       Package("some_package",
-              action = "remove"
+              action = "remove",
+              logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/zypper', '--quiet', 'remove', '--no-confirm', 'some_package'], logoutput=False, sudo=True)
 
@@ -227,7 +235,8 @@ class TestPackageResource(TestCase):
   def test_action_install_version_attr(self, shell_mock):
     with Environment('/') as env:
       Package("some_package",
-              version = "3.5.0"
+              version = "3.5.0",
+              logoutput = False
       )
     shell_mock.assert_called_with(['/usr/bin/yum', '-d', '0', '-e', '0', '-y', 'install', 'some_package-3.5.0'], logoutput=False, sudo=True)
 

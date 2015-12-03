@@ -385,7 +385,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
         String baseUrl = repositoryEntity.getBaseUrl();
         if (existingRepoUrls.contains(baseUrl)) {
           throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
-                  "Setting up base urls that contain the same versions of components will cause rolling upgrade to fail.");
+                  "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }
     }
