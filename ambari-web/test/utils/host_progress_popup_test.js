@@ -101,53 +101,63 @@ describe('App.HostPopup', function () {
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 2
+            id: 2,
+            role: "NAMENODE"
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 3
+            id: 3,
+            role: "NAMENODE"
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1
+            id: 1,
+            role: "NAMENODE"
           }
         }
       ],
       m: 'All COMPLETED',
       r: 'SUCCESS',
       p: 100,
-      ids: [1,2,3]
+      ids: [1,2,3],
+      name: "host1",
+      displayHostNameResult: "host1"
     },
     {
       t: [
         {
           Tasks: {
             status: 'FAILED',
-            id: 2
+            id: 2,
+            role: "NAMENODE"
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1
+            id: 1,
+            role: "NAMENODE"
           }
         }
         ,
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 3
+            id: 3,
+            role: "NAMENODE"
           }
         }
       ],
       m: 'One FAILED',
       r: 'FAILED',
       p: 100,
-      ids: [1,2,3]
+      ids: [1,2,3],
+      name: "",
+      displayHostNameResult: "n/a"
     },
     {
       t: [
@@ -167,47 +177,57 @@ describe('App.HostPopup', function () {
       m: 'One ABORTED',
       r: 'ABORTED',
       p: 100,
-      ids: [1,2]
+      ids: [1,2],
+      name: null,
+      displayHostNameResult: "n/a"
     },
     {
       t: [
         {
           Tasks: {
             status: 'TIMEDOUT',
-            id: 3
+            id: 3,
+            role: "NAMENODE"
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 1
+            id: 1,
+            role: "AMBARI_SERVER_ACTION"
           }
         }
       ],
       m: 'One TIMEDOUT',
       r: 'TIMEDOUT',
       p: 100,
-      ids: [1,3]
+      ids: [1,3],
+      name: "host2",
+      displayHostNameResult: "host2"
     },
     {
       t: [
         {
           Tasks: {
             status: 'IN_PROGRESS',
-            id: 1
+            id: 1,
+            role: "NAMENODE"
           }
         },
         {
           Tasks: {
             status: 'COMPLETED',
-            id: 2
+            id: 2,
+            role: "AMBARI_SERVER_ACTION"
           }
         }
       ],
       m: 'One IN_PROGRESS',
       r: 'IN_PROGRESS',
       p: 68,
-      ids: [1,2]
+      ids: [1,2],
+      name: null,
+      displayHostNameResult: "Ambari Server Host"
     },
     {
       t: [
@@ -227,7 +247,9 @@ describe('App.HostPopup', function () {
       m: 'Something else',
       r: 'PENDING',
       p: 55,
-      ids: [2,3]
+      ids: [2,3],
+      name: undefined,
+      displayHostNameResult: "n/a"
     }
   ];
 
@@ -357,6 +379,14 @@ describe('App.HostPopup', function () {
     test_tasks.forEach(function(test_task) {
       it(test_task.m, function() {
         expect(App.HostPopup.getProgress(test_task.t)).to.equal(test_task.p);
+      });
+    });
+  });
+
+  describe('#getDisplayHostname', function() {
+    test_tasks.forEach(function(test_task) {
+      it(test_task.m, function() {
+        expect(App.HostPopup.getDisplayHostname(test_task.name, test_task.t)).to.equal(test_task.displayHostNameResult);
       });
     });
   });

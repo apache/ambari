@@ -271,6 +271,24 @@ App.HostPopup = Em.Object.create({
   },
 
   /**
+   * Get hostname to display: return "n/a" for safety measure if hostname is null
+   * return "Ambari Server Host" if task role is AMBARI_SERVER_ACTION
+   * @param {Array} tasks
+   * @param {String} hostname
+   * @return {String} hostname to display
+   */
+  getDisplayHostname: function (hostname, tasks) {
+    if ((!hostname || hostname == "null") && tasks.someProperty('Tasks.role', Em.I18n.t('hostPopup.Tasks.role.ambariServerAction'))) {
+      // change hostname to "ambari server host"
+      return Em.I18n.t('hostPopup.Hosts.ambariServerHost');
+    } else if ((!hostname || hostname == "null")){
+      // just for safety measure
+      return Em.I18n.t('common.na');
+    }
+    return hostname;
+  },
+
+  /**
    * Count number of operations for select box options
    * @param {Object[]} obj
    * @param {Object[]} categories
@@ -574,8 +592,12 @@ App.HostPopup = Em.Object.create({
           var hostInfo = Ember.Object.create({
             name: hostName,
             publicName: _host.publicName,
+            publicNameDisplay: function () {
+              return self.getDisplayHostname(this.get('publicName'), tasks);
+            }.property('publicName'),
             displayName: function () {
-              return this.get('name').length < 43 ? this.get('name') : (this.get('name').substr(0, 40) + '...');
+              var name = self.getDisplayHostname(this.get('name'), tasks);
+              return name.length < 43 ? name : (name.substr(0, 40) + '...');
             }.property('name'),
             progress: 0,
             status: App.format.taskStatus("PENDING"),
@@ -1128,7 +1150,7 @@ App.HostPopup = Em.Object.create({
             tasksInfo.pushObject(this.get("controller").createTask(_task));
           }, this);
           if (tasksInfo.length) {
-            this.get("controller").set("popupHeaderName", event.context.publicName);
+            this.get("controller").set("popupHeaderName", event.context.get('publicNameDisplay'));
             this.get("controller").set("currentHostName", event.context.publicName);
           }
           this.switchLevel("TASKS_LIST");
