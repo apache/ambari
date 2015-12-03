@@ -202,7 +202,12 @@ App.MainAdminStackVersionsView = Em.View.extend({
    * stop polling upgrade state
    */
   willDestroyElement: function () {
+    var runningCheckRequests = this.get('controller.runningCheckRequests');
     window.clearTimeout(this.get('updateTimer'));
+    runningCheckRequests.forEach(function (request) {
+      request.abort();
+    });
+    runningCheckRequests.clear();
   },
 
   /**

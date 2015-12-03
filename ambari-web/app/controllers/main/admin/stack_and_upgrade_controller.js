@@ -111,7 +111,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       icon: "icon-dashboard",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.RU.description'),
       selected: false,
-      allowed: true
+      allowed: true,
+      isCheckComplete: false,
+      isCheckRequestInProgress: false,
+      precheckResultsMessage: '',
+      precheckResultsTitle: '',
+      action: ''
     }),
     Em.Object.create({
       displayName: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.title'),
@@ -119,9 +124,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       icon: "icon-bolt",
       description: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.EU.description'),
       selected: false,
-      allowed: true
+      allowed: true,
+      isCheckComplete: false,
+      isCheckRequestInProgress: false,
+      precheckResultsMessage: '',
+      precheckResultsTitle: '',
+      action: ''
     })
   ],
+
+  runningCheckRequests: [],
 
   /**
    * @type {boolean} true if some request that should disable actions is in progress
@@ -658,6 +670,29 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     }, this);
   },
 
+  getConfigsWarnings: function (configsMergeWarning) {
+    var configs = [];
+    if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
+      var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
+      if (configsMergeCheckData && Em.isArray(configsMergeCheckData)) {
+        configs = configsMergeCheckData.map(function (item) {
+          var isDeprecated = Em.isNone(item.new_stack_value),
+            willBeRemoved = Em.isNone(item.result_value);
+          return {
+            type: item.type,
+            name: item.property,
+            currentValue: item.current,
+            recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
+            isDeprecated: isDeprecated,
+            resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
+            willBeRemoved: willBeRemoved
+          };
+        });
+      }
+    }
+    return configs;
+  },
+
   /**
    * Open upgrade options window: upgrade type and failures tolerance
    * @param {boolean} isInUpgradeWizard
@@ -665,15 +700,25 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @return App.ModalPopup
    */
   upgradeOptions: function (isInUpgradeWizard, version) {
-    var self = this;
+    var self = this,
+      upgradeMethods = this.get('upgradeMethods'),
+      runningCheckRequests = this.get('runningCheckRequests');
     if (!isInUpgradeWizard) {
-      this.getSupportedUpgradeTypes(Ember.Object.create({
+      upgradeMethods.setEach('isCheckRequestInProgress', true);
+      upgradeMethods.setEach('selected', false);
+      var request = this.getSupportedUpgradeTypes(Ember.Object.create({
         stackName: App.get('currentStackVersion').split('-')[0],
         stackVersion: App.get('currentStackVersion').split('-')[1],
         toVersion: version.get('repositoryVersion')
-      })).done(function(){
-          self.runUpgradeMethodChecks(version);
-      });
+      })).done(function () {
+          if (App.get('router.currentState.name') === 'versions' && App.get('router.currentState.parentState.name') === 'stackAndUpgrade') {
+            self.runUpgradeMethodChecks(version);
+          }
+      }).always(function () {
+          self.set('runningCheckRequests', runningCheckRequests.rejectProperty('type', 'ALL'));
+        });
+      request.type = 'ALL';
+      this.get('runningCheckRequests').push(request);
     }
 
     return App.ModalPopup.show({
@@ -716,6 +761,20 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           selectedMethod.set('selected', true);
           this.set('parentView.selectedMethod', selectedMethod);
         },
+        runAction: function (event) {
+          var method = event.context,
+            action = method.get('action');
+          if (action) {
+            this.get(action)(event);
+          }
+        },
+        rerunCheck: function (event) {
+          self.runPreUpgradeCheckOnly({
+            value: version.get('repositoryVersion'),
+            label: version.get('displayName'),
+            type: event.context.get('type')
+          });
+        },
         openMessage: function (event) {
           if (isInUpgradeWizard || !event.context.get('allowed')) return;
           var data = event.context.get('precheckResultsData');
@@ -728,25 +787,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             popupData = {
               items: data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE')
             },
-            configs = [];
-          if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
-            var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
-            if (configsMergeCheckData) {
-              configs = configsMergeCheckData.map(function (item) {
-                var isDeprecated = Em.isNone(item.new_stack_value),
-                  willBeRemoved = Em.isNone(item.result_value);
-                return {
-                  type: item.type,
-                  name: item.property,
-                  currentValue: item.current,
-                  recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
-                  isDeprecated: isDeprecated,
-                  resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
-                  willBeRemoved: willBeRemoved
-                };
-              });
-            }
-          }
+            configs = self.getConfigsWarnings(configsMergeWarning);
           App.showClusterCheckPopup(popupData, {
             header: header,
             failTitle: failTitle,
@@ -775,9 +816,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       skipSCFailures: self.get('failuresTolerance.skipSCFailures'),
       disablePrimary: function () {
         if (isInUpgradeWizard) return false;
-        var selectedMethod = self.get('upgradeMethods').findProperty('selected');
-        return selectedMethod ? selectedMethod.get('isPrecheckFailed') : true;
-      }.property('selectedMethod'),
+        var selectedMethod = this.get('selectedMethod');
+        return (selectedMethod ? (selectedMethod.get('isPrecheckFailed') || selectedMethod.get('isCheckRequestInProgress')) : true);
+      }.property('selectedMethod', 'selectedMethod.isPrecheckFailed', 'selectedMethod.isCheckRequestInProgress'),
       onPrimary: function () {
         this.hide();
         if (isInUpgradeWizard) {
@@ -834,15 +875,28 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
   /**
    * send request for pre upgrade check only
    */
-  runPreUpgradeCheckOnly: function(data) {
+  runPreUpgradeCheckOnly: function (data) {
     if (App.get('supports.preUpgradeCheck')) {
-      App.ajax.send({
+      var method = this.get('upgradeMethods').findProperty('type', data.type);
+      method.setProperties({
+        isCheckComplete: false,
+        isCheckRequestInProgress: true,
+        action: ''
+      });
+      var request = App.ajax.send({
         name: "admin.upgrade.pre_upgrade_check",
         sender: this,
         data: data,
-        success: "runPreUpgradeCheckOnlySuccess",
-        error: "runPreUpgradeCheckError"
+        success: 'runPreUpgradeCheckOnlySuccess',
+        error: 'runPreUpgradeCheckOnlyError',
+        callback: function () {
+          var runningCheckRequests = this.sender.get('runningCheckRequests');
+          method.set('isCheckRequestInProgress', false);
+          this.sender.set('runningCheckRequests', runningCheckRequests.rejectProperty('type', this.data.type));
+        }
       });
+      request.type = data.type;
+      this.get('runningCheckRequests').push(request);
     }
   },
 
@@ -854,8 +908,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       name: "admin.upgrade.get_supported_upgradeTypes",
       sender: this,
       data: data,
-      success: "getSupportedUpgradeTypesSuccess",
-      error: "getSupportedUpgradeTypesError"
+      success: "getSupportedUpgradeTypesSuccess"
     });
   },
 
@@ -898,11 +951,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       message = Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.allPassed');
     }
     var method = self.get('upgradeMethods').findProperty('type', params.type);
-    method.set('precheckResultsMessage', message);
-    method.set('precheckResultsMessageClass', messageClass);
-    method.set('isPrecheckFailed', messageClass == 'RED');
-    method.set('precheckResultsMessageIconClass', messageIconClass);
-    method.set('precheckResultsData', data);
+    method.setProperties({
+      precheckResultsMessage: message,
+      precheckResultsMessageClass: messageClass,
+      precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title'),
+      isPrecheckFailed: messageClass == 'RED',
+      precheckResultsMessageIconClass: messageIconClass,
+      precheckResultsData: data,
+      isCheckComplete: true,
+      action: 'openMessage'
+    });
     this.updateSelectedMethod(false);
     Em.run.later(this, function () {
       // add tooltip for the type with preCheck errors
@@ -913,6 +971,18 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       // destroy the tooltip for the type wo preCheck errors
       $(".thumbnail").not(".check-failed").not(".not-allowed-by-version").tooltip("destroy");
     }, 1000);
+  },
+
+  runPreUpgradeCheckOnlyError: function (request, ajaxOptions, error, data, params) {
+    var method = this.get('upgradeMethods').findProperty('type', params.type);
+    method.setProperties({
+      precheckResultsMessage: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.link'),
+      precheckResultsTitle: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.failed.title'),
+      precheckResultsMessageClass: 'RED',
+      isPrecheckFailed: true,
+      precheckResultsMessageIconClass: 'icon-warning-sign',
+      action: 'rerunCheck'
+    });
   },
 
   /**
@@ -982,28 +1052,12 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         failAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.fail.alert')),
         warningTitle = Em.I18n.t('popup.clusterCheck.Upgrade.warning.title'),
         warningAlert = new Em.Handlebars.SafeString(Em.I18n.t('popup.clusterCheck.Upgrade.warning.alert')),
-        configsMergeWarning = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE"),
-        configs = [];
-      if (configsMergeWarning && Em.get(configsMergeWarning, 'UpgradeChecks.status') === 'WARNING') {
-        data.items = data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE');
-        var configsMergeCheckData = Em.get(configsMergeWarning, 'UpgradeChecks.failed_detail');
-        if (configsMergeCheckData) {
-          configs = configsMergeCheckData.map(function (item) {
-            var isDeprecated = Em.isNone(item.new_stack_value),
-              willBeRemoved = Em.isNone(item.result_value);
-            return {
-              type: item.type,
-              name: item.property,
-              currentValue: item.current,
-              recommendedValue: isDeprecated ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated') : item.new_stack_value,
-              isDeprecated: isDeprecated,
-              resultingValue: willBeRemoved ? Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved') : item.result_value,
-              willBeRemoved: willBeRemoved
-            };
-          });
-        }
-      }
-      App.showClusterCheckPopup(data, {
+        configsMergeWarning = data.items.findProperty('UpgradeChecks.id', 'CONFIG_MERGE'),
+        popupData = {
+          items: data.items.rejectProperty('UpgradeChecks.id', 'CONFIG_MERGE')
+        },
+        configs = this.getConfigsWarnings(configsMergeWarning);
+      App.showClusterCheckPopup(popupData, {
         header: header,
         failTitle: failTitle,
         failAlert: failAlert,

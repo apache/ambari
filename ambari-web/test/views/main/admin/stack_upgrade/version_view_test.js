@@ -24,7 +24,8 @@ describe('App.mainAdminStackVersionsView', function () {
   var view = App.MainAdminStackVersionsView.create({
     controller: {
       currentVersion: {
-        repository_version: "2.2.1.0"
+        repository_version: "2.2.1.0",
+        runningCheckRequests: []
       },
       load: Em.K
     }
@@ -354,8 +355,13 @@ describe('App.mainAdminStackVersionsView', function () {
   });
 
   describe("#willDestroyElement()", function() {
+    var abort = sinon.spy(),
+      request = {
+        abort: abort
+      };
     before(function () {
       sinon.stub(window, 'clearTimeout', Em.K);
+      view.set('controller.runningCheckRequests', [request, request]);
     });
     after(function () {
       window.clearTimeout.restore();
@@ -363,6 +369,8 @@ describe('App.mainAdminStackVersionsView', function () {
     it("", function() {
       view.willDestroyElement();
       expect(window.clearTimeout.calledOnce).to.be.true;
+      expect(abort.calledTwice).to.be.true;
+      expect(view.get('controller.runningCheckRequests')).to.have.length(0);
     });
   });
 

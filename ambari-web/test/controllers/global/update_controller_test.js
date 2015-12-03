@@ -308,7 +308,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'stackUpgrade',
-          parentStateName: null,
+          parentStateName: 'admin',
           upgradeIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
@@ -317,7 +317,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           upgradeIsNotFinished: true,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 1,
@@ -326,7 +326,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           upgradeIsNotFinished: false,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 0,
@@ -335,7 +335,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           upgradeIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
@@ -426,7 +426,9 @@ describe('App.UpdateController', function () {
         appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
           loadUpgradeData: mock.loadUpgradeData,
           isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-        })).withArgs('upgradeIsNotFinished').returns(item.upgradeIsNotFinished);
+        })).withArgs('upgradeIsNotFinished').returns(item.upgradeIsNotFinished)
+          .withArgs('router.currentState.name').returns(item.currentStateName)
+          .withArgs('router.currentState.parentState.name').returns(item.parentStateName);
         controller.updateUpgradeState(mock.callback);
         expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
         expect(mock.callback.callCount).to.equal(item.callbackCallCount);

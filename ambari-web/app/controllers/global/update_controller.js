@@ -585,7 +585,7 @@ App.UpdateController = Em.Controller.extend({
   
   updateUpgradeState: function (callback) {
     var currentStateName = App.get('router.currentState.name'),
-      parentStateName = App.get('router.parentState.name'),
+      parentStateName = App.get('router.currentState.parentState.name'),
       mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController');
     if (!(currentStateName === 'versions' && parentStateName === 'stackAndUpgrade') && currentStateName !== 'stackUpgrade' && App.get('upgradeIsNotFinished') && !mainAdminStackAndUpgradeController.get('isLoadUpgradeDataPending')) {
       mainAdminStackAndUpgradeController.loadUpgradeData(true).done(callback);
