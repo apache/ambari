@@ -228,7 +228,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
           status: request.Requests.request_status,
           isRunning: isRunning,
           startTime: App.dateTimeWithTimeZone(request.Requests.start_time),
-          endTime: App.dateTimeWithTimeZone(request.Requests.end_time)
+          endTime: request.Requests.end_time > 0 ? App.dateTimeWithTimeZone(request.Requests.end_time) : request.Requests.end_time
         });
       } else {
         rq = Em.Object.create({
@@ -241,7 +241,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
           hostsMap: {},
           tasks: [],
           startTime: App.dateTimeWithTimeZone(request.Requests.start_time),
-          endTime: App.dateTimeWithTimeZone(request.Requests.end_time),
+          endTime: request.Requests.end_time > 0 ? App.dateTimeWithTimeZone(request.Requests.end_time) : request.Requests.end_time,
           dependentService: requestParams.dependentService,
           sourceRequestScheduleId: request.Requests.request_schedule && request.Requests.request_schedule.schedule_id,
           previousTaskStatusMap: {},
