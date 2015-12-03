@@ -643,7 +643,7 @@ App.HostProgressPopupBodyView = App.TableView.extend({
       tasksInfo.pushObject(this.get("controller").createTask(_task));
     }, this);
     if (tasksInfo.length) {
-      this.get("controller").set("popupHeaderName", event.context.publicName);
+      this.get("controller").set("popupHeaderName", event.context.get('publicNameDisplay'));
       this.get("controller").set("currentHostName", event.context.publicName);
     }
     this.switchLevel("TASKS_LIST");
