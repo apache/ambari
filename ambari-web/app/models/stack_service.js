@@ -45,6 +45,12 @@ App.StackService = DS.Model.extend({
   requiredServices: DS.attr('array'),
 
   /**
+   * @type {String[]}
+   */
+  configTypeList: function() {
+    return Object.keys(this.get('configTypes') || {});
+  }.property('configTypes'),
+  /**
    * contains array of serviceNames that have configs that
    * depends on configs from current service
    * @type {String[]}
