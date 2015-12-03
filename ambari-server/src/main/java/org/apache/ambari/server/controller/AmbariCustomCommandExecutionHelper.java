@@ -42,6 +42,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAM
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -243,7 +244,9 @@ public class AmbariCustomCommandExecutionHelper {
     String clusterName = stage.getClusterName();
     final Cluster cluster = clusters.getCluster(clusterName);
 
+    // start with all hosts
     Set<String> candidateHosts = new HashSet<String>(resourceFilter.getHostNames());
+
     // Filter hosts that are in MS
     Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
         candidateHosts, new MaintenanceStateHelper.HostPredicate() {
@@ -258,20 +261,28 @@ public class AmbariCustomCommandExecutionHelper {
     );
 
     // Filter unhealthy hosts
-    Set<String> filteredHosts = filterUnhealthHosts(candidateHosts, actionExecutionContext, resourceFilter);
+    Set<String> unhealthyHosts = getUnhealthyHosts(candidateHosts, actionExecutionContext, resourceFilter);
 
+    // log excluded hosts
     if (!ignoredHosts.isEmpty()) {
-      String message = String.format("Some hosts (%s) have been ignored " +
-                      "because components on them are in Maintenance state.",
-              ignoredHosts);
-      LOG.debug(message);
-    } else if (!filteredHosts.isEmpty()) {
-      String message = String.format("Some hosts (%s) have been ignored " +
-            "because they are in unknown state",
-         filteredHosts);
-      LOG.warn(message);
+      if( LOG.isDebugEnabled() ){
+        LOG.debug(
+            "While building the {} custom command for {}/{}, the following hosts were excluded: unhealthy[{}], maintenance[{}]",
+            commandName, serviceName, componentName, StringUtils.join(unhealthyHosts, ','),
+            StringUtils.join(ignoredHosts, ','));
+      }
+    } else if (!unhealthyHosts.isEmpty()) {
+      if (LOG.isDebugEnabled()) {
+        LOG.debug(
+            "While building the {} custom command for {}/{}, the following hosts were excluded: unhealthy[{}], maintenance[{}]",
+            commandName, serviceName, componentName, StringUtils.join(unhealthyHosts, ','),
+            StringUtils.join(ignoredHosts, ','));
+      }
     } else if (candidateHosts.isEmpty()) {
-      String message = "Invalid request : No hosts specified.";
+      String message = MessageFormat.format(
+          "While building the {0} custom command for {1}/{2}, there were no healthy eligible hosts",
+          commandName, serviceName, componentName);
+
       throw new AmbariException(message);
     }
 
@@ -432,9 +443,11 @@ public class AmbariCustomCommandExecutionHelper {
     if (null == smokeTestRole) {
       smokeTestRole = actionExecutionContext.getActionName();
     }
+
     long nowTimestamp = System.currentTimeMillis();
     Map<String, String> actionParameters = actionExecutionContext.getParameters();
     final Set<String> candidateHosts;
+
     if (componentName != null) {
       Map<String, ServiceComponentHost> components =
         cluster.getService(serviceName)
@@ -444,6 +457,7 @@ public class AmbariCustomCommandExecutionHelper {
             + componentName + ", service = " + serviceName
             + ", cluster = " + clusterName);
       }
+
       List<String> candidateHostsList = resourceFilter.getHostNames();
       if (candidateHostsList != null && !candidateHostsList.isEmpty()) {
         candidateHosts = new HashSet<String>(candidateHostsList);
@@ -453,10 +467,12 @@ public class AmbariCustomCommandExecutionHelper {
     } else { // TODO: this code branch looks unreliable(taking random component)
       Map<String, ServiceComponent> components =
               cluster.getService(serviceName).getServiceComponents();
+
       if (components.isEmpty()) {
         throw new AmbariException("Components not found, service = "
             + serviceName + ", cluster = " + clusterName);
       }
+
       ServiceComponent serviceComponent = components.values().iterator().next();
       if (serviceComponent.getServiceComponentHosts().isEmpty()) {
         throw new AmbariException("Hosts not found, component="
@@ -466,15 +482,13 @@ public class AmbariCustomCommandExecutionHelper {
       candidateHosts = serviceComponent.getServiceComponentHosts().keySet();
     }
 
-    // Filter hosts that are in MS
+    // filter out hosts that are in maintenance mode
     Set<String> ignoredHosts = new HashSet<String>();
-
-    if (!actionExecutionContext.isIgnoreMaintenance()) {
+    if (!actionExecutionContext.isMaintenanceModeIgnored()) {
       ignoredHosts.addAll(maintenanceStateHelper.filterHostsInMaintenanceState(
         candidateHosts, new MaintenanceStateHelper.HostPredicate() {
           @Override
-          public boolean shouldHostBeRemoved(final String hostname)
-                  throws AmbariException {
+            public boolean shouldHostBeRemoved(final String hostname) throws AmbariException {
             return !maintenanceStateHelper.isOperationAllowed(
                     cluster, actionExecutionContext.getOperationLevel(),
                     resourceFilter, serviceName, componentName, hostname);
@@ -483,15 +497,15 @@ public class AmbariCustomCommandExecutionHelper {
       ));
     }
 
+    // pick a random healthy host from the remaining set, throwing an exception
+    // if there are none to choose from
     String hostName = managementController.getHealthyHost(candidateHosts);
     if (hostName == null) {
-      String msg = String.format("Unable to find a healthy host " +
-              "amongst the provided set of " +
-              "hosts: %s. You may also see this message if " +
-              "all healthy hosts are not appropriate for service check " +
-              "due to maintenance state (these hosts are %s). ",
-              candidateHosts, ignoredHosts);
-      LOG.info(msg);
+      String message = MessageFormat.format(
+          "While building a service check command for {0}, there were no healthy eligible hosts: unhealthy[{1}], maintenance[{2}]",
+          serviceName, StringUtils.join(candidateHosts, ','), StringUtils.join(ignoredHosts, ','));
+
+      throw new AmbariException(message);
     }
 
     addServiceCheckAction(stage, hostName, smokeTestRole, nowTimestamp, serviceName, componentName,
@@ -550,7 +564,6 @@ public class AmbariCustomCommandExecutionHelper {
         StageUtils.getClusterHostInfo(cluster));
 
     Map<String, String> commandParams = new TreeMap<String, String>();
-
     String commandTimeout = configs.getDefaultAgentTaskTimeout(false);
 
 
@@ -1196,7 +1209,7 @@ public class AmbariCustomCommandExecutionHelper {
    * @return Set of excluded hosts
    * @throws AmbariException
    */
-  private Set<String> filterUnhealthHosts(Set<String> hosts,
+  private Set<String> getUnhealthyHosts(Set<String> hosts,
                                           ActionExecutionContext actionExecutionContext,
                                           RequestResourceFilter resourceFilter) throws AmbariException {
     Set<String> removedHosts = new HashSet<String>();

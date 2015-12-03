@@ -188,14 +188,14 @@ public class ActionExecutionContext {
    * @return {@code true} if the action context should schedule even if maintenance mode is
    * enabled
    */
-  public boolean isIgnoreMaintenance() {
+  public boolean isMaintenanceModeIgnored() {
     return ignoreMaintenance;
   }
 
   /**
    * @param ignore  {@code true} to ignore maintenace mode
    */
-  public void setIgnoreMaintenance(boolean ignore) {
+  public void setMaintenanceModeIgnored(boolean ignore) {
     ignoreMaintenance = ignore;
   }
 

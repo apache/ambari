@@ -17,10 +17,25 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -93,24 +108,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Manages the ability to start and get status of upgrades.
@@ -1185,7 +1186,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         "ru_execute_tasks", Collections.singletonList(filter), params);
 
-    actionContext.setIgnoreMaintenance(true);
+    // hosts in maintenance mode are excluded from the upgrade
+    actionContext.setMaintenanceModeIgnored(false);
+
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
@@ -1281,9 +1284,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     ActionExecutionContext actionContext = new ActionExecutionContext(cluster.getClusterName(),
         function, filters, commandParams);
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
-    actionContext.setIgnoreMaintenance(true);
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+
+    // hosts in maintenance mode are excluded from the upgrade
+    actionContext.setMaintenanceModeIgnored(false);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
@@ -1339,9 +1344,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "SERVICE_CHECK", filters, commandParams);
 
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
-    actionContext.setIgnoreMaintenance(true);
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isServiceCheckFailureAutoSkipped());
+
+    // hosts in maintenance mode are excluded from the upgrade and should not be
+    // candidates for service checks
+    actionContext.setMaintenanceModeIgnored(false);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
@@ -1454,9 +1462,11 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         commandParams);
 
     actionContext.setTimeout(Short.valueOf((short) -1));
-    actionContext.setIgnoreMaintenance(true);
     actionContext.setRetryAllowed(allowRetry);
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
+
+    // hosts in maintenance mode are excluded from the upgrade
+    actionContext.setMaintenanceModeIgnored(false);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
