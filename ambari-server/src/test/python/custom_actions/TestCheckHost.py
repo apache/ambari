@@ -25,6 +25,7 @@ import socket
 import subprocess
 from ambari_commons import inet_utils, OSCheck
 from resource_management import Script, ConfigDictionary
+from resource_management.core.exceptions import Fail
 from mock.mock import patch
 from mock.mock import MagicMock
 from unittest import TestCase
@@ -94,7 +95,12 @@ class TestCheckHost(TestCase):
     download_file_mock.side_effect = Exception("test exception")
     isfile_mock.return_value = True
     checkHost = CheckHost()
-    checkHost.actionexecute(None)
+
+    try:
+      checkHost.actionexecute(None)
+      self.fail("DB Check should be failed")
+    except Fail:
+      pass
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Error downloading ' \
                      'DBConnectionVerification.jar from Ambari Server resources. Check network access to Ambari ' \
@@ -116,7 +122,11 @@ class TestCheckHost(TestCase):
     p = MagicMock()
     download_file_mock.side_effect = [p, Exception("test exception")]
 
-    checkHost.actionexecute(None)
+    try:
+      checkHost.actionexecute(None)
+      self.fail("DB Check should be failed")
+    except Fail:
+      pass
 
     self.assertEquals(format_mock.call_args[0][0], 'Error: Ambari Server cannot download the database JDBC driver '
                   'and is unable to test the database connection. You must run ambari-server setup '
@@ -141,7 +151,11 @@ class TestCheckHost(TestCase):
     download_file_mock.side_effect = [p, p]
     shell_call_mock.return_value = (1, "test message")
 
-    checkHost.actionexecute(None)
+    try:
+      checkHost.actionexecute(None)
+      self.fail("DB Check should be failed")
+    except Fail:
+      pass
 
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'test message',
                                                                                     'exit_code': 1}})
@@ -171,7 +185,13 @@ class TestCheckHost(TestCase):
                                 "hostLevelParams": { "agentCacheDir": "/nonexistent_tmp" }}
 
     isfile_mock.return_value = False
-    checkHost.actionexecute(None)
+
+    try:
+      checkHost.actionexecute(None)
+      self.fail("DB Check should be failed")
+    except Fail:
+      pass
+
     self.assertEquals(structured_out_mock.call_args[0][0], {'db_connection_check': {'message': 'Custom java is not ' \
             'available on host. Please install it. Java home should be the same as on server. \n', 'exit_code': 1}})
 
