@@ -87,7 +87,7 @@ def _get_directory_mappings_during_upgrade():
     knox_data_dir = format('/usr/hdp/{upgrade_from_version}/knox/data')
 
 
-  directories = {knox_data_dir: BACKUP_DATA_ARCHIVE,
+    directories = {knox_data_dir: BACKUP_DATA_ARCHIVE,
                 params.knox_conf_dir + "/": BACKUP_CONF_ARCHIVE} # the trailing "/" is important here so as to not include the "conf" folder itself
 
   Logger.info(format("Knox directories to backup:\n{directories}"))
