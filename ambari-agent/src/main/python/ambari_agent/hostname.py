@@ -78,6 +78,8 @@ def public_hostname(config):
         cached_public_hostname = out.strip().lower()
         logger.info("Read public hostname '" + cached_public_hostname + "' using agent:public_hostname_script")
         return cached_public_hostname
+      else:
+        logger.warn("Execution of '{0}' returned {1}. {2}\n{3}".format(scriptname, output.returncode, err.strip(), out.strip()))
   except:
     #ignore for now.
     trace_info = traceback.format_exc()
