@@ -151,9 +151,7 @@ App.AddControlView = Em.View.extend({
    * DOM node class attribute
    * @type {string}
    */
-  uniqueId: function() {
-    return this.get('componentName') + '-add';
-  }.property('componentName'),
+  uniqueId: Em.computed.format('{0}-add', 'componentName'),
 
   /**
    * Current component name
@@ -184,9 +182,7 @@ App.RemoveControlView = Em.View.extend({
    * DOM node class attribute
    * @type {string}
    */
-  uniqueId: function() {
-    return this.get('componentName') + '-' + this.get('serviceComponentId') + '-remove';
-  }.property('componentName', 'serviceComponentId'),
+  uniqueId: Em.computed.format('{0}-{1}-remove', 'componentName', 'serviceComponentId'),
 
   classNameBindings: ['uniqueId'],
 

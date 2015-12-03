@@ -56,8 +56,6 @@ describe('App.ApplicationController', function () {
     });
   });
 
-
-
   describe('#startKeepAlivePoller', function() {
     it ('Should change run poller state', function() {
       applicationController.set('isPollerRunning', false);
@@ -120,13 +118,15 @@ describe('App.ApplicationController', function () {
 
   describe('#isClusterDataLoaded', function() {
     beforeEach(function () {
-      sinon.stub(App.router, 'get').returns('cl1');
+      var stub = sinon.stub(App, 'get');
+      stub.withArgs('router.clusterController.isLoaded').returns(true);
+      stub.withArgs('router.loggedIn').returns(true);
     });
     afterEach(function () {
-      App.router.get.restore();
+      App.get.restore();
     });
     it ('Should return true, when data loaded', function() {
-      expect(applicationController.get('isClusterDataLoaded')).to.be.equal('cl1');
+      expect(applicationController.get('isClusterDataLoaded')).to.be.true;
     });
   });
 

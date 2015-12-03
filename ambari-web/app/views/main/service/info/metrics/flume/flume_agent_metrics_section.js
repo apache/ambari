@@ -29,13 +29,9 @@ App.FlumeAgentMetricsSectionView = Em.View.extend(App.TimeRangeMixin, {
 
   metricViewData: null,
 
-  id: function () {
-    return 'metric' + this.get('index');
-  }.property('index'),
+  id: Em.computed.format('metric{0}', 'index'),
 
-  toggleIndex: function () {
-    return '#' + this.get('id');
-  }.property('id'),
+  toggleIndex: Em.computed.format('#{0}', 'id'),
 
   header: function () {
     var metricType = Em.I18n.t('services.service.info.metrics.flume.' + this.get('metricTypeKey')).format(Em.I18n.t('common.metrics'));

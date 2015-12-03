@@ -100,11 +100,16 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   ],
 
   /**
+   * Some widget has type `GRAPH`
+   *
    * @type {boolean}
    */
-  showTimeRangeControl: function () {
-    return !this.get('isServiceWithEnhancedWidgets') || this.get('widgets').filterProperty('widgetType', 'GRAPH').length > 0;
-  }.property('isServiceWithEnhancedWidgets', 'widgets.length'),
+  someWidgetGraphExists: Em.computed.someBy('widgets', 'widgetType', 'GRAPH'),
+
+  /**
+   * @type {boolean}
+   */
+  showTimeRangeControl: Em.computed.or('!isServiceWithEnhancedWidgets', 'someWidgetGraphExists'),
 
   /**
    * Set initial Ranger plugins data

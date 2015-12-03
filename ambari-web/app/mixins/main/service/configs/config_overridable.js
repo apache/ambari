@@ -185,9 +185,7 @@ App.ConfigOverridable = Em.Mixin.create({
         selectConfigGroupRadioButton: Em.Checkbox.extend({
           tagName: 'input',
           attributeBindings: ['type', 'checked', 'disabled'],
-          checked: function () {
-            return this.get('parentView.parentView.optionSelectConfigGroup');
-          }.property('parentView.parentView.optionSelectConfigGroup'),
+          checked: Em.computed.alias('parentView.parentView.optionSelectConfigGroup'),
           type: 'radio',
           disabled: false,
           click: function () {
@@ -203,9 +201,7 @@ App.ConfigOverridable = Em.Mixin.create({
         createConfigGroupRadioButton: Em.Checkbox.extend({
           tagName: 'input',
           attributeBindings: ['type', 'checked'],
-          checked: function () {
-            return !this.get('parentView.parentView.optionSelectConfigGroup');
-          }.property('parentView.parentView.optionSelectConfigGroup'),
+          checked: Em.computed.not('parentView.parentView.optionSelectConfigGroup'),
           type: 'radio',
           click: function () {
             this.set('parentView.parentView.optionSelectConfigGroup', false);

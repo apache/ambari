@@ -106,15 +106,11 @@ describe('App.MainServiceController', function () {
   describe('#isStartStopAllClicked', function () {
 
     beforeEach(function () {
-      sinon.stub(App.router, 'get', function () {
-        return Em.Object.create({
-          allOperationsCount: 1
-        });
-      });
+      sinon.stub(App, 'get').withArgs('router.backgroundOperationsController.allOperationsCount').returns(1);
     });
 
     afterEach(function () {
-      App.router.get.restore();
+      App.get.restore();
     });
 
     it('should be based on BG ops count', function () {

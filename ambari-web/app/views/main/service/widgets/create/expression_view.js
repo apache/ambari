@@ -202,10 +202,7 @@ App.AddNumberExpressionView = Em.TextField.extend({
 App.AddMetricExpressionView = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/step2_add_metric'),
   controller: Em.computed.alias('parentView.controller'),
-  elementId: function () {
-    var expressionId = "_" + this.get('parentView').get('expression.id');
-    return 'add-metric-menu' + expressionId;
-  }.property(),
+  elementId: Em.computed.format('add-metric-menu_{0}','parentView.expression.id'),
   didInsertElement: function () {
     //prevent dropdown closing on click select
     $('html').on('click.dropdown', '.dropdown-menu li', function (e) {

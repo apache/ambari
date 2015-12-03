@@ -47,9 +47,7 @@ App.Tab = DS.Model.extend({
    * @type {String}
    * @property headingClass
    */
-  headingClass: function() {
-    return '.' + this.get('id');
-  }.property('id'),
+  headingClass: Em.computed.format('.{0}', 'id'),
 
   /**
    * tooltip message.

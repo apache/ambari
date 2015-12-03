@@ -74,9 +74,7 @@ module.exports = {
         this.hide();
       },
 
-      disablePrimary: function () {
-        return !this.get('isLoaded');
-      }.property('isLoaded'),
+      disablePrimary: Em.computed.not('isLoaded'),
 
       onSecondary: function () {
         callback(null);
@@ -124,9 +122,7 @@ module.exports = {
 
         filterComponent: null,
 
-        isDisabled: function () {
-          return !this.get('parentView.isLoaded');
-        }.property('parentView.isLoaded'),
+        isDisabled: Em.computed.not('parentView.isLoaded'),
 
         didInsertElement: function() {
           var defaultFilterColumn = this.get('filterColumns').findProperty('selected');

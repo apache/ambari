@@ -52,9 +52,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   isServiceContentFullyLoaded: Em.computed.and('isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded'),
 
-  clusterName: function () {
-    return App.get('clusterName');
-  }.property('App.clusterName'),
+  clusterName: Em.computed.alias('App.clusterName'),
 
   updateLoadStatus: function (item) {
     var loadList = this.get('dataLoadList');

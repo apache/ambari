@@ -43,27 +43,13 @@ App.HostComponentView = Em.View.extend({
   /**
    * @type {String}
    */
-  workStatus: function () {
-    var workStatus = this.get('content.workStatus');
-    var hostComponent = this.get('hostComponent');
-    if (hostComponent) {
-      workStatus = hostComponent.get('workStatus');
-    }
-    return workStatus;
-  }.property('content.workStatus', 'hostComponent.workStatus'),
+  workStatus: Em.computed.firstNotBlank('hostComponent.workStatus', 'content.workStatus'),
 
   /**
    * Return host component text status
    * @type {String}
    */
-  componentTextStatus: function () {
-    var componentTextStatus = this.get('content.componentTextStatus');
-    var hostComponent = this.get('hostComponent');
-    if (hostComponent) {
-      componentTextStatus = hostComponent.get('componentTextStatus');
-    }
-    return componentTextStatus;
-  }.property('content.passiveState','workStatus'),
+  componentTextStatus: Em.computed.firstNotBlank('hostComponent.componentTextStatus', 'content.componentTextStatus'),
 
   /**
    * CSS-class for host component status
@@ -114,17 +100,13 @@ App.HostComponentView = Em.View.extend({
    * For Upgrade failed state
    * @type {bool}
    */
-  isUpgradeFailed: function () {
-    return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "upgrade_failed";
-  }.property("workStatus"),
+  isUpgradeFailed: Em.computed.equal('workStatus', App.HostComponentStatus.upgrade_failed),
 
   /**
    * For Install failed state
    * @type {bool}
    */
-  isInstallFailed: function () {
-    return App.HostComponentStatus.getKeyName(this.get('workStatus')) === "install_failed";
-  }.property("workStatus"),
+  isInstallFailed: Em.computed.equal('workStatus', App.HostComponentStatus.install_failed),
 
   /**
    * For Started and Starting states
@@ -151,20 +133,18 @@ App.HostComponentView = Em.View.extend({
   isInit: Em.computed.equal('workStatus', App.HostComponentStatus.init),
 
   /**
-   * No action available while component is starting/stopping/unknown
-   * @type {String}
-   */
-  noActionAvailable: function () {
-    var workStatus = this.get('workStatus');
-    return [App.HostComponentStatus.starting, App.HostComponentStatus.stopping,
-      App.HostComponentStatus.unknown, App.HostComponentStatus.disabled].contains(workStatus) ? "hidden" : '';
-  }.property('workStatus'),
-
-  /**
    * For Stopping or Starting states
    * @type {bool}
    */
   isInProgress: Em.computed.existsIn('workStatus', [App.HostComponentStatus.stopping, App.HostComponentStatus.starting]),
+
+  withoutActions: Em.computed.existsIn('workStatus', [App.HostComponentStatus.starting, App.HostComponentStatus.stopping, App.HostComponentStatus.unknown, App.HostComponentStatus.disabled]),
+
+  /**
+   * No action available while component is starting/stopping/unknown
+   * @type {String}
+   */
+  noActionAvailable: Em.computed.ifThenElse('withoutActions', 'hidden', ''),
 
   /**
    * For OFF <code>passiveState</code> of host component
@@ -229,9 +209,7 @@ App.HostComponentView = Em.View.extend({
    * Host component with some <code>workStatus</code> can't be restarted (so, disable such action in the dropdown list)
    * @type {bool}
    */
-  isRestartComponentDisabled: function() {
-    return ![App.HostComponentStatus.started].contains(this.get('workStatus'));
-  }.property('workStatus'),
+  isRestartComponentDisabled: Em.computed.notEqual('workStatus', App.HostComponentStatus.started),
 
   /**
    * Check if component configs can be refreshed

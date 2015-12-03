@@ -81,9 +81,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
 
     errorThreshold: Em.computed.alias('parentView.content.properties.error_threshold'),
 
-    id: function() {
-      return 'gauge-widget-' + this.get('parentView.content.id');
-    }.property('parentView.content.id'),
+    id: Em.computed.format('gauge-widget-{0}', 'parentView.content.id'),
 
     existCenterText: true,
     centerTextColor: Em.computed.alias('contentColor'),

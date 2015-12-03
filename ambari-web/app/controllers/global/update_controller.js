@@ -23,13 +23,9 @@ App.UpdateController = Em.Controller.extend({
   isUpdated: false,
   cluster: null,
   isWorking: false,
-  updateAlertInstances: function() {
-    return this.get('isWorking') && !App.get('router.mainAlertInstancesController.isUpdating');
-  }.property('isWorking', 'App.router.mainAlertInstancesController.isUpdating'),
+  updateAlertInstances: Em.computed.and('isWorking', '!App.router.mainAlertInstancesController.isUpdating'),
   timeIntervalId: null,
-  clusterName: function () {
-    return App.router.get('clusterController.clusterName');
-  }.property('App.router.clusterController.clusterName'),
+  clusterName: Em.computed.alias('App.router.clusterController.clusterName'),
 
   /**
    * keys which should be preloaded in order to filter hosts by host-components

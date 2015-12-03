@@ -66,9 +66,7 @@ App.AlertGroup = DS.Model.extend({
   /**
    * @type {string}
    */
-  displayNameDefinitions: function () {
-    return this.get('displayName') + ' (' + this.get('definitions.length') + ')';
-  }.property('displayName', 'definitions.length'),
+  displayNameDefinitions: Em.computed.format('{0} ({1})', 'displayName', 'definitions.length'),
 
   isAddDefinitionsDisabled: Em.computed.alias('default')
 

@@ -46,9 +46,7 @@ App.NodeManagersLiveView = App.TextDashboardWidgetView.extend({
   thresh2: 70,
   maxValue: 100,
 
-  isDataAvailable: function() {
-    return !this.get('model.metricsNotAvailable') &&  App.get('router.clusterController.isComponentsStateLoaded');
-  }.property('App.router.clusterController.isComponentsStateLoaded'),
+  isDataAvailable: Em.computed.and('!model.metricsNotAvailable', 'App.router.clusterController.isComponentsStateLoaded'),
 
   nodeManagersLive: Em.computed.alias('model.nodeManagersCountActive'),
 

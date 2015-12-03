@@ -18,6 +18,7 @@
 
 var App = require('app');
 var uiEffects = require('utils/ui_effects');
+var numberUtils = require('utils/number_utils');
 
 App.MainDashboardServiceHealthView = Em.View.extend({
   classNameBindings: ["healthStatus", "healthStatusClass"],
@@ -141,10 +142,6 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     }
   }),
 
-  formatUnavailable: function(value){
-    return (value || value == 0) ? value : this.t('services.service.summary.notAvailable');
-  },
-
   alertsCount: Em.computed.alias('service.alertsCount'),
 
   hasCriticalAlerts: Em.computed.alias('service.hasCriticalAlerts'),
@@ -172,4 +169,18 @@ App.MainDashboardServiceView = Em.View.extend(App.MainDashboardServiceViewWrappe
     };
   }.property('service')
 
+});
+
+App.MainDashboardServiceView.reopenClass({
+  formattedHeap: function (i18nKey, heapUsedKey, heapMaxKey) {
+    return Em.computed(heapUsedKey, heapMaxKey, function () {
+      var memUsed = Em.get(this, heapUsedKey);
+      var memMax = Em.get(this, heapMaxKey);
+      var percent = memMax > 0 ? ((100 * memUsed) / memMax) : 0;
+      return Em.I18n.t(i18nKey).format(
+        numberUtils.bytesToSize(memUsed, 1, 'parseFloat'),
+        numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
+        percent.toFixed(1));
+    });
+  }
 });

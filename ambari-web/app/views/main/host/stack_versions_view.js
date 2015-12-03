@@ -27,9 +27,7 @@ App.MainHostStackVersionsView = App.TableView.extend({
   /**
    * @type {Ember.Object}
    */
-  host: function () {
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content'),
+  host: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
   /**
    * @type {Ember.Array}

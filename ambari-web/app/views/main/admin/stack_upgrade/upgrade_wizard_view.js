@@ -100,9 +100,7 @@ App.upgradeWizardView = Em.View.extend({
    * if upgrade group is in progress it should have currently running item
    * @type {object|undefined}
    */
-  runningItem: function () {
-    return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('status', 'IN_PROGRESS');
-  }.property('activeGroup.upgradeItems.@each.status'),
+  runningItem: Em.computed.findBy('activeGroup.upgradeItems', 'status', 'IN_PROGRESS'),
 
   /**
    * if upgrade group is failed it should have failed item
@@ -168,9 +166,7 @@ App.upgradeWizardView = Em.View.extend({
    * if upgrade group is manual it should have manual item
    * @type {object|undefined}
    */
-  manualItem: function () {
-    return this.get('activeGroup.upgradeItems') && this.get('activeGroup.upgradeItems').findProperty('status', 'HOLDING');
-  }.property('activeGroup.upgradeItems.@each.status'),
+  manualItem: Em.computed.findBy('activeGroup.upgradeItems', 'status', 'HOLDING'),
 
   /**
    * plain manual item

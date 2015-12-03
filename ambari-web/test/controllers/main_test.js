@@ -70,10 +70,10 @@ describe('App.MainController', function () {
 
   describe('#clusterDataLoadedPercent', function() {
     beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(16);
+      sinon.stub(App, 'get').withArgs('router.clusterController.clusterDataLoadedPercent').returns(16);
     });
     afterEach(function () {
-      App.router.get.restore();
+      App.get.restore();
     });
     it ('Should return 16', function() {
       expect(mainController.get('clusterDataLoadedPercent')).to.be.equal(16);

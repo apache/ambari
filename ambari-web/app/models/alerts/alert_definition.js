@@ -191,11 +191,11 @@ App.AlertDefinition = DS.Model.extend({
     return text;
   }.property('summary'),
 
-  isHostAlertDefinition: function () {
-    var serviceID = (this.get('service')._id === "AMBARI"),
-        component = (this.get('componentName') === "AMBARI_AGENT");
-    return serviceID && component;
-  }.property('service', 'componentName'),
+  isAmbariService: Em.computed.equal('service._id', 'AMBARI'),
+
+  isAmbariAgentComponent: Em.computed.equal('componentName', 'AMBARI_AGENT'),
+
+  isHostAlertDefinition: Em.computed.and('isAmbariService', 'isAmbariAgentComponent'),
 
   typeIconClass: function () {
     var typeIcons = this.get('typeIcons'),

@@ -112,9 +112,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   /**
    * Placeholder used for configs with input type text
    */
-  placeholder: function () {
-    return this.get('placeholderText') || this.get('savedValue');
-  }.property('savedValue', 'placeholderText'),
+  placeholder: Em.computed.firstNotBlank('placeholderText', 'savedValue'),
 
   retypedPassword: '',
   description: '',

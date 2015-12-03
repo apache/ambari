@@ -41,9 +41,7 @@ App.MainHostServiceMenuView = Em.CollectionView.extend({
     return misc.sortByOrder(stackServices, services);
   }.property('host'),
 
-  host: function () {
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content'),
+  host: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
   selectedService: null,
 

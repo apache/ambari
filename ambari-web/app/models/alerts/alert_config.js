@@ -452,9 +452,7 @@ App.AlertConfigProperties = {
     label: 'JMX/Ganglia Metrics',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
-    apiProperty: function () {
-      return this.get('isJMXMetric') ? 'source.jmx.property_list' : 'source.ganglia.property_list'
-    }.property('isJMXMetric'),
+    apiProperty: Em.computed.ifThenElse('isJMXMetric', 'source.jmx.property_list', 'source.ganglia.property_list'),
     apiFormattedValue: function () {
       return this.get('value').split(',\n');
     }.property('value')
@@ -465,9 +463,7 @@ App.AlertConfigProperties = {
     label: 'Format String',
     displayType: 'textArea',
     classNames: 'alert-config-text-area',
-    apiProperty: function () {
-      return this.get('isJMXMetric') ? 'source.jmx.value' : 'source.ganglia.value'
-    }.property('isJMXMetric')
+    apiProperty: Em.computed.ifThenElse('isJMXMetric', 'source.jmx.value', 'source.ganglia.value')
   })
 
 };

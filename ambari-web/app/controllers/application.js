@@ -41,13 +41,9 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
     return name.length > 13 ? name.substr(0, 10) + "..." : name;
   }.property('clusterName'),
 
-  isClusterDataLoaded: function() {
-    return App.router.get('clusterController.isLoaded') && App.router.get('loggedIn');
-  }.property('App.router.clusterController.isLoaded','App.router.loggedIn'),
+  isClusterDataLoaded: Em.computed.and('App.router.clusterController.isLoaded','App.router.loggedIn'),
 
-  isExistingClusterDataLoaded: function () {
-    return App.router.get('clusterInstallCompleted') && this.get('isClusterDataLoaded');
-  }.property('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
+  isExistingClusterDataLoaded: Em.computed.and('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
 
   /**
    * Determines if "Exit" menu-item should be shown

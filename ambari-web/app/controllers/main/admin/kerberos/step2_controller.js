@@ -56,9 +56,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     return (!this.get('stepConfigs').filterProperty('showConfig', true).everyProperty('errorCount', 0) || this.get("miscModalVisible"));
   }.property('stepConfigs.@each.errorCount', 'miscModalVisible', 'submitButtonClicked', 'testConnectionInProgress'),
 
-  hostNames: function () {
-    return App.get('allHostNames');
-  }.property('App.allHostNames'),
+  hostNames: Em.computed.alias('App.allHostNames'),
 
   serviceConfigTags: [],
 

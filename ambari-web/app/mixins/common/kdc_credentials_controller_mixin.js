@@ -33,9 +33,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    *
    * @type {boolean}
    */
-  isStorePersisted: function() {
-    return App.get('isCredentialStorePersistent');
-  }.property('App.isCredentialStorePersistent'),
+  isStorePersisted: Em.computed.alias('App.isCredentialStorePersistent'),
 
   /**
    * List of required UI-only properties needed for storing KDC credentials

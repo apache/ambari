@@ -88,9 +88,7 @@ App.HighAvailabilityProgressPageView = Em.View.extend(App.wizardProgressPageView
       });
     },
 
-    barWidth: function () {
-      return 'width: ' + this.get('content.progress') + '%;';
-    }.property('content.progress'),
+    barWidth: Em.computed.format('width: {0}%;', 'content.progress'),
 
     onStatus: function () {
       this.set('linkClass', Boolean(this.get('content.requestIds.length')) ? 'active-link' : 'active-text');

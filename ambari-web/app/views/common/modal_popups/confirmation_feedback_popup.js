@@ -40,9 +40,7 @@ App.showConfirmationFeedBackPopup = function (primary, bodyMessage, secondary) {
       templateName: require('templates/common/modal_popups/confirmation_feedback')
     }),
     query: Em.Object.create({status: "INIT"}),
-    primary: function () {
-      return bodyMessage? bodyMessage.confirmButton : Em.I18n.t('ok');
-    }.property('bodyMessage'),
+    primary: bodyMessage? bodyMessage.confirmButton : Em.I18n.t('ok'),
     onPrimary: function () {
       this.set('query.status', "INIT");
       this.set('disablePrimary', true);
@@ -51,19 +49,11 @@ App.showConfirmationFeedBackPopup = function (primary, bodyMessage, secondary) {
       this.hide();
       primary(this.get('query'), this.get('runMmOperation'));
     },
-    statusMessage: function () {
-      return bodyMessage? bodyMessage.confirmMsg : Em.I18n.t('question.sure');
-    }.property('bodyMessage'),
-    additionalWarningMsg: function () {
-      return bodyMessage? bodyMessage.additionalWarningMsg : null;
-    }.property('bodyMessage'),
-    putInMaintenance: function () {
-      return bodyMessage ? bodyMessage.putInMaintenance : null;
-    }.property('bodyMessage'),
+    statusMessage: bodyMessage? bodyMessage.confirmMsg : Em.I18n.t('question.sure'),
+    additionalWarningMsg: bodyMessage? bodyMessage.additionalWarningMsg : null,
+    putInMaintenance: bodyMessage ? bodyMessage.putInMaintenance : null,
     runMmOperation: false,
-    turnOnMmMsg: function () {
-      return bodyMessage ? bodyMessage.turnOnMmMsg : null;
-    }.property('bodyMessage'),
+    turnOnMmMsg: bodyMessage ? bodyMessage.turnOnMmMsg : null,
     watchStatus: function() {
       if (this.get('query.status') === "SUCCESS") {
         this.hide();

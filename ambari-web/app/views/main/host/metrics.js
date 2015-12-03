@@ -20,7 +20,5 @@ var App = require('app');
 
 App.MainHostMetricsView = Em.View.extend({
   templateName: require('templates/main/host/metrics'),
-  content:function(){
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content')
+  content: Em.computed.alias('App.router.mainHostDetailsController.content')
 });

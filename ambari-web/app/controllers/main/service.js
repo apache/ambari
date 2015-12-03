@@ -83,16 +83,12 @@ App.MainServiceController = Em.ArrayController.extend({
    * Should "Refresh All"-button be disabled
    * @type {bool}
    */
-  isRestartAllRequiredDisabled: function () {
-    return !this.get('content').someProperty('isRestartRequired');
-  }.property('content.@each.isRestartRequired'),
+  isRestartAllRequiredDisabled: Em.computed.everyBy('content', 'isRestartRequired', false),
 
   /**
    * @type {bool}
    */
-  isStartStopAllClicked: function () {
-    return (App.router.get('backgroundOperationsController').get('allOperationsCount') !== 0);
-  }.property('App.router.backgroundOperationsController.allOperationsCount'),
+  isStartStopAllClicked: Em.computed.notEqual('App.router.backgroundOperationsController.allOperationsCount', 0),
 
   /**
    * Callback for <code>start all service</code> button

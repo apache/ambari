@@ -80,9 +80,7 @@ App.WizardStep3View = App.TableView.extend({
    */
   categoryObject: Em.Object.extend({
     hostsCount: 0,
-    label: function () {
-      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
-    }.property('value', 'hostsCount'),
+    label: Em.computed.format('{0} ({1})', 'value', 'hostsCount'),
     isActive: false,
     itemClass: Em.computed.ifThenElse('isActive', 'active', '')
   }),

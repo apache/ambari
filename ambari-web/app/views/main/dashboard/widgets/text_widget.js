@@ -26,12 +26,10 @@ App.TextDashboardWidgetView = App.DashboardWidgetView.extend({
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
 
   isRed: Em.computed.lteProperties('data', 'thresh1'),
-
-  isOrange: function () {
-    return (this.get('data') <= this.get('thresh2') && this.get('data') > this.get('thresh1'));
-  }.property('data','thresh1','thresh2'),
-
+  isNotRed: Em.computed.not('isRed'),
+  isOrange: Em.computed.and('isNotGreen', 'isNotRed'),
   isGreen: Em.computed.gtProperties('data', 'thresh2'),
+  isNotGreen: Em.computed.not('isGreen'),
 
   isNA: function () {
     return this.get('data') === null;

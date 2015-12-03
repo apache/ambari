@@ -75,23 +75,15 @@ App.MainMenuView = Em.CollectionView.extend({
       return "";
     }.property('App.router.location.lastSetURL', 'App.router.clusterController.isLoaded'),
 
-    alertsCount: function () {
-      return App.router.get('mainHostController.hostsCountMap.health-status-WITH-ALERTS');
-    }.property('App.router.mainHostController.hostsCountMap'),
+    alertsCount: Em.computed.alias('App.router.mainHostController.hostsCountMap.health-status-WITH-ALERTS'),
 
-    hasCriticalAlerts: function () {
-      return App.router.get('mainHostController.hostsCountMap.health-status-CRITICAL') > 0;
-    }.property('content.hasAlertsLabel', 'alertsCount'),
+    hasCriticalAlerts: Em.computed.gt('App.router.mainHostController.hostsCountMap.health-status-CRITICAL', 0),
 
     hasAlertsLabel: Em.computed.and('content.hasAlertsLabel', 'alertsCount'),
 
     templateName: require('templates/main/menu_item'),
 
-    dropdownMenu: function () {
-      var item = this.get('content').routing;
-      var itemsWithDropdown = ['services', 'admin', 'views'];
-      return itemsWithDropdown.contains(item);
-    }.property(''),
+    dropdownMenu: Em.computed.existsIn('content.routing', ['services', 'admin', 'views']),
     isAdminItem: Em.computed.equal('content.routing', 'admin'),
     isServicesItem: Em.computed.equal('content.routing', 'services'),
     isViewsItem: function () {

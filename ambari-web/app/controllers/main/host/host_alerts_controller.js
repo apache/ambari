@@ -21,9 +21,7 @@ var App = require('app');
 App.MainHostAlertsController = Em.ArrayController.extend({
   name: 'mainHostAlertsController',
 
-  selectedHost: function () {
-    return App.get('router.mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content'),
+  selectedHost: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
   /**
    * List of all <code>App.AlertInstance</code> by Host

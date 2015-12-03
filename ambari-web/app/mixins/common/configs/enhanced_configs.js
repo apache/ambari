@@ -40,9 +40,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
-  hasChangedDependencies: function() {
-    return App.get('isClusterSupportsEnhancedConfigs') && this.get('isControllerSupportsEnhancedConfigs') && this.get('changedProperties.length') > 0;
-  }.property('changedProperties.length'),
+  hasChangedDependencies: Em.computed.and('App.isClusterSupportsEnhancedConfigs', 'isControllerSupportsEnhancedConfigs', 'changedProperties.length'),
 
   /**
    * defines is block with changed dependent configs should be shown

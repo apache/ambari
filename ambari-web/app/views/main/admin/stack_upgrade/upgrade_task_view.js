@@ -57,30 +57,22 @@ App.upgradeTaskView = Em.View.extend({
   /**
    * @type {string}
    */
-  logTabId: function () {
-    return this.get('elementId') + '-log-tab'
-  }.property(''),
+  logTabId: Em.computed.format('{0}-log-tab', 'elementId'),
 
   /**
    * @type {string}
    */
-  errorTabId: function () {
-    return this.get('elementId') + '-error-tab'
-  }.property(''),
+  errorTabId:  Em.computed.format('{0}-error-tab', 'elementId'),
 
   /**
    * @type {string}
    */
-  logTabIdLink: function () {
-    return '#' + this.get('logTabId');
-  }.property(''),
+  logTabIdLink: Em.computed.format('#{0}','logTabId'),
 
   /**
    * @type {string}
    */
-  errorTabIdLInk: function () {
-    return '#' + this.get('errorTabId');
-  }.property(''),
+  errorTabIdLInk: Em.computed.format('#{0}','errorTabId'),
 
   /**
    * open error log in textarea to give ability to cope content

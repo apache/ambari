@@ -112,9 +112,7 @@ App.ServiceConfigGroup = DS.Model.extend({
   /**
    *
    */
-  displayNameHosts: function () {
-    return this.get('displayName') + ' (' + this.get('hosts.length') + ')';
-  }.property('displayName', 'hosts.length'),
+  displayNameHosts: Em.computed.format('{0} ({1})', 'displayName', 'hosts.length'),
 
   /**
    * Provides hosts which are available for inclusion in

@@ -43,9 +43,7 @@ App.ProgressBarView = Em.View.extend({
    * string format: width:<number>%;
    * @type {string}
    */
-  progressWidth: function () {
-    return "width:" + this.get('progress') + "%;";
-  }.property('progress'),
+  progressWidth: Em.computed.format('width:{0}%;', 'progress'),
 
   /**
    * @type {string}

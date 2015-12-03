@@ -49,9 +49,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   /**
    * @type {App.Host}
    */
-  content: function () {
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content'),
+  content: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
   /**
    * Host metrics panel not displayed when Metrics service (ex:Ganglia) is not in stack definition.
@@ -192,24 +190,21 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
     }, this);
     return clients;
   }.property('content.hostComponents.length'),
+
+  anyClientFailedToInstall: Em.computed.someBy('clients', 'isInstallFailed', true),
+
   /**
    * Check if some clients not installed or started
    *
    * @type {bool}
    **/
-  areClientsNotInstalled: function() {
-    return this.get('clients').someProperty('isInstallFailed', true) || !!this.get('installableClientComponents.length');
-  }.property('clients.@each.workStatus', 'installableClientComponents.length'),
+  areClientsNotInstalled: Em.computed.or('anyClientFailedToInstall', 'installableClientComponents.length'),
 
   /**
    * Check if some clients have stale configs
    * @type {bool}
    */
-  areClientWithStaleConfigs: function() {
-    return !!this.get('clients').filter(function(component) {
-      return component.get('staleConfigs');
-    }).length;
-  }.property('clients.@each.staleConfigs'),
+  areClientWithStaleConfigs: Em.computed.someBy('clients', 'staleConfigs', true),
 
   /**
    * Template for addable component

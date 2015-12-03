@@ -27,9 +27,7 @@ App.MainHostDetailsView = Em.View.extend({
    */
   isLoaded: false,
 
-  content: function(){
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content'),
+  content: Em.computed.alias('App.router.mainHostDetailsController.content'),
 
   clients: Em.computed.filterBy('content.hostComponents', 'isClient', true),
 

@@ -263,9 +263,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Define if label or configs are in edit mode
    * @type {Boolean}
    */
-  isEditing: function () {
-    return this.get('editing.label.isEditing') || App.router.get('mainAlertDefinitionConfigsController.canEdit');
-  }.property('editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit'),
+  isEditing: Em.computed.or('editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit'),
 
   /**
    * If some configs or label are changed and user navigates away, show this popup with propose to save changes
@@ -282,9 +280,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.discard'),
       third: Em.I18n.t('common.cancel'),
-      disablePrimary: function () {
-        return App.router.get('mainAlertDefinitionDetailsController.editing.label.isError') || App.router.get('mainAlertDefinitionConfigsController.hasErrors');
-      }.property('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
+      disablePrimary: Em.computed.or('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
       onPrimary: function () {
         self.saveLabelAndConfigs();
         self.set('forceTransition', true);

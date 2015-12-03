@@ -39,17 +39,11 @@ App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
   currentTaskId: null,
 
-  barWidth: function () {
-    return 'width: ' + this.get('progress') + '%;';
-  }.property('progress'),
+  barWidth: Em.computed.format('width: {0}%;', 'progress'),
 
-  isCompleted: function () {
-    return (this.get('isError') || this.get('isSuccess'));
-  }.property('isError', 'isSuccess'),
+  isCompleted: Em.computed.or('isError', 'isSuccess'),
 
-  showLink: function () {
-    return (this.get('isPolling') === true && this.get('isStarted') === true);
-  }.property('isPolling', 'isStarted'),
+  showLink: Em.computed.or('isPolling', 'isStarted'),
 
   start: function () {
     if (Em.isNone(this.get('requestId'))) {

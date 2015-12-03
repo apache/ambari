@@ -510,12 +510,11 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           }
         }.observes('controller.inputFields.retypeSMTPPassword.value', 'controller.inputFields.SMTPPassword.value'),
 
-        setParentErrors: function () {
-          var hasErrors = this.get('nameError') || this.get('emailToError') || this.get('emailFromError') ||
-            this.get('smtpPortError') || this.get('hostError') || this.get('portError') || this.get('passwordError');
-          this.set('parentView.hasErrors', hasErrors);
-        }.observes('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'passwordError'),
+        someErrorExists: Em.computed.or('nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'passwordError'),
 
+        setParentErrors: function () {
+          this.set('parentView.hasErrors', this.get('someErrorExists'));
+        }.observes('someErrorExists'),
 
         groupsSelectView: Em.Select.extend({
           attributeBindings: ['disabled'],

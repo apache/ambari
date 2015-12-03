@@ -121,9 +121,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         && !this.get('isCompareMode') && App.isAccessible('MANAGER') && !this.get('isHostsConfigsPage');
   }.property('selectedVersion', 'isCompareMode', 'currentDefaultVersion', 'selectedConfigGroup.isDefault'),
 
-  serviceConfigs: function () {
-    return App.config.get('preDefinedServiceConfigs');
-  }.property('App.config.preDefinedServiceConfigs'),
+  serviceConfigs: Em.computed.alias('App.config.preDefinedServiceConfigs'),
 
   /**
    * Number of errors in the configs in the selected service (only for AdvancedTab if App supports Enhanced Configs)
