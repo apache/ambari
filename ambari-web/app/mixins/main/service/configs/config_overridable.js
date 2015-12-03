@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var arrayUtils = require('utils/array_utils');
+var validator = require('utils/validator');
 
 /**
  * Mixin with methods for config groups and overrides processing
@@ -170,10 +170,15 @@ App.ConfigOverridable = Em.Mixin.create({
         var isWarning = false;
         var optionSelect = this.get('optionSelectConfigGroup');
         if (!optionSelect) {
-          var nn = this.get('newConfigGroupName');
-          if (nn && configGroups.mapProperty('name').contains(nn.trim())) {
-            msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
-            isWarning = true;
+          var nn = this.get('newConfigGroupName').trim();
+          if (nn) {
+            if (!validator.isValidConfigGroupName(nn)) {
+              msg = Em.I18n.t("form.validator.configGroupName");
+              isWarning = true;
+            } else if (configGroups.mapProperty('name').contains(nn)) {
+              msg = Em.I18n.t("config.group.selection.dialog.err.name.exists");
+              isWarning = true;
+            }
           }
         }
         this.set('warningMessage', msg);
