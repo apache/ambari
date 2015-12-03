@@ -801,38 +801,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.spy(App, 'ModalPopup');
       sinon.spy(App, 'showConfirmationFeedBackPopup');
-      this.mock = sinon.stub(controller, 'getSupportedUpgradeTypes');
+      sinon.stub(controller, 'getSupportedUpgradeTypes').returns({
+        done: function (callback) {
+          callback([1]);
+          return {
+            always: function (alwaysCallback) {
+              alwaysCallback();
+              return {};
+            }
+          };
+        }
+      });
       sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
+      sinon.stub(App.RepositoryVersion, 'find').returns([
+        Em.Object.create({
+          status: 'CURRENT'
+        })
+      ]);
+    });
+    beforeEach(function () {
+      controller.get('runningCheckRequests').clear();
     });
     after(function () {
       App.ModalPopup.restore();
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
-      this.mock.restore();
+      controller.getSupportedUpgradeTypes.restore();
       controller.get('upgradeMethods').setEach('selected', false);
+      App.RepositoryVersion.find.restore();
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
-      this.mock.returns({
-        done: function(callback) {callback([1]);}
-      });
-      controller.get('upgradeMethods')[0].set('selected', true);
       controller.set('isDowngrade', false);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.true;
+      expect(controller.get('upgradeMethods').everyProperty('isCheckRequestInProgress')).to.be.true;
+      expect(controller.get('upgradeMethods').someProperty('selected')).to.be.false;
+      controller.get('upgradeMethods')[0].set('selected', true);
       var confirmPopup = popup.onPrimary();
       expect(App.showConfirmationFeedBackPopup.calledOnce).to.be.true;
       confirmPopup.onPrimary();
       expect(controller.runPreUpgradeCheck.calledWith(version)).to.be.true;
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
     });
     it("NOT show confirmation popup on Downgrade", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
-      this.mock.returns({
-        done: function(callback) {callback([1]);}
-      });
       controller.set('isDowngrade', true);
-      var popup = controller.upgradeOptions(false, version);
+      controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.false;
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
     });
   });
 
@@ -1642,6 +1659,235 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
       });
     });
+  });
+
+  describe('#getConfigsWarnings', function () {
+
+    var cases = [
+      {
+        configs: [],
+        title: 'no warning'
+      },
+      {
+        configsMergeWarning: {},
+        configs: [],
+        title: 'empty data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {}
+        },
+        configs: [],
+        title: 'incomplete data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            failed_detail: {}
+          }
+        },
+        configs: [],
+        title: 'invalid data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            failed_detail: []
+          }
+        },
+        configs: [],
+        title: 'empty configs array'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            status: 'FAIL',
+            failed_detail: [
+              {
+                type: 't0',
+                property: 'p0',
+                current: 'c0',
+                new_stack_value: 'n0',
+                result_value: 'r0'
+              },
+              {
+                type: 't1',
+                property: 'p1',
+                current: 'c1',
+                new_stack_value: 'n1'
+              },
+              {
+                type: 't2',
+                property: 'p2',
+                current: 'c2',
+                result_value: 'r2'
+              }
+            ]
+          }
+        },
+        configs: [],
+        title: 'not a warning'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            status: 'WARNING',
+            failed_detail: [
+              {
+                type: 't0',
+                property: 'p0',
+                current: 'c0',
+                new_stack_value: 'n0',
+                result_value: 'r0'
+              },
+              {
+                type: 't1',
+                property: 'p1',
+                current: 'c1',
+                new_stack_value: 'n1'
+              },
+              {
+                type: 't2',
+                property: 'p2',
+                current: 'c2',
+                result_value: 'r2'
+              }
+            ]
+          }
+        },
+        configs: [
+          {
+            type: 't0',
+            name: 'p0',
+            currentValue: 'c0',
+            recommendedValue: 'n0',
+            isDeprecated: false,
+            resultingValue: 'r0',
+            willBeRemoved: false
+          },
+          {
+            type: 't1',
+            name: 'p1',
+            currentValue: 'c1',
+            recommendedValue: 'n1',
+            isDeprecated: false,
+            resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
+            willBeRemoved: true
+          },
+          {
+            type: 't2',
+            name: 'p2',
+            currentValue: 'c2',
+            recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
+            isDeprecated: true,
+            resultingValue: 'r2',
+            willBeRemoved: false
+          }
+        ],
+        title: 'normal case'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(controller.getConfigsWarnings(item.configsMergeWarning)).to.eql(item.configs);
+      });
+    });
+
+  });
+
+  describe('#runPreUpgradeCheckOnly', function () {
+
+    var appGetMock,
+      upgradeMethods = controller.get('upgradeMethods'),
+      cases = [
+      {
+        supportsPreUpgradeCheck: false,
+        ru: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        eu: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        ajaxCallCount: 0,
+        runningCheckRequestsLength: 0,
+        title: 'pre-upgrade checks not supported'
+      },
+      {
+        supportsPreUpgradeCheck: true,
+        ru: {
+          isCheckComplete: false,
+          isCheckRequestInProgress: true,
+          action: ''
+        },
+        eu: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        ajaxCallCount: 1,
+        type: 'ROLLING',
+        runningCheckRequestsLength: 1,
+        title: 'rolling upgrade'
+      },
+      {
+        supportsPreUpgradeCheck: true,
+        ru: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        eu: {
+          isCheckComplete: false,
+          isCheckRequestInProgress: true,
+          action: ''
+        },
+        ajaxCallCount: 1,
+        type: 'NON_ROLLING',
+        runningCheckRequestsLength: 1,
+        title: 'express upgrade'
+      }
+    ];
+
+    beforeEach(function () {
+      appGetMock = sinon.stub(App, 'get');
+      controller.get('runningCheckRequests').clear();
+      upgradeMethods.forEach(function (method) {
+        method.setProperties({
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        });
+      });
+      sinon.stub(App.ajax, 'send').returns({});
+    });
+
+    afterEach(function () {
+      appGetMock.restore();
+      App.ajax.send.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        var runningCheckRequests = controller.get('runningCheckRequests');
+        appGetMock.returns(item.supportsPreUpgradeCheck);
+        controller.runPreUpgradeCheckOnly({
+          type: item.type
+        });
+        expect(upgradeMethods.findProperty('type', 'ROLLING').getProperties('isCheckComplete', 'isCheckRequestInProgress', 'action')).to.eql(item.ru);
+        expect(upgradeMethods.findProperty('type', 'NON_ROLLING').getProperties('isCheckComplete', 'isCheckRequestInProgress', 'action')).to.eql(item.eu);
+        expect(App.ajax.send.callCount).to.equal(item.ajaxCallCount);
+        expect(runningCheckRequests).to.have.length(item.runningCheckRequestsLength);
+        if (item.runningCheckRequestsLength) {
+          expect(runningCheckRequests[0].type).to.equal(item.type);
+        }
+      });
+    });
+
   });
 
 

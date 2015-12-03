@@ -30,11 +30,15 @@
             <div class="method-name">{{method.displayName}}</div>
             <div class="method-description">{{{method.description}}}</div>
             {{#unless view.isInUpgradeWizard}}
-              {{#if method.precheckResultsMessage}}
+              {{#if method.isCheckRequestInProgress}}
+                <div class="method-precheck-message checking">
+                  <div class="spinner">{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.checking}}</div>
+                </div>
+              {{else}}
                 <div {{bindAttr class=":method-precheck-message method.precheckResultsMessageClass"}}>
                   <i {{bindAttr class="method.precheckResultsMessageIconClass"}}></i>
-                  <b>{{t admin.stackVersions.version.upgrade.upgradeOptions.preCheck.msg.title}}</b>&nbsp;
-                  <a {{action openMessage method target="view"}}>
+                  <b>{{method.precheckResultsTitle}}</b>&nbsp;
+                  <a {{action runAction method target="view"}}>
                     {{method.precheckResultsMessage}}
                   </a>
                 </div>
