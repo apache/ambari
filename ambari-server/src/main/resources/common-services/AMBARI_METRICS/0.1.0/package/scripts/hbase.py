@@ -190,7 +190,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
 
   if name == "master":
 
-    if params.is_hdfs_rootdir:
+    if not params.is_local_fs_rootdir:
       # If executing Stop All, HDFS is probably down
       if action != 'stop':
 
