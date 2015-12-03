@@ -156,11 +156,6 @@ public class AmbariAuthorizationFilter implements Filter {
               authorized = true;
               break;
             }
-          } else if (requestURI.matches(API_CREDENTIALS_ALL_PATTERN)) {
-            if (permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
-              authorized = true;
-              break;
-            }
           } else if (requestURI.matches(API_CLUSTERS_ALL_PATTERN)) {
             if (permissionId.equals(PermissionEntity.CLUSTER_USER_PERMISSION) ||
                 permissionId.equals(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION)) {
@@ -200,7 +195,6 @@ public class AmbariAuthorizationFilter implements Filter {
           (!httpRequest.getMethod().equals("GET")
               || requestURI.matches(VIEWS_CONTEXT_ALL_PATTERN)
               || requestURI.matches(API_GROUPS_ALL_PATTERN)
-              || requestURI.matches(API_CREDENTIALS_ALL_PATTERN)
               || requestURI.matches(API_LDAP_SYNC_EVENTS_ALL_PATTERN))) {
 
         httpResponse.setHeader("WWW-Authenticate", "Basic realm=\"" + realm + "\"");
@@ -257,6 +251,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private boolean authorizationPerformedInternally(String requestURI) {
     return requestURI.matches(API_USERS_ALL_PATTERN) ||
         requestURI.matches(API_GROUPS_ALL_PATTERN) ||
+        requestURI.matches(API_CREDENTIALS_ALL_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
   }
 

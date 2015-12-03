@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
+import java.util.Set;
 
 public class TestAuthenticationFactory {
   public static Authentication createAdministrator(String name) {
@@ -43,12 +45,20 @@ public class TestAuthenticationFactory {
     return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority()));
   }
 
+  public static Authentication createServiceAdministrator(String name) {
+    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority()));
+  }
+
   private static GrantedAuthority createAdministratorGrantedAuthority() {
     return new AmbariGrantedAuthority(createAdministratorPrivilegeEntity());
   }
 
   private static GrantedAuthority createClusterAdministratorGrantedAuthority() {
     return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity());
+  }
+
+  private static GrantedAuthority createServiceAdministratorGrantedAuthority() {
+    return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity());
   }
 
   private static PrivilegeEntity createAdministratorPrivilegeEntity() {
@@ -65,27 +75,84 @@ public class TestAuthenticationFactory {
     return privilegeEntity;
   }
 
+  private static PrivilegeEntity createServiceAdministratorPrivilegeEntity() {
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setPermission(createServiceAdministratorPermission());
+    return privilegeEntity;
+  }
+
   private static PermissionEntity createAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.AMBARI));
-
-    Collection<RoleAuthorizationEntity> authorizations = new ArrayList<RoleAuthorizationEntity>();
-    for (RoleAuthorization roleAuthorization : RoleAuthorization.values()) {
-      authorizations.add(createRoleAuthorizationEntity(roleAuthorization));
-    }
-
-    permissionEntity.setAuthorizations(authorizations);
-
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.allOf(RoleAuthorization.class)));
     return permissionEntity;
   }
 
   private static PermissionEntity createClusterAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
-    permissionEntity.setAuthorizations(Arrays.asList(
-        createRoleAuthorizationEntity(RoleAuthorization.CLUSTER_VIEW_ALERTS),
-        createRoleAuthorizationEntity(RoleAuthorization.CLUSTER_TOGGLE_ALERTS)));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
+        RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
+        RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK,
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.HOST_ADD_DELETE_COMPONENTS,
+        RoleAuthorization.HOST_ADD_DELETE_HOSTS,
+        RoleAuthorization.HOST_TOGGLE_MAINTENANCE,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_ENABLE_HA,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
+        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
+        RoleAuthorization.SERVICE_MOVE,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
+    return permissionEntity;
+  }
 
+  private static PermissionEntity createServiceAdministratorPermission() {
+    PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.CLUSTER_VIEW_ALERTS,
+        RoleAuthorization.CLUSTER_VIEW_CONFIGS,
+        RoleAuthorization.CLUSTER_VIEW_METRICS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_VIEW_STATUS_INFO,
+        RoleAuthorization.HOST_VIEW_CONFIGS,
+        RoleAuthorization.HOST_VIEW_METRICS,
+        RoleAuthorization.HOST_VIEW_STATUS_INFO,
+        RoleAuthorization.SERVICE_COMPARE_CONFIGS,
+        RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION,
+        RoleAuthorization.SERVICE_ENABLE_HA,
+        RoleAuthorization.SERVICE_MANAGE_CONFIG_GROUPS,
+        RoleAuthorization.SERVICE_MODIFY_CONFIGS,
+        RoleAuthorization.SERVICE_MOVE,
+        RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND,
+        RoleAuthorization.SERVICE_RUN_SERVICE_CHECK,
+        RoleAuthorization.SERVICE_START_STOP,
+        RoleAuthorization.SERVICE_TOGGLE_ALERTS,
+        RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE,
+        RoleAuthorization.SERVICE_VIEW_ALERTS,
+        RoleAuthorization.SERVICE_VIEW_CONFIGS,
+        RoleAuthorization.SERVICE_VIEW_METRICS,
+        RoleAuthorization.SERVICE_VIEW_STATUS_INFO)));
     return permissionEntity;
   }
 
@@ -115,6 +182,14 @@ public class TestAuthenticationFactory {
     roleAuthorizationEntity.setAuthorizationId(authorization.getId());
     roleAuthorizationEntity.setAuthorizationName(authorization.name());
     return roleAuthorizationEntity;
+  }
+
+  private static Collection<RoleAuthorizationEntity> createAuthorizations(Set<RoleAuthorization> roleAuthorizations) {
+    Collection<RoleAuthorizationEntity> roleAuthorizationEntities = new ArrayList<RoleAuthorizationEntity>();
+    for (RoleAuthorization roleAuthorization : roleAuthorizations) {
+      roleAuthorizationEntities.add(createRoleAuthorizationEntity(roleAuthorization));
+    }
+    return roleAuthorizationEntities;
   }
 
   private static class TestAuthorization implements Authentication {

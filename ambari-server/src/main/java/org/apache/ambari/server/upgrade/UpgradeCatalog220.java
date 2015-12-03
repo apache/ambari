@@ -195,6 +195,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_CONFIGS'", "'View configuration'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_STACK_DETAILS'", "'View stack version details'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_ALERTS'", "'View alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CREDENTIALS'", "'Manage external credentials'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_ALERTS'", "'Enable/disable alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_KERBEROS'", "'Enable/disable Kerberos'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.UPGRADE_DOWNGRADE_STACK'", "'Upgrade/downgrade stack'"}, false);
@@ -286,6 +287,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     map.put("CLUSTER.VIEW_CONFIGS", clusterUserAndUp);
     map.put("CLUSTER.VIEW_STACK_DETAILS", clusterUserAndUp);
     map.put("CLUSTER.VIEW_ALERTS", clusterUserAndUp);
+    map.put("CLUSTER.MANAGE_CREDENTIALS", clusterAdministratorAndUp);
     map.put("CLUSTER.TOGGLE_ALERTS", clusterAdministratorAndUp);
     map.put("CLUSTER.TOGGLE_KERBEROS", clusterAdministratorAndUp);
     map.put("CLUSTER.UPGRADE_DOWNGRADE_STACK", clusterAdministratorAndUp);
