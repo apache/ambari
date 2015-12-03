@@ -105,7 +105,7 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   protected String readFromWithDefault(String atsUrl, String defaultResponse) {
     String response;
     try {
-      InputStream responseInputStream = context.getURLStreamProvider().readFrom(atsUrl, "GET",
+      InputStream responseInputStream = context.getURLStreamProvider().readAsCurrent(atsUrl, "GET",
           (String)null, new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {
