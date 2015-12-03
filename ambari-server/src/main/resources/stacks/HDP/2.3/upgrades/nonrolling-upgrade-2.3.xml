@@ -316,6 +316,7 @@
         <component>ZKFC</component>
         <component>NAMENODE</component>
         <component>SECONDARY_NAMENODE</component>
+        <component>NFS_GATEWAY</component>
         <component>HDFS_CLIENT</component>
       </service>
     </group>
