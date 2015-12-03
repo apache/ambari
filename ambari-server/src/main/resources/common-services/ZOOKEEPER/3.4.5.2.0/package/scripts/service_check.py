@@ -32,6 +32,10 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
     import params
     env.set_params(params)
 
+    File(params.zk_smoke_out,
+         action="delete"
+    )
+
     File(format("{tmp_dir}/zkSmoke.sh"),
          mode=0755,
          content=StaticFile('zkSmoke.sh')
@@ -46,7 +50,7 @@ class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
 
 
     cmd_quorum = format("{tmp_dir}/zkSmoke.sh {zk_cli_shell} {smokeuser} {config_dir} {client_port} "
-                  "{security_enabled} {kinit_path_local} {smokeUserKeytab} {smokeUserPrincipal}")
+                  "{security_enabled} {kinit_path_local} {smokeUserKeytab} {smokeUserPrincipal} {zk_smoke_out}")
 
     Execute(cmd_quorum,
             tries=3,
