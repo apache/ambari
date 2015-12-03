@@ -69,6 +69,7 @@ module.exports = App.WizardRoute.extend({
           App.router.get('updateController').set('isWorking', true);
           App.router.transitionTo('main.admin.stackAndUpgrade.versions');
           this.hide();
+          location.reload();
         }
       });
     });
