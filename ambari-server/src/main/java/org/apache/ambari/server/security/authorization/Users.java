@@ -98,8 +98,19 @@ public class Users {
     return users;
   }
 
+  /**
+   * This method works incorrectly, userName is not unique if users have different types
+   * @return One user. Priority is LOCAL -> LDAP -> JWT
+   */
+  @Deprecated
   public User getAnyUser(String userName) {
-    UserEntity userEntity = userDAO.findUserByName(userName);
+    UserEntity userEntity = userDAO.findUserByNameAndType(userName, UserType.LOCAL);
+    if (userEntity == null) {
+      userEntity = userDAO.findUserByNameAndType(userName, UserType.LDAP);
+    }
+    if (userEntity == null) {
+      userEntity = userDAO.findUserByNameAndType(userName, UserType.JWT);
+    }
     return (null == userEntity) ? null : new User(userEntity);
   }
 

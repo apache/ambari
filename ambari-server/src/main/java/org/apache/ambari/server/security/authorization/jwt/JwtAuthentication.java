@@ -30,13 +30,13 @@ import java.util.Collection;
  */
 public class JwtAuthentication implements Authentication {
 
-  private SignedJWT token;
+  private String serializedToken;
   private User user;
   private Collection<AmbariGrantedAuthority> userAuthorities;
   private boolean authenticated = false;
 
-  public JwtAuthentication(SignedJWT token, User user, Collection<AmbariGrantedAuthority> userAuthorities) {
-    this.token = token;
+  public JwtAuthentication(String token, User user, Collection<AmbariGrantedAuthority> userAuthorities) {
+    this.serializedToken = token;
     this.user = user;
     this.userAuthorities = userAuthorities;
   }
@@ -47,8 +47,8 @@ public class JwtAuthentication implements Authentication {
   }
 
   @Override
-  public SignedJWT getCredentials() {
-    return token;
+  public String getCredentials() {
+    return serializedToken;
   }
 
   @Override
