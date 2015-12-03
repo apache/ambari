@@ -1649,20 +1649,6 @@ describe('App.InstallerStep7Controller', function () {
     var controller = App.WizardStep7Controller.create({
         installedServiceNames: ['HBASE', 'AMBARI_METRICS']
       }),
-      serviceConfigTags = [
-        {
-          siteName: 'hbase-site',
-          tagName: 'version1'
-        },
-        {
-          siteName: 'ams-hbase-site',
-          tagName: 'version1'
-        },
-        {
-          siteName: 'site-without-properties',
-          tagName: 'version1'
-        }
-      ],
       configs = [
         {
           name: 'hbase.client.scanner.caching',
@@ -1700,7 +1686,7 @@ describe('App.InstallerStep7Controller', function () {
       installedServiceNames = ['HBASE', 'AMBARI_METRICS'];
 
     it('should handle properties with the same name', function () {
-      controller.setInstalledServiceConfigs(serviceConfigTags, configs, configsByTags, installedServiceNames);
+      configs = controller.setInstalledServiceConfigs(configs, configsByTags, installedServiceNames);
       var properties = configs.filterProperty('name', 'hbase.client.scanner.caching');
       expect(properties).to.have.length(2);
       expect(properties.findProperty('filename', 'hbase-site.xml').value).to.equal('1500');

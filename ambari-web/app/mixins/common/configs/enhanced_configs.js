@@ -187,7 +187,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       return p && p.concat(c);
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
-      if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
+      if (Em.get(item, 'propertyName').contains('hadoop.proxyuser')) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
         var stackProperty = App.StackConfigProperty.find(App.config.configId(item.propertyName, item.fileName));
         var parentConfigs = stackProperty && stackProperty.get('propertyDependsOn');

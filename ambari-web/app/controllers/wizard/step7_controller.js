@@ -645,7 +645,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
     if (this.get('wizardController.name') === 'addServiceController') {
       App.router.get('configurationController').getConfigsByTags(this.get('serviceConfigTags')).done(function (loadedConfigs) {
-        self.setInstalledServiceConfigs(self.get('serviceConfigTags'), configs, loadedConfigs, self.get('installedServiceNames'));
+        configs = self.setInstalledServiceConfigs(configs, loadedConfigs, self.get('installedServiceNames'));
         self.applyServicesConfigs(configs, storedConfigs);
       });
     } else {
@@ -717,7 +717,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (self.get('wizardController.name') == 'addServiceController') {
         // for Add Service just remove or add dependent properties and ignore config values changes
         // for installed services only
-        self.addRemoveDependentConfigs(self.get('installedServiceNames'));
         self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
       }
       // * add dependencies based on recommendations
@@ -1030,46 +1029,51 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   /**
    * set configs actual values from server
-   * @param serviceConfigTags
    * @param configs
    * @param configsByTags
    * @param installedServiceNames
    * @method setInstalledServiceConfigs
    */
-  setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags, installedServiceNames) {
+  setInstalledServiceConfigs: function (configs, configsByTags, installedServiceNames) {
     var configsMap = {};
-    var configMixin = App.get('config');
-    var nonServiceTab = require('data/service_configs');
 
     configsByTags.forEach(function (configSite) {
       configsMap[configSite.type] = configSite.properties || {};
     });
-    configs.forEach(function (_config) {
-      var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
-      var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
-      if (!Em.isNone(mappedConfigValue) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
-        // prevent overriding already edited properties
-        if (_config.savedValue != mappedConfigValue || _config.displayType == 'password') {
+    var allConfigs = configs.filter(function (_config) {
+      if ((['MISC'].concat(installedServiceNames).contains(_config.serviceName))) {
+        var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
+        var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
+        if (Em.isNone(mappedConfigValue)) {
+          //for now ranger plugin properties are not sending by recommendations if they are missed - it should be added
+          return _config.serviceName == 'MISC' || /^ranger-/.test(_config.filename);
+        } else {
+          if (_config.savedValue != mappedConfigValue) {
+            _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
+          }
           _config.value = App.config.formatPropertyValue(_config, mappedConfigValue);
+          _config.hasInitialValue = true;
+          delete configsMap[type][_config.name];
+          return true;
         }
-        _config.savedValue = App.config.formatPropertyValue(_config, mappedConfigValue);
-        _config.hasInitialValue = true;
-        delete configsMap[type][_config.name];
+      } else {
+        return true;
       }
-    });
+    }, this);
     //add user properties
     Em.keys(configsMap).forEach(function (filename) {
       Em.keys(configsMap[filename]).forEach(function (propertyName) {
-        configs.push(configMixin.createDefaultConfig(propertyName,
-          configMixin.getServiceByConfigType(filename) ? configMixin.getServiceByConfigType(filename).get('serviceName') : 'MISC',
-          configMixin.getOriginalFileName(filename),
+        allConfigs.push(App.config.createDefaultConfig(propertyName,
+          App.config.getServiceByConfigType(filename) ? App.config.getServiceByConfigType(filename).get('serviceName') : 'MISC',
+          App.config.getOriginalFileName(filename),
           false, {
             value: configsMap[filename][propertyName],
             savedValue: configsMap[filename][propertyName],
             hasInitialValue: true
-        }));
+          }));
       });
     });
+    return allConfigs;
   },
 
   /**
