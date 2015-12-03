@@ -307,9 +307,19 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     ranger_admin_hosts = self.getComponentHostNames(services, "RANGER", "RANGER_ADMIN")
     if ranger_admin_hosts:
-      ranger_admin_host = ranger_admin_hosts[0]
+      if len(ranger_admin_hosts) > 1 \
+        and services['configurations'] \
+        and 'admin-properties' in services['configurations'] and 'policymgr_external_url' in services['configurations']['admin-properties']['properties'] \
+        and services['configurations']['admin-properties']['properties']['policymgr_external_url'] \
+        and not services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip().isempty():
 
-    policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
+        # in case of HA deployment keep the policymgr_external_url specified in the config
+        policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
+      else:
+
+        ranger_admin_host = ranger_admin_hosts[0]
+        policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
+
     putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
     rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]

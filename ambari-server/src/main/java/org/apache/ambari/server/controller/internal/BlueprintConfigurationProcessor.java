@@ -125,11 +125,13 @@ public class BlueprintConfigurationProcessor {
   private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
-   * Statically-defined set of properties that can support using a nameservice name
+   * Statically-defined set of properties that can support HA using a nameservice name
    *   in the configuration, rather than just a host name.
+   *   This set also contains other HA properties that will be exported if the
+   *   expected hostname information is not found.
    */
   private static Set<String> configPropertiesWithHASupport =
-    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes"));
+    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url"));
 
   /**
    * Statically-defined list of filters to apply on property exports.

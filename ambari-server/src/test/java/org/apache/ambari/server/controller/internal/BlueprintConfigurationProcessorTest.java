@@ -18,7 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
@@ -258,6 +261,41 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(((Map) properties.get("kerberos-env")).size(), 0);
     assertEquals(((Map) properties.get("krb5-conf")).size(), 0);
     assertEquals(((Map) properties.get("tez-site")).size(), 0);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExportRangerHAPolicyMgrExternalUrlProperty() throws Exception {
+    // Given
+    Map<String, String> rangerAdminProperties = Maps.newHashMap();
+    rangerAdminProperties.put("DB_FLAVOR", "test_db_flavor");
+    rangerAdminProperties.put("policymgr_external_url", "test_policymgr_external_url");
+
+
+    Map<String, Map<String, String>> properties =
+      ImmutableMap.of("admin-properties", rangerAdminProperties);
+
+
+    Configuration clusterConfig = new Configuration(properties, ImmutableMap.<String, Map<String,Map<String,String>>>of());
+
+    Collection<String> hostGroup1Components = ImmutableSet.of("RANGER_ADMIN");
+    TestHostGroup group1 = new TestHostGroup("group1", hostGroup1Components, Collections.singleton("testhost1"));
+
+    Collection<String> hostGroup2Components = ImmutableSet.of("RANGER_ADMIN");
+    TestHostGroup group2 = new TestHostGroup("group2", hostGroup2Components, Collections.singleton("testhost2"));
+
+
+    Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
+
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    assertEquals("policymgr_external_url property's original value should be exported when Ranger Admin is deployed to multiple hosts.", "test_policymgr_external_url", properties.get("admin-properties").get("policymgr_external_url"));
+
   }
 
   @Test
