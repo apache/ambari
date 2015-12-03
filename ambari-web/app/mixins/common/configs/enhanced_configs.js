@@ -696,6 +696,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
             isRequired: stackProperty && stackProperty.isRequired !== false
           });
+          if (!Em.get(propertyToAdd, 'isDeleted')) {
+            addedProperty.set('initialValue', null);
+          }
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();
         } else {
