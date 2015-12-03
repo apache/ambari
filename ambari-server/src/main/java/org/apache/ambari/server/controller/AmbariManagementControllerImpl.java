@@ -1490,8 +1490,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     if (currentVersion == null) {
       cluster.setCurrentStackVersion(desiredVersion);
     }
-    // Rolling Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
-    // create any ClusterVersionEntity changes because those have to go through the Rolling Upgrade process.
+    // Stack Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
+    // create any ClusterVersionEntity changes because those have to go through the Stack Upgrade process.
 
     boolean requiresHostListUpdate =
         request.getHostNames() != null && !request.getHostNames().isEmpty();

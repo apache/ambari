@@ -80,7 +80,7 @@ class FalconServerLinux(FalconServer):
     if Script.is_hdp_stack_less_than("2.2"):
       return
 
-    Logger.info("Executing Falcon Server Rolling Upgrade pre-restart")
+    Logger.info("Executing Falcon Server Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
     hdp_select.select("falcon-server", params.version)
     falcon_server_upgrade.pre_start_restore()

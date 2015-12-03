@@ -1477,7 +1477,7 @@ public class ClusterImpl implements Cluster {
           hostVersionDAO.merge(hostVersionEntity);
         }
       } else {
-        // Handle transitions during a Rolling Upgrade
+        // Handle transitions during a Stack Upgrade
 
         // If a host only has one Component to update, that single report can still transition the host version from
         // INSTALLED->UPGRADING->UPGRADED in one shot.

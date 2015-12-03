@@ -455,7 +455,7 @@ public class HostRoleCommandDAO {
   /**
    * Finds the counts of tasks for a request and groups them by stage id.
    * This allows for very efficient loading when there are a huge number of stages
-   * and tasks to iterate (for example, during a Rolling Upgrade).
+   * and tasks to iterate (for example, during a Stack Upgrade).
    * @param requestId the request id
    * @return the map of stage-to-summary objects
    */
