@@ -266,7 +266,7 @@ public class AmbariAuthorizationFilterTest {
   public void testDoFilter_viewUserAccess() throws Exception {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
-    urlTests.put("/api/v1/clusters/cluster", "POST",  false);
+    urlTests.put("/api/v1/clusters/cluster", "POST",  true);
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
@@ -299,7 +299,7 @@ public class AmbariAuthorizationFilterTest {
   public void testDoFilter_userNoPermissionsAccess() throws Exception {
     final Table<String, String, Boolean> urlTests = HashBasedTable.create();
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
-    urlTests.put("/api/v1/clusters/cluster", "POST",  false);
+    urlTests.put("/api/v1/clusters/cluster", "POST",  true);
     urlTests.put("/api/v1/views", "GET", true);
     urlTests.put("/api/v1/views", "POST", false);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);

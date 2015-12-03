@@ -44,6 +44,8 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
@@ -70,6 +72,7 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Tests the {@link UpgradeHelper} class
@@ -144,11 +147,18 @@ public class UpgradeHelperTest {
 //    repositoryVersionDAO.create(stackEntityTo, "2.2.0", "2.2.0", "");
 //
 //    replay(m_configHelper);
+
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
   }
 
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
+
+    // Clear the authenticated user
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
@@ -876,7 +886,7 @@ public class UpgradeHelperTest {
   }
 
 
-  private Cluster makeCluster() throws AmbariException {
+  private Cluster makeCluster() throws AmbariException, AuthorizationException {
     return makeCluster(true);
   }
 
@@ -885,7 +895,7 @@ public class UpgradeHelperTest {
    * Create an HA cluster
    * @throws AmbariException
    */
-  private Cluster makeCluster(boolean clean) throws AmbariException {
+  private Cluster makeCluster(boolean clean) throws AmbariException, AuthorizationException {
     Clusters clusters = injector.getInstance(Clusters.class);
     ServiceFactory serviceFactory = injector.getInstance(ServiceFactory.class);
 

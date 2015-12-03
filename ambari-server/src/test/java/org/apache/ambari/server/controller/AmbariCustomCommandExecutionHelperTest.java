@@ -43,6 +43,7 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -144,7 +145,7 @@ public class AmbariCustomCommandExecutionHelperTest {
       Assert.assertEquals(1, command.getForceRefreshConfigTags().size());
       Assert.assertEquals("capacity-scheduler", command.getForceRefreshConfigTags().iterator().next());
       
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
@@ -289,7 +290,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     Assert.assertFalse(helper.isTopologyRefreshRequired("STOP", "c1", "HDFS"));
   }
 
-  private void createClusterFixture(String stackVersion) throws AmbariException {
+  private void createClusterFixture(String stackVersion) throws AmbariException, AuthorizationException {
     createCluster("c1", stackVersion);
     addHost("c6401","c1");
     addHost("c6402","c1");
@@ -329,7 +330,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     host.setHostAttributes(hostAttributes);
   }
 
-  private void createCluster(String clusterName, String stackVersion) throws AmbariException {
+  private void createCluster(String clusterName, String stackVersion) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(),
         SecurityType.NONE, stackVersion, null);
     controller.createCluster(r);

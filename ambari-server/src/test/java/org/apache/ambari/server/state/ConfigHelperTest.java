@@ -49,6 +49,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
@@ -67,6 +68,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 
 @RunWith(Enclosed.class)
@@ -82,6 +84,10 @@ public class ConfigHelperTest {
 
     @Before
     public void setup() throws Exception {
+      // Set the authenticated user
+      // TODO: remove this or replace the authenticated user to test authorization rules
+      SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
+
       injector = Guice.createInjector(new InMemoryDefaultTestModule());
       injector.getInstance(GuiceJpaInitializer.class);
       clusters = injector.getInstance(Clusters.class);
@@ -189,6 +195,9 @@ public class ConfigHelperTest {
     @After
     public void tearDown() {
       injector.getInstance(PersistService.class).stop();
+
+      // Clear the authenticated user
+      SecurityContextHolder.getContext().setAuthentication(null);
     }
 
     @Transactional
@@ -708,6 +717,15 @@ public class ConfigHelperTest {
         }
       });
 
+      // Set the authenticated user
+      // TODO: remove this or replace the authenticated user to test authorization rules
+      SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
+    }
+
+    @After
+    public void teardown() {
+      // Clear the authenticated user
+      SecurityContextHolder.getContext().setAuthentication(null);
     }
 
     @Test

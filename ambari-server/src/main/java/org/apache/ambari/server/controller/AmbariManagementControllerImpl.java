@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -107,10 +108,10 @@ import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
@@ -920,7 +921,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private Set<ClusterResponse> getClusters(ClusterRequest request)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
 
@@ -932,10 +933,21 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Cluster singleCluster = null;
-    if (request.getClusterName() != null) {
-      singleCluster = clusters.getCluster(request.getClusterName());
-    } else if (request.getClusterId() != null) {
-      singleCluster = clusters.getClusterById(request.getClusterId());
+    try {
+      if (request.getClusterName() != null) {
+        singleCluster = clusters.getCluster(request.getClusterName());
+      } else if (request.getClusterId() != null) {
+        singleCluster = clusters.getClusterById(request.getClusterId());
+      }
+    }
+    catch(ClusterNotFoundException e) {
+      // the user shouldn't know the difference between a cluster that does not exist or one that
+      // he doesn't have access to.
+      if (AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS)) {
+        throw e;
+      } else {
+        throw new AuthorizationException();
+      }
     }
 
     if (singleCluster != null) {
@@ -943,7 +955,19 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       cr.setDesiredConfigs(singleCluster.getDesiredConfigs());
       cr.setDesiredServiceConfigVersions(singleCluster.getActiveServiceConfigVersions());
       cr.setCredentialStoreServiceProperties(getCredentialStoreServiceProperties());
+
+     // If the user is authorized to view information about this cluster, add it to the respons
+// TODO: Uncomment this when the UI doesn't require view access for View-only users.
+//      if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cr.getClusterId(),
+//          RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
       response.add(cr);
+//      }
+//      else {
+//        // the user shouldn't know the difference between a cluster that does not exist or one that
+//        // he doesn't have access to.
+//        throw new AuthorizationException();
+//      }
+
       return response;
     }
 
@@ -957,7 +981,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           continue;
         }
       }
+
+// TODO: Uncomment this when the UI doesn't require view access for View-only users.
+//       If the user is authorized to view information about this cluster, add it to the response
+//       if (AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, c.getClusterId(),
+//        RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER)) {
       response.add(c.convertToResponse());
+//       }
     }
     StringBuilder builder = new StringBuilder();
     if (LOG.isDebugEnabled()) {
@@ -1260,7 +1290,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public synchronized RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                                            Map<String, String> requestProperties)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     RequestStatusResponse response = null;
 
@@ -1337,7 +1367,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   private synchronized RequestStatusResponse updateCluster(ClusterRequest request, Map<String, String> requestProperties)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     RequestStageContainer requestStageContainer = null;
 
@@ -1375,6 +1405,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       if (LOG.isDebugEnabled()) {
         LOG.debug("Received cluster name change request from " + cluster.getClusterName() + " to " + request.getClusterName());
       }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, EnumSet.of(RoleAuthorization.AMBARI_RENAME_CLUSTER))) {
+        throw new AuthorizationException("The authenticated user does not have authorization to rename the cluster");
+      }
+
       cluster.setClusterName(request.getClusterName());
     }
 
@@ -1469,6 +1504,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         configs.add(cluster.getConfig(cr.getType(), cr.getVersionTag()));
       }
       if (!configs.isEmpty()) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+          throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
+        }
+
         String authName = getAuthName();
         serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
         if (serviceConfigVersionResponse != null) {
@@ -1488,6 +1527,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // Set the current version value if its not already set
     if (currentVersion == null) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK))) {
+        throw new AuthorizationException("The authenticated user does not have authorization to modify stack version");
+      }
+
       cluster.setCurrentStackVersion(desiredVersion);
     }
     // Stack Upgrade: unlike the workflow for creating a cluster, updating a cluster via the API will not
@@ -1540,6 +1583,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     if (null != request.getServiceConfigVersionRequest()) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+        throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
+      }
+
       ServiceConfigVersionRequest serviceConfigVersionRequest = request.getServiceConfigVersionRequest();
       if (StringUtils.isEmpty(serviceConfigVersionRequest.getServiceName()) ||
           null == serviceConfigVersionRequest.getVersion()) {
@@ -1579,6 +1626,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // if any custom operations are valid and requested, the process of executing them should be initiated,
       // most of the validation logic will be left to the KerberosHelper to avoid polluting the controller
       if (kerberosHelper.shouldExecuteCustomOperations(securityType, requestProperties)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS))) {
+          throw new AuthorizationException("The authenticated user does not have authorization to perform Kerberos-specific operations");
+        }
+
         try {
           requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer,
               kerberosHelper.getManageIdentitiesDirective(requestProperties));
@@ -1590,6 +1641,10 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             cluster.getSecurityType().name(), securityType.name());
 
         if ((securityType == SecurityType.KERBEROS) || (securityType == SecurityType.NONE)) {
+          if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.CLUSTER_TOGGLE_KERBEROS))) {
+            throw new AuthorizationException("The authenticated user does not have authorization to enable or disable Kerberos");
+          }
+
           // Since the security state of the cluster has changed, invoke toggleKerberos to handle
           // adding or removing Kerberos from the cluster. This may generate multiple stages
           // or not depending the current state of the cluster.
@@ -3050,7 +3105,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   }
 
   @Override
-  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests) throws AmbariException {
+  public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests) throws AmbariException, AuthorizationException {
     Set<ClusterResponse> response = new HashSet<ClusterResponse>();
     for (ClusterRequest request : requests) {
       try {

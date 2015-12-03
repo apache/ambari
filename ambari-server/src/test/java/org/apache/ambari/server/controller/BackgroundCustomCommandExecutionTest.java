@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
@@ -148,12 +149,12 @@ public class BackgroundCustomCommandExecutionTest {
       Assert.assertEquals(AgentCommandType.BACKGROUND_EXECUTION_COMMAND, command.getCommandType());
       Assert.assertEquals("{\"threshold\":13}", command.getCommandParams().get("namenode"));
       
-    } catch (AmbariException e) {
+    } catch (Exception e) {
       Assert.fail(e.getMessage());
     }
   }
   
-  private void createClusterFixture() throws AmbariException {
+  private void createClusterFixture() throws AmbariException, AuthorizationException {
     createCluster("c1");
     addHost("c6401","c1");
     addHost("c6402","c1");
@@ -182,7 +183,7 @@ public class BackgroundCustomCommandExecutionTest {
     host.setHostAttributes(hostAttributes);
   }
 
-  private void createCluster(String clusterName) throws AmbariException {
+  private void createCluster(String clusterName) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, "HDP-2.0.6", null);
     controller.createCluster(r);
   }

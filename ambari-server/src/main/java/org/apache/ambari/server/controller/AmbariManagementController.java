@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -74,8 +74,9 @@ public interface AmbariManagementController {
    * @param request  the request object which defines the cluster to be created
    *
    * @throws AmbariException thrown if the cluster cannot be created
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
-  public void createCluster(ClusterRequest request) throws AmbariException;
+  public void createCluster(ClusterRequest request) throws AmbariException, AuthorizationException;
 
   /**
    * Create the host component defined by the attributes in the given request object.
@@ -135,9 +136,10 @@ public interface AmbariManagementController {
    * @return a set of cluster responses
    *
    * @throws AmbariException thrown if the resource cannot be read
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Get the host components identified by the given request objects.
@@ -224,10 +226,11 @@ public interface AmbariManagementController {
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
   public RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                               Map<String, String> requestProperties)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Updates the users specified.
