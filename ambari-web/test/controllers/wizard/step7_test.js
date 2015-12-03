@@ -1260,20 +1260,6 @@ describe('App.InstallerStep7Controller', function () {
     var controller = App.WizardStep7Controller.create({
         installedServiceNames: ['HBASE', 'AMBARI_METRICS']
       }),
-      serviceConfigTags = [
-        {
-          siteName: 'hbase-site',
-          tagName: 'version1'
-        },
-        {
-          siteName: 'ams-hbase-site',
-          tagName: 'version1'
-        },
-        {
-          siteName: 'site-without-properties',
-          tagName: 'version1'
-        }
-      ],
       configs = [
         {
           name: 'hbase.client.scanner.caching',

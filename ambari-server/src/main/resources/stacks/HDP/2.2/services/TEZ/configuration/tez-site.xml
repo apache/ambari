@@ -354,4 +354,9 @@
     </description>
   </property>
 
+  <property>
+    <name>tez.tez-ui.history-url.base</name>
+    <description></description>
+  </property>
+
 </configuration>
