@@ -314,7 +314,7 @@ App.ConfigsComparator = Em.Mixin.create({
       isOverridable: false,
       isReconfigurable: false,
       isRequired: false,
-      isRequiredByAgent: false,
+      isRequiredByAgent: true,
       isSecureConfig: false,
       isUserProperty: true,
       isVisible: true,
