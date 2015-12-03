@@ -23,6 +23,7 @@ SEGMENT = "segment"
 START = "start"
 INIT = "init"
 STOP = "stop"
+YARN = "yarn"
 
 # Users
 root_user = "root"

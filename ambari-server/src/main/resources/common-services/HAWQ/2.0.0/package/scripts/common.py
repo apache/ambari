@@ -22,6 +22,7 @@ import crypt
 import filecmp
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.system import Execute, Directory, File
+from resource_management.libraries.script.config_dictionary import ConfigDictionary
 from resource_management.core.logger import Logger
 from resource_management.core.system import System
 from resource_management.core.exceptions import Fail
@@ -88,7 +89,61 @@ def setup_common_configurations():
             owner=constants.hawq_user,
             group=constants.hawq_group,
             mode=0644)
+  if "yarn-site" in params.config["configurations"]:
+    __update_yarn_client()
   __set_osparams()
+
+
+def __update_yarn_client():
+  """
+  Writes yarn-client.xml on the local filesystem on hawq nodes.
+  If yarn ha is enabled, appends related parameters to yarn-client.xml
+  """
+  import params
+
+  yarn_client_dict = params.yarn_client.copy()
+  if params.yarn_ha_enabled:
+    # Temporary logic, this logic will be moved in ambari-web to expose these parameters on UI once Yarn HA is enabled
+    rm_ids = [rm_id.strip() for rm_id in params.config['configurations']['yarn-site']['yarn.resourcemanager.ha.rm-ids'].split(',')]
+    rm_id1 = rm_ids[0]
+    rm_id2 = rm_ids[1]
+    # Identify the hostname for yarn resource managers
+    rm_host1= params.config['configurations']['yarn-site']['yarn.resourcemanager.hostname.{0}'.format(rm_id1)]
+    rm_host2= params.config['configurations']['yarn-site']['yarn.resourcemanager.hostname.{0}'.format(rm_id2)]
+    # Ambari does not update yarn.resourcemanager.address.${rm_id} and yarn.resourcemanager.scheduler.address.${rm_id}
+    # property as its derived automatically at yarn.
+    # Hawq uses these properties to use yarn ha. If these properties are defined at Ambari use them, else derive them.
+    # Use port 8032 to derive hawq.resourcemanager.address.${rm_id}:port value if needed
+    rm_default_port = 8032
+    # Use port 8030 to derive hawq.resourcemanager.scheduler.address.${rm_id}:port value if needed
+    rm_scheduler_default_port = 8030
+
+    rm_address_host1 = params.config['configurations']['yarn-site'].get('yarn.resourcemanager.address.{0}'.format(rm_id1))
+    if rm_address_host1 is None:
+      rm_address_host1 = "{0}:{1}".format(rm_host1, rm_default_port)
+
+    rm_address_host2 = params.config['configurations']['yarn-site'].get('yarn.resourcemanager.address.{0}'.format(rm_id2))
+    if rm_address_host2 is None:
+      rm_address_host2 = "{0}:{1}".format(rm_host2, rm_default_port)
+
+    rm_scheduler_address_host1 = params.config['configurations']['yarn-site'].get('yarn.resourcemanager.scheduler.address.{0}'.format(rm_id1))
+    if rm_scheduler_address_host1 is None:
+      rm_scheduler_address_host1 = "{0}:{1}".format(rm_host1, rm_scheduler_default_port)
+
+    rm_scheduler_address_host2 = params.config['configurations']['yarn-site'].get('yarn.resourcemanager.scheduler.address.{0}'.format(rm_id2))
+    if rm_scheduler_address_host2 is None:
+      rm_scheduler_address_host2 = "{0}:{1}".format(rm_host2, rm_scheduler_default_port)
+
+    yarn_client_dict['yarn.resourcemanager.ha'] = "{0},{1}".format(rm_address_host1, rm_address_host2)
+    yarn_client_dict['yarn.resourcemanager.scheduler.ha'] = "{0},{1}".format(rm_scheduler_address_host1, rm_scheduler_address_host2)
+
+  XmlConfig("yarn-client.xml",
+            conf_dir=constants.hawq_config_dir,
+            configurations=ConfigDictionary(yarn_client_dict),
+            configuration_attributes=params.config['configuration_attributes']['yarn-client'],
+            owner=constants.hawq_user,
+            group=constants.hawq_group,
+            mode=0644)
 
 
 def __substitute_hostnames_in_hawq_site():
