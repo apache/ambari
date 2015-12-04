@@ -346,9 +346,11 @@ public class AmbariCustomCommandExecutionHelper {
       Map<String, String> hostLevelParams = new TreeMap<String, String>();
 
       hostLevelParams.put(CUSTOM_COMMAND, commandName);
+
       // Set parameters required for re-installing clients on restart
-      hostLevelParams.put(REPO_INFO, getRepoInfo
-        (cluster, host));
+      hostLevelParams.put(REPO_INFO, getRepoInfo(cluster, host));
+      hostLevelParams.put(STACK_NAME, stackId.getStackName());
+      hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
       Set<String> userSet = configHelper.getPropertyValuesWithPropertyType(stackId, PropertyType.USER, cluster);
       String userList = gson.toJson(userSet);
@@ -1110,6 +1112,7 @@ public class AmbariCustomCommandExecutionHelper {
         clusterVersionEntity = clusterVersionEntityList.iterator().next();
       }
     }
+
     if (clusterVersionEntity != null) {
       hostLevelParams.put("current_version", clusterVersionEntity.getRepositoryVersion().getVersion());
     }

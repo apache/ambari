@@ -461,7 +461,7 @@ class TestDatanode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-hdfs-datanode', version), sudo=True,)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'hadoop-hdfs-datanode', version), sudo=True,)
 
     self.assertNoMoreResources()
 

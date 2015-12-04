@@ -78,6 +78,13 @@ class InstallPackages(Script):
       package_list = json.loads(config['commandParams']['package_list'])
       stack_id = config['commandParams']['stack_id']
 
+    # current stack information
+    self.current_hdp_stack_version = None
+    if 'stack_version' in config['hostLevelParams']:
+      current_stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+      self.current_hdp_stack_version = format_hdp_stack_version(current_stack_version_unformatted)
+
+
     stack_name = None
     self.stack_root_folder = None
     if stack_id and "-" in stack_id:
@@ -137,10 +144,12 @@ class InstallPackages(Script):
     self.old_versions = get_hdp_versions(self.stack_root_folder)
 
     try:
+      is_package_install_successful = False
       ret_code = self.install_packages(package_list)
       if ret_code == 0:
         self.structured_output['package_installation_result'] = 'SUCCESS'
         self.put_structured_out(self.structured_output)
+        is_package_install_successful = True
       else:
         num_errors += 1
     except Exception, err:
@@ -151,10 +160,45 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
-    if 'package_installation_result' in self.structured_output and \
-      'actual_version' in self.structured_output and \
-      self.structured_output['package_installation_result'] == 'SUCCESS':
-      conf_select.create_config_links(stack_id, self.structured_output['actual_version'])
+    # if installing a version of HDP that needs some symlink love, then create them
+    if is_package_install_successful and 'actual_version' in self.structured_output:
+      self._create_config_links_if_necessary(stack_id, self.structured_output['actual_version'])
+
+
+  def _create_config_links_if_necessary(self, stack_id, stack_version):
+    """
+    Sets up the required structure for /etc/<component>/conf symlinks and /usr/hdp/current
+    configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
+
+    stack_id:  stack id, ie HDP-2.3
+    stack_version:  version to set, ie 2.3.0.0-1234
+    """
+    if stack_id is None:
+      Logger.info("Cannot create config links when stack_id is not defined")
+      return
+
+    args = stack_id.upper().split('-')
+    if len(args) != 2:
+      Logger.info("Unrecognized stack id {0}, cannot create config links".format(stack_id))
+      return
+
+    if args[0] != "HDP":
+      Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
+
+    if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
+      Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
+      return
+
+    # if already on HDP 2.3, then there's nothing to do in terms of linking configs
+    if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
+      Logger.info("The current cluster stack of {0} does not require linking configurations".format(stack_version))
+      return
+
+    # link configs for all known packages
+    for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
+      conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
+        skip_existing_links = False, link_to_conf_install = True)
+
 
   def compute_actual_version(self):
     """

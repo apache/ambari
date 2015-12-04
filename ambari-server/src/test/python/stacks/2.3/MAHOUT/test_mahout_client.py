@@ -100,7 +100,7 @@ class TestMahoutClient(RMFTestCase):
       call_mocks = itertools.cycle([(0, None, '')]),
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),
         sudo = True,
     )
     self.assertNoMoreResources()

@@ -233,6 +233,7 @@ class TestOozieClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/oozie/conf'), to='/usr/hdp/current/oozie-client/conf')
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'oozie-client', version), sudo=True)
     self.assertNoMoreResources()

@@ -302,7 +302,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True,  tries = 3, try_sleep = 1,
     )
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',
@@ -374,7 +374,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True, tries = 3, try_sleep = 1,
     )
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'knox-server', version),
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'knox-server', version),
         sudo = True,
     )
     self.assertResourceCalled('Execute', ('cp',

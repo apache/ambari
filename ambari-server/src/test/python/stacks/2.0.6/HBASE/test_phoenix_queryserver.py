@@ -455,6 +455,6 @@ class TestPhoenixQueryServer(RMFTestCase):
         cd_access = 'a',
     )
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
 
     self.assertNoMoreResources()

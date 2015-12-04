@@ -939,6 +939,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute',
 
                               ('hdp-select', 'set', 'hive-server2', version), sudo=True,)

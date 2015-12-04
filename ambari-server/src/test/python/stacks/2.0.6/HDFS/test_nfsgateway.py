@@ -385,6 +385,7 @@ class TestNFSGateway(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None), (0, None), (0, None)])
+    self.assertResourceCalled('Link', ('/etc/hadoop/conf'), to='/usr/hdp/current/hadoop-client/conf')
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'hadoop-hdfs-nfs3', version), sudo=True,)
     self.assertNoMoreResources()

@@ -576,7 +576,7 @@ class TestYarnClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)

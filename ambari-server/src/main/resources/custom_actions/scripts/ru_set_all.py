@@ -153,12 +153,17 @@ def link_config(old_conf, link_conf):
   :old_conf: the old config directory, ie /etc/[component]/conf
   :link_conf: the new target for the config directory, ie /usr/hdp/current/[component-dir]/conf
   """
-  if not os.path.exists(old_conf):
-    Logger.debug("Skipping {0}; it does not exist".format(old_conf))
+  # if the link exists but is wrong, then change it
+  if os.path.islink(old_conf) and os.path.realpath(old_conf) != link_conf:
+    Link(old_conf, to = link_conf)
     return
-  
+
   if os.path.islink(old_conf):
     Logger.debug("Skipping {0}; it is already a link".format(old_conf))
+    return
+
+  if not os.path.exists(old_conf):
+    Logger.debug("Skipping {0}; it does not exist".format(old_conf))
     return
 
   old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
