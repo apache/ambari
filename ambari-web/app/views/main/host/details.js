@@ -41,14 +41,19 @@ App.MainHostDetailsView = Em.View.extend({
 
   maintenance: function(){
     var onOff = this.get('isActive') ? "On" : "Off";
-    return [
+    var result = [
       {action: 'startAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-play', 'label': this.t('hosts.host.details.startAllComponents')},
       {action: 'stopAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-stop', 'label': this.t('hosts.host.details.stopAllComponents')},
       {action: 'restartAllComponents', liClass: (this.get('controller.content.isNotHeartBeating')?'disabled':'enabled'), cssClass: 'icon-repeat', 'label': this.t('hosts.host.details.restartAllComponents')},
-      {action: 'onOffPassiveModeForHost', liClass:'', cssClass: 'icon-medkit', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)},
-      {action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')},
       {action: 'setRackId', liClass:'', cssClass: 'icon-gear', 'label': this.t('hosts.host.details.setRackId')}
     ];
+    if (App.isAuthorized("HOST.TOGGLE_MAINTENANCE")) {
+      result.push({action: 'onOffPassiveModeForHost', liClass:'', cssClass: 'icon-medkit', active:this.get('isActive'), 'label': this.t('passiveState.turn' + onOff)});
+    }
+    if (App.isAuthorized("HOST.ADD_DELETE_HOSTS")) {
+      result.push({action: 'deleteHost', liClass:'', cssClass: 'icon-remove', 'label': this.t('hosts.host.details.deleteHost')});
+    }
+    return result;
   }.property('controller.content','isActive', 'controller.content.isNotHeartBeating'),
   didInsertElement: function() {
     var self = this;

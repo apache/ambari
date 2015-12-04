@@ -701,7 +701,7 @@ App.Router = Em.Router.extend({
     adminView: Em.Route.extend({
       route: '/adminView',
       enter: function (router) {
-        if (!router.get('loggedIn') || !App.isAccessible('upgrade_ADMIN') || App.isAccessible('upgrade_OPERATOR')) {
+        if (!router.get('loggedIn') || !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             router.transitionTo('login');
           });
@@ -718,7 +718,7 @@ App.Router = Em.Router.extend({
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        if (App.isAccessible('upgrade_OPERATOR')) {
+        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             if (router.get('clusterInstallCompleted')) {
               router.transitionTo("main.dashboard.widgets");
@@ -726,14 +726,14 @@ App.Router = Em.Router.extend({
               router.route("installer");
             }
           });
-        } else if (!App.isAccessible('upgrade_ADMIN')) {
+        } else if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             router.transitionTo("main.views.index");
           });
         }
       },
       connectOutlets: function (router, context) {
-        if (App.isAccessible('upgrade_ONLY_ADMIN')) {
+        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           App.router.get('experimentalController').loadSupports().complete(function () {
             $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
             router.get('applicationController').connectOutlet('experimental');

@@ -31,7 +31,6 @@
     </div>
     <div class="content">
       {{view App.MainHostMenuView hostBinding="view.content"}}
-      {{#isAccessible ADMIN}}
         <div class="service-button">
           <div class="btn-group display-inline-block">
             <a href="javascript:void(null)" {{bindAttr class=":btn :dropdown-toggle"}} id="host-details-action-btn" data-toggle="dropdown">
@@ -64,7 +63,6 @@
             </ul>
           </div>
         </div>
-      {{/isAccessible}}
       {{outlet}}
     </div>
   </div>

@@ -46,7 +46,7 @@
               {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
 
               {{#if isRemovable}}
-                {{#isAccessible ADMIN}}
+                {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
                   {{#unless this.isComparison}}
                     <a class="btn-small" href="#" data-toggle="tooltip"
                       {{action "removeProperty" this target="view"}}
@@ -54,7 +54,7 @@
                       <i class="icon-minus-sign"></i>
                     </a>
                   {{/unless}}
-                {{/isAccessible}}
+                {{/isAuthorized}}
               {{/if}}
 
               <span class="help-inline">{{errorMessage}}</span>
@@ -72,7 +72,7 @@
         {{view Ember.RadioButton name="tlsOrSsl" disabledBinding="view.configsAreDisabled" selectionBinding="view.tlsOrSsl" value="ssl"}} {{t installer.step7.misc.notification.use_ssl}}
       </div>
 
-      {{#isAccessible ADMIN}}
+      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
         {{#if view.canEdit}}
           {{#unless view.configsAreDisabled}}
             <div class="entry-row indent-1">
@@ -80,7 +80,7 @@
             </div>
           {{/unless}}
         {{/if}}
-      {{/isAccessible}}
+      {{/isAuthorized}}
     </form>
   </div>
 </div>

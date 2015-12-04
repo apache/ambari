@@ -36,11 +36,11 @@
       {{/each}}
     </ul>
   </div>
-  {{#isAccessible upgrade_ONLY_ADMIN}}
+  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
     <button class="btn btn-primary pull-right" {{action goToVersions target="view"}} id="manage-versions-link">
       <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
     </button>
-  {{/isAccessible}}
+  {{/isAuthorized}}
 </div>
 <div class="row-fluid">
   {{#if isLoaded}}

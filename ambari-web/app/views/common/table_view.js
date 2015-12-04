@@ -161,7 +161,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     // this user is first time login
     var displayLengthDefault = this.get('defaultDisplayLength');
     this.set('displayLength', displayLengthDefault);
-    if (App.isAccessible('upgrade_ADMIN')) {
+    if (App.isAuthorized('SERVICE.VIEW_METRICS')) {
       this.saveDisplayLength();
     }
     this.filter();
@@ -369,7 +369,7 @@ App.TableView = Em.View.extend(App.UserPref, {
     Em.run.next(function() {
       App.db.setDisplayLength(self.get('controller.name'), self.get('displayLength'));
       if (!App.get('testMode')) {
-        if (App.isAccessible('upgrade_ADMIN')) {
+        if (App.isAuthorized('SERVICE.VIEW_METRICS')) {
           self.postUserPref(self.displayLengthKey(), self.get('displayLength'));
         }
       }

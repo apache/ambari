@@ -138,7 +138,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       if (response.localdb && !$.isEmptyObject(response.localdb)) {
         this.set('localdb', response.localdb);
         // restore HAWizard data if process was started
-        var isHAWizardStarted = App.isAccessible('ADMIN') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
+        var isHAWizardStarted = App.isAuthorized('SERVICE.ENABLE_HA') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
         if (params.data.overrideLocaldb || isHAWizardStarted) {
           var localdbTables = (App.db.data.app && App.db.data.app.tables) ? App.db.data.app.tables : {};
           var authenticated = Em.get(App, 'db.data.app.authenticated') || false;
@@ -195,9 +195,6 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    */
   setClusterStatus: function (newValue, opt) {
     if (App.get('testMode')) return false;
-    if (!App.isAccessible('ADMIN')) {
-      Em.assert('Non-Admin user should not execute setClusterStatus function', true);
-    }
     var user = App.db.getUser();
     var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
