@@ -153,8 +153,9 @@ describe('App.KerberosWizardStep4Controller', function() {
   });
   
   describe('#setStepConfigs', function() {
-
     describe('Add Service Wizard', function() {
+      var res;
+      var controller;
       before(function() {
         sinon.stub(App.StackService, 'find').returns([
           Em.Object.create({
@@ -177,7 +178,7 @@ describe('App.KerberosWizardStep4Controller', function() {
             serviceName: 'KERBEROS'
           })
         ]);
-        this.controller = App.KerberosWizardStep4Controller.create({
+        controller = App.KerberosWizardStep4Controller.create({
           selectedServiceNames: ['FALCON', 'MAPREDUCE2'],
           installedServiceNames: ['HDFS', 'KERBEROS'],
           wizardController: Em.Object.create({
@@ -185,8 +186,6 @@ describe('App.KerberosWizardStep4Controller', function() {
             getDBProperty: function() {
               return Em.A([
                 Em.Object.create({ name: 'realm', value: 'realm_value' }),
-                Em.Object.create({ name: 'admin_principal', value: 'some_val1', recommendedValue: 'some_val1', filename: 'krb5-conf.xml' }),
-                Em.Object.create({ name: 'admin_password', value: 'some_password', recommendedValue: 'some_password', filename: 'krb5-conf.xml' })
               ]);
             },
             loadCachedStepConfigValues : function() {
@@ -195,16 +194,8 @@ describe('App.KerberosWizardStep4Controller', function() {
           })
         });
         sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.isManualKerberos').returns(false);
-        this.controller.setStepConfigs(properties);
-        this.result = this.controller.get('stepConfigs')[0].get('configs').concat(this.controller.get('stepConfigs')[1].get('configs'));
-      });
-
-      after(function() {
-        this.controller.destroy();
-        this.controller = null;
-        App.StackService.find.restore();
-        App.Service.find.restore();
-        App.router.get.restore();
+        controller.setStepConfigs(properties);
+        res = controller.get('stepConfigs')[0].get('configs').concat(controller.get('stepConfigs')[1].get('configs'));
       });
 
       var properties = Em.A([
@@ -226,14 +217,22 @@ describe('App.KerberosWizardStep4Controller', function() {
       
       propertiesEditableTests.forEach(function(test) {
         it('Add Service: property `{0}` should be {1} editable'.format(test.name, !!test.e ? '' : 'not '), function() {
-          expect(this.result.findProperty('name', test.name).get('isEditable')).to.eql(test.e);
+          expect(res.findProperty('name', test.name).get('isEditable')).to.eql(test.e);
         });
       });
 
       ['admin_principal', 'admin_password'].forEach(function(item) {
         it('property `{0}` should have empty value'.format(item), function() {
-          expect(this.result.findProperty('name', item).get('value')).to.be.empty;
+          expect(res.findProperty('name', item).get('value')).to.be.eql('');
         });
+      });
+
+      after(function() {
+        controller.destroy();
+        controller = null;
+        App.StackService.find.restore();
+        App.Service.find.restore();
+        App.router.get.restore();
       });
     });
   });
@@ -283,22 +282,22 @@ describe('App.KerberosWizardStep4Controller', function() {
   });
 
   describe('#loadStep', function() {
-
+    var controller;
     describe('skip "Configure Identities" step. ', function() {
       beforeEach(function() {
-        this.controller = App.KerberosWizardStep4Controller.create({});
+        controller = App.KerberosWizardStep4Controller.create({});
         this.wizardController = App.AddServiceController.create({});
-        this.controller.set('wizardController', this.wizardController);
-        sinon.stub(this.controller, 'clearStep').returns(true);
-        sinon.stub(this.controller, 'getDescriptorConfigs').returns((new $.Deferred()).resolve(true).promise());
-        sinon.stub(this.controller, 'setStepConfigs').returns(true);
+        controller.set('wizardController', this.wizardController);
+        sinon.stub(controller, 'clearStep').returns(true);
+        sinon.stub(controller, 'getDescriptorConfigs').returns((new $.Deferred()).resolve(true).promise());
+        sinon.stub(controller, 'setStepConfigs').returns(true);
         sinon.stub(App.router, 'send').withArgs('next');
       });
 
       afterEach(function() {
-        this.controller.clearStep.restore();
-        this.controller.getDescriptorConfigs.restore();
-        this.controller.setStepConfigs.restore();
+        controller.clearStep.restore();
+        controller.getDescriptorConfigs.restore();
+        controller.setStepConfigs.restore();
         App.router.send.restore();
       });
 
@@ -318,14 +317,14 @@ describe('App.KerberosWizardStep4Controller', function() {
           sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(test.securityEnabled);
           this.wizardController.checkSecurityStatus();
           App.get.restore();
-          this.controller.loadStep();
+          controller.loadStep();
           expect(App.router.send.calledWith('next')).to.be.eql(test.stepSkipped);
         });
       }, this);
 
       it('step should not be disabled for Add Kerberos wizard', function() {
-        this.controller.set('wizardController', App.KerberosWizardController.create({}));
-        this.controller.loadStep();
+        controller.set('wizardController', App.KerberosWizardController.create({}));
+        controller.loadStep();
         expect(App.router.send.calledWith('next')).to.be.false;
       });
     });
