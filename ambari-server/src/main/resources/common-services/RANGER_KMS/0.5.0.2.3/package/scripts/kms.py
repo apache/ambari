@@ -114,8 +114,8 @@ def setup_kms_db():
     dba_setup = format('python {kms_home}/dba_script.py -q')
     db_setup = format('python {kms_home}/db_setup.py')
 
-    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user)
-    Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user)
+    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
+    Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
 def setup_java_patch():
   import params
@@ -128,7 +128,7 @@ def setup_java_patch():
     if params.db_flavor.lower() == 'sqla':
       env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
 
-    Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user)
+    Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
     kms_lib_path = format('{kms_home}/ews/webapp/lib/')
     files = os.listdir(kms_lib_path)
