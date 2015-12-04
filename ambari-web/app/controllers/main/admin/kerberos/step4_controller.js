@@ -26,7 +26,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   }.property('wizardController.name'),
 
   adminPropertyNames: [{name: 'admin_principal', displayName: 'Admin principal'}, {name: 'admin_password', displayName: 'Admin password'}],
-  
+
   clearStep: function() {
     this.set('isRecommendedLoaded', false);
     this.set('selectedService', null);
@@ -40,30 +40,18 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     }
     var self = this;
     this.clearStep();
-     if (this.get('wizardController.name') === 'addServiceController' && this.get('shouldLoadClusterDescriptor')) {
-     // merge saved properties with default ones for the newly added service
-       this.loadClusterDescriptorConfigs().always(function(clusterDescriptorConfigs,textStatus) {
-         var clusterProperties =  textStatus === 'success' ? self.createServicesStackDescriptorConfigs.call(self, clusterDescriptorConfigs) : [];
-         self.loadStackDescriptorConfigs().always(function(stackDescriptorConfigs, textStatus) {
-           var stackProperties =  textStatus === 'success' ? self.createServicesStackDescriptorConfigs.call(self, stackDescriptorConfigs) : [];
-            self.setStepConfigs(clusterProperties, stackProperties);
-            self.set('isRecommendedLoaded', true);
-         });
-       });
-     } else {
-       this.getDescriptorConfigs().then(function (properties) {
-         self.setStepConfigs(properties);
-       }).always(function() {
-         self.set('isRecommendedLoaded', true);
-       });
-     }
+    this.getDescriptorConfigs().then(function (properties) {
+      self.setStepConfigs(properties);
+    }).always(function() {
+      self.set('isRecommendedLoaded', true);
+    });
   },
 
   /**
    * Create service config object for Kerberos service.
    *
    * @param {App.ServiceConfigProperty[]} configs
-   * @returns {Em.Object} 
+   * @returns {Em.Object}
    */
   createServiceConfig: function(configs) {
     // Identity configs related to user principal
@@ -119,7 +107,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
 
   /**
    * Prepare step configs using stack descriptor properties.
-   * 
+   *
    * @param {App.ServiceConfigProperty[]} configs
    * @param {App.ServiceConfigProperty[]} stackConfigs
    */
@@ -172,6 +160,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   prepareConfigProperties: function(configs) {
     console.log("call prepare");
     var self = this;
+    // stored configs from previous steps (Configure Kerberos or Customize Services for ASW)
     var storedServiceConfigs = this.get('wizardController').getDBProperty('serviceConfigProperties');
     var installedServiceNames = ['Cluster'].concat(App.Service.find().mapProperty('serviceName'));
     var adminProps = [];
@@ -183,20 +172,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     // show admin properties in add service wizard
     if (this.get('isWithinAddService')) {
       installedServiceNames = installedServiceNames.concat(this.get('selectedServiceNames'));
-      this.get('adminPropertyNames').forEach(function(item) {
-        var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
-        if (!!property) {
-          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', recommendedValue: '', serviceName: 'Cluster', displayName: item.displayName}));
-          if (App.router.get('mainAdminKerberosController.isManualKerberos')) {
-            _prop.setProperties({
-              isRequired: false,
-              isVisible: false
-            });
-          }
-          _prop.validate();
-          adminProps.push(_prop);
-        }
-      });
+      adminProps = this.createAdminCredentialsProperties(configProperties);
     }
     configProperties = adminProps.concat(configProperties);
     configProperties = configProperties.filter(function(item) {
@@ -288,7 +264,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     this.saveConfigurations();
     App.router.send('next');
   },
-  
+
   saveConfigurations: function() {
     var kerberosDescriptor = this.get('kerberosDescriptor');
     var configs = [];
@@ -297,5 +273,47 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     });
     this.updateKerberosDescriptor(kerberosDescriptor, configs);
     App.get('router.kerberosWizardController').saveKerberosDescriptorConfigs(kerberosDescriptor);
+  },
+
+  /**
+   * Generate App.ServiceConfigProperty instances for 'admin_principal' and 'admin_password' properties
+   * Used for Add Service Wizard only on Configure Identities step.
+   *
+   * @param {object[]} loadedProperties list of already loaded config properties
+   * @returns {App.ServiceConfigProperty[]}
+   */
+  createAdminCredentialsProperties: function(loadedProperties) {
+    if (App.router.get('mainAdminKerberosController.isManualKerberos')) {
+      return [];
+    }
+    var fileName = 'krb5-conf.xml';
+    var krbProperties = loadedProperties.filterProperty('filename', fileName);
+    var siteProperties = App.config.get('preDefinedSiteProperties');
+    var credentialProperties = this.get('adminPropertyNames').map(function(prop, index) {
+      var existingProperty = krbProperties.findProperty('name', prop.name);
+      var coreObject = {
+        displayName: prop.displayName,
+        isRequired: false,
+        isRequiredByAgent: false,
+        supportsFinal: false,
+        isFinal: false,
+        isSecureConfig: true,
+        index: index,
+        value: '',
+        isVisible: true,
+        isUserProperty: false
+      };
+      var propTpl = App.config.createDefaultConfig(prop.name, 'Cluster', fileName, false, coreObject);
+      var siteProperty = siteProperties.filterProperty('filename', fileName).findProperty('name', prop.name);
+      if (!Em.isNone(siteProperty)) {
+        propTpl = $.extend(true, {}, siteProperty, propTpl);
+      }
+      if (!Em.isNone(existingProperty)) {
+        propTpl = $.extend(true, {}, propTpl, existingProperty);
+      }
+      return App.ServiceConfigProperty.create(propTpl);
+    });
+
+    return credentialProperties;
   }
 });

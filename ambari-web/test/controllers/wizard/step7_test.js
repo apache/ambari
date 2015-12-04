@@ -322,7 +322,7 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-  describe('#submit', function () {
+  describe.skip('#submit', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'get').withArgs('supports.preInstallChecks').returns(false);
