@@ -74,6 +74,9 @@ ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
+ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)
+ams_hbase_fifo_compaction_enabled = default("/configurations/ams-site/timeline.metrics.hbase.fifo.compaction.enabled", None)
+
 #hadoop params
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']

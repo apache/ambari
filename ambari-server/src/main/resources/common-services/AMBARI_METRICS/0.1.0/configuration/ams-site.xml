@@ -519,5 +519,12 @@
       Default resolution is 30 seconds.
     </description>
   </property>
+  <property>
+    <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Compaction policy for lower for Precision and Minute aggregate tables.
+    </description>
+  </property>
 
 </configuration>

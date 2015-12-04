@@ -647,6 +647,7 @@ public class UpgradeCatalog213Test {
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
         put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
+        put("hbase.fifo.compaction.policy.enabled", String.valueOf(true));
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
@@ -659,7 +660,7 @@ public class UpgradeCatalog213Test {
       put("normal", cluster);
     }}).once();
     expect(cluster.getDesiredConfigByType("ams-site")).andReturn(mockAmsSite).atLeastOnce();
-    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).times(1);
+    expect(mockAmsSite.getProperties()).andReturn(oldPropertiesAmsSite).times(2);
 
     Injector injector = easyMockSupport.createNiceMock(Injector.class);
     expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
@@ -704,6 +705,10 @@ public class UpgradeCatalog213Test {
     Map<String, String> newPropertiesAmsSite = new HashMap<String, String>() {
       {
         put("zookeeper.session.timeout.localHBaseCluster", String.valueOf(120000));
+        put("hbase.normalizer.enabled", String.valueOf(true));
+        put("hbase.normalizer.period", String.valueOf(600000));
+        put("hbase.master.normalizer.class", "org.apache.hadoop.hbase.master.normalizer.SimpleRegionNormalizer");
+
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
@@ -823,7 +828,14 @@ public class UpgradeCatalog213Test {
       "-XX:+UseCMSInitiatingOccupancyOnly -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps " +
       "-XX:+UseGCLogFileRotation -XX:GCLogFileSize=10M " +
       "-Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`\"\n" +
-      "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n";
+      "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n"+
+      "\n" +
+      "# HBase compaction policy enabled\n" +
+      "export HBASE_NORMALIZATION_ENABLED={{ams_hbase_normalizer_enabled}}\n" +
+      "\n" +
+      "# HBase compaction policy enabled\n" +
+      "export HBASE_FIFO_COMPACTION_POLICY_ENABLED={{ams_hbase_fifo_compaction_policy_enabled}}\n";
+
     String result = (String) updateAmsEnvContent.invoke(upgradeCatalog213, oldContent);
     Assert.assertEquals(expectedContent, result);
   }

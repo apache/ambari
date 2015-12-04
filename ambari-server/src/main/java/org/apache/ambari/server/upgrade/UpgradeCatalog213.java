@@ -94,6 +94,9 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
   private static final String AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY =
     "zookeeper.session.timeout.localHBaseCluster";
+  private static final String AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY = "hbase.normalizer.enabled";
+  private static final String AMS_HBASE_SITE_NORMALIZER_PERIOD_PROPERTY = "hbase.normalizer.period";
+  private static final String AMS_HBASE_SITE_NORMALIZER_CLASS_PROPERTY = "hbase.master.normalizer.class";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
   private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
@@ -790,7 +793,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       long clusterID = cluster.getClusterId();
 
       final AlertDefinitionEntity journalNodeProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
-          clusterID, "journalnode_process");
+        clusterID, "journalnode_process");
       final AlertDefinitionEntity hostDiskUsageAlertDefinitionEntity = alertDefinitionDAO.findByName(
           clusterID, "ambari_agent_disk_usage");
 
@@ -1028,8 +1031,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
           Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
           if (amsHbaseEnv != null) {
-            Map<String, String> amsHbaseEnvProperties = amsEnv.getProperties();
-            String content = amsHbaseEnvProperties.get("content");
+            Map<String, String> amsEnvProperties = amsEnv.getProperties();
+            String content = amsEnvProperties.get("content");
             Map<String, String> newProperties = new HashMap<>();
             newProperties.put("content", updateAmsEnvContent(content));
             updateConfigurationPropertiesForCluster(cluster, AMS_ENV, newProperties, true, true);
@@ -1037,10 +1040,15 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
           Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
           if (amsSite != null) {
+            Map<String, String> currentAmsSiteProperties = amsSite.getProperties();
             Map<String, String> newProperties = new HashMap<>();
 
             //Changed AMS result set limit from 5760 to 15840.
-            newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(15840));
+            if(currentAmsSiteProperties.containsKey("timeline.metrics.service.default.result.limit") &&
+              currentAmsSiteProperties.get("timeline.metrics.service.default.result.limit").equals(String.valueOf(5760))) {
+              LOG.info("Updating timeline.metrics.service.default.result.limit to 15840");
+              newProperties.put("timeline.metrics.service.default.result.limit", String.valueOf(15840));
+            }
 
             //Interval
             newProperties.put("timeline.metrics.cluster.aggregator.second.interval", String.valueOf(120));
@@ -1057,19 +1065,40 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             //disabled
             newProperties.put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
 
+            //Add compaction policy property
+            newProperties.put("hbase.fifo.compaction.policy.enabled", String.valueOf(true));
+
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }
 
           Config amsHbaseSite = cluster.getDesiredConfigByType(AMS_HBASE_SITE);
           if (amsHbaseSite != null) {
             Map<String, String> amsHbaseSiteProperties = amsHbaseSite.getProperties();
+            Map<String, String> newProperties = new HashMap<>();
+
             String zkTimeout = amsHbaseSiteProperties.get(AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY);
             // if old default, set new default
             if ("20000".equals(zkTimeout)) {
-              Map<String, String> newProperties = new HashMap<>();
               newProperties.put(AMS_HBASE_SITE_ZK_TIMEOUT_PROPERTY, "120000");
-              updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
             }
+
+            //Adding hbase.normalizer.period to upgrade
+            if(!amsHbaseSiteProperties.containsKey(AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY)) {
+              LOG.info("Enabling " + AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY);
+              newProperties.put(AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY, String.valueOf(true));
+            }
+
+            if(!amsHbaseSiteProperties.containsKey(AMS_HBASE_SITE_NORMALIZER_PERIOD_PROPERTY)) {
+              LOG.info("Updating " + AMS_HBASE_SITE_NORMALIZER_PERIOD_PROPERTY);
+              newProperties.put(AMS_HBASE_SITE_NORMALIZER_PERIOD_PROPERTY, String.valueOf(600000));
+            }
+
+            if(!amsHbaseSiteProperties.containsKey(AMS_HBASE_SITE_NORMALIZER_CLASS_PROPERTY)) {
+              LOG.info("Updating " + AMS_HBASE_SITE_NORMALIZER_CLASS_PROPERTY);
+              newProperties.put(AMS_HBASE_SITE_NORMALIZER_CLASS_PROPERTY,
+                "org.apache.hadoop.hbase.master.normalizer.SimpleRegionNormalizer");
+            }
+            updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }
         }
       }
@@ -1103,6 +1132,19 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         "-Xloggc:{{ams_collector_log_dir}}/collector-gc.log-`date +'%Y%m%d%H%M'`\"\n" +
         "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS $AMS_COLLECTOR_GC_OPTS\"\n";
     }
+
+    if (!content.contains("HBASE_NORMALIZATION_ENABLED")) {
+      content += "\n" +
+        "# HBase compaction policy enabled\n" +
+        "export HBASE_NORMALIZATION_ENABLED={{ams_hbase_normalizer_enabled}}\n";
+    }
+
+    if (!content.contains("HBASE_FIFO_COMPACTION_POLICY_ENABLED")) {
+      content += "\n" +
+        "# HBase compaction policy enabled\n" +
+        "export HBASE_FIFO_COMPACTION_POLICY_ENABLED={{ams_hbase_fifo_compaction_policy_enabled}}\n";
+    }
+
     return content;
   }
 
