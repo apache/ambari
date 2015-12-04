@@ -27,7 +27,7 @@ import org.apache.ambari.view.pig.utils.BadRequestFormattedException;
 import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
 import org.apache.ambari.view.pig.utils.ServiceFormattedException;
 import org.apache.ambari.view.pig.utils.UserLocalObjects;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -72,8 +72,8 @@ public class JobTest extends BasePigTest {
   @After
   public void tearDown() throws Exception {
     super.tearDown();
-    ViewUserLocal.dropAllConnections(TempletonApi.class);
-    ViewUserLocal.dropAllConnections(HdfsApi.class);
+    UserLocal.dropAllConnections(TempletonApi.class);
+    UserLocal.dropAllConnections(HdfsApi.class);
   }
 
   public static Response doCreateJob(String title, String pigScript, String templetonArguments, JobService jobService) {

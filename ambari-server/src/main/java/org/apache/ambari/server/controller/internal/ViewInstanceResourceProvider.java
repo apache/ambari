@@ -414,6 +414,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
         if (includeInstance(view.getCommonName(), view.getVersion(), instance.getInstanceName(), false)) {
           try {
             ViewRegistry.getInstance().updateViewInstance(instance);
+            ViewRegistry.getInstance().updateView(instance);
           } catch (org.apache.ambari.view.SystemException e) {
             throw new AmbariException("Caught exception trying to update view instance.", e);
           } catch (ValidationException e) {

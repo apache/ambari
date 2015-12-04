@@ -569,6 +569,18 @@ public class ViewRegistry {
   }
 
   /**
+   * Calls onUpdate hook on View class
+   *
+   * @param instanceEntity
+   */
+  public void updateView(ViewInstanceEntity instanceEntity){
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
+    if(null != viewEntity && null != viewEntity.getView()){
+      viewEntity.getView().onUpdate(instanceEntity);
+    }
+  }
+
+  /**
    * Get a view instance entity for the given view name and instance name.
    *
    * @param viewName      the view name
