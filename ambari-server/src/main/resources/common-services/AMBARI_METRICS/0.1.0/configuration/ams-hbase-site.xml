@@ -140,7 +140,7 @@
   </property>
   <property>
     <name>hbase.normalizer.period</name>
-    <value>3600000</value>
+    <value>600000</value>
     <description>Period in ms at which the region normalizer runs in the Master.</description>
   </property>
   <property>

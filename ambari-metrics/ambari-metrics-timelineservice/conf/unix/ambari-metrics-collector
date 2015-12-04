@@ -32,9 +32,16 @@ HBASE_CONF_DIR=/etc/ams-hbase/conf
 HBASE_CMD=${HBASE_DIR}/bin/hbase
 
 METRIC_TABLES=(METRIC_AGGREGATE_DAILY METRIC_AGGREGATE_HOURLY METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_DAILY METRIC_RECORD_HOURLY METRIC_RECORD_MINUTE)
+METRIC_FIFO_COMPACTION_TABLES=(METRIC_AGGREGATE METRIC_RECORD METRIC_RECORD_MINUTE)
 METRIC_COLLECTOR=ambari-metrics-collector
 
 AMS_COLLECTOR_LOG_DIR=/var/log/ambari-metrics-collector
+
+AMS_HBASE_NORMALIZER_ENABLED=true
+AMS_HBASE_FIFO_COMPACTION_ENABLED=true
+
+NORMALIZER_ENABLED_STUB_FILE=/var/run/ambari-metrics-collector/normalizer_enabled
+FIFO_ENABLED_STUB_FILE=/var/run/ambari-metrics-collector/fifo_enabled
 
 STOP_TIMEOUT=5
 
@@ -95,6 +102,46 @@ function enable_normalization
   if [ $? -ne 0 ]; then
     echo "WARNING: Failed to enable Ambari Metrics data model normalization."
      >&2 echo "WARNING: Failed to enable Ambari Metrics data model normalization."
+  else
+    touch $NORMALIZER_ENABLED_STUB_FILE
+  fi
+}
+
+function enable_fifo_compaction
+{
+  # Enable FIFO compaction for HIGH load tables
+  command=""
+  for table in "${METRIC_FIFO_COMPACTION_TABLES[@]}"
+  do
+    command="$command \n alter_async '$table', CONFIGURATION => {'hbase.hstore.blockingStoreFiles' => '1000',
+    'hbase.hstore.defaultengine.compactionpolicy.class' =>
+    'org.apache.hadoop.hbase.regionserver.compactions.FIFOCompactionPolicy'}"
+  done
+  echo -e ${command} | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "WARNING: Failed to enable FIFO compaction policy."
+     >&2 echo "WARNING: Failed to enable FIFO compaction policy."
+  else
+    touch $FIFO_ENABLED_STUB_FILE
+  fi
+}
+
+function disable_fifo_compaction
+{
+  # Disable FIFO compaction for HIGH load tables
+  command=""
+  for table in "${METRIC_FIFO_COMPACTION_TABLES[@]}"
+  do
+    command="$command \n alter_async '$table', CONFIGURATION => {'hbase.hstore.defaultengine.compactionpolicy.class' =>
+    'org.apache.hadoop.hbase.regionserver.compactions.ExploringCompactionPolicy',
+    'hbase.hstore.blockingStoreFiles' => '300'}"
+  done
+  echo -e ${command} | ${HBASE_CMD} --config ${HBASE_CONF_DIR} shell > /dev/null 2>&1
+  if [ $? -ne 0 ]; then
+    echo "WARNING: Failed to disable FIFO compaction policy."
+     >&2 echo "WARNING: Failed to disable FIFO compaction policy."
+  else
+    rm -f $FIFO_ENABLED_STUB_FILE
   fi
 }
 
@@ -238,9 +285,41 @@ function start()
     echo "WARNING: Ambari Metrics data model initialization failed."
      >&2 echo "WARNING: Ambari Metrics data model initialization failed."
   else
-    enable_normalization
-  fi
 
+    #
+    # if hbase.normalizer.enabled = true
+    #   if stub file DOES NOT exist
+    #     enable_normalizer + create stub file
+    # else
+    #   if stub file exists
+    #     delete Stub file.
+    if [[ "${AMS_HBASE_NORMALIZER_ENABLED}" == "true" || "${AMS_HBASE_NORMALIZER_ENABLED}" == "True" ]]
+    then
+      if [ ! -f "$NORMALIZER_ENABLED_STUB_FILE" ]
+      then
+        enable_normalization
+      fi
+    else
+      if [ -f "$NORMALIZER_ENABLED_STUB_FILE" ]
+       then
+          rm -f $NORMALIZER_ENABLED_STUB_FILE
+      fi
+    fi
+
+    #Similarly for HBase FIFO Compaction policy
+    if [[ "${AMS_HBASE_FIFO_COMPACTION_ENABLED}" == "true" || "${AMS_HBASE_FIFO_COMPACTION_ENABLED}" == "True" ]]
+    then
+      if [ ! -f "$FIFO_ENABLED_STUB_FILE" ]
+      then
+        enable_fifo_compaction
+      fi
+    else
+      if [ -f "$FIFO_ENABLED_STUB_FILE" ]
+       then
+        disable_fifo_compaction
+      fi
+    fi
+  fi
   }
 
 function stop()
@@ -309,6 +388,8 @@ fi
 # set pid dir path
 if [[ -n "${AMS_COLLECTOR_PID_DIR}" ]]; then
   PIDFILE=${AMS_COLLECTOR_PID_DIR}/ambari-metrics-collector.pid
+  NORMALIZER_ENABLED_STUB_FILE=${AMS_COLLECTOR_PID_DIR}/normalizer_enabled
+  FIFO_ENABLED_STUB_FILE=${AMS_COLLECTOR_PID_DIR}/fifo_enabled
 fi
 
 if [[ -n "${AMS_HBASE_PID_DIR}" ]]; then
