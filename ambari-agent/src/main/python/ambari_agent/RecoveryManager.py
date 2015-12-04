@@ -63,7 +63,7 @@ class RecoveryManager:
     "lastAttempt": 0,
     "count": 0,
     "lastReset": 0,
-    "lifetimeCount" : 0,
+    "lifetimeCount": 0,
     "warnedLastAttempt": False,
     "warnedLastReset": False,
     "warnedThresholdReached": False
@@ -105,7 +105,7 @@ class RecoveryManager:
 
     self.__actions_json_file = os.path.join(cache_dir, self.FILENAME)
 
-    self.actions = self._load_actions()
+    self.actions = {}
 
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only, "", "")
 
@@ -381,6 +381,11 @@ class RecoveryManager:
     executed = False
     seconds_since_last_attempt = now - action_counter["lastAttempt"]
     if action_counter["lifetimeCount"] < self.max_lifetime_count:
+      #reset if window_in_sec seconds passed since last attempt
+      if seconds_since_last_attempt > self.window_in_sec:
+        action_counter["count"] = 0
+        action_counter["lastReset"] = now
+        action_counter["warnedLastReset"] = False
       if action_counter["count"] < self.max_count:
         if seconds_since_last_attempt > self.retry_gap_in_sec:
           action_counter["count"] += 1
@@ -428,7 +433,7 @@ class RecoveryManager:
                     "Will silently skip execution without warning till window is reset",
                     action_counter["lifetimeCount"], action_name)
       else:
-        logger.debug("%s occurrences in agent life time reached the limit for %s",
+        logger.error("%s occurrences in agent life time reached the limit for %s",
                      action_counter["lifetimeCount"], action_name)
     self._dump_actions()
     return executed
@@ -474,12 +479,29 @@ class RecoveryManager:
 
   def get_actions_copy(self):
     """
-    Loads recovery actions from FS
     :return:  recovery actions copy
     """
-    return self._load_actions()
+    self.__status_lock.acquire()
+    try:
+      return copy.deepcopy(self.actions)
+    finally:
+      self.__status_lock.release()
     pass
 
+
+  def is_action_info_stale(self, action_name):
+    """
+    Checks if the action info is stale
+    :param action_name:
+    :return: if the action info for action_name: is stale
+    """
+    if action_name in self.actions:
+      action_counter = self.actions[action_name]
+      now = self._now_()
+      seconds_since_last_attempt = now - action_counter["lastAttempt"]
+      return seconds_since_last_attempt > self.window_in_sec
+    return False
+    pass
 
   def _execute_action_chk_only(self, action_name):
     """

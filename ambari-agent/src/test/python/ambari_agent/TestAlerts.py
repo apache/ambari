@@ -112,9 +112,11 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
     self.assertEquals('CRITICAL', alerts[0]['state'])
 
+  @patch.object(RecoveryManager, "is_action_info_stale")
   @patch.object(RecoveryManager, "get_actions_copy")
-  def test_recovery_alert(self, rm_get_actions_mock):
+  def test_recovery_alert(self, rm_get_actions_mock, is_stale_mock):
     definition_json = self._get_recovery_alert_definition()
+    is_stale_mock.return_value = False
     rm_get_actions_mock.return_value = {
         "METRICS_COLLECTOR": {
           "count": 0,
@@ -176,6 +178,36 @@ class TestAlerts(TestCase):
     alerts = collector.alerts()
     self.assertEquals(0, len(collector.alerts()))
     self.assertEquals('CRITICAL', alerts[0]['state'])
+
+    # OK again, after recovery manager window expired
+    is_stale_mock.return_value = True
+
+    alert.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('OK', alerts[0]['state'])
+
+    #  CRIT, after recovery manager window expired,
+    # but max_lifetime_count reached, warnedThresholdReached == True
+    rm_get_actions_mock.return_value = {
+      "METRICS_COLLECTOR": {
+        "count": 5,
+        "lastAttempt": 1447860184,
+        "warnedLastReset": False,
+        "lastReset": 1447860184,
+        "warnedThresholdReached": True,
+        "lifetimeCount": 12,
+        "warnedLastAttempt": False
+      }
+    }
+
+    is_stale_mock.return_value = True
+
+    alert.collect()
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+    self.assertEquals('CRITICAL', alerts[0]['state'])
+
 
   @patch.object(socket.socket,"connect")
   def test_port_alert_complex_uri(self, socket_connect_mock):
