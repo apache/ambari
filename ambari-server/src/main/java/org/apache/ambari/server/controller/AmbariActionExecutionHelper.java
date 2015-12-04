@@ -18,10 +18,20 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.Role;
@@ -52,18 +62,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Helper class containing logic to process custom action execution requests
@@ -470,28 +472,37 @@ public class AmbariActionExecutionHelper {
   * */
 
   private void addRepoInfoToHostLevelParams(Cluster cluster, Map<String, String> hostLevelParams, String hostName) throws AmbariException {
-    if (cluster != null) {
-      JsonObject rootJsonObject = new JsonObject();
-      JsonArray repositories = new JsonArray();
-      ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
-      if (clusterVersionEntity != null && clusterVersionEntity.getRepositoryVersion() != null) {
-        String hostOsFamily = clusters.getHost(hostName).getOsFamily();
-        for (OperatingSystemEntity operatingSystemEntity : clusterVersionEntity.getRepositoryVersion().getOperatingSystems()) {
-          // ostype in OperatingSystemEntity it's os family. That should be fixed in OperatingSystemEntity.
-          if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
-            for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
-              JsonObject repositoryInfo = new JsonObject();
-              repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
-              repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
-              repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+    if (null == cluster) {
+      return;
+    }
 
-              repositories.add(repositoryInfo);
-            }
-            rootJsonObject.add("repositories", repositories);
+    JsonObject rootJsonObject = new JsonObject();
+    JsonArray repositories = new JsonArray();
+    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(
+        cluster.getClusterName());
+    if (clusterVersionEntity != null && clusterVersionEntity.getRepositoryVersion() != null) {
+      String hostOsFamily = clusters.getHost(hostName).getOsFamily();
+      for (OperatingSystemEntity operatingSystemEntity : clusterVersionEntity.getRepositoryVersion().getOperatingSystems()) {
+        // ostype in OperatingSystemEntity it's os family. That should be fixed
+        // in OperatingSystemEntity.
+        if (operatingSystemEntity.getOsType().equals(hostOsFamily)) {
+          for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+            JsonObject repositoryInfo = new JsonObject();
+            repositoryInfo.addProperty("base_url", repositoryEntity.getBaseUrl());
+            repositoryInfo.addProperty("repo_name", repositoryEntity.getName());
+            repositoryInfo.addProperty("repo_id", repositoryEntity.getRepositoryId());
+
+            repositories.add(repositoryInfo);
           }
+          rootJsonObject.add("repositories", repositories);
         }
       }
-      hostLevelParams.put("repo_info", rootJsonObject.toString());
     }
+
+    hostLevelParams.put("repo_info", rootJsonObject.toString());
+
+    StackId stackId = cluster.getCurrentStackVersion();
+    hostLevelParams.put(STACK_NAME, stackId.getStackName());
+    hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
   }
 }

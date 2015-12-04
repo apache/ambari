@@ -196,7 +196,7 @@ class TestZookeeperClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute',
+    self.assertResourceCalledIgnoreEarlier('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'zookeeper-client', version), sudo=True)
 
     self.assertEquals(1, mocks_dict['call'].call_count)

@@ -522,6 +522,7 @@ class TestHiveMetastore(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
     self.assertNoMoreResources()
@@ -673,6 +674,7 @@ class TestHiveMetastore(RMFTestCase):
         tries = 1,
         user = 'hive',
     )
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap',
      '/usr/bin/hdp-select',
      'set',
@@ -846,6 +848,8 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Execute', "/usr/hdp/2.3.0.0-1234/hive/bin/schematool -dbType sqlanywhere -upgradeSchema",
                               logoutput = True, environment = {'HIVE_CONF_DIR': '/usr/hdp/current/hive-server2/conf/conf.server'},
                               tries = 1, user = 'hive')
+
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
 
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-metastore', version), sudo=True,)
 

@@ -26,9 +26,14 @@ import hdp_select
 import subprocess
 
 from resource_management.core import shell
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Directory, Link
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Link
+from resource_management.core.shell import as_sudo
+
 
 PACKAGE_DIRS = {
   "accumulo": [
@@ -239,41 +244,30 @@ def select(stack_name, package, version, try_create=True):
 
   shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
-  # Create the symbolic link using 'PACKAGE_DIRS' for the given package
-  # Starting with 2.3, we have sym links instead of flat directories.
-  # Eg: /etc/<service-name>/conf -> /etc/<service-name>/2.3.x.y-<version>/0
-  # But, in case of Express upgrade from HDP 2.1-> HDP 2.3 where we have
-  # deleted the /etc/<service-name>/conf directory, the above mentioned
-  # symlink needs to be created here.
+  # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
+  # points to /usr/hdp/current/<component>/conf - this is because some people still prefer to
+  # use /etc/<component>/conf even though /usr/hdp is the "future"
   if package in PACKAGE_DIRS:
-    conf_dirs = PACKAGE_DIRS[package]
-    Logger.info("For package : {0}, DIRS = {1}".format(package, conf_dirs))
-    for dirInfo in conf_dirs:
-      if "conf_dir" in dirInfo and "current_dir" in dirInfo:
-        conf_dir = dirInfo["conf_dir"]
-        current_dir = dirInfo["current_dir"]
-        Logger.info("For package : {0}, Source dir: {1}, Dest dir: {2}".format(package, conf_dir, current_dir))
-        if os.path.exists(current_dir):
-          real_path_of_current_dir = os.path.realpath(current_dir)
-          normalized_conf_dir = (os.path.normpath(conf_dir)).strip()
-          normalized_current_dir = (os.path.normpath(real_path_of_current_dir)).strip()
-          Logger.info("Normalized Conf Dir : {0}, Normalized Current Dir : {1}".format(normalized_conf_dir, normalized_current_dir))
-          if os.path.isdir(normalized_current_dir) and normalized_current_dir != normalized_conf_dir:
-            if not os.path.isdir(normalized_conf_dir) and not os.path.islink(normalized_conf_dir):
-              Link(normalized_conf_dir,
-                   to=normalized_current_dir)
-              Logger.info("{0} directory doesn't exist. Created Symlink : {1} -> {2}".format(normalized_conf_dir, normalized_conf_dir, normalized_current_dir))
-              return
-            # In case, 'normalized_conf_dir' does have a symlink and it's not the one mentioned in 'PACKAGE_DIRS',
-            # we remove the symlink and make it point to correct symlink.
-            if os.path.islink(normalized_conf_dir) and os.readlink(normalized_conf_dir) != normalized_current_dir:
-              Logger.info("{0} exists and points to incorrect path {1}".format(normalized_conf_dir, os.readlink(normalized_conf_dir)))
-              Link(normalized_conf_dir,
-                   action="delete")
-              Logger.info("Removed existing symlink for {0}".format(normalized_conf_dir))
-              Link(normalized_conf_dir,
-                   to=normalized_current_dir)
-              Logger.info("Created Symlink : {0} -> {1}".format(normalized_conf_dir, normalized_current_dir))
+    Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
+
+    directory_list = PACKAGE_DIRS[package]
+    for directory_structure in directory_list:
+      conf_dir = directory_structure["conf_dir"]
+      current_dir = directory_structure["current_dir"]
+
+      # if /etc/<component>/conf is not a symlink, we need to change it
+      if not os.path.islink(conf_dir):
+        # if it exists, try to back it up
+        if os.path.exists(conf_dir):
+          parent_directory = os.path.dirname(conf_dir)
+          conf_install_dir = os.path.join(parent_directory, "conf.backup")
+
+          Execute(("cp", "-R", "-p", conf_dir, conf_install_dir),
+            not_if = format("test -e {conf_install_dir}"), sudo = True)
+
+          Directory(conf_dir, action="delete")
+
+        Link(conf_dir, to = current_dir)
 
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):
@@ -322,39 +316,106 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   return hadoop_conf_dir
 
 
-def create_config_links(stack_id, stack_version):
-  """
-  Creates config links
-  stack_id:  stack id, ie HDP-2.3
-  stack_version:  version to set, ie 2.3.0.0-1234
-  """
-  if stack_id is None:
-    Logger.info("Cannot create config links when stack_id is not defined")
-    return
-  args = stack_id.upper().split('-')
-  if len(args) != 2:
-    Logger.info("Unrecognized stack id {0}".format(stack_id))
-    return
-  if args[0] != "HDP":
-    Logger.info("Unrecognized stack name {0}".format(args[0]))
-  if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
-    Logger.info("Cannot link configs unless HDP-2.3 or higher")
-    return
-  for k, v in PACKAGE_DIRS.iteritems():
-    dirs = create(args[0], k, stack_version, dry_run = True)
-    if 0 == len(dirs):
-      Logger.debug("Package {0} is not installed".format(k))
-    else:
-      need = False
-      for new_conf_dir in dirs:
-        if not os.path.exists(new_conf_dir):
-          need = True
+def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True, link_to_conf_install=False):
 
-      if need:
-        Logger.info("Creating conf dirs {0} for {1}".format(",".join(dirs), k))
-        try:
-          select(args[0], k, stack_version)
-        except Exception, err:
-          # don't ruin someone's day
-          Logger.logger.exception("'conf-select set' failed to link '{0}'. Error: {1}".format(k, str(err)))
+  """
+  Assumes HDP 2.3+, moves around directories and creates the conf symlink for the given package.
+  If the package does not exist, then no work is performed.
+
+  - Creates a /etc/<component>/conf.backup directory
+  - Copies all configs from /etc/<component>/conf to conf.backup
+  - Removes /etc/<component>/conf
+  - Creates /etc/<component>/<version>/0
+  - Creates /usr/hdp/current/<component>-client/conf -> /etc/<component>/<version>/0
+  - Links /etc/<component>/conf to <something>
+  -- /etc/<component>/conf -> /usr/hdp/current/[component]-client/conf
+  -- /etc/<component>/conf -> /etc/<component>/conf.backup
+
+  :param package: the package to create symlinks for (zookeeper, falcon, etc)
+  :param version: the version number to use with conf-select (2.3.0.0-1234)
+  :param dirs: the directories associated with the package (from PACKAGE_DIRS)
+  :param skip_existing_links: True to not do any work if already a symlink
+  :param link_to_conf_install:
+  """
+  bad_dirs = []
+  for dir_def in dirs:
+    if not os.path.exists(dir_def['conf_dir']):
+      bad_dirs.append(dir_def['conf_dir'])
+
+  if len(bad_dirs) > 0:
+    Logger.info("Skipping {0} as it does not exist.".format(",".join(bad_dirs)))
+    return
+
+  # existing links should be skipped since we assume there's no work to do
+  if skip_existing_links:
+    bad_dirs = []
+    for dir_def in dirs:
+      # check if conf is a link already
+      old_conf = dir_def['conf_dir']
+      if os.path.islink(old_conf):
+        Logger.info("{0} is already link to {1}".format(old_conf, os.path.realpath(old_conf)))
+        bad_dirs.append(old_conf)
+
+  if len(bad_dirs) > 0:
+    return
+
+  # make backup dir and copy everything in case configure() was called after install()
+  for dir_def in dirs:
+    old_conf = dir_def['conf_dir']
+    old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+    conf_install_dir = os.path.join(old_parent, "conf.backup")
+    Execute(("cp", "-R", "-p", old_conf, conf_install_dir),
+      not_if = format("test -e {conf_install_dir}"), sudo = True)
+
+  # we're already in the HDP stack
+  versioned_confs = create("HDP", package, version, dry_run = True)
+
+  Logger.info("New conf directories: {0}".format(", ".join(versioned_confs)))
+
+  need_dirs = []
+  for d in versioned_confs:
+    if not os.path.exists(d):
+      need_dirs.append(d)
+
+  if len(need_dirs) > 0:
+    create("HDP", package, version)
+
+    # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
+    if len(dirs) > 1:
+      for need_dir in need_dirs:
+        for dir_def in dirs:
+          if 'prefix' in dir_def and need_dir.startswith(dir_def['prefix']):
+            old_conf = dir_def['conf_dir']
+            versioned_conf = need_dir
+            Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+              only_if = format("ls {old_conf}/*"))
+    elif 1 == len(dirs) and 1 == len(need_dirs):
+      old_conf = dirs[0]['conf_dir']
+      versioned_conf = need_dirs[0]
+      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+        only_if = format("ls {old_conf}/*"))
+
+
+  # make /usr/hdp/[version]/[component]/conf point to the versioned config.
+  # /usr/hdp/current is already set
+  try:
+    select("HDP", package, version)
+
+    # no more references to /etc/[component]/conf
+    for dir_def in dirs:
+      new_symlink = dir_def['conf_dir']
+
+      # remove new_symlink to pave the way, but only if it's a directory
+      if not os.path.islink(new_symlink):
+        Directory(new_symlink, action="delete")
+
+      # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+      if link_to_conf_install:
+        Link(new_symlink, to = conf_install_dir)
+      else:
+        Link(new_symlink, to = dir_def['current_dir'])
+  except Exception, e:
+    Logger.warning("Could not select the directory: {0}".format(e.message))
+
+  # should conf.backup be removed?
 

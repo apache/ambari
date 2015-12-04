@@ -455,6 +455,6 @@ class TestPhoenixQueryServer(RMFTestCase):
         mode = 0755,
         cd_access = 'a',
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
 
     self.assertNoMoreResources()

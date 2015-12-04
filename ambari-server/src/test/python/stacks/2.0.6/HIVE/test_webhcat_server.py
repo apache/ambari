@@ -384,7 +384,7 @@ class TestWebHCatServer(RMFTestCase):
     self.assertTrue(sys.modules["params"].webhcat_conf_dir is not None)
     self.assertTrue("/usr/hdp/current/hive-webhcat/etc/webhcat" == sys.modules["params"].webhcat_conf_dir)
 
-    self.assertResourceCalled('Execute',
+    self.assertResourceCalledIgnoreEarlier('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
     self.assertNoMoreResources()
 

@@ -382,6 +382,7 @@ class TestZookeeperServer(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalledIgnoreEarlier('Link', ('/etc/zookeeper/conf'), to='/usr/hdp/current/zookeeper-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'zookeeper-server', version), sudo=True)
 
