@@ -40,4 +40,20 @@ limitations under the License.
     </depends-on>
   </property>
 
+  <property>
+    <name>atlas.hook.hive.minThreads</name>
+    <value>1</value>
+    <description>
+      Minimum number of threads maintained by Atlas hook.
+    </description>
+  </property>
+
+  <property>
+    <name>atlas.hook.hive.maxThreads</name>
+    <value>1</value>
+    <description>
+      Maximum number of threads used by Atlas hook.
+    </description>
+  </property>
+
 </configuration>
