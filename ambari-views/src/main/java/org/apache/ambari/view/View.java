@@ -43,4 +43,11 @@ public interface View {
    * @param definition  the view instance definition
    */
   public void onDestroy(ViewInstanceDefinition definition);
+
+  /**
+   * Called by the view framework when the given instance is being updated
+   *
+   * @param definition
+   */
+  public void onUpdate(ViewInstanceDefinition definition);
 }

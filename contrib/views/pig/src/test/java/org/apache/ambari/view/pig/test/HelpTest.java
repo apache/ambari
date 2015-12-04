@@ -20,7 +20,7 @@ package org.apache.ambari.view.pig.test;
 
 import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.services.HelpService;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.json.simple.JSONObject;
 import org.junit.*;
@@ -45,7 +45,7 @@ public class HelpTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    ViewUserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
+    UserLocal.dropAllConnections(HdfsApi.class); //cleanup API connection
   }
 
   @Test

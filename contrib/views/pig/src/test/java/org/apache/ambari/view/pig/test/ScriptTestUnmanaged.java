@@ -22,7 +22,7 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.pig.BasePigTest;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.junit.*;
@@ -46,7 +46,7 @@ public class ScriptTestUnmanaged extends BasePigTest {
 
   @AfterClass
   public static void shutDown() throws Exception {
-    ViewUserLocal.dropAllConnections(HdfsApi.class);
+    UserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Before
