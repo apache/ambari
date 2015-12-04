@@ -5633,8 +5633,9 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> kmsSiteProperties = new HashMap<String, String>();
     properties.put(kmsSiteConfigType, kmsSiteProperties);
-    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@%HOSTGROUP::group1%:9292/kms");
-
+    kmsSiteProperties.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      createHostAddress("%HOSTGROUP::group1%", "2181") + "," + createHostAddress("%HOSTGROUP::group2%", "2181"));
+    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@localhost:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5648,9 +5649,11 @@ public class BlueprintConfigurationProcessorTest {
     kmsServerComponents.add("RANGER_KMS_SERVER");
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
+    TestHostGroup group2 = new TestHostGroup("group2", kmsServerComponents, Collections.singleton("host2"));
 
-
-    Collection<TestHostGroup> hostGroups = Collections.singleton(group1);
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
@@ -5659,7 +5662,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("dbks://http@host1:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
+    assertEquals("host1:2181,host2:2181", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string"));
+    assertEquals("dbks://http@localhost:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
   }
 
 
@@ -5672,8 +5676,8 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> kmsSiteProperties = new HashMap<String, String>();
     properties.put(kmsSiteConfigType, kmsSiteProperties);
-    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@localhost:9292/kms");
-
+    kmsSiteProperties.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      createHostAddress("%HOSTGROUP::group1%", "2181"));
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5698,7 +5702,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("dbks://http@host1:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
+    assertEquals("host1:2181", clusterConfig.getPropertyValue(kmsSiteConfigType,
+      "hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string"));
   }
 
 
@@ -5710,7 +5715,7 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> configProperties = new HashMap<String, String>();
 
     properties.put(configType, configProperties);
-    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%:9292/kms");
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%;%HOSTGROUP::group2%:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5742,7 +5747,7 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
+    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
   }
 
 
@@ -5845,7 +5850,7 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> configProperties = new HashMap<String, String>();
 
     properties.put(configType, configProperties);
-    configProperties.put("hadoop.security.key.provider.path", "kms://http@%HOSTGROUP::group1%:9292/kms");
+    configProperties.put("hadoop.security.key.provider.path", "kms://http@%HOSTGROUP::group1%;%HOSTGROUP::group2%:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5877,7 +5882,7 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
+    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
   }
 
 
