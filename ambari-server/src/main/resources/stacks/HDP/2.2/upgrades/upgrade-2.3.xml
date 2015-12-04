@@ -448,9 +448,15 @@
             
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site"/>
 
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source"/>
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home"/>
+
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit"/>
+
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit"/>
         </pre-upgrade>
       
         <upgrade>

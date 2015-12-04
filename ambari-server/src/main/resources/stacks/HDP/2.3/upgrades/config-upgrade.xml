@@ -23,12 +23,13 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <changes>
-          <definition id="hdp_2_3_0_0_update_ranger_env">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env">
             <type>ranger-env</type>
             <set key="xml_configurations_supported" value="true" />
+            <set key="xasecure.audit.destination.solr" value="false" />
           </definition>
 
-          <definition id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
             <type>ranger-admin-site</type>
             <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH" to-key="ranger.service.https.attrib.clientAuth" default-value="" />
             <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE" to-key="ranger.https.attrib.keystore.file" default-value="" />
@@ -55,6 +56,7 @@
             <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password" to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true" />
 
             <set key="ranger.externalurl" value="{{ranger_external_url}}" />
+            <set key="ranger.audit.source.type" value="db" />
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
@@ -72,6 +74,23 @@
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="oracle_home" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.hdfs" value="false">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.hdfs</key>
+              <value>false</value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.db" value="true">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.db</key>
+              <value>true</value>
+            </condition>
+          </definition>
+
         </changes>
       </component>
 
@@ -107,6 +126,20 @@
             <set key="ranger.usersync.group.searchscope" value="" />
             <set key="ranger.usersync.group.usermapsyncenabled" value="" />
             <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source">
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="unix">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+            </condition>
+
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="ldap">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">

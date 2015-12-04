@@ -34,10 +34,6 @@
           <label>UNIX</label>
         </entry>
         <entry>
-          <value>file</value>
-          <label>FILE</label>
-        </entry>
-        <entry>
           <value>ldap</value>
           <label>LDAP/AD</label>
         </entry>
