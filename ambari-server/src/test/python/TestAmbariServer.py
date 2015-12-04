@@ -4680,32 +4680,6 @@ class TestAmbariServer(TestCase):
     self.assertTrue(bkrestore_mock.called)
     pass
 
-  @patch("ambari_server.serverUpgrade.is_root")
-  @patch("ambari_server.serverUpgrade.check_database_name_property")
-  @patch("ambari_server.serverUpgrade.run_stack_upgrade")
-  def test_upgrade_stack(self, run_stack_upgrade_mock,
-                         check_database_name_property_mock, is_root_mock):
-    # Testing call under non-root
-    is_root_mock.return_value = False
-
-    args = ['', 'HDP-2.0']
-    try:
-      upgrade_stack(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
-
-    # Testing calls under root
-    is_root_mock.return_value = True
-    run_stack_upgrade_mock.return_value = 0
-    upgrade_stack(args)
-
-    self.assertTrue(run_stack_upgrade_mock.called)
-    run_stack_upgrade_mock.assert_called_with(['', 'HDP-2.0'], "HDP", "2.0", None, None)
-    pass
-
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
   @patch("os.listdir")
   @patch("os.path.isfile")
