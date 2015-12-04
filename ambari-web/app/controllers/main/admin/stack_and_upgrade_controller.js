@@ -584,11 +584,28 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: version,
       success: 'upgradeSuccessCallback',
+      error: 'upgradeErrorCallback',
       callback: function() {
         this.sender.set('requestInProgress', false);
       }
     });
     this.setDBProperty('currentVersion', this.get('currentVersion'));
+  },
+
+  /**
+   * error callback of <code>upgrade()</code>
+   * @param {object} data
+   */
+  upgradeErrorCallback: function (data) {
+    var header = Em.I18n.t('admin.stackVersions.upgrade.start.fail.title');
+    var body = "";
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        body = json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
   },
 
   /**
