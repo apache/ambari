@@ -420,8 +420,8 @@ module.exports = {
     App.SlaveComponent.find().forEach(function (c) {
       hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
     }, this);
-    App.HostComponent.find().forEach(function (c) {
-      hostsMap = this._generateHostMap(hostsMap, [c.get('hostName')], c.get('componentName'));
+    App.MasterComponent.find().forEach(function (c) {
+      hostsMap = this._generateHostMap(hostsMap, c.get('hostNames'), c.get('componentName'));
     }, this);
     return hostsMap;
   }

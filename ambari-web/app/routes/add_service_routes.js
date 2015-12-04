@@ -198,9 +198,12 @@ module.exports = App.WizardRoute.extend({
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
           addServiceController.get('content').set('serviceConfigProperties', null);
-          addServiceController.setDBProperty('serviceConfigProperties', null);
-          addServiceController.setDBProperty('groupsToDelete', []);
-          addServiceController.setDBProperty('recommendationsConfigs', null);
+          addServiceController.setDBProperties({
+            serviceConfigProperties: null,
+            groupsToDelete: null,
+            recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+            recommendationsConfigs: null
+          });
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.transitionTo('step4');
         });

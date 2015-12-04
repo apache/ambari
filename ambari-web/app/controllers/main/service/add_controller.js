@@ -123,6 +123,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
             });
             self.loadServiceConfigGroups();
             self.loadServiceConfigProperties();
+            self.loadCurrentHostGroups();
           });
           return dfd.promise();
         }
@@ -148,6 +149,10 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
+  },
+
+  loadCurrentHostGroups: function () {
+    this.set("content.recommendationsHostGroups", this.getDBProperty('recommendationsHostGroups'));
   },
 
   /**

@@ -401,18 +401,17 @@ describe('utils/blueprint', function() {
           hostNames: ["host2", "host3"]
         })
       ]);
-      sinon.stub(App.HostComponent, 'find').returns([
+      sinon.stub(App.MasterComponent, 'find').returns([
         Em.Object.create({
           componentName: "C3",
-          hostName: "host3",
-          isMaster: true
+          hostNames: ["host3"]
         })
       ]);
     });
     afterEach(function() {
       App.ClientComponent.find.restore();
       App.SlaveComponent.find.restore();
-      App.HostComponent.find.restore();
+      App.MasterComponent.find.restore();
     });
 
     it("generate components to host map", function() {
