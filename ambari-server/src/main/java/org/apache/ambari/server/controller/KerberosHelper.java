@@ -218,6 +218,23 @@ public interface KerberosHelper {
       throws AmbariException, KerberosInvalidConfigurationException;
 
   /**
+   * Returns the updates configurations that are expected when the given set of services are configured
+   * for Kerberos.
+   *
+   * @param cluster                the cluster
+   * @param existingConfigurations the cluster's existing configurations
+   * @param services               the set of services to process
+   * @return a map of configuration updates
+   * @throws AmbariException
+   * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
+   *                                               Kerberos-specific configuration details
+   */
+  Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster,
+                                                                  Map<String, Map<String, String>> existingConfigurations,
+                                                                  Set<String> services)
+      throws KerberosInvalidConfigurationException, AmbariException;
+
+  /**
    * Create a unique identity to use for testing the general Kerberos configuration.
    *
    * @param cluster               the relevant Cluster
