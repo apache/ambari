@@ -44,6 +44,7 @@ import org.apache.ambari.server.security.authorization.ResourceType;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -98,6 +99,7 @@ public class RequestDAOTest {
 
 
   @Test
+  @Ignore
   public void testCalculatedStatus() throws Exception {
     createGraph();
 
