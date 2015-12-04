@@ -37,6 +37,7 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -47,6 +48,7 @@ import static org.easymock.EasyMock.replay;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
@@ -223,10 +225,14 @@ public class CompatibleRepositoryVersionResourceProviderTest {
   public void after() {
     injector.getInstance(PersistService.class).stop();
     injector = null;
+
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
   public void testGetResources() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("admin"));
+
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     Request getRequest = PropertyHelper.getReadRequest(

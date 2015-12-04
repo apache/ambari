@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,6 +53,10 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -70,7 +75,7 @@ import com.google.inject.Inject;
 /**
  * Resource provider for repository versions resources.
  */
-public class RepositoryVersionResourceProvider extends AbstractResourceProvider {
+public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -140,10 +145,19 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
    */
   public RepositoryVersionResourceProvider() {
     super(propertyIds, keyPropertyIds);
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredUpdateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.AMBARI_EDIT_STACK_REPOS));
+
+    setRequiredGetAuthorizations(EnumSet.of(
+        RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS,
+        RoleAuthorization.AMBARI_EDIT_STACK_REPOS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
+  protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -186,7 +200,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
@@ -230,13 +244,13 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
 
   @Override
   @Transactional
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = request.getProperties();
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         for (Map<String, Object> propertyMap : propertyMaps) {
           final Long id;
           try {
@@ -267,6 +281,10 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
           List<OperatingSystemEntity> operatingSystemEntities = null;
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI,null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
+              throw new AuthorizationException("The authenticated user does not have authorization to modify stack repositories");
+            }
+
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
@@ -306,7 +324,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
@@ -487,4 +505,9 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     return null;
   }
 
+  @Override
+  protected ResourceType getResourceType(Request request, Predicate predicate) {
+    // This information is not associated with any particular resource
+    return null;
+  }
 }

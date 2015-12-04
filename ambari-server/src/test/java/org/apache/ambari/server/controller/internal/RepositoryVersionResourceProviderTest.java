@@ -46,6 +46,8 @@ import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
@@ -68,6 +70,8 @@ import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * RepositoryVersionResourceProvider tests.
@@ -228,7 +232,18 @@ public class RepositoryVersionResourceProviderTest {
   }
 
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -252,7 +267,18 @@ public class RepositoryVersionResourceProviderTest {
   }
 
   @Test
-  public void testGetResources() throws Exception {
+  public void testGetResourcesAsAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testGetResourcesAsClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     StackDAO stackDAO = injector.getInstance(StackDAO.class);
     StackEntity stackEntity = stackDAO.find("HDP", "1.1");
     Assert.assertNotNull(stackEntity);
@@ -349,7 +375,18 @@ public class RepositoryVersionResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResources() throws Exception {
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -378,7 +415,18 @@ public class RepositoryVersionResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     Mockito.when(clusterVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenAnswer(
@@ -478,5 +526,7 @@ public class RepositoryVersionResourceProviderTest {
   public void after() {
     injector.getInstance(PersistService.class).stop();
     injector = null;
+
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 }

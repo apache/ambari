@@ -71,6 +71,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_LDAP_SYNC_EVENTS_ALL_PATTERN = API_VERSION_PREFIX + "/ldap_sync_events.*";
   private static final String API_CREDENTIALS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials.*";
   private static final String API_CREDENTIALS_AMBARI_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/credentials/ambari\\..*";
+  private static final String API_STACK_VERSIONS_PATTERN = API_VERSION_PREFIX + "/stacks/.*?/versions/.*";
 
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
@@ -254,6 +255,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_GROUPS_ALL_PATTERN) ||
         requestURI.matches(API_CREDENTIALS_ALL_PATTERN) ||
         requestURI.matches(API_CLUSTERS_PATTERN) ||
+        requestURI.matches(API_STACK_VERSIONS_PATTERN) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
   }
 
