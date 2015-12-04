@@ -1591,6 +1591,10 @@ public class BlueprintConfigurationProcessor {
         return origValue;
       }
 
+      if (origValue.contains("localhost") && topology.getHostGroupsForComponent(component).size() == 1) {
+        return origValue.replace("localhost", topology.getHostAssignmentsForComponent(component).iterator().next());
+      }
+
       String prefix = null;
       Collection<String> hostStrings = getHostStrings(origValue, topology);
       if (hostStrings.isEmpty()) {
@@ -1631,12 +1635,12 @@ public class BlueprintConfigurationProcessor {
         }
 
         // parse out suffix if one exists
-        int indexOfEnd = -1;
-        while (matcher.find()) {
+        int indexOfEnd;
+        do {
           indexOfEnd = matcher.end();
-        }
+        } while (matcher.find());
 
-        if ((indexOfEnd > -1) && (indexOfEnd < (origValue.length() - 1))) {
+        if (indexOfEnd < (origValue.length() - 1)) {
           suffix = origValue.substring(indexOfEnd);
         }
       }
@@ -2039,9 +2043,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerKmsSitePropsMap = new HashMap<String, PropertyUpdater>();
 
 
 
@@ -2060,7 +2064,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
-    singleHostTopologyUpdaters.put("kms-site", rangerKmsSitePropsMap);
 
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
@@ -2079,6 +2082,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
     multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
     multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
+    multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -2096,13 +2100,12 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.encryption.key.provider.uri", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
-    coreSiteMap.put("hadoop.security.key.provider.path", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false));
+    multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -2141,6 +2144,7 @@ public class BlueprintConfigurationProcessor {
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.yarn.hosts", new MultipleHostTopologyUpdater("RESOURCEMANAGER"));
+    multiCoreSiteMap.put("hadoop.security.key.provider.path", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
     multiWebhcatSiteMap.put("templeton.hive.properties", new TempletonHivePropertyUpdater());
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
@@ -2306,8 +2310,8 @@ public class BlueprintConfigurationProcessor {
     rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
 
     // RANGER KMS
-    rangerKmsSitePropsMap.put("hadoop.kms.key.provider.uri", new SingleHostTopologyUpdater("RANGER_KMS_SERVER"));
-
+    multiRangerKmsSiteMap.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
     hadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
