@@ -324,9 +324,6 @@
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
     </description>
-    <value-attributes>
-      <type>directory</type>
-    </value-attributes>
   </property>
   <property>
     <name>phoenix.mutate.batchSize</name>
