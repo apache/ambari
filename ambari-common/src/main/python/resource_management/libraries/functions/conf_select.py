@@ -390,12 +390,12 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
             old_conf = dir_def['conf_dir']
             versioned_conf = need_dir
             Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-              only_if = format("ls {old_conf}/*"))
+              only_if = format("ls -d {old_conf}/*"))
     elif 1 == len(dirs) and 1 == len(need_dirs):
       old_conf = dirs[0]['conf_dir']
       versioned_conf = need_dirs[0]
       Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
-        only_if = format("ls {old_conf}/*"))
+        only_if = format("ls -d {old_conf}/*"))
 
 
   # make /usr/hdp/[version]/[component]/conf point to the versioned config.
