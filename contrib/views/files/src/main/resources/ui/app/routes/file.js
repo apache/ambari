@@ -34,6 +34,7 @@ App.FilesRoute = Em.Route.extend({
       this.router.one('didTransition', target, 'hideSpinner');
     },
     error:function (error,transition,e) {
+      this.controllerFor('files').set('isLoadingFiles', false);
       if (this.router._lookupActiveView('files')) {
         this.send('showAlert',error);
       } else {
@@ -68,8 +69,10 @@ App.FilesRoute = Em.Route.extend({
     },
 
     showPreviewModal :function (content) {
-      this.controllerFor('previewModal').set('content',content);
-      this.controllerFor('previewModal').set('startIndex',0);
+      var controller = this.controllerFor('previewModal');
+      controller.set('reload', true);
+      controller.set('content',content);
+      controller.set('startIndex',0);
 
       this.render('modal.preview',{
         into:'files',

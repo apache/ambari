@@ -289,14 +289,15 @@ App.ApplicationStore = DS.Store.extend({
    * @param  {Boolean} downloadArg
    * @return {Promise}
    */
-  linkFor:function (files, option, downloadArg) {
+  linkFor:function (files, option, downloadArg, checkperm) {
     var resolver = Ember.RSVP.defer('promiseLabel');
     var query, adapter = this.adapterFor(this.modelFor('file')),
-        download = downloadArg || true;
+        download = downloadArg || true,
+        checkPermission = checkperm || false;
         option = option || "browse";
 
     if (option == 'browse') {
-      query = { "path": (files.get('firstObject.path') || files.get('id')), "download": download };
+      query = { "path": (files.get('firstObject.path') || files.get('id')), "download": download, "checkperm": checkPermission };
       resolver.resolve(adapter.downloadUrl('browse',query));
       return resolver.promise;
     }

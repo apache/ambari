@@ -55,11 +55,7 @@ App.ToggleContextComponent = Em.Component.extend({
   },
   openOnClick:function (e) {
     if($(e.target).is('td') || $(e.target).hasClass('allow-open')){
-      if (this.get('targetObject.content.readAccess')) {
-        this.get('targetObject').send('open');
-      } else {
-        _shake(this.$().parents('.file-row').find('.file-name span').first());
-      }
+      this.get('targetObject').send('open');
     }
   },
   willClearRender:function () {
