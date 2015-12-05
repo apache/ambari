@@ -2235,6 +2235,10 @@ public class BlueprintConfigurationProcessor {
     // RANGER_ADMIN
     rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
 
+    // RANGER KMS
+    multiRangerKmsSiteMap.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
     hadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());
