@@ -82,6 +82,9 @@ class AMSServiceCheck(Script):
         conn = httplib.HTTPConnection(params.metric_collector_host,
                                         int(params.metric_collector_port))
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
+
+        response = conn.getresponse()
+        Logger.info("Http response: %s %s" % (response.status, response.reason))
       except (httplib.HTTPException, socket.error) as ex:
         if i < self.AMS_CONNECT_TRIES - 1:  #range/xrange returns items from start to end-1
           time.sleep(self.AMS_CONNECT_TIMEOUT)
@@ -91,9 +94,6 @@ class AMSServiceCheck(Script):
         else:
           raise Fail("Metrics were not saved. Service check has failed. "
                "\nConnection failed.")
-
-      response = conn.getresponse()
-      Logger.info("Http response: %s %s" % (response.status, response.reason))
 
       data = response.read()
       Logger.info("Http data: %s" % data)
