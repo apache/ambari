@@ -159,12 +159,12 @@ App.UpgradeVersionBoxView = Em.View.extend({
     }
     else if (status === 'INIT') {
       element.setProperties(statePropertiesMap[status]);
-      element.set('isDisabled', this.get('controller.requestInProgress') || isInstalling);
+      element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
              (['INSTALL_FAILED', 'OUT_OF_SYNC'].contains(status))) {
       if (stringUtils.compareVersions(this.get('content.repositoryVersion'), Em.get(currentVersion, 'repository_version')) === 1) {
-        var isDisabled = !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK') || this.get('controller.requestInProgress') || isInstalling;
+        var isDisabled = !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling;
         element.set('isButtonGroup', true);
         if (status === 'OUT_OF_SYNC') {
           element.set('text', Em.I18n.t('admin.stackVersions.version.reinstall'));

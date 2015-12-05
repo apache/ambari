@@ -42,7 +42,7 @@ App.MainMenuView = Em.CollectionView.extend({
           { label: Em.I18n.t('menu.item.hosts'), routing: 'hosts', hasAlertsLabel: true},
           { label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
         );
-        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+        if (App.isAccessible('upgrade_ADMIN')) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
       }

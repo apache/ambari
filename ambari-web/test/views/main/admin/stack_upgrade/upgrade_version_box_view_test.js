@@ -360,13 +360,13 @@ describe('App.UpgradeVersionBoxView', function () {
           ]
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INIT',
           isButton: true,
           buttons: [],
-          isDisabled: false
+          isDisabled: true
         },
         title: 'INIT state, no admin access, no requests in progress'
       },
@@ -381,7 +381,7 @@ describe('App.UpgradeVersionBoxView', function () {
           ]
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INIT',
@@ -411,7 +411,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INSTALL_FAILED',
@@ -447,7 +447,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(false);
+          this.isAccessibleMock.withArgs('ADMIN').returns(false);
         },
         expected: {
           status: 'INSTALL_FAILED',
@@ -480,7 +480,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'OUT_OF_SYNC',
@@ -513,7 +513,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'OUT_OF_SYNC',
@@ -568,7 +568,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.1'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'INSTALLED',
@@ -604,7 +604,7 @@ describe('App.UpgradeVersionBoxView', function () {
           'content.displayName': 'HDP-2.2.0'
         },
         setup: function () {
-          this.isAccessibleMock.withArgs('CLUSTER.UPGRADE_DOWNGRADE_STACK').returns(true);
+          this.isAccessibleMock.withArgs('ADMIN').returns(true);
         },
         expected: {
           status: 'INSTALLED',
@@ -823,7 +823,7 @@ describe('App.UpgradeVersionBoxView', function () {
 
     beforeEach(function () {
       this.getMock = sinon.stub(App, 'get');
-      this.isAccessibleMock = sinon.stub(App, 'isAuthorized');
+      this.isAccessibleMock = sinon.stub(App, 'isAccessible');
     });
     afterEach(function () {
       this.getMock.restore();

@@ -80,7 +80,7 @@ App.UserPref = Em.Mixin.create({
    * @param {Object} value
    */
   postUserPref: function (key, value) {
-    if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+    if (!App.isAccessible('upgrade_ADMIN')) {
       return $.Deferred().reject().promise();
     }
     var keyValuePair = {};

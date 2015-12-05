@@ -1143,6 +1143,12 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#_updateIsEditableFlagForConfig', function () {
+    beforeEach(function(){
+      this.mock = sinon.stub(App, 'isAccessible');
+    });
+    afterEach(function () {
+      this.mock.restore();
+    });
     Em.A([
         {
           isAdmin: false,
@@ -1175,9 +1181,18 @@ describe('App.InstallerStep7Controller', function () {
           defaultGroupSelected: false,
           m: 'false if defaultGroupSelected is false and isHostsConfigsPage is false',
           e: false
+        },
+        {
+          isAdmin: true,
+          isReconfigurable: true,
+          isHostsConfigsPage: false,
+          defaultGroupSelected: true,
+          m: 'equal to isReconfigurable if defaultGroupSelected is true and isHostsConfigsPage is false',
+          e: true
         }
       ]).forEach(function (test) {
         it(test.m, function () {
+          this.mock.returns(test.isAdmin);
           installerStep7Controller.reopen({isHostsConfigsPage: test.isHostsConfigsPage});
           var serviceConfigProperty = Em.Object.create({
             isReconfigurable: test.isReconfigurable

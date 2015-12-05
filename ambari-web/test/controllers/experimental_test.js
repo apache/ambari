@@ -62,7 +62,8 @@ describe('App.ExperimentalController', function () {
     });
   });
 
-  describe.skip('#doSave', function () {
+  describe('#doSave', function () {
+
     before(function () {
       sinon.stub(Ember, 'set', function (p, v) {
         if (p.indexOf('App.supports.' != -1)) {

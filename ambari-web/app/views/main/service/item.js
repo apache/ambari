@@ -150,7 +150,7 @@ App.MainServiceItemView = Em.View.extend({
           disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
-      if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
+      if (service.get('serviceTypes').contains('HA_MODE')) {
         switch (service.get('serviceName')) {
           case 'HDFS':
             options.push(actionMap.TOGGLE_NN_HA);
@@ -249,7 +249,7 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
 
   hasConfigTab: function() {
-    return App.isAuthorized('CLUSTER.VIEW_CONFIGS') && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
+    return !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   hasHeatmapTab: function() {

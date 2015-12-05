@@ -92,7 +92,7 @@
       {{/each}}
 
       {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
-      {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+      {{#isAccessible ADMIN}}
         {{#if view.canEdit}}
           {{#if view.category.customCanAddProperty}}
             <div>
@@ -101,7 +101,7 @@
             </div>
           {{/if}}
         {{/if}}
-      {{/isAuthorized}}
+      {{/isAccessible}}
     </form>
   </div>
 </div>

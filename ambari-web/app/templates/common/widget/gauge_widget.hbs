@@ -22,6 +22,7 @@
       <i class="icon-remove-sign icon-large"></i>
     </a>
     <div class="caption title span11">{{view.content.widgetName}}</div>
+    {{#isAccessible ADMIN}}
       <div class="widget-icons">
         <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
           <i class="icon-edit"></i>
@@ -30,6 +31,7 @@
           <i class="icon-copy"></i>
         </a>
       </div>
+    {{/isAccessible}}
     <div class="content">
       {{#if view.isUnavailable}}
         {{#if view.isOverflowed}}

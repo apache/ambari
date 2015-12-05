@@ -20,8 +20,6 @@
 var App = require('app');
 require('controllers/main/admin/stack_and_upgrade_controller');
 require('utils/string_utils');
-App.auth = ["AMBARI.ADD_DELETE_CLUSTERS", "AMBARI.ASSIGN_ROLES", "AMBARI.EDIT_STACK_REPOS", "AMBARI.MANAGE_GROUPS", "AMBARI.MANAGE_STACK_VERSIONS", "AMBARI.MANAGE_USERS", "AMBARI.MANAGE_VIEWS", "AMBARI.RENAME_CLUSTER", "AMBARI.SET_SERVICE_USERS_GROUPS", "CLUSTER.TOGGLE_ALERTS", "CLUSTER.TOGGLE_KERBEROS", "CLUSTER.UPGRADE_DOWNGRADE_STACK", "CLUSTER.VIEW_ALERTS", "CLUSTER.VIEW_CONFIGS", "CLUSTER.VIEW_METRICS", "CLUSTER.VIEW_STACK_DETAILS", "CLUSTER.VIEW_STATUS_INFO", "HOST.ADD_DELETE_COMPONENTS", "HOST.ADD_DELETE_HOSTS", "HOST.TOGGLE_MAINTENANCE", "HOST.VIEW_CONFIGS", "HOST.VIEW_METRICS", "HOST.VIEW_STATUS_INFO", "SERVICE.ADD_DELETE_SERVICES", "SERVICE.COMPARE_CONFIGS", "SERVICE.DECOMMISSION_RECOMMISSION", "SERVICE.ENABLE_HA", "SERVICE.MANAGE_CONFIG_GROUPS", "SERVICE.MODIFY_CONFIGS", "SERVICE.MOVE", "SERVICE.RUN_CUSTOM_COMMAND", "SERVICE.RUN_SERVICE_CHECK", "SERVICE.START_STOP", "SERVICE.TOGGLE_ALERTS", "SERVICE.TOGGLE_MAINTENANCE", "SERVICE.VIEW_ALERTS", "SERVICE.VIEW_CONFIGS", "SERVICE.VIEW_METRICS", "SERVICE.VIEW_STATUS_INFO", "VIEW.USE"];
-
 
 describe('App.MainAdminStackAndUpgradeController', function() {
 
@@ -1097,6 +1095,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
       expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
       expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 

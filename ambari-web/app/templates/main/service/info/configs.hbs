@@ -19,7 +19,7 @@
 <div id="serviceConfig">
   {{#if dataIsLoaded}}
     {{#if controller.content.isRestartRequired}}
-      {{#isAuthorized "SERVICE.START_STOP"}}
+      {{#isAccessible ADMIN}}
         <div>
           <div class="alert alert-warning clearfix">
             <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
@@ -45,7 +45,7 @@
             </div>
           </div>
         </div>
-      {{/isAuthorized}}
+      {{/isAccessible}}
     {{/if}}
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.canEdit"}}

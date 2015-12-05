@@ -70,13 +70,13 @@
         <div class="pull-left spinner"></div>
       {{/if}}
 		</span>
+    {{#isAccessible ADMIN}}
       {{#if controller.isHostsConfigsPage}}
         &nbsp;<a href="#" {{action "switchHostGroup" target="controller"}}>{{t common.change}}</a>
       {{else}}
-        {{#isAuthorized "SERVICE.MANAGE_CONFIG_GROUPS"}}
-            <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
-        {{/isAuthorized}}
+        <a href="#" class="link-left-pad" {{action "manageConfigurationGroup" target="controller"}}>{{t services.service.actions.manage_configuration_groups.short}}</a>
       {{/if}}
+    {{/isAccessible}}
     <div class="pull-right">
       {{view App.FilterComboCleanableView filterBinding="view.filter" columnsBinding="view.columns" popoverDescriptionBinding="view.propertyFilterPopover"}}
     </div>

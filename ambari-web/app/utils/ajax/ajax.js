@@ -2059,10 +2059,6 @@ var urls = {
     real: '/privileges?PrivilegeInfo/principal_name={userName}&fields=*',
     mock: '/data/users/privileges_{userName}.json'
   },
-  'router.user.authorizations': {
-    real: '/users/{userName}/authorizations?fields=*',
-    mock: '/data/users/privileges_{userName}.json'
-  },
   'router.login.clusters': {
     'real': '/clusters?fields=Clusters/provisioning_state',
     'mock': '/data/clusters/info.json'

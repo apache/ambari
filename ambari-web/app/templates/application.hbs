@@ -63,25 +63,25 @@
                 <li><a href="" id="about" {{action showAboutPopup target="controller"}}>{{t app.aboutAmbari}}</a></li>
                 {{#if App.router.clusterInstallCompleted}}
                   {{#if isClusterDataLoaded}}
-                    {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                    {{#isAccessible upgrade_ONLY_ADMIN}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>
-                    {{/isAuthorized}}
+                    {{/isAccessible}}
                   {{/if}}
                 {{else}}
                   {{#if App.isPermissionDataLoaded}}
-                    {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                    {{#isAccessible upgrade_ONLY_ADMIN}}
                       <li><a href=""
                              id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
                       </li>
-                    {{/isAuthorized}}
+                    {{/isAccessible}}
                   {{/if}}
                 {{/if}}
                 {{#if isClusterDataLoaded}}
-                  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+                  {{#isAccessible upgrade_ADMIN}}
                     <li><a href="" {{action showSettingsPopup target="App.router.userSettingsController"}}>{{t app.settings}}</a></li>
-                  {{/isAuthorized}}
+                  {{/isAccessible}}
                 {{/if}}
                 {{#if showExitLink}}
                   <li class="break"></li>

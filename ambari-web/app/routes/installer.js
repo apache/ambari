@@ -40,7 +40,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             $('#main').addClass('install-wizard-content');
 
             App.router.get('mainViewsController').loadAmbariViews();
-            if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
+            if (App.isAccessible('ADMIN')) {
               router.get('mainController').stopPolling();
               Em.run.next(function () {
                 App.clusterStatus.updateFromServer().complete(function () {

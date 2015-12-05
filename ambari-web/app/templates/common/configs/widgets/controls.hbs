@@ -69,18 +69,18 @@
       {{/if}}
       {{#unless view.isOriginalSCP}}
         {{#unless view.disabled}}
-          {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+          {{#isAccessible ADMIN}}
             <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#"
                                                                                                 data-toggle="tooltip"
               {{action "removeOverride" view.config target="view.parentView"}}
               {{translateAttr data-original-title="common.remove"}}>
               <i class="icon-minus-sign"></i>
             </a>
-          {{/isAuthorized}}
+          {{/isAccessible}}
         {{/unless}}
       {{/unless}}
       {{#if view.overrideAllowed}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+        {{#isAccessible ADMIN}}
           <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:hide"}}>
             <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
               {{action "createOverrideProperty" view.config target="view.parentView"}}
@@ -88,7 +88,7 @@
               <i class="icon-plus-sign"></i>
             </a>
           </div>
-        {{/isAuthorized}}
+        {{/isAccessible}}
       {{/if}}
     </div>
   </div>

@@ -26,7 +26,7 @@ App.ControlsView = Ember.View.extend({
 	serviceConfigProperty: null,
 
 	showActions: function() {
-		return App.isAuthorized('SERVICE.MODIFY_CONFIGS') && this.get('serviceConfigProperty.isRequiredByAgent') && !this.get('serviceConfigProperty.isComparison');
+		return App.isAccessible('ADMIN') && this.get('serviceConfigProperty.isRequiredByAgent') && !this.get('serviceConfigProperty.isComparison');
 	}.property('serviceConfigProperty.isEditable', 'serviceConfigProperty.isRequiredByAgent', 'serviceConfigProperty.isComparison'),
 
 	showSwitchToGroup: Em.computed.and('!serviceConfigProperty.isEditable', 'serviceConfigProperty.group'),

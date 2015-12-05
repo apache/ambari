@@ -42,13 +42,13 @@
             <i class="icon-undo"></i>
           </a>
         {{/if}}
-        {{#isAuthorized "SERVICE.MODIFY_CONFIGS"}}
+        {{#isAccessible ADMIN}}
           <a class="btn-small" href="#" data-toggle="tooltip"
             {{action "removeOverride" overriddenSCP target="view"}}
             {{translateAttr data-original-title="common.remove"}}>
             <i class="icon-minus-sign"></i>
           </a>
-        {{/isAuthorized}}
+        {{/isAccessible}}
           <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
       {{else}}
         <a class="action">{{overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>

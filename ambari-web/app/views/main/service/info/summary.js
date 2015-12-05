@@ -462,7 +462,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    */
   widgetActions: function() {
     var options = [];
-    if (App.isAuthorized('SERVICE.MODIFY_CONFIGS')) {
+    if (App.isAccessible('MANAGER')) {
       if (App.supports.customizedWidgetLayout) {
         options.pushObjects(this.get('staticWidgetLayoutActions'));
       }

@@ -183,7 +183,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   showSettingsPopup: function() {
     var self = this;
     // Settings only for admins
-    if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+    if (!App.isAccessible('upgrade_ADMIN')) {
       return;
     }
 

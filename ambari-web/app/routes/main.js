@@ -49,7 +49,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                       var currentClusterStatus = App.clusterStatus.get('value');
                       if (router.get('currentState.parentState.name') !== 'views'
                           && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                        if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
+                        if (App.isAccessible('ADMIN')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
                           Em.run.next(function () {
@@ -327,7 +327,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+      if (router.get('loggedIn') && !App.isAccessible('upgrade_ADMIN')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
@@ -335,7 +335,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     routePath: function (router, event) {
-      if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+      if (!App.isAccessible('upgrade_ADMIN')) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard.index');
         });

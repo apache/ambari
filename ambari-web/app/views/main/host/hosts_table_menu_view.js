@@ -99,68 +99,63 @@ App.HostTableMenuView = Em.View.extend({
 
     operationsInfo: function () {
       var content = this.get('content');
-      var menuItems = Em.A();
-      if (App.isAuthorized("SERVICE.START_STOP")) {
-        menuItems.pushObjects([
-          O.create({
-            label: Em.I18n.t('common.start'),
-            operationData: O.create({
-              action: App.HostComponentStatus.started,
-              message: Em.I18n.t('common.start'),
-              componentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('common.stop'),
-            operationData: O.create({
-              action: App.HostComponentStatus.stopped,
-              message: Em.I18n.t('common.stop'),
-              componentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('common.restart'),
-            operationData: O.create({
-              action: 'RESTART',
-              message: Em.I18n.t('common.restart'),
-              componentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
+      var menuItems = Em.A([
+        O.create({
+          label: Em.I18n.t('common.start'),
+          operationData: O.create({
+            action: App.HostComponentStatus.started,
+            message: Em.I18n.t('common.start'),
+            componentName: content.componentName,
+            serviceName: content.serviceName,
+            componentNameFormatted: content.componentNameFormatted
           })
-        ])
-      }
-      if (App.isAuthorized("SERVICE.DECOMMISSION_RECOMMISSION") && App.get('components.decommissionAllowed').contains(content.componentName)) {
-        menuItems.pushObjects([
-          O.create({
-            label: Em.I18n.t('common.decommission'),
-            decommission: true,
-            operationData: O.create({
-              action: 'DECOMMISSION',
-              message: Em.I18n.t('common.decommission'),
-              componentName: content.masterComponentName,
-              realComponentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('common.recommission'),
-            decommission: true,
-            operationData: O.create({
-              action: 'DECOMMISSION_OFF',
-              message: Em.I18n.t('common.recommission'),
-              componentName: content.masterComponentName,
-              realComponentName: content.componentName,
-              serviceName: content.serviceName,
-              componentNameFormatted: content.componentNameFormatted
-            })
+        }),
+        O.create({
+          label: Em.I18n.t('common.stop'),
+          operationData: O.create({
+            action: App.HostComponentStatus.stopped,
+            message: Em.I18n.t('common.stop'),
+            componentName: content.componentName,
+            serviceName: content.serviceName,
+            componentNameFormatted: content.componentNameFormatted
           })
-        ]);
+        }),
+        O.create({
+          label: Em.I18n.t('common.restart'),
+          operationData: O.create({
+            action: 'RESTART',
+            message: Em.I18n.t('common.restart'),
+            componentName: content.componentName,
+            serviceName: content.serviceName,
+            componentNameFormatted: content.componentNameFormatted
+          })
+        })
+      ]);
+      if (App.get('components.decommissionAllowed').contains(content.componentName)) {
+        menuItems.pushObject(O.create({
+          label: Em.I18n.t('common.decommission'),
+          decommission: true,
+          operationData: O.create({
+            action: 'DECOMMISSION',
+            message: Em.I18n.t('common.decommission'),
+            componentName: content.masterComponentName,
+            realComponentName: content.componentName,
+            serviceName: content.serviceName,
+            componentNameFormatted: content.componentNameFormatted
+          })
+        }));
+        menuItems.pushObject(O.create({
+          label: Em.I18n.t('common.recommission'),
+          decommission: true,
+          operationData: O.create({
+            action: 'DECOMMISSION_OFF',
+            message: Em.I18n.t('common.recommission'),
+            componentName: content.masterComponentName,
+            realComponentName: content.componentName,
+            serviceName: content.serviceName,
+            componentNameFormatted: content.componentNameFormatted
+          })
+        }));
       }
       return menuItems;
     }.property("content"),
@@ -238,63 +233,54 @@ App.HostTableMenuView = Em.View.extend({
      * @returns {Array}
      */
     operationsInfo: function () {
-      var result = [];
-      if (App.isAuthorized("SERVICE.START_STOP")) {
-        result = result.concat([
-          O.create({
-            label: Em.I18n.t('hosts.host.details.startAllComponents'),
-            operationData: O.create({
-              action: 'STARTED',
-              actionToCheck: 'INSTALLED',
-              message: Em.I18n.t('hosts.host.details.startAllComponents')
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('hosts.host.details.stopAllComponents'),
-            operationData: O.create({
-              action: 'INSTALLED',
-              actionToCheck: 'STARTED',
-              message: Em.I18n.t('hosts.host.details.stopAllComponents')
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('hosts.table.menu.l2.restartAllComponents'),
-            operationData: O.create({
-              action: 'RESTART',
-              message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
-            })
+      return [
+        O.create({
+          label: Em.I18n.t('hosts.host.details.startAllComponents'),
+          operationData: O.create({
+            action: 'STARTED',
+            actionToCheck: 'INSTALLED',
+            message: Em.I18n.t('hosts.host.details.startAllComponents')
           })
-        ]);
-      }
-
-      if (App.isAuthorized("HOST.TOGGLE_MAINTENANCE")) {
-        result = result.concat([
-          O.create({
-            label: Em.I18n.t('passiveState.turnOn'),
-            operationData: O.create({
-              state: 'ON',
-              action: 'PASSIVE_STATE',
-              message: Em.I18n.t('passiveState.turnOnFor').format('hosts')
-            })
-          }),
-          O.create({
-            label: Em.I18n.t('passiveState.turnOff'),
-            operationData: O.create({
-              state: 'OFF',
-              action: 'PASSIVE_STATE',
-              message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
-            })
+        }),
+        O.create({
+          label: Em.I18n.t('hosts.host.details.stopAllComponents'),
+          operationData: O.create({
+            action: 'INSTALLED',
+            actionToCheck: 'STARTED',
+            message: Em.I18n.t('hosts.host.details.stopAllComponents')
           })
-        ]);
-      }
-      result = result.concat(O.create({
-        label: Em.I18n.t('hosts.host.details.setRackId'),
-        operationData: O.create({
-          action: 'SET_RACK_INFO',
-          message: Em.I18n.t('hosts.host.details.setRackId').format('hosts')
+        }),
+        O.create({
+          label: Em.I18n.t('hosts.table.menu.l2.restartAllComponents'),
+          operationData: O.create({
+            action: 'RESTART',
+            message: Em.I18n.t('hosts.table.menu.l2.restartAllComponents')
+          })
+        }),
+        O.create({
+          label: Em.I18n.t('passiveState.turnOn'),
+          operationData: O.create({
+            state: 'ON',
+            action: 'PASSIVE_STATE',
+            message: Em.I18n.t('passiveState.turnOnFor').format('hosts')
+          })
+        }),
+        O.create({
+          label: Em.I18n.t('passiveState.turnOff'),
+          operationData: O.create({
+            state: 'OFF',
+            action: 'PASSIVE_STATE',
+            message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
+          })
+        }),
+        O.create({
+          label: Em.I18n.t('hosts.host.details.setRackId'),
+          operationData: O.create({
+            action: 'SET_RACK_INFO',
+            message: Em.I18n.t('hosts.host.details.setRackId').format('hosts')
+          })
         })
-      }));
-      return result;
+      ];
     }.property(),
 
     /**
