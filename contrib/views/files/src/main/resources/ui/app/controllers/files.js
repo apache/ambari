@@ -77,13 +77,9 @@ App.FilesController = Ember.ArrayController.extend({
       var self = this,
           selected = this.get('selectedFiles'),
           moveToTrash = !deleteForever;
-      if (this.get('content.meta.writeAccess')) {
-        selected.forEach(function (file) {
-          self.store.remove(file,moveToTrash).then(null,bind(self,self.deleteErrorCallback,file));
-        });
-      } else {
-        this.throwAlert({message:'Permission denied'});
-      }
+      selected.forEach(function (file) {
+        self.store.remove(file,moveToTrash).then(null,bind(self,self.deleteErrorCallback,file));
+      });
     },
     download:function (option) {
       var files = this.get('selectedFiles').filterBy('readAccess',true);

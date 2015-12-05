@@ -48,14 +48,7 @@ App.FileUploaderComponent = Ember.Component.extend({
   },
   actions:{
     upload:function () {
-      if (this.get('dirStatus.writeAccess')) {
-        this.uploadFile();
-      } else {
-        this.set('isError',true);
-        Em.run.later(this,function () {
-          this.set('isError',false);
-        },500);
-      }
+      this.uploadFile();
     },
     clear:function () {
       this.set('fileInput.files',null);
