@@ -476,11 +476,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if host["Hosts"]["host_name"] == collectorHostName:
           mountpoints = self.getPreferredMountPoints(host["Hosts"])
           break
-    if not rootDir.startswith("hdfs://"):
+    isLocalRootDir = rootDir.startswith("file://")
+    if isLocalRootDir:
       rootDir = re.sub("^file:///|/", "", rootDir, count=1)
       rootDir = "file://" + os.path.join(mountpoints[0], rootDir)
     tmpDir = re.sub("^file:///|/", "", tmpDir, count=1)
-    if len(mountpoints) > 1 and not rootDir.startswith("hdfs://"):
+    if len(mountpoints) > 1 and isLocalRootDir:
       tmpDir = os.path.join(mountpoints[1], tmpDir)
     else:
       tmpDir = os.path.join(mountpoints[0], tmpDir)
@@ -840,7 +841,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     op_mode = ams_site.get("timeline.metrics.service.operation.mode")
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
-    if op_mode == "distributed" and not hbase_rootdir.startswith("hdfs://"):
+    if op_mode == "distributed" and hbase_rootdir.startswith("file://"):
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
       pass
 
@@ -855,9 +856,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
-          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
-          validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
-          validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
+          if op_mode == 'embedded':
+            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
+            validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
+            validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
           dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
           if not hbase_rootdir.startswith("hdfs"):
@@ -951,35 +953,35 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       maxMasterXmn = 0.2 * hbase_master_heapsize
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
-                                         "(12% of hbase_master_heapsize)".format(int(math.ceil(minMasterXmn))))
+                                         "(12% of hbase_master_heapsize)".format(int(ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
-                                         "(20% of hbase_master_heapsize)".format(int(math.floor(maxMasterXmn))))
+                                         "(20% of hbase_master_heapsize)".format(int(floor(maxMasterXmn))))
 
       minRegionServerXmn = 0.12 * hbase_regionserver_heapsize
       maxRegionServerXmn = 0.2 * hbase_regionserver_heapsize
       if hbase_regionserver_xmn_size < minRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                                "(12% of hbase_regionserver_heapsize)"
-                                               .format(int(math.ceil(minRegionServerXmn))))
+                                               .format(int(ceil(minRegionServerXmn))))
 
       if hbase_regionserver_xmn_size > maxRegionServerXmn:
         regionServerXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                                "(20% of hbase_regionserver_heapsize)"
-                                               .format(int(math.floor(maxRegionServerXmn))))
+                                               .format(int(floor(maxRegionServerXmn))))
     else:
       minMasterXmn = 0.12 * (hbase_master_heapsize + hbase_regionserver_heapsize)
       maxMasterXmn = 0.2 *  (hbase_master_heapsize + hbase_regionserver_heapsize)
       if hbase_master_xmn_size < minMasterXmn:
         masterXmnItem = self.getWarnItem("Value is lesser than the recommended minimum Xmn size of {0} "
                                          "(12% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(math.ceil(minMasterXmn))))
+                                         .format(int(ceil(minMasterXmn))))
 
       if hbase_master_xmn_size > maxMasterXmn:
         masterXmnItem = self.getWarnItem("Value is greater than the recommended maximum Xmn size of {0} "
                                          "(20% of hbase_master_heapsize + hbase_regionserver_heapsize)"
-                                         .format(int(math.floor(maxMasterXmn))))
+                                         .format(int(floor(maxMasterXmn))))
     if masterXmnItem:
       validationItems.extend([{"config-name": "hbase_master_xmn_size", "item": masterXmnItem}])
 
@@ -1098,7 +1100,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if dir.startswith("hdfs://") or dir == recommendedDefaults.get(propertyName):
+    if not dir.startswith("file://") or dir == recommendedDefaults.get(propertyName):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)
@@ -1116,7 +1118,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     dir = properties[propertyName]
-    if dir.startswith("hdfs://"):
+    if not dir.startswith("file://"):
       return None
 
     dir = re.sub("^file://", "", dir, count=1)

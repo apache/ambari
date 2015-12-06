@@ -285,7 +285,7 @@ def ams(name=None):
       )
     pass
 
-    if not params.is_local_fs_rootdir:
+    if not params.is_local_fs_rootdir and params.is_ams_distributed:
       # Configuration needed to support NN HA
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
