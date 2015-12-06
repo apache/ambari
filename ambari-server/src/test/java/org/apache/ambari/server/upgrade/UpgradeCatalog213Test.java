@@ -253,6 +253,7 @@ public class UpgradeCatalog213Test {
     Method updateZookeeperLog4j = UpgradeCatalog213.class.getDeclaredMethod("updateZookeeperLog4j");
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateRangerEnvConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerEnvConfig");
+    Method updateRangerUgsyncSiteConfig = UpgradeCatalog213.class.getDeclaredMethod("updateRangerUgsyncSiteConfig");
     Method updateHiveConfig = UpgradeCatalog213.class.getDeclaredMethod("updateHiveConfig");
     Method updateAccumuloConfigs = UpgradeCatalog213.class.getDeclaredMethod("updateAccumuloConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
@@ -271,6 +272,7 @@ public class UpgradeCatalog213Test {
         .addMockedMethod(updateHadoopEnv)
         .addMockedMethod(updateZookeeperLog4j)
         .addMockedMethod(updateRangerEnvConfig)
+        .addMockedMethod(updateRangerUgsyncSiteConfig)
         .addMockedMethod(updateHiveConfig)
         .addMockedMethod(updateAccumuloConfigs)
         .addMockedMethod(updateKerberosDescriptorArtifacts)
@@ -298,6 +300,8 @@ public class UpgradeCatalog213Test {
     upgradeCatalog213.updateZookeeperLog4j();
     expectLastCall().once();
     upgradeCatalog213.updateRangerEnvConfig();
+    expectLastCall().once();
+    upgradeCatalog213.updateRangerUgsyncSiteConfig();
     expectLastCall().once();
     upgradeCatalog213.updateHiveConfig();
     expectLastCall().once();
@@ -1097,6 +1101,53 @@ public class UpgradeCatalog213Test {
     mockInjector.getInstance(UpgradeCatalog213.class).updateRangerEnvConfig();
     easyMockSupport.verifyAll();
 
+  }
+
+  @Test
+  public void testUpdateRangerUgsyncSiteConfig() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+    final Map<String, String> propertiesRangerUgsyncSite = new HashMap<String, String>() {{
+        put("ranger.usersync.source.impl.class", "ldap");
+    }};
+
+    final Config mockRangerUgsyncSite = easyMockSupport.createNiceMock(Config.class);
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("ranger-ugsync-site")).andReturn(mockRangerUgsyncSite).atLeastOnce();
+
+    expect(mockRangerUgsyncSite.getProperties()).andReturn(propertiesRangerUgsyncSite).atLeastOnce();
+
+    Map<String, String> updates = Collections.singletonMap("ranger.usersync.source.impl.class", "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder");
+    UpgradeCatalog213 upgradeCatalog213 = createMockBuilder(UpgradeCatalog213.class)
+            .withConstructor(Injector.class)
+            .withArgs(mockInjector)
+            .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+                    Map.class, boolean.class, boolean.class)
+            .createMock();
+    upgradeCatalog213.updateConfigurationPropertiesForCluster(mockClusterExpected,
+            "ranger-ugsync-site", updates, true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog213.class).updateRangerUgsyncSiteConfig();
+    easyMockSupport.verifyAll();
   }
 
   @Test
