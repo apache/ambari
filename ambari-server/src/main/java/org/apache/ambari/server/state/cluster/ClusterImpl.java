@@ -22,6 +22,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -86,6 +87,7 @@ import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
@@ -118,6 +120,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
+import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -3196,6 +3199,25 @@ public class ClusterImpl implements Cluster {
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
+  }
+
+  /**
+   * Returns whether this cluster was provisioned by a Blueprint or not.
+   * @return true if the cluster was deployed with a Blueprint otherwise false.
+   */
+  @Override
+  public boolean isBluePrintDeployed() {
+
+    List<TopologyRequestEntity> topologyRequests = topologyRequestDAO.findByClusterId(getClusterId());
+
+    // Iterate through the topology requests associated with this cluster and look for PROVISION request
+    for (TopologyRequestEntity topologyRequest: topologyRequests) {
+      TopologyRequest.Type requestAction = TopologyRequest.Type.valueOf(topologyRequest.getAction());
+      if (requestAction == TopologyRequest.Type.PROVISION)
+        return true;
+    }
+
+    return false;
   }
 
   private ClusterEntity getClusterEntity() {

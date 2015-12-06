@@ -613,4 +613,10 @@ public interface Cluster {
    * Clear cluster caches and re-read data from database
    */
   void invalidateData();
+
+  /**
+   * Returns whether this cluster was provisioned by a Blueprint or not.
+   * @return true if the cluster was deployed with a Blueprint otherwise false.
+   */
+  boolean isBluePrintDeployed();
 }

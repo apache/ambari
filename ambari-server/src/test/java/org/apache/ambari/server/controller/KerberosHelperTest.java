@@ -1851,7 +1851,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 //    expect(identityDescriptor3.getName()).andReturn("3").times(1);
 
     final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
-    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(1);
+    expect(serviceDescriptor1.getName()).andReturn("SERVICE1").times(2);
     expect(serviceDescriptor1.getIdentities(true)).andReturn(Arrays.asList(
         identityDescriptor1,
         identityDescriptor2,
@@ -2189,7 +2189,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Service service3 = createMockService("SERVICE3",
         new HashMap<String, ServiceComponent>() {
           {
-            put("COMPONENT2A", createMockComponent("COMPONENT3A", true,
+            put("COMPONENT3A", createMockComponent("COMPONENT3A", true,
                 new HashMap<String, ServiceComponentHost>() {
                   {
                     put("hostA", createMockServiceComponentHost());
@@ -2212,6 +2212,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         put("SERVICE3", service3);
       }
     }).anyTimes();
+    expect(cluster.isBluePrintDeployed()).andReturn(false).atLeastOnce();
 
     final Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>() {
       {
@@ -3620,6 +3621,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   private ServiceComponentHost createMockServiceComponentHost() {
     ServiceComponentHost serviceComponentHost = createMock(ServiceComponentHost.class);
+    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED).anyTimes();
     return serviceComponentHost;
   }
 
