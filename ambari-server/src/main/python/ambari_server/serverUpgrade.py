@@ -26,12 +26,13 @@ import base64
 import urllib2
 import re
 import glob
+import optparse
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_utils import is_root, run_os_command
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers, \
-  get_jdbc_driver_path, ensure_jdbc_driver_is_installed
+  get_jdbc_driver_path, ensure_jdbc_driver_is_installed, LINUX_DBMS_KEYS_LIST
 from ambari_server.properties import Properties
 from ambari_server.serverConfiguration import configDefaults, \
   check_database_name_property, get_ambari_properties, get_ambari_version, \
@@ -39,7 +40,7 @@ from ambari_server.serverConfiguration import configDefaults, \
   update_database_name_property, get_admin_views_dir, get_views_dir, \
   AMBARI_PROPERTIES_FILE, IS_LDAP_CONFIGURED, LDAP_PRIMARY_URL_PROPERTY, RESOURCES_DIR_PROPERTY, \
   SETUP_OR_UPGRADE_MSG, update_krb_jaas_login_properties, AMBARI_KRB_JAAS_LOGIN_FILE, get_db_type, update_ambari_env, \
-  AMBARI_ENV_FILE
+  AMBARI_ENV_FILE, JDBC_DATABASE_PROPERTY
 from ambari_server.setupSecurity import adjust_directory_permissions, \
   generate_env, ensure_can_start_under_current_user
 from ambari_server.utils import compare_versions
@@ -68,6 +69,7 @@ def upgrade_stack(args):
     err = 'Ambari-server upgradestack should be run with ' \
           'root-level privileges'
     raise FatalException(4, err)
+
   check_database_name_property()
 
   try:
@@ -86,8 +88,17 @@ def upgrade_stack(args):
   except IndexError:
     repo_url_os = None
 
+  parser = optparse.OptionParser()
+  parser.add_option("-d", type="int", dest="database_index")
+
+  db = get_ambari_properties()[JDBC_DATABASE_PROPERTY]
+
+  idx = LINUX_DBMS_KEYS_LIST.index(db)
+
+  (options, opt_args) = parser.parse_args(["-d {0}".format(idx)])
+
   stack_name, stack_version = stack_id.split(STACK_NAME_VER_SEP)
-  retcode = run_stack_upgrade(args, stack_name, stack_version, repo_url, repo_url_os)
+  retcode = run_stack_upgrade(options, stack_name, stack_version, repo_url, repo_url_os)
 
   if not retcode == 0:
     raise FatalException(retcode, 'Stack upgrade failed.')
