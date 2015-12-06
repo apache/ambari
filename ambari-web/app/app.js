@@ -36,6 +36,7 @@ module.exports = Em.Application.create({
   isAdmin: false,
   isOperator: false,
   isPermissionDataLoaded: false,
+  auth: null,
 
   /**
    * @type {boolean}
@@ -96,22 +97,14 @@ module.exports = Em.Application.create({
            App.router.get('mainAdminStackAndUpgradeController.isSuspended');
   }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'router.mainAdminStackAndUpgradeController.isSuspended'),
 
-  /**
-   * compute user access rights by permission type
-   * types:
-   *  - ADMIN
-   *  - MANAGER
-   *  - OPERATOR
-   *  - ONLY_ADMIN
-   * prefix "upgrade_" mean that element will not be unconditionally blocked while stack upgrade running
-   * @param type {string}
-   * @return {boolean}
-   */
-  isAccessible: function (type) {
+  isAuthorized: function(authRoles, options) {
+    var result = false;
+    authRoles = $.map(authRoles.split(","), $.trim);
+
     if (!App.router.get('mainAdminStackAndUpgradeController.isSuspended') &&
         !App.get('supports.opsDuringRollingUpgrade') &&
-        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) &&
-        !type.contains('upgrade_')) {
+        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) ||
+        !App.auth){
       return false;
     }
 
@@ -119,25 +112,11 @@ module.exports = Em.Application.create({
       return false;
     }
 
-    if (type.contains('upgrade_')) {
-      //slice off "upgrade_" prefix to have actual permission type
-      type = type.slice(8);
-    }
+    authRoles.forEach(function(auth) {
+      result = result || App.auth.contains(auth);
+    });
 
-    switch (type) {
-      case 'ADMIN':
-        return this.get('isAdmin');
-      case 'NON_ADMIN':
-        return !this.get('isAdmin');
-      case 'MANAGER':
-        return this.get('isAdmin') || this.get('isOperator');
-      case 'OPERATOR':
-        return this.get('isOperator');
-      case 'ONLY_ADMIN':
-        return this.get('isAdmin') && !this.get('isOperator');
-      default:
-        return false;
-    }
+    return result;
   },
 
   isStackServicesLoaded: false,

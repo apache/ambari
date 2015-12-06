@@ -23,7 +23,7 @@ require('router');
 describe('App.Router', function () {
   var router = App.Router.create();
 
-  describe('#loginSuccessCallback()', function() {
+  describe.skip('#loginSuccessCallback()', function() {
 
     beforeEach(function () {
       sinon.stub(App.usersMapper, 'map');

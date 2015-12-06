@@ -56,13 +56,13 @@ describe('App.MainAdminStackServicesView', function () {
       sinon.stub(App.get('router'), 'transitionTo', Em.K);
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'checkAndStartKerberosWizard');
-      isAccessibleMock = sinon.stub(App, 'isAccessible');
+      isAccessibleMock = sinon.stub(App, 'isAuthorized');
     });
     afterEach(function() {
       App.get('router').transitionTo.restore();
       App.router.get.restore();
       mock.checkAndStartKerberosWizard.restore();
-      App.isAccessible.restore();
+      App.isAuthorized.restore();
     });
     it ("operations locked", function () {
       isAccessibleMock.returns(false);
@@ -92,11 +92,11 @@ describe('App.MainAdminStackServicesView', function () {
       isAccessibleMock;
 
     beforeEach(function() {
-      isAccessibleMock = sinon.stub(App, 'isAccessible');
+      isAccessibleMock = sinon.stub(App, 'isAuthorized');
     });
 
     afterEach(function() {
-      App.isAccessible.restore();
+      App.isAuthorized.restore();
     });
 
     cases.forEach(function (item) {

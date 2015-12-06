@@ -16,45 +16,49 @@
 * limitations under the License.
 }}
 
-{{#isAccessible ADMIN}}
-  <div class="service-button" style="margin-top: 10px;">
-    <div class="btn-group display-inline-block span11 offset1">
-      <a class="btn dropdown-toggle span10" data-toggle="dropdown" href="#">{{t common.actions}}
-        <span class="caret"></span>
-      </a>
-      <ul class="pull-left dropdown-menu">
-          <li {{bindAttr class="controller.isAllServicesInstalled:disabled"}}>
-            <a href="#"
-              {{bindAttr class="controller.isAllServicesInstalled:disabled"}}
-              {{action gotoAddService target="controller"}}>
-              <i class="icon-plus icon-white"></i> {{t services.service.add}}</a>
-          </li>
-          <li class="divider"></li>
-          <li {{bindAttr class="controller.isStartAllDisabled:disabled" }}>
-            <a href="#" data-toggle="modal"
-              {{bindAttr class="controller.isStartAllDisabled:disabled" }}
-              {{action "startAllService" target="controller"}}>
-              <i {{bindAttr class=":icon-play controller.isStartAllDisabled:disabled:enabled " }}></i>
-              {{t services.service.startAll}}
+{{#isAuthorized "SERVICE.START_STOP, SERVICE.ADD_DELETE_SERVICES"}}
+    <div class="service-button" style="margin-top: 10px;">
+        <div class="btn-group display-inline-block span11 offset1">
+            <a class="btn dropdown-toggle span10" data-toggle="dropdown" href="#">{{t common.actions}}
+                <span class="caret"></span>
             </a>
-          </li>
-          <li {{bindAttr class="controller.isStopAllDisabled:disabled" }}>
-            <a href="#" data-toggle="modal"
-              {{bindAttr class="controller.isStopAllDisabled:disabled" }}
-              {{action "stopAllService" target="controller"}}>
-              <i {{bindAttr class=":icon-stop controller.isStopAllDisabled:disabled:enabled" }}></i>
-              {{t services.service.stopAll}}
-            </a>
-          </li>
-          <li {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}>
-            <a href="#" data-toggle="modal"
-              {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}
-              {{action "restartAllRequired" target="controller"}}>
-              <i {{bindAttr class=":icon-repeat controller.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
-              {{t services.service.restartAllRequired}}
-            </a>
-          </li>
-      </ul>
+            <ul class="pull-left dropdown-menu">
+                {{#isAuthorized "SERVICE.START_STOP"}}
+                    <li {{bindAttr class="controller.isAllServicesInstalled:disabled"}}>
+                        <a href="#"
+                            {{bindAttr class="controller.isAllServicesInstalled:disabled"}}
+                            {{action gotoAddService target="controller"}}>
+                            <i class="icon-plus icon-white"></i> {{t services.service.add}}</a>
+                    </li>
+                {{/isAuthorized}}
+                {{#isAuthorized "SERVICE.ADD_DELETE_SERVICES"}}
+                    <li class="divider"></li>
+                    <li {{bindAttr class="controller.isStartAllDisabled:disabled" }}>
+                        <a href="#" data-toggle="modal"
+                            {{bindAttr class="controller.isStartAllDisabled:disabled" }}
+                            {{action "startAllService" target="controller"}}>
+                            <i {{bindAttr class=":icon-play controller.isStartAllDisabled:disabled:enabled " }}></i>
+                            {{t services.service.startAll}}
+                        </a>
+                    </li>
+                    <li {{bindAttr class="controller.isStopAllDisabled:disabled" }}>
+                        <a href="#" data-toggle="modal"
+                            {{bindAttr class="controller.isStopAllDisabled:disabled" }}
+                            {{action "stopAllService" target="controller"}}>
+                            <i {{bindAttr class=":icon-stop controller.isStopAllDisabled:disabled:enabled" }}></i>
+                            {{t services.service.stopAll}}
+                        </a>
+                    </li>
+                    <li {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}>
+                        <a href="#" data-toggle="modal"
+                            {{bindAttr class="controller.isRestartAllRequiredDisabled:disabled" }}
+                            {{action "restartAllRequired" target="controller"}}>
+                            <i {{bindAttr class=":icon-repeat controller.isRestartAllRequiredDisabled:disabled:enabled" }}></i>
+                            {{t services.service.restartAllRequired}}
+                        </a>
+                    </li>
+                {{/isAuthorized}}
+            </ul>
+        </div>
     </div>
-  </div>
-{{/isAccessible}}
+{{/isAuthorized}}

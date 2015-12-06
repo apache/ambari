@@ -1095,7 +1095,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
       expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
       expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 

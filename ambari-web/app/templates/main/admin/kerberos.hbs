@@ -19,7 +19,7 @@
   {{#if securityEnabled}}
     <div>
       <p class="text-success">{{t admin.security.enabled}}
-        {{#isAccessible ADMIN}}
+        {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
           <button class="btn btn-padding btn-warning admin-disable-security-btn" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action notifySecurityOffPopup target="controller"}}>{{t admin.kerberos.button.disable}} </button>
           {{#unless isManualKerberos}}
             <button class="btn btn-success" id="regenerate-keytabs" {{bindAttr disabled="isKerberosButtonsDisabled"}} {{action regenerateKeytabs target="controller"}}>
@@ -37,7 +37,7 @@
               {{t common.edit}}
             </a>
           {{/unless}}
-        {{/isAccessible}}
+        {{/isAuthorized}}
       </p>
     </div>
     <div id="serviceConfig">
@@ -55,10 +55,10 @@
   {{else}}
     <div>
       <p class="muted background-text">{{t admin.security.disabled}}
-        {{#isAccessible ADMIN}}
-          <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
-          <br/>
-        {{/isAccessible}}
+      {{#isAuthorized "CLUSTER.TOGGLE_KERBEROS"}}
+        <a class="btn btn-padding btn-success admin-enable-security-btn" {{action checkAndStartKerberosWizard target="controller"}}>{{t admin.kerberos.button.enable}} </a>
+        <br/>
+      {{/isAuthorized}}
       </p>
     </div>
   {{/if}}

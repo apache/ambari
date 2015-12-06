@@ -20,13 +20,11 @@
   {{#if view.isLoaded}}
     <div class="widget-browser-content">
       <!--Create new widget button-->
-      {{#isAccessible ADMIN}}
         <div class="btn-group pull-right" id="create-widget-button">
           <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
             <i class="icon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
           </button>
         </div>
-      {{/isAccessible}}
 
       <!--Filters bar: service name filter, status filter here-->
       <ul id="services-filter-bar" class="nav nav-tabs">
@@ -64,7 +62,6 @@
                         <i class="icon-ok"></i> &nbsp; {{t dashboard.widgets.browser.action.added}}
                     </button>
                   {{else}}
-                    {{#isAccessible ADMIN}}
                       <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                         {{t common.more}}<span class="caret"></span>
                       </button>
@@ -82,7 +79,6 @@
                           {{/unless}}
                         </li>
                       </ul>
-                    {{/isAccessible}}
                     <button type="button" class="btn btn-default" {{action "addWidget" widget target="controller"}} >
                       {{t dashboard.widgets.browser.action.add}}
                     </button>

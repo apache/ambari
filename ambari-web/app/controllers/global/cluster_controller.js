@@ -172,6 +172,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   loadClusterData: function () {
     var self = this;
+    this.loadAuthorizations();
     this.getAllHostNames();
     this.loadAmbariProperties();
     if (!App.get('clusterName')) {
@@ -348,6 +349,22 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
       success: 'loadAmbariPropertiesSuccess',
       error: 'loadAmbariPropertiesError'
     });
+  },
+
+  loadAuthorizations: function() {
+    return App.ajax.send({
+      name: 'router.user.authorizations',
+      sender: this,
+      data: {userName: App.db.getLoginName()},
+      success: 'loadAuthorizationsSuccessCallback'
+    });
+  },
+
+  loadAuthorizationsSuccessCallback: function(response) {
+    if (response.items) {
+      App.auth = response.items.mapProperty('AuthorizationInfo.authorization_id');
+      App.db.setAuth(App.auth);
+    }
   },
 
   loadAmbariPropertiesSuccess: function (data) {

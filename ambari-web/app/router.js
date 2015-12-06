@@ -304,6 +304,7 @@ App.Router = Em.Router.extend({
   },
 
   loginSuccessCallback: function(data, opt, params) {
+    var self = this;
     App.router.set('loginController.isSubmitDisabled', false);
     App.usersMapper.map({"items": [data]});
     this.setUserLoggedIn(decodeURIComponent(params.loginName));
@@ -311,18 +312,20 @@ App.Router = Em.Router.extend({
       loginName: params.loginName,
       loginData: data
     };
-    // no need to load cluster data if it's already loaded
-    if (this.get('clusterData')) {
-      this.loginGetClustersSuccessCallback(this.get('clusterData'), {}, requestData);
-    }
-    else {
-      App.ajax.send({
-        name: 'router.login.clusters',
-        sender: this,
-        data: requestData,
-        success: 'loginGetClustersSuccessCallback'
-      });
-    }
+    App.router.get('clusterController').loadAuthorizations().complete(function() {
+      // no need to load cluster data if it's already loaded
+      if (self.get('clusterData')) {
+        self.loginGetClustersSuccessCallback(self.get('clusterData'), {}, requestData);
+      }
+      else {
+        App.ajax.send({
+          name: 'router.login.clusters',
+          sender: self,
+          data: requestData,
+          success: 'loginGetClustersSuccessCallback'
+        });
+      }
+    });
   },
 
   loginErrorCallback: function(request) {
@@ -482,6 +485,7 @@ App.Router = Em.Router.extend({
     App.db.cleanUp();
     App.setProperties({
       isAdmin: false,
+      auth: null,
       isOperator: false,
       isPermissionDataLoaded: false
     });
@@ -582,6 +586,16 @@ App.Router = Em.Router.extend({
     }
   },
 
+  /**
+   * initialize Auth for user
+   */
+  initAuth: function(){
+    if (App.db) {
+      var auth = App.db.getAuth();
+      if(auth)
+        App.set('auth', auth);
+    }
+  },
 
   /**
    * Increment redirect count if <code>redirected</code> parameter passed.
@@ -655,6 +669,7 @@ App.Router = Em.Router.extend({
 
     enter: function(router){
       router.initAdmin();
+      router.initAuth();
       router.handleUIRedirect();
     },
 
@@ -701,7 +716,7 @@ App.Router = Em.Router.extend({
     adminView: Em.Route.extend({
       route: '/adminView',
       enter: function (router) {
-        if (!router.get('loggedIn') || !App.isAccessible('upgrade_ADMIN') || App.isAccessible('upgrade_OPERATOR')) {
+        if (!router.get('loggedIn') || !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             router.transitionTo('login');
           });
@@ -718,7 +733,7 @@ App.Router = Em.Router.extend({
     experimental: Em.Route.extend({
       route: '/experimental',
       enter: function (router, context) {
-        if (App.isAccessible('upgrade_OPERATOR')) {
+        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             if (router.get('clusterInstallCompleted')) {
               router.transitionTo("main.dashboard.widgets");
@@ -726,14 +741,14 @@ App.Router = Em.Router.extend({
               router.route("installer");
             }
           });
-        } else if (!App.isAccessible('upgrade_ADMIN')) {
+        } else if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           Em.run.next(function () {
             router.transitionTo("main.views.index");
           });
         }
       },
       connectOutlets: function (router, context) {
-        if (App.isAccessible('upgrade_ONLY_ADMIN')) {
+        if (App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
           App.router.get('experimentalController').loadSupports().complete(function () {
             $('title').text(Em.I18n.t('app.name.subtitle.experimental'));
             router.get('applicationController').connectOutlet('experimental');

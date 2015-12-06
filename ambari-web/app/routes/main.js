@@ -327,7 +327,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.isAccessible('upgrade_ADMIN')) {
+      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
@@ -335,7 +335,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     routePath: function (router, event) {
-      if (!App.isAccessible('upgrade_ADMIN')) {
+      if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard.index');
         });
