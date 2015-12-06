@@ -102,6 +102,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String HIVE_SITE_CONFIG = "hive-site";
   private static final String HIVE_ENV_CONFIG = "hive-env";
   private static final String RANGER_ENV_CONFIG = "ranger-env";
+  private static final String RANGER_UGSYNC_SITE_CONFIG = "ranger-ugsync-site";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
   private static final String HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY = "hive.server2.logging.operation.log.location";
@@ -135,6 +136,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String RANGER_KNOX_PLUGIN_ENABLED_PROPERTY = "ranger-knox-plugin-enabled";
   private static final String RANGER_YARN_PLUGIN_ENABLED_PROPERTY = "ranger-yarn-plugin-enabled";
   private static final String RANGER_KAFKA_PLUGIN_ENABLED_PROPERTY = "ranger-kafka-plugin-enabled";
+
+  private static final String RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY = "ranger.usersync.source.impl.class";
 
   private static final String BLUEPRINT_TABLE = "blueprint";
   private static final String SECURITY_TYPE_COLUMN = "security_type";
@@ -304,6 +307,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     updateHadoopEnv();
     updateKafkaConfigs();
     updateRangerEnvConfig();
+    updateRangerUgsyncSiteConfig();
     updateZookeeperLog4j();
     updateHiveConfig();
     updateAccumuloConfigs();
@@ -1230,6 +1234,29 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       }
       if (!newRangerEnvProps.isEmpty()) {
         updateConfigurationPropertiesForCluster(cluster, RANGER_ENV_CONFIG, newRangerEnvProps, true, true);
+      }
+    }
+  }
+
+  protected void updateRangerUgsyncSiteConfig() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config rangerUgsyncSiteProperties = cluster.getDesiredConfigByType(RANGER_UGSYNC_SITE_CONFIG);
+      if (rangerUgsyncSiteProperties != null && rangerUgsyncSiteProperties.getProperties().containsKey(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY)) {
+        if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("ldap")) {
+          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+              "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder");
+          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+        } else if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("unix")) {
+          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+              "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder");
+          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+        } else if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("file")) {
+          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+              "org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder");
+          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+        }
       }
     }
   }
