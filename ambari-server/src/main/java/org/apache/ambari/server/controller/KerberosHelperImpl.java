@@ -37,6 +37,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -97,6 +98,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -410,7 +412,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
         for (KerberosServiceDescriptor service : services.values()) {
           if (installedServices.containsKey(service.getName())) {
-
+            Service svc = installedServices.get(service.getName());
             addIdentities(authToLocalBuilder, service.getIdentities(true), null, existingConfigurations);
 
             authToLocalProperties = service.getAuthToLocalProperties();
@@ -420,13 +422,57 @@ public class KerberosHelperImpl implements KerberosHelper {
 
             Map<String, KerberosComponentDescriptor> components = service.getComponents();
             if (components != null) {
-              for (KerberosComponentDescriptor component : components.values()) {
-                addIdentities(authToLocalBuilder, component.getIdentities(true), null, existingConfigurations);
+              Map<String,ServiceComponent> serviceComponents = svc.getServiceComponents();
 
-                authToLocalProperties = component.getAuthToLocalProperties();
-                if (authToLocalProperties != null) {
-                  authToLocalPropertiesToSet.addAll(authToLocalProperties);
+              for (KerberosComponentDescriptor component : components.values()) {
+                // When the cluster is provisioned by a Blueprint service components with
+                // cardinality 0+ might be left out from the Blueprint thus we have to check
+                // if they exist
+                ServiceComponent svcComp = null;
+                if (!serviceComponents.containsKey(component.getName()))
+                  continue;
+
+                svcComp = serviceComponents.get(component.getName());
+
+                boolean addSvcCompIdentities = false;
+
+                if (cluster.isBluePrintDeployed())
+                {
+                  if (svcComp.getDesiredState() == State.INSTALLED ||  svcComp.getDesiredState() == State.STARTED)
+                    addSvcCompIdentities = true;
                 }
+                else {
+
+                  // Since when the cluster is deployed through the UI ALL service components of the selected services are created
+                  // with desired state INSTALLED regardless whether the service components were associated with hosts or not thus
+                  // we can not determine if the component is installed or not.
+                  // We rather look at service compoent hosts
+                  for (ServiceComponentHost svcCompHost: svcComp.getServiceComponentHosts().values()) {
+                    if (svcCompHost.getDesiredState() != State.UNKNOWN
+                      && svcCompHost.getDesiredState() != State.UNINSTALLING
+                      && svcCompHost.getDesiredState() != State.UNINSTALLED
+                      && svcCompHost.getDesiredState() != State.INSTALL_FAILED
+                      && svcCompHost.getDesiredState() != State.WIPING_OUT) {
+
+                      // If there is at least a host that contains the component add the identities
+                      addSvcCompIdentities = true;
+                      break;
+                    }
+                  }
+                }
+
+                if (addSvcCompIdentities) {
+                  LOG.info("Adding identity for " + component.getName() + " to auth to local mapping");
+                  addIdentities(authToLocalBuilder, component.getIdentities(true), null, existingConfigurations);
+
+                  authToLocalProperties = component.getAuthToLocalProperties();
+                  if (authToLocalProperties != null) {
+                    authToLocalPropertiesToSet.addAll(authToLocalProperties);
+
+                  }
+                }
+
+
               }
             }
           }
