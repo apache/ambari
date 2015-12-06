@@ -90,6 +90,7 @@ hbase_pid_dir = status_params.hbase_pid_dir
 
 is_hbase_distributed = config['configurations']['ams-hbase-site']['hbase.cluster.distributed']
 is_local_fs_rootdir = hbase_root_dir.startswith('file://')
+is_ams_distributed = config['configurations']['ams-site']['timeline.metrics.service.operation.mode'] == 'distributed'
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
