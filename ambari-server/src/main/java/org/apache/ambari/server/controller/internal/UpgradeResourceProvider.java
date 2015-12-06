@@ -682,12 +682,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     if (direction.isUpgrade()) {
       resolver = new MasterHostResolver(configHelper, cluster);
     } else {
-      if (upgradeType == UpgradeType.ROLLING) {
-        resolver = new MasterHostResolver(configHelper, cluster, version);
-      } else {
-        // due to EU stop components at the start of upgrade, components will never advertise their updated versions
-        resolver = new MasterHostResolver(configHelper, cluster);
-      }
+      resolver = new MasterHostResolver(configHelper, cluster, version);
     }
 
     StackId sourceStackId = null;
