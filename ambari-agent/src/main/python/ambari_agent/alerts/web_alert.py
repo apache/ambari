@@ -22,6 +22,8 @@ import logging
 import time
 import os
 import urllib2
+import ssl
+from functools import wraps
 from urllib2 import HTTPError
 
 from  tempfile import gettempdir
@@ -50,6 +52,16 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
+
+# patch ssl module to fix SSLv3 communication bug
+# for more info see http://stackoverflow.com/questions/9835506/urllib-urlopen-works-on-sslv3-urls-with-python-2-6-6-on-1-machine-but-not-wit
+def sslwrap(func):
+    @wraps(func)
+    def bar(*args, **kw):
+        kw['ssl_version'] = ssl.PROTOCOL_TLSv1
+        return func(*args, **kw)
+    return bar
+ssl.wrap_socket = sslwrap(ssl.wrap_socket)
 
 class WebAlert(BaseAlert):
 
