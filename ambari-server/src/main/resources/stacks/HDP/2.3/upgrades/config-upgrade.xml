@@ -737,7 +737,7 @@
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="true"/>
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/knox/audit/hdfs/spool"/>
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
-            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
             <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
             <set key="xasecure.audit.destination.solr" value="false"/>
             <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
@@ -981,7 +981,7 @@ http://www.apache.org/licenses/LICENSE-2.0
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="true" />
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/storm/audit/hdfs/spool" />
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
-            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
             <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
             <set key="xasecure.audit.destination.solr" value="false"/>
             <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
