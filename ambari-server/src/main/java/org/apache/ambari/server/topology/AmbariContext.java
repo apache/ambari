@@ -63,11 +63,14 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -429,17 +432,55 @@ public class AmbariContext {
     }
   }
 
-  public boolean doesConfigurationWithTagExist(long clusterId, String tag) {
+  /**
+   * Verifies if the given cluster has at least one desired configuration transitioned through
+   * TopologyManager.INITIAL -> .... -> TopologyManager.TOPOLOGY_RESOLVED -> ....
+   * @param clusterId the identifier of the cluster to be checked
+   * @return true if the cluster
+   */
+  public boolean isTopologyResolved(long clusterId) {
     boolean isTopologyResolved = false;
     try {
       Cluster cluster = getController().getClusters().getClusterById(clusterId);
-      Collection<DesiredConfig> desiredConfigs = cluster.getDesiredConfigs().values();
-      for (DesiredConfig config : desiredConfigs) {
-        if (config.getTag().equals(tag)) {
+
+      // Check through the various cluster config versions that these transitioned through TopologyManager.INITIAL -> .... -> TopologyManager.TOPOLOGY_RESOLVED -> ....
+      Map<String, Set<DesiredConfig>> allDesiredConfigsByType = cluster.getAllDesiredConfigVersions();
+
+      for (String configType: allDesiredConfigsByType.keySet()) {
+        Set<DesiredConfig> desiredConfigVersions = allDesiredConfigsByType.get(configType);
+
+        SortedSet<DesiredConfig> desiredConfigsOrderedByVersion = new TreeSet<>(new Comparator<DesiredConfig>() {
+          @Override
+          public int compare(DesiredConfig o1, DesiredConfig o2) {
+            if (o1.getVersion() < o2.getVersion())
+              return -1;
+
+            if (o1.getVersion() > o2.getVersion())
+              return 1;
+
+            return 0;
+          }
+        });
+
+        desiredConfigsOrderedByVersion.addAll(desiredConfigVersions);
+
+        int tagMatchState = 0; // 0 -> INITIAL -> tagMatchState = 1 -> TOPLOGY_RESOLVED -> tagMatchState = 2
+
+        for (DesiredConfig config: desiredConfigsOrderedByVersion) {
+          if (config.getTag().equals(TopologyManager.INITIAL_CONFIG_TAG) && tagMatchState == 0)
+            tagMatchState = 1;
+          else if (config.getTag().equals(TopologyManager.TOPOLOGY_RESOLVED_TAG) && tagMatchState == 1) {
+            tagMatchState = 2;
+            break;
+          }
+        }
+
+        if (tagMatchState == 2) {
           isTopologyResolved = true;
           break;
         }
       }
+
     } catch (ClusterNotFoundException e) {
       LOG.info("Attempted to determine if configuration is topology resolved for a non-existent cluster: {}",
               clusterId);

@@ -20,6 +20,8 @@ package org.apache.ambari.server.state;
 import java.util.Arrays;
 import java.util.List;
 
+import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -58,6 +60,21 @@ public class DesiredConfigTest {
     Assert.assertNotNull(override.getVersionTag());
     Assert.assertEquals("Expected override host 'h1'", "h1", override.getName());
     Assert.assertEquals("Expected override version 'v1'", "v1", override.getVersionTag());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    EqualsVerifier.forClass(DesiredConfig.class)
+      .usingGetClass()
+      .suppress(Warning.NONFINAL_FIELDS)
+      .verify();
+  }
+
+  @Test
+  public void testHostOverride_Equals() throws Exception {
+    EqualsVerifier.forClass(DesiredConfig.HostOverride.class)
+      .usingGetClass()
+      .verify();
   }
 
 }
