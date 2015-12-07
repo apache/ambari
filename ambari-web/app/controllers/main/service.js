@@ -301,17 +301,21 @@ App.MainServiceController = Em.ArrayController.extend({
     var self = this;
     var servicesList = [];
     var hostComponentsToRestart = [];
-    App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
-      hostComponentsToRestart.push({
-        component_name: hostComponent.get('componentName'),
-        service_name: hostComponent.get('service.serviceName'),
-        hosts: hostComponent.get('hostName')
+    if (!this.get('isRestartAllRequiredDisabled')) {
+      App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
+        hostComponentsToRestart.push({
+          component_name: hostComponent.get('componentName'),
+          service_name: hostComponent.get('service.serviceName'),
+          hosts: hostComponent.get('hostName')
+        });
+        servicesList.push(hostComponent.get('service.displayName'));
       });
-      servicesList.push(hostComponent.get('service.displayName'));
-    });
-    return App.showConfirmationPopup(function () {
-      self.restartHostComponents(hostComponentsToRestart);
-    }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+      return App.showConfirmationPopup(function () {
+        self.restartHostComponents(hostComponentsToRestart);
+      }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+    } else {
+      return null;
+    }
   },
 
   /**

@@ -393,7 +393,11 @@ describe('App.MainServiceController', function () {
     });
 
     it('should show confirmation popup with list of services and call restartHostComponents after confirmation', function () {
-      var popup = mainServiceController.restartAllRequired();
+      var popup;
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: false
+      });
+      popup = mainServiceController.restartAllRequired();
       popup.onPrimary();
       expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
       expect(mainServiceController.restartHostComponents.calledWith([
@@ -408,6 +412,13 @@ describe('App.MainServiceController', function () {
           hosts: 'hostName2'
         }
       ])).to.be.true;
+    });
+
+    it('should not open popup if isRestartAllRequiredDisabled is true', function(){
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: true
+      });
+      expect(mainServiceController.restartAllRequired()).to.be.null;
     });
 
   });
