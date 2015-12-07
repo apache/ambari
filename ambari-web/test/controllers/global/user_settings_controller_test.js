@@ -38,7 +38,7 @@ describe('App.UserSettingsController', function () {
       sinon.stub(App.ModalPopup, 'show', function(dataToShow){
         dataToShowRes = dataToShow;
       });
-      sinon.stub(App, 'isAccessible').returns(true);
+      sinon.stub(App, 'isAuthorized').returns(true);
       var emulatorClass = function() {};
       emulatorClass.prototype.done = function(func) {
         if (func) {
@@ -49,7 +49,7 @@ describe('App.UserSettingsController', function () {
       sinon.stub(userSettingsController, 'dataLoading').returns(emulator);
     });
     afterEach(function () {
-      App.isAccessible.restore();
+      App.isAuthorized.restore();
       App.ModalPopup.show.restore();
       userSettingsController.dataLoading.restore();
     });

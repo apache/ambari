@@ -49,7 +49,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                       var currentClusterStatus = App.clusterStatus.get('value');
                       if (router.get('currentState.parentState.name') !== 'views'
                           && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                        if (App.isAccessible('ADMIN')) {
+                        if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
                           Em.run.next(function () {
