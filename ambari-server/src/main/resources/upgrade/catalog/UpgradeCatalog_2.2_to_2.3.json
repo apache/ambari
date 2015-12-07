@@ -601,11 +601,7 @@
           "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hadoop/hdfs/audit/db/spool",
           "xasecure.audit.is.enabled": "true",
           "xasecure.audit.destination.db.password": {
-            "value": "{AUDIT_DB_PASSWD}",
-            "template": "yes",
-            "required-services": [
-              "RANGER"
-            ]
+            "value": "{{xa_audit_db_password}}"
           },
           "xasecure.audit.destination.db": {
             "value": "{AUDIT_TO_DB_HDFS}",
@@ -728,8 +724,7 @@
           "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hbase/audit/db/spool",
           "xasecure.audit.is.enabled": "true",
           "xasecure.audit.destination.db.password": {
-            "value": "{AUDIT_DB_PASSWD}",
-            "template": "yes"
+            "value": "{{xa_audit_db_password}}"
           },
           "xasecure.audit.destination.db": {
             "value": "{AUDIT_TO_DB_HBASE}",
@@ -789,7 +784,7 @@
         "ranger-hive-security": {
           "upgrade.transition": "yes",
           "ranger.plugin.hive.policy.source.impl": "org.apache.ranger.admin.client.RangerAdminRESTClient",
-          "ranger.plugin.hive.policy.rest.ssl.config.file": "usr/hdp/current/hive-server2/conf/conf.server/ranger-policymgr-ssl.xml",
+          "ranger.plugin.hive.policy.rest.ssl.config.file": "/usr/hdp/current/hive-server2/conf/conf.server/ranger-policymgr-ssl.xml",
           "ranger.plugin.hive.policy.pollIntervalMs": "30000",
           "ranger.plugin.hive.policy.cache.dir": {
             "value": "{RANGER_PLUGIN_HIVE_POLICY_CACHE_DIR}",
@@ -827,8 +822,7 @@
           "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/hive/audit/db/spool",
           "xasecure.audit.is.enabled": "true",
           "xasecure.audit.destination.db.password": {
-            "value": "{AUDIT_DB_PASSWD}",
-            "template": "yes"
+            "value": "{{xa_audit_db_password}}"
           },
           "xasecure.audit.destination.db": {
             "value": "{AUDIT_TO_DB_HIVE}",
@@ -925,8 +919,7 @@
           "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/knox/audit/db/spool",
           "xasecure.audit.is.enabled": "true",
           "xasecure.audit.destination.db.password": {
-            "value": "{AUDIT_DB_PASSWD}",
-            "template": "yes"
+            "value": "{{xa_audit_db_password}}"
           },
           "xasecure.audit.destination.db": {
             "value": "{AUDIT_TO_DB_KNOX}",
@@ -1023,8 +1016,7 @@
           "xasecure.audit.destination.db.batch.filespool.dir": "/var/log/storm/audit/db/spool",
           "xasecure.audit.is.enabled": "true",
           "xasecure.audit.destination.db.password": {
-            "value": "{AUDIT_DB_PASSWD}",
-            "template": "yes"
+            "value": "{{xa_audit_db_password}}"
           },
           "xasecure.audit.destination.db": {
             "value": "{AUDIT_TO_DB_STORM}",
@@ -1178,6 +1170,30 @@
           },
           "xml_configurations_supported": {
             "value": "true"
+          },
+          "ranger_privelege_user_jdbc_url": {
+            "value": "{RANGER_ROOT_JDBC_URL}",
+            "template": "yes"
+          },
+          "ranger-yarn-plugin-enabled": {
+            "value": "No"
+          },
+          "ranger-kafka-plugin-enabled":{
+            "value": "No"
+          },
+          "xasecure.audit.destination.solr":{
+            "value": "false"
+          },
+          "is_solrCloud_enabled":{
+            "value": "false"
+          },
+          "xasecure.audit.destination.hdfs": {
+            "value": "{AUDIT_TO_HDFS}",
+            "template": "yes"
+          },
+          "xasecure.audit.destination.db": {
+            "value": "{AUDIT_TO_DB}",
+            "template": "yes"
           }
         },
         "ranger-admin-site": {
@@ -1272,6 +1288,57 @@
           },
           "ranger.jpa.audit.jdbc.password": {
             "value": "_"
+          },
+          "ranger.sso.providerurl": {
+            "value": ""
+          },
+          "ranger.sso.publicKey": {
+            "value": ""
+          },
+          "ranger.sso.cookiename": {
+            "value": "hadoop-jwt"
+          },
+          "ranger.sso.enabled": {
+            "value": "false"
+          },
+          "ranger.sso.query.param.originalurl": {
+            "value": "originalUrl"
+          },
+          "ranger.sso.browser.useragent": {
+            "value": "Mozilla,chrome"
+          },
+          "ranger.ldap.user.searchfilter":{
+            "value": "{{ranger_ug_ldap_user_searchfilter}}"
+          },
+          "ranger.ldap.group.roleattribute":{
+            "value": "cn"
+          },
+          "ranger.ldap.base.dn":{
+            "value": "dc=example,dc=com"
+          },
+          "ranger.ldap.bind.dn":{
+            "value": "{{ranger_ug_ldap_bind_dn}}"
+          },
+          "ranger.ldap.bind.password":{
+            "value": "{{ranger_usersync_ldap_ldapbindpassword}}"
+          },
+          "ranger.ldap.referral":{
+            "value": "ignore"
+          },
+          "ranger.ldap.ad.base.dn":{
+            "value": "dc=example,dc=com"
+          },
+          "ranger.ldap.ad.bind.dn":{
+            "value": "{{ranger_ug_ldap_bind_dn}}"
+          },
+          "ranger.ldap.ad.bind.password":{
+            "value": "{{ranger_usersync_ldap_ldapbindpassword}}"
+          },
+          "ranger.ldap.ad.user.searchfilter":{
+            "value": "{{ranger_ug_ldap_user_searchfilter}}"
+          },
+          "ranger.ldap.ad.referral":{
+            "value": "ignore"
           }
         },
         "ranger-ugsync-site": {
@@ -1355,13 +1422,23 @@
             "value": "500"
           },
           "ranger.usersync.source.impl.class": {
-            "value": ""
+            "value": "{USERSYNC_SYNC_SOURCE}",
+            "template": "yes"
           },
           "ranger.usersync.policymanager.baseURL": {
             "value": "{{ranger_external_url}}"
           },
           "ranger.usersync.sleeptimeinmillisbetweensynccycle": {
             "value": "60000"
+          },
+          "ranger.usersync.ldap.referral": {
+            "value": "ignore"
+          },
+          "ranger.usersync.unix.group.file": {
+            "value": "/etc/group"
+          },
+          "ranger.usersync.unix.password.file": {
+            "value": "/etc/passwd"
           }
         },
         "usersync-properties":{
