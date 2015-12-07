@@ -404,16 +404,10 @@ public interface Cluster {
    */
   boolean isConfigTypeExists(String configType);
   /**
-   * Gets the active desired configurations for the cluster.
+   * Gets the desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */
   Map<String, DesiredConfig> getDesiredConfigs();
-
-  /**
-   * Gets all versions of the desired configurations for the cluster.
-   * @return a map of type-to-configuration information.
-   */
-  Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions();
 
 
   /**

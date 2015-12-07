@@ -36,10 +36,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.Nullable;
 import javax.persistence.RollbackException;
 
-import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -2094,50 +2092,16 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-  /**
-   * Gets all versions of the desired configurations for the cluster.
-   * @return a map of type-to-configuration information.
-   */
-  @Override
-  public Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions() {
-    return getDesiredConfigs(true);
-  }
-
-  /**
-   * Gets the active desired configurations for the cluster.
-   * @return a map of type-to-configuration information.
-   */
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
-    Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
-
-    return Maps.transformEntries(
-      activeConfigsByType,
-      new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
-        @Override
-        public DesiredConfig transformEntry(@Nullable String key, @Nullable Set<DesiredConfig> value) {
-          return value.iterator().next();
-        }
-    });
-  }
-
-
-  /**
-   * Gets desired configurations for the cluster.
-   * @param allVersions specifies if all versions of the desired configurations to be returned
-   *                    or only the active ones. It is expected that there is one and only one active
-   *                    desired configuration per config type.
-   * @return a map of type-to-configuration information.
-   */
-  private Map<String, Set<DesiredConfig>> getDesiredConfigs(boolean allVersions) {
     loadConfigurations();
     clusterGlobalLock.readLock().lock();
     try {
-      Map<String, Set<DesiredConfig>> map = new HashMap<>();
-      Collection<String> types = new HashSet<>();
+      Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
+      Collection<String> types = new HashSet<String>();
 
       for (ClusterConfigMappingEntity e : clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId())) {
-        if (allVersions || e.isSelected() > 0) {
+        if (e.isSelected() > 0) {
           DesiredConfig c = new DesiredConfig();
           c.setServiceName(null);
           c.setTag(e.getTag());
@@ -2149,13 +2113,7 @@ public class ClusterImpl implements Cluster {
           }
           c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
 
-          Set<DesiredConfig> configs = map.get(e.getType());
-          if (configs == null)
-            configs = new HashSet<>();
-
-          configs.add(c);
-
-          map.put(e.getType(), configs);
+          map.put(e.getType(), c);
           types.add(e.getType());
         }
       }
@@ -2167,7 +2125,7 @@ public class ClusterImpl implements Cluster {
         Map<String, List<HostConfigMapping>> hostMappingsByType = hostConfigMappingDAO.findSelectedHostsByTypes(
             clusterEntity.getClusterId(), types);
 
-        for (Entry<String, Set<DesiredConfig>> entry : map.entrySet()) {
+        for (Entry<String, DesiredConfig> entry : map.entrySet()) {
           List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<DesiredConfig.HostOverride>();
           for (HostConfigMapping mappingEntity : hostMappingsByType.get(entry.getKey())) {
 
@@ -2179,9 +2137,7 @@ public class ClusterImpl implements Cluster {
             hostOverrides.add(new DesiredConfig.HostOverride(
                 hostIdToName.get(mappingEntity.getHostId()), mappingEntity.getVersion()));
           }
-
-          for (DesiredConfig c: entry.getValue())
-            c.setHostOverrides(hostOverrides);
+          entry.getValue().setHostOverrides(hostOverrides);
         }
       }
 
@@ -2190,7 +2146,6 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.readLock().unlock();
     }
   }
-
 
 
   @Override

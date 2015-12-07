@@ -640,7 +640,7 @@ public class TopologyManager {
 
       if (!configChecked) {
         configChecked = true;
-        if (!ambariContext.isTopologyResolved(topology.getClusterId())) {
+        if (!ambariContext.doesConfigurationWithTagExist(topology.getClusterId(), TOPOLOGY_RESOLVED_TAG)) {
           LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
           addClusterConfigRequest(topology, new ClusterConfigurationRequest(
             ambariContext, topology, false, stackAdvisorBlueprintProcessor));
@@ -683,7 +683,7 @@ public class TopologyManager {
         CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME);
 
     long timeout = 1000 * 60 * 30; // 30 minutes
-    long delay = 1000; //ms
+    long delay = 100; //ms
 
     if (timeoutStr != null) {
       timeout = Long.parseLong(timeoutStr);
