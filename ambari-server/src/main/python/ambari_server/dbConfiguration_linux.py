@@ -592,7 +592,7 @@ class PGConfig(LinuxDBMSConfig):
     else:
       # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
       if not OSCheck.is_ubuntu_family():
-        print "Running initdb: This may take upto a minute."
+        print "Running initdb: This may take up to a minute."
         retcode, out, err = run_os_command(PGConfig.PG_INITDB_CMD)
         if retcode == 0:
           print out
