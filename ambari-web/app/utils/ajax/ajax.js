@@ -2842,7 +2842,7 @@ var ajax = Em.Object.extend({
 
     var opt = {};
     if (!urls[config.name]) {
-      console.warn('Invalid name provided!');
+      console.warn('Invalid name provided `' + config.name + '`!');
       return null;
     }
     opt = formatRequest.call(urls[config.name], params);

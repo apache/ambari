@@ -74,7 +74,7 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#stopComponent()', function () {
+describe('#stopComponent()', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'showConfirmationPopup', function (callback) {
@@ -958,10 +958,10 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#loadConfigsSuccessCallback()', function () {
-
+    var mockUrlParams = [];
     beforeEach(function () {
       sinon.stub(controller, "constructConfigUrlParams", function () {
-        return this.get('mockUrlParams');
+        return mockUrlParams;
       });
     });
     afterEach(function () {
@@ -969,12 +969,11 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('url params is empty', function () {
-      controller.set('mockUrlParams', []);
       expect(controller.loadConfigsSuccessCallback()).to.be.false;
       expect(App.ajax.send.called).to.be.false;
     });
     it('url params are correct', function () {
-      controller.set('mockUrlParams', ['param1']);
+      mockUrlParams = ['param1'];
       expect(controller.loadConfigsSuccessCallback()).to.be.true;
       expect(App.ajax.send.calledOnce).to.be.true;
     });

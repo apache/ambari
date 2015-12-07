@@ -333,12 +333,10 @@ var files = [
 App.initialize();
 describe('Ambari Web Unit tests', function() {
 
-  for (var i = 0; i < files.length; i++) {
-
-    describe(files[i], function() {
-      require(files[i]);
+  files.forEach(function (file) {
+    describe(file, function() {
+      require(file);
     });
-
-  }
+  });
 
 });
