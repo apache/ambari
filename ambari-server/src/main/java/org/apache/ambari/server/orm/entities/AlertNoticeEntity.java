@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.NotificationState;
     @NamedQuery(name = "AlertNoticeEntity.findAll", query = "SELECT notice FROM AlertNoticeEntity notice"),
     @NamedQuery(name = "AlertNoticeEntity.findByState", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.notifyState = :notifyState"),
     @NamedQuery(name = "AlertNoticeEntity.findByUuid", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.uuid = :uuid"),
+    @NamedQuery(name = "AlertNoticeEntity.findByDefinitionId", query = "SELECT notice FROM AlertNoticeEntity notice WHERE notice.alertHistory.alertDefinition.definitionId = :definitionId"),
     @NamedQuery(name = "AlertNoticeEntity.removeByDefinitionId", query = "DELETE FROM AlertNoticeEntity notice WHERE notice.alertHistory.alertDefinition.definitionId = :definitionId") })
 public class AlertNoticeEntity {
 
