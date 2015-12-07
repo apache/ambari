@@ -131,11 +131,11 @@ public class UpgradeResourceProviderHDP22Test {
       {
         put("hive-site", new HashMap<String, String>() {
           {
-            put("tag", configTagVersion1);
+            put("tag", configTagVersion2);
           }
         });
       }
-    }).times(3);
+    }).anyTimes();
 
     expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
       {
@@ -145,7 +145,7 @@ public class UpgradeResourceProviderHDP22Test {
           }
         });
       }
-    }).times(2);
+    }).anyTimes();
 
     expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
         new HashMap<String, Map<String, String>>() {
@@ -159,7 +159,7 @@ public class UpgradeResourceProviderHDP22Test {
           {
             put("hive-site", configTagVersion2Properties);
           }
-        }).times(2);
+        }).anyTimes();
 
     expect(configHelper.getMergedConfig(EasyMock.anyObject(Map.class),
         EasyMock.anyObject(Map.class))).andReturn(new HashMap<String, String>()).anyTimes();
