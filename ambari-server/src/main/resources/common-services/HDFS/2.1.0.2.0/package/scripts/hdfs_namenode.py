@@ -29,6 +29,7 @@ from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+from utils import get_dfsadmin_base_command
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
@@ -114,12 +115,11 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
-
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
+    is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
     if params.dfs_ha_enabled:
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
-      is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
       is_active_namenode_cmd = True
     
     # During NonRolling Upgrade, both NameNodes are initially down,
@@ -402,7 +402,7 @@ def decommission():
     # need to execute each command scoped to a particular namenode
     nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
   else:
-    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -refreshNodes')
+    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs {namenode_address} -refreshNodes')
   Execute(nn_refresh_cmd, user=hdfs_user)
 
 

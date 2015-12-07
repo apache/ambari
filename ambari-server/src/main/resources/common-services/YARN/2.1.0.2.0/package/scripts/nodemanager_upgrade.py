@@ -51,6 +51,7 @@ def _check_nodemanager_startup():
   :return:
   '''
   import params
+  import socket
 
   command = 'yarn node -list -states=RUNNING'
 
@@ -62,10 +63,11 @@ def _check_nodemanager_startup():
 
   if return_code == 0:
     hostname = params.hostname.lower()
+    hostname_ip = socket.gethostbyname(params.hostname.lower())
     nodemanager_address = params.nm_address.lower()
     yarn_output = yarn_output.lower()
 
-    if hostname in yarn_output or nodemanager_address in yarn_output:
+    if hostname in yarn_output or nodemanager_address in yarn_output or hostname_ip in yarn_output:
       Logger.info('NodeManager with ID {0} has rejoined the cluster.'.format(nodemanager_address))
       return
     else:
