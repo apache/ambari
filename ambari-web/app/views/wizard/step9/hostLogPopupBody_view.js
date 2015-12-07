@@ -247,13 +247,14 @@ App.WizardStep9HostLogPopupBodyView = Em.View.extend({
    * @method createClipBoard
    */
   createClipBoard: function () {
-    var log = $(".task-detail-log-maintext");
+    var log = $(".task-detail-log-maintext"),
+      logRect = log[0].getBoundingClientRect();
     $(".task-detail-log-clipboard-wrap").html('<textarea class="task-detail-log-clipboard"></textarea>');
     $(".task-detail-log-clipboard")
       .html("stderr: \n" + $(".stderr").html() + "\n stdout:\n" + $(".stdout").html())
       .css("display", "block")
-      .width(log.width())
-      .height(log.height())
+      .width(logRect.width)
+      .height(logRect.height)
       .select();
     log.css("display", "none")
   },
