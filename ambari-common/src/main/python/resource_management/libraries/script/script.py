@@ -112,10 +112,11 @@ class Script(object):
   def load_structured_out(self):
     Script.structuredOut = {}
     if os.path.exists(self.stroutfile):
-      with open(self.stroutfile, 'r') as fp:
-        Script.structuredOut = json.load(fp)
+      if os.path.getsize(self.stroutfile) > 0:
+        with open(self.stroutfile, 'r') as fp:
+          Script.structuredOut = json.load(fp)
 
-    # version is only set in a specific way and should not be carried 
+    # version is only set in a specific way and should not be carried
     if "version" in Script.structuredOut:
       del Script.structuredOut["version"]
     # reset security issues and errors found on previous runs
