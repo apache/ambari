@@ -27,13 +27,13 @@ from resource_management.core.exceptions import Fail
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions import Direction, SafeMode
+from utils import get_dfsadmin_base_command
 
 from namenode_ha_state import NamenodeHAState
 
 
 safemode_to_instruction = {SafeMode.ON: "enter",
                            SafeMode.OFF: "leave"}
-
 
 def prepare_upgrade_check_for_previous_dir():
   """
@@ -71,7 +71,8 @@ def prepare_upgrade_enter_safe_mode(hdfs_binary):
   """
   import params
 
-  safe_mode_enter_cmd = format("{hdfs_binary} dfsadmin -safemode enter")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  safe_mode_enter_cmd = dfsadmin_base_command + " -safemode enter"
   try:
     # Safe to call if already in Safe Mode
     desired_state = SafeMode.ON
@@ -91,7 +92,8 @@ def prepare_upgrade_save_namespace(hdfs_binary):
   """
   import params
 
-  save_namespace_cmd = format("{hdfs_binary} dfsadmin -saveNamespace")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  save_namespace_cmd = dfsadmin_base_command + " -saveNamespace"
   try:
     Logger.info("Checkpoint the current namespace.")
     as_user(save_namespace_cmd, params.hdfs_user, env={'PATH': params.hadoop_bin_dir})
@@ -139,7 +141,8 @@ def prepare_upgrade_finalize_previous_upgrades(hdfs_binary):
   """
   import params
 
-  finalize_command = format("{hdfs_binary} dfsadmin -rollingUpgrade finalize")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  finalize_command = dfsadmin_base_command + " -rollingUpgrade finalize"
   try:
     Logger.info("Attempt to Finalize if there are any in-progress upgrades. "
                 "This will return 255 if no upgrades are in progress.")
@@ -167,11 +170,8 @@ def reach_safemode_state(user, safemode_state, in_ha, hdfs_binary):
   import params
   original_state = SafeMode.UNKNOWN
 
-  safemode_base_command = ""
-  if params.dfs_ha_enabled:
-    safemode_base_command = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode ")
-  else:
-    safemode_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode ")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  safemode_base_command = dfsadmin_base_command + " -safemode "
   safemode_check_cmd = safemode_base_command + " get"
 
   grep_pattern = format("Safe mode is {safemode_state}")
@@ -233,8 +233,9 @@ def prepare_rolling_upgrade(hdfs_binary):
       if not safemode_transition_successful:
         raise Fail("Could not transition to safemode state %s. Please check logs to make sure namenode is up." % str(desired_state))
 
-    prepare = format("{hdfs_binary} dfsadmin -rollingUpgrade prepare")
-    query = format("{hdfs_binary} dfsadmin -rollingUpgrade query")
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    prepare = dfsadmin_base_command + " -rollingUpgrade prepare"
+    query = dfsadmin_base_command + " -rollingUpgrade query"
     Execute(prepare,
             user=params.hdfs_user,
             logoutput=True)
@@ -255,8 +256,9 @@ def finalize_upgrade(upgrade_type, hdfs_binary):
     kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}") 
     Execute(kinit_command, user=params.hdfs_user, logoutput=True)
 
-  finalize_cmd = format("{hdfs_binary} dfsadmin -rollingUpgrade finalize")
-  query_cmd = format("{hdfs_binary} dfsadmin -rollingUpgrade query")
+  dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+  finalize_cmd = dfsadmin_base_command + " -rollingUpgrade finalize"
+  query_cmd = dfsadmin_base_command + " -rollingUpgrade query"
 
   Execute(query_cmd,
         user=params.hdfs_user,

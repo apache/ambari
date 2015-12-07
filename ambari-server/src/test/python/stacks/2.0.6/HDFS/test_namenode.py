@@ -1469,11 +1469,28 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -report -live',
                               user='hdfs',
                               tries=60,
                               try_sleep=10
                               )
+    self.assertNoMoreResources()
+
+  def test_post_upgrade_ha_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "post_upgrade_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -report -live',
+                              user='hdfs',
+                              tries=60,
+                              try_sleep=10
+    )
     self.assertNoMoreResources()
 
   def test_prepare_rolling_upgrade__upgrade(self):
@@ -1493,12 +1510,37 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
       logoutput = True, user = 'hdfs')
     
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade prepare',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade prepare',
       logoutput = True, user = 'hdfs')
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
       logoutput = True, user = 'hdfs')
     
+    self.assertNoMoreResources()
+
+  def test_prepare_rolling_upgrade__upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content['commandParams']['upgrade_direction'] = 'upgrade'
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "prepare_rolling_upgrade",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
+
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade prepare',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True, user = 'hdfs')
+
     self.assertNoMoreResources()
   
 
@@ -1538,15 +1580,40 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade finalize',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade finalize',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertNoMoreResources()
+
+  def test_finalize_ha_rolling_upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "finalize_rolling_upgrade",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade finalize',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )

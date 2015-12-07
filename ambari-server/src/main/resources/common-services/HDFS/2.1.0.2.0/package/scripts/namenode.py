@@ -50,7 +50,7 @@ import namenode_upgrade
 from hdfs_namenode import namenode
 from hdfs import hdfs
 import hdfs_rebalance
-from utils import initiate_safe_zkfc_failover, get_hdfs_binary
+from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
 
 
 
@@ -192,11 +192,8 @@ class NameNodeDefault(NameNode):
       hdfs_binary = self.get_hdfs_binary()
       # Note, this fails if namenode_address isn't prefixed with "params."
 
-      is_namenode_safe_mode_off = ""
-      if params.dfs_ha_enabled:
-        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc} -safemode get | grep 'Safe mode is OFF'")
-      else:
-        is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {params.namenode_address} -safemode get | grep 'Safe mode is OFF'")
+      dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
+      is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
 
       # Wait up to 30 mins
       Execute(is_namenode_safe_mode_off,
@@ -240,7 +237,9 @@ class NameNodeDefault(NameNode):
     env.set_params(params)
 
     hdfs_binary = self.get_hdfs_binary()
-    Execute(format("{hdfs_binary} dfsadmin -report -live"),
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary)
+    dfsadmin_cmd = dfsadmin_base_command + " -report -live"
+    Execute(dfsadmin_cmd,
             user=params.hdfs_user,
             tries=60,
             try_sleep=10
