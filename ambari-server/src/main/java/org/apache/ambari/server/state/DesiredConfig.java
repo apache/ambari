@@ -20,6 +20,8 @@ package org.apache.ambari.server.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.builder.EqualsBuilder;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
@@ -119,9 +121,9 @@ public class DesiredConfig {
    * Used to represent an override on a host.
    */
   //TODO include changes for config versions
-  public static class HostOverride {
-    private String hostName;
-    private String versionOverrideTag;
+  public final static class HostOverride {
+    private final String hostName;
+    private final String versionOverrideTag;
 
     /**
      * @param name the host name
@@ -148,6 +150,27 @@ public class DesiredConfig {
       return versionOverrideTag;
     }
 
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+
+      if (o == null || getClass() != o.getClass()) return false;
+
+      HostOverride that = (HostOverride) o;
+
+      return new EqualsBuilder()
+        .append(hostName, that.hostName)
+        .append(versionOverrideTag, that.versionOverrideTag)
+        .isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return new HashCodeBuilder(17, 37)
+        .append(hostName)
+        .append(versionOverrideTag)
+        .toHashCode();
+    }
   }
 
   @Override
@@ -174,4 +197,31 @@ public class DesiredConfig {
     return sb.toString();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+
+    if (o == null || getClass() != o.getClass()) return false;
+
+    DesiredConfig that = (DesiredConfig) o;
+
+    return new EqualsBuilder()
+      .append(tag, that.tag)
+      .append(serviceName, that.serviceName)
+      .append(user, that.user)
+      .append(version, that.version)
+      .append(hostOverrides, that.hostOverrides)
+      .isEquals();
+  }
+
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37)
+      .append(tag)
+      .append(serviceName)
+      .append(user)
+      .append(version)
+      .append(hostOverrides)
+      .toHashCode();
+  }
 }
