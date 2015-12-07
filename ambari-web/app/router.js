@@ -221,6 +221,9 @@ App.Router = Em.Router.extend({
       } finally {
         this.setAuthenticated(false);
       }
+    } else if (data.status >= 500) {
+      this.setAuthenticated(false);
+      this.loginErrorCallback(data);
     }
   },
 
@@ -331,12 +334,16 @@ App.Router = Em.Router.extend({
   loginErrorCallback: function(request) {
     var controller = this.get('loginController');
     this.setAuthenticated(false);
-    if (request.status == 403) {
+    if (request.status > 400) {
       var responseMessage = request.responseText;
       try{
         responseMessage = JSON.parse(request.responseText).message;
       }catch(e){}
+    }
+    if (request.status == 403) {
       controller.postLogin(true, false, responseMessage);
+    } else if (request.status == 500) {
+      controller.postLogin(false, false, responseMessage);
     } else {
       controller.postLogin(false, false, null);
     }
