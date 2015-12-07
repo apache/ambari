@@ -28,6 +28,7 @@ from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from ambari_commons.os_check import OSCheck
+import subprocess
 
 if os.geteuid() == 0:
   def chown(path, owner, group):
@@ -206,8 +207,12 @@ else:
   def stat(path):
     class Stat:
       def __init__(self, path):
-        out = shell.checked_call(["stat", "-c", "%u %g %a", path], sudo=True)[1]
-        uid_str, gid_str, mode_str = out.split(' ')
+        cmd = ["stat", "-c", "%u %g %a", path]
+        code, out, err = shell.checked_call(cmd, sudo=True, stderr=subprocess.PIPE)
+        values = out.split(' ')
+        if len(values) != 3:
+          raise Fail("Execution of '{0}' returned unexpected output. {2}\n{3}".format(cmd, code, err, out))
+        uid_str, gid_str, mode_str = values
         self.st_uid, self.st_gid, self.st_mode = int(uid_str), int(gid_str), int(mode_str, 8)
   
     return Stat(path)
