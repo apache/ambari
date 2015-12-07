@@ -1241,18 +1241,21 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
       Config rangerUgsyncSiteProperties = cluster.getDesiredConfigByType(RANGER_UGSYNC_SITE_CONFIG);
       if (rangerUgsyncSiteProperties != null && rangerUgsyncSiteProperties.getProperties().containsKey(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY)) {
-        if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("ldap")) {
-          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
-              "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder");
-          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
-        } else if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("unix")) {
-          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
-              "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder");
-          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
-        } else if (rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY).equals("file")) {
-          Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
-              "org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder");
-          updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+        String sourceClassValue = rangerUgsyncSiteProperties.getProperties().get(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY);
+        if (sourceClassValue != null) {
+          if ("ldap".equals(sourceClassValue)) {
+            Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+                "org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder");
+            updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+          } else if ("unix".equals(sourceClassValue)) {
+            Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+                "org.apache.ranger.unixusersync.process.UnixUserGroupBuilder");
+            updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+          } else if ("file".equals(sourceClassValue)) {
+            Map<String, String> updates = Collections.singletonMap(RANGER_USERSYNC_SOURCE_IMPL_CLASS_PROPERTY,
+                "org.apache.ranger.unixusersync.process.FileSourceUserGroupBuilder");
+            updateConfigurationPropertiesForCluster(cluster, RANGER_UGSYNC_SITE_CONFIG, updates, true, false);
+          }
         }
       }
     }
