@@ -39,7 +39,7 @@ class AMSServiceCheck(Script):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
   AMS_CONNECT_TRIES = 10
-  AMS_CONNECT_TIMEOUT = 10
+  AMS_CONNECT_TIMEOUT = 15
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
