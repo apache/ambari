@@ -30,8 +30,8 @@
     "METRICS_COLLECTOR": [
       {
         "name": "ams_metrics_collector_autostart",
-        "label": "Metrics Collector Auto-Start",
-        "description": "This alert is triggered if the Metrics Collector has been auto-started for number of times equal to threshold.",
+        "label": "Metrics Collector - Auto-Restart Status",
+        "description": "This alert is triggered if the Metrics Collector has been restarted automatically too frequently in last one hour. By default, a Warning alert is triggered if restarted twice in one hour and a Critical alert is triggered if restarted 4 or more times in one hour.",
         "interval": 1,
         "scope": "ANY",
         "enabled": true,
