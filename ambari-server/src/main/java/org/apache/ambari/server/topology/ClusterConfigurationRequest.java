@@ -26,6 +26,8 @@ import org.apache.ambari.server.controller.internal.BlueprintConfigurationProces
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ public class ClusterConfigurationRequest {
   private BlueprintConfigurationProcessor configurationProcessor;
   private StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor;
   private Stack stack;
+  private boolean configureSecurity = false;
 
   public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial,
                                      StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor) {
@@ -63,6 +67,11 @@ public class ClusterConfigurationRequest {
     if (setInitial) {
       setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG, Collections.<String>emptySet());
     }
+  }
+
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology topology, boolean setInitial, StackAdvisorBlueprintProcessor stackAdvisorBlueprintProcessor, boolean configureSecurity) {
+    this(ambariContext, topology, setInitial, stackAdvisorBlueprintProcessor);
+    this.configureSecurity = configureSecurity;
   }
 
   // get names of required host groups
@@ -79,6 +88,11 @@ public class ClusterConfigurationRequest {
       if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(this.clusterTopology.getConfigRecommendationStrategy())) {
         stackAdvisorBlueprintProcessor.adviseConfiguration(this.clusterTopology);
       }
+
+      if (configureSecurity) {
+        configureKerberos();
+      }
+
       updatedConfigTypes =
         configurationProcessor.doUpdateForClusterCreate();
     } catch (ConfigurationTopologyException e) {
@@ -87,6 +101,30 @@ public class ClusterConfigurationRequest {
     }
 
     setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG, updatedConfigTypes);
+  }
+
+  private void configureKerberos() throws AmbariException {
+    String clusterName = ambariContext.getClusterName(clusterTopology.getClusterId());
+    Cluster cluster = AmbariContext.getController().getClusters().getCluster(clusterName);
+    Blueprint blueprint = clusterTopology.getBlueprint();
+    Configuration clusterConfiguration = clusterTopology.getConfiguration();
+
+    try {
+      Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
+        .getServiceConfigurationUpdates(cluster, clusterConfiguration.getFullProperties(),
+        new HashSet<String>(blueprint.getServices()));
+     for (String configType : updatedConfigs.keySet()) {
+       Map<String, String> propertyMap = updatedConfigs.get(configType);
+       for (String property : propertyMap.keySet()) {
+         LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
+           (property));
+          clusterConfiguration.setProperty(configType, property, propertyMap.get(property));
+       }
+     }
+
+    } catch (KerberosInvalidConfigurationException e) {
+      LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
+    }
   }
 
   /**
