@@ -27,7 +27,6 @@ from resource_management.core.logger import Logger
 from resource_management.core.system import System
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.accounts import Group, User
-from resource_management.core.source import Template
 import xml.etree.ElementTree as ET
 
 import utils
@@ -79,19 +78,42 @@ def setup_common_configurations():
   """
   Sets up the config files common to master, standby and segment nodes.
   """
+  __update_hdfs_client()
+  __update_yarn_client()
+  __update_hawq_site()
+  __set_osparams()
+
+def __update_hdfs_client():
+  """
+  Writes hdfs-client.xml on the local filesystem on hawq nodes.
+  If hdfs ha is enabled, appends related parameters to hdfs-client.xml
+  """
   import params
 
-  substituted_conf_dict = __substitute_hostnames_in_hawq_site()
-  XmlConfig("hawq-site.xml",
+  hdfs_client_dict = params.hdfs_client.copy()
+  dfs_nameservice = params.hdfs_site.get('dfs.nameservices')
+
+  # Adds additional parameters required for HDFS HA, if HDFS HA is enabled
+  # Temporary logic, this logic will be moved to ambari-web to expose these parameters on UI once HDFS HA is enabled
+  if dfs_nameservice:
+    ha_namenodes = 'dfs.ha.namenodes.{0}'.format(dfs_nameservice)
+    ha_nn_list = [ha_nn.strip() for ha_nn in params.hdfs_site[ha_namenodes].split(',')]
+    required_keys = ('dfs.nameservices', ha_namenodes,
+                     'dfs.namenode.rpc-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[0]),
+                     'dfs.namenode.http-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[0]),
+                     'dfs.namenode.rpc-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[1]),
+                     'dfs.namenode.http-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[1]))
+
+    for key in required_keys:
+      hdfs_client_dict[key] = params.hdfs_site[key]
+
+  XmlConfig("hdfs-client.xml",
             conf_dir=constants.hawq_config_dir,
-            configurations=substituted_conf_dict,
-            configuration_attributes=params.config['configuration_attributes']['hawq-site'],
+            configurations=ConfigDictionary(hdfs_client_dict),
+            configuration_attributes=params.config['configuration_attributes']['hdfs-client'],
             owner=constants.hawq_user,
             group=constants.hawq_group,
             mode=0644)
-  if "yarn-site" in params.config["configurations"]:
-    __update_yarn_client()
-  __set_osparams()
 
 
 def __update_yarn_client():
@@ -146,33 +168,19 @@ def __update_yarn_client():
             mode=0644)
 
 
-def __substitute_hostnames_in_hawq_site():
+def __update_hawq_site():
   """
-  Temporary function to replace localhost with actual HAWQ component hostnames.
-  This function will be in place till the entire HAWQ plugin code along with the UI
-  changes are submitted to the trunk.
+  Sets up hawq-site.xml
   """
   import params
 
-  LOCALHOST = "localhost"
-  
-  # in case there is no standby
-  hawqstandby_host_desired_value = params.hawqstandby_host if params.hawqstandby_host is not None else 'none' 
-  
-  substituted_hawq_site = params.hawq_site.copy()
-  hawq_site_property_map = {"hawq_master_address_host": params.hawqmaster_host,
-                            "hawq_standby_address_host": hawqstandby_host_desired_value,
-                            "hawq_rm_yarn_address": params.rm_host,
-                            "hawq_rm_yarn_scheduler_address": params.rm_host,
-                            "hawq_dfs_url": params.namenode_host
-                            }
-
-  for property, desired_value in hawq_site_property_map.iteritems():
-    if desired_value is not None:
-      # Replace localhost with required component hostname
-      substituted_hawq_site[property] = re.sub(LOCALHOST, desired_value, substituted_hawq_site[property])
-
-  return substituted_hawq_site
+  XmlConfig("hawq-site.xml",
+            conf_dir=constants.hawq_config_dir,
+            configurations=params.hawq_site,
+            configuration_attributes=params.config['configuration_attributes']['hawq-site'],
+            owner=constants.hawq_user,
+            group=constants.hawq_group,
+            mode=0644)
 
 
 def __set_osparams():
