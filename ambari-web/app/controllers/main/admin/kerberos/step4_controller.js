@@ -19,7 +19,7 @@
 var App = require('app');
 require('controllers/wizard/step7_controller');
 
-App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, {
+App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecurityConfigs, App.ToggleIsRequiredMixin, App.KDCCredentialsControllerMixin, {
   name: 'kerberosWizardStep4Controller',
   isWithinAddService: Em.computed.equal('wizardController.name', 'addServiceController'),
 
@@ -116,7 +116,8 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     if (this.get('wizardController.name') == 'addServiceController') {
       // config properties for installed services should be disabled on Add Service Wizard
       configProperties.forEach(function(item) {
-        if (this.get('adminPropertyNames').mapProperty('name').contains(item.get('name'))) return;
+        if (this.get('adminPropertyNames').mapProperty('name').contains(item.get('name'))
+            || item.get('name') === 'persist_credentials') return;
         if (this.get('installedServiceNames').contains(item.get('serviceName')) || item.get('serviceName') == 'Cluster') {
           item.set('isEditable', false);
         } else if (stackConfigs) {
@@ -310,7 +311,19 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       }
       return App.ServiceConfigProperty.create(propTpl);
     });
-
+    if (App.get('supports.storeKDCCredentials')) {
+      var storeProps = [];
+      this.initilizeKDCStoreProperties(storeProps);
+      var persistCredentialsProp = storeProps.findProperty('name', 'persist_credentials');
+      if (!Em.isNone(persistCredentialsProp)) {
+        Em.setProperties(persistCredentialsProp, {
+          index: credentialProperties.length,
+          serviceName: 'Cluster',
+          category: 'Global'
+        });
+        credentialProperties.pushObject(App.ServiceConfigProperty.create(persistCredentialsProp));
+      }
+    }
     return credentialProperties;
   }
 });
