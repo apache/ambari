@@ -131,7 +131,7 @@ App.ConfigOverridable = Em.Mixin.create({
         } else {
           var newConfigGroupName = this.get('newConfigGroupName').trim();
           var newConfigGroup = {
-            id: serviceName + "_NEW_" + configGroups.length,
+            id: App.ServiceConfigGroup.groupId(serviceId, newConfigGroupName),
             name: newConfigGroupName,
             is_default: false,
             parent_config_group_id: App.ServiceConfigGroup.getParentConfigGroupId(serviceId),
@@ -220,7 +220,7 @@ App.ConfigOverridable = Em.Mixin.create({
    * Create a new config-group for a service.
    *
    * @param {object} newConfigGroupData config group to post to server
-   * @param {Function} callback Callback function for Success or Error handling
+   * @param {Function} [callback] Callback function for Success or Error handling
    * @return {$.ajax}
    * @method postNewConfigurationGroup
    */
@@ -234,7 +234,6 @@ App.ConfigOverridable = Em.Mixin.create({
     var sendData = {
       name: 'config_groups.create',
       data: {
-        'mock_id': newConfigGroupData.id,
         'group_name': newConfigGroupData.name,
         'service_id': newConfigGroupData.service_id,
         'description': newConfigGroupData.description,
@@ -243,11 +242,7 @@ App.ConfigOverridable = Em.Mixin.create({
       success: 'successFunction',
       error: 'errorFunction',
       successFunction: function (response, opt, params) {
-        var configGroupData = App.router.get('manageConfigGroupsController').generateOriginalConfigGroups([App.ServiceConfigGroup.find(params.mock_id)]);
-        App.configGroupsMapper.deleteRecord(App.ServiceConfigGroup.find(params.mock_id));
-        configGroupData[0].id = response.resources[0].ConfigGroup.id;
-        App.store.load(App.ServiceConfigGroup, configGroupData[0]);
-        App.ServiceConfigGroup.find().clear();
+        App.configGroupsMapper.map(response, false, [params.service_id]);
         if (callback) {
           callback();
         }

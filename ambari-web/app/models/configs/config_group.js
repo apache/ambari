@@ -158,5 +158,9 @@ App.ServiceConfigGroup = DS.Model.extend({
 App.ServiceConfigGroup.FIXTURES = [];
 
 App.ServiceConfigGroup.getParentConfigGroupId = function(serviceName) {
-  return serviceName + '0';
+  return App.ServiceConfigGroup.groupId(serviceName, 'Default');
+};
+
+App.ServiceConfigGroup.groupId = function(serviceName, groupName) {
+  return serviceName + "_" + groupName;
 };

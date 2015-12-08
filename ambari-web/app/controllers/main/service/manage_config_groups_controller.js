@@ -675,11 +675,10 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
       }.property('warningMessage', 'configGroupName'),
 
       onPrimary: function () {
-        var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
-        var properties = [];
-        var serviceName = self.get('serviceName');
-        //temporarily id until real assigned by server
-        var newGroupId = serviceName + "_NEW_" + self.get('configGroups.length');
+        var defaultConfigGroup = self.get('configGroups').findProperty('isDefault'),
+          properties = [], serviceName = self.get('serviceName'),
+          groupName = this.get('configGroupName').trim(),
+          newGroupId = App.ServiceConfigGroup.groupId(serviceName, groupName);
 
         App.store.load(App.ServiceConfigGroup, {
           id: newGroupId,
