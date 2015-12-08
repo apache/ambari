@@ -244,6 +244,10 @@ public class BlueprintConfigurationProcessor {
             final String originalValue = typeMap.get(propertyName);
             final String updatedValue =
               updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
+            
+            if(updatedValue == null ) {
+              continue;
+            }
 
             if (!updatedValue.equals(originalValue)) {
               configTypesUpdated.add(type);
