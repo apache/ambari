@@ -87,14 +87,6 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeResourceProviderHDP22Test {
 
-  /**
-   * Server-side Actions still require a host in the cluster, so just use the
-   * local hostname when adding any host to the cluster. This prevents all sorts
-   * of problems when creating stages and tasks since the hosts in the cluster
-   * will now match the localhost.
-   */
-  private String s_serverHostName = StageUtils.getHostName();
-
   private UpgradeDAO upgradeDao = null;
   private RepositoryVersionDAO repoVersionDao = null;
   private Injector injector;
@@ -135,16 +127,15 @@ public class UpgradeResourceProviderHDP22Test {
     expect(configHelper.getEffectiveConfigAttributes(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
         new HashMap<String, Map<String, Map<String, String>>>()).anyTimes();
 
-    expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class),
-        EasyMock.eq(s_serverHostName))).andReturn(new HashMap<String, Map<String, String>>() {
+    expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
       {
         put("hive-site", new HashMap<String, String>() {
           {
-            put("tag", configTagVersion2);
+            put("tag", configTagVersion1);
           }
         });
       }
-    }).anyTimes();
+    }).times(3);
 
     expect(configHelper.getEffectiveDesiredTags(EasyMock.anyObject(Cluster.class), EasyMock.eq("h1"))).andReturn(new HashMap<String, Map<String, String>>() {
       {
@@ -154,7 +145,7 @@ public class UpgradeResourceProviderHDP22Test {
           }
         });
       }
-    }).anyTimes();
+    }).times(2);
 
     expect(configHelper.getEffectiveConfigProperties(EasyMock.anyObject(Cluster.class), EasyMock.anyObject(Map.class))).andReturn(
         new HashMap<String, Map<String, String>>() {
@@ -168,7 +159,7 @@ public class UpgradeResourceProviderHDP22Test {
           {
             put("hive-site", configTagVersion2Properties);
           }
-        }).anyTimes();
+        }).times(2);
 
     expect(configHelper.getMergedConfig(EasyMock.anyObject(Map.class),
         EasyMock.anyObject(Map.class))).andReturn(new HashMap<String, String>()).anyTimes();
@@ -222,8 +213,8 @@ public class UpgradeResourceProviderHDP22Test {
     cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
-    clusters.addHost(s_serverHostName);
-    Host host = clusters.getHost(s_serverHostName);
+    clusters.addHost("h1");
+    Host host = clusters.getHost("h1");
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "6.3");
@@ -231,7 +222,7 @@ public class UpgradeResourceProviderHDP22Test {
     host.setState(HostState.HEALTHY);
     host.persist();
 
-    clusters.mapHostToCluster(s_serverHostName, "c1");
+    clusters.mapHostToCluster("h1", "c1");
 
     // add a single HIVE server
     Service service = cluster.addService("HIVE");
@@ -239,11 +230,11 @@ public class UpgradeResourceProviderHDP22Test {
     service.persist();
 
     ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
-    ServiceComponentHost sch = component.addServiceComponentHost(s_serverHostName);
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.2.0.0");
 
     component = service.addServiceComponent("HIVE_CLIENT");
-    sch = component.addServiceComponentHost(s_serverHostName);
+    sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.2.0.0");
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
@@ -296,7 +287,6 @@ public class UpgradeResourceProviderHDP22Test {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.4.2");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
