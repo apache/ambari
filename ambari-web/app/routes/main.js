@@ -38,9 +38,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               } else {
                 if (router.get('clusterInstallCompleted')) {
                   App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                    App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
-                      router.get('mainController').initialize();
-                    });
+                    if (!App.get('isOnlyViewUser')) {
+                      App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
+                        router.get('mainController').initialize();
+                      });
+                    } else {
+                      App.router.transitionTo('main.views.index');
+                      App.router.get('clusterController').set('isLoaded', true); // hide loading bar
+                    }
                   });
                 }
                 else {

@@ -360,7 +360,6 @@ App.Router = Em.Router.extend({
     var privileges = params.loginData.privileges || [];
     var router = this;
     var isAdmin = privileges.mapProperty('PrivilegeInfo.permission_name').contains('AMBARI.ADMINISTRATOR');
-    var isOnlyViewUser = App.auth && (App.auth.length == 0 || (App.isAuthorized('VIEW.USE') && App.auth.length == 1));
 
     App.set('isAdmin', isAdmin);
 
@@ -377,13 +376,13 @@ App.Router = Em.Router.extend({
           isOperator: true
         });
       }
-      if (isOnlyViewUser) {
+      if (App.get('isOnlyViewUser')) {
         router.transitionToViews();
       } else {
         router.transitionToApp();
       }
     } else {
-      if (isOnlyViewUser) {
+      if (App.get('isOnlyViewUser')) {
         router.transitionToViews();
       } else {
         router.transitionToAdminView();

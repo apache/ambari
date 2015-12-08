@@ -45,6 +45,10 @@ App.ApplicationController = Em.Controller.extend(App.UserPref, {
 
   isExistingClusterDataLoaded: Em.computed.and('App.router.clusterInstallCompleted', 'isClusterDataLoaded'),
 
+  enableLinks: function() {
+    return this.isExistingClusterDataLoaded && !App.get('isOnlyViewUser');
+  }.property(),
+
   /**
    * Determines if "Exit" menu-item should be shown
    * It should if cluster isn't installed
