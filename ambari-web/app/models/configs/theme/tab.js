@@ -31,6 +31,12 @@ App.Tab = DS.Model.extend({
   isRendered: DS.attr('boolean', {defaultValue: false}),
 
   /**
+   * @type {boolean}
+   * @default false
+   */
+  isActive: false,
+
+  /**
    * Determines if all <code>configs</code> were attached to tab.
    */
   isConfigsPrepared: DS.attr('boolean', {defaultValue: false}),
