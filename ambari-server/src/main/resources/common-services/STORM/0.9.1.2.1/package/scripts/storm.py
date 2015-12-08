@@ -95,7 +95,7 @@ def storm(name=None):
     )
 
     # Remove symlink. It can be there, if you doing upgrade from HDP < 2.2 to HDP >= 2.2
-    Link("/usr/lib/storm/lib/ambari-metrics-storm-sink.jar",
+    Link(format("{storm_lib_dir}/ambari-metrics-storm-sink.jar"),
          action="delete")
 
     Execute(format("{sudo} ln -s {metric_collector_sink_jar} {storm_lib_dir}/ambari-metrics-storm-sink.jar"),
