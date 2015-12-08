@@ -151,7 +151,16 @@ App.QuickViewLinks = Em.View.extend({
             item.set('url', item.get('template').fmt(protocol, hosts[0], port, App.router.get('loginName')));
           } else if (item.get('service_id') === 'MAPREDUCE2') {
             siteConfigs = self.get('configProperties').findProperty('type', item.get('site')).properties;
-            item.set('url', item.get('template').fmt(protocol, siteConfigs[item.get(protocol + '_config')]));
+            var hostPortConfigValue = siteConfigs[item.get(protocol + '_config')];
+            if (hostPortConfigValue != null) {
+              var hostPortValue = hostPortConfigValue.match(new RegExp("([\\w\\d.-]*):(\\d+)"));
+              var hostObj = response.items.findProperty('Hosts.host_name', hostPortValue[1]);
+              if (hostObj != null) {
+                var publicHostValue = hostObj.Hosts.public_host_name;
+                hostPortConfigValue = "%@:%@".fmt(publicHostValue, hostPortValue[2])
+              }
+            }
+            item.set('url', item.get('template').fmt(protocol, hostPortConfigValue));
           } else if (item.get('service_id') === 'RANGER') {
             siteConfigs = self.get('configProperties').findProperty('type', 'admin-properties').properties;
             if (siteConfigs['policymgr_external_url']) {
