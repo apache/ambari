@@ -476,8 +476,9 @@ class TestDatanode(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
 
 
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart(self, time_mock):
+  def test_post_upgrade_restart(self, time_mock, socket_gethostbyname_mock):
     shell_call_output = """
       Live datanodes (2):
 
@@ -499,6 +500,7 @@ class TestDatanode(RMFTestCase):
       Last contact: Fri Dec 12 20:47:21 UTC 2014
     """
     mocks_dict = {}
+    socket_gethostbyname_mock.return_value = "test_host"
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "post_upgrade_restart",
@@ -513,10 +515,11 @@ class TestDatanode(RMFTestCase):
     self.assertEqual(mocks_dict['call'].call_count,1)
 
 
-
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart_datanode_not_ready(self, time_mock):
+  def test_post_upgrade_restart_datanode_not_ready(self, time_mock, socket_gethostbyname_mock):
     mocks_dict = {}
+    socket_gethostbyname_mock.return_value = "test_host"
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
@@ -533,10 +536,12 @@ class TestDatanode(RMFTestCase):
       self.assertEqual(mocks_dict['call'].call_count,12)
 
 
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart_bad_returncode(self, time_mock):
+  def test_post_upgrade_restart_bad_returncode(self, time_mock, socket_gethostbyname_mock):
     try:
       mocks_dict = {}
+      socket_gethostbyname_mock.return_value = "test_host"
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
                          command = "post_upgrade_restart",

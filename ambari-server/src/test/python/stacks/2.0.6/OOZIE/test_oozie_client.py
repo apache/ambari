@@ -214,10 +214,11 @@ class TestOozieClient(RMFTestCase):
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-client', version), sudo=True)
     self.assertNoMoreResources()
 
-  
+  @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  def test_pre_upgrade_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    os_path__exists_mock.return_value = False
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'
@@ -233,6 +234,7 @@ class TestOozieClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/oozie/conf'), to='/usr/hdp/current/oozie-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'oozie-client', version), sudo=True)
     self.assertNoMoreResources()
