@@ -918,11 +918,13 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
     self.assertNoMoreResources()
 
+  @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock, call_mock):
+  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    os_path__exists_mock.return_value = False
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'

@@ -134,9 +134,9 @@ class TestLinkResource(TestCase):
                        str(e)) 
         
   @patch.object(sudo, "unlink")
-  @patch.object(sudo, "path_exists")
-  def test_action_delete(self, exists_mock, unlink_mock):     
-    exists_mock.return_value = True
+  @patch.object(sudo, "path_lexists")
+  def test_action_delete(self, lexists_mock, unlink_mock):
+    lexists_mock.return_value = True
     
     with Environment('/') as env:
       Link("/some_path",

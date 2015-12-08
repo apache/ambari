@@ -191,9 +191,11 @@ class TestHiveClient(RMFTestCase):
                               ('hdp-select', 'set', 'hadoop-client', version), sudo=True,)
     self.assertNoMoreResources()
 
+  @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
-  def test_pre_upgrade_restart_23(self, call_mock):
+  def test_pre_upgrade_restart_23(self, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    os_path__exists_mock.return_value = False
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'

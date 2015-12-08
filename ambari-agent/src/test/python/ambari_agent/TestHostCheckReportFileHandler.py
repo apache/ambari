@@ -49,8 +49,13 @@ class TestHostCheckReportFileHandler(TestCase):
       users = configValidator.get('users', 'usr_list')
       self.assertEquals(users, '')
 
-  def test_write_host_check_report_empty(self):
+
+  @patch("os.path.exists")
+  @patch("os.listdir")
+  def test_write_host_check_report_empty(self, list_mock, exists_mock):
     tmpfile = tempfile.mktemp()
+    exists_mock.return_value = False
+    list_mock.return_value = []
 
     config = ConfigParser.RawConfigParser()
     config.add_section('agent')
@@ -88,8 +93,12 @@ class TestHostCheckReportFileHandler(TestCase):
     time = configValidator.get('metadata', 'created')
     self.assertTrue(time != None)
 
-  def test_write_host_check_report(self):
+  @patch("os.path.exists")
+  @patch("os.listdir")
+  def test_write_host_check_report(self, list_mock, exists_mock):
     tmpfile = tempfile.mktemp()
+    exists_mock.return_value = False
+    list_mock.return_value = []
 
     config = ConfigParser.RawConfigParser()
     config.add_section('agent')
