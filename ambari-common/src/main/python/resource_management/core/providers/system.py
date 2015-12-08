@@ -204,7 +204,7 @@ class LinkProvider(Provider):
 
   def action_delete(self):
     path = self.resource.path
-    if sudo.path_exists(path):
+    if sudo.path_lexists(path):
       Logger.info("Deleting %s" % self.resource)
       sudo.unlink(path)
 
