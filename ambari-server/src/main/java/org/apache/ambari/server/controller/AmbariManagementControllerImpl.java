@@ -4395,6 +4395,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return injector.getInstance(TimelineMetricCacheProvider.class);
   }
 
+  @Override
+  public KerberosHelper getKerberosHelper() {
+    return kerberosHelper;
+  }
+
   /**
    * Queries the CredentialStoreService to gather properties about it.
    * <p/>
