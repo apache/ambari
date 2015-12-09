@@ -54,14 +54,14 @@ def setup_user():
 
 def __create_hawq_user():
   """
-  Creates HAWQ user with default password and group.
+  Creates HAWQ user with password and default group.
   """
   import params
   Group(constants.hawq_group, ignore_failures=True)
 
   User(constants.hawq_user,
        gid=constants.hawq_group,
-       password=crypt.crypt(constants.hawq_password, "salt"),
+       password=crypt.crypt(params.hawq_password, "salt"),
        groups=[constants.hawq_group, params.user_group],
        ignore_failures=True)
 
