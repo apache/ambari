@@ -338,6 +338,7 @@ describe('App.WizardStep4Controller', function () {
         it(message, function() {
           controller.setProperties({
             content: generateSelectedServicesContent(test.services),
+            errorStack: [],
             wizardController: Em.Object.create({
               name: name
             })
@@ -352,6 +353,7 @@ describe('App.WizardStep4Controller', function () {
       it(item.title, function () {
         sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
           withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+        controller.set('errorStack', []);
         controller.set('content', generateSelectedServicesContent(['SPARK']));
         controller.validate();
         expect(controller.get('errorStack').someProperty('id', 'sparkWarning')).to.equal(item.sparkWarningExpected);
@@ -577,9 +579,13 @@ describe('App.WizardStep4Controller', function () {
       }
     ];
 
+    beforeEach(function() {
+      controller.clear();
+      controller.set('errorStack', []);
+    });
+
     cases.forEach(function (item) {
       it(item.title, function () {
-        controller.clear();
         controller.set('content', generateSelectedServicesContent(item.services));
         var ams = controller.findProperty('serviceName', 'AMBARI_METRICS');
         if (item.services.contains('AMBARI_METRICS')) {
@@ -625,9 +631,13 @@ describe('App.WizardStep4Controller', function () {
       }
     ];
 
+    beforeEach(function() {
+      controller.clear();
+      controller.set('errorStack', []);
+    });
+
     cases.forEach(function (item) {
       it(item.title, function () {
-        controller.clear();
         controller.set('content', generateSelectedServicesContent(item.services));
         var ranger = controller.findProperty('serviceName', 'RANGER');
         if (item.services.contains('RANGER')) {
@@ -752,6 +762,11 @@ describe('App.WizardStep4Controller', function () {
       }
     ];
 
+    beforeEach(function() {
+      controller.clear();
+      controller.set('errorStack', []);
+    });
+
     afterEach(function () {
       App.get.restore();
     });
@@ -760,7 +775,6 @@ describe('App.WizardStep4Controller', function () {
       it(item.title, function () {
         sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
           withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
-        controller.clear();
         controller.set('content', generateSelectedServicesContent(item.services));
         var spark = controller.findProperty('serviceName', 'SPARK');
         if (item.services.contains('SPARK')) {
