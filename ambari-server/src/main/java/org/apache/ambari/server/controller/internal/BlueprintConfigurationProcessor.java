@@ -1816,13 +1816,22 @@ public class BlueprintConfigurationProcessor {
   /**
    * Return properties of the form ['value']
    */
-  private static class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
+   static class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
 
     // currently, only plain and single-quoted Yaml flows are supported by this updater
     enum FlowStyle {
       SINGLE_QUOTED,
       PLAIN
     }
+
+    /**
+     * Regexp to extract the inner part of a string enclosed in []
+     */
+    private static Pattern REGEX_IN_BRACKETS = Pattern.compile("\\s*\\[(?<INNER>.*)\\]\\s*");
+    /**
+     * Regexp to extract the inner part of a string enclosed in ''
+     */
+    private static Pattern REGEX_IN_QUOTES = Pattern.compile("\\s*'(?<INNER>.*)'\\s*");
 
     private final FlowStyle flowStyle;
 
@@ -1838,7 +1847,8 @@ public class BlueprintConfigurationProcessor {
 
     /**
      * Format input String of the form, str1,str2 to ['str1','str2']
-     *
+     * If the input string is already surrounded by [] ignore those
+     * and process the part from within the square brackets.
      * @param origValue  input string
      *
      * @return formatted string
@@ -1846,10 +1856,20 @@ public class BlueprintConfigurationProcessor {
     @Override
     public String doFormat(String origValue) {
       StringBuilder sb = new StringBuilder();
+
+      Matcher m = REGEX_IN_BRACKETS.matcher(origValue);
+      if (m.matches())
+        origValue = m.group("INNER");
+
       if (origValue != null) {
         sb.append("[");
         boolean isFirst = true;
         for (String value : origValue.split(",")) {
+
+          m = REGEX_IN_QUOTES.matcher(value);
+          if (m.matches())
+            value = m.group("INNER");
+
           if (!isFirst) {
             sb.append(",");
           } else {
