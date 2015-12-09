@@ -27,6 +27,7 @@ import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -53,13 +54,6 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
 version = default("/commandParams/version", None)
-
-# TODO! FIXME! Version check is not working as of today :
-#   $ yum list installed | grep hdp-select
-#   hdp-select.noarch                            2.2.1.0-2340.el6           @HDP-2.2
-# And hdp_stack_version returned from hostLevelParams/stack_version is : 2.2.0.0
-# Commenting out for time being
-#stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2.1.0') >= 0
 
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
@@ -152,12 +146,21 @@ if security_enabled:
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
-if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 \
-    and 'spark-thrift-sparkconf' in config['configurations']:
-  spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
-  spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
 
-  if is_hive_installed:
+if 'spark-thrift-sparkconf' in config['configurations']:
+  if version is None: # set hdp version by hdp-select if "/commandParams/version" is missing
+    version = get_hdp_version('spark-thriftserver')
+  if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 :
+    spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
+    spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
+    if is_hive_installed:
+      # update default metastore client properties (async wait for metastore component) it is useful in case of
+      # blueprint provisioning when hive-metastore and spark-thriftserver is not on the same host.
+      spark_hive_properties.update({
+        'hive.metastore.client.connect.retry.delay' : config['configurations']['hive-site']['hive.metastore.client.connect.retry.delay'],
+        'hive.metastore.connect.retries' : config['configurations']['hive-site']['hive.metastore.connect.retries'],
+        'hive.metastore.client.socket.timeout' : config['configurations']['hive-site']['hive.metastore.client.socket.timeout']
+      })
       spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
