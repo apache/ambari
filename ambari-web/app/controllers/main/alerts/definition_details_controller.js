@@ -44,12 +44,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   lastDayAlertsCount: null,
 
   /**
-   * Define if let user leave the page
-   * @type {Boolean}
-   */
-  forceTransition: false,
-
-  /**
    * List of all group names related to alert definition
    * @type {Array}
    */
@@ -270,7 +264,7 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * @param {String} path
    * @method showSavePopup
    */
-  showSavePopup: function (path) {
+  showSavePopup: function (callback) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
@@ -283,13 +277,11 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       disablePrimary: Em.computed.or('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
       onPrimary: function () {
         self.saveLabelAndConfigs();
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onSecondary: function () {
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onThird: function () {

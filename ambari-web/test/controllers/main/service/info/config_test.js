@@ -42,10 +42,10 @@ describe("App.MainServiceInfoConfigsController", function () {
   describe("#showSavePopup", function () {
     var tests = [
       {
-        path: false,
-        callback: null,
+        transitionCallback: false,
+        callback: false,
         action: "onSave",
-        m: "save configs without path/callback",
+        m: "save configs without transitionCallback/callback",
         results: [
           {
             method: "restartServicePopup",
@@ -54,10 +54,10 @@ describe("App.MainServiceInfoConfigsController", function () {
         ]
       },
       {
-        path: true,
+        transitionCallback: true,
         callback: true,
         action: "onSave",
-        m: "save configs with path/callback",
+        m: "save configs with transitionCallback/callback",
         results: [
           {
             method: "restartServicePopup",
@@ -66,10 +66,10 @@ describe("App.MainServiceInfoConfigsController", function () {
         ]
       },
       {
-        path: false,
+        transitionCallback: false,
         callback: false,
         action: "onDiscard",
-        m: "discard changes without path/callback",
+        m: "discard changes without transitionCallback/callback",
         results: [
           {
             method: "restartServicePopup",
@@ -78,7 +78,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         ]
       },
       {
-        path: false,
+        transitionCallback: false,
         callback: true,
         action: "onDiscard",
         m: "discard changes with callback",
@@ -98,18 +98,18 @@ describe("App.MainServiceInfoConfigsController", function () {
         ]
       },
       {
-        path: true,
-        callback: null,
+        transitionCallback: true,
+        callback: false,
         action: "onDiscard",
-        m: "discard changes with path",
+        m: "discard changes with transitionCallback",
         results: [
           {
             method: "restartServicePopup",
             called: false
           },
           {
-            field: "forceTransition",
-            value: true
+            method: "transitionCallback",
+            called: true
           }
         ]
       }
@@ -126,13 +126,11 @@ describe("App.MainServiceInfoConfigsController", function () {
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
         return "hash"
       });
-      sinon.stub(App.router, "route", Em.K);
     });
     afterEach(function () {
       mainServiceInfoConfigsController.get.restore();
       mainServiceInfoConfigsController.restartServicePopup.restore();
       mainServiceInfoConfigsController.getHash.restore();
-      App.router.route.restore();
     });
 
     tests.forEach(function (t) {
@@ -141,10 +139,15 @@ describe("App.MainServiceInfoConfigsController", function () {
           if (t.callback) {
             t.callback = sinon.stub();
           }
-          mainServiceInfoConfigsController.showSavePopup(t.path, t.callback)[t.action]();
+          if (t.transitionCallback) {
+            t.transitionCallback = sinon.stub();
+          }
+          mainServiceInfoConfigsController.showSavePopup(t.transitionCallback, t.callback)[t.action]();
           if (r.method) {
             if (r.method === 'callback') {
               expect(t.callback.calledOnce).to.equal(r.called);
+            } else if (r.method === 'transitionCallback') {
+              expect(t.transitionCallback.calledOnce).to.equal(r.called);
             } else {
               expect(mainServiceInfoConfigsController[r.method].calledOnce).to.equal(r.called);
             }

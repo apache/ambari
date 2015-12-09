@@ -311,13 +311,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.set('mainAlertInstancesController.isUpdating', false);
       },
 
-      unroutePath: function (router, context) {
+      exitRoute: function (router, context, callback) {
         var controller = router.get('mainAlertDefinitionDetailsController');
-        if (!controller.get('forceTransition') && controller.get('isEditing')) {
-          controller.showSavePopup(context);
+        if (controller.get('isEditing')) {
+          controller.showSavePopup(callback);
         } else {
-          controller.set('forceTransition', false);
-          this._super(router, context);
+          callback();
         }
       }
     }),
@@ -656,12 +655,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             }
           });
         },
-        unroutePath: function (router, context) {
+        exitRoute: function (router, context, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          if (!controller.get('forceTransition') && controller.hasUnsavedChanges()) {
-            controller.showSavePopup(context);
+          if (controller.hasUnsavedChanges()) {
+            controller.showSavePopup(callback);
           } else {
-            this._super(router, context);
+            callback();
           }
         }
       }),

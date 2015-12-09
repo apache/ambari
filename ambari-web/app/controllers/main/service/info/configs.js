@@ -26,8 +26,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
 
   isHostsConfigsPage: false,
 
-  forceTransition: false,
-
   isRecommendedLoaded: true,
 
   dataIsLoaded: false,
@@ -273,7 +271,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       saveInProgress: false,
       isInit: true,
       hash: null,
-      forceTransition: false,
       dataIsLoaded: false,
       versionLoaded: false,
       filter: '',
