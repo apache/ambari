@@ -496,10 +496,10 @@
   </property>
   <property>
     <name>timeline.metrics.service.watcher.initial.delay</name>
-    <value>120</value>
+    <value>600</value>
     <description>
       The time to delay first watcher check execution
-      Default resolution is 2 minutes.
+      Default resolution is 10 minutes.
     </description>
   </property>
   <property>
