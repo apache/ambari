@@ -144,10 +144,19 @@ describe('App.upgradeEntity', function () {
       {
         input: {
           type: 'GROUP',
-          status: 'ABORTED',
+          status: 'PENDING',
           hasExpandableItems: true
         },
         upgradeGroupStatus: 'SUBITEM_FAILED',
+        title: 'pending upgrade group with expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: true
+        },
+        upgradeGroupStatus: 'SUSPENDED',
         title: 'aborted upgrade group with expandable items'
       },
       {

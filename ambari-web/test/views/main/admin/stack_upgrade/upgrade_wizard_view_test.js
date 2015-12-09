@@ -494,7 +494,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: false
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.aborted')
+        result: Em.I18n.t('admin.stackUpgrade.state.paused')
       },
       {
         data: {
@@ -571,15 +571,7 @@ describe('App.upgradeWizardView', function () {
           status: 'ABORTED',
           isDowngrade: true
         },
-        result: Em.I18n.t('admin.stackUpgrade.state.aborted.downgrade')
-      },
-      {
-        data: {
-          status: 'ABORTED',
-          isDowngrade: false,
-          isSuspended: true
-        },
-        result: Em.I18n.t('admin.stackUpgrade.state.paused')
+        result: Em.I18n.t('admin.stackUpgrade.state.paused.downgrade')
       },
       {
         data: {
@@ -619,7 +611,6 @@ describe('App.upgradeWizardView', function () {
     ].forEach(function (test) {
         it('status = ' + test.data.status + ", isDowngrade = " + test.data.isDowngrade, function () {
           view.set('controller.isDowngrade', test.data.isDowngrade);
-          view.set('controller.isSuspended', test.data.isSuspended);
           view.set('controller.upgradeData.Upgrade.request_status', test.data.status);
           view.propertyDidChange('upgradeStatusLabel');
           expect(view.get('upgradeStatusLabel')).to.equal(test.result);

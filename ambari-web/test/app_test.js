@@ -463,36 +463,20 @@ describe('App', function () {
     var cases = [
       {
         upgradeState: 'INIT',
-        isSuspended: false,
         upgradeAborted: false
       },
       {
         upgradeState: 'INIT',
-        isSuspended: true,
         upgradeAborted: false
       },
       {
         upgradeState: 'ABORTED',
-        isSuspended: true,
-        upgradeAborted: false
-      },
-      {
-        upgradeState: 'ABORTED',
-        isSuspended: false,
         upgradeAborted: true
       }
     ];
 
-    beforeEach(function () {
-      this.mock = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
-
     cases.forEach(function (item) {
-      it(item.upgradeState + ", " + item.isSuspended, function () {
-        this.mock.returns(item.isSuspended);
+      it(item.upgradeState + ", ", function () {
         App.set('upgradeState', item.upgradeState);
         App.propertyDidChange('upgradeAborted');
         expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);
@@ -501,43 +485,25 @@ describe('App', function () {
   });
 
   describe('#wizardIsNotFinished', function () {
-
-    beforeEach(function () {
-      this.mock = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
-
     var cases = [
       {
         upgradeState: 'INIT',
-        isSuspended: false,
         wizardIsNotFinished: false
       },
       {
         upgradeState: 'IN_PROGRESS',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'HOLDING_TIMEDOUT',
-        isSuspended: false,
         wizardIsNotFinished: true
       },
       {
         upgradeState: 'ABORTED',
-        isSuspended: false,
-        wizardIsNotFinished: true
-      },
-      {
-        upgradeState: 'ABORTED',
-        isSuspended: true,
         wizardIsNotFinished: true
       }
     ];
@@ -545,7 +511,6 @@ describe('App', function () {
     cases.forEach(function (item) {
       it(item.upgradeState, function () {
         App.set('upgradeState', item.upgradeState);
-        this.mock.returns(item.isSuspended);
         App.propertyDidChange('wizardIsNotFinished');
         expect(App.get('wizardIsNotFinished')).to.equal(item.wizardIsNotFinished);
       });
