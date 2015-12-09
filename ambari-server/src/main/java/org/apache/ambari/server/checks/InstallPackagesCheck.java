@@ -61,13 +61,14 @@ public class InstallPackagesCheck extends AbstractCheckDescriptor {
     final String repoVersion = request.getRepositoryVersion();
 
     final RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findByStackNameAndVersion(stackName, request.getRepositoryVersion());
-    if (rve.getVersion().indexOf("-") < 0 ) {
+    if (StringUtils.isBlank(rve.getVersion()) || !rve.getVersion().matches("^\\d+(\\.\\d+)*\\-\\d+$")) {
       String message = MessageFormat.format("The Repository Version {0} for Stack {1} must contain a \"-\" followed by a build number. " +
-              "Make sure that another registered repository does not have the same repo URL or " +
-              "shares the same build number. Next, try reinstalling the Repository Version.", rve.getVersion(), rve.getStackVersion());
-      prerequisiteCheck.setFailedOn(new LinkedHashSet<String>() {{ add("Repository Version " + rve.getVersion()); }});
+          "Make sure that another registered repository does not have the same repo URL or " +
+          "shares the same build number. Next, try reinstalling the Repository Version.", rve.getVersion(), rve.getStackVersion());
+      prerequisiteCheck.getFailedOn().add("Repository Version " + rve.getVersion());
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(message);
+      return;
     }
 
     final ClusterVersionEntity clusterVersion = clusterVersionDAOProvider.get().findByClusterAndStackAndVersion(
