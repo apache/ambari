@@ -154,7 +154,6 @@ App.UpgradeVersionBoxView = Em.View.extend({
     });
     var isInstalling = this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
     var isAborted = App.get('upgradeState') === 'ABORTED';
-    var isSuspended = App.router.get('mainAdminStackAndUpgradeController.isSuspended');
 
     if (['INSTALLING', 'CURRENT'].contains(status)) {
       element.setProperties(statePropertiesMap[status]);
@@ -214,15 +213,9 @@ App.UpgradeVersionBoxView = Em.View.extend({
       }
     }
     else if (isAborted) {
-      if (isSuspended) {
-        element.setProperties(statePropertiesMap['SUSPENDED']);
-        element.set('isDisabled', this.get('controller.requestInProgress'));
-      } else {
-        element.set('isButton', true);
-        element.set('text', this.get('controller.isDowngrade') ? Em.I18n.t('common.reDowngrade') : Em.I18n.t('common.reUpgrade'));
-        element.set('action', this.get('controller.isDowngrade') ? 'confirmRetryDowngrade' : 'confirmRetryUpgrade');
-        element.set('isDisabled', this.get('controller.requestInProgress'));
-      }
+      element.setProperties(statePropertiesMap['SUSPENDED']);
+      element.set('text', this.get('controller.isDowngrade') ? Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade') : Em.I18n.t('admin.stackUpgrade.dialog.resume'));
+      element.set('isDisabled', this.get('controller.requestInProgress'));
     }
     return element;
   }.property(
@@ -230,8 +223,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'controller.isDowngrade',
     'isUpgrading',
     'controller.requestInProgress',
-    'parentView.repoVersions.@each.status',
-    'App.router.mainAdminStackAndUpgradeController.isSuspended'
+    'parentView.repoVersions.@each.status'
   ),
 
   didInsertElement: function () {

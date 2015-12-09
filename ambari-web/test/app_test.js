@@ -576,36 +576,20 @@ describe('App', function () {
     var cases = [
       {
         upgradeState: 'INIT',
-        isSuspended: false,
         upgradeAborted: false
       },
       {
         upgradeState: 'INIT',
-        isSuspended: true,
         upgradeAborted: false
       },
       {
         upgradeState: 'ABORTED',
-        isSuspended: true,
-        upgradeAborted: false
-      },
-      {
-        upgradeState: 'ABORTED',
-        isSuspended: false,
         upgradeAborted: true
       }
     ];
 
-    beforeEach(function () {
-      this.mock = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      this.mock.restore();
-    });
-
     cases.forEach(function (item) {
-      it(item.upgradeState + ", " + item.isSuspended, function () {
-        this.mock.returns(item.isSuspended);
+      it(item.upgradeState + ", ", function () {
         App.set('upgradeState', item.upgradeState);
         App.propertyDidChange('upgradeAborted');
         expect(App.get('upgradeAborted')).to.equal(item.upgradeAborted);

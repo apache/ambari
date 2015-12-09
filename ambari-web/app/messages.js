@@ -1486,6 +1486,7 @@ Em.I18n.translations = {
   'admin.stackVersions.version.downgrade.pause': "Downgrade: Action Required",
   'admin.stackVersions.version.downgrade.running': "Downgrade: In Process",
   'admin.stackVersions.version.downgrade.aborted': "Downgrade: Aborted",
+  'admin.stackVersions.version.downgrade.suspended': "Downgrade: Paused",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
@@ -1576,7 +1577,9 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.aborted': "Upgrade is aborted. \n You can either downgrade or retry upgrade.",
   'admin.stackUpgrade.dialog.downgrade.aborted': "Downgrade is aborted. \n You can retry downgrade.",
   'admin.stackUpgrade.dialog.suspended': "Upgrade is Paused",
+  'admin.stackUpgrade.dialog.suspended.downgrade': "Downgrade is Paused",
   'admin.stackUpgrade.dialog.resume': "Resume Upgrade",
+  'admin.stackUpgrade.dialog.resume.downgrade': "Resume Downgrade",
   'admin.stackUpgrade.dialog.details.open': "show details",
   'admin.stackUpgrade.dialog.details.hide': "hide details",
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",

@@ -246,11 +246,7 @@ App.upgradeWizardView = Em.View.extend({
         labelKey = 'admin.stackUpgrade.state.completed';
         break;
       case 'ABORTED':
-        if (this.get('controller.isSuspended')) {
-          labelKey = 'admin.stackUpgrade.state.paused';
-        } else {
-          labelKey = 'admin.stackUpgrade.state.aborted';
-        }
+        labelKey = 'admin.stackUpgrade.state.paused';
         break;
       case 'TIMEDOUT':
       case 'FAILED':
@@ -266,7 +262,7 @@ App.upgradeWizardView = Em.View.extend({
     } else {
       return "";
     }
-  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade', 'controller.isSuspended'),
+  }.property('controller.upgradeData.Upgrade.request_status', 'controller.isDowngrade'),
 
   /**
    * load versions page

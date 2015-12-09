@@ -784,8 +784,8 @@ describe('App.UpgradeVersionBoxView', function () {
         expected: {
           status: 'UPGRADING',
           isButton: true,
-          action: 'confirmRetryUpgrade',
-          text: Em.I18n.t('common.reUpgrade'),
+          action: 'resumeUpgrade',
+          text: Em.I18n.t('admin.stackUpgrade.dialog.resume'),
           isDisabled: false
         },
         title: 'upgrade aborted'
@@ -804,8 +804,8 @@ describe('App.UpgradeVersionBoxView', function () {
         expected: {
           status: 'UPGRADE_FAILED',
           isButton: true,
-          action: 'confirmRetryDowngrade',
-          text: Em.I18n.t('common.reDowngrade'),
+          action: 'resumeUpgrade',
+          text: Em.I18n.t('admin.stackUpgrade.dialog.resume.downgrade'),
           isDisabled: true
         },
         title: 'downgrade aborted, request in progress'

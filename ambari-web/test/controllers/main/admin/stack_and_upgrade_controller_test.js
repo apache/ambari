@@ -74,17 +74,15 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#requestStatus", function() {
-    it("isSuspended false", function() {
-      controller.set('isSuspended', false);
-      controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
-      controller.propertyDidChange('requestStatus');
-      expect(controller.get('requestStatus')).to.equal('ABORTED');
-    });
-    it("isSuspended true", function() {
-      controller.set('isSuspended', true);
+    it("state ABORTED", function() {
       controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('SUSPENDED');
+    });
+    it("state not ABORTED", function() {
+      controller.set('upgradeData', { Upgrade: {request_status: 'INIT'}});
+      controller.propertyDidChange('requestStatus');
+      expect(controller.get('requestStatus')).to.equal('INIT');
     });
   });
 
@@ -1352,9 +1350,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.suspendUpgrade();
       expect(controller.abortUpgrade.calledOnce).to.be.true;
       expect(App.get('upgradeState')).to.equal('ABORTED');
-      expect(controller.get('isSuspended')).to.be.true;
       expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
-      expect(controller.setDBProperty.calledWith('isSuspended', true)).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
@@ -1378,9 +1374,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.resumeUpgrade();
       expect(controller.retryUpgrade.calledOnce).to.be.true;
       expect(App.get('upgradeState')).to.equal('PENDING');
-      expect(controller.get('isSuspended')).to.be.false;
       expect(controller.setDBProperty.calledWith('upgradeState', 'PENDING')).to.be.true;
-      expect(controller.setDBProperty.calledWith('isSuspended', false)).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });

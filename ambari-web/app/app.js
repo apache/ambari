@@ -70,8 +70,8 @@ module.exports = Em.Application.create({
    * @returns {boolean}
    */
   upgradeAborted: function () {
-    return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+    return this.get('upgradeState') === "ABORTED";
+  }.property('upgradeState'),
 
   /**
    * RU is running
@@ -86,8 +86,8 @@ module.exports = Em.Application.create({
    * @returns {boolean}
    */
   upgradeIsNotFinished: function () {
-    return this.get('upgradeIsRunning') || this.get('upgradeAborted') || App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeIsRunning', 'upgradeAborted', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+    return this.get('upgradeIsRunning') || this.get('upgradeAborted');
+  }.property('upgradeIsRunning', 'upgradeAborted'),
 
   /**
    * compute user access rights by permission type
@@ -101,7 +101,7 @@ module.exports = Em.Application.create({
    * @return {boolean}
    */
   isAccessible: function (type) {
-    if (!App.router.get('mainAdminStackAndUpgradeController.isSuspended') &&
+    if (!(this.get('upgradeState') == "ABORTED") &&
         !App.get('supports.opsDuringRollingUpgrade') &&
         !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) &&
         !type.contains('upgrade_')) {
