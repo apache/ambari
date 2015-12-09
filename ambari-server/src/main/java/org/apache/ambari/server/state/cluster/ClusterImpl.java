@@ -2261,8 +2261,8 @@ public class ClusterImpl implements Cluster {
         if (StringUtils.equals(entry.getValue(), configType)) {
           if (serviceName != null) {
             if (entry.getKey()!=null && !StringUtils.equals(serviceName, entry.getKey())) {
-              throw new IllegalArgumentException("Config type {} belongs to {} service, " +
-                "but config group qualified for {}");
+              throw new IllegalArgumentException(String.format("Config type %s belongs to %s service, " +
+                "but also qualified for %s", configType, serviceName, entry.getKey()));
             }
           } else {
             serviceName = entry.getKey();

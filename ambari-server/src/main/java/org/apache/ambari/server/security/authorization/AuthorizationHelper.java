@@ -21,6 +21,7 @@ import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.RoleAuthorizationEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,7 +164,17 @@ public class AuthorizationHelper {
           // This resource type indicates administrative access
           resourceOK = true;
         } else if (resourceType == privilegeResourceType) {
-          resourceOK = (resourceId == null) || resourceId.equals(privilegeResource.getId());
+          if(resourceId == null) {
+            resourceOK = true;
+          }
+          else {
+            // Note: This will be an issue for multiple clusters. Apparently we assume only one cluster
+            // and it's resource id is 2.
+            // TODO: Change adminresource to include a reference to the resource instance, not just the type
+            ResourceTypeEntity privilegeResourceResourceType = privilegeResource.getResourceType();
+            Integer privilegeResourceId = privilegeResourceResourceType.getId();
+            resourceOK = resourceId.equals(privilegeResourceId.longValue());
+          }
         } else {
           // This is not an expected resource type, so skip this authority
           resourceOK = false;

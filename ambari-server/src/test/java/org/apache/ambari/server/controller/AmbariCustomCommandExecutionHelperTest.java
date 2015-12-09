@@ -33,7 +33,6 @@ import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
@@ -42,6 +41,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -66,14 +66,14 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 import junit.framework.Assert;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class AmbariCustomCommandExecutionHelperTest {
   private Injector injector;
   private AmbariManagementController controller;
-  private AmbariMetaInfo ambariMetaInfo;
   private Clusters clusters;
-  private TopologyManager topologyManager;
 
 
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
@@ -83,6 +83,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Before
   public void setup() throws Exception {
+    TopologyManager topologyManager;
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
       @Override
       protected void configure() {
@@ -96,10 +97,15 @@ public class AmbariCustomCommandExecutionHelperTest {
     injector.getInstance(GuiceJpaInitializer.class);
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     topologyManager = injector.getInstance(TopologyManager.class);
     StageUtils.setTopologyManager(topologyManager);
   }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
@@ -108,6 +114,8 @@ public class AmbariCustomCommandExecutionHelperTest {
   @SuppressWarnings("serial")
   @Test
   public void testRefreshQueueCustomCommand() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     createClusterFixture("HDP-2.0.6");
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
@@ -152,6 +160,8 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Test
   public void testHostsFilterHealthy() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     createClusterFixture("HDP-2.0.6");
 
     Map<String, String> requestProperties = new HashMap<String, String>() {
@@ -195,6 +205,8 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Test
   public void testHostsFilterUnhealthyHost() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     createClusterFixture("HDP-2.0.6");
 
     // Set custom status to host
@@ -239,6 +251,8 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Test
   public void testHostsFilterUnhealthyComponent() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     createClusterFixture("HDP-2.0.6");
 
     // Set custom status to host
@@ -289,6 +303,8 @@ public class AmbariCustomCommandExecutionHelperTest {
    */
   @Test(expected = AmbariException.class)
   public void testNoCandidateHostThrowsException() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     createClusterFixture("HDP-2.0.6");
     long clusterId = clusters.getCluster("c1").getClusterId();
 
@@ -326,6 +342,8 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   @Test
   public void testIsTopologyRefreshRequired() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     AmbariCustomCommandExecutionHelper helper = injector.getInstance(AmbariCustomCommandExecutionHelper.class);
 
     createClusterFixture("HDP-2.1.1");
@@ -385,7 +403,7 @@ public class AmbariCustomCommandExecutionHelperTest {
   }
 
   private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException {
+      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -399,7 +417,7 @@ public class AmbariCustomCommandExecutionHelperTest {
 
   private void createServiceComponent(String clusterName,
       String serviceName, String componentName, State desiredState)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -412,7 +430,8 @@ public class AmbariCustomCommandExecutionHelperTest {
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState) throws AmbariException {
+  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();

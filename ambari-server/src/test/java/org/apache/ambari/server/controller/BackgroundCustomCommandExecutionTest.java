@@ -35,13 +35,13 @@ import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
 import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -63,16 +63,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @RunWith(MockitoJUnitRunner.class)
 public class BackgroundCustomCommandExecutionTest {
   private Injector injector;
   private AmbariManagementController controller;
-  private AmbariMetaInfo ambariMetaInfo;
-  private Configuration configuration;
   private Clusters clusters;
-  private TopologyManager topologyManager;
-  
+
   private static final String REQUEST_CONTEXT_PROPERTY = "context";
   
   @Captor ArgumentCaptor<Request> requestCapture;
@@ -80,6 +78,9 @@ public class BackgroundCustomCommandExecutionTest {
   
   @Before
   public void setup() throws Exception {
+    Configuration configuration;
+    TopologyManager topologyManager;
+
     InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
       
       
@@ -100,13 +101,19 @@ public class BackgroundCustomCommandExecutionTest {
     topologyManager = injector.getInstance(TopologyManager.class);
     
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
-    
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+
     StageUtils.setTopologyManager(topologyManager);
+
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @SuppressWarnings("serial")
@@ -189,7 +196,7 @@ public class BackgroundCustomCommandExecutionTest {
   }
   
   private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException {
+      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -203,7 +210,7 @@ public class BackgroundCustomCommandExecutionTest {
 
   private void createServiceComponent(String clusterName,
       String serviceName, String componentName, State desiredState)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -216,7 +223,8 @@ public class BackgroundCustomCommandExecutionTest {
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState) throws AmbariException {
+  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();

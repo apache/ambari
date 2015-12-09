@@ -104,6 +104,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
@@ -222,9 +223,7 @@ public class AmbariManagementControllerTest {
   @BeforeClass
   public static void setupAuthentication() {
     // Set authenticated user so that authorization checks will pass
-    InternalAuthenticationToken authenticationToken = new InternalAuthenticationToken("admin");
-    authenticationToken.setAuthenticated(true);
-    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
 
   @Before
@@ -300,7 +299,7 @@ public class AmbariManagementControllerTest {
   }
 
   private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException {
+      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -314,7 +313,7 @@ public class AmbariManagementControllerTest {
 
   private void createServiceComponent(String clusterName,
       String serviceName, String componentName, State desiredState)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -329,7 +328,7 @@ public class AmbariManagementControllerTest {
 
   private void createServiceComponentHost(String clusterName,
       String serviceName, String componentName, String hostname,
-      State desiredState) throws AmbariException {
+      State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -344,7 +343,7 @@ public class AmbariManagementControllerTest {
 
   private void deleteServiceComponentHost(String clusterName,
                                           String serviceName, String componentName, String hostname,
-                                          State desiredState) throws AmbariException {
+                                          State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -385,7 +384,7 @@ public class AmbariManagementControllerTest {
 
   private long stopService(String clusterName, String serviceName,
       boolean runSmokeTests, boolean reconfigureClients) throws
-    AmbariException {
+      AmbariException, AuthorizationException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName, State.INSTALLED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
     requests.add(r);
@@ -442,7 +441,7 @@ public class AmbariManagementControllerTest {
 
   private long startService(String clusterName, String serviceName,
                             boolean runSmokeTests, boolean reconfigureClients) throws
-      AmbariException {
+      AmbariException, AuthorizationException {
     return startService(clusterName, serviceName, runSmokeTests, reconfigureClients, null);
   }
 
@@ -450,7 +449,7 @@ public class AmbariManagementControllerTest {
   private long startService(String clusterName, String serviceName,
                             boolean runSmokeTests, boolean reconfigureClients,
                             MaintenanceStateHelper maintenanceStateHelper) throws
-      AmbariException {
+      AmbariException, AuthorizationException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName,
         State.STARTED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -491,14 +490,14 @@ public class AmbariManagementControllerTest {
 
   private long installService(String clusterName, String serviceName,
                               boolean runSmokeTests, boolean reconfigureClients)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null, null);
   }
 
   private long installService(String clusterName, String serviceName,
                               boolean runSmokeTests, boolean reconfigureClients,
                               Map<String, String> mapRequestPropsInput)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     return installService(clusterName, serviceName, runSmokeTests, reconfigureClients, null, mapRequestPropsInput);
   }
 
@@ -511,7 +510,7 @@ public class AmbariManagementControllerTest {
                               boolean runSmokeTests, boolean reconfigureClients,
                               MaintenanceStateHelper maintenanceStateHelper,
                               Map<String, String> mapRequestPropsInput)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     ServiceRequest r = new ServiceRequest(clusterName, serviceName,
         State.INSTALLED.toString());
     Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -679,7 +678,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServicesWithInvalidRequest() throws AmbariException {
+  public void testCreateServicesWithInvalidRequest() throws AmbariException, AuthorizationException {
     // invalid request
     // dups in requests
     // multi cluster updates
@@ -714,7 +713,7 @@ public class AmbariManagementControllerTest {
       fail("Expected failure for invalid cluster");
     } catch (AmbariException e) {
       // Expected
-      Assert.assertTrue(checkExceptionType(e, ParentObjectNotFoundException.class));
+      Assert.assertTrue(checkExceptionType(e, ClusterNotFoundException.class));
     }
 
     clusters.addCluster("foo", new StackId("HDP-0.1"));
@@ -821,7 +820,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServicesMultiple() throws AmbariException {
+  public void testCreateServicesMultiple() throws AmbariException, AuthorizationException {
     Set<ServiceRequest> set1 = new HashSet<ServiceRequest>();
     clusters.addCluster("foo", new StackId("HDP-0.1"));
 
@@ -891,7 +890,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentWithInvalidRequest()
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     // multiple clusters
     // dup objects
     // existing components
@@ -1249,7 +1248,7 @@ public class AmbariManagementControllerTest {
   }
 
   @Test
-  public void testCreateServiceComponentMultiple() throws AmbariException {
+  public void testCreateServiceComponentMultiple() throws AmbariException, AuthorizationException {
     clusters.addCluster("c1", new StackId("HDP-0.2"));
     clusters.addCluster("c2", new StackId("HDP-0.2"));
 
@@ -1449,7 +1448,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentHostWithInvalidRequest()
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     // multiple clusters
     // dup objects
     // existing components
@@ -9706,7 +9705,7 @@ public class AmbariManagementControllerTest {
   private void testRunSmokeTestFlag(Map<String, String> mapRequestProps,
                                     AmbariManagementController amc,
                                     Set<ServiceRequest> serviceRequests)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
     RequestStatusResponse response;//Starting HDFS service. No run_smoke_test flag is set, smoke
 
     //Stopping HDFS service

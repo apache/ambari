@@ -21,11 +21,13 @@ package org.apache.ambari.server.controller.internal;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.state.Cluster;
 
 /**
  * Abstract resource provider implementation that maps to an Ambari management controller.
@@ -73,6 +75,18 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
 
 
   // ----- utility methods ---------------------------------------------------
+
+  /**
+   * Gets the cluster id for the named cluster
+   *
+   * @param clusterName the name of the relevant cluster
+   * @return the cluster id or null if not found
+   * @throws AmbariException if the named cluster does not exist
+   */
+  protected Long getClusterId(String clusterName) throws AmbariException {
+    Cluster cluster = managementController.getClusters().getCluster(clusterName);
+    return (cluster == null) ? null : cluster.getClusterId();
+  }
 
   /**
    * Factory method for obtaining a resource provider based on a given type and management controller.

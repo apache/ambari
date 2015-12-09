@@ -50,6 +50,10 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 
@@ -159,9 +163,38 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     final ExecuteActionRequest actionRequest = getActionRequest(request);
     final Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+
     return getRequestStatus(createResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
+
+        String clusterName = actionRequest.getClusterName();
+
+        if(clusterName == null) {
+          // This must be an administrative action?
+          // TODO: Perform authorization check for this?
+        }
+        else if(actionRequest.isCommand()) {
+          if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
+            throw new AuthorizationException("The authenticated user is not authorized to execute custom service commands.");
+          }
+        }
+        else {
+          String actionName = actionRequest.getActionName();
+
+          // actionName is expected to not be null since the action request is not a command
+          if(actionName.contains("SERVICE_CHECK")) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+              throw new AuthorizationException("The authenticated user is not authorized to execute service checks.");
+            }
+          }
+          else if(actionName.equals("DECOMMISSION")) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
+              throw new AuthorizationException("The authenticated user is not authorized to decommission services.");
+            }
+          }
+        }
+
         return getManagementController().createAction(actionRequest, requestInfoProperties);
       }
     }));

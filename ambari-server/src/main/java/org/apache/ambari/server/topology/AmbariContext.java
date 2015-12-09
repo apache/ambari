@@ -47,6 +47,7 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -188,7 +189,7 @@ public class AmbariContext {
     try {
       getServiceResourceProvider().createServices(serviceRequests);
       getComponentResourceProvider().createComponents(componentRequests);
-    } catch (AmbariException e) {
+    } catch (AmbariException | AuthorizationException e) {
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
     // set all services state to INSTALLED->STARTED

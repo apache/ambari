@@ -428,7 +428,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public synchronized void createHostComponents(Set<ServiceComponentHostRequest> requests)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -448,6 +448,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException(
             "Attempted to add a host_component to a cluster which doesn't exist: ", e);
+      }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(),
+          EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS))) {
+        throw new AuthorizationException("The authenticated user is not authorized to install service components on to hosts");
       }
 
       if (StringUtils.isEmpty(request.getServiceName())) {
@@ -1479,44 +1484,71 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     // set or create configuration mapping (and optionally create the map of properties)
     if (isConfigurationCreationNeeded) {
-      Set<Config> configs = new HashSet<Config>();
-      String note = null;
-      for (ConfigurationRequest cr: request.getDesiredConfig()) {
+      List<ConfigurationRequest> desiredConfigs = request.getDesiredConfig();
 
-      if (null != cr.getProperties()) {
-        // !!! empty property sets are supported, and need to be able to use
-        // previously-defined configs (revert)
-        Map<String, Config> all = cluster.getConfigsByType(cr.getType());
-        if (null == all ||                              // none set
-            !all.containsKey(cr.getVersionTag()) ||     // tag not set
-            cr.getProperties().size() > 0) {            // properties to set
+      if (!desiredConfigs.isEmpty()) {
+        Set<Config> configs = new HashSet<Config>();
+        String note = null;
 
-          LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
-              cr.getVersionTag(),
-              request.getClusterName(),
-              cr.getType()));
+        for (ConfigurationRequest cr : desiredConfigs) {
+          String configType = cr.getType();
 
-          cr.setClusterName(cluster.getClusterName());
-          configurationResponses.add(createConfiguration(cr));
+          // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
+          // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
+          String service = null;
+
+          try {
+            service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
+          } catch (IllegalArgumentException e) {
+            // Ignore this since we may have hit a config type that spans multiple services. This may
+            // happen in unit test cases but should not happen with later versions of stacks.
+          }
+
+          if(StringUtils.isEmpty(service)) {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
+              throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
+            }
+          }
+          else {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+              throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
+            }
+          }
+
+          if (null != cr.getProperties()) {
+            // !!! empty property sets are supported, and need to be able to use
+            // previously-defined configs (revert)
+            Map<String, Config> all = cluster.getConfigsByType(configType);
+            if (null == all ||                              // none set
+                !all.containsKey(cr.getVersionTag()) ||     // tag not set
+                cr.getProperties().size() > 0) {            // properties to set
+
+              // Ensure the user is allowed to update all properties
+              validateAuthorizationToUpdateServiceUsersAndGroups(cluster, cr);
+
+              LOG.info(MessageFormat.format("Applying configuration with tag ''{0}'' to cluster ''{1}''  for configuration type {2}",
+                  cr.getVersionTag(),
+                  request.getClusterName(),
+                  configType));
+
+              cr.setClusterName(cluster.getClusterName());
+              configurationResponses.add(createConfiguration(cr));
+            }
+          }
+          note = cr.getServiceConfigVersionNote();
+          configs.add(cluster.getConfig(configType, cr.getVersionTag()));
         }
-      }
-        note = cr.getServiceConfigVersionNote();
-        configs.add(cluster.getConfig(cr.getType(), cr.getVersionTag()));
-      }
-      if (!configs.isEmpty()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
-          throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
-        }
-
-        String authName = getAuthName();
-        serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
-        if (serviceConfigVersionResponse != null) {
-          Logger logger = LoggerFactory.getLogger("configchange");
-          for (Config config: configs) {
-            logger.info("cluster '" + request.getClusterName() + "' "
-                + "changed by: '" + authName + "'; "
-                + "type='" + config.getType() + "' "
-                + "tag='" + config.getTag() + "'");
+        if (!configs.isEmpty()) {
+          String authName = getAuthName();
+          serviceConfigVersionResponse = cluster.addDesiredConfig(authName, configs, note);
+          if (serviceConfigVersionResponse != null) {
+            Logger logger = LoggerFactory.getLogger("configchange");
+            for (Config config : configs) {
+              logger.info("cluster '" + request.getClusterName() + "' "
+                  + "changed by: '" + authName + "'; "
+                  + "type='" + config.getType() + "' "
+                  + "tag='" + config.getTag() + "'");
+            }
           }
         }
       }
@@ -2907,7 +2939,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public RequestStatusResponse deleteHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException {
+      Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException {
 
     Set<ServiceComponentHostRequest> expanded = new HashSet<ServiceComponentHostRequest>();
 
@@ -2919,6 +2951,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           throw new IllegalArgumentException("Cluster name and hostname must be specified.");
         }
         Cluster cluster = clusters.getCluster(request.getClusterName());
+
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(),
+            EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS))) {
+          throw new AuthorizationException("The authenticated user is not authorized to delete service components from hosts");
+        }
 
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(request.getHostname())) {
           ServiceComponentHostRequest schr = new ServiceComponentHostRequest(request.getClusterName(),
@@ -4491,5 +4528,66 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     properties.put("storage.persistent", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.PERSISTED)));
     properties.put("storage.temporary", String.valueOf(credentialStoreService.isInitialized(CredentialStoreType.TEMPORARY)));
     return properties;
+  }
+
+  /**
+   * Validates that the authenticated user can set a service's (run-as) user and group.
+   * <p/>
+   * If the user is authorized to set service users and groups, than this method exits quickly.
+   * If the user is not authorized to set service users and groups, then this method verifies that
+   * the properties of types USER and GROUP have not been changed. If they have been, an
+   * AuthorizationException is thrown.
+   *
+   * @param cluster the relevant cluster
+   * @param request the configuration request
+   * @throws AuthorizationException if the user is not authorized to perform this operation
+   */
+  protected void validateAuthorizationToUpdateServiceUsersAndGroups(Cluster cluster, ConfigurationRequest request)
+      throws AuthorizationException {
+    // If the authenticated user is not authorized to set service users or groups, make sure the
+    // relevant properties are not changed. However, if the user is authorized to set service
+    // users and groups, there is nothing to check.
+    if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(),
+        RoleAuthorization.AMBARI_SET_SERVICE_USERS_GROUPS)) {
+
+      Map<String, String> requestProperties = request.getProperties();
+      if (requestProperties != null) {
+        Map<PropertyInfo.PropertyType, Set<String>> propertyTypes = cluster.getConfigPropertiesTypes(
+            request.getType());
+
+        //  Create a composite set of properties to check...
+        Set<String> propertiesToCheck = new HashSet<String>();
+
+        Set<String> userProperties = propertyTypes.get(PropertyType.USER);
+        if (userProperties != null) {
+          propertiesToCheck.addAll(userProperties);
+        }
+
+        Set<String> groupProperties = propertyTypes.get(PropertyType.GROUP);
+        if (groupProperties != null) {
+          propertiesToCheck.addAll(groupProperties);
+        }
+
+        // If there are no USER or GROUP type properties, skip the validation check...
+        if (!propertiesToCheck.isEmpty()) {
+
+          Config existingConfig = cluster.getDesiredConfigByType(request.getType());
+          Map<String, String> existingProperties = (existingConfig == null) ? null : existingConfig.getProperties();
+          if (existingProperties == null) {
+            existingProperties = Collections.emptyMap();
+          }
+
+          for (String propertyName : propertiesToCheck) {
+            String existingProperty = existingProperties.get(propertyName);
+            String requestProperty = requestProperties.get(propertyName);
+
+            // If the properties don't match, so thrown an authorization exception
+            if ((existingProperty == null) ? (requestProperty != null) : !existingProperty.equals(requestProperty)) {
+              throw new AuthorizationException("The authenticated user is not authorized to set service user and groups");
+            }
+          }
+        }
+      }
+    }
   }
 }

@@ -24,6 +24,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
@@ -61,15 +62,20 @@ import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * RequestResourceProvider tests.
@@ -111,6 +117,10 @@ public class RequestResourceProviderTest {
     field.set(null, topologyManager);
   }
 
+  @After
+  public void cleanAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
 
   @Test
   public void testCreateResources() throws Exception {
@@ -234,7 +244,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
@@ -284,7 +294,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
     expect(requestMock.getRequestScheduleId()).andReturn(11L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
@@ -337,7 +347,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
     expect(requestMock.getRequestScheduleId()).andReturn(null).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
@@ -394,7 +404,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getClusterId()).andReturn(50L).anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -464,7 +474,7 @@ public class RequestResourceProviderTest {
     expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -518,7 +528,7 @@ public class RequestResourceProviderTest {
     expect(requestMock1.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock1.getRequestId()).andReturn(101L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -752,7 +762,7 @@ public class RequestResourceProviderTest {
 
     expect(stage.getOrderedHostRoleCommands()).andReturn(hostRoleCommands).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -871,21 +881,54 @@ public class RequestResourceProviderTest {
   }
 
   @Test
-  public void testCreateResourcesForCommands() throws Exception {
+  public void testCreateResourcesForCommandsAsAdministrator() throws Exception {
+    testCreateResourcesForCommands(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsAsClusterAdministrator() throws Exception {
+    testCreateResourcesForCommands(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsAsServiceAdministrator() throws Exception {
+    testCreateResourcesForCommands(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsAsServiceOperator() throws Exception {
+    testCreateResourcesForCommands(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesForCommandsAsClusterUser() throws Exception {
+    testCreateResourcesForCommands(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testCreateResourcesForCommands(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
-    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+    Capture<ExecuteActionRequest> actionRequest = newCapture();
+    Capture<HashMap<String, String>> propertyMap = newCapture();
+
+    Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    Clusters clusters = createMock(Clusters.class);
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
         .andReturn(response).anyTimes();
     expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController, response);
+    replay(cluster, clusters, managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -934,20 +977,53 @@ public class RequestResourceProviderTest {
   }
 
   @Test
-  public void testCreateResourcesForCommandsWithParams() throws Exception {
+  public void testCreateResourcesForCommandsWithParamsAsAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithParams(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithParamsAsClusterAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithParams(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithParamsAsServiceAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithParams(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithParamsAsServiceOperator() throws Exception {
+    testCreateResourcesForCommandsWithParams(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesForCommandsWithParamsAsClusterUser() throws Exception {
+    testCreateResourcesForCommandsWithParams(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testCreateResourcesForCommandsWithParams(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
-    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+    Capture<ExecuteActionRequest> actionRequest = newCapture();
+    Capture<HashMap<String, String>> propertyMap = newCapture();
+
+    Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    Clusters clusters = createMock(Clusters.class);
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
         .andReturn(response).anyTimes();
     expect(response.getMessage()).andReturn("Message").anyTimes();
     // replay
-    replay(managementController, response);
+    replay(cluster, clusters, managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1021,21 +1097,54 @@ public class RequestResourceProviderTest {
   }
 
   @Test
-  public void testCreateResourcesForCommandsWithOpLvl() throws Exception {
+  public void testCreateResourcesForCommandsWithOpLvlAsAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithOpLvl(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithOpLvlAsClusterAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithOpLvl(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithOpLvlAsServiceAdministrator() throws Exception {
+    testCreateResourcesForCommandsWithOpLvl(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testCreateResourcesForCommandsWithOpLvlAsServiceOperator() throws Exception {
+    testCreateResourcesForCommandsWithOpLvl(TestAuthenticationFactory.createServiceOperator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesForCommandsWithOpLvlAsClusterUser() throws Exception {
+    testCreateResourcesForCommandsWithOpLvl(TestAuthenticationFactory.createClusterUser());
+  }
+
+  private void testCreateResourcesForCommandsWithOpLvl(Authentication authentication) throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
-    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+    Capture<ExecuteActionRequest> actionRequest = newCapture();
+    Capture<HashMap<String, String>> propertyMap = newCapture();
+
+    Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+
+    Clusters clusters = createMock(Clusters.class);
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
 
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(managementController.createAction(capture(actionRequest), capture(propertyMap)))
             .andReturn(response).anyTimes();
     expect(response.getMessage()).andReturn("Message").anyTimes();
 
     // replay
-    replay(managementController, response);
+    replay(cluster, clusters, managementController, response);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // add the property map to a set for the request.  add more maps for multiple creates
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -1098,8 +1207,8 @@ public class RequestResourceProviderTest {
   public void testCreateResourcesForNonCluster() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
-    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+    Capture<ExecuteActionRequest> actionRequest = newCapture();
+    Capture<HashMap<String, String>> propertyMap = newCapture();
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
@@ -1165,7 +1274,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
@@ -1221,7 +1330,7 @@ public class RequestResourceProviderTest {
     expect(requestMock.getRequestContext()).andReturn("this is a context").anyTimes();
     expect(requestMock.getRequestId()).andReturn(100L).anyTimes();
 
-    Capture<Collection<Long>> requestIdsCapture = new Capture<Collection<Long>>();
+    Capture<Collection<Long>> requestIdsCapture = newCapture();
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();

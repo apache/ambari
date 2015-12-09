@@ -48,6 +48,10 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
@@ -142,12 +146,17 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
                           MaintenanceStateHelper maintenanceStateHelper) {
     super(propertyIds, keyPropertyIds, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_SERVICE);
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
   }
 
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
              UnsupportedPropertyException,
              ResourceAlreadyExistsException,
@@ -159,7 +168,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         createServices(requests);
         return null;
       }
@@ -170,7 +179,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate) throws
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate) throws
       SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -214,7 +223,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  public RequestStatus updateResources(final Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     RequestStageContainer requestStages = doUpdateResources(null, request, predicate);
@@ -234,7 +243,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceRequest> requests = new HashSet<ServiceRequest>();
@@ -243,7 +252,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
     }
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return deleteServices(requests);
       }
     });
@@ -305,7 +314,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       requestStages = modifyResources(new Command<RequestStageContainer>() {
         @Override
-        public RequestStageContainer invoke() throws AmbariException {
+        public RequestStageContainer invoke() throws AmbariException, AuthorizationException {
           return updateServices(stages, requests, request.getRequestInfoProperties(),
               runSmokeTest, reconfigureClients, startDependencies);
         }
@@ -337,7 +346,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   // Create services from the given request.
   public synchronized void createServices(Set<ServiceRequest> requests)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -364,6 +373,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             + ", clusterName=" + request.getClusterName()
             + ", serviceName=" + request.getServiceName()
             + ", request=" + request);
+      }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(request.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+        throw new AuthorizationException("The user is not authorized to create services");
       }
 
       if (!serviceNames.containsKey(request.getClusterName())) {
@@ -537,7 +550,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
   // Update services based on the given requests.
   protected synchronized RequestStageContainer updateServices(RequestStageContainer requestStages, Set<ServiceRequest> requests,
                                                       Map<String, String> requestProperties, boolean runSmokeTest,
-                                                      boolean reconfigureClients, boolean startDependencies) throws AmbariException {
+                                                      boolean reconfigureClients, boolean startDependencies) throws AmbariException, AuthorizationException {
 
     AmbariManagementController controller = getManagementController();
 
@@ -624,6 +637,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       // Setting Maintenance state for service
       if (null != request.getMaintenanceState()) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
+          throw new AuthorizationException("The authenticated user is not authorized to toggle the maintainence state of services");
+        }
+
         MaintenanceState newMaint = MaintenanceState.valueOf(request.getMaintenanceState());
         if (newMaint  != s.getMaintenanceState()) {
           if (newMaint.equals(MaintenanceState.IMPLIED_FROM_HOST)
@@ -656,6 +673,12 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       seenNewStates.add(newState);
 
       if (newState != oldState) {
+        // The if user is trying to start or stop the service, ensure authorization
+        if (((newState == State.INSTALLED) || (newState == State.STARTED)) &&
+            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_START_STOP)) {
+          throw new AuthorizationException("The authenticated user is not authorized to start or stop services");
+        }
+
         if (!State.isValidDesiredStateTransition(oldState, newState)) {
           throw new AmbariException("Invalid transition for"
               + " service"
@@ -849,7 +872,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
   // Delete services based on the given set of requests
   protected RequestStatusResponse deleteServices(Set<ServiceRequest> request)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     Clusters clusters    = getManagementController().getClusters();
 
@@ -860,6 +883,10 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         // FIXME throw correct error
         throw new AmbariException("invalid arguments");
       } else {
+
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(serviceRequest.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+          throw new AuthorizationException("The user is not authorized to delete services");
+        }
 
         Service service = clusters.getCluster(
             serviceRequest.getClusterName()).getService(

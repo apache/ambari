@@ -52,6 +52,10 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -157,12 +161,15 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
             PropertyHelper.getPropertyId("HostRoles", "component_name"));
 
     HOST_COMPONENT_PROPERTIES_PROVIDER.put("RESOURCEMANAGER", httpPropertyProvider);
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,RoleAuthorization.HOST_ADD_DELETE_COMPONENTS));
   }
 
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -175,7 +182,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         getManagementController().createHostComponents(requests);
         return null;
       }
@@ -309,7 +316,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
@@ -317,7 +324,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     }
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return getManagementController().deleteHostComponents(requests);
       }
     });
@@ -449,7 +456,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   protected synchronized RequestStageContainer updateHostComponents(RequestStageContainer stages,
                                                                     Set<ServiceComponentHostRequest> requests,
                                                                     Map<String, String> requestProperties,
-                                                                    boolean runSmokeTest) throws AmbariException {
+                                                                    boolean runSmokeTest) throws AmbariException, AuthorizationException {
 
     Clusters clusters = getManagementController().getClusters();
 
@@ -471,6 +478,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       validateServiceComponentHostRequest(request);
 
       Cluster cluster = clusters.getCluster(request.getClusterName());
+
+      if(runSmokeTest) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+          throw new AuthorizationException("The authenticated user is not authorized to run service checks");
+        }
+      }
 
       if (StringUtils.isEmpty(request.getServiceName())) {
         request.setServiceName(getManagementController().findServiceName(cluster, request.getComponentName()));
@@ -552,6 +565,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       if (newState == null) {
         logComponentInfo("Nothing to do for new updateServiceComponentHost", request, oldState, null);
         continue;
+      }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(),
+          EnumSet.of(RoleAuthorization.SERVICE_START_STOP, RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,
+              RoleAuthorization.HOST_ADD_DELETE_COMPONENTS, RoleAuthorization.HOST_ADD_DELETE_HOSTS))) {
+        throw new AuthorizationException("The authenticated user is not authorized to change the state of service components");
       }
 
       // STARTED state is invalid for the client component, but this shouldn't cancel the whole stage

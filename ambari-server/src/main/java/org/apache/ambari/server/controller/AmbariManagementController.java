@@ -86,7 +86,7 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the host component cannot be created
    */
   public void createHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Creates a configuration.
@@ -281,7 +281,7 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public RequestStatusResponse deleteHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Deletes the users specified.
