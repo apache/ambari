@@ -19,11 +19,18 @@
 var App = require('app');
 
 var manageAlertGroupsController;
+
+function getController() {
+  return App.ManageAlertGroupsController.create({});
+}
+
 describe('App.ManageAlertGroupsController', function () {
 
   beforeEach(function () {
-    manageAlertGroupsController = App.ManageAlertGroupsController.create({});
+    manageAlertGroupsController = getController();
   });
+
+  App.TestAliases.testAsComputedFilterBy(getController(), 'alertGlobalNotifications', 'alertNotifications', 'global', true);
 
   describe('#addAlertGroup', function () {
 

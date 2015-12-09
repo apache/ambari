@@ -23,20 +23,17 @@ var view, controller = Em.Object.create({
   clusterNameError: ''
 });
 
+function getView() {
+  return App.WizardStep2View.create({'controller': controller});
+}
+
 describe('App.WizardStep0View', function () {
 
   beforeEach(function() {
-    view = App.WizardStep2View.create({'controller': controller});
+    view = getView();
   });
 
-  describe('#sshKeyState', function() {
-    it('should be equal to controller.content.installOptions.manualInstall', function() {
-      controller.set('content', {installOptions: {manualInstall: false}});
-      expect(view.get('sshKeyState')).to.equal(false);
-      controller.toggleProperty('content.installOptions.manualInstall');
-      expect(view.get('sshKeyState')).to.equal(true);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(getView(), 'sshKeyState', 'controller.content.installOptions.manualInstall', 'string');
 
   describe('#didInsertElement', function() {
     beforeEach(function () {

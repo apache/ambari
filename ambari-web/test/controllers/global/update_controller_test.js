@@ -28,6 +28,8 @@ describe('App.UpdateController', function () {
     updateServiceMetric: function(){}
   });
 
+  App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
+
   describe('#getUrl()', function () {
 
     it('testMode = true', function () {

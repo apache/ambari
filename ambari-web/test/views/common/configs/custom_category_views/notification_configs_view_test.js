@@ -20,23 +20,29 @@ var App = require('app');
 require('views/common/configs/custom_category_views/notification_configs_view');
 var view;
 
+function getView() {
+  return App.NotificationsConfigsView.create({
+    $: function() {
+      return {show: Em.K, hide: Em.K};
+    },
+    category: {
+      name: 'name'
+    },
+    serviceConfigs: [],
+    parentView: Em.View.create({
+      filter: '',
+      columns: []
+    })
+  });
+}
+
 describe('App.NotificationsConfigsView', function () {
 
   beforeEach(function () {
-    view = App.NotificationsConfigsView.create({
-      $: function() {
-        return {show: Em.K, hide: Em.K};
-      },
-      category: {
-        name: 'name'
-      },
-      serviceConfigs: [],
-      parentView: Em.View.create({
-        filter: '',
-        columns: []
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedFindBy(getView(), 'useAuthConfig', 'categoryConfigs', 'name', 'smtp_use_auth');
 
   describe('#didInsertElement', function () {
 

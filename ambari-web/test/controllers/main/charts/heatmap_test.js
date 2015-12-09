@@ -21,7 +21,15 @@ var App = require('app');
 require('models/rack');
 require('controllers/main/charts/heatmap');
 
+function getController() {
+  return App.MainChartsHeatmapController.create();
+}
+
 describe('MainChartsHeatmapController', function () {
+
+  App.TestAliases.testAsComputedAlias(getController(), 'activeWidget', 'widgets.firstObject', 'object');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'hostToSlotMap', 'selectedMetric.hostToSlotMap', 'object');
 
   describe('#validation()', function () {
     var controller = App.MainChartsHeatmapController.create({

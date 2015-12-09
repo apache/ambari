@@ -19,12 +19,18 @@
 var App = require('app');
 require('models/upgrade_entity');
 
+function getModel() {
+  return App.upgradeEntity.create();
+}
+
 describe('App.upgradeEntity', function () {
   var model;
 
   beforeEach(function () {
-    model = App.upgradeEntity.create();
+    model = getModel();
   });
+
+  App.TestAliases.testAsComputedNotEqual(getModel(), 'isVisible', 'status', 'PENDING');
 
   describe("#isRunning", function() {
     it("status IN_PROGRESS", function() {

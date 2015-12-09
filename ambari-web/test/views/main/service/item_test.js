@@ -21,7 +21,21 @@ require('views/main/service/item');
 
 var view;
 
+function getView() {
+  return App.MainServiceItemView.create({
+    controller: Em.Object.create({
+      content: Em.Object.create({
+        hostComponents: []
+      })
+    })
+  });
+}
+
 describe('App.MainServiceItemView', function () {
+
+  App.TestAliases.testAsComputedAlias(getView(), 'serviceName', 'controller.content.serviceName', 'string');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'displayName', 'controller.content.displayName', 'string');
 
   describe('#mastersExcludedCommands', function () {
 
@@ -564,5 +578,6 @@ describe('App.MainServiceItemView', function () {
       expect(view.get('isMaintenanceSet')).to.be.false;
     });
   });
+
 });
 

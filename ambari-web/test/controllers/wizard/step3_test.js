@@ -25,16 +25,20 @@ require('utils/http_client');
 require('models/host');
 require('controllers/wizard/step3_controller');
 
+function getController() {
+  return App.WizardStep3Controller.create({
+    content: Em.Object.create({installedHosts: Em.A([]), installOptions: {}, controllerName: ''}),
+    wizardController: App.InstallerController.create(),
+    setRegistrationInProgressOnce: Em.K,
+    disablePreviousSteps: Em.K
+  });
+}
+
 describe('App.WizardStep3Controller', function () {
 
   beforeEach(function () {
 
-    c = App.WizardStep3Controller.create({
-      content: Em.Object.create({installedHosts: Em.A([]), installOptions: {}}),
-      wizardController: App.InstallerController.create(),
-      setRegistrationInProgressOnce: Em.K,
-      disablePreviousSteps: Em.K
-    });
+    c = getController();
 
     sinon.stub(App.db, 'getDisplayLength', Em.K);
     sinon.stub(App.db, 'getFilterConditions').returns([]);
@@ -46,6 +50,12 @@ describe('App.WizardStep3Controller', function () {
     App.router.send.restore();
     App.db.getFilterConditions.restore();
   });
+
+  App.TestAliases.testAsComputedGt(getController(), 'isHostHaveWarnings', 'warnings.length', 0);
+
+  App.TestAliases.testAsComputedEqual(getController(), 'isAddHostWizard', 'content.controllerName', 'addHostController');
+
+  App.TestAliases.testAsComputedIfThenElse(getController(), 'registrationTimeoutSecs', 'content.installOptions.manualInstall', 15, 120);
 
   describe('#getAllRegisteredHostsCallback', function () {
 
@@ -133,47 +143,6 @@ describe('App.WizardStep3Controller', function () {
       c.getAllRegisteredHostsCallback(test_data);
       expect(c.get('hasMoreRegisteredHosts')).to.equal(false);
       expect(c.get('registeredHosts')).to.equal('');
-    });
-
-  });
-
-  describe('#registrationTimeoutSecs', function () {
-
-    it('Manual install', function () {
-      c.set('content.installOptions.manualInstall', true);
-      expect(c.get('registrationTimeoutSecs')).to.equal(15);
-    });
-
-    it('Not manual install', function () {
-      c.set('content.installOptions.manualInstall', false);
-      expect(c.get('registrationTimeoutSecs')).to.equal(120);
-    });
-
-  });
-
-  describe('#isHostHaveWarnings', function () {
-
-    var tests = [
-      {
-        warnings: [
-          {},
-          {}
-        ],
-        m: 'Warnings exist',
-        e: true
-      },
-      {
-        warnings: [],
-        m: 'Warnings don\'t exist',
-        e: false
-      }
-    ];
-
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        c.set('warnings', test.warnings);
-        expect(c.get('isHostHaveWarnings')).to.equal(test.e);
-      });
     });
 
   });

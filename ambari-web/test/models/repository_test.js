@@ -20,13 +20,23 @@ var App = require('app');
 
 require('models/repository');
 
+function getModel() {
+  return App.Repository.createRecord();
+}
+
 describe('App.Repository', function () {
 
   var model;
 
   beforeEach(function () {
-    model = App.Repository.createRecord();
+    model = getModel();
   });
+
+  App.TestAliases.testAsComputedNotEqualProperties(getModel(), 'undo', 'baseUrl', 'latestBaseUrl');
+
+  App.TestAliases.testAsComputedAlias(getModel(), 'isSelected', 'operatingSystem.isSelected', 'boolean');
+
+  App.TestAliases.testAsComputedAlias(getModel(), 'clearAll', 'baseUrl', 'string'); // string??
 
   describe('#invalidFormatError', function () {
 

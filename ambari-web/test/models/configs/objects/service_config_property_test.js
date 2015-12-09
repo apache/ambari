@@ -321,11 +321,17 @@ var serviceConfigProperty,
     }
   ];
 
+function getProperty() {
+  return App.ServiceConfigProperty.create();
+}
+
 describe('App.ServiceConfigProperty', function () {
 
   beforeEach(function () {
-    serviceConfigProperty = App.ServiceConfigProperty.create();
+    serviceConfigProperty = getProperty();
   });
+
+  App.TestAliases.testAsComputedFirstNotBlank(getProperty(), 'placeholder', ['placeholderText', 'savedValue']);
 
   describe('#overrideErrorTrigger', function () {
     it('should be an increment', function () {

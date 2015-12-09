@@ -56,29 +56,9 @@ describe('App.MainController', function () {
     });
   });
 
-  describe('#isClusterDataLoaded', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(true);
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isClusterDataLoaded')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'isClusterDataLoaded', 'App.router.clusterController.isLoaded', 'boolean');
 
-  describe('#clusterDataLoadedPercent', function() {
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('router.clusterController.clusterDataLoadedPercent').returns(16);
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it ('Should return 16', function() {
-      expect(mainController.get('clusterDataLoadedPercent')).to.be.equal(16);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'clusterDataLoadedPercent', 'App.router.clusterController.clusterDataLoadedPercent', 'string');
 
   describe('#initialize', function() {
     var initialize = false;

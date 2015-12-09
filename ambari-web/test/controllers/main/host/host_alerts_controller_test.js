@@ -22,11 +22,17 @@ require('controllers/main/host/host_alerts_controller');
 
 var controller;
 
+function getController() {
+  return App.MainHostAlertsController.create();
+}
+
 describe('App.MainHostAlertsController', function () {
 
   beforeEach(function() {
-    controller = App.MainHostAlertsController.create();
+    controller = getController();
   });
+
+  App.TestAliases.testAsComputedAlias(getController(), 'selectedHost', 'App.router.mainHostDetailsController.content', 'object');
 
   describe("#routeToAlertDefinition()", function () {
 
@@ -45,4 +51,5 @@ describe('App.MainHostAlertsController', function () {
       expect(App.router.transitionTo.calledWith('main.alerts.alertDetails', 'alertDefinition')).to.be.true;
     });
   });
+
 });

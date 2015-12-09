@@ -52,15 +52,24 @@ describe('App.Host', function () {
       last_heart_beat_time: (new Date()).getTime()
     }
   ];
+
   before(function() {
     App.set('testMode', false);
   });
+
   App.Host.reopen({
     hostComponents: []
   });
+
   App.store.loadMany(App.Host, data);
 
   var host1 = App.Host.find('host1');
+
+  App.TestAliases.testAsComputedAlias(host1, 'componentsInPassiveStateCount', 'componentsInPassiveState.length', 'number');
+
+  App.TestAliases.testAsComputedAlias(host1, 'componentsWithStaleConfigsCount', 'componentsWithStaleConfigs.length', 'number');
+
+  App.TestAliases.testAsComputedAlias(host1, 'disksMounted', 'diskInfo.length', 'number');
 
   describe('#diskUsedFormatted', function () {
 
@@ -460,4 +469,5 @@ describe('App.Host', function () {
       });
     });
   });
+
 });

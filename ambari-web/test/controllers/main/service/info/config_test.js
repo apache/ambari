@@ -20,20 +20,27 @@ var App = require('app');
 require('controllers/main/service/info/configs');
 var batchUtils = require('utils/batch_scheduled_requests');
 var mainServiceInfoConfigsController = null;
+
+function getController() {
+  return App.MainServiceInfoConfigsController.create({
+    dependentServiceNames: [],
+    loadDependentConfigs: function () {
+      return {done: Em.K}
+    },
+    loadConfigTheme: function () {
+      return $.Deferred().resolve().promise();
+    }
+  });
+}
+
 describe("App.MainServiceInfoConfigsController", function () {
 
   beforeEach(function () {
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
-    mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({
-      dependentServiceNames: [],
-      loadDependentConfigs: function () {
-        return {done: Em.K}
-      },
-      loadConfigTheme: function () {
-        return $.Deferred().resolve().promise();
-      }
-    });
+    mainServiceInfoConfigsController = getController();
   });
+
+  App.TestAliases.testAsComputedAlias(getController(), 'serviceConfigs', 'App.config.preDefinedServiceConfigs', 'array');
 
   afterEach(function() {
     App.themesMapper.generateAdvancedTabs.restore();

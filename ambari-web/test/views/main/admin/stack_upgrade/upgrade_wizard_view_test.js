@@ -37,6 +37,8 @@ describe('App.upgradeWizardView', function () {
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
 
+  App.TestAliases.testAsComputedEqualProperties(view, 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
+
   describe("#upgradeGroups", function () {
     it("upgradeGroups is null", function () {
       view.set('controller.upgradeData.upgradeGroups', null);
@@ -431,18 +433,6 @@ describe('App.upgradeWizardView', function () {
       });
       view.propertyDidChange('taskDetails');
       expect(view.get('taskDetails')).to.be.null;
-    });
-  });
-
-  describe("#isFinalizeItem", function () {
-    it("depends of manualItem.context", function () {
-      view.reopen({
-        manualItem: {
-          context: 'Confirm Finalize'
-        }
-      });
-      view.propertyDidChange('isFinalizeItem');
-      expect(view.get('isFinalizeItem')).to.be.true;
     });
   });
 

@@ -23,16 +23,23 @@ require('controllers/wizard/step10_controller');
 
 var controller;
 
+function getController() {
+  return App.WizardStep10Controller.create({
+    content: {cluster: {controllerName: '', status: 'INSTALL COMPLETE'}}
+  });
+}
+
 describe('App.WizardStep10Controller', function () {
 
   beforeEach(function() {
-    controller = App.WizardStep10Controller.create();
-    controller.set('content', {cluster: {status: 'INSTALL COMPLETE'}});
+    controller = getController();
   });
 
   afterEach(function() {
     controller.clearStep();
   });
+
+  App.TestAliases.testAsComputedEqual(getController(), 'isAddServiceWizard', 'content.controllerName', 'addServiceController');
 
   describe('#clearStep', function() {
     it('should clear clusterInfo', function() {

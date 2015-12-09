@@ -17,9 +17,15 @@
  */
 
 var App = require('app');
-
+var c  = App.KerberosWizardStep4Controller.create({
+  wizardController: Em.Object.create({
+    name: ''
+  })
+});
 describe('App.KerberosWizardStep4Controller', function() {
-  
+
+  App.TestAliases.testAsComputedEqual(c, 'isWithinAddService', 'wizardController.name', 'addServiceController');
+
   describe('#isSubmitDisabled', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
     var configs = Em.A([

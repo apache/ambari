@@ -31,6 +31,8 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     serviceVersions: []
   });
 
+  App.TestAliases.testAsComputedAlias(view, 'serviceName', 'controller.selectedService.serviceName', 'string');
+
   describe('#isSaveDisabled', function () {
     var testCases = [
       {
@@ -724,4 +726,16 @@ describe.skip('App.ConfigHistoryFlowView', function () {
       });
     });
   });
+});
+
+function getView() {
+  return App.ConfigsServiceVersionBoxView.create();
+}
+
+describe('App.ConfigsServiceVersionBoxView', function () {
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionAttr', 'serviceVersion.disabledActionAttr', 'object');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionMessages', 'serviceVersion.disabledActionMessages', 'object');
+
 });

@@ -23,13 +23,19 @@ require('utils/string_utils');
 require('views/wizard/step6_view');
 var view;
 
+function getView() {
+  return App.WizardStep6View.create({
+    controller: App.WizardStep6Controller.create()
+  });
+}
+
 describe('App.WizardStep6View', function() {
 
   beforeEach(function() {
-    view = App.WizardStep6View.create({
-      controller: App.WizardStep6Controller.create()
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'filteredContent', 'content', 'array');
 
   describe('#content', function() {
     it('should be same to controller.hosts', function() {
@@ -37,15 +43,6 @@ describe('App.WizardStep6View', function() {
       var d = [{}, {}];
       view.set('controller.hosts', d);
       expect(view.get('content')).to.eql(d);
-    });
-  });
-
-  describe('#filteredContent', function() {
-    it('should be same to content', function() {
-      view.set('content', []);
-      var d = [{}, {}];
-      view.set('controller.hosts', d);
-      expect(view.get('filteredContent')).to.eql(d);
     });
   });
 

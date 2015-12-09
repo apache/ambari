@@ -94,6 +94,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
     }
   ];
 
+  App.TestAliases.testAsComputedIfThenElse(view, 'isCategoryBodyVisible', 'category.isCollapsed', 'display: none;', 'display: block;');
+
   describe('#sortByIndex', function () {
     testData.forEach(function(_test){
       it(_test.title, function () {
@@ -402,4 +404,5 @@ describe('App.ServiceConfigsByCategoryView', function () {
       });
     });
   });
+
 });

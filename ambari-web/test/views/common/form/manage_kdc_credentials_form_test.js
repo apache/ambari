@@ -21,16 +21,26 @@ var credentialUtils = require('utils/credentials');
 
 var view;
 
+function getView() {
+  return App.ManageCredentialsFormView.create({
+    parentView: Em.Object.create({})
+  });
+}
+
 describe('#App.ManageCredentialsFormView', function() {
   beforeEach(function() {
-    view = App.ManageCredentialsFormView.create({
-      parentView: Em.Object.create({})
-    });
+    view = getView();
   });
 
   afterEach(function() {
     view.destroy();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'storePersisted', 'App.isCredentialStorePersistent', 'boolean');
+
+  App.TestAliases.testAsComputedIfThenElse(getView(), 'formHeader', 'isRemovable', Em.I18n.t('admin.kerberos.credentials.form.header.stored'), Em.I18n.t('admin.kerberos.credentials.form.header.not.stored'));
+
+  App.TestAliases.testAsComputedIfThenElse(getView(), 'hintMessage', 'storePersisted', Em.I18n.t('admin.kerberos.credentials.store.hint.supported'), Em.I18n.t('admin.kerberos.credentials.store.hint.not.supported'));
 
   describe('#prepareContent', function() {
     [

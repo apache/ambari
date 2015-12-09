@@ -23,6 +23,10 @@ require('views/main/dashboard/widgets/hbase_average_load');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widget');
 
+function getView() {
+  return App.HBaseAverageLoadView.create({model_type: null});
+}
+
 describe('App.HBaseAverageLoadView', function() {
 
   var tests = [
@@ -99,5 +103,11 @@ describe('App.HBaseAverageLoadView', function() {
       });
     });
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'data', 'model.averageLoad', 'number');
+
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresh2');
+
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
 
 });

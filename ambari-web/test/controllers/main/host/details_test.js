@@ -26,23 +26,29 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var hostsManagement = require('utils/hosts');
 var controller;
 
-describe('App.MainHostDetailsController', function () {
+function getController() {
+  return App.MainHostDetailsController.create(App.InstallComponent, {
+    content: Em.Object.create({
+      hostComponents: []
+    })
+  });
+}
 
+describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
     sinon.stub(App.ajax, 'send').returns({
       then: Em.K,
       complete: Em.K
     });
-    controller = App.MainHostDetailsController.create(App.InstallComponent, {
-      content: Em.Object.create({
-        hostComponents: []
-      })
-    });
+    controller = getController();
   });
+
   afterEach(function () {
     App.ajax.send.restore();
   });
+
+  App.TestAliases.testAsComputedFilterBy(getController(), 'serviceNonClientActiveComponents', 'serviceActiveComponents', 'isClient', false);
 
   describe('#routeHome()', function () {
     it('transiotion to dashboard', function () {
@@ -74,7 +80,7 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-describe('#stopComponent()', function () {
+  describe('#stopComponent()', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'showConfirmationPopup', function (callback) {
@@ -294,7 +300,6 @@ describe('#stopComponent()', function () {
       expect(callback.calledOnce).to.be.true;
     });
   });
-
 
   describe('#serviceActiveComponents', function () {
 
@@ -2105,7 +2110,6 @@ describe('#stopComponent()', function () {
     });
   });
 
-
   describe('#setRackId', function () {
     beforeEach(function () {
       sinon.stub(hostsManagement, 'setRackInfo', Em.K);
@@ -2312,6 +2316,7 @@ describe('#stopComponent()', function () {
       }))).to.equal(0);
     });
   });
+
   describe('#downloadClientConfigsCall', function () {
 
     beforeEach(function () {
@@ -2929,7 +2934,6 @@ describe('#stopComponent()', function () {
     });
   });
 
-
   describe("#installVersion()", function () {
     it("call App.ajax.send", function () {
       controller.set('content.hostName', 'host1');
@@ -3398,4 +3402,5 @@ describe('#stopComponent()', function () {
       expect(controller.checkComponentDependencies('C1', opt)).to.eql(['C3']);
     });
   });
+
 });

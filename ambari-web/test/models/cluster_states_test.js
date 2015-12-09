@@ -45,18 +45,7 @@ var compressedResponse = LZString.compressToBase64(JSON.stringify(response2));
 
 describe('App.clusterStatus', function () {
 
-  describe('#isInstalled', function () {
-    notInstalledStates.forEach(function (item) {
-      it('should be false', function () {
-        status.set('clusterState', item);
-        expect(status.get('isInstalled')).to.be.false;
-      });
-    });
-    it('should be true', function () {
-      status.set('clusterState', 'DEFAULT');
-      expect(status.get('isInstalled')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedNotExistsIn(status, 'isInstalled', 'clusterState', notInstalledStates);
 
   describe('#value', function () {
     it('should be set from properties', function () {

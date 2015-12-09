@@ -27,15 +27,6 @@ describe('App.HostComponent', function() {
   });
   var hc = App.HostComponent.find('COMP_host');
 
-
-  describe('#getStatusesList', function() {
-    it('allowed statuses', function() {
-      var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
-      expect(App.HostComponentStatus.getStatusesList()).to.include.members(statuses);
-      expect(statuses).to.include.members(App.HostComponentStatus.getStatusesList());
-    });
-  });
-
   describe('#getStatusesList', function() {
     it('allowed statuses', function() {
       var statuses = ["STARTED","STARTING","INSTALLED","STOPPING","INSTALL_FAILED","INSTALLING","UPGRADE_FAILED","UNKNOWN","DISABLED","INIT"];
@@ -94,29 +85,9 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#isRunning', function() {
-    var testCases = [
-      {
-        workStatus: 'INSTALLED',
-        result: false
-      },
-      {
-        workStatus: 'STARTING',
-        result: true
-      },
-      {
-        workStatus: 'STARTED',
-        result: true
-      }
-    ];
-    testCases.forEach(function(test){
-      it('workStatus - ' + test.workStatus, function() {
-        hc.set('workStatus', test.workStatus);
-        hc.propertyDidChange('isRunning');
-        expect(hc.get('isRunning')).to.equal(test.result);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
+
+  App.TestAliases.testAsComputedExistsIn(hc, 'isRunning', 'workStatus', ['STARTED', 'STARTING']);
 
   describe('#isDecommissioning', function() {
     var mock = [];
@@ -156,6 +127,10 @@ describe('App.HostComponent', function() {
       expect(hc.get('isDecommissioning')).to.be.true;
     });
   });
+
+  App.TestAliases.testAsComputedEqual(hc, 'isActive', 'passiveState', 'OFF');
+
+  App.TestAliases.testAsComputedIfThenElse(hc, 'passiveTooltip', 'isActive', '', Em.I18n.t('hosts.component.passive.mode'));
 
   describe('#isActive', function() {
     it('passiveState is ON', function() {
@@ -315,28 +290,6 @@ describe('App.HostComponent', function() {
     });
   });
 
-  describe('#isNotInstalled', function () {
-
-    Em.A([
-      {
-        p: {workStatus: 'INIT'},
-        e: true
-      },
-      {
-        p: {workStatus: 'INSTALL_FAILED'},
-        e: true
-      },
-      {
-        p: {workStatus: 'STARTED'},
-        e: false
-      }
-    ]).forEach(function (test, index) {
-      it('#' + (index + 1), function() {
-        hc.setProperties(test.p);
-        expect(hc.get('isNotInstalled')).to.equal(test.e);
-      });
-    });
-
-  });
+  App.TestAliases.testAsComputedExistsIn(hc, 'isNotInstalled', 'workStatus', ['INIT', 'INSTALL_FAILED']);
 
 });

@@ -20,15 +20,21 @@ var App = require('app');
 
 var controller;
 
+function getController() {
+  return App.MainAlertDefinitionDetailsController.create({
+    content: Em.Object.create({
+      label: 'label'
+    })
+  });
+}
+
 describe('App.MainAlertDefinitionDetailsController', function () {
 
   beforeEach(function () {
-    controller = App.MainAlertDefinitionDetailsController.create({
-      content: Em.Object.create({
-        label: 'label'
-      })
-    });
+    controller = getController();
   });
+
+  App.TestAliases.testAsComputedMapBy(getController(), 'groupsList', 'content.groups', 'displayName');
 
   describe('#labelValidation()', function () {
 

@@ -35,6 +35,8 @@ describe('App.clusterController', function () {
     {service_name: 'GANGLIA'}
   ];
 
+  App.TestAliases.testAsComputedAlias(controller, 'clusterName', 'App.clusterName', 'string');
+
   describe('#updateLoadStatus()', function () {
 
     controller.set('dataLoadList', Em.Object.create({

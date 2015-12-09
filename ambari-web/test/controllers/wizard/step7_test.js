@@ -96,22 +96,30 @@ var installerStep7Controller,
     controller.get('filterColumns').findProperty('attributeName', 'hasIssues').set('selected', testCase.isIssuesFilterActive);
   };
 
+function getController() {
+  return App.WizardStep7Controller.create({
+    content: Em.Object.create({
+      services: [],
+      advancedServiceConfig: [],
+      serviceConfigProperties: []
+    })
+  });
+}
+
 describe('App.InstallerStep7Controller', function () {
 
   beforeEach(function () {
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
-    installerStep7Controller = App.WizardStep7Controller.create({
-      content: Em.Object.create({
-        services: [],
-        advancedServiceConfig: [],
-        serviceConfigProperties: []
-      })
-    });
+    installerStep7Controller = getController();
   });
 
   afterEach(function() {
     App.config.setPreDefinedServiceConfigs.restore();
   });
+
+  App.TestAliases.testAsComputedAlias(getController(), 'masterComponentHosts', 'content.masterComponentHosts', 'array');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'slaveComponentHosts', 'content.slaveGroupProperties', 'array');
 
   describe('#installedServiceNames', function () {
 
@@ -245,30 +253,6 @@ describe('App.InstallerStep7Controller', function () {
       });
       var expected = ['s1', 's3', 's5', 's7'];
       expect(installerStep7Controller.get('allSelectedServiceNames')).to.eql(expected);
-    });
-  });
-
-  describe('#masterComponentHosts', function () {
-    it('should be equal to content.masterComponentHosts', function () {
-      var masterComponentHosts = [
-        {},
-        {},
-        {}
-      ];
-      installerStep7Controller.reopen({content: {masterComponentHosts: masterComponentHosts}});
-      expect(installerStep7Controller.get('masterComponentHosts')).to.eql(masterComponentHosts);
-    });
-  });
-
-  describe('#slaveComponentHosts', function () {
-    it('should be equal to content.slaveGroupProperties', function () {
-      var slaveGroupProperties = [
-        {},
-        {},
-        {}
-      ];
-      installerStep7Controller.reopen({content: {slaveGroupProperties: slaveGroupProperties}});
-      expect(installerStep7Controller.get('slaveComponentHosts')).to.eql(slaveGroupProperties);
     });
   });
 

@@ -21,6 +21,10 @@ var App = require('app');
 require('views/main/dashboard/widget');
 require('views/main/dashboard/widgets/text_widget');
 
+function getView() {
+  return App.TextDashboardWidgetView.create({thresh1:40, thresh2:70});
+}
+
 describe('App.TextDashboardWidgetView', function() {
 
   var tests = [
@@ -80,5 +84,9 @@ describe('App.TextDashboardWidgetView', function() {
       });
     });
   });
+
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isGreen', 'data', 'thresh2');
+
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isRed', 'data', 'thresh1');
 
 });

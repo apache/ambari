@@ -24,6 +24,10 @@ require('mixins');
 require('mixins/common/userPref');
 require('views/common/table_view');
 
+function getView() {
+  return App.TableView.create();
+}
+
 describe('App.TableView', function () {
 
   var view;
@@ -37,6 +41,10 @@ describe('App.TableView', function () {
     App.db.cleanUp();
     App.db.setFilterConditions.restore();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'filteredCount', 'filteredContent.length', 'number');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'totalCount', 'content.length', 'number');
 
   describe('#init', function() {
 

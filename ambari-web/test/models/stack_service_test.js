@@ -212,18 +212,7 @@ describe('App.StackService', function () {
     });
   });
 
-  describe('#isClientOnlyService', function () {
-    it('Has not only client serviceComponents', function () {
-      ss.set('serviceComponents', [Em.Object.create({isSlave: true}), Em.Object.create({isClient: true})]);
-      ss.propertyDidChange('isClientOnlyService');
-      expect(ss.get('isClientOnlyService')).to.be.false;
-    });
-    it('Has only client serviceComponents', function () {
-      ss.set('serviceComponents', [Em.Object.create({isClient: true})]);
-      ss.propertyDidChange('isClientOnlyService');
-      expect(ss.get('isClientOnlyService')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedEveryBy(ss, 'isClientOnlyService', 'serviceComponents', 'isClient', true);
 
   describe('#isNoConfigTypes', function () {
     it('configTypes is null', function () {

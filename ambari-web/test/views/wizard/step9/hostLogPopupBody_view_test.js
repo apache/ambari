@@ -20,15 +20,21 @@ var App = require('app');
 require('views/wizard/step9/hostLogPopupBody_view');
 var view;
 
+function getView() {
+  return App.WizardStep9HostLogPopupBodyView.create({
+    parentView: Em.Object.create({
+      host: Em.Object.create()
+    })
+  });
+}
+
 describe('App.WizardStep9HostLogPopupBodyView', function() {
 
   beforeEach(function() {
-    view = App.WizardStep9HostLogPopupBodyView.create({
-      parentView: Em.Object.create({
-        host: Em.Object.create()
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'isNoTasksScheduled', 'parentView.host.isNoTasksForInstall', 'boolean');
 
   describe('#isHeartbeatLost', function() {
     it('should depends on parentView.host.status', function() {
@@ -36,15 +42,6 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
       expect(view.get('isHeartbeatLost')).to.equal(false);
       view.set('parentView.host.status', 'heartbeat_lost');
       expect(view.get('isHeartbeatLost')).to.equal(true);
-    });
-  });
-
-  describe('#isNoTasksScheduled', function() {
-    it('should be same to parentView.host.isNoTasksForInstall', function() {
-      view.set('parentView.host.isNoTasksForInstall', true);
-      expect(view.get('isNoTasksScheduled')).to.equal(true);
-      view.set('parentView.host.isNoTasksForInstall', false);
-      expect(view.get('isNoTasksScheduled')).to.equal(false);
     });
   });
 

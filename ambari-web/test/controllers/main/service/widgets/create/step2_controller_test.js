@@ -26,18 +26,7 @@ describe('App.WidgetWizardStep2Controller', function () {
     content: Em.Object.create()
   });
 
-  describe("#isEditWidget", function () {
-    it("empty name", function () {
-      controller.set('content.controllerName', '');
-      controller.propertyDidChange('isEditWidget');
-      expect(controller.get('isEditWidget')).to.be.false;
-    });
-    it("correct name", function () {
-      controller.set('content.controllerName', 'widgetEditController');
-      controller.propertyDidChange('isEditWidget');
-      expect(controller.get('isEditWidget')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedEqual(controller, 'isEditWidget', 'content.controllerName', 'widgetEditController');
 
   describe("#filteredMetrics", function () {
     var testCases = [

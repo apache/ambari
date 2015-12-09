@@ -29,27 +29,32 @@ require('utils/ajax/ajax');
 
 var modelSetup = require('test/init_model_test');
 var c, obj;
+
+function getController() {
+  return App.WizardStep9Controller.create({
+    content: {controllerName: '', cluster: {status: ''}},
+    saveClusterStatus: Em.K,
+    saveInstalledHosts: Em.K,
+    togglePreviousSteps: Em.K,
+    setFinishState: Em.K,
+    changeParseHostInfo: Em.K,
+    parseHostInfoPolling: Em.K,
+    wizardController: Em.Object.create({
+      requestsId: [],
+      cluster: {oldRequestsId: []},
+      getDBProperty: function(name) {
+        return this.get(name);
+      }
+    })
+  });
+}
+
 describe('App.InstallerStep9Controller', function () {
 
   beforeEach(function () {
     App.set('supports.skipComponentStartAfterInstall', false);
     modelSetup.setupStackServiceComponent();
-    c = App.WizardStep9Controller.create({
-      content: {controllerName: ''},
-      saveClusterStatus: Em.K,
-      saveInstalledHosts: Em.K,
-      togglePreviousSteps: Em.K,
-      setFinishState: Em.K,
-      changeParseHostInfo: Em.K,
-      parseHostInfoPolling: Em.K,
-      wizardController: Em.Object.create({
-        requestsId: [],
-        cluster: {oldRequestsId: []},
-        getDBProperty: function(name) {
-          return this.get(name);
-        }
-      })
-    });
+    c = getController();
     obj = App.InstallerController.create();
     sinon.stub(App.ajax, 'send', function() {
       return {
@@ -71,6 +76,8 @@ describe('App.InstallerStep9Controller', function () {
     modelSetup.cleanStackServiceComponent();
     App.ajax.send.restore();
   });
+
+  App.TestAliases.testAsComputedEqual(getController(), 'showRetry', 'content.cluster.status', 'INSTALL FAILED');
 
   describe('#isSubmitDisabled', function () {
     var tests = Em.A([
@@ -178,17 +185,6 @@ describe('App.InstallerStep9Controller', function () {
       it(test.m, function () {
         expect(controller.get('status')).to.equal(test.e);
       });
-    });
-  });
-
-  describe('#showRetry', function () {
-    it('cluster status is not INSTALL FAILED', function () {
-      c.reopen({content: {cluster: {status: 'INSTALLED'}}});
-      expect(c.get('showRetry')).to.equal(false);
-    });
-    it('cluster status is INSTALL FAILED', function () {
-      c.reopen({content: {cluster: {status: 'INSTALL FAILED'}}});
-      expect(c.get('showRetry')).to.equal(true);
     });
   });
 

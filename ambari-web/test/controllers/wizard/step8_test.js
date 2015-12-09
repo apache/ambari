@@ -23,42 +23,47 @@ require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
 var installerStep8Controller, configurationController;
 
+var configs = Em.A([
+  Em.Object.create({filename: 'hdfs-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'hdfs-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'hue-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'hue-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'mapred-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'mapred-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'yarn-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'yarn-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'capacity-scheduler.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'capacity-scheduler.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'mapred-queue-acls.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'mapred-queue-acls.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'hbase-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'hbase-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'oozie-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'oozie-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'hive-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'hive-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'pig-properties.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'webhcat-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'webhcat-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'tez-site.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'tez-site.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p2', value: 'v2'}),
+  Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p1', value: 'v1'}),
+  Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p2', value: 'v2'})
+]);
+
+function getController() {
+  return App.WizardStep8Controller.create({
+    configs: configs,
+    content: {controllerName: ''}
+  });
+}
+
 describe('App.WizardStep8Controller', function () {
 
-  var configs = Em.A([
-    Em.Object.create({filename: 'hdfs-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'hdfs-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'hue-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'hue-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'mapred-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'mapred-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'yarn-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'yarn-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'capacity-scheduler.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'capacity-scheduler.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'mapred-queue-acls.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'mapred-queue-acls.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'hbase-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'hbase-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'oozie-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'oozie-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'hive-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'hive-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'pig-properties.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'webhcat-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'webhcat-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'tez-site.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'tez-site.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'falcon-startup.properties.xml', name: 'p2', value: 'v2'}),
-    Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p1', value: 'v1'}),
-    Em.Object.create({filename: 'falcon-runtime.properties.xml', name: 'p2', value: 'v2'})
-  ]);
-
   beforeEach(function () {
-    installerStep8Controller = App.WizardStep8Controller.create({
-      configs: configs
-    });
+    installerStep8Controller = getController();
     configurationController = App.MainServiceInfoConfigsController.create({});
   });
 
@@ -91,6 +96,12 @@ describe('App.WizardStep8Controller', function () {
 
     });
   });
+
+  App.TestAliases.testAsComputedFilterBy(getController(), 'installedServices', 'content.services', 'isInstalled', true);
+
+  App.TestAliases.testAsComputedEqual(getController(), 'isManualKerberos', 'App.router.mainAdminKerberosController.kdc_type', 'none');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'clusterName', 'content.cluster.name', 'string');
 
   describe('#createSelectedServicesData', function () {
 
@@ -226,13 +237,6 @@ describe('App.WizardStep8Controller', function () {
       });
     });
 
-  });
-
-  describe('#clusterName', function () {
-    it('should be equal to content.cluster.name', function () {
-      installerStep8Controller.set('content', {cluster: {name: 'new_name'}});
-      expect(installerStep8Controller.get('clusterName')).to.equal('new_name');
-    });
   });
 
   describe('#createCoreSiteObj', function () {
@@ -1887,17 +1891,7 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
-  describe('#isAllClusterDeleteRequestsCompleted', function () {
-    it('should depend on completed cluster delete requests number', function () {
-      installerStep8Controller.setProperties({
-        clusterDeleteRequestsCompleted: 0,
-        clusterNames: ['c0']
-      });
-      expect(installerStep8Controller.get('isAllClusterDeleteRequestsCompleted')).to.be.false;
-      installerStep8Controller.incrementProperty('clusterDeleteRequestsCompleted');
-      expect(installerStep8Controller.get('isAllClusterDeleteRequestsCompleted')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedEqualProperties(getController(), 'isAllClusterDeleteRequestsCompleted', 'clusterDeleteRequestsCompleted', 'clusterNames.length');
 
   describe('#deleteClusterSuccessCallback', function () {
 

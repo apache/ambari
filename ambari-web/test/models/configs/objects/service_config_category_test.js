@@ -1,4 +1,3 @@
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -104,11 +103,17 @@ var serviceConfigCategory,
     ]
   };
 
+function getCategory() {
+  return App.ServiceConfigCategory.create();
+}
+
 describe('App.ServiceConfigCategory', function () {
 
   beforeEach(function () {
-    serviceConfigCategory = App.ServiceConfigCategory.create();
+    serviceConfigCategory = getCategory();
   });
+
+  App.TestAliases.testAsComputedSumProperties(getCategory(), 'errorCount', ['slaveErrorCount', 'nonSlaveErrorCount']);
 
   describe('#primaryName', function () {
     nameCases.forEach(function (item) {
@@ -153,19 +158,6 @@ describe('App.ServiceConfigCategory', function () {
     it('should sum all errorCount values', function () {
       serviceConfigCategory.set('slaveConfigs', groupsData);
       expect(serviceConfigCategory.get('slaveErrorCount')).to.equal(3);
-    });
-  });
-
-  describe('#errorCount', function () {
-    it('should sum all errors for category', function () {
-      serviceConfigCategory.reopen({
-        slaveErrorCount: 1
-      });
-      expect(serviceConfigCategory.get('errorCount')).to.equal(1);
-      serviceConfigCategory.set('nonSlaveErrorCount', 2);
-      expect(serviceConfigCategory.get('errorCount')).to.equal(3);
-      serviceConfigCategory.set('slaveErrorCount', 0);
-      expect(serviceConfigCategory.get('errorCount')).to.equal(2);
     });
   });
 

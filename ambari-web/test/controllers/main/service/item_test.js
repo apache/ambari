@@ -318,7 +318,6 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
-
   describe("#turnOnOffPassive", function () {
     var mainServiceItemController = App.MainServiceItemController.create({turnOnOffPassiveRequest: Em.K});
     beforeEach(function () {
@@ -1057,7 +1056,6 @@ describe('App.MainServiceItemController', function () {
       });
     });
   });
-
 
   describe('#downloadClientConfigs()', function () {
 

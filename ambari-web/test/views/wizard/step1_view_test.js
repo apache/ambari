@@ -22,6 +22,10 @@ require('views/wizard/step1_view');
 var view;
 var controller;
 
+function getView() {
+  return App.WizardStep1View.create();
+}
+
 describe('App.WizardStep1View', function () {
 
   describe('#operatingSystems', function () {
@@ -204,42 +208,7 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#isNoOsChecked', function () {
-    view = App.WizardStep1View.create();
-
-    var tests = Em.A([
-      {
-        operatingSystems: [
-          {'isSelected': false},
-          {'isSelected': false}
-        ],
-        e: true
-      },
-      {
-        operatingSystems: [
-          {'isSelected': true},
-          {'isSelected': false}
-        ],
-        e: false
-      },
-      {
-        operatingSystems: [
-          {'isSelected': true},
-          {'isSelected': true}
-        ],
-        e: false
-      }
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.operatingSystems.mapProperty('isSelected').join(', '), function () {
-        var operatingSystems = view.get('operatingSystems');
-        Ember.set(operatingSystems[0], 'isSelected', test.operatingSystems[0].isSelected);
-        Ember.set(operatingSystems[1], 'isSelected', test.operatingSystems[1].isSelected);
-        expect(view.get('isNoOsChecked')).to.equal(test.e);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedEveryBy(getView(), 'isNoOsChecked', 'operatingSystems', 'isSelected', false);
 
   describe('#stacks', function () {
 
