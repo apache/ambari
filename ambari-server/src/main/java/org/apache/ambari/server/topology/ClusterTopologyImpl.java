@@ -21,6 +21,8 @@ package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,6 +48,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   private Blueprint blueprint;
   private Configuration configuration;
   private ConfigRecommendationStrategy configRecommendationStrategy;
+  private ProvisionAction provisionAction = ProvisionAction.INSTALL_AND_START;
   private Map<String, AdvisedConfiguration> advisedConfigurations = new HashMap<String, AdvisedConfiguration>();
   private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
   private final AmbariContext ambariContext;
@@ -243,6 +246,16 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public ConfigRecommendationStrategy getConfigRecommendationStrategy() {
     return this.configRecommendationStrategy;
+  }
+
+  @Override
+  public ProvisionAction getProvisionAction() {
+    return provisionAction;
+  }
+
+  @Override
+  public void setProvisionAction(ProvisionAction provisionAction) {
+    this.provisionAction = provisionAction;
   }
 
   @Override

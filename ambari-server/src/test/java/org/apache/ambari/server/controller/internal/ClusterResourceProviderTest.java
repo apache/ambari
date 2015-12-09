@@ -137,6 +137,33 @@ public class ClusterResourceProviderTest {
     testCreateResource_blueprint(TestAuthenticationFactory.createClusterAdministrator());
   }
 
+  @Test
+  public void testCreateResource_blueprint_With_ProvisionAction() throws Exception {
+    Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);
+    Map<String, Object> properties = requestProperties.iterator().next();
+    properties.put(ProvisionClusterRequest.PROVISION_ACTION_PROPERTY, "INSTALL_ONLY");
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{}");
+
+    // set expectations
+    expect(request.getProperties()).andReturn(requestProperties).anyTimes();
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties).anyTimes();
+
+    expect(securityFactory.createSecurityConfigurationFromRequest(anyObject(HashMap.class), anyBoolean())).andReturn(null)
+      .once();
+    expect(topologyFactory.createProvisionClusterRequest(properties, null)).andReturn(topologyRequest).once();
+    expect(topologyManager.provisionCluster(topologyRequest)).andReturn(requestStatusResponse).once();
+    expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
+
+    replayAll();
+    RequestStatus requestStatus = provider.createResources(request);
+    assertEquals(5150L, requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "id")));
+    assertEquals(Resource.Type.Request, requestStatus.getRequestResource().getType());
+    assertEquals("Accepted", requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
+
+    verifyAll();
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testCreateResource_blueprint_withInvalidSecurityConfiguration() throws Exception {
     Set<Map<String, Object>> requestProperties = createBlueprintRequestProperties(CLUSTER_NAME, BLUEPRINT_NAME);

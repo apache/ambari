@@ -175,6 +175,8 @@ public class TopologyManager {
     request.setClusterId(clusterId);
     // set recommendation strategy
     topology.setConfigRecommendationStrategy(request.getConfigRecommendationStrategy());
+    // set provision action requested
+    topology.setProvisionAction(request.getProvisionAction());
     // persist request after it has successfully validated
     PersistedTopologyRequest persistedRequest = RetryHelper.executeWithRetry(new Callable<PersistedTopologyRequest>() {
       @Override
