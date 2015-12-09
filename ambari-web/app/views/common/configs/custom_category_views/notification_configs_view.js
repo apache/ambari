@@ -88,7 +88,7 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
       useAuthConfigValue = this.get('useAuthConfig.value'),
       useAuthConfigIsEditable = this.get('useAuthConfig.isEditable'),
       self = this;
-    this.get('categoryConfigs').forEach(function (config) {
+    this.getWithDefault('categoryConfigs', []).forEach(function (config) {
       if (configsToUpdate.contains(config.get('name'))) {
         var flag = useAuthConfigIsEditable ? useAuthConfigValue : false;
         self.updateConfig(config, flag);
@@ -105,7 +105,7 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
   updateCategoryConfigs: function () {
     var createNotification = this.get('createNotification'),
       self = this;
-    this.get('categoryConfigs').forEach(function (config) {
+    this.getWithDefault('categoryConfigs', []).forEach(function (config) {
       var flag = (createNotification == 'yes');
       self.updateConfig(config, flag);
     });

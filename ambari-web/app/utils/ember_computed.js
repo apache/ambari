@@ -41,7 +41,7 @@ function getProperties(self, propertyNames) {
     propertyName = shouldBeInverted ? propertyName.substr(1) : propertyName;
     var isApp = propertyName.startsWith('App.');
     var name = isApp ? propertyName.replace('App.', '') : propertyName;
-    var value = isApp ? App.get(name) : get(self, name);
+    var value = isApp ? App.get(name) : self.get(name);
     value = shouldBeInverted ? !value : value;
     ret[propertyName] = value;
   }
@@ -59,7 +59,7 @@ function getProperties(self, propertyNames) {
 function smartGet(self, propertyName) {
   var isApp = propertyName.startsWith('App.');
   var name = isApp ? propertyName.replace('App.', '') : propertyName;
-  return  isApp ? App.get(name) : get(self, name);
+  return isApp ? App.get(name) : self.get(name);
 }
 
 /**
@@ -67,7 +67,7 @@ function smartGet(self, propertyName) {
  * If <code>propertyName</code> starts with 'App.', <code>App</code> is used as context, <code>self</code> used otherwise
  *
  * @param {object} self current context
- * @param {string[]} propertyNames neded properties
+ * @param {string[]} propertyNames needed properties
  * @returns {array} list of needed values
  */
 function getValues(self, propertyNames) {
@@ -643,7 +643,7 @@ computed.match = function (dependentKey, regexp) {
  */
 computed.someBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return false;
     }
@@ -671,7 +671,7 @@ computed.someBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.everyBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return false;
     }
@@ -698,7 +698,7 @@ computed.everyBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.mapBy = function (collectionKey, propertyName) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return [];
     }
@@ -726,7 +726,7 @@ computed.mapBy = function (collectionKey, propertyName) {
  */
 computed.filterBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return [];
     }
@@ -754,7 +754,7 @@ computed.filterBy = function (collectionKey, propertyName, neededValue) {
  */
 computed.findBy = function (collectionKey, propertyName, neededValue) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (!collection) {
       return null;
     }
@@ -805,7 +805,7 @@ computed.alias = function (dependentKey) {
  */
 computed.existsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
-    var value = get(this, dependentKey);
+    var value = smartGet(this, dependentKey);
     return makeArray(neededValues).contains(value);
   });
 };
@@ -829,7 +829,7 @@ computed.existsIn = function (dependentKey, neededValues) {
  */
 computed.notExistsIn = function (dependentKey, neededValues) {
   return computed(dependentKey, function () {
-    var value = get(this, dependentKey);
+    var value = smartGet(this, dependentKey);
     return !makeArray(neededValues).contains(value);
   });
 };
@@ -913,7 +913,7 @@ computed.formatRole = function (dependentKey) {
  */
 computed.sumBy = function (collectionKey, propertyName) {
   return computed(collectionKey + '.@each.' + propertyName, function () {
-    var collection = get(this, collectionKey);
+    var collection = smartGet(this, collectionKey);
     if (Em.isEmpty(collection)) {
       return 0;
     }

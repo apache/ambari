@@ -34,6 +34,7 @@ require('utils/ajax/ajax_queue');
 
 var files = [
   'test/init_test',
+  'test/init_computed_aliases',
   'test/init_model_test',
   'test/app_test',
   'test/data/HDP2/site_properties_test',
@@ -303,6 +304,7 @@ var files = [
   'test/models/service/yarn_test',
   'test/models/alerts/alert_config_test',
   'test/models/alerts/alert_definition_test',
+  'test/models/alerts/alert_group_test',
   'test/models/alerts/alert_instance_test',
   'test/models/authentication_test',
   'test/models/cluster_states_test',
@@ -324,6 +326,8 @@ var files = [
   'test/models/configs/objects/service_config_test',
   'test/models/configs/objects/service_config_category_test',
   'test/models/configs/objects/service_config_property_test',
+  'test/models/configs/theme/tab_test',
+  'test/models/stack_version/repository_version_test',
   'test/routes/views_test',
   //contains test with fake timers that affect Date
   'test/utils/lazy_loading_test'
