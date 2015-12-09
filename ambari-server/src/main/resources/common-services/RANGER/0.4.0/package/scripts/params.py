@@ -23,6 +23,8 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.constants import Direction
 
 # a map of the Ambari role to the component name
 # for use with /usr/hdp/current/<component>
@@ -50,8 +52,15 @@ create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
 stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
 stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
+downgrade_from_version = default("/commandParams/downgrade_from_version", None)
+upgrade_direction = default("/commandParams/upgrade_direction", None)
+
 ranger_conf    = '/etc/ranger/admin/conf'
 ranger_ugsync_conf = '/etc/ranger/usersync/conf'
+
+if upgrade_direction == Direction.DOWNGRADE and compare_versions(format_hdp_stack_version(version),'2.3' ) < 0:
+  stack_is_hdp22_or_further = True
+  stack_is_hdp23_or_further = False
 
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'
