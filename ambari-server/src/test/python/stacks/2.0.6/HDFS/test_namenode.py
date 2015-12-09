@@ -1399,6 +1399,42 @@ class TestNamenode(RMFTestCase):
     self.assertTrue(len(calls) >= 1)
     self.assertTrue(calls[0].startsWith("conf-select create-conf-dir --package hadoop --stack-version 2.3.2.0-2844 --conf-version 0"))
 
+
+  @patch("hdfs_namenode.is_active_namenode")
+  @patch("resource_management.libraries.functions.setup_ranger_plugin_xml.setup_ranger_plugin")
+  @patch("utils.get_namenode_states")
+  def test_upgrade_restart_eu_with_ranger(self, get_namenode_states_mock, setup_ranger_plugin_mock, is_active_nn_mock):
+    is_active_nn_mock.return_value = True
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_eu.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.4.0-1111'
+    json_content['commandParams']['version'] = version
+
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    mocks_dict = {}
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "start",
+                       command_args=["nonrolling"],
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
+                       mocks_dict=mocks_dict)
+
+    self.assertTrue(setup_ranger_plugin_mock.called)
+
+    self.assertResourceCalledByIndex(7, 'Execute',
+      ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
+      only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',
+      sudo=True)
+
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
