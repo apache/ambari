@@ -105,7 +105,6 @@ var files = [
   'test/controllers/login_controller_test',
   'test/controllers/experimental_test',
   'test/controllers/wizard_test',
-  'test/controllers/wizard/slave_component_groups_controller',
   'test/controllers/wizard/step0_test',
   'test/controllers/wizard/step2_test',
   'test/controllers/wizard/step3_test',

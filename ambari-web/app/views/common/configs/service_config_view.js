@@ -182,7 +182,7 @@ App.ServiceConfigView = Em.View.extend({
     }
     this.processTabs(tabs);
     return tabs;
-  }.property('controller.selectedServiceNameTrigger'),
+  }.property('controller.selectedService.serviceName', 'App.isClusterSupportsEnhancedConfigs'),
 
   /**
    * Set active tab when view attached and configs are linked to tabs.
