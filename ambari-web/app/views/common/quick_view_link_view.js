@@ -147,7 +147,7 @@ App.QuickViewLinks = Em.View.extend({
     if (hosts.length === 0 || Em.isNone(this.get('content.quickLinks'))) {
       this.setEmptyLinks();
     } else if (hosts.length === 1) {
-      this.setSingleHostLinks(hosts);
+      this.setSingleHostLinks(hosts, response);
     } else {
       this.setMultipleHostLinks(hosts);
     }
@@ -194,7 +194,7 @@ App.QuickViewLinks = Em.View.extend({
    * set links that contain only one host
    * @param {Array} hosts
    */
-  setSingleHostLinks: function (hosts) {
+  setSingleHostLinks: function (hosts, response) {
     var quickLinks = this.get('content.quickLinks').map(function (item) {
       var protocol = this.setProtocol(item.get('serviceName'), this.get('configProperties'), this.get('ambariProperties'), item);
       var publicHostName = hosts[0].publicHostName;

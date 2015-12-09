@@ -189,6 +189,17 @@ var serviceConfigProperty,
         recommendedValue: 'recommended'
       },
       result: {
+        value: '',
+        recommendedValue: 'recommended'
+      }
+    },
+    {
+      initial: {
+        value: null,
+        savedValue: 'default',
+        recommendedValue: 'recommended'
+      },
+      result: {
         value: 'default',
         recommendedValue: 'recommended'
       }

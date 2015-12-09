@@ -235,10 +235,10 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('isUserProperty', 'isOriginalSCP', 'overrides.length', 'isRequiredByAgent'),
 
   init: function () {
-    if (this.get('value') == '') {
-      if (this.get('savedValue')) {
+    if (Em.isNone(this.get('value'))) {
+      if (!Em.isNone(this.get('savedValue'))) {
         this.set('value', this.get('savedValue'));
-      } else if (this.get('recommendedValue')) {
+      } else if (!Em.isNone(this.get('recommendedValue'))) {
         this.set('value', this.get('recommendedValue'));
       }
     }
