@@ -99,12 +99,12 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
   try:
     if return_only_http_code:
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-w',
                              '%{http_code}', url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout), '-o', '/dev/null'],
                              user=user, env=kerberos_env)
     else:
       # returns response body
-      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
+      _, curl_stdout, curl_stderr = get_user_call_output(['curl', '-L', '-k', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file,
                              url, '--connect-timeout', str(connection_timeout), '--max-time', str(maximum_timeout)],
                              user=user, env=kerberos_env)
   except Fail:
