@@ -311,7 +311,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         and services['configurations'] \
         and 'admin-properties' in services['configurations'] and 'policymgr_external_url' in services['configurations']['admin-properties']['properties'] \
         and services['configurations']['admin-properties']['properties']['policymgr_external_url'] \
-        and not services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip().isempty():
+        and services['configurations']['admin-properties']['properties']['policymgr_external_url'].strip():
 
         # in case of HA deployment keep the policymgr_external_url specified in the config
         policymgr_external_url = services['configurations']['admin-properties']['properties']['policymgr_external_url']
