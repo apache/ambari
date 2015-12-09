@@ -1204,6 +1204,9 @@ class TestNamenode(RMFTestCase):
                               logoutput = False,
                               on_new_line = FunctionMock('handle_new_line'),
                               )
+    self.assertResourceCalled('File', ccache_path,
+                              action = ['delete'],
+                              )
     self.assertNoMoreResources()
 
   @patch("os.path.isfile")
