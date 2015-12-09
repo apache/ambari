@@ -189,11 +189,6 @@ class InstallPackages(Script):
       Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
       return
 
-    # if already on HDP 2.3, then there's nothing to do in terms of linking configs
-    if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
-      Logger.info("The current cluster stack of {0} does not require linking configurations".format(stack_version))
-      return
-
     # link configs for all known packages
     for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
       conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
