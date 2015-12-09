@@ -26,7 +26,7 @@ from datetime import datetime
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 
 from resource_management import Script
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Execute, File
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
@@ -369,9 +369,11 @@ class NameNodeDefault(NameNode):
             logoutput = False,
     )
 
-    if params.security_enabled and os.path.exists(ccache_file_path):
+    if params.security_enabled:
       # Delete the kerberos credentials cache (ccache) file
-      os.remove(ccache_file_path)
+      File(ccache_file_path,
+           action = "delete",
+      )
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class NameNodeWindows(NameNode):
