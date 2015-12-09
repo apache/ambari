@@ -17,15 +17,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+
+import re
 import time
 import sys
+import urllib2
+import base64
+import httplib
+
+# simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+import ambari_simplejson as json
+
 from StringIO import StringIO as BytesIO
-import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
+from ambari_commons.inet_utils import openurl
 from resource_management.core.logger import Logger
-import urllib2, base64, httplib
+from ambari_commons.exceptions import TimeoutError
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.decorator import safe_retry
 from resource_management.libraries.functions.format import format
-import re
+
 
 class RangeradminV2:
   sInstance = None
@@ -45,6 +55,7 @@ class RangeradminV2:
     if self.skip_if_rangeradmin_down:
       Logger.info("RangeradminV2: Skip ranger admin if it's down !")
 
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def get_repository_by_name_urllib2(self, name, component, status, usernamepassword):
     """
     :param name: name of the component, from which, function will search in list of repositories
@@ -60,7 +71,7 @@ class RangeradminV2:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request, timeout=20)
+      result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response) > 0:
@@ -80,6 +91,8 @@ class RangeradminV2:
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
+    except TimeoutError:
+      raise Fail("Connection to Ranger Admin failed. Reason - timeout")
       
     
   def create_ranger_repository(self, component, repo_name, repo_properties, 
@@ -119,7 +132,7 @@ class RangeradminV2:
     elif not self.skip_if_rangeradmin_down:
       Logger.error("Connection failed to Ranger Admin !")
 
-          
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def create_repository_urllib2(self, data, usernamepassword):
     """
     :param data: json object to create repository
@@ -135,7 +148,7 @@ class RangeradminV2:
       }
       request = urllib2.Request(search_repo_url, data, headers)
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request, timeout=20)
+      result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(json.JSONEncoder().encode(result.read()))
 
@@ -154,7 +167,10 @@ class RangeradminV2:
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
+    except TimeoutError:
+      raise Fail("Connection to Ranger Admin failed. Reason - timeout")
 
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
   def check_ranger_login_urllib2(self, url):
     """
     :param url: ranger admin host url
@@ -162,7 +178,7 @@ class RangeradminV2:
     :return: Returns login check response 
     """
     try:
-      response = urllib2.urlopen(url, timeout=20)
+      response = openurl(url, timeout=20)
       response_code = response.getcode()
       return response_code
     except urllib2.URLError, e:
@@ -174,11 +190,15 @@ class RangeradminV2:
     except httplib.BadStatusLine, e:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
+    except TimeoutError:
+      raise Fail("Connection failed to Ranger Admin. Reason - timeout")
 
-  def create_ambari_admin_user(self,ambari_admin_username, ambari_admin_password,usernamepassword):
+  @safe_retry(times=5, sleep_time=8, backoff_factor=1.5, err_class=Fail, return_on_fail=None)
+  def create_ambari_admin_user(self, ambari_admin_username, ambari_admin_password, usernamepassword):
     """
     :param ambari_admin_username: username of user to be created 
-    :param ambari_admin_username: user password of user to be created 
+    :param ambari_admin_password: user password of user to be created
+    :param usernamepassword: user credentials using which repository needs to be searched.
     :return: Returns user credentials if user exist otherwise rerutns credentials of  created user.
     """
     flag_ambari_admin_present = False
@@ -192,7 +212,7 @@ class RangeradminV2:
       request.add_header("Content-Type", "application/json")
       request.add_header("Accept", "application/json")
       request.add_header("Authorization", "Basic {0}".format(base_64_string))
-      result = urllib2.urlopen(request, timeout=20)
+      result = openurl(request, timeout=20)
       response_code = result.getcode()
       response = json.loads(result.read())
       if response_code == 200 and len(response['vXUsers']) >= 0:
@@ -224,8 +244,8 @@ class RangeradminV2:
           }
           request = urllib2.Request(url, data, headers)
           request.add_header("Authorization", "Basic {0}".format(base_64_string))
-          result = urllib2.urlopen(request, timeout=20)
-          response_code =  result.getcode()
+          result = openurl(request, timeout=20)
+          response_code = result.getcode()
           response = json.loads(json.JSONEncoder().encode(result.read()))
           if response_code == 200 and response is not None:
             Logger.info('Ambari admin user creation successful.')
@@ -245,3 +265,5 @@ class RangeradminV2:
     except httplib.BadStatusLine:
       Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
       return None
+    except TimeoutError:
+      raise Fail("Connection to Ranger Admin failed. Reason - timeout")
