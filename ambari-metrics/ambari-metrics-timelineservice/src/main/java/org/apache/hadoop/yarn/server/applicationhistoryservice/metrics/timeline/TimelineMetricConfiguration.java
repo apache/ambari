@@ -263,9 +263,9 @@ public class TimelineMetricConfiguration {
 
   public int getTimelineMetricsServiceWatcherInitDelay() {
     if (metricsConf != null) {
-      return Integer.parseInt(metricsConf.get(WATCHER_INITIAL_DELAY, "120"));
+      return Integer.parseInt(metricsConf.get(WATCHER_INITIAL_DELAY, "600"));
     }
-    return 120;
+    return 600;
   }
 
   public int getTimelineMetricsServiceWatcherDelay() {
