@@ -25,6 +25,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
@@ -39,6 +40,8 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
+if version is None:
+  version = get_hdp_version('knox-server')
 # E.g., 2.3.2.0
 version_formatted = format_hdp_stack_version(version)
 
