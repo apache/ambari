@@ -5975,6 +5975,128 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
   }
 
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueFormatWithPlainFlowStyleSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value1','test_value2']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value1,test_value2]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
 
   private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
     Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();
