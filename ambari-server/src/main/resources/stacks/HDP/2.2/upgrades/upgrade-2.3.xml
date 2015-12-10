@@ -860,10 +860,6 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
           
           <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
-          
-          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_cluster_logs_content"/>
-          
-          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_worker_logs_content"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
 
