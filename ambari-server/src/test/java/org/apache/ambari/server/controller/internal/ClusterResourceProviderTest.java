@@ -156,6 +156,9 @@ public class ClusterResourceProviderTest {
     expect(requestStatusResponse.getRequestId()).andReturn(5150L).anyTimes();
 
     replayAll();
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     RequestStatus requestStatus = provider.createResources(request);
     assertEquals(5150L, requestStatus.getRequestResource().getPropertyValue(PropertyHelper.getPropertyId("Requests", "id")));
     assertEquals(Resource.Type.Request, requestStatus.getRequestResource().getType());
