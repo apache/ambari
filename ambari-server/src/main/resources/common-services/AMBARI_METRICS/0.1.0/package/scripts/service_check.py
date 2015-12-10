@@ -38,7 +38,7 @@ import socket
 class AMSServiceCheck(Script):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
-  AMS_CONNECT_TRIES = 40
+  AMS_CONNECT_TRIES = 30
   AMS_CONNECT_TIMEOUT = 15
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -67,15 +67,15 @@ class AMSServiceCheck(Script):
     env.set_params(params)
 
     random_value1 = random.random()
-    current_time = int(time.time()) * 1000
-    metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
-                           current_time=current_time).get_content()
-    Logger.info("Generated metrics:\n%s" % metric_json)
-
     headers = {"Content-type": "application/json"}
 
     for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
+        current_time = int(time.time()) * 1000
+        metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
+                           current_time=current_time).get_content()
+        Logger.info("Generated metrics:\n%s" % metric_json)
+
         Logger.info("Connecting (POST) to %s:%s%s" % (params.metric_collector_host,
                                                       params.metric_collector_port,
                                                       self.AMS_METRICS_POST_URL))
