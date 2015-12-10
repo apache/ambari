@@ -36,7 +36,7 @@
       {{/each}}
     </ul>
   </div>
-  {{#isAuthorized "CLUSTER.UPGRADE_DOWNGRADE_STACK"}}
+  {{#isAuthorized "AMBARI.MANAGE_STACK_VERSIONS"}}
     <button class="btn btn-primary pull-right" {{action goToVersions target="view"}} id="manage-versions-link">
       <i class="icon-external-link"></i>&nbsp;{{t admin.stackVersions.manageVersions}}
     </button>
