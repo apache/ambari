@@ -215,6 +215,26 @@ public class AuthorizationHelper {
    *
    * @param resourceType           a resource type being acted upon
    * @param resourceId             the resource id (relative to the resource type) being acted upon
+   * @param requiredAuthorization the required authorization
+   * @throws AuthorizationException if authorization is not granted
+   * @see #isAuthorized(ResourceType, Long, Set)
+   */
+  public static void verifyAuthorization(ResourceType resourceType,
+                                         Long resourceId,
+                                         RoleAuthorization requiredAuthorization)
+      throws AuthorizationException {
+    verifyAuthorization(resourceType, resourceId, EnumSet.of(requiredAuthorization));
+  }
+
+  /**
+   * Determines if the authenticated user (from application's security context) is authorized to
+   * perform an operation on the the specific resource by matching the authenticated user's
+   * authorizations with one from the provided set of authorizations.
+   * <p/>
+   * If not authorized, an {@link AuthorizationException} will be thrown.
+   *
+   * @param resourceType           a resource type being acted upon
+   * @param resourceId             the resource id (relative to the resource type) being acted upon
    * @param requiredAuthorizations a set of requirements for which one match will allow authorization
    * @throws AuthorizationException if authorization is not granted
    * @see #isAuthorized(ResourceType, Long, Set)

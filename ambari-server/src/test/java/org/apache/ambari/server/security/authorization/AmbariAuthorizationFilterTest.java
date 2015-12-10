@@ -202,7 +202,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
     urlTests.put("/api/v1/views", "GET", true);
-    urlTests.put("/api/v1/views", "POST", false);
+    urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", false);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
@@ -213,10 +213,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", true);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
@@ -235,7 +235,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
     urlTests.put("/api/v1/views", "GET", true);
-    urlTests.put("/api/v1/views", "POST", false);
+    urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", true);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
@@ -246,10 +246,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", true);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
@@ -281,8 +281,8 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
     urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", true);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
@@ -301,7 +301,7 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/cluster", "GET",  true);
     urlTests.put("/api/v1/clusters/cluster", "POST",  true);
     urlTests.put("/api/v1/views", "GET", true);
-    urlTests.put("/api/v1/views", "POST", false);
+    urlTests.put("/api/v1/views", "POST", true);
     urlTests.put("/api/v1/persist/SomeValue", "GET", true);
     urlTests.put("/api/v1/persist/SomeValue", "POST", false);
     urlTests.put("/api/v1/clusters/c1/credentials/ambari.credential", "POST", true);
@@ -312,10 +312,10 @@ public class AmbariAuthorizationFilterTest {
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "PUT", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "GET", true);
     urlTests.put("/api/v1/clusters/c1/credentials/cluster.credential", "DELETE", true);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", false);
-    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", false);
-    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", false);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "GET", true);
+    urlTests.put("/views/AllowedView/SomeVersion/SomeInstance", "POST", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "GET", true);
+    urlTests.put("/views/DeniedView/AnotherVersion/AnotherInstance", "POST", true);
     urlTests.put("/api/v1/users/user1", "GET", true);
     urlTests.put("/api/v1/users/user1", "POST", true);
     urlTests.put("/api/v1/users/user2", "GET", true);
@@ -442,21 +442,6 @@ public class AmbariAuthorizationFilterTest {
       } catch (AssertionError error) {
         throw new Exception("verify( failed on " + urlTest.getColumnKey() + " " + urlTest.getRowKey(), error);
       }
-    }
-  }
-
-  @Test
-  public void testParseViewContextPath() throws Exception {
-    final String[] pathesToTest = {
-        AmbariAuthorizationFilter.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1",
-        AmbariAuthorizationFilter.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1/index.html",
-        AmbariAuthorizationFilter.VIEWS_CONTEXT_PATH_PREFIX + "MY_VIEW/1.0.0/INSTANCE1/api/test"
-    };
-    for (String contextPath: pathesToTest) {
-      final ViewInstanceVersionDTO dto = AmbariAuthorizationFilter.parseViewInstanceInfo(contextPath);
-      Assert.assertEquals("INSTANCE1", dto.getInstanceName());
-      Assert.assertEquals("MY_VIEW", dto.getViewName());
-      Assert.assertEquals("1.0.0", dto.getVersion());
     }
   }
 }

@@ -76,6 +76,14 @@ public class TestAuthenticationFactory {
     return new TestAuthorization(name, Collections.singleton(createClusterUserGrantedAuthority()));
   }
 
+  public static Authentication createViewUser(Long viewResourceId) {
+    return createViewUser("viewUser", viewResourceId);
+  }
+
+  public static Authentication createViewUser(String name, Long viewResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createViewUserGrantedAuthority(viewResourceId)));
+  }
+
   private static GrantedAuthority createAdministratorGrantedAuthority() {
     return new AmbariGrantedAuthority(createAdministratorPrivilegeEntity());
   }
@@ -94,6 +102,10 @@ public class TestAuthenticationFactory {
 
   private static GrantedAuthority createClusterUserGrantedAuthority() {
     return new AmbariGrantedAuthority(createClusterUserPrivilegeEntity());
+  }
+
+  private static GrantedAuthority createViewUserGrantedAuthority(Long resourceId) {
+    return new AmbariGrantedAuthority(createViewUserPrivilegeEntity(resourceId));
   }
 
   private static PrivilegeEntity createAdministratorPrivilegeEntity() {
@@ -128,6 +140,13 @@ public class TestAuthenticationFactory {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
     privilegeEntity.setResource(createClusterResourceEntity());
     privilegeEntity.setPermission(createClusterUserPermission());
+    return privilegeEntity;
+  }
+
+  private static PrivilegeEntity createViewUserPrivilegeEntity(Long resourceId) {
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    privilegeEntity.setResource(createViewResourceEntity(resourceId));
+    privilegeEntity.setPermission(createViewUserPermission());
     return privilegeEntity;
   }
 
@@ -251,6 +270,15 @@ public class TestAuthenticationFactory {
     return permissionEntity;
   }
 
+  private static PermissionEntity createViewUserPermission() {
+    PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
+        RoleAuthorization.VIEW_USE
+    )));
+    return permissionEntity;
+  }
+
   private static ResourceEntity createAmbariResourceEntity() {
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setId(null);
@@ -265,10 +293,23 @@ public class TestAuthenticationFactory {
     return resourceEntity;
   }
 
+  private static ResourceEntity createViewResourceEntity(Long resourceId) {
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setId(resourceId);
+    if(resourceId != null) {
+      resourceEntity.setResourceType(createResourceTypeEntity(ResourceType.VIEW.name(), resourceId.intValue()));
+    }
+    return resourceEntity;
+  }
+
   private static ResourceTypeEntity createResourceTypeEntity(ResourceType resourceType) {
+    return createResourceTypeEntity(resourceType.name(), resourceType.getId());
+  }
+
+  private static ResourceTypeEntity createResourceTypeEntity(String resourceName, Integer resourceId) {
     ResourceTypeEntity resourceTypeEntity = new ResourceTypeEntity();
-    resourceTypeEntity.setId(resourceType.getId());
-    resourceTypeEntity.setName(resourceType.name());
+    resourceTypeEntity.setId(resourceId.intValue());
+    resourceTypeEntity.setName(resourceName);
     return resourceTypeEntity;
   }
 

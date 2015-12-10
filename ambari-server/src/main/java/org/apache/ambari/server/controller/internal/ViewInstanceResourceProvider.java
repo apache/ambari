@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.validation.InstanceValidationResultImpl;
 import org.apache.ambari.server.view.validation.ValidationException;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.view.validation.ValidationResultImpl;
 import org.apache.ambari.view.validation.Validator;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -50,7 +52,7 @@ import java.util.Set;
 /**
  * Resource provider for view instances.
  */
-public class ViewInstanceResourceProvider extends AbstractResourceProvider {
+public class ViewInstanceResourceProvider extends AbstractAuthorizedResourceProvider {
 
   /**
    * View instance property id constants.
@@ -118,13 +120,18 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
    */
   public ViewInstanceResourceProvider() {
     super(propertyIds, keyPropertyIds);
+
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.AMBARI_MANAGE_VIEWS);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
   }
 
 
   // ----- ResourceProvider --------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException, UnsupportedPropertyException,
              ResourceAlreadyExistsException, NoSuchParentResourceException {
     for (Map<String, Object> properties : request.getProperties()) {
@@ -176,7 +183,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Iterator<Map<String,Object>> iterator = request.getProperties().iterator();
@@ -191,7 +198,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     modifyResources(getDeleteCommand(predicate));

@@ -26,13 +26,18 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.ViewDefinition;
 import org.easymock.Capture;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +60,11 @@ public class ViewInstanceResourceProviderTest {
   @Before
   public void before() {
     reset(singleton);
+  }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
@@ -108,7 +118,16 @@ public class ViewInstanceResourceProviderTest {
   }
 
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
     Set<Map<String, Object>> properties = new HashSet<Map<String, Object>>();
@@ -155,6 +174,8 @@ public class ViewInstanceResourceProviderTest {
     expect(singleton.checkAdmin()).andReturn(false);
 
     replay(singleton);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     // as admin
     provider.createResources(PropertyHelper.getCreateRequest(properties, null));
@@ -204,6 +225,8 @@ public class ViewInstanceResourceProviderTest {
 
     replay(singleton);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     try {
       provider.createResources(PropertyHelper.getCreateRequest(properties, null));
       fail("Expected ResourceAlreadyExistsException.");
@@ -243,6 +266,8 @@ public class ViewInstanceResourceProviderTest {
 
     replay(singleton);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     try {
       provider.createResources(PropertyHelper.getCreateRequest(properties, null));
       fail("Expected IllegalStateException.");
@@ -280,6 +305,8 @@ public class ViewInstanceResourceProviderTest {
 
     replay(singleton);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     provider.updateResources(PropertyHelper.getCreateRequest(properties, null), predicate);
 
     Assert.assertNull(viewInstanceEntity.getIcon());
@@ -288,7 +315,16 @@ public class ViewInstanceResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResources_viewNotLoaded() throws Exception {
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
 
     PredicateBuilder predicateBuilder = new PredicateBuilder();
@@ -307,6 +343,7 @@ public class ViewInstanceResourceProviderTest {
 
     replay(singleton);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
     provider.deleteResources(predicate);
 
     verify(singleton);
