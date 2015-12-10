@@ -263,6 +263,9 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties">
+        <task xsi:type="server_action" summary="Calculating Yarn Properties" class="org.apache.ambari.server.serveraction.upgrades.YarnConfigCalculation" />
+      </execute-stage>
 
       <!--HBASE-->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
