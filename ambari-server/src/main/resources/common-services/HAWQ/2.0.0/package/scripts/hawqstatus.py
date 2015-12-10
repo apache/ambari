@@ -24,7 +24,7 @@ from resource_management.core.exceptions import Fail
 
 import utils
 import common
-import constants
+import hawq_constants
 
 
 def get_pid_file():
@@ -37,10 +37,10 @@ def get_pid_file():
   
   component_name = config['componentName']
   component = "master" if component_name in ["HAWQMASTER", "HAWQSTANDBY"] else "segment"
-  hawq_pid_file = os.path.join(constants.hawq_pid_dir, "hawq-{0}.pid".format(component))
+  hawq_pid_file = os.path.join(hawq_constants.hawq_pid_dir, "hawq-{0}.pid".format(component))
 
   File(hawq_pid_file, action='delete')
-  utils.create_dir_as_hawq_user(constants.hawq_pid_dir)
+  utils.create_dir_as_hawq_user(hawq_constants.hawq_pid_dir)
 
   #Get hawq_master_directory or hawq_segment_directory value from hawq-site.xml depending 
   #on the component
@@ -49,7 +49,7 @@ def get_pid_file():
   #hawq-site content from Ambari server will not be available when the 
   #command type is STATUS_COMMAND. Hence, reading it directly from the local file
   postmaster_pid_file = os.path.join(common.get_local_hawq_site_property(
-      hawq_site_directory_property), constants.postmaster_pid_filename)
+      hawq_site_directory_property), hawq_constants.postmaster_pid_filename)
 
   pid = ""
   if os.path.exists(postmaster_pid_file):
@@ -59,6 +59,6 @@ def get_pid_file():
   if not pid:
     raise Fail("Failed to fetch pid from {0}".format(postmaster_pid_file))
 
-  File(hawq_pid_file, content=pid, owner=constants.hawq_user, group=constants.hawq_user)
+  File(hawq_pid_file, content=pid, owner=hawq_constants.hawq_user, group=hawq_constants.hawq_user)
 
   return hawq_pid_file
