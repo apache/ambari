@@ -480,7 +480,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       Cluster cluster = clusters.getCluster(request.getClusterName());
 
       if(runSmokeTest) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
           throw new AuthorizationException("The authenticated user is not authorized to run service checks");
         }
       }
@@ -567,7 +567,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         continue;
       }
 
-      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(),
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
           EnumSet.of(RoleAuthorization.SERVICE_START_STOP, RoleAuthorization.SERVICE_ADD_DELETE_SERVICES,
               RoleAuthorization.HOST_ADD_DELETE_COMPONENTS, RoleAuthorization.HOST_ADD_DELETE_HOSTS))) {
         throw new AuthorizationException("The authenticated user is not authorized to change the state of service components");

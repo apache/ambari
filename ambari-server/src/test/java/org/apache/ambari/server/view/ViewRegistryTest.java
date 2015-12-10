@@ -79,6 +79,7 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -1283,12 +1284,14 @@ public class ViewRegistryTest {
 
     expect(viewEntity.getInstances()).andReturn(instances);
     expect(instanceEntity.getResource()).andReturn(resourceEntity);
+    expect(resourceEntity.getId()).andReturn(54L).anyTimes();
     expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
-    expect(resourceTypeEntity.getId()).andReturn(1).anyTimes();
+    expect(resourceTypeEntity.getId()).andReturn(ResourceType.VIEW.getId()).anyTimes();
+    expect(resourceTypeEntity.getName()).andReturn(ResourceType.VIEW.name()).anyTimes();
 
     replay(viewEntity, instanceEntity, resourceEntity, resourceTypeEntity, configuration);
 
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser(resourceEntity.getResourceType().getId().longValue()));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser(resourceEntity.getId()));
 
     Assert.assertTrue(registry.includeDefinition(viewEntity));
 

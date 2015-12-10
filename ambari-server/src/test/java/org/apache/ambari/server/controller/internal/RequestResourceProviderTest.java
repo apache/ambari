@@ -174,6 +174,7 @@ public class RequestResourceProviderTest {
 
     Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Clusters clusters = createNiceMock(Clusters.class);
     expect(clusters.getCluster("foo_cluster")).andReturn(cluster).anyTimes();
@@ -913,6 +914,7 @@ public class RequestResourceProviderTest {
 
     Cluster cluster = createMock(Cluster.class);
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Clusters clusters = createMock(Clusters.class);
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
@@ -1009,6 +1011,7 @@ public class RequestResourceProviderTest {
 
     Cluster cluster = createMock(Cluster.class);
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Clusters clusters = createMock(Clusters.class);
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
@@ -1129,6 +1132,7 @@ public class RequestResourceProviderTest {
 
     Cluster cluster = createMock(Cluster.class);
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Clusters clusters = createMock(Clusters.class);
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();

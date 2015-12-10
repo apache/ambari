@@ -231,7 +231,7 @@ public class CompatibleRepositoryVersionResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("admin"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("admin", 2L));
 
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 

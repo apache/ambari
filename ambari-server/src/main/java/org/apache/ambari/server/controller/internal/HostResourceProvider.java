@@ -686,6 +686,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       String clusterName = request.getClusterName();
       Cluster cluster = clusters.getCluster(clusterName);
       Long clusterId = cluster.getClusterId();
+      Long resourceId = cluster.getResourceId();
 
       try {
         // The below method call throws an exception when trying to create a duplicate mapping in the clusterhostmapping
@@ -696,7 +697,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       }
 
       if (null != request.getHostAttributes()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusterId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
           throw new AuthorizationException("The authenticated user is not authorized to update host attributes");
         }
         host.setHostAttributes(request.getHostAttributes());
@@ -707,21 +708,21 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       boolean rackChange      = requestRackInfo != null && !requestRackInfo.equals(rackInfo);
 
       if (rackChange) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusterId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
           throw new AuthorizationException("The authenticated user is not authorized to update host rack information");
         }
         host.setRackInfo(requestRackInfo);
       }
 
       if (null != request.getPublicHostName()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusterId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_ADD_DELETE_HOSTS)) {
           throw new AuthorizationException("The authenticated user is not authorized to update host attributes");
         }
         host.setPublicHostName(request.getPublicHostName());
       }
       
       if (null != clusterName && null != request.getMaintenanceState()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusterId, RoleAuthorization.HOST_TOGGLE_MAINTENANCE)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, resourceId, RoleAuthorization.HOST_TOGGLE_MAINTENANCE)) {
           throw new AuthorizationException("The authenticated user is not authorized to update host maintenance state");
         }
         MaintenanceState newState = MaintenanceState.valueOf(request.getMaintenanceState());
@@ -756,12 +757,12 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
             }
 
             if(StringUtils.isEmpty(service)) {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
+              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
                 throw new AuthorizationException("The authenticated user does not have authorization to modify cluster configurations");
               }
             }
             else {
-              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+              if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
                 throw new AuthorizationException("The authenticated user does not have authorization to modify service configurations");
               }
             }

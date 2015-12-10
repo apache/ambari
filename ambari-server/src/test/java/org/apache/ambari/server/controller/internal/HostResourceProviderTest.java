@@ -902,6 +902,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();
@@ -995,6 +996,7 @@ public class HostResourceProviderTest extends EasyMockSupport {
     cluster.recalculateAllClusterVersionStates();
     expectLastCall().anyTimes();
     expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
     expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
     expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
     expect(hostResponse1.getHealthStatus()).andReturn(healthStatus).anyTimes();

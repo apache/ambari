@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.api.services;
 
+import com.sun.jersey.spi.container.ContainerRequest;
 import org.apache.ambari.server.api.handlers.RequestHandler;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;

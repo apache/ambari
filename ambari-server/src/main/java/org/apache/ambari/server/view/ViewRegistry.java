@@ -1395,20 +1395,7 @@ public class ViewRegistry {
 
   // check that the current user is authorized to access the given view instance resource
   private boolean checkAuthorization(ResourceEntity resourceEntity) {
-    Long resourceId = null;
-
-    // Get the relevant resource id from the ResourceEntity. Essentially, this will need to be
-    // the resource's Id, but for now it needs to be the resource type Id due to the existing architecture
-    // of the authorization (admin*) tables.
-    if(resourceEntity != null) {
-      ResourceTypeEntity resourceType = resourceEntity.getResourceType();
-
-      if(resourceType != null) {
-        Integer resourceTypeId = resourceType.getId();
-        if (resourceTypeId != null)
-          resourceId = resourceTypeId.longValue();
-      }
-    }
+    Long resourceId = (resourceEntity == null) ? null : resourceEntity.getId();
 
     return (resourceId == null)
         ? AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_VIEWS)

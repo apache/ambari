@@ -281,7 +281,7 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           List<OperatingSystemEntity> operatingSystemEntities = null;
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
-            if(!AuthorizationHelper.isAuthorized(ResourceType.AMBARI,null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
               throw new AuthorizationException("The authenticated user does not have authorization to modify stack repositories");
             }
 

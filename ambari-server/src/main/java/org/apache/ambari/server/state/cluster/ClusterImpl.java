@@ -640,6 +640,18 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
+  public Long getResourceId() {
+    ResourceEntity resourceEntity = clusterEntity.getResource();
+    if (resourceEntity == null) {
+      LOG.warn("There is no resource associated with this cluster:\n\tCluster Name: {}\n\tCluster ID: {}",
+          getClusterName(), getClusterId());
+      return null;
+    } else {
+      return resourceEntity.getId();
+    }
+  }
+
+  @Override
   public void addServiceComponentHosts(Collection<ServiceComponentHost> serviceComponentHosts) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {

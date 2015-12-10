@@ -296,7 +296,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
             "Attempted to add a component to a cluster which doesn't exist:", e);
       }
 
-      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to create components");
       }
 
@@ -741,7 +741,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       if (newState != oldScState) {
         // The if user is trying to start or stop the component, ensure authorization
         if (((newState == State.INSTALLED) || (newState == State.STARTED)) &&
-            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_START_STOP)) {
+            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_START_STOP)) {
           throw new AuthorizationException("The authenticated user is not authorized to start or stop components of services");
         }
 
@@ -882,7 +882,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
               "Attempted to add a component to a cluster which doesn't exist:", e);
       }
 
-      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to delete components");
       }
 

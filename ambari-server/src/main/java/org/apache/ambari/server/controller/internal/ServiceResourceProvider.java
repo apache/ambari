@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -375,7 +374,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
             + ", request=" + request);
       }
 
-      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(request.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(request.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
         throw new AuthorizationException("The user is not authorized to create services");
       }
 
@@ -637,7 +636,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
 
       // Setting Maintenance state for service
       if (null != request.getMaintenanceState()) {
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_TOGGLE_MAINTENANCE)) {
           throw new AuthorizationException("The authenticated user is not authorized to toggle the maintainence state of services");
         }
 
@@ -675,7 +674,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       if (newState != oldState) {
         // The if user is trying to start or stop the service, ensure authorization
         if (((newState == State.INSTALLED) || (newState == State.STARTED)) &&
-            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getClusterId(), RoleAuthorization.SERVICE_START_STOP)) {
+            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_START_STOP)) {
           throw new AuthorizationException("The authenticated user is not authorized to start or stop services");
         }
 
@@ -884,7 +883,7 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
         throw new AmbariException("invalid arguments");
       } else {
 
-        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(serviceRequest.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+        if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(serviceRequest.getClusterName()), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
           throw new AuthorizationException("The user is not authorized to delete services");
         }
 

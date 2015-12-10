@@ -175,7 +175,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
           // TODO: Perform authorization check for this?
         }
         else if(actionRequest.isCommand()) {
-          if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
+          if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
             throw new AuthorizationException("The authenticated user is not authorized to execute custom service commands.");
           }
         }
@@ -184,12 +184,12 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
           // actionName is expected to not be null since the action request is not a command
           if(actionName.contains("SERVICE_CHECK")) {
-            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
               throw new AuthorizationException("The authenticated user is not authorized to execute service checks.");
             }
           }
           else if(actionName.equals("DECOMMISSION")) {
-            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterId(clusterName), RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
               throw new AuthorizationException("The authenticated user is not authorized to decommission services.");
             }
           }

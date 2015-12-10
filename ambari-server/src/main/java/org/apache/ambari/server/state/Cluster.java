@@ -55,6 +55,11 @@ public interface Cluster {
   void setClusterName(String clusterName);
 
   /**
+   * Gets the Cluster's resource ID
+   */
+  Long getResourceId();
+
+  /**
    * Add a service to a cluster
    * @param service
    */

@@ -77,15 +77,15 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
   // ----- utility methods ---------------------------------------------------
 
   /**
-   * Gets the cluster id for the named cluster
+   * Gets the resource id for the named cluster
    *
    * @param clusterName the name of the relevant cluster
-   * @return the cluster id or null if not found
+   * @return the resource id or null if not found
    * @throws AmbariException if the named cluster does not exist
    */
-  protected Long getClusterId(String clusterName) throws AmbariException {
+  protected Long getClusterResourceId(String clusterName) throws AmbariException {
     Cluster cluster = managementController.getClusters().getCluster(clusterName);
-    return (cluster == null) ? null : cluster.getClusterId();
+    return (cluster == null) ? null : cluster.getResourceId();
   }
 
   /**

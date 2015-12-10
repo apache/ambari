@@ -233,12 +233,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testCreateResourcesAsAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testCreateResourcesAsClusterAdministrator() throws Exception {
-    testCreateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testCreateResources(Authentication authentication) throws Exception {
@@ -268,12 +268,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testGetResourcesAsAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testGetResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test
   public void testGetResourcesAsClusterAdministrator() throws Exception {
-    testGetResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testGetResources(Authentication authentication) throws Exception {
@@ -376,12 +376,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testDeleteResourcesAsAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testDeleteResourcesAsClusterAdministrator() throws Exception {
-    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testDeleteResources(Authentication authentication) throws Exception {
@@ -416,12 +416,12 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testUpdateResourcesAsAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
   }
 
   @Test(expected = AuthorizationException.class)
   public void testUpdateResourcesAsClusterAdministrator() throws Exception {
-    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator("User1"));
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
   }
 
   private void testUpdateResources(Authentication authentication) throws Exception {

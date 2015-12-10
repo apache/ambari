@@ -45,35 +45,35 @@ public class TestAuthenticationFactory {
   }
 
   public static Authentication createClusterAdministrator() {
-    return createClusterAdministrator("clusterAdmin");
+    return createClusterAdministrator("clusterAdmin", 4L);
   }
 
-  public static Authentication createClusterAdministrator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority()));
+  public static Authentication createClusterAdministrator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createClusterAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceAdministrator() {
-    return createServiceAdministrator("serviceAdmin");
+    return createServiceAdministrator("serviceAdmin", 4L);
   }
 
-  public static Authentication createServiceAdministrator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority()));
+  public static Authentication createServiceAdministrator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createServiceAdministratorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createServiceOperator() {
-    return createServiceOperator("serviceOp");
+    return createServiceOperator("serviceOp", 4L);
   }
 
-  public static Authentication createServiceOperator(String name) {
-    return new TestAuthorization(name, Collections.singleton(createServiceOperatorGrantedAuthority()));
+  public static Authentication createServiceOperator(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createServiceOperatorGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createClusterUser() {
-    return createClusterUser("clusterUser");
+    return createClusterUser("clusterUser", 4L);
   }
 
-  public static Authentication createClusterUser(String name) {
-    return new TestAuthorization(name, Collections.singleton(createClusterUserGrantedAuthority()));
+  public static Authentication createClusterUser(String name, Long clusterResourceId) {
+    return new TestAuthorization(name, Collections.singleton(createClusterUserGrantedAuthority(clusterResourceId)));
   }
 
   public static Authentication createViewUser(Long viewResourceId) {
@@ -88,20 +88,20 @@ public class TestAuthenticationFactory {
     return new AmbariGrantedAuthority(createAdministratorPrivilegeEntity());
   }
 
-  private static GrantedAuthority createClusterAdministratorGrantedAuthority() {
-    return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity());
+  private static GrantedAuthority createClusterAdministratorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createClusterAdministratorPrivilegeEntity(clusterResourceId));
   }
 
-  private static GrantedAuthority createServiceAdministratorGrantedAuthority() {
-    return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity());
+  private static GrantedAuthority createServiceAdministratorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createServiceAdministratorPrivilegeEntity(clusterResourceId));
   }
 
-  private static GrantedAuthority createServiceOperatorGrantedAuthority() {
-    return new AmbariGrantedAuthority(createServiceOperatorPrivilegeEntity());
+  private static GrantedAuthority createServiceOperatorGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createServiceOperatorPrivilegeEntity(clusterResourceId));
   }
 
-  private static GrantedAuthority createClusterUserGrantedAuthority() {
-    return new AmbariGrantedAuthority(createClusterUserPrivilegeEntity());
+  private static GrantedAuthority createClusterUserGrantedAuthority(Long clusterResourceId) {
+    return new AmbariGrantedAuthority(createClusterUserPrivilegeEntity(clusterResourceId));
   }
 
   private static GrantedAuthority createViewUserGrantedAuthority(Long resourceId) {
@@ -115,30 +115,30 @@ public class TestAuthenticationFactory {
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createClusterAdministratorPrivilegeEntity() {
+  private static PrivilegeEntity createClusterAdministratorPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createClusterAdministratorPermission());
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createServiceAdministratorPrivilegeEntity() {
+  private static PrivilegeEntity createServiceAdministratorPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createServiceAdministratorPermission());
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createServiceOperatorPrivilegeEntity() {
+  private static PrivilegeEntity createServiceOperatorPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createServiceOperatorPermission());
     return privilegeEntity;
   }
 
-  private static PrivilegeEntity createClusterUserPrivilegeEntity() {
+  private static PrivilegeEntity createClusterUserPrivilegeEntity(Long clusterResourceId) {
     PrivilegeEntity privilegeEntity = new PrivilegeEntity();
-    privilegeEntity.setResource(createClusterResourceEntity());
+    privilegeEntity.setResource(createClusterResourceEntity(clusterResourceId));
     privilegeEntity.setPermission(createClusterUserPermission());
     return privilegeEntity;
   }
@@ -286,10 +286,14 @@ public class TestAuthenticationFactory {
     return resourceEntity;
   }
 
-  private static ResourceEntity createClusterResourceEntity() {
+  private static ResourceEntity createClusterResourceEntity(Long clusterResourceId) {
+    return createResourceEntity(ResourceType.CLUSTER, clusterResourceId);
+  }
+
+  private static ResourceEntity createResourceEntity(ResourceType resourceType, Long resourceId) {
     ResourceEntity resourceEntity = new ResourceEntity();
-    resourceEntity.setId(2L);
-    resourceEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
+    resourceEntity.setId(resourceId);
+    resourceEntity.setResourceType(createResourceTypeEntity(resourceType));
     return resourceEntity;
   }
 
