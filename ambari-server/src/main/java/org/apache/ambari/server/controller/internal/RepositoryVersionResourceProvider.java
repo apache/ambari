@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Provider;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.api.resources.OperatingSystemResourceDefinition;
@@ -71,6 +69,8 @@ import org.apache.commons.lang.StringUtils;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.persist.Transactional;
 
 /**
  * Resource provider for repository versions resources.
@@ -262,20 +262,6 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
           final RepositoryVersionEntity entity = repositoryVersionDAO.findByPK(id);
           if (entity == null) {
             throw new ObjectNotFoundException("There is no repository version with id " + id);
-          }
-
-          // Prevent changing repo version if there's already a cluster version that has performed some meaningful action on it.
-          StackEntity stackEntity = entity.getStack();
-          String stackName = stackEntity.getStackName();
-          String stackVersion = stackEntity.getStackVersion();
-
-          final List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByStackAndVersion(
-              stackName, stackVersion, entity.getVersion());
-
-          if (!clusterVersionEntities.isEmpty()) {
-            final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
-            throw new AmbariException("Upgrade pack can't be changed for repository version which has a state of " +
-              firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
           }
 
           List<OperatingSystemEntity> operatingSystemEntities = null;
