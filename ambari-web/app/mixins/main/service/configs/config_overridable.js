@@ -92,7 +92,7 @@ App.ConfigOverridable = Em.Mixin.create({
     }
     var result = [];
     availableConfigGroups.forEach(function (group) {
-      if (!group.get('isDefault') && (!alreadyOverriddenGroups.length || !alreadyOverriddenGroups.contains(group.name))) {
+      if (!group.get('isDefault') && (!alreadyOverriddenGroups.length || !alreadyOverriddenGroups.contains(Em.get(group, 'name')))) {
         result.push(group);
       }
     }, this);
