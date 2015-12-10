@@ -497,12 +497,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     if isSolrCloudEnabled:
       zookeeper_host_port = self.getZKHostPortString(services)
+      ranger_audit_zk_port = ''
       if zookeeper_host_port:
-        ranger_audit_zk_port = []
-        zk_hosts = zookeeper_host_port.split(',')
-        for zk_host in zk_hosts:
-          ranger_audit_zk_port.append('{0}/{1}'.format(zk_host,'ranger_audits'))
-        ranger_audit_zk_port = ','.join(ranger_audit_zk_port)
+        ranger_audit_zk_port = '{0}/{1}'.format(zookeeper_host_port, 'ranger_audits')
         putRangerAdminProperty('ranger.audit.solr.zookeepers', ranger_audit_zk_port)
     else:
       putRangerAdminProperty('ranger.audit.solr.zookeepers', 'NONE')
