@@ -71,6 +71,11 @@
                   </span>
                   </a>
                 {{/isAuthorized}}
+                {{#isNotAuthorized "CLUSTER.TOGGLE_ALERTS"}}
+                    <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      {{view.enabledDisplay}}
+                    </span>
+                {{/isNotAuthorized}}
               {{else}}
                 {{#isAuthorized "CLUSTER.TOGGLE_ALERTS"}}
                   <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
@@ -79,6 +84,11 @@
                   </span>
                   </a>
                 {{/isAuthorized}}
+                {{#isNotAuthorized "CLUSTER.TOGGLE_ALERTS"}}
+                  <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                    {{view.disabledDisplay}}
+                  </span>
+                {{/isNotAuthorized}}
               {{/if}}
             </td>
           </tr>

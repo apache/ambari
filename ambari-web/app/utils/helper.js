@@ -372,6 +372,18 @@ Em.Handlebars.registerHelper('isAuthorized', function (property, options) {
   return Ember.Handlebars.helpers.boundIf.call(permission, "isAuthorized", options);
 });
 
+Em.Handlebars.registerHelper('isNotAuthorized', function (property, options) {
+  var permission = Ember.Object.create({
+    isNotAuthorized: function() {
+      return !App.isAuthorized(property);
+    }.property('App.router.wizardWatcherController.isWizardRunning')
+  });
+
+  // wipe out contexts so boundIf uses `this` (the permission) as the context
+  options.contexts = null;
+  return Ember.Handlebars.helpers.boundIf.call(permission, "isNotAuthorized", options);
+});
+
 /**
  * @namespace App
  */
