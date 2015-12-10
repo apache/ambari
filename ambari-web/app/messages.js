@@ -326,8 +326,6 @@ Em.I18n.translations = {
   'hostPopup.noServicesToShow':'No services to show',
   'hostPopup.noHostsToShow':'No hosts to show',
   'hostPopup.noTasksToShow':'No tasks to show',
-  'hostPopup.Tasks.role.ambariServerAction':'AMBARI_SERVER_ACTION',
-  'hostPopup.Hosts.ambariServerHost':'Ambari Server Host',
   'hostPopup.status.category.all':'All ({0})',
   'hostPopup.status.category.pending':'Pending ({0})',
   'hostPopup.status.category.inProgress':'In Progress ({0})',
