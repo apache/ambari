@@ -44,7 +44,7 @@
     <service name="HIVE">
       <component name="HIVE_SERVER">
         <changes>
-          <definition xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_modes">
+          <definition xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_mode">
             <condition type="hive-site" key="hive.server2.transport.mode" value="binary">
               <type>hive-site</type>
               <key>hive.server2.thrift.port</key>

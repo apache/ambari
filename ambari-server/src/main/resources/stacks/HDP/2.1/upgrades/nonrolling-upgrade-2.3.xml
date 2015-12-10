@@ -332,14 +332,6 @@
       </execute-stage>
 
       <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
-        <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_cluster_logs_content"/>
-      </execute-stage>
-
-      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
-        <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_worker_logs_content"/>
-      </execute-stage>
-
-      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
         <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
       </execute-stage>
     </group>

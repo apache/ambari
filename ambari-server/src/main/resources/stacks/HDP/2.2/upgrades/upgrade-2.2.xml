@@ -534,7 +534,7 @@
             <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_modes" />
+          <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_set_transport_mode" />
         </pre-upgrade>
 
         <pre-downgrade>
