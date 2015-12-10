@@ -36,6 +36,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
@@ -97,6 +98,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String AMS_HBASE_SITE_NORMALIZER_ENABLED_PROPERTY = "hbase.normalizer.enabled";
   private static final String AMS_HBASE_SITE_NORMALIZER_PERIOD_PROPERTY = "hbase.normalizer.period";
   private static final String AMS_HBASE_SITE_NORMALIZER_CLASS_PROPERTY = "hbase.master.normalizer.class";
+  private static final String TIMELINE_METRICS_HBASE_FIFO_COMPACTION_ENABLED = "timeline.metrics.hbase.fifo.compaction.enabled";
   private static final String HBASE_ENV_CONFIG = "hbase-env";
   private static final String FLUME_ENV_CONFIG = "flume-env";
   private static final String HIVE_SITE_CONFIG = "hive-site";
@@ -106,6 +108,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
   private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
+  private static final String STORM_METRICS_REPORTER = "metrics.reporter.register";
   private static final String HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY = "hive.server2.logging.operation.log.location";
   private static final String CONTENT_PROPERTY = "content";
   private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
@@ -914,11 +917,25 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
       Config stormSiteProps = cluster.getDesiredConfigByType(STORM_SITE);
       if (stormSiteProps != null) {
+        Map<String, String> updates = new HashMap<>();
+
         String nimbusMonitorFreqSecs = stormSiteProps.getProperties().get(NIMBS_MONITOR_FREQ_SECS_PROPERTY);
         if (nimbusMonitorFreqSecs != null && nimbusMonitorFreqSecs.equals("10")) {
-          Map<String, String> updates = Collections.singletonMap(NIMBS_MONITOR_FREQ_SECS_PROPERTY, "120");
-          updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
+          updates.put(NIMBS_MONITOR_FREQ_SECS_PROPERTY, "120");
         }
+
+        Service amsService = null;
+        try {
+          amsService = cluster.getService("AMBARI_METRICS");
+        } catch(AmbariException ambariException) {
+          LOG.info("AMBARI_METRICS service not found in cluster while updating storm-site properties");
+        }
+        String metricsReporter = stormSiteProps.getProperties().get(STORM_METRICS_REPORTER);
+        if (amsService != null && StringUtils.isEmpty(metricsReporter)) {
+          updates.put(STORM_METRICS_REPORTER, "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter");
+        }
+
+        updateConfigurationPropertiesForCluster(cluster, STORM_SITE, updates, true, false);
       }
     }
   }
@@ -1067,7 +1084,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
             newProperties.put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
 
             //Add compaction policy property
-            newProperties.put("hbase.fifo.compaction.policy.enabled", String.valueOf(true));
+            newProperties.put(TIMELINE_METRICS_HBASE_FIFO_COMPACTION_ENABLED, String.valueOf(true));
 
             updateConfigurationPropertiesForCluster(cluster, AMS_SITE, newProperties, true, true);
           }

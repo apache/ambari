@@ -908,7 +908,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     validationItems = []
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     # Storm AMS integration
-    if 'AMBARI_METRICS' in servicesList and \
+    if 'AMBARI_METRICS' in servicesList and "metrics.reporter.register" in properties and \
       "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter" not in properties.get("metrics.reporter.register"):
 
       validationItems.append({"config-name": 'metrics.reporter.register',

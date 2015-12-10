@@ -590,6 +590,7 @@ public class UpgradeCatalog213Test {
     final Map<String, String> propertiesStormSite = new HashMap<String, String>() {
       {
         put("nimbus.monitor.freq.secs", "10");
+        put("metrics.reporter.register", "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter");
       }
     };
 
@@ -748,7 +749,7 @@ public class UpgradeCatalog213Test {
         put("timeline.metrics.cluster.aggregator.minute.ttl", String.valueOf(7776000));
         put("timeline.metrics.cluster.aggregator.second.checkpointCutOffMultiplier", String.valueOf(2));
         put("timeline.metrics.cluster.aggregator.second.disabled", String.valueOf(false));
-        put("hbase.fifo.compaction.policy.enabled", String.valueOf(true));
+        put("timeline.metrics.hbase.fifo.compaction.enabled", String.valueOf(true));
       }
     };
     EasyMockSupport easyMockSupport = new EasyMockSupport();
