@@ -76,6 +76,7 @@ public class AmbariAuthorizationFilter implements Filter {
   private static final String API_CLUSTER_SERVICES_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/services.*";
   private static final String API_HOSTS_ALL_PATTERN = API_VERSION_PREFIX + "/clusters/.*?/hosts.*";
   private static final String API_STACK_VERSIONS_PATTERN = API_VERSION_PREFIX + "/stacks/.*?/versions/.*";
+  private static final String API_HOSTS_ALL = API_VERSION_PREFIX + "/hosts.*";
 
   protected static final String LOGIN_REDIRECT_BASE = "/#/login?targetURI=";
 
@@ -265,6 +266,7 @@ public class AmbariAuthorizationFilter implements Filter {
         requestURI.matches(API_STACK_VERSIONS_PATTERN) ||
         requestURI.matches(API_WIDGET_LAYOUTS_PATTERN) ||
         requestURI.matches(API_HOSTS_ALL_PATTERN) ||
+        requestURI.matches(API_HOSTS_ALL) ||
         requestURI.matches(API_PRIVILEGES_ALL_PATTERN);
   }
 
