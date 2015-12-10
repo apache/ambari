@@ -131,12 +131,12 @@ with Environment() as env:
   class params:
     hdfs_user = "hdfs"
     mapred_user ="mapred"
-    hadoop_bin_dir="/usr/hdp/" + hdp_version + "/hadoop-client/bin"
+    hadoop_bin_dir="/usr/hdp/" + hdp_version + "/hadoop/bin"
     hadoop_conf_dir = "/etc/hadoop/conf"
     user_group = "hadoop"
     security_enabled = False
     oozie_user = "oozie"
-    execute_path = "/usr/hdp/" + hdp_version + "/hadoop-client/bin"
+    execute_path = "/usr/hdp/" + hdp_version + "/hadoop/bin"
     ambari_libs_dir = "/var/lib/ambari-agent/lib"
     hdfs_site = ConfigDictionary({'dfs.webhdfs.enabled':False, 
     })
