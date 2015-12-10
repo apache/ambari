@@ -20,16 +20,17 @@ var App = require('app');
 
 var view, instanceTableRow;
 
+function getView() {
+  return App.MainAlertDefinitionDetailsView.create({
+    initFilters: Em.K
+  });
+}
+
 describe('App.MainAlertDefinitionDetailsView', function () {
 
   beforeEach(function () {
-
-    view = App.MainAlertDefinitionDetailsView.create({
-      initFilters: Em.K
-    });
-
+    view = getView();
     instanceTableRow = view.get('instanceTableRow').create();
-
   });
 
   describe("#goToHostAlerts()", function () {
@@ -52,5 +53,15 @@ describe('App.MainAlertDefinitionDetailsView', function () {
       expect(App.get('router').transitionTo.calledOnce).to.be.true;
     });
   });
+
+});
+
+function getInstanceView() {
+  return App.AlertInstanceServiceHostView.create();
+}
+
+describe('App.AlertInstanceServiceHostView', function () {
+
+  App.TestAliases.testAsComputedAnd(getInstanceView(), 'showSeparator', ['instance.serviceDisplayName', 'instance.hostName']);
 
 });

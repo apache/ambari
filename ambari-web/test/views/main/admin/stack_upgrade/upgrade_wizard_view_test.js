@@ -37,6 +37,8 @@ describe('App.upgradeWizardView', function () {
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
 
+  App.TestAliases.testAsComputedOr(view, 'isManualProceedDisabled', ['!isManualDone', 'controller.requestInProgress']);
+
   App.TestAliases.testAsComputedEqualProperties(view, 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
 
   describe("#upgradeGroups", function () {
@@ -231,21 +233,6 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#isManualProceedDisabled", function () {
-    it("requestInProgress is false", function () {
-      view.set('isManualDone', true);
-      view.set('controller.requestInProgress', false);
-      view.propertyDidChange('isManualProceedDisabled');
-      expect(view.get('isManualProceedDisabled')).to.be.false;
-    });
-    it("requestInProgress is true", function () {
-      view.set('controller.requestInProgress', true);
-      view.propertyDidChange('isManualProceedDisabled');
-      expect(view.get('isManualProceedDisabled')).to.be.true;
-    });
-
-  });
-
   describe("#failedItem", function () {
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
@@ -390,20 +377,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe("#isDowngradeAvailable", function () {
-    it("downgrade available", function () {
-      view.set('controller.isDowngrade', false);
-      view.set('controller.downgradeAllowed', true);
-      view.propertyDidChange('isDowngradeAvailable');
-      expect(view.get('isDowngradeAvailable')).to.be.true;
-    });
-    it("downgrade unavailable", function () {
-      view.set('controller.isDowngrade', true);
-      view.set('controller.downgradeAllowed', true);
-      view.propertyDidChange('isDowngradeAvailable');
-      expect(view.get('isDowngradeAvailable')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedAnd(view, 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed']);
 
   describe("#taskDetails", function () {
     it("runningItem present", function () {

@@ -30,6 +30,8 @@ describe('App.UpdateController', function () {
 
   App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
 
+  App.TestAliases.testAsComputedAnd(App.UpdateController.create(), 'updateAlertInstances', ['isWorking', '!App.router.mainAlertInstancesController.isUpdating']);
+
   describe('#getUrl()', function () {
 
     it('testMode = true', function () {

@@ -49,7 +49,6 @@ App.TestAliases = {
         return this._stubOneKey.apply(this, args);
       }
       return this._stubManyKeys.apply(this, args)
-
     },
 
     /**
@@ -136,6 +135,32 @@ App.TestAliases = {
         return Em.get(self, k);
       });
       return this;
+    },
+
+    /**
+     * Generates array of all possible boolean combinations
+     * Example:
+     * <code>
+     *   var keys = ['a', 'b'];
+     *   var result = getBinaryCombos(keys);
+     *   console.log(result); // [{a: true, b: true}, {a: true, b: false}, {a: false, b: true}, {a: false, b: false}]
+     * </code>
+     *
+     * @param {string[]} dependentKeys
+     * @returns {Array}
+     */
+    getBinaryCombos: function (dependentKeys) {
+      var n = dependentKeys.length;
+      var result = [];
+      var allCombos = Math.pow(2, n);
+      for (var y = 0; y < allCombos; y++) {
+        var combo = {};
+        for (var x = 0; x < n; x++) {
+          combo[dependentKeys[x]] = !!((y >> x) & 1);
+        }
+        result.push(combo);
+      }
+      return result;
     }
 
   }
@@ -167,3 +192,5 @@ require('test/aliases/computed/mapBy');
 require('test/aliases/computed/filterBy');
 require('test/aliases/computed/findBy');
 require('test/aliases/computed/sumBy');
+require('test/aliases/computed/and');
+require('test/aliases/computed/or');

@@ -74,6 +74,8 @@ describe('App.WizardStep2Controller', function () {
 
   App.TestAliases.testAsComputedAlias(getController(), 'agentUser', 'content.installOptions.agentUser', 'string');
 
+  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError']);
+
   describe('#hostNames', function() {
     it('should be equal to content.installOptions.hostNames', function() {
       var controller = App.WizardStep2Controller.create({content: {installOptions: {hostNames: 'A,b,C'}}});
@@ -469,46 +471,6 @@ describe('App.WizardStep2Controller', function () {
       App.router.send.restore();
     });
 
-  });
-
-  describe('#isSubmitDisabled', function () {
-
-    var controller = App.WizardStep2Controller.create({
-      hostsError: '',
-      sshKeyError: '',
-      sshUserError: '',
-      sshPortError: '',
-      agentUserError: ''
-    });
-
-    it('should return value if hostsError is not empty', function () {
-      controller.set('hostsError', 'error');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshKeyError is not empty', function () {
-      controller.set('sshKeyError', 'error');
-      controller.set('hostsError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshUserError is not empty', function () {
-      controller.set('sshUserError', 'error');
-      controller.set('sshKeyError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if agentUserError is not empty', function () {
-      controller.set('agentUserError', 'error');
-      controller.set('sshUserError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshPortError is not empty', function () {
-        controller.set('sshPortError', 'error');
-        controller.set('agentUserError', '');
-        expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
   });
 
   describe('#installedHostsPopup', function() {

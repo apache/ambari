@@ -28,6 +28,8 @@ describe('App.upgradeTaskView', function () {
   view.removeObserver('content.isExpanded', view, 'doPolling');
   view.removeObserver('outsideView', view, 'doPolling');
 
+  App.TestAliases.testAsComputedOr(view, 'showContent', ['outsideView', 'content.isExpanded']);
+
   describe("#logTabId", function() {
     it("", function() {
       view.reopen({
@@ -155,33 +157,6 @@ describe('App.upgradeTaskView', function () {
       expect(mockWindow.document.createTextNode.calledWith('log')).to.be.true;
       expect(mockAppendChild.appendChild.calledTwice).to.be.true;
       expect(mockWindow.document.close.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#showContent", function() {
-    it("outsideView = false, content.isExpanded = false", function() {
-      view.set('outsideView', false);
-      view.set('content.isExpanded', false);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.false;
-    });
-    it("outsideView = true, content.isExpanded = false", function() {
-      view.set('outsideView', true);
-      view.set('content.isExpanded', false);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
-    });
-    it("outsideView = false, content.isExpanded = true", function() {
-      view.set('outsideView', false);
-      view.set('content.isExpanded', true);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
-    });
-    it("outsideView = true, content.isExpanded = true", function() {
-      view.set('outsideView', true);
-      view.set('content.isExpanded', true);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
     });
   });
 

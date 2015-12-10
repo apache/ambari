@@ -89,4 +89,6 @@ describe('App.TextDashboardWidgetView', function() {
 
   App.TestAliases.testAsComputedLteProperties(getView(), 'isRed', 'data', 'thresh1');
 
+  App.TestAliases.testAsComputedAnd(getView(), 'isOrange', ['!isGreen', '!isRed']);
+
 });

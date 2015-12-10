@@ -36,6 +36,18 @@ describe('App.MainAlertDefinitionDetailsController', function () {
 
   App.TestAliases.testAsComputedMapBy(getController(), 'groupsList', 'content.groups', 'displayName');
 
+  App.TestAliases.testAsComputedOr(getController(), 'isEditing', ['editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit']);
+
+  describe('#showSavePopup', function () {
+    var popup;
+    beforeEach(function () {
+      popup = getController().showSavePopup();
+    });
+
+    App.TestAliases.testAsComputedOr(getController().showSavePopup(), 'disablePrimary', ['App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors']);
+
+  });
+
   describe('#labelValidation()', function () {
 
     it('should set editing.label.isError to true', function () {

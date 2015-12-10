@@ -19,11 +19,23 @@
 var App = require('app');
 var model;
 
+function getModel() {
+  return App.SubSection.createRecord();
+}
+
 describe('App.SubSection', function () {
 
   beforeEach(function () {
-    model = App.SubSection.createRecord();
+    model = getModel();
   });
+
+  App.TestAliases.testAsComputedAnd(getModel(), 'showTabs', ['hasTabs', 'someSubSectionTabIsVisible']);
+
+  App.TestAliases.testAsComputedAnd(getModel(), 'addLeftVerticalSplitter', ['!isFirstColumn', 'leftVerticalSplitter']);
+
+  App.TestAliases.testAsComputedAnd(getModel(), 'showTopSplitter', ['!isFirstRow', '!border']);
+
+  App.TestAliases.testAsComputedAnd(getModel(), 'isSectionVisible', ['!isHiddenByFilter', '!isHiddenByConfig', 'someConfigIsVisible']);
 
   describe('#errorsCount', function () {
 

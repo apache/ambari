@@ -34,28 +34,7 @@ describe('App.WidgetWizardStep3Controller', function () {
 
   App.TestAliases.testAsComputedGte(controller, 'isDescriptionInvalid', 'widgetDescription.length', 2049);
 
-  describe("#isSubmitDisabled", function () {
-    it("widgetName - null", function () {
-      controller.set('widgetName', null);
-      controller.propertyDidChange('isSubmitDisabled');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-    it("widgetName empty ", function () {
-      controller.set('widgetName', '');
-      controller.propertyDidChange('isSubmitDisabled');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-    it("widgetName contains only whitespace", function () {
-      controller.set('widgetName', ' ');
-      controller.propertyDidChange('isSubmitDisabled');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-    it("widgetName correct", function () {
-      controller.set('widgetName', 'w1');
-      controller.propertyDidChange('isSubmitDisabled');
-      expect(controller.get('isSubmitDisabled')).to.be.false;
-    });
-  });
+  App.TestAliases.testAsComputedOr(controller, 'isSubmitDisabled', ['widgetNameEmpty', 'isNameInvalid', 'isDescriptionInvalid']);
 
   describe("#initPreviewData()", function () {
     beforeEach(function () {

@@ -20,9 +20,17 @@
 var App = require('app');
 require('models/cluster');
 
+function getController() {
+  return App.ApplicationController.create();
+}
+
 describe('App.ApplicationController', function () {
 
-  var applicationController = App.ApplicationController.create();
+  var applicationController = getController();
+
+  App.TestAliases.testAsComputedAnd(getController(), 'isClusterDataLoaded', ['App.router.clusterController.isLoaded','App.router.loggedIn']);
+
+  App.TestAliases.testAsComputedAnd(getController(), 'isExistingClusterDataLoaded', ['App.router.clusterInstallCompleted','isClusterDataLoaded']);
 
   describe('#showAboutPopup', function() {
     var dataToShowRes = {};
@@ -106,27 +114,6 @@ describe('App.ApplicationController', function () {
           "callback": true
         }
       });
-    });
-  });
-
-  describe('#clusterDisplayName', function() {
-    it ('Should return cluster display name', function() {
-      applicationController.set('clusterName', '');
-      expect(applicationController.get('clusterDisplayName')).to.equal('mycluster');
-    });
-  });
-
-  describe('#isClusterDataLoaded', function() {
-    beforeEach(function () {
-      var stub = sinon.stub(App, 'get');
-      stub.withArgs('router.clusterController.isLoaded').returns(true);
-      stub.withArgs('router.loggedIn').returns(true);
-    });
-    afterEach(function () {
-      App.get.restore();
-    });
-    it ('Should return true, when data loaded', function() {
-      expect(applicationController.get('isClusterDataLoaded')).to.be.true;
     });
   });
 

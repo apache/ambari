@@ -208,27 +208,7 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#anyGeneralErrors', function () {
-    beforeEach(function () {
-      controller.set('errorMessage', undefined);
-    });
-    it('should return errorMessage', function () {
-      controller.set('errorMessage', "error 404");
-      expect(controller.get('anyGeneralErrors')).to.be.true
-    });
-    it('true if generalErrorMessages is non empty array and errorMessage is undefined', function () {
-      controller.set('generalErrorMessages', ["error1", "error2"]);
-      expect(controller.get('anyGeneralErrors')).to.equal(true);
-    });
-    it('false if generalErrorMessages is empty array and errorMessage is undefined', function () {
-      controller.set('generalErrorMessages', []);
-      expect(controller.get('anyGeneralErrors')).to.equal(false);
-    });
-    it('undefined if generalErrorMessages is undefined and errorMessage is undefined', function () {
-      controller.set('generalErrorMessages', undefined);
-      expect(controller.get('anyGeneralErrors')).to.equal(false);
-    });
-  });
+  App.TestAliases.testAsComputedOr(getController(), 'anyGeneralErrors', ['errorMessage', 'generalErrorMessages.length']);
 
   describe('#render', function () {
     it('true if loaded', function () {
@@ -309,31 +289,11 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-  describe('#anyGeneralIssues', function () {
-    it('should return error message if errorMessage', function () {
-      controller.set('errorMessage', "error 404");
-      expect(controller.get('anyGeneralIssues')).to.be.true;
-    });
-    it('should return true if we have several errors', function () {
-      controller.set('generalErrorMessages', ["error 404", "error"]);
-      expect(controller.get('anyGeneralIssues')).to.be.true;
-    });
-    it('should return true if we have several warnings', function () {
-      controller.set('generalWarningMessages', ["error 404", "error"]);
-      expect(controller.get('anyGeneralIssues')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedOr(getController(), 'anyGeneralIssues', ['anyGeneralErrors', 'anyGeneralWarnings']);
 
-  describe('#anyErrors', function () {
-    it('true if generalErrorMessages is non empty', function () {
-      controller.set('generalErrorMessages', ["error 404", "error"]);
-      expect(controller.get('anyErrors')).to.equal(true);
-    });
-    it('false if generalErrorMessages is empty', function () {
-      controller.set('generalErrorMessages', []);
-      expect(controller.get('anyErrors')).to.equal(false);
-    });
-  });
+  App.TestAliases.testAsComputedOr(getController(), 'anyErrors', ['anyGeneralErrors', 'anyHostErrors']);
+
+  App.TestAliases.testAsComputedOr(getController(), 'anyWarnings', ['anyGeneralWarnings', 'anyHostWarnings']);
 
   describe('#anyWarnings', function () {
     it('true if generalWarningMessages is non empty', function () {
@@ -986,7 +946,7 @@ describe('App.WizardStep6Controller', function () {
     });
   });
 
-describe('#getCurrentBlueprint', function () {
+  describe('#getCurrentBlueprint', function () {
     var tests = Em.A([
       {
         clientComponents: Em.A([{component_name: "name1"}]),

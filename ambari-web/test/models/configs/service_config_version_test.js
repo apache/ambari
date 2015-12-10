@@ -21,10 +21,14 @@ require('models/configs/service_config_version');
 
 var model;
 
+function getModel() {
+  return App.ServiceConfigVersion.createRecord({});
+}
+
 describe('App.ServiceConfigVersion', function () {
 
   beforeEach(function () {
-    model = App.ServiceConfigVersion.createRecord({});
+    model = getModel();
   });
 
   describe('#authorFormatted', function () {
@@ -51,39 +55,6 @@ describe('App.ServiceConfigVersion', function () {
 
   });
 
-  describe('#canBeMadeCurrent', function () {
-
-    var cases = [
-      {
-        isCompatible: true,
-        isCurrent: true,
-        canBeMadeCurrent: false,
-        title: 'current version'
-      },
-      {
-        isCompatible: true,
-        isCurrent: false,
-        canBeMadeCurrent: true,
-        title: 'compatible version'
-      },
-      {
-        isCompatible: false,
-        isCurrent: false,
-        canBeMadeCurrent: false,
-        title: 'not compatible version'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        model.setProperties({
-          isCompatible: item.isCompatible,
-          isCurrent: item.isCurrent
-        });
-        expect(model.get('canBeMadeCurrent')).to.equal(item.canBeMadeCurrent);
-      });
-    });
-
-  });
+  App.TestAliases.testAsComputedAnd(getModel(), 'canBeMadeCurrent', ['isCompatible', '!isCurrent']);
 
 });

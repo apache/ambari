@@ -35,6 +35,10 @@ describe('App.clusterController', function () {
     {service_name: 'GANGLIA'}
   ];
 
+  App.TestAliases.testAsComputedAnd(controller, 'isHostContentLoaded', ['isHostsLoaded', 'isComponentsStateLoaded']);
+
+  App.TestAliases.testAsComputedAnd(controller, 'isServiceContentFullyLoaded', ['isServiceMetricsLoaded', 'isComponentsStateLoaded', 'isComponentsConfigLoaded']);
+
   App.TestAliases.testAsComputedAlias(controller, 'clusterName', 'App.clusterName', 'string');
 
   describe('#updateLoadStatus()', function () {

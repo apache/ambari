@@ -20,15 +20,21 @@ var App = require('app');
 
 var controller;
 
+function getController() {
+  return App.MainAlertDefinitionConfigsController.create({
+    allServices: ['service1', 'service2', 'service3'],
+    allComponents: ['component1', 'component2', 'component3'],
+    aggregateAlertNames: ['alertDefinitionName', 'alertDefinitionName2', 'alertDefinitionName3']
+  });
+}
+
 describe('App.MainAlertDefinitionConfigsController', function () {
 
   beforeEach(function () {
-    controller = App.MainAlertDefinitionConfigsController.create({
-      allServices: ['service1', 'service2', 'service3'],
-      allComponents: ['component1', 'component2', 'component3'],
-      aggregateAlertNames: ['alertDefinitionName', 'alertDefinitionName2', 'alertDefinitionName3']
-    });
+    controller = getController();
   });
+
+  App.TestAliases.testAsComputedOr(getController(), 'hasErrors', ['someConfigIsInvalid', 'hasThresholdsError']);
 
   describe('#renderConfigs()', function () {
 

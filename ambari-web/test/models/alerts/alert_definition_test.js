@@ -22,13 +22,17 @@ require('models/alerts/alert_definition');
 
 var model;
 
+function getModel() {
+  return App.AlertDefinition.createRecord();
+}
+
 describe('App.AlertDefinition', function () {
 
   beforeEach(function () {
-
-    model = App.AlertDefinition.createRecord();
-
+    model = getModel();
   });
+
+  App.TestAliases.testAsComputedAnd(getModel(), 'isHostAlertDefinition', ['isAmbariService', 'isAmbariAgentComponent']);
 
   describe('#status', function () {
 

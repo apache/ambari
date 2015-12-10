@@ -57,6 +57,8 @@ describe('App.WizardStep3Controller', function () {
 
   App.TestAliases.testAsComputedIfThenElse(getController(), 'registrationTimeoutSecs', 'content.installOptions.manualInstall', 15, 120);
 
+  App.TestAliases.testAsComputedAnd(getController(), 'isWarningsLoaded', ['isJDKWarningsLoaded', 'isHostsWarningsLoaded']);
+
   describe('#getAllRegisteredHostsCallback', function () {
 
     it('One host is already in the cluster, one host is registered', function () {

@@ -333,6 +333,8 @@ describe('App.ServiceConfigProperty', function () {
 
   App.TestAliases.testAsComputedFirstNotBlank(getProperty(), 'placeholder', ['placeholderText', 'savedValue']);
 
+  App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
+
   describe('#overrideErrorTrigger', function () {
     it('should be an increment', function () {
       serviceConfigProperty.set('overrides', configsData[0].overrides);

@@ -19,6 +19,10 @@
 var App = require('app');
 require('controllers/main/service/info/summary');
 
+function getController() {
+  return App.MainServiceInfoSummaryController.create();
+}
+
 describe('App.MainServiceInfoSummaryController', function () {
 
   var controller;
@@ -26,6 +30,8 @@ describe('App.MainServiceInfoSummaryController', function () {
   beforeEach(function () {
     controller = App.MainServiceInfoSummaryController.create();
   });
+
+App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isServiceWithEnhancedWidgets', 'someWidgetGraphExists']);
 
   describe('#setRangerPlugins', function () {
 

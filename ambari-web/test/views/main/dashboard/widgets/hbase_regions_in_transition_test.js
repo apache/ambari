@@ -109,4 +109,6 @@ describe('App.HBaseRegionsInTransitionView', function() {
 
   App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
 
+  App.TestAliases.testAsComputedAnd(getView(), 'isOrange', ['!isGreen', '!isRed']);
+
 });

@@ -33,10 +33,8 @@ App.HBaseRegionsInTransitionView = App.TextDashboardWidgetView.extend({
 
   classNameBindings: ['isRed', 'isOrange', 'isGreen', 'isNA'],
   isGreen: Em.computed.lteProperties('data', 'thresh1'),
-  isNotGreen: Em.computed.not('isGreen'),
   isRed: Em.computed.gtProperties('data', 'thresh2'),
-  isNotRed: Em.computed.not('isRed'),
-  isOrange: Em.computed.and('isNotGreen', 'isNotRed'),
+  isOrange: Em.computed.and('!isGreen', '!isRed'),
   isNA: function () {
     return this.get('data') === null;
   }.property('data'),

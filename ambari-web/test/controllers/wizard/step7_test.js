@@ -121,6 +121,8 @@ describe('App.InstallerStep7Controller', function () {
 
   App.TestAliases.testAsComputedAlias(getController(), 'slaveComponentHosts', 'content.slaveGroupProperties', 'array');
 
+  App.TestAliases.testAsComputedAnd(getController(), 'isConfigsLoaded', ['wizardController.stackConfigsLoaded', 'isAppliedConfigLoaded']);
+
   describe('#installedServiceNames', function () {
 
     var tests = Em.A([
