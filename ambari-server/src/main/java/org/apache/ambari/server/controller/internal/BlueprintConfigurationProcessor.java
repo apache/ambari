@@ -1520,7 +1520,7 @@ public class BlueprintConfigurationProcessor {
    * Topology based updater which replaces original host names (possibly more than one) contained in a property
    * value with the host names which runs the associated component in the new cluster.
    */
-  private static class MultipleHostTopologyUpdater implements PropertyUpdater {
+  protected static class MultipleHostTopologyUpdater implements PropertyUpdater {
 
     private static final Character DEFAULT_SEPARATOR = ',';
 
@@ -1621,15 +1621,28 @@ public class BlueprintConfigurationProcessor {
         }
       }
 
+      return sb.append(resolveHostGroupPlaceholder(origValue, prefix, hostStrings)).toString();
+    }
+
+    /**
+     * Resolves the host group place holders in the passed in original value.
+     * @param originalValue The original value containing the place holders to be resolved.
+     * @param prefix The prefix to be added to the returned value.
+     * @param hostStrings The collection of host names that are mapped to the host groups to be resolved
+     * @return The new value with place holders resolved.
+     */
+    protected String resolveHostGroupPlaceholder(String originalValue, String prefix, Collection<String> hostStrings) {
       String suffix = null;
+      StringBuilder sb = new StringBuilder();
+
       // parse out prefix if one exists
-      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(origValue);
+      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(originalValue);
       if (matcher.find()) {
         int indexOfStart = matcher.start();
         // handle the case of a YAML config property
-        if ((indexOfStart > 0) && (!origValue.substring(0, indexOfStart).equals("['"))) {
+        if ((indexOfStart > 0) && (!originalValue.substring(0, indexOfStart).equals("['")) && (!originalValue.substring(0, indexOfStart).equals("[")) ) {
           // append prefix before adding host names
-          prefix = origValue.substring(0, indexOfStart);
+          prefix = originalValue.substring(0, indexOfStart);
           sb.append(prefix);
         }
 
@@ -1639,8 +1652,8 @@ public class BlueprintConfigurationProcessor {
           indexOfEnd = matcher.end();
         } while (matcher.find());
 
-        if (indexOfEnd < (origValue.length() - 1)) {
-          suffix = origValue.substring(indexOfEnd);
+        if (indexOfEnd < (originalValue.length())) {
+          suffix = originalValue.substring(indexOfEnd);
         }
       }
 
@@ -1659,7 +1672,7 @@ public class BlueprintConfigurationProcessor {
         sb.append(host);
       }
 
-      if ((suffix != null) && (!suffix.equals("']"))) {
+      if ((suffix != null) && (!suffix.equals("']")) && (!suffix.equals("]")) ) {
         sb.append(suffix);
       }
       return sb.toString();
