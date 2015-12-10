@@ -34,7 +34,7 @@
         "name": "ranger_admin_password_check",
         "label": "Ranger Admin password check",
         "description": "This alert is used to ensure that the Ranger Admin password in Ambari is correct.",
-        "interval": 1,
+        "interval": 30,
         "scope": "ANY",
         "source": {
           "type": "SCRIPT",
