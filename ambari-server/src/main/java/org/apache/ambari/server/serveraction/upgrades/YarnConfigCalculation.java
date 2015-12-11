@@ -18,24 +18,18 @@
 
 package org.apache.ambari.server.serveraction.upgrades;
 
-import com.google.inject.Inject;
+import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.commons.lang.StringUtils;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.List;
-import java.util.concurrent.ConcurrentMap;
+import com.google.inject.Inject;
 
 /**
  * Computes Yarn properties.  This class is only used when moving from
@@ -43,11 +37,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 public class YarnConfigCalculation extends AbstractServerAction {
   private static final String YARN_SITE_CONFIG_TYPE = "yarn-site";
-  private static final String ZOO_CFG_CONFIG_TYPE = "zoo.cfg";
+
   private static final String YARN_RM_ZK_ADDRESS_PROPERTY_NAME = "yarn.resourcemanager.zk-address";
   private static final String HADOOP_REGISTRY_ZK_QUORUM_PROPERTY_NAME = "hadoop.registry.zk.quorum";
-  private static final String ZOOKEEPER_CLIENT_PORT_PROPERTY_NAME = "clientPort";
-  private static final String DEFAULT_ZK_CLIENT_PORT = "2181";
 
   @Inject
   private Clusters clusters;
@@ -71,24 +63,7 @@ public class YarnConfigCalculation extends AbstractServerAction {
     String oldRmZkAddress = yarnSiteProperties.get(YARN_RM_ZK_ADDRESS_PROPERTY_NAME);
     String oldHadoopRegistryZKQuorum = yarnSiteProperties.get(HADOOP_REGISTRY_ZK_QUORUM_PROPERTY_NAME);
 
-    String zkClientPort = DEFAULT_ZK_CLIENT_PORT;
-    Config zooConfig = cluster.getDesiredConfigByType(ZOO_CFG_CONFIG_TYPE);
-    if(zooConfig != null) {
-      Map<String, String> zooProperties = zooConfig.getProperties();
-      if(zooProperties.containsKey(ZOOKEEPER_CLIENT_PORT_PROPERTY_NAME)) {
-        zkClientPort = zooProperties.get(ZOOKEEPER_CLIENT_PORT_PROPERTY_NAME);
-      }
-    }
-
-    List<ServiceComponentHost> zkServers = cluster.getServiceComponentHosts(
-        Service.Type.ZOOKEEPER.name(), Role.ZOOKEEPER_SERVER.name());
-
-    List<String> zkAddresses = new ArrayList<>();
-    for(ServiceComponentHost zkServer : zkServers) {
-      String zkAddress = zkServer.getHostName() + ":" + zkClientPort;
-      zkAddresses.add(zkAddress);
-    }
-    String zkServersStr = StringUtils.join(zkAddresses, ",");
+    String zkServersStr = ZooKeeperQuorumCalculator.getZooKeeperQuorumString(cluster);
     yarnSiteProperties.put(YARN_RM_ZK_ADDRESS_PROPERTY_NAME, zkServersStr);
     yarnSiteProperties.put(HADOOP_REGISTRY_ZK_QUORUM_PROPERTY_NAME, zkServersStr);
     yarnSiteConfig.setProperties(yarnSiteProperties);

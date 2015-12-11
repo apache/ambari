@@ -226,13 +226,11 @@
         <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath"/>
       </execute-stage>
 
-
       <!--Changes for stack 2.3-->
       <!--HDFS-->
       <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
         <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
       </execute-stage>
-
 
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
@@ -280,7 +278,6 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"/>
       </execute-stage>
 
-
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
@@ -296,7 +293,15 @@
 
       <!--HIVE-->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_keberized_token_store_class"/>
+        <task xsi:type="server_action" summary="Calculating Kerberos Properties for Hive" class="org.apache.ambari.server.serveraction.upgrades.HiveKerberosConfigAction" />
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_kerberized_token_store_class"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
