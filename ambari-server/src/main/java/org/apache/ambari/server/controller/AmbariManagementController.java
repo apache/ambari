@@ -38,6 +38,7 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
@@ -96,7 +97,15 @@ public interface AmbariManagementController {
    * @throws AmbariException when the configuration cannot be created.
    */
   public ConfigurationResponse createConfiguration(ConfigurationRequest request)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Create cluster config
+   * TODO move this method to Cluster? doesn't seem to be on its place
+   * @return config created
+   */
+  Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes);
 
   /**
    * Creates users.

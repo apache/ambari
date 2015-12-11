@@ -710,7 +710,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
   @Override
   public synchronized ConfigurationResponse createConfiguration(
-      ConfigurationRequest request) throws AmbariException {
+      ConfigurationRequest request) throws AmbariException, AuthorizationException {
     if (null == request.getClusterName() || request.getClusterName().isEmpty()
         || null == request.getType() || request.getType().isEmpty()
         || null == request.getProperties()) {
@@ -720,6 +720,34 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
 
     Cluster cluster = clusters.getCluster(request.getClusterName());
+
+    String configType = request.getType();
+
+    // If the config type is for a service, then allow a user with SERVICE_MODIFY_CONFIGS to
+    // update, else ensure the user has CLUSTER_MODIFY_CONFIGS
+    String service = null;
+
+    try {
+      service = cluster.getServiceForConfigTypes(Collections.singleton(configType));
+    } catch (IllegalArgumentException e) {
+      // Ignore this since we may have hit a config type that spans multiple services. This may
+      // happen in unit test cases but should not happen with later versions of stacks.
+    }
+
+    if(StringUtils.isEmpty(service)) {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+          EnumSet.of(RoleAuthorization.CLUSTER_MODIFY_CONFIGS))) {
+        throw new AuthorizationException("The authenticated user does not have authorization " +
+            "to create cluster configurations");
+      }
+    }
+    else {
+      if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(),
+          EnumSet.of(RoleAuthorization.SERVICE_MODIFY_CONFIGS))) {
+        throw new AuthorizationException("The authenticated user does not have authorization " +
+            "to create service configurations");
+      }
+    }
 
     Map<String, String> requestProperties = request.getProperties();
 
@@ -737,7 +765,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
     }
-
 
 
 
@@ -807,8 +834,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
-  private Config createConfig(Cluster cluster, String type, Map<String, String> properties,
-      String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
+  @Override
+  public Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+                             String versionTag, Map<String, Map<String, String>> propertiesAttributes) {
     Config config = configFactory.createNew(cluster, type,
       properties, propertiesAttributes);
 

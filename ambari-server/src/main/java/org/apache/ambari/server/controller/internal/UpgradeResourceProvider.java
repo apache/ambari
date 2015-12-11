@@ -77,6 +77,7 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -292,7 +293,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     UpgradeEntity entity = createResources(new Command<UpgradeEntity>() {
       @Override
-      public UpgradeEntity invoke() throws AmbariException {
+      public UpgradeEntity invoke() throws AmbariException, AuthorizationException {
         String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
 
         Direction direction = Boolean.parseBoolean(forceDowngrade) ? Direction.DOWNGRADE
@@ -653,7 +654,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   private UpgradeEntity createUpgrade(Direction direction, UpgradePack pack,
-      Map<String, Object> requestMap) throws AmbariException {
+      Map<String, Object> requestMap) throws AmbariException, AuthorizationException {
 
     String clusterName = (String) requestMap.get(UPGRADE_CLUSTER_NAME);
 
@@ -905,7 +906,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @throws AmbariException
    */
   public void applyStackAndProcessConfigurations(String stackName, Cluster cluster, String version, Direction direction, UpgradePack upgradePack, String userName)
-      throws AmbariException {
+    throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findByStackNameAndVersion(stackName, version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs", version);

@@ -462,17 +462,16 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
           LOG.info("Applying configuration with tag '{}' to " +
             "cluster '{}'", newTag, cluster.getClusterName());
 
-          ConfigurationRequest cr = new ConfigurationRequest();
-          cr.setClusterName(cluster.getClusterName());
-          cr.setVersionTag(newTag);
-          cr.setType(configType);
-          cr.setProperties(mergedProperties);
+          Map<String, Map<String, String>> propertiesAttributes;
           if (oldConfig != null) {
-            cr.setPropertiesAttributes(oldConfig.getPropertiesAttributes());
+            propertiesAttributes = oldConfig.getPropertiesAttributes();
+          } else {
+            propertiesAttributes = Collections.emptyMap();
           }
-          controller.createConfiguration(cr);
 
-          Config baseConfig = cluster.getConfig(cr.getType(), cr.getVersionTag());
+          controller.createConfig(cluster, configType, mergedProperties, newTag, propertiesAttributes);
+
+          Config baseConfig = cluster.getConfig(configType, newTag);
           if (baseConfig != null) {
             String authName = AUTHENTICATED_USER_NAME;
 

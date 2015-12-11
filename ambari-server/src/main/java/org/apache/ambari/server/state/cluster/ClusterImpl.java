@@ -90,7 +90,10 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -579,7 +582,7 @@ public class ClusterImpl implements Cluster {
   }
 
   @Override
-  public void deleteConfigGroup(Long id) throws AmbariException {
+  public void deleteConfigGroup(Long id) throws AmbariException, AuthorizationException {
     loadConfigGroups();
     clusterGlobalLock.writeLock().lock();
     try {
@@ -587,6 +590,7 @@ public class ClusterImpl implements Cluster {
       if (configGroup == null) {
         throw new ConfigGroupNotFoundException(getClusterName(), id.toString());
       }
+
       LOG.debug("Deleting Config group" + ", clusterName = " + getClusterName()
           + ", groupName = " + configGroup.getName() + ", groupId = "
           + configGroup.getId() + ", tag = " + configGroup.getTag());

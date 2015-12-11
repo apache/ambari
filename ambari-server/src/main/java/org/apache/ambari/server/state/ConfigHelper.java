@@ -27,12 +27,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.upgrade.UpgradeCatalog170;
+import org.apache.ambari.server.utils.SecretReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -726,23 +727,9 @@ public class ConfigHelper {
                                String serviceVersionNote) throws AmbariException {
 
     String tag = "version1";
-    if (cluster.getConfigsByType(configType) != null) {
-      tag = "version" + System.currentTimeMillis();
-    }
-
-    // update the configuration
-    ConfigurationRequest configurationRequest = new ConfigurationRequest();
-    configurationRequest.setClusterName(cluster.getClusterName());
-    configurationRequest.setVersionTag(tag);
-    configurationRequest.setType(configType);
-    configurationRequest.setProperties(properties);
-    configurationRequest.setPropertiesAttributes(propertyAttributes);
-    configurationRequest.setServiceConfigVersionNote(serviceVersionNote);
-    controller.createConfiguration(configurationRequest);
 
     // create the configuration history entry
-    Config baseConfig = cluster.getConfig(configurationRequest.getType(),
-        configurationRequest.getVersionTag());
+    Config baseConfig = createConfig(cluster, controller, configType, tag, properties, propertyAttributes);
 
     if (baseConfig != null) {
       cluster.addDesiredConfig(authenticatedUserName,
@@ -797,22 +784,10 @@ public class ConfigHelper {
     for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
       String type = entry.getKey();
       String tag = "version1";
+      Map<String, String> properties = entry.getValue();
 
-      if (cluster.getConfigsByType(type) != null) {
-        tag = "version" + System.currentTimeMillis();
-      }
-
-      // create the configuration
-      ConfigurationRequest configurationRequest = new ConfigurationRequest();
-      configurationRequest.setClusterName(cluster.getClusterName());
-      configurationRequest.setVersionTag(tag);
-      configurationRequest.setType(type);
-      configurationRequest.setProperties(entry.getValue());
-      configurationRequest.setServiceConfigVersionNote(serviceVersionNote);
-      controller.createConfiguration(configurationRequest);
-
-      Config baseConfig = cluster.getConfig(configurationRequest.getType(),
-          configurationRequest.getVersionTag());
+      Config baseConfig = createConfig(cluster, controller, type, tag, properties,
+        Collections.<String, Map<String,String>>emptyMap());
 
       if (null != baseConfig) {
         try {
@@ -836,6 +811,31 @@ public class ConfigHelper {
     }
 
   }
+
+  Config createConfig(Cluster cluster, AmbariManagementController controller, String type, String tag,
+                      Map<String, String> properties, Map<String, Map<String, String>> propertyAttributes) throws AmbariException {
+    if (cluster.getConfigsByType(type) != null) {
+      tag = "version" + System.currentTimeMillis();
+    }
+
+    Map<PropertyType, Set<String>> propertiesTypes = cluster.getConfigPropertiesTypes(type);
+    if(propertiesTypes.containsKey(PropertyType.PASSWORD)) {
+      for(String passwordProperty : propertiesTypes.get(PropertyType.PASSWORD)) {
+        if(properties.containsKey(passwordProperty)) {
+          String passwordPropertyValue = properties.get(passwordProperty);
+          if (!SecretReference.isSecret(passwordPropertyValue)) {
+            continue;
+          }
+          SecretReference ref = new SecretReference(passwordPropertyValue, cluster);
+          String refValue = ref.getValue();
+          properties.put(passwordProperty, refValue);
+        }
+      }
+    }
+
+    return controller.createConfig(cluster, type, properties, tag, propertyAttributes);
+  }
+
 
 
   /**

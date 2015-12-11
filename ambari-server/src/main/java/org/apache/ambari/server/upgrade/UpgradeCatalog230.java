@@ -273,6 +273,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("SERVICE.RUN_CUSTOM_COMMAND", serviceOperatorAndUp);
     map.put("SERVICE.MODIFY_CONFIGS", serviceAdministratorAndUp);
     map.put("SERVICE.MANAGE_CONFIG_GROUPS", serviceAdministratorAndUp);
+    map.put("CLUSTER.MANAGE_CONFIG_GROUPS", serviceAdministratorAndUp);
     map.put("SERVICE.MOVE", serviceAdministratorAndUp);
     map.put("SERVICE.ENABLE_HA", serviceAdministratorAndUp);
     map.put("SERVICE.TOGGLE_ALERTS", serviceAdministratorAndUp);

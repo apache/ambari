@@ -98,6 +98,7 @@ import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertNull;
 import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -681,23 +682,23 @@ public class UpgradeCatalog220Test {
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<ConfigurationRequest> configurationRequestCapture = EasyMock.newCapture();
-    ConfigurationResponse configurationResponseMock = easyMockSupport.createMock(ConfigurationResponse.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock).once();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
-    replay(controller, injector2, configurationResponseMock);
+    replay(controller, injector2);
     new UpgradeCatalog220(injector2).updateAMSConfigs();
     easyMockSupport.verifyAll();
 
-    ConfigurationRequest configurationRequest = configurationRequestCapture.getValue();
-    Map<String, String> updatedProperties = configurationRequest.getProperties();
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
 
   }
@@ -742,23 +743,23 @@ public class UpgradeCatalog220Test {
     AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
       .addMockedMethod("createConfiguration")
       .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
       .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
       .createNiceMock();
 
     Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
-    Capture<ConfigurationRequest> configurationRequestCapture = EasyMock.newCapture();
-    ConfigurationResponse configurationResponseMock = easyMockSupport.createMock(ConfigurationResponse.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
 
     expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.createConfiguration(capture(configurationRequestCapture))).andReturn(configurationResponseMock).once();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+        anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
 
-    replay(controller, injector2, configurationResponseMock);
+    replay(controller, injector2);
     new UpgradeCatalog220(injector2).updateAMSConfigs();
     easyMockSupport.verifyAll();
 
-    ConfigurationRequest configurationRequest = configurationRequestCapture.getValue();
-    Map<String, String> updatedProperties = configurationRequest.getProperties();
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
     assertTrue(Maps.difference(newPropertiesAmsSite, updatedProperties).areEqual());
   }
 

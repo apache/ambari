@@ -401,21 +401,16 @@ public class UpgradeActionTest {
     action.setExecutionCommand(executionCommand);
     action.setHostRoleCommand(hostRoleCommand);
 
+    List<ServiceConfigVersionResponse> configVersionsBefore = cluster.getServiceConfigVersions();
+
     CommandReport report = action.execute(null);
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
 
     List<ServiceConfigVersionResponse> configVersionsAfter = cluster.getServiceConfigVersions();
     Assert.assertFalse(configVersionsAfter.isEmpty());
-    boolean atLeastOneCreated = false;
-    for (ServiceConfigVersionResponse configResponse : configVersionsAfter) {
-      if (configResponse.getIsCurrent() && configResponse.getVersion() > 1L && configResponse.getUserName().equals(userName)) {
-        atLeastOneCreated = true;
-        break;
-      }
-    }
-    // The user should have created at least one version.
-    Assert.assertTrue(atLeastOneCreated);
+
+    assertTrue(configVersionsAfter.size() - configVersionsBefore.size() >= 1);
   }
 
   @Test
