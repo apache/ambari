@@ -336,6 +336,7 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
                               action = ['delete']
     )
+    self.assertResourceCalled('Directory', '/var/lib/hadoop-yarn',)
     self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
                               content= 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated'
     )
