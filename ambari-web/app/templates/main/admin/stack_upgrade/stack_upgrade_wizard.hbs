@@ -313,14 +313,14 @@
         {{#if App.upgradeAborted}}
           <div class="box details-box">
             <label class="message">
-            {{#if view.isDowngradeAvailable}}
+            {{#if isDowngrade}}
               {{t admin.stackUpgrade.dialog.suspended.downgrade}}
             {{else}}
               {{t admin.stackUpgrade.dialog.suspended}}
             {{/if}}
             </label>
             <div class="button-row">
-              {{#if view.isDowngradeAvailable}}
+              {{#if isDowngrade}}
                 <button class="btn btn-primary" {{action resumeUpgrade target="controller"}}>
                   {{t admin.stackUpgrade.dialog.resume.downgrade}}
                 </button>
