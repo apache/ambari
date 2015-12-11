@@ -660,6 +660,11 @@
               <value>10001</value>
             </condition>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="datanucleus.rdbms.datastoreAdapterClassName"/>
+          </definition>
         </changes>
       </component>
 

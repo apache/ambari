@@ -671,18 +671,13 @@
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
-          
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_policy"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_security"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_audit"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_deprecated_ranger_properties"/>
+          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
         </pre-upgrade>
 
         <pre-downgrade>

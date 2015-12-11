@@ -444,6 +444,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_deprecated_ranger_properties"/>
       </execute-stage>
 
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
+      </execute-stage>
+
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_env"/>
       </execute-stage>
@@ -451,7 +455,6 @@
       <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
         <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_configuration_paths"/>
       </execute-stage>
-
 
       <!--OOZIE-->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">

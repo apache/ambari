@@ -70,11 +70,11 @@
             </condition>
           </definition>
 
-          <definition xsi:type="configure" id="hdp_2_2_0_0_hive_server_keberized_token_store_class">
+          <definition xsi:type="configure" id="hdp_2_2_0_0_hive_server_kerberized_token_store_class">
             <condition type="cluster-env" key="security_enabled" value="true">
               <type>hive-site</type>
               <key>hive.cluster.delegation.token.store.class</key>
-              <value>org.apache.hadoop.hive.thrift.DBTokenStore</value>
+              <value>org.apache.hadoop.hive.thrift.ZooKeeperTokenStore</value>
             </condition>
           </definition>
         </changes>
