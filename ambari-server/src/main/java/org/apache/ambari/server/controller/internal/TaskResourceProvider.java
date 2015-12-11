@@ -39,6 +39,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.utils.StageUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.inject.Inject;
@@ -153,7 +154,7 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, hostRoleCommand.getRequestId(), requestedIds);
       setResourceProperty(resource, TASK_ID_PROPERTY_ID, hostRoleCommand.getTaskId(), requestedIds);
       setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, hostRoleCommand.getStageId(), requestedIds);
-      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, hostRoleCommand.getHostName(), requestedIds);
+      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, ensureHostname(hostRoleCommand.getHostName()), requestedIds);
       setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, hostRoleCommand.getRole().toString(), requestedIds);
       setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, hostRoleCommand.getRoleCommand(), requestedIds);
       setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, hostRoleCommand.getStatus(), requestedIds);
@@ -227,4 +228,16 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
+
+  /**
+   * Ensures that a hostname is returned. If null (indicating the host is the Ambari server), the
+   * hostname of the Ambari server is returned.
+   *
+   * @param hostName a hostname
+   * @return the specified hostname or the hostname of the Ambari Server
+   */
+  protected String ensureHostname(String hostName) {
+    return (hostName == null) ? StageUtils.getHostName() : hostName;
+  }
+
 }
