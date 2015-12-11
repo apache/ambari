@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var objectUtils = require('utils/object_utils');
 
 /**
  * Mixin for loading and setting secure configs
@@ -70,7 +71,7 @@ App.AddSecurityConfigs = Em.Mixin.create({
     this.loadStackDescriptorConfigs().then(function(data) {
       var stackArtifacts = data;
       self.loadClusterDescriptorConfigs().then(function(clusterArtifacts) {
-        dfd.resolve(self.createServicesStackDescriptorConfigs($.extend(true, {}, stackArtifacts, clusterArtifacts)));
+        dfd.resolve(self.createServicesStackDescriptorConfigs(objectUtils.deepMerge(data, clusterArtifacts)));
       }, function() {
         dfd.resolve(self.createServicesStackDescriptorConfigs(stackArtifacts));
       });
