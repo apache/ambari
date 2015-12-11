@@ -43,6 +43,7 @@ import org.apache.ambari.server.state.alert.SourceType;
   @NamedQuery(name = "AlertDefinitionEntity.findByName", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.definitionName = :definitionName AND ad.clusterId = :clusterId",
     hints = {
       @QueryHint(name = "eclipselink.query-results-cache", value = "true"),
+      @QueryHint(name = "eclipselink.query-results-cache.ignore-null", value = "true"),
       @QueryHint(name = "eclipselink.query-results-cache.size", value = "5000")
     }),
   @NamedQuery(name = "AlertDefinitionEntity.findByService", query = "SELECT ad FROM AlertDefinitionEntity ad WHERE ad.serviceName = :serviceName AND ad.clusterId = :clusterId"),
