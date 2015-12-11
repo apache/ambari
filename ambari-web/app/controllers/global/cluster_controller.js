@@ -362,7 +362,7 @@ App.ClusterController = Em.Controller.extend(App.ReloadPopupMixin, {
 
   loadAuthorizationsSuccessCallback: function(response) {
     if (response && response.items) {
-      App.set('auth', response.items.mapProperty('AuthorizationInfo.authorization_id'));
+      App.set('auth', response.items.mapProperty('AuthorizationInfo.authorization_id').uniq());
       App.db.setAuth(App.get('auth'));
     }
   },
