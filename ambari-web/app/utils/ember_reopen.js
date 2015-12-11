@@ -259,6 +259,7 @@ Ember.Router.reopen({
     var args = arguments;
     var transitionTo = self._super;
     var callback = function () {
+      self.get('location').setURL(path);
       transitionTo.apply(self, args);
     };
     var realPath;
