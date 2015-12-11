@@ -135,6 +135,24 @@
               <goal>run</goal>
             </goals>
           </execution>
+          <!-- Copies compiled views into known location for RPM builds -->
+          <execution>
+            <id>copy-view-jars</id>
+            <phase>package</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${ambari-admin-dir}/target" flatten="true">
+                  <fileset dir="${contrib-views-dir}">
+                    <include name="*/target/*jar" />
+                    <exclude name="**/ambari-views-utils*jar" />
+                  </fileset>
+                </copy>
+              </target>
+            </configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -699,7 +717,7 @@
         </executions>
         <configuration>
           <controlDir>${basedir}/src/main/package/deb/control</controlDir>
-          <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+          <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
           <dataSet>
             <data>
               <type>template</type>
@@ -1209,7 +1227,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.5.2</version>
+        <version>3.0.3</version>
         <configuration>
           <failOnError>false</failOnError>
         </configuration>
@@ -1275,49 +1293,6 @@
             <goals>
               <goal>create</goal>
             </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.7</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <configuration>
-              <tasks>
-                <jar destfile="target/DBConnectionVerification.jar">
-                  <fileset dir="${basedir}/target/classes/"
-                    includes="**/DBConnectionVerification.class" />
-                  <manifest>
-                    <attribute name="Main-Class"
-                      value="org.apache.ambari.server.DBConnectionVerification" />
-                  </manifest>
-                </jar>
-              </tasks>
-            </configuration>
-            <goals>
-              <goal>run</goal>
-            </goals>
-          </execution>
-          <!-- Copies compiled views into known location for RPM builds -->
-          <execution>
-            <id>copy-view-jars</id>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <copy todir="${ambari-admin-dir}/target" flatten="true">
-                  <fileset dir="${contrib-views-dir}">
-                    <include name="*/target/*jar" />
-                    <exclude name="**/ambari-views-utils*jar" />
-                  </fileset>
-                </copy>
-              </target>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -1577,7 +1552,7 @@
   </profiles>
   <dependencies>
     <dependency>
-      <groupId>${pom.groupId}</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>ambari-views</artifactId>
       <version>${project.version}</version>
     </dependency>
