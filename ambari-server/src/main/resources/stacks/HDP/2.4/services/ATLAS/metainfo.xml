@@ -20,7 +20,7 @@
   <services>
     <service>
       <name>ATLAS</name>
-      <version>0.6.0.2.4</version>
+      <version>0.5.0.2.4</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
