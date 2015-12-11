@@ -124,6 +124,7 @@ def yarn(name = None):
 
       # Setting NM marker file
       if params.security_enabled:
+        Directory(params.nm_security_marker_dir)
         File(params.nm_security_marker,
              content="Marker file to track first start after enabling/disabling security. "
                      "During first start yarn local, log dirs are removed and recreated"
