@@ -101,6 +101,8 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var kerberosWizardController = this.controllers.get('kerberosWizardController');
     var manageIdentitiesConfig = configs.findProperty('name', 'manage_identities');
 
+    configs.filterProperty('serviceName', 'KERBEROS').setEach('isVisible', true);
+    this.setKDCTypeProperty(configs);
     if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
       if (kerberosWizardController.get('skipClientInstall')) {
         kerberosWizardController.overrideVisibility(configs, false, kerberosWizardController.get('exceptionsOnSkipClient'));
@@ -267,5 +269,17 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
     var primaryText = Em.I18n.t('common.exitAnyway');
     var msg = Em.I18n.t('services.service.config.connection.exitPopup.msg');
     App.showConfirmationPopup(primary, msg, null, null, primaryText)
+  },
+
+  setKDCTypeProperty: function(configs) {
+    var selectedOption = this.get('content.kerberosOption');
+    var kdcTypeProperty = configs.filterProperty('filename', 'kerberos-env.xml').findProperty('name', 'kdc_type');
+    var kdcValuesMap = App.router.get('mainAdminKerberosController.kdcTypesValues');
+    var kdcTypeValue = Em.keys(kdcValuesMap).filter(function(typeAlias) {
+      return Em.get(kdcValuesMap, typeAlias) === selectedOption;
+    })[0];
+    if (kdcTypeProperty) {
+      Em.set(kdcTypeProperty, 'value', kdcValuesMap[kdcTypeValue]);
+    }
   }
 });

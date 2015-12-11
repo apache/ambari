@@ -121,7 +121,12 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
           configObject.isEditable = false;
         }
       }
-      configs.pushObject(configObject);
+      var configProperty = configs.findProperty('name', configObject.name);
+      if (!Em.isNone(configProperty)) {
+        Em.setProperties(configProperty, configObject);
+      } else {
+        configs.pushObject(configObject);
+      }
     });
   },
 
