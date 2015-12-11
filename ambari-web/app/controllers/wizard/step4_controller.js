@@ -29,8 +29,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    */
   content: [],
 
-  isValidating: false,
-
   /**
    * Check / Uncheck 'Select All' checkbox with one argument; Check / Uncheck all other checkboxes with more arguments
    * @type {bool}
@@ -66,7 +64,7 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * Drop errorStack content on selected state changes.
    **/
   clearErrors: function() {
-    if (!this.get('isValidating')) {
+    if (!this.get('errorStack').someProperty('isAccepted', false)) {
       this.set('errorStack', []);
     }
   }.observes('@each.isSelected'),
@@ -142,7 +140,6 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       this.unSelectServices();
       this.setGroupedServices();
       if (this.validate()) {
-        this.set('isValidating', false);
         this.set('errorStack', []);
         App.router.send('next');
       }
@@ -165,14 +162,16 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    * @method validate
    **/
-  validate: function() {
+  validate: function () {
     var result;
     var self = this;
-    // callback function to reset `isValidating` needs to be called everytime when a popup from errorStack is dismissed/proceed by user action
-    var callback = function() {
-      self.set('isValidating', false);
+    // callback function to reset `isAccepted` needs to be called everytime when a popup from errorStack is dismissed/proceed by user action
+    var callback = function (id) {
+      var check = self.get('errorStack').findProperty('id', id);
+      if (check) {
+        check.isAccepted = true;
+      }
     };
-    this.set('isValidating', true);
     this.serviceDependencyValidation(callback);
     this.fileSystemServiceValidation(callback);
     if (this.get('wizardController.name') == 'installerController') {
@@ -197,8 +196,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @return {Boolean}
    * @method addValidationError
    **/
-  addValidationError: function(errorObject) {
-    if (!this.get('errorStack').mapProperty('id').contains(errorObject.id)) {
+  addValidationError: function (errorObject) {
+    if (!this.get('errorStack').someProperty('id', errorObject.id)) {
       this.get('errorStack').push(this.createError(errorObject));
       return true;
     } else {
@@ -212,8 +211,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @param {Object} errorObject
    * @method showError
    **/
-  showError: function(errorObject) {
-    return errorObject.callback.apply(errorObject.callbackContext, errorObject.callbackParams);
+  showError: function (errorObject) {
+    return errorObject.callback.apply(errorObject.callbackContext, errorObject.callbackParams.concat(errorObject.id));
   },
 
   /**
@@ -222,15 +221,16 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    *  Call #submit() method.
    *
    *  @param {function} callback
+   *  @param {string} id
    *  @method onPrimaryPopupCallback
    **/
-  onPrimaryPopupCallback: function(callback) {
+  onPrimaryPopupCallback: function(callback, id) {
     var firstError =  this.get('errorStack').findProperty('isShown', false);
     if (firstError) {
       firstError.isShown = true;
     }
     if (callback) {
-      callback();
+      callback(id);
     }
     this.submit();
   },
@@ -257,6 +257,8 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       type: 'CRITICAL',
       // {Boolean} error was shown
       isShown: false,
+      // {Boolean} error was accepted by user
+      isAccepted: false,
       // {Function} callback to execute
       callback: null,
       // context which execute from
@@ -381,11 +383,12 @@ App.WizardStep4Controller = Em.ArrayController.extend({
    * @param {string} i18nSuffix
    * @param {string} serviceName
    * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method needToAddServicePopup
    */
 
-  needToAddServicePopup: function(services, i18nSuffix, serviceName, callback) {
+  needToAddServicePopup: function (services, i18nSuffix, serviceName, callback, id) {
     if (!(services instanceof Array)) {
       services = [services];
     }
@@ -397,18 +400,18 @@ App.WizardStep4Controller = Em.ArrayController.extend({
         services.forEach(function (service) {
           self.findProperty('serviceName', service.serviceName).set('isSelected', service.selected);
         });
-        self.onPrimaryPopupCallback(callback);
+        self.onPrimaryPopupCallback(callback, id);
         this.hide();
       },
       onSecondary: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       },
       onClose: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       }
@@ -418,10 +421,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   /**
    * Show popup with info about not selected Ambari Metrics service
    * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method ambariMetricsCheckPopup
    */
-  ambariMetricsCheckPopup: function (callback) {
+  ambariMetricsCheckPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.ambariMetricsCheck.popup.header'),
@@ -433,13 +437,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       },
       onSecondary: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       },
       onClose: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       }
@@ -449,10 +453,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   /**
    * Show popup with installation requirements for Ranger service
    * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method rangerRequirementsPopup
    */
-  rangerRequirementsPopup: function (callback) {
+  rangerRequirementsPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step4.rangerRequirements.popup.header'),
@@ -470,13 +475,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       },
       onSecondary: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       },
       onClose: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       }
@@ -486,10 +491,11 @@ App.WizardStep4Controller = Em.ArrayController.extend({
   /**
    * Show popup with Spark installation warning
    * @param {function} callback
+   * @param {string} id
    * @return {App.ModalPopup}
    * @method sparkWarningPopup
    */
-  sparkWarningPopup: function (callback) {
+  sparkWarningPopup: function (callback, id) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
@@ -501,13 +507,13 @@ App.WizardStep4Controller = Em.ArrayController.extend({
       },
       onSecondary: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
         this._super();
       },
       onClose: function () {
         if (callback) {
-          callback();
+          callback(id);
         }
        this._super();
       }

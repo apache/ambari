@@ -422,7 +422,7 @@ describe('App.WizardStep4Controller', function () {
             // validate current error
             var currentErrorObject = c.get('errorStack').findProperty('isShown', false);
             if (currentErrorObject) {
-              expect(error).to.be.equal(currentErrorObject.id);
+              expect(test.errorsExpected).to.contain(currentErrorObject.id);
               // show current error
               var popup = c.showError(currentErrorObject);
               // submit popup
@@ -796,13 +796,19 @@ describe('App.WizardStep4Controller', function () {
 
     var cases = [
       {
-        isValidating: true,
-        errorStack: [{}],
+        errorStack: [{
+          isAccepted: false
+        }],
+        resultingErrorStack: [{
+          isAccepted: false
+        }],
         title: 'error stack shouldn\'t be cleared during validation'
       },
       {
-        isValidating: false,
-        errorStack: [],
+        errorStack: [{
+          isAccepted: true
+        }],
+        resultingErrorStack: [],
         title: 'error stack should be cleared'
       }
     ];
@@ -813,9 +819,9 @@ describe('App.WizardStep4Controller', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        controller.set('isValidating', item.isValidating);
+        controller.set('errorStack', item.errorStack);
         controller.propertyDidChange('@each.isSelected');
-        expect(controller.get('errorStack')).to.eql(item.errorStack);
+        expect(controller.get('errorStack')).to.eql(item.resultingErrorStack);
       });
     });
 
