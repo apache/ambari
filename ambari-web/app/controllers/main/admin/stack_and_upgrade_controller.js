@@ -675,6 +675,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
           label: version.get('displayName'),
           type: method.get('type')
         });
+      } else {
+        //if method not supported in current stack version, mark as check completed
+        method.setProperties({
+          isCheckComplete: false,
+          isCheckRequestInProgress: false,
+          action: ''
+        });
       }
     }, this);
   },
@@ -743,14 +750,14 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
             placement: "top",
             title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.tolerance.tooltip')
           });
-          App.tooltip($(".not-allowed-by-version"), {
-            placement: "bottom",
-            title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.notAllowed')
-          });
           Em.run.later(this, function () {
             App.tooltip($(".thumbnail.check-failed"), {
               placement: "bottom",
               title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.preCheck.failed.tooltip')
+            });
+            App.tooltip($(".not-allowed-by-version"), {
+              placement: "bottom",
+              title: Em.I18n.t('admin.stackVersions.version.upgrade.upgradeOptions.notAllowed')
             });
           }, 1000);
         },
