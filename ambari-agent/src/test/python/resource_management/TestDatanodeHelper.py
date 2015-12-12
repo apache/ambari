@@ -115,7 +115,6 @@ class TestDatanodeHelper(TestCase):
     error_logs = []
     for (name, args, kwargs) in log_error.mock_calls:
       error_logs.append(args[0])    # this is a one-tuple
-      #print args[0]
     error_msg = "".join(error_logs)
 
     self.assertEquals(1, log_error.call_count)

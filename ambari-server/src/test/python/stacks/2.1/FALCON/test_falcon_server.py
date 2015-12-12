@@ -513,7 +513,28 @@ class TestFalconServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'falcon-server', version), sudo=True,)
-    self.printResources()
+    self.assertResourceCalled('Execute', ('tar',
+                                          '-xvf',
+                                          '/tmp/falcon-upgrade-backup/falcon-conf-backup.tar',
+                                          '-C',
+                                          '/usr/hdp/current/falcon-server/conf/'),
+                              tries = 3,
+                              sudo = True,
+                              try_sleep = 1,
+                              )
+    self.assertResourceCalled('Execute', ('tar',
+                                          '-xvf',
+                                          '/tmp/falcon-upgrade-backup/falcon-local-backup.tar',
+                                          '-C',
+                                          u'/hadoop/falcon/'),
+                              tries = 3,
+                              sudo = True,
+                              try_sleep = 1,
+                              )
+    self.assertResourceCalled('Directory', '/tmp/falcon-upgrade-backup',
+                              action = ['delete'],
+                              )
+    self.assertNoMoreResources()
 
   @patch('os.path.isfile', new=MagicMock(return_value=True))
   @patch.object(tarfile, 'open')

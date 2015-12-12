@@ -36,6 +36,7 @@ from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.FileCache import FileCache
 from ambari_commons.os_check import OSCheck
 from resource_management.core import shell
+from resource_management.core.environment import Environment
 import pprint
 
 
@@ -62,6 +63,8 @@ class TestRUSetAll(RMFTestCase):
     # method needs to be patched first.
     from ru_set_all import UpgradeSetAll
     global UpgradeSetAll
+    from ru_set_all import link_config
+    global link_config
 
   def tearDown(self):
     Logger.logger = None
@@ -278,3 +281,76 @@ class TestRUSetAll(RMFTestCase):
                      "'/fake/config')]]")
 
 
+  @patch("os.path.exists")
+  @patch("os.path.islink")
+  @patch("os.path.isdir")
+  @patch("os.path.isfile")
+  @patch("os.path.realpath")
+  @patch("shutil.rmtree")
+  def test_link_config(self, shutil_rmtree_mock, os_path_realpath_mock, os_path_isfile_mock,
+                       os_path_isdir_mock, os_path_islink_mock,
+                       os_path_exists_mock):
+    # Test normal flow
+    os_path_islink_mock.return_value = False
+    os_path_realpath_mock.return_value = "/some/another/path"
+    os_path_exists_mock.side_effect = [True, False]
+    old_config = "/old/config"
+    link_conf = "/link/config"
+
+    with Environment(test_mode=True) as RMFTestCase.env:
+      link_config(old_config, link_conf)
+      self.assertTrue(shutil_rmtree_mock.called)
+      self.assertEquals(shutil_rmtree_mock.call_args_list[0][0][0], old_config)
+      self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/old/config', '/old/conf.backup'),
+                                logoutput = True,
+                                sudo = True,
+                                )
+      self.assertResourceCalled('Link', '/old/config',
+                                to = '/link/config',
+                                )
+      self.assertNoMoreResources()
+
+    # Test case when link exists but is wrong
+    shutil_rmtree_mock.reset_mock()
+    os_path_islink_mock.return_value = True
+    with Environment(test_mode=True) as RMFTestCase.env:
+      link_config(old_config, link_conf)
+      self.assertFalse(shutil_rmtree_mock.called)
+      self.assertResourceCalled('Link', '/old/config',
+                                to = '/link/config',
+                                )
+      self.assertNoMoreResources()
+
+    # Test case when link exists and is correct
+    shutil_rmtree_mock.reset_mock()
+    os_path_islink_mock.return_value = True
+    os_path_realpath_mock.return_value = link_conf
+
+    with Environment(test_mode=True) as RMFTestCase.env:
+      link_config(old_config, link_conf)
+      self.assertFalse(shutil_rmtree_mock.called)
+      self.assertNoMoreResources()
+
+    # Test case when old link does not exist at all
+    shutil_rmtree_mock.reset_mock()
+    os_path_islink_mock.return_value = False
+    os_path_exists_mock.side_effect = [False]
+
+    with Environment(test_mode=True) as RMFTestCase.env:
+      link_config(old_config, link_conf)
+      self.assertFalse(shutil_rmtree_mock.called)
+      self.assertNoMoreResources()
+
+    # Test case when backup directory already exists
+    shutil_rmtree_mock.reset_mock()
+    os_path_islink_mock.return_value = False
+    os_path_exists_mock.side_effect = [True, True]
+
+    with Environment(test_mode=True) as RMFTestCase.env:
+      link_config(old_config, link_conf)
+      self.assertTrue(shutil_rmtree_mock.called)
+      self.assertEquals(shutil_rmtree_mock.call_args_list[0][0][0], old_config)
+      self.assertResourceCalled('Link', '/old/config',
+                                to = '/link/config',
+                                )
+      self.assertNoMoreResources()

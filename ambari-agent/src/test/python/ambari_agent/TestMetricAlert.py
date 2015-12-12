@@ -191,7 +191,6 @@ class TestMetricAlert(TestCase):
     def collector_side_effect(clus, data):
       self.assertEquals(data['name'], alert_meta['name'])
       self.assertEquals(data['label'], alert_meta['label'])
-      #self.assertEquals(data['text'], expected_text)
       self.assertEquals(data['service'], alert_meta['serviceName'])
       self.assertEquals(data['component'], alert_meta['componentName'])
       self.assertEquals(data['uuid'], alert_meta['uuid'])

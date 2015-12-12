@@ -657,8 +657,6 @@ class _TestRecoveryManager(TestCase):
     rm = RecoveryManager(tempfile.mktemp(), True)
     rm.update_config(5, 60, 5, 16, True, False, "", "")
 
-    # rm.actions = {}
-
     time_mock.return_value = 0
     self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))
 

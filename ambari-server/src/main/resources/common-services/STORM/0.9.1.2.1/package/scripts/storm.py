@@ -87,6 +87,11 @@ def storm(name=None):
        group=params.user_group
   )
 
+  File(format("{conf_dir}/storm-env.sh"),
+       owner=params.storm_user,
+       content=InlineTemplate(params.storm_env_sh_template)
+  )
+
   if params.has_metric_collector:
     File(format("{conf_dir}/storm-metrics2.properties"),
         owner=params.storm_user,
@@ -105,11 +110,6 @@ def storm(name=None):
             only_if=format("ls {metric_collector_sink_jar}")
     )
 
-  File(format("{conf_dir}/storm-env.sh"),
-    owner=params.storm_user,
-    content=InlineTemplate(params.storm_env_sh_template)
-  )
-  
   if params.storm_logs_supported:
     Directory(params.log4j_dir,
               owner=params.storm_user,
