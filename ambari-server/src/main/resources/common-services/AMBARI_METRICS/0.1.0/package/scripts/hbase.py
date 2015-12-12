@@ -97,11 +97,19 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
       recursive = True
   )
 
+  Execute(('chown', '-R', params.hbase_user, params.hbase_conf_dir),
+          sudo=True
+          )
+
   Directory (params.hbase_tmp_dir,
              owner = params.hbase_user,
              cd_access="a",
              recursive = True
   )
+
+  Execute(('chown', '-R', params.hbase_user, params.hbase_tmp_dir),
+          sudo=True
+          )
 
   Directory (os.path.join(params.local_dir, "jars"),
              owner = params.hbase_user,
@@ -229,6 +237,10 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
                 cd_access="a",
                 recursive = True
       )
+
+      Execute(('chown', '-R', params.hbase_user, local_root_dir),
+              sudo=True
+              )
 
       File(format("{params.hbase_pid_dir}/distributed_mode"), action="delete", owner=params.hbase_user)
 

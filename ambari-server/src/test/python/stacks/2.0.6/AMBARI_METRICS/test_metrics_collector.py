@@ -116,12 +116,20 @@ class TestMetricsCollector(RMFTestCase):
                               group = 'hadoop',
                               recursive = True
     )
+
+    self.assertResourceCalled('Execute', ('chown','-R', u'ams', '/etc/ambari-metrics-collector/conf'),
+                              sudo=True)
+
     self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/checkpoint',
                               owner = 'ams',
                               group = 'hadoop',
                               cd_access = 'a',
                               recursive = True
     )
+
+    self.assertResourceCalled('Execute', ('chown','-R', u'ams', '/var/lib/ambari-metrics-collector/checkpoint'),
+                              sudo=True)
+
     self.assertResourceCalled('XmlConfig', 'ams-site.xml',
                               owner = 'ams',
                               group = 'hadoop',
@@ -220,11 +228,19 @@ class TestMetricsCollector(RMFTestCase):
                               group = 'hadoop',
                               recursive = True
     )
+
+    self.assertResourceCalled('Execute', ('chown','-R', u'ams', '/etc/ams-hbase/conf'),
+                                sudo=True)
+
     self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp',
                               owner = 'ams',
                               cd_access = 'a',
                               recursive = True
     )
+
+    self.assertResourceCalled('Execute', ('chown','-R', u'ams', '/var/lib/ambari-metrics-collector/hbase-tmp'),
+                            sudo=True)
+
     self.assertResourceCalled('Directory', '/var/lib/ambari-metrics-collector/hbase-tmp/local/jars',
                               owner = 'ams',
                               cd_access = 'a',
@@ -324,6 +340,12 @@ class TestMetricsCollector(RMFTestCase):
                                   cd_access="a",
                                   recursive = True
         )
+
+      if (not distributed):
+        self.assertResourceCalled('Execute', ('chown','-R','ams', '/var/lib/ambari-metrics-collector/hbase'),
+                                  sudo=True)
+
+
         self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//distributed_mode',
                                   owner = 'ams',
                                   action = ['delete']
