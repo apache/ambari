@@ -195,7 +195,7 @@
         </executions>
         <configuration>
           <controlDir>${basedir}/src/main/package/deb/control</controlDir>
-          <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+          <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
           <dataSet>
             <data>
               <src>${project.build.directory}/${project.artifactId}-${project.version}/ambari_shell</src>

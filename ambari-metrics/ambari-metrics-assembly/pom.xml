@@ -553,7 +553,7 @@
             </executions>
             <configuration>
               <controlDir>${project.build.directory}/resources/deb/control</controlDir>
-              <deb>${basedir}/target/${artifactId}_${package-version}-${package-release}.deb</deb>
+              <deb>${basedir}/target/${project.artifactId}_${package-version}-${package-release}.deb</deb>
               <dataSet>
                 <data>
                   <type>file</type>
