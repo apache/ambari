@@ -187,12 +187,20 @@ def ams(name=None):
               recursive=True
     )
 
+    Execute(('chown', '-R', params.ams_user, params.ams_collector_conf_dir),
+            sudo=True
+            )
+
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
               recursive=True
     )
+
+    Execute(('chown', '-R', params.ams_user, params.ams_checkpoint_dir),
+            sudo=True
+            )
 
     XmlConfig("ams-site.xml",
               conf_dir=params.ams_collector_conf_dir,
