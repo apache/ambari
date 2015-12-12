@@ -182,6 +182,18 @@
             </organization>
         </developer>
         <developer>
+            <id>avijayan</id>
+            <name>Aravindan Vijayan</name>
+            <email>avijayan@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                Hortonworks
+            </organization>
+        </developer>
+        <developer>
             <id>berndf</id>
             <name>Bernd Fondermann</name>
             <email>berndf@apache.org</email>
@@ -227,15 +239,27 @@
             </organization>            
         </developer>
         <developer>
-            <id>ddorai</id>
-            <name>Dilli Arumugam</name>
-            <email>ddorai@hortonworks.com</email>
+            <id>dillidorai</id>
+            <name>Dilli Dorai</name>
+            <email>dillidorai@apache.org</email>
             <timezone>-8</timezone>
             <roles>
                 <role>Committer</role>
             </roles>
             <organization>
-                Hortonworks
+                BlueTalon
+            </organization>
+        </developer>
+        <developer>
+            <id>dili</id>
+            <name>Di Li</name>
+            <email>dili@apache.org</email>
+            <timezone>-8</timezone>
+            <roles>
+                <role>Committer</role>
+            </roles>
+            <organization>
+                IBM
             </organization>
         </developer>
         <developer>
@@ -845,10 +869,6 @@
           <organization></organization>
         </contributor>
         <contributor>
-          <name>Di Li</name>
-          <organization>IBM</organization>
-        </contributor>
-        <contributor>
           <name>Chuan Liu</name>
           <organization>Microsoft</organization>
         </contributor>
@@ -974,10 +994,6 @@
         </contributor>
         <contributor>
           <name>Ram Venkatesh</name>
-          <organization>Hortonworks</organization>
-        </contributor>
-        <contributor>
-          <name>Aravindan Vijayan</name>
           <organization>Hortonworks</organization>
         </contributor>
         <contributor>
