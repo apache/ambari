@@ -370,15 +370,9 @@ public class TestHeartbeatMonitor {
     hm.start();
     Thread.sleep(3 * heartbeatMonitorWakeupIntervalMS);
     hm.shutdown();
-    
-    int tryNumber = 0;
-    while(hm.isAlive()) {
-      hm.join(2*heartbeatMonitorWakeupIntervalMS);
-      tryNumber++;
-      
-      if(tryNumber >= 5) {
-        fail("HeartbeatMonitor should be already stopped");
-      }
+    hm.join(2*heartbeatMonitorWakeupIntervalMS);
+    if (hm.isAlive()) {
+      fail("HeartbeatMonitor should be already stopped");
     }
     verify(aqMock, atLeast(2)).enqueue(eq(hostname1), commandCaptor.capture());  // After registration and by HeartbeatMonitor
 
