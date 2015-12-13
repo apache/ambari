@@ -1549,6 +1549,8 @@ Em.I18n.translations = {
   'admin.stackUpgrade.title': "Stack and Versions",
   'admin.stackUpgrade.state.inProgress': "Upgrade in Progress",
   'admin.stackUpgrade.state.paused': "Upgrade Paused",
+  'admin.stackUpgrade.state.paused.fail.header': "Pause Upgrade failed",
+  'admin.stackUpgrade.state.paused.fail.body': "Upgrade cannot be paused, try other options.",
   'admin.stackUpgrade.state.aborted': "Upgrade Aborted",
   'admin.stackUpgrade.state.completed': "Upgrade Finished",
   'admin.stackUpgrade.state.inProgress.downgrade': "Downgrade in Progress",

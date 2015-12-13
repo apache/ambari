@@ -1333,11 +1333,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
 
   describe("#suspendUpgrade()", function() {
     beforeEach(function () {
-      sinon.stub(controller, 'abortUpgrade').returns({
-        done: function (callback) {
-          callback();
-        }
-      });
       sinon.stub(controller, 'setDBProperty', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
     });
@@ -1346,12 +1341,35 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.setDBProperty.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
-    it("", function() {
+    it("Suspend upgrade successfully", function() {
+      sinon.stub(controller, 'abortUpgrade').returns({
+        done: function (callback) {
+          callback();
+          return ({
+            fail: function () {}
+          })
+        }
+      });
       controller.suspendUpgrade();
       expect(controller.abortUpgrade.calledOnce).to.be.true;
       expect(App.get('upgradeState')).to.equal('ABORTED');
       expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+    it("Suspend upgrade failed", function() {
+      sinon.stub(controller, 'abortUpgrade').returns({
+        done: function (callback) {
+          return ({
+            fail: function (callback) {
+              callback();
+            }
+          })
+        }
+      });
+      controller.suspendUpgrade();
+      expect(controller.abortUpgrade.calledOnce).to.be.true;
+      expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.false;
+      expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.false;
     });
   });
 
