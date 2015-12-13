@@ -38,6 +38,8 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 dfs_type = default("/commandParams/dfs_type", "")
 hadoop_conf_dir = "/etc/hadoop/conf"
 
+component_list = default("/localComponents", [])
+
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 

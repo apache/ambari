@@ -101,7 +101,7 @@ def setup_hadoop():
            content=Template("hadoop-metrics2.properties.j2")
       )
 
-    if params.dfs_type == 'HCFS' and params.has_core_site:
+    if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
        create_dirs()
 
 
