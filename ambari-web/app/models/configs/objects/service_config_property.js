@@ -330,7 +330,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     var isWarn = false;
 
     if (typeof value === 'string' && value.length === 0) {
-      if (this.get('isRequired')) {
+      if (this.get('isRequired') && this.get('widgetType') != 'test-db-connection') {
         this.set('errorMessage', 'This is required');
         isError = true;
       } else {

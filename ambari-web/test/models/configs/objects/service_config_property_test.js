@@ -473,6 +473,15 @@ describe('App.ServiceConfigProperty', function () {
       expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
       expect(serviceConfigProperty.get('error')).to.be.false;
     });
+    it('test-db-connection widget', function () {
+      serviceConfigProperty.setProperties({
+        isRequired: true,
+        widgetType: 'test-db-connection',
+        value: ''
+      });
+      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
+      expect(serviceConfigProperty.get('error')).to.be.false;
+    });
     it('should validate', function () {
       serviceConfigProperty.setProperties({
         isRequired: true,
