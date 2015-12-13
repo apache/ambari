@@ -1534,8 +1534,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
         wizardControllerName: self.get('name'),
         localdb: App.db.data
       });
-    }).fail(function () {
-      return App.showAlertPopup(Em.I18n.t('admin.stackUpgrade.state.paused.fail.header'), Em.I18n.t('admin.stackUpgrade.state.paused.fail.body'));
     });
   },
 
