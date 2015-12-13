@@ -742,6 +742,7 @@ def generate_env(options, ambari_user, current_user):
       import pwd
 
       masterKey = get_original_master_key(properties)
+      environ[SECURITY_KEY_ENV_VAR_NAME] = masterKey
       tempDir = tempfile.gettempdir()
       tempFilePath = tempDir + os.sep + "masterkey"
       save_master_key(options, masterKey, tempFilePath, True)
