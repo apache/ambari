@@ -150,7 +150,7 @@
   </property>
   <property>
     <name>oozie.service.HadoopAccessorService.hadoop.configurations</name>
-    <value>*={{hadoop_conf_dir}}</value>
+    <value>*=/etc/hadoop/conf</value>
     <description>
       Comma separated AUTHORITY=HADOOP_CONF_DIR, where AUTHORITY is the HOST:PORT of
       the Hadoop service (JobTracker, HDFS). The wildcard '*' configuration is

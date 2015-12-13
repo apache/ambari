@@ -26,9 +26,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -60,11 +57,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
   private static final String PERMISSION_ROLE_AUTHORIZATION_TABLE = "permission_roleauthorization";
   private static final String ROLE_AUTHORIZATION_ID_COL = "authorization_id";
   private static final String ROLE_AUTHORIZATION_NAME_COL = "authorization_name";
-
-  private static final String OOZIE_SITE_CONFIG = "oozie-site";
-  private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
-  private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
-  private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
 
   @Inject
   DaoUtils daoUtils;
@@ -135,7 +127,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     addNewPermissions();
     createRoleAuthorizations();
     createPermissionRoleAuthorizationMap();
-    updateOozieConfigs();
   }
 
   private void addNewPermissions() throws SQLException {
@@ -386,21 +377,4 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
         PermissionEntity.VIEW_USER_PERMISSION_NAME, PermissionEntity.VIEW_USER_PERMISSION));
   }
 
-  protected void updateOozieConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
-      Config oozieSiteProps = cluster.getDesiredConfigByType(OOZIE_SITE_CONFIG);
-      if (oozieSiteProps != null) {
-        // Update oozie.service.HadoopAccessorService.hadoop.configurations
-        Map<String, String> updateProperties = new HashMap<>();
-        String oozieHadoopConfigProperty = oozieSiteProps.getProperties().get(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME);
-        if(oozieHadoopConfigProperty != null && oozieHadoopConfigProperty.contains(OLD_DEFAULT_HADOOP_CONFIG_PATH)) {
-          String updatedOozieHadoopConfigProperty = oozieHadoopConfigProperty.replaceAll(
-              OLD_DEFAULT_HADOOP_CONFIG_PATH, NEW_DEFAULT_HADOOP_CONFIG_PATH);
-          updateProperties.put(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME, updatedOozieHadoopConfigProperty);
-          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, updateProperties, true, false);
-        }
-      }
-    }
-  }
 }
