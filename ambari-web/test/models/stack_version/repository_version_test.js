@@ -31,12 +31,36 @@ describe('App.RepositoryVersion', function () {
 
   App.TestAliases.testAsComputedFirstNotBlank(getModel(), 'status', ['stackVersion.state', 'defaultStatus']);
 
-  App.TestAliases.testAsComputedFirstNotBlank(getModel(), 'notInstalledHosts', ['stackVersion.notInstalledHosts', 'App.allHostNames']);
-
   App.TestAliases.testAsComputedIfThenElse(getModel(), 'noInitHostsTooltip', 'noInitHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip'));
 
   App.TestAliases.testAsComputedIfThenElse(getModel(), 'noCurrentHostsTooltip', 'noCurrentHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip'));
 
   App.TestAliases.testAsComputedIfThenElse(getModel(), 'noInstalledHostsTooltip', 'noInstalledHosts', Em.I18n.t('admin.stackVersions.version.emptyHostsTooltip'), Em.I18n.t('admin.stackVersions.version.hostsTooltip'));
+
+  describe("#notInstalledHosts", function() {
+
+    before(function () {
+      sinon.stub(App, 'get').returns(['host1']);
+    });
+    after(function () {
+      App.get.restore();
+    });
+
+    it("stackVersion is null", function() {
+      var model = getModel();
+      model.set('stackVersion', null);
+      model.propertyDidChange('notInstalledHosts');
+      expect(model.get('notInstalledHosts')).to.eql(['host1']);
+    });
+
+    it("stackVersion has notInstalledHosts array", function() {
+      var model = getModel();
+      model.set('stackVersion', Em.Object.create({
+        notInstalledHosts: ['host2']
+      }));
+      model.propertyDidChange('notInstalledHosts');
+      expect(model.get('notInstalledHosts')).to.eql(['host2']);
+    });
+  });
 
 });

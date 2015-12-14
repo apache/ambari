@@ -42,7 +42,11 @@ App.RepositoryVersion = DS.Model.extend({
   /**
    * @type {Array}
    */
-  notInstalledHosts: Em.computed.firstNotBlank('stackVersion.notInstalledHosts', 'App.allHostNames'),
+  notInstalledHosts: function () {
+    return Array.isArray(this.get('stackVersion.notInstalledHosts'))
+          ? this.get('stackVersion.notInstalledHosts')
+          : App.get('allHostNames');
+  }.property('stackVersion.notInstalledHosts'),
 
   /**
    * @type {Array}
