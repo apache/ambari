@@ -69,8 +69,6 @@ if stack_name and stack_name.upper() == "HDP":
     Logger.info(format("Detected HDP with stack version {version}, will use knox_data_dir = {knox_data_dir}"))
 
 
-knox_logs_dir = '/var/log/knox'
-
 knox_master_secret_path = format('{knox_data_dir}/security/master')
 knox_cert_store_path = format('{knox_data_dir}/security/keystores/gateway.jks')
 knox_user = default("/configurations/knox-env/knox_user", "knox")

@@ -136,3 +136,38 @@ def knox():
             not_if=cert_store_exist,
     )
 
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def update_knox_folder_permissions():
+  import params
+  Directory(params.knox_logs_dir,
+            owner = params.knox_user,
+            group = params.knox_group
+            )
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def update_knox_logfolder_permissions():
+  """
+   Fix for the bug with rpm/deb packages. During installation of the package, they re-apply permissions to the
+   folders below; such behaviour will affect installations with non-standard user name/group and will put
+   cluster in non-working state
+  """
+  import params
+  knox_dirs = [params.knox_logs_dir]
+
+  Directory(params.knox_logs_dir,
+            owner = params.knox_user,
+            group = params.knox_group,
+            recursive = True,
+            cd_access = "a",
+            mode = 0755,
+            )
+
+  for d in knox_dirs:
+    if len(d) > 1:  # If path is empty or a single slash, may corrupt filesystem permissions
+      Execute(('chown', '-R', format("{knox_user}:{knox_group}"), d),
+              sudo=True
+              )
+    else:
+      Logger.warning("Permissions for the Knox folder \"%s\" was not updated due to empty path passed" % d)

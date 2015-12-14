@@ -43,9 +43,10 @@ if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
 import upgrade
-from knox import knox
+from knox import knox, update_knox_logfolder_permissions
 from knox_ldap import ldap
 from setup_ranger_knox import setup_ranger_knox
+
 
 class KnoxGateway(Script):
   def get_stack_to_component(self):
@@ -60,7 +61,7 @@ class KnoxGateway(Script):
          action = "delete",
     )
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     knox()
@@ -75,14 +76,14 @@ class KnoxGateway(Script):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class KnoxGatewayWindows(KnoxGateway):
-  def start(self, env):
+  def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     self.configure(env)
     # setup_ranger_knox(env)
     Service(params.knox_gateway_win_service_name, action="start")
 
-  def stop(self, env):
+  def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     Service(params.knox_gateway_win_service_name, action="stop")
@@ -154,6 +155,8 @@ class KnoxGatewayDefault(KnoxGateway):
            to = params.knox_pid_dir,
       )
 
+    update_knox_logfolder_permissions()
+
     Execute(daemon_cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},
@@ -164,6 +167,9 @@ class KnoxGatewayDefault(KnoxGateway):
     import params
     env.set_params(params)
     daemon_cmd = format('{knox_bin} stop')
+
+    update_knox_logfolder_permissions()
+
     Execute(daemon_cmd,
             environment={'JAVA_HOME': params.java_home},
             user=params.knox_user,
