@@ -476,6 +476,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
+    var self = this;
     this.get('servicesToLoad').forEach(function(serviceName) {
       var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
       var configTypes = App.StackService.find(serviceName).get('configTypeList');
@@ -490,13 +491,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
-    } else {
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       this.setVisibilityForRangerProperties(selectedService);
+    } else {
+      App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this._onLoadComplete();
-    this.getRecommendationsForDependencies(null, true, Em.K, this.get('selectedConfigGroup'));
+    this.getRecommendationsForDependencies(null, true, function () {self._onLoadComplete();}, this.get('selectedConfigGroup'));
     App.loadTimer.finish('Service Configs Page');
   },
 
