@@ -40,8 +40,6 @@ tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
 version = default("/commandParams/version", None)
-if version is None:
-  version = get_hdp_version('knox-server')
 # E.g., 2.3.2.0
 version_formatted = format_hdp_stack_version(version)
 
