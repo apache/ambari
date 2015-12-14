@@ -41,14 +41,22 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
     stat = sudo.stat(path)
 
   if user:
-    _user_entity = pwd.getpwnam(user)
+    try:
+      _user_entity = pwd.getpwnam(user)
+    except KeyError:
+      raise Fail("User '{0}' doesn't exist".format(user))
+    
     if stat.st_uid != _user_entity.pw_uid:
       user_entity = _user_entity
       Logger.info(
         "Changing owner for %s from %d to %s" % (path, stat.st_uid, user))
       
   if group:
-    _group_entity = grp.getgrnam(group)
+    try:
+      _group_entity = grp.getgrnam(group)
+    except KeyError:
+      raise Fail("Group '{0}' doesn't exist".format(group))
+    
     if stat.st_gid != _group_entity.gr_gid:
       group_entity = _group_entity
       Logger.info(
