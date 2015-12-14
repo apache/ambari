@@ -20,6 +20,7 @@ import functools
 from resource_management import Script
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions import get_kinit_path
 
 config = Script.get_config()
 
@@ -52,9 +53,18 @@ hawqsegment_hosts = default('/clusterHostInfo/hawqsegment_hosts', [])
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+
 # HDFSResource partial function
 HdfsResource = functools.partial(HdfsResource,
                                  user=hdfs_superuser,
+                                 security_enabled=security_enabled,
+                                 keytab=hdfs_user_keytab,
+                                 kinit_path_local=kinit_path_local,
+                                 principal_name=hdfs_principal_name,
                                  hdfs_site=hdfs_site,
                                  default_fs=default_fs)
 
@@ -63,6 +73,9 @@ HdfsResource = functools.partial(HdfsResource,
 # Note: YARN is not mandatory for HAWQ. It is required only when the users set HAWQ to use YARN as resource manager
 rm_host = __get_component_host('rm_host')
 yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
+
+# Security
+security_enabled = config['configurations']['cluster-env']['security_enabled']
 
 
 # Config files
