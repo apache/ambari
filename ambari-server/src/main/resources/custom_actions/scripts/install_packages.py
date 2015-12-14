@@ -33,6 +33,7 @@ from ambari_commons.os_check import OSCheck, OSConst
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.hdp_select import get_hdp_versions
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 
@@ -185,14 +186,19 @@ class InstallPackages(Script):
     if args[0] != "HDP":
       Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
 
-    if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
+    if compare_versions(format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
       Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
+      return
+
+    # if already on HDP 2.3, then there's nothing to do in terms of linking configs
+    if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
+      Logger.info("The current cluster stack of {0} does not require linking configurations".format(stack_version))
       return
 
     # link configs for all known packages
     for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
       conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
-        skip_existing_links = False, link_to_conf_install = True)
+        skip_existing_links = False, link_to = "backup")
 
 
   def compute_actual_version(self):

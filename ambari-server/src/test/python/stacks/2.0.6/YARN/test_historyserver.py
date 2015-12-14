@@ -803,12 +803,27 @@ class TestHistoryServer(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None, ''), (0, None), (0, None)],
+                       call_mocks = [(0, None, ''), (0, None, None), (0, None, None), (0, None, None), (0, None, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'hadoop-mapreduce-historyserver', version), sudo=True)
     self.assertTrue(call("tez", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
     self.assertTrue(call("slider", "hadoop", "hdfs", host_sys_prepped=False) in copy_to_hdfs_mock.call_args_list)
+
+    # Repeated twice due to call to conf_select.get_hadoop_conf_dir()
+    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
+                              not_if = "test -e /etc/hadoop/conf.backup",
+                              sudo = True)
+    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
+                              action = ["delete"])
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+
+    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
+                              not_if = "test -e /etc/hadoop/conf.backup",
+                              sudo = True)
+    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
+                              action = ["delete"])
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
 
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
@@ -822,8 +837,8 @@ class TestHistoryServer(RMFTestCase):
 
     self.assertNoMoreResources()
 
-    self.assertEquals(1, mocks_dict['call'].call_count)
-    self.assertEquals(1, mocks_dict['checked_call'].call_count)
+    self.assertEquals(5, mocks_dict['call'].call_count)
+    self.assertEquals(5, mocks_dict['checked_call'].call_count)
     self.assertEquals(
       ('conf-select', 'set-conf-dir', '--package', 'hadoop', '--stack-version', '2.3.0.0-1234', '--conf-version', '0'),
        mocks_dict['checked_call'].call_args_list[0][0][0])

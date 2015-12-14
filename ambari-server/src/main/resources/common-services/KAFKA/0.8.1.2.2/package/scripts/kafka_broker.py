@@ -48,8 +48,10 @@ class KafkaBroker(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      conf_select.select(params.stack_name, "kafka", params.version)
       hdp_select.select("kafka-broker", params.version)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.3.0.0') >= 0:
+      conf_select.select(params.stack_name, "kafka", params.version)
 
     # This is extremely important since it should only be called if crossing the HDP 2.3.4.0 boundary. 
     if params.current_version and params.version and params.upgrade_direction:

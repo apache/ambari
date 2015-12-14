@@ -37,7 +37,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "configure",
       config_file = "hbase_default.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
 
     self.assert_configure_default()
@@ -50,7 +51,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "start",
       config_file = "hbase_default.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute',
@@ -68,8 +70,11 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "stop",
       config_file = "hbase_default.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
+
+    self.assert_call_to_get_hadoop_conf_dir()
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
@@ -92,7 +97,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "configure",
       config_file = "hbase_secure.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
 
     self.assert_configure_secured()
@@ -105,7 +111,8 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "start",
       config_file = "hbase_secure.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute',
@@ -123,8 +130,11 @@ class TestPhoenixQueryServer(RMFTestCase):
       command = "stop",
       config_file = "hbase_secure.json",
       hdp_stack_version = self.STACK_VERSION,
-      target = RMFTestCase.TARGET_COMMON_SERVICES
+      target = RMFTestCase.TARGET_COMMON_SERVICES,
+      call_mocks = [(0, None, None)]
     )
+
+    self.assert_call_to_get_hadoop_conf_dir()
 
     self.assertResourceCalled('Execute',
       '/usr/hdp/current/phoenix-server/bin/queryserver.py stop',
@@ -139,7 +149,6 @@ class TestPhoenixQueryServer(RMFTestCase):
         action = ['delete'],
     )
     self.assertNoMoreResources()
-
 
   def test_start_default_24(self):
     # @skip("there's nothing to upgrade to yet")
@@ -206,7 +215,18 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertNoMoreResources()
 
+  def assert_call_to_get_hadoop_conf_dir(self):
+    # From call to conf_select.get_hadoop_conf_dir()
+    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
+                              not_if = "test -e /etc/hadoop/conf.backup",
+                              sudo = True)
+    self.assertResourceCalled("Directory", "/etc/hadoop/conf",
+                              action = ["delete"])
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
+
   def assert_configure_default(self):
+    self.assert_call_to_get_hadoop_conf_dir()
+
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
     )
@@ -318,6 +338,8 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
 
   def assert_configure_secured(self):
+    self.assert_call_to_get_hadoop_conf_dir()
+
     self.assertResourceCalled('Directory', '/etc/hbase',
       mode = 0755
     )
@@ -445,10 +467,10 @@ class TestPhoenixQueryServer(RMFTestCase):
       classname = "PhoenixQueryServer",
       command = "pre_upgrade_restart",
       config_dict = json_content,
-      call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", '')],
+      call_mocks = [(0, "/etc/hbase/2.3.0.0-1234/0", ''), (0, None, None), (0, None, None)],
       hdp_stack_version = self.STACK_VERSION,
       target = RMFTestCase.TARGET_COMMON_SERVICES)
-
+    
     self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',
         recursive = True,
         mode = 0755,
@@ -457,4 +479,9 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertResourceCalledIgnoreEarlier('Execute', ('hdp-select', 'set', 'phoenix-server', '2.3.0.0-1234'), sudo=True)
 
+    self.assertResourceCalled("Execute", ("cp", "-R", "-p", "/etc/hadoop/conf", "/etc/hadoop/conf.backup"),
+                              not_if = "test -e /etc/hadoop/conf.backup",
+                              sudo = True)
+    self.assertResourceCalled("Directory", "/etc/hadoop/conf", action = ["delete"])
+    self.assertResourceCalled("Link", "/etc/hadoop/conf", to="/usr/hdp/current/hadoop-client/conf")
     self.assertNoMoreResources()

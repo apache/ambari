@@ -133,7 +133,8 @@ class TestKafkaBroker(RMFTestCase):
 
     self.assertResourceCalledIgnoreEarlier('Execute',
                               ('hdp-select', 'set', 'kafka-broker', version), sudo=True,)
-    self.assertNoMoreResources()
+    self.assertResourceCalled("Link", "/etc/kafka/conf",
+                              to="/usr/hdp/current/kafka-broker/conf")
 
     self.assertEquals(1, mocks_dict['call'].call_count)
     self.assertEquals(1, mocks_dict['checked_call'].call_count)

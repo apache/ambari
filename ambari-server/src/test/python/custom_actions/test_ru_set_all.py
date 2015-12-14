@@ -245,10 +245,9 @@ class TestRUSetAll(RMFTestCase):
     # ensure it wasn't called this time
     self.assertFalse(islink_mock.called)
 
-
   @patch("os.path.isdir")
-  @patch("os.path.islink")
-  def test_unlink_configs_missing_backup(self, islink_mock, isdir_mock):
+  @patch("os.path.exists")
+  def test_unlink_configs_missing_backup(self, exists_mock, isdir_mock):
 
     # required for the test to run since the Execute calls need this
     from resource_management.core.environment import Environment
@@ -262,19 +261,19 @@ class TestRUSetAll(RMFTestCase):
     # Case: missing symlink
     isdir_mock.reset_mock()
     isdir_mock.return_value = True
-    islink_mock.return_value = False
+    exists_mock.return_value = False
     ru_execute._unlink_config("/fake/config")
-    self.assertEqual(len(env.resource_list), 0)
+    self.assertEqual(len(env.resource_list), 2)
     # Case: missing symlink
     isdir_mock.reset_mock()
     isdir_mock.return_value = True
-    islink_mock.reset_mock()
-    islink_mock.return_value = True
+    exists_mock.reset_mock()
+    exists_mock.return_value = True
 
     ru_execute._unlink_config("/fake/config")
+
     self.assertEqual(pprint.pformat(env.resource_list),
-                     "[Execute[('rm', '/fake/config')],\n"
-                     " Execute[('mv', '/fake/conf.backup', "
-                     "'/fake/config')]]")
-
-
+                     "[Directory['/fake/config'],\n "
+                     "Execute[('mv', '/fake/conf.backup', '/fake/config')],\n "
+                     "Directory['/fake/config'],\n "
+                     "Execute[('mv', '/fake/conf.backup', '/fake/config')]]")
