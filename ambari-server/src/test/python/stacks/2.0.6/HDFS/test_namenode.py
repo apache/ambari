@@ -1690,6 +1690,7 @@ class TestNamenode(RMFTestCase):
     del json_content['commandParams']['version']
     json_content['hostLevelParams']['stack_name'] = 'HDP'
     json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['commandParams']['version'] = version
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -1702,9 +1703,9 @@ class TestNamenode(RMFTestCase):
                        mocks_dict = mocks_dict)
     import sys
     self.assertEquals("/usr/hdp/current/hadoop-client/conf", sys.modules["params"].hadoop_conf_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/libexec", sys.modules["params"].hadoop_libexec_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/bin", sys.modules["params"].hadoop_bin_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/sbin", sys.modules["params"].hadoop_bin)
+    self.assertEquals("/usr/hdp/{0}/hadoop/libexec".format(version), sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/bin".format(version), sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/sbin".format(version), sys.modules["params"].hadoop_bin)
 
   @patch.object(shell, "call")
   def test_pre_upgrade_restart_23_params(self, call_mock):

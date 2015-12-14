@@ -340,6 +340,10 @@ class TestHookAfterInstall(RMFTestCase):
     self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/pig/conf', '/etc/pig/conf.backup'),
         not_if = 'test -e /etc/pig/conf.backup',
         sudo = True,)
+    self.assertResourceCalled('Directory', '/etc/pig/conf',
+                              action=['delete'])
+    self.assertResourceCalled("Link", "/etc/pig/conf",
+                              to="/usr/hdp/current/pig-client/conf")
     # pig fails, so no Directory/Link combo
 
     self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/tez/conf', '/etc/tez/conf.backup'),
@@ -486,7 +490,6 @@ class TestHookAfterInstall(RMFTestCase):
         action = ['delete'])
     self.assertResourceCalled('Link', '/etc/falcon/conf',
         to = '/usr/hdp/current/falcon-client/conf')
-
 
     self.assertResourceCalled('Execute', ('cp', '-R', '-p', '/etc/spark/conf', '/etc/spark/conf.backup'),
         not_if = 'test -e /etc/spark/conf.backup',

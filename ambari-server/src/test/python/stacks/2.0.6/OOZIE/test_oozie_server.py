@@ -1358,7 +1358,7 @@ class TestOozieServer(RMFTestCase):
       recursive_chmod = True,
       owner = 'oozie',
       group = 'hadoop',
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
       action = ['create_on_execute'],
       mode = 0755 )
@@ -1374,7 +1374,7 @@ class TestOozieServer(RMFTestCase):
       user = 'hdfs', 
       dfs_type = '',
       action = ['execute'],
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)
@@ -1431,7 +1431,7 @@ class TestOozieServer(RMFTestCase):
       recursive_chmod = True,
       owner = 'oozie',
       group = 'hadoop',
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
       action = ['create_on_execute'],
       mode = 0755 )
@@ -1447,7 +1447,7 @@ class TestOozieServer(RMFTestCase):
       user = 'hdfs',
       dfs_type = '',
       action = ['execute'],
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)

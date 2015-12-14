@@ -42,6 +42,7 @@ from resource_management.core.resources.packaging import Package
 from resource_management.libraries.functions.version_select_util import get_component_version
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.constants import Direction
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
@@ -302,6 +303,15 @@ class Script(object):
       return None
 
     return format_hdp_stack_version(stack_version_unformatted)
+
+
+  @staticmethod
+  def in_stack_upgrade():
+    from resource_management.libraries.functions.default import default
+
+    upgrade_direction = default("/commandParams/upgrade_direction", None)
+    return upgrade_direction is not None and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
+
 
   @staticmethod
   def is_hdp_stack_greater(formatted_hdp_stack_version, compare_to_version):
