@@ -58,8 +58,12 @@ class Directory(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
-  follow = BooleanArgument(default=True) # follow links?
-  recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
+  follow = BooleanArgument(default=True)  # follow links?
+  """
+  this works for 'create', 'delete' is anyway recursive
+  recursive means only "mkdir -p", it does NOT perform recursive chown/chmod
+  """
+  recursive = BooleanArgument(default=False)
   """
   Grants x-bit for all the folders up-to the directory
   

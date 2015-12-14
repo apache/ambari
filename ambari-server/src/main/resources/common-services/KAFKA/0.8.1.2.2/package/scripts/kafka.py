@@ -17,28 +17,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import collections
 import os
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.resources.properties_file import PropertiesFile
 from resource_management.libraries.resources.template_config import TemplateConfig
-from resource_management.core.resources.system import Directory, File, Link
+from resource_management.core.resources.system import Directory, Execute, File, Link
 from resource_management.core.source import StaticFile, Template, InlineTemplate
 from resource_management.libraries.functions import format
 
 
 from resource_management.core.logger import Logger
 
+
 def kafka(upgrade_type=None):
     import params
-
-    Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
-              mode=0755,
-              cd_access='a',
-              owner=params.kafka_user,
-              group=params.user_group,
-              recursive=True
-          )
+    ensure_base_directories()
 
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
     # This still has an issue of hostnames being alphabetically out-of-order for broker.id in HDP-2.2.
@@ -81,12 +76,14 @@ def kafka(upgrade_type=None):
       kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
 
     kafka_data_dir = kafka_server_config['log.dirs']
-    Directory(filter(None,kafka_data_dir.split(",")),
+    kafka_data_dirs = filter(None, kafka_data_dir.split(","))
+    Directory(kafka_data_dirs[:],  # Todo: remove list copy when AMBARI-14373 is fixed
               mode=0755,
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
               recursive=True)
+    set_dir_ownership(kafka_data_dirs)
 
     PropertiesFile("server.properties",
                       dir=params.conf_dir,
@@ -139,6 +136,7 @@ def mutable_config_dict(kafka_broker_config):
         kafka_server_config[key] = value
     return kafka_server_config
 
+
 # Used to workaround the hardcoded pid/log dir used on the kafka bash process launcher
 def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
   import params
@@ -172,6 +170,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
               owner=params.kafka_user,
               group=params.user_group,
               recursive=True)
+    set_dir_ownership(kafka_managed_dir)
 
   if backup_folder_path:
     # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
@@ -197,6 +196,7 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
             group=params.user_group,
             recursive=True
   )
+  set_dir_ownership(backup_destination_path)
   # Safely copy top-level contents to backup folder
   for file in os.listdir(dir_path):
     File(os.path.join(backup_destination_path, file),
@@ -204,3 +204,36 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
          content = StaticFile(os.path.join(dir_path,file)))
 
   return backup_destination_path
+
+
+def ensure_base_directories():
+  """
+  Make basic Kafka directories, and make sure that their ownership is correct
+  """
+  import params
+  base_dirs = [params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir]
+  Directory(base_dirs[:],  # Todo: remove list copy when AMBARI-14373 is fixed
+            mode=0755,
+            cd_access='a',
+            owner=params.kafka_user,
+            group=params.user_group,
+            recursive=True
+            )
+  set_dir_ownership(base_dirs)
+
+
+def set_dir_ownership(targets):
+  import params
+  if isinstance(targets, collections.Iterable):
+    directories = targets
+  else:  # If target is a single object, convert it to list
+    directories = [targets]
+  for directory in directories:
+    # If path is empty or a single slash,
+    # may corrupt filesystem permissions
+    if len(directory) > 1:
+      Execute(('chown', '-R', format("{kafka_user}:{user_group}"), directory),
+            sudo=True)
+    else:
+      Logger.warning("Permissions for the folder \"%s\" were not updated due to "
+            "empty path passed: " % directory)

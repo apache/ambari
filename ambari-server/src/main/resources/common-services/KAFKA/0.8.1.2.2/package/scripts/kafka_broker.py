@@ -25,6 +25,7 @@ from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
+from kafka import ensure_base_directories
 
 import upgrade
 from kafka import kafka
@@ -85,6 +86,10 @@ class KafkaBroker(Script):
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
+    # Kafka package scripts change permissions on folders, so we have to
+    # restore permissions after installing repo version bits
+    # before attempting to stop Kafka Broker
+    ensure_base_directories()
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh; {params.kafka_bin} stop')
     Execute(daemon_cmd,
             user=params.kafka_user,

@@ -58,6 +58,27 @@ class TestKafkaBroker(RMFTestCase):
                               cd_access = 'a'
     )
 
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/var/log/kafka'),
+                              sudo = True)
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/var/run/kafka'),
+                              sudo = True)
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', '/usr/hdp/current/kafka-broker/config'),
+                              sudo = True)
+
+    self.assertResourceCalled('Directory', '/tmp/log/dir',
+                              owner = 'kafka',
+                              recursive = True,
+                              group = 'hadoop',
+                              mode = 0755,
+                              cd_access = 'a',
+    )
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/tmp/log/dir'),
+                              sudo = True)
+
+
   @patch("os.path.islink")
   @patch("os.path.realpath")
   def test_configure_custom_paths_default(self, realpath_mock, islink_mock):
@@ -93,6 +114,26 @@ class TestKafkaBroker(RMFTestCase):
                               mode = 0755,
                               cd_access = 'a'
     )
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/customdisk/var/log/kafka'),
+                              sudo = True)
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/customdisk/var/run/kafka'),
+                              sudo = True)
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', '/usr/hdp/current/kafka-broker/config'),
+                              sudo = True)
+
+    self.assertResourceCalled('Directory', '/tmp/log/dir',
+                              owner = 'kafka',
+                              recursive = True,
+                              group = 'hadoop',
+                              mode = 0755,
+                              cd_access = 'a',
+    )
+
+    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/tmp/log/dir'),
+                              sudo = True)
 
     self.assertTrue(islink_mock.called)
     self.assertTrue(realpath_mock.called)
