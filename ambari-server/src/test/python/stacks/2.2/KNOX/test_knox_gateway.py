@@ -585,6 +585,16 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/hdp/current/knox-server/pids',
         to = '/var/run/knox',
     )
+    self.assertResourceCalled('Directory', '/var/log/knox',
+                              owner = 'knox',
+                              mode = 0755,
+                              group = 'knox',
+                              recursive = True,
+                              cd_access = 'a',
+                              )
+    self.assertResourceCalled('Execute', ('chown', '-R', u'knox:knox', u'/var/log/knox'),
+                              sudo = True,
+                              )
     self.assertResourceCalled("Execute", "/usr/hdp/current/knox-server/bin/gateway.sh start",
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if = u'ls /var/run/knox/gateway.pid >/dev/null 2>&1 && ps -p `cat /var/run/knox/gateway.pid` >/dev/null 2>&1',
