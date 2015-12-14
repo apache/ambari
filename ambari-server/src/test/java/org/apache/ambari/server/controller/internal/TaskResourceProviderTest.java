@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -44,8 +45,12 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.topology.LogicalRequest;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -153,6 +158,71 @@ public class TaskResourceProviderTest {
     // verify
     verify(hostRoleCommandDAO);
   }
+
+  @Test
+  public void testGetResourcesForTopology() throws Exception {
+    Resource.Type type = Resource.Type.Task;
+
+    AmbariManagementController amc = createMock(AmbariManagementController.class);
+    HostRoleCommandDAO hostRoleCommandDAO = createMock(HostRoleCommandDAO.class);
+    TopologyManager topologyManager = createMock(TopologyManager.class);
+    HostDAO hostDAO = createMock(HostDAO.class);
+    ExecutionCommandDAO executionCommandDAO = createMock(ExecutionCommandDAO.class);
+
+    Injector m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    TaskResourceProvider provider = (TaskResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
+      type, PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type), amc);
+
+    m_injector.injectMembers(provider);
+    TaskResourceProvider.s_dao = hostRoleCommandDAO;
+    TaskResourceProvider.s_topologyManager = topologyManager;
+
+    List<HostRoleCommandEntity> entities = new ArrayList<>();
+
+    List<HostRoleCommand> commands = new ArrayList<>();
+    HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
+    hostRoleCommandEntity.setRequestId(100L);
+    hostRoleCommandEntity.setTaskId(100L);
+    hostRoleCommandEntity.setStageId(100L);
+    hostRoleCommandEntity.setRole(Role.DATANODE);
+    hostRoleCommandEntity.setCustomCommandName("customCommandName");
+    hostRoleCommandEntity.setCommandDetail("commandDetail");
+    commands.add(new HostRoleCommand(hostRoleCommandEntity, hostDAO, executionCommandDAO));
+
+    // set expectations
+    expect(hostRoleCommandDAO.findAll(EasyMock.anyObject(Request.class),
+      EasyMock.anyObject(Predicate.class))).andReturn(entities).once();
+    expect(topologyManager.getTasks(EasyMock.anyLong())).andReturn(commands).once();
+
+    // replay
+    replay(hostRoleCommandDAO, topologyManager);
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(TaskResourceProvider.TASK_ID_PROPERTY_ID);
+    propertyIds.add(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID);
+    propertyIds.add(TaskResourceProvider.TASK_COMMAND_DET_PROPERTY_ID);
+
+    Predicate predicate = new PredicateBuilder().property(TaskResourceProvider.TASK_ID_PROPERTY_ID).equals("100").
+      and().property(TaskResourceProvider.TASK_REQUEST_ID_PROPERTY_ID).equals("100").toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      long taskId = (Long) resource.getPropertyValue(TaskResourceProvider.TASK_ID_PROPERTY_ID);
+      Assert.assertEquals(100L, taskId);
+      Assert.assertEquals(null, resource.getPropertyValue(TaskResourceProvider
+        .TASK_CUST_CMD_NAME_PROPERTY_ID));
+      Assert.assertEquals("commandDetail", resource.getPropertyValue(TaskResourceProvider
+        .TASK_COMMAND_DET_PROPERTY_ID));
+    }
+
+    // verify
+    verify(hostRoleCommandDAO, topologyManager);
+  }
+
 
   @Test
   public void testUpdateResources() throws Exception {
