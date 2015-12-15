@@ -144,7 +144,10 @@ else:
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
 
-zookeeper_quorum_hosts = 'localhost'
+if not is_hbase_distributed:
+  zookeeper_quorum_hosts = 'localhost'
+else:
+  zookeeper_quorum_hosts = default("/hostname", 'localhost')
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
