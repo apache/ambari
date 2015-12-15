@@ -77,7 +77,7 @@ def kafka(upgrade_type=None):
 
     kafka_data_dir = kafka_server_config['log.dirs']
     kafka_data_dirs = filter(None, kafka_data_dir.split(","))
-    Directory(kafka_data_dirs[:],  # Todo: remove list copy when AMBARI-14373 is fixed
+    Directory(kafka_data_dirs,
               mode=0755,
               cd_access='a',
               owner=params.kafka_user,
@@ -212,7 +212,7 @@ def ensure_base_directories():
   """
   import params
   base_dirs = [params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir]
-  Directory(base_dirs[:],  # Todo: remove list copy when AMBARI-14373 is fixed
+  Directory(base_dirs,
             mode=0755,
             cd_access='a',
             owner=params.kafka_user,

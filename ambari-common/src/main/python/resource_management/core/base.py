@@ -109,10 +109,11 @@ class Resource(object):
   
   def __new__(cls, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
-      while len(name) != 1:
-        cls(name.pop(0), env, provider, **kwargs)
+      names_list = name[:]
+      while len(names_list) != 1:
+        cls(names_list.pop(0), env, provider, **kwargs)
         
-      name = name[0]
+      name = names_list[0]
     
     env = env or Environment.get_instance()
     provider = provider or getattr(cls, 'provider', None)
@@ -128,7 +129,7 @@ class Resource(object):
 
   def __init__(self, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
-      name = name.pop(0)
+      name = name[-1]
     
     if hasattr(self, 'name'):
       return
