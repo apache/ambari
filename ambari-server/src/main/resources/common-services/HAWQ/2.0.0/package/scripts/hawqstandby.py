@@ -45,7 +45,7 @@ class HawqStandby(Script):
     master_helper.start_master()
 
   def stop(self, env):
-    master_helper.stop_master()
+    master_helper.stop()
 
   def status(self, env):
     from hawqstatus import get_pid_file

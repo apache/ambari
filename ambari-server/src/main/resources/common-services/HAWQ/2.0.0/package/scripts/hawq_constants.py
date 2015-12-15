@@ -24,6 +24,9 @@ START = "start"
 INIT = "init"
 STOP = "stop"
 YARN = "yarn"
+CLUSTER = "cluster"
+IMMEDIATE = "immediate"
+FAST = "fast"
 
 # Users
 root_user = "root"

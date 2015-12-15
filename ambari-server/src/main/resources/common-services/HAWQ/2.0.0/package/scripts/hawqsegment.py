@@ -49,7 +49,7 @@ class HawqSegment(Script):
     import params
     return utils.exec_hawq_operation(
           hawq_constants.START, 
-          "{0} -a".format(hawq_constants.SEGMENT), 
+          "{0} -a -v".format(hawq_constants.SEGMENT), 
           not_if=utils.chk_hawq_process_status_cmd(params.hawq_segment_address_port))
 
   def start(self, env):
@@ -64,16 +64,18 @@ class HawqSegment(Script):
     self.__init_segment()
 
 
-  def stop(self, env):
+  def stop(self, env, mode=hawq_constants.FAST):
     import params
-
-    utils.exec_hawq_operation(hawq_constants.STOP, "{0} -a".format(hawq_constants.SEGMENT), only_if=utils.chk_hawq_process_status_cmd(
+    utils.exec_hawq_operation(hawq_constants.STOP, "{0} -M {1} -a -v".format(hawq_constants.SEGMENT, mode), only_if=utils.chk_hawq_process_status_cmd(
                                 params.hawq_segment_address_port))
 
 
   def status(self, env):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
+
+  def immediate_stop(self, env):
+    self.stop(env, mode=hawq_constants.IMMEDIATE)
 
 
   @staticmethod

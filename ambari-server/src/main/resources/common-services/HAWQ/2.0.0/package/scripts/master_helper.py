@@ -131,7 +131,7 @@ def __start_local_master():
   component_name = __get_component_name()
   utils.exec_hawq_operation(
         hawq_constants.START, 
-        "{0} -a".format(component_name),
+        "{0} -a -v".format(component_name),
         not_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
 
   
@@ -186,15 +186,15 @@ def start_master():
     __init_standby()
 
 
-def stop_master():
+def stop(mode=hawq_constants.FAST, component=None):
   """
-  Stops the HAWQ Master/Standby
+  Stops the HAWQ Master/Standby, if component is cluster performs cluster level operation from master
   """
   import params
-  component_name = __get_component_name()
+  component_name = component if component else __get_component_name()
   utils.exec_hawq_operation(
                 hawq_constants.STOP,
-                "{0} -a".format(component_name),
+                "{0} -M {1} -a -v".format(component_name, mode),
                 only_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
 
 
