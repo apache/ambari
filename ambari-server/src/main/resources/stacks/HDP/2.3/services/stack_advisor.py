@@ -51,31 +51,25 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
-    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
+    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
 
     # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
-    if len(hawqMasterHosts) > 0 and len(hawqStandbyHosts) > 0:
-      commonHosts = [host for host in hawqMasterHosts[0] if host in hawqStandbyHosts[0]]
-      for host in commonHosts:
-        message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
-        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
+    if len(hawqMasterHosts) == 1 and len(hawqStandbyHosts) == 1 and hawqMasterHosts == hawqStandbyHosts:
+      message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
+      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
-    if len(hawqMasterHosts) > 0 and hostsCount > 1:
-      ambariServerHosts = [host for host in hawqMasterHosts[0] if self.isLocalHost(host)]
-      for host in ambariServerHosts:
-        message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": host } )
+    if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
+      message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
+                "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                "to a value different from the port number used by Ambari Server database."
+      childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
 
-    if len(hawqStandbyHosts) > 0 and hostsCount > 1:
-      ambariServerHosts = [host for host in hawqStandbyHosts[0] if self.isLocalHost(host)]
-      for host in ambariServerHosts:
-        message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
-                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                  "to a value different from the port number used by Ambari Server database."
-        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": host } )
+    if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
+      message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
+                "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                "to a value different from the port number used by Ambari Server database."
+      childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
     if "SPARK_THRIFTSERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
       if not "HIVE_SERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
@@ -117,7 +111,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HIVE": self.recommendHIVEConfigurations,
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
-      "RANGER": self.recommendRangerConfigurations
+      "RANGER": self.recommendRangerConfigurations,
+      "HAWQ": self.recommendHAWQConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -577,18 +572,35 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if 'yarn-site' in services["configurations"] and 'yarn.resourcemanager.proxy-user-privileges.enabled' in services["configurations"]["yarn-site"]["properties"]:
         putYarnSiteProperty('yarn.resourcemanager.proxy-user-privileges.enabled', 'false')
 
+
+  def isHawqMasterComponentOnAmbariServer(self, services):
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    hawqMasterComponentHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList 
+                               if component["StackServiceComponents"]["component_name"] in ("HAWQMASTER", "HAWQSTANDBY")]
+    return any([self.isLocalHost(host) for host in hawqMasterComponentHosts])
+
+
+  def recommendHAWQConfigurations(self, configurations, clusterData, services, hosts):
+    putHawqSiteProperty = self.putProperty(configurations, "hawq-site", services)
+    if self.isHawqMasterComponentOnAmbariServer(services):
+      if "hawq-site" in services["configurations"] and "hawq_master_address_port" in services["configurations"]["hawq-site"]["properties"]:
+        putHawqSiteProperty('hawq_master_address_port', '')
+          
+          
   def getServiceConfigurationValidators(self):
-      parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
-      childValidators = {
-        "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
-        "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
-                 "hive-site": self.validateHiveConfigurations},
-        "HBASE": {"hbase-site": self.validateHBASEConfigurations},
-        "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
-        "YARN": {"yarn-site": self.validateYARNConfigurations}
-      }
-      self.mergeValidators(parentValidators, childValidators)
-      return parentValidators
+    parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
+    childValidators = {
+      "HDFS": {"hdfs-site": self.validateHDFSConfigurations},
+      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
+               "hive-site": self.validateHiveConfigurations},
+      "HBASE": {"hbase-site": self.validateHBASEConfigurations},
+      "KAKFA": {"kafka-broker": self.validateKAFKAConfigurations},
+      "YARN": {"yarn-site": self.validateYARNConfigurations},
+      "HAWQ": {"hawq-site": self.validateHAWQConfigurations}
+    }
+    self.mergeValidators(parentValidators, childValidators)
+    return parentValidators
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
@@ -774,5 +786,55 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
 
+
+  def isHawqMasterPortConflict(self, configurations):
+    prop_name = 'hawq_master_address_port'
+    default_ambari_port = 5432
+    if prop_name in configurations["hawq-site"]["properties"]:
+      portValue = int(configurations["hawq-site"]["properties"][prop_name])
+      return portValue == default_ambari_port
+
+    return False
+
+
+  def validateIfRootDir(self, properties, validationItems, prop_name, display_name):
+    root_dir = '/'
+    if prop_name in properties and properties[prop_name].strip() == root_dir:
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                              "It is not advisable to have " + display_name + " at " + root_dir +". Consider creating a sub directory for HAWQ")})
+
+
+  def validateHAWQConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    hawq_site = properties
+    validationItems = []
+
+    # 1. Check if HAWQ master/standby port numbers don't conflict with Ambari ports. Both Ambari and HAWQ use postgres DB and 5432 port.
+    if self.isHawqMasterComponentOnAmbariServer(services) and self.isHawqMasterPortConflict(configurations):
+      prop_name = 'hawq_master_address_port'
+      validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                "HAWQ Master or Standby Master cannot use the port 5432 when installed on the same host as the Ambari Server. Ambari Postgres DB uses the same port. Please choose a different value (e.g. 10432)")})
+
+    # 2. Check if any data directories are pointing to root dir '/'
+    prop_name = 'hawq_master_directory'
+    display_name = 'HAWQ Master directory'
+    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
+
+    prop_name = 'hawq_master_temp_directory'
+    display_name = 'HAWQ Master temp directory'
+    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
+
+    prop_name = 'hawq_segment_directory'
+    display_name = 'HAWQ Segment directory'
+    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
+
+    prop_name = 'hawq_segment_temp_directory'
+    display_name = 'HAWQ Segment temp directory'
+    self.validateIfRootDir (properties, validationItems, prop_name, display_name)
+
+    return self.toConfigurationValidationProblems(validationItems, "hawq-site")
+  
+  
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName in ['NFS_GATEWAY', 'PHOENIX_QUERY_SERVER', 'SPARK_THRIFTSERVER']
