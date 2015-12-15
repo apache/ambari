@@ -381,8 +381,7 @@ public class AlertDefinitionDAOTest {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
     clusterDAO.refresh(clusterEntity);
-    injector.getInstance(UnitOfWork.class).end();
-    injector.getInstance(UnitOfWork.class).begin();
+
     Clusters clusters = injector.getInstance(Clusters.class);
     Cluster cluster = clusters.getClusterById(clusterId);
     cluster.delete();
