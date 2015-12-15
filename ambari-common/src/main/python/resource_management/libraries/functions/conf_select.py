@@ -461,12 +461,9 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
         only_if = format("ls -d {old_conf}/*"))
 
 
-  # Make /usr/hdp/[version]/[component]/conf point to the versioned config.
   # /usr/hdp/current/[component] is already set to to the correct version, e.g., /usr/hdp/[version]/[component]
-  try:
-    select("HDP", package, version)
-  except Exception, e:
-    Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package, e))
+  
+  link_component_conf_to_versioned_config(package, version)
 
   # Symlink /etc/[component]/conf to /etc/[component]/conf.backup
   try:
@@ -489,3 +486,13 @@ def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_l
         Logger.error("Unsupported 'link_to' argument. Could not link package {0}".format(package))
   except Exception, e:
     Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
+
+
+def link_component_conf_to_versioned_config(package, version):
+  """
+  Make /usr/hdp/[version]/[component]/conf point to the versioned config.
+  """
+  try:
+    select("HDP", package, version)
+  except Exception, e:
+    Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package, e))
