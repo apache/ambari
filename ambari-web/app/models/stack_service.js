@@ -332,7 +332,7 @@ App.StackService.configCategories = function () {
       break;
     case 'KERBEROS':
       serviceConfigCategories.pushObjects([
-        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC', showHost: true}),
+        App.ServiceConfigCategory.create({ name: 'KDC', displayName: 'KDC'}),
         App.ServiceConfigCategory.create({ name: 'Kadmin', displayName: 'Kadmin'}),
         App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
       ]);
