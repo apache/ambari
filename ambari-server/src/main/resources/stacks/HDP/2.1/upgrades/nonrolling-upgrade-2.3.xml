@@ -293,11 +293,11 @@
 
       <!--HIVE-->
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="server_action" summary="Calculating Kerberos Properties for Hive" class="org.apache.ambari.server.serveraction.upgrades.HiveKerberosConfigAction" />
+        <task xsi:type="server_action" summary="Calculating ZooKeeper Quorum Properties for Hive" class="org.apache.ambari.server.serveraction.upgrades.HiveZKQuorumConfigAction" />
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
-        <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_kerberized_token_store_class"/>
+        <task xsi:type="configure" id="hdp_2_2_0_0_hive_server_delegation_token_store_class"/>
       </execute-stage>
 
       <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
