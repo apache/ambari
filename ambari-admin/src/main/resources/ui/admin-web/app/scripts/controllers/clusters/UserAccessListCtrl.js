@@ -83,7 +83,10 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
           principal_name: user.principal_name,
           principal_type: user.principal_type
         }}]
-        ).then($scope.loadUsers)
+        ).then(function() {
+          Alert.success(user.principal_name + " changed to " + user.permission_label);
+          $scope.loadUsers();
+        })
         .catch(function(data) {
           Alert.error('Cannot save permissions', data.data.message);
           $scope.loadUsers();
@@ -100,8 +103,11 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
 
   $scope.roleFilterOptions = [
     {label: 'All', value: ''},
-    {label: 'Operator', value: 'CLUSTER.OPERATE'},
-    {label:'Read Only', value: 'CLUSTER.READ'}
+    {label: 'Cluster User', value: 'CLUSTER.USER'},
+    {label:'Cluster Administrator', value: 'CLUSTER.ADMINISTRATOR'},
+    {label:'Cluster Operator', value: 'CLUSTER.OPERATOR'},
+    {label:'Service Administrator', value: 'SERVICE.ADMINISTRATOR'},
+    {label:'Service Operator', value: 'SERVICE.OPERATOR'}
   ];
   $scope.currentRoleFilter = $scope.roleFilterOptions[0];
 

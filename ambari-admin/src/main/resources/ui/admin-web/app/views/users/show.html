@@ -69,14 +69,14 @@
     <div class="form-group" >
       <label for="" class="col-sm-2 control-label">Privileges</label>
       <div class="col-sm-10">
-        <table class="table">
+        <table class="table" ng-hide="hidePrivileges || user.admin">
           <thead>
             <tr>
               <th>Cluster</th>
               <th>Cluster Role</th>
             </tr>
           </thead>
-          <tbody ng-hide="user.admin">
+          <tbody>
             <tr ng-repeat="(name, privilege) in privileges.clusters">
               <td>
                 <span class="glyphicon glyphicon-cloud"></span> 
@@ -86,6 +86,9 @@
                 <span tooltip="{{item}}" ng-repeat="item in privilege">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
             </tr>
+            <tr>
+              <td ng-show="noClusterPriv">No cluster privileges</td>
+            </tr>
           </tbody>
           <thead class="view-permission-header">
             <tr>
@@ -93,7 +96,7 @@
               <th>View Permissions</th>
             </tr>
           </thead>
-          <tbody ng-hide="user.admin">
+          <tbody>
             <tr ng-repeat="(name, privilege) in privileges.views">
               <td>
                 <span class="glyphicon glyphicon-th"></span>
@@ -102,6 +105,9 @@
               <td>
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
+            </tr>
+            <tr>
+              <td ng-show="noViewPriv">No view privileges</td>
             </tr>
           </tbody>
         </table>

@@ -75,6 +75,9 @@
       </tr>
     </tbody>
   </table>
+  <div class="alert alert-info col-sm-12" ng-show="!users.length">
+    No users to display.
+  </div>
   <div class="col-sm-12">
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>

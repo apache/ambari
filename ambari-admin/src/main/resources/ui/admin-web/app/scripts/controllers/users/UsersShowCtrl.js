@@ -180,11 +180,14 @@ angular.module('ambariAdminConsole')
       });
 
       $scope.privileges = data.data.items.length ? privileges : null;
+      $scope.noClusterPriv = $.isEmptyObject(privileges.clusters);
+      $scope.noViewPriv = $.isEmptyObject(privileges.views)
+      $scope.hidePrivileges = $scope.noClusterPriv && $scope.noViewPriv;
       $scope.dataLoaded = true;
 
     }).catch(function(data) {
       Alert.error('Cannot load privileges', data.data.message);
     });
   }
-  loadPrivileges();  
+  loadPrivileges();
 }]);
