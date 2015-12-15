@@ -494,6 +494,7 @@ public class AlertDispatchDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testDeleteAssociatedTarget() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();
