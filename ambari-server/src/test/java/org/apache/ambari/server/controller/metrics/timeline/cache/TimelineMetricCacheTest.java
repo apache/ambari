@@ -419,7 +419,7 @@ public class TimelineMetricCacheTest {
     long year = 365 * day;
 
     //Original Values
-    Map<String, TimelineMetric> valueMap = new HashMap<String, TimelineMetric>();
+    Map<String, TimelineMetric> valueMap = new HashMap();
     TimelineMetric timelineMetric = new TimelineMetric();
     timelineMetric.setMetricName("cpu_user");
     timelineMetric.setAppId("app1");
