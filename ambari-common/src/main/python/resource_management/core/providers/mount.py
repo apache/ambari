@@ -42,12 +42,14 @@ def get_mounted():
 
   mounts = [x.split(' ') for x in out.strip().split('\n')]
 
+  excludes = ['tmp', 'etc']
   results = []
   for m in mounts:
     # Example of m:
     # /dev/sda1 on / type ext4 (rw,barrier=0)
     # /dev/sdb on /grid/0 type ext4 (rw,discard)
-    if len(m) >= 6 and m[1] == "on" and m[3] == "type":
+    mount_root = m[2].split('/')[0]
+    if len(m) >= 6 and m[1] == "on" and m[3] == "type" and mount_root not in excludes:
       x = dict(
         device=m[0],
         mount_point=m[2],
