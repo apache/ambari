@@ -83,11 +83,25 @@ App.QuickViewLinks = Em.View.extend({
     this.get('quickLinks').clear();
   },
 
+  /**
+   * The flags responsible for data to build quick links:
+   * - App.router.clusterController.isServiceMetricsLoaded
+   *
+   * The flags responsible for correct, up-to-date state of quick links:
+   * - App.currentStackVersionNumber
+   * - App.singleNodeInstall
+   * - App.router.clusterController.isHostComponentMetricsLoaded
+   */
   setQuickLinks: function () {
     if (App.get('router.clusterController.isServiceMetricsLoaded')) {
       this.loadTags();
     }
-  }.observes('App.currentStackVersionNumber', 'App.singleNodeInstall', 'App.router.clusterController.isServiceMetricsLoaded'),
+  }.observes(
+    'App.currentStackVersionNumber',
+    'App.singleNodeInstall',
+    'App.router.clusterController.isServiceMetricsLoaded',
+    'App.router.clusterController.isHostComponentMetricsLoaded'
+  ),
 
   /**
    * call for configuration tags
