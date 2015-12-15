@@ -1175,10 +1175,6 @@ public class AlertsDAOTest {
   public void testAlertHistoryPredicate() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
-
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
-
     m_alertHelper.populateData(m_cluster);
 
     Predicate clusterPredicate = null;
@@ -1272,10 +1268,6 @@ public class AlertsDAOTest {
   public void testAlertHistoryPagination() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
-
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
-
     m_alertHelper.populateData(m_cluster);
 
     AlertHistoryRequest request = new AlertHistoryRequest();
@@ -1316,10 +1308,6 @@ public class AlertsDAOTest {
   public void testAlertHistorySorting() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
-
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
-
     m_alertHelper.populateData(m_cluster);
 
     List<SortRequestProperty> sortProperties = new ArrayList<SortRequestProperty>();

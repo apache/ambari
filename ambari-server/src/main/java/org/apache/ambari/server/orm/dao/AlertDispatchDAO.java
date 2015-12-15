@@ -684,15 +684,12 @@ public class AlertDispatchDAO {
   @Transactional
   public void removeNoticeByDefinitionId(long definitionId) {
     EntityManager entityManager = entityManagerProvider.get();
-
     TypedQuery<AlertNoticeEntity> currentQuery = entityManager.createNamedQuery(
-        "AlertNoticeEntity.findByDefinitionId", AlertNoticeEntity.class);
+        "AlertNoticeEntity.removeByDefinitionId", AlertNoticeEntity.class);
+
     currentQuery.setParameter("definitionId", definitionId);
-
-    for (AlertNoticeEntity alertNoticeEntity : currentQuery.getResultList()) {
-      entityManager.remove(alertNoticeEntity);
-    }
-
+    currentQuery.executeUpdate();
+    entityManager.clear();
   }
 
   /**

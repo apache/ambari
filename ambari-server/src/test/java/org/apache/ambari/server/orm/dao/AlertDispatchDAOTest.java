@@ -513,8 +513,6 @@ public class AlertDispatchDAOTest {
     target = m_dao.findTargetById(target.getTargetId());
     assertNull(target);
 
-    m_dao.refresh(group);
-
     group = m_dao.findGroupById(group.getGroupId());
     assertNotNull(group);
 
@@ -665,9 +663,7 @@ public class AlertDispatchDAOTest {
   public void testAlertNoticePredicate() throws Exception {
     Cluster cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
-    // end the UnitOfWork to clean the cache
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
+
     m_alertHelper.populateData(cluster);
 
     Predicate clusterPredicate = null;
@@ -746,9 +742,6 @@ public class AlertDispatchDAOTest {
     Cluster cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
 
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
-
     m_alertHelper.populateData(cluster);
 
     AlertNoticeRequest request = new AlertNoticeRequest();
@@ -789,8 +782,6 @@ public class AlertDispatchDAOTest {
   public void testAlertNoticeSorting() throws Exception {
     Cluster cluster = m_helper.buildNewCluster(m_clusters, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
-    m_injector.getInstance(UnitOfWork.class).end();
-    m_injector.getInstance(UnitOfWork.class).begin();
 
     m_alertHelper.populateData(cluster);
 

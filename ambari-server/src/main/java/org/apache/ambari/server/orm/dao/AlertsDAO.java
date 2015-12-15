@@ -736,20 +736,18 @@ public class AlertsDAO {
   public void removeByDefinitionId(long definitionId) {
     EntityManager entityManager = m_entityManagerProvider.get();
     TypedQuery<AlertCurrentEntity> currentQuery = entityManager.createNamedQuery(
-        "AlertCurrentEntity.findByDefinitionId", AlertCurrentEntity.class);
-    currentQuery.setParameter("definitionId", definitionId);
+        "AlertCurrentEntity.removeByDefinitionId", AlertCurrentEntity.class);
 
-    for (AlertCurrentEntity alertCurrentEntity : currentQuery.getResultList()) {
-      entityManager.remove(alertCurrentEntity);
-    }
+    currentQuery.setParameter("definitionId", definitionId);
+    currentQuery.executeUpdate();
 
     TypedQuery<AlertHistoryEntity> historyQuery = entityManager.createNamedQuery(
-        "AlertHistoryEntity.findByDefinitionId", AlertHistoryEntity.class);
-    historyQuery.setParameter("definitionId", definitionId);
+        "AlertHistoryEntity.removeByDefinitionId", AlertHistoryEntity.class);
 
-    for (AlertHistoryEntity alertHistoryEntity : historyQuery.getResultList()) {
-      entityManager.remove(alertHistoryEntity);
-    }
+    historyQuery.setParameter("definitionId", definitionId);
+    historyQuery.executeUpdate();
+
+    entityManager.clear();
 
     // if caching is enabled, invalidate the cache to force the latest values
     // back from the DB
