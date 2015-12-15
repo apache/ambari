@@ -31,25 +31,25 @@ import org.apache.ambari.server.state.Config;
 import com.google.inject.Inject;
 
 /**
- * The {@link HiveKerberosConfigAction} is used to ensure that the following
- * settings are correctly set when upgrading a Keberized Hive Server:
+ * The {@link HiveZKQuorumConfigAction} is used to ensure that the following
+ * settings are correctly set when upgrading a Hive Server:
  * <ul>
  * <li>hive.zookeeper.quorum</li>
  * <li>hive.cluster.delegation.token.store.zookeeper.connectString</li>
  * </ul>
- *
- * This is typically only needed when upgrading from a version which does not
- * have these properties. The upgrade merge logic can't do complex calculations,
- * such as the ZK quorum.
  * <p/>
- * The above properties will only be set if {@code cluster-env/security_enabled}
- * is {@code true}.
+ * This is typically only needed when upgrading from a version which does not
+ * have these properties but where the Hive server is already Kerberized. The
+ * upgrade merge logic can't do complex calculations, such as the ZK quorum.
+ * <p/>
+ * The above properties will be set regardless of whether
+ * {@code cluster-env/security_enabled} is {@code true}. This is because the
+ * Kerberization wizard doesn't know to set these when Kerberizing a version of
+ * Hive that was upgraded previously. They are actually set (incorrectly) on a
+ * non-Kerberized Hive installation by the installation wizard.
  */
-public class HiveKerberosConfigAction extends AbstractServerAction {
+public class HiveZKQuorumConfigAction extends AbstractServerAction {
   protected static final String HIVE_SITE_CONFIG_TYPE = "hive-site";
-  protected static final String CLUSTER_ENV_CONFIG_TYPE = "cluster-env";
-
-  protected static final String CLUSTER_ENV_SECURITY_ENABLED = "security_enabled";
   protected static final String HIVE_SITE_ZK_QUORUM = "hive.zookeeper.quorum";
   protected static final String HIVE_SITE_ZK_CONNECT_STRING = "hive.cluster.delegation.token.store.zookeeper.connectString";
 
@@ -69,32 +69,12 @@ public class HiveKerberosConfigAction extends AbstractServerAction {
     String clusterName = getExecutionCommand().getClusterName();
     Cluster cluster = m_clusters.getCluster(clusterName);
 
-    Config clusterEnv = cluster.getDesiredConfigByType(CLUSTER_ENV_CONFIG_TYPE);
-
-    if (null == clusterEnv) {
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          String.format(
-              "The %s configuration type was not found; unable to determine whether Hive is Kerberized",
-              CLUSTER_ENV_CONFIG_TYPE),
-          "");
-    }
-
-    // gets the security_enabled property; if it doesn't exist or is blank,
-    // Boolean will be false (no need for extra null check)
-    Map<String, String> clusterEnvProperties = clusterEnv.getProperties();
-    boolean securityEnabled = Boolean.parseBoolean(clusterEnvProperties.get(CLUSTER_ENV_SECURITY_ENABLED));
-
-    if (!securityEnabled) {
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          "Hive is not Kerberized, skipping Kerberos-specific configuration properties", "");
-    }
-
     Config hiveSite = cluster.getDesiredConfigByType(HIVE_SITE_CONFIG_TYPE);
     if (hiveSite == null) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
           String.format(
               "The %s configuration type was not found; unable to set Hive configuration properties",
-              CLUSTER_ENV_CONFIG_TYPE),
+              HIVE_SITE_CONFIG_TYPE),
           "");
     }
 
