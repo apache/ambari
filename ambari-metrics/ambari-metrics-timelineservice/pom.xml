@@ -426,6 +426,11 @@
       <version>3.4.1</version>
     </dependency>
     <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
+    </dependency>
+    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-pool2</artifactId>
       <version>2.3</version>
@@ -698,7 +703,7 @@
             <!-- The configuration of the plugin -->
             <configuration>
               <!-- Configuration of the archiver -->
-              <finalName>${pom.artifactId}-simulator-${pom.version}</finalName>
+              <finalName>${project.artifactId}-simulator-${project.version}</finalName>
               <archive>
                 <!-- Manifest specific configuration -->
                 <manifest>
