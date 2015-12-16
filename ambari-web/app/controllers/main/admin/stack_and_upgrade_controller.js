@@ -589,6 +589,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       }
     });
     this.setDBProperty('currentVersion', this.get('currentVersion'));
+
+    // show a "preparing the upgrade..." dialog in case the api call returns too slow
+    setTimeout(function () {
+      if (App.router.get('currentState.name') != 'stackUpgrade') {
+        App.showAlertPopup(Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.header'), Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.body'));
+      }
+    }, 1000);
   },
 
   /**
@@ -1383,6 +1390,9 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @return {App.ModalPopup}
    */
   openUpgradeDialog: function () {
+    if ($('.modal') && $('.modal .modal-header #modal-label').text().trim() == Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.header')) {
+      $('.modal .modal-footer button.btn-success').click();
+    }
     App.router.transitionTo('admin.stackUpgrade');
   },
 
