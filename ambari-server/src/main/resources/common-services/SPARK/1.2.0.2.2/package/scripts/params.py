@@ -103,7 +103,7 @@ spark_jobhistoryserver_hosts = default("/clusterHostInfo/spark_jobhistoryserver_
 
 if len(spark_jobhistoryserver_hosts) > 0:
   spark_history_server_host = spark_jobhistoryserver_hosts[0]
-else:SPARK/1.2.0.2.2/package/scripts/params.py
+else:
   spark_history_server_host = "localhost"
 
 # spark-defaults params
