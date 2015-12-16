@@ -372,6 +372,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Theme, "theme", "themes");
         break;
 
+      case QuickLink:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.QuickLink, "quicklink", "quicklinks");
+        break;
+
       case Widget:
         resourceDefinition = new WidgetResourceDefinition();
         break;

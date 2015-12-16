@@ -64,6 +64,12 @@
         <config-type>ranger-ugsync-site</config-type>
       </configuration-dependencies>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

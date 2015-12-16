@@ -191,6 +191,31 @@ public class StacksService extends BaseService {
   }
 
   @GET
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/quicklinks")
+  @Produces("text/plain")
+  public Response getStackServiceQuickLinksConfigurations(String body, @Context HttpHeaders headers,
+                                           @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                           @PathParam("stackVersion") String stackVersion,
+                                           @PathParam("serviceName") String serviceName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+      createStackServiceQuickLinksResource(stackName, stackVersion, serviceName, null));
+  }
+
+  @GET
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/quicklinks/{quickLinksConfigurationName}")
+  @Produces("text/plain")
+  public Response getStackServiceQuickLinksConfiguration(String body, @Context HttpHeaders headers,
+                                           @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                           @PathParam("stackVersion") String stackVersion,
+                                           @PathParam("serviceName") String serviceName,
+                                           @PathParam("quickLinksConfigurationName") String quickLinksConfigurationName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+      createStackServiceQuickLinksResource(stackName, stackVersion, serviceName, quickLinksConfigurationName));
+  }
+
+  @GET
   @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/artifacts/{artifactName}")
   @Produces("text/plain")
   public Response getStackServiceArtifact(String body, @Context HttpHeaders headers,
@@ -453,6 +478,17 @@ public class StacksService extends BaseService {
     mapIds.put(Resource.Type.Theme, themeName);
 
     return createResource(Resource.Type.Theme, mapIds);
+  }
+
+  ResourceInstance createStackServiceQuickLinksResource(String stackName, String stackVersion, String serviceName,
+      String quickLinksConfigurationName) {
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.StackService, serviceName);
+    mapIds.put(Resource.Type.QuickLink, quickLinksConfigurationName);
+
+    return createResource(Resource.Type.QuickLink, mapIds);
   }
 
   ResourceInstance createStackResource(String stackName) {

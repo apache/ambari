@@ -210,6 +210,17 @@ public class ServiceInfo implements Validable{
   @XmlTransient
   private volatile Map<String, ThemeInfo> themesMap;
 
+  @JsonIgnore
+  @XmlElement(name = "quickLinksConfigurations-dir")
+  private String quickLinksConfigurationsDir = AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME;
+
+  @JsonIgnore
+  @XmlElementWrapper(name = "quickLinksConfigurations")
+  @XmlElements(@XmlElement(name = "quickLinksConfiguration"))
+  private List<QuickLinksConfigurationInfo> quickLinksConfigurations;
+
+  @XmlTransient
+  private volatile Map<String, QuickLinksConfigurationInfo> quickLinksConfigurationsMap;
 
   /**
    * Map of of os-specific details that is exposed (and initialised from list)
@@ -769,6 +780,43 @@ public String getVersion() {
     this.themesMap = themesMap;
   }
 
+  //Quick links configurations
+  public String getQuickLinksConfigurationsDir() {
+    return quickLinksConfigurationsDir;
+  }
+
+  public void setQuickLinksConfigurationsDir(String quickLinksConfigurationsDir) {
+    this.quickLinksConfigurationsDir = quickLinksConfigurationsDir;
+  }
+
+  public List<QuickLinksConfigurationInfo> getQuickLinksConfigurations() {
+    return quickLinksConfigurations;
+  }
+
+  public void setQuickLinksConfigurations(List<QuickLinksConfigurationInfo> quickLinksConfigurations) {
+    this.quickLinksConfigurations = quickLinksConfigurations;
+  }
+
+  public Map<String, QuickLinksConfigurationInfo> getQuickLinksConfigurationsMap() {
+    if (quickLinksConfigurationsMap == null) {
+      synchronized (this) {
+      }
+      if (quickLinksConfigurationsMap == null) {
+        Map<String, QuickLinksConfigurationInfo> tmp = new TreeMap<String, QuickLinksConfigurationInfo>();
+        if (quickLinksConfigurations != null) {
+          for (QuickLinksConfigurationInfo quickLinksConfiguration : quickLinksConfigurations) {
+            tmp.put(quickLinksConfiguration.getFileName(), quickLinksConfiguration);
+          }
+        }
+        quickLinksConfigurationsMap = tmp;
+      }
+    }
+    return quickLinksConfigurationsMap;
+  }
+
+  public void setQuickLinksConfigurationsMap(Map<String, QuickLinksConfigurationInfo> quickLinksConfigurationsMap) {
+    this.quickLinksConfigurationsMap = quickLinksConfigurationsMap;
+  }
 
   public List<ServicePropertyInfo> getServicePropertyList() {
     return servicePropertyList;

@@ -177,6 +177,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractAuthori
         return new StackArtifactResourceProvider(managementController);
       case Theme:
         return new ThemeArtifactResourceProvider(managementController);
+      case QuickLink:
+        return new QuickLinkArtifactResourceProvider(managementController);
       case ActiveWidgetLayout:
         return new ActiveWidgetLayoutResourceProvider(managementController);
       case WidgetLayout:

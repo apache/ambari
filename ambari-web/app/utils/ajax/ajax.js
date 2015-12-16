@@ -636,6 +636,18 @@ var urls = {
     'mock': '/data/configurations/theme_services.json'
   },
 
+  /*************************CONFIG QUICKLINKS****************************************/
+
+  'configs.quicklinksconfig': {
+    'real': '{stackVersionUrl}/services/{serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*',
+    'mock': '/data/configurations/quicklinks.json'
+  },
+
+  'configs.quicklinksconfig.services': {
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&quicklinks/QuickLinkInfo/default=true&fields=quicklinks/*',
+    'mock': '/data/configurations/quicklinks_services.json'
+  },
+
   /*************************CONFIG GROUPS***************************************/
 
   'configs.config_groups.load.all': {

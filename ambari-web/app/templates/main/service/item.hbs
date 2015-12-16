@@ -18,8 +18,8 @@
 
 {{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
   <div class="span3 quick-links-wrapper">
-    {{#if view.service.quickLinks.length}}
-      {{#view App.QuickViewLinks contentBinding="view.service"}}
+    {{#view App.QuickViewLinks contentBinding="view.service"}}
+      {{#if view.hasQuickLinksConfiged}}
         <ul class="nav nav-pills move">
           <li class="dropdown quick-links-dropdown">
             <a class="dropdown-toggle" id="quick-links-dropdown-btn" data-toggle="dropdown" href="#">{{t common.quickLinks}}<b class="caret"></b></a>
@@ -52,8 +52,8 @@
            </ul>
           </li>
         </ul>
-      {{/view}}
-    {{/if}}
+      {{/if}}
+    {{/view}}
   </div>
 
 {{#isAuthorized "SERVICE.RUN_CUSTOM_COMMAND, SERVICE.RUN_SERVICE_CHECK, SERVICE.START_STOP, SERVICE.TOGGLE_MAINTENANCE, SERVICE.ENABLE_HA"}}

@@ -34,6 +34,7 @@ require('models/repository');
 require('models/stack_service');
 require('models/stack_service_component');
 require('models/quick_links');
+require('models/quicklinks/quick_links_config');
 require('models/service');
 require('models/service_audit');
 require('models/service/hdfs');

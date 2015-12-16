@@ -50,6 +50,12 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
 
     <service>
@@ -74,6 +80,13 @@
         </osSpecific>
       </osSpecifics>
       <configuration-dir>configuration-mapred</configuration-dir>
+      <quickLinksConfigurations-dir>quicklinks-mapred</quickLinksConfigurations-dir>
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
 
   </services>

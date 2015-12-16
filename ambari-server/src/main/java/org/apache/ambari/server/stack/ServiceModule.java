@@ -23,19 +23,20 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.QuickLinksConfigurationInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServicePropertyInfo;
 import org.apache.ambari.server.state.ThemeInfo;
 
 import javax.annotation.Nullable;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -77,6 +78,11 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    * Map of themes, single value currently
    */
   private Map<String, ThemeModule> themeModules = new HashMap<String, ThemeModule>();
+
+  /**
+   * Map of quicklinks, single value currently
+   */
+  private Map<String, QuickLinksConfigurationModule> quickLinksConfigurationModules = new HashMap<String, QuickLinksConfigurationModule>();
 
   /**
    * Encapsulates IO operations on service directory
@@ -129,6 +135,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     populateComponentModules();
     populateConfigurationModules();
     populateThemeModules();
+    populateQuickLinksConfigurationModules();
 
     validateServiceInfo();
   }
@@ -204,6 +211,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     mergeComponents(parentModule, allStacks, commonServices);
     mergeConfigurations(parentModule, allStacks, commonServices);
     mergeThemes(parentModule, allStacks, commonServices);
+    mergeQuickLinksConfigurations(parentModule, allStacks, commonServices);
     mergeExcludedConfigTypes(parent);
 
 
@@ -384,9 +392,41 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       } else {
         serviceInfo.getThemesMap().remove(moduleInfo.getFileName());
       }
+    }
+  }
 
+  private void populateQuickLinksConfigurationModules(){
+    if (serviceInfo.getQuickLinksConfigurationsDir() == null) {
+      serviceInfo.setQuickLinksConfigurationsDir(AmbariMetaInfo.SERVICE_QUICKLINKS_CONFIGURATIONS_FOLDER_NAME);
     }
 
+    String quickLinksConfigurationsDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getQuickLinksConfigurationsDir();
+
+    if (serviceInfo.getQuickLinksConfigurations() != null) {
+      for (QuickLinksConfigurationInfo quickLinksConfigurationInfo: serviceInfo.getQuickLinksConfigurations()) {
+        File file = new File(quickLinksConfigurationsDir + File.separator + quickLinksConfigurationInfo.getFileName());
+        QuickLinksConfigurationModule module = new QuickLinksConfigurationModule(file, quickLinksConfigurationInfo);
+        quickLinksConfigurationModules.put(module.getId(), module);
+      }
+    }    //Not fail if quicklinks.json file contains errors
+  }
+
+  /**
+   * Merge theme modules.
+   */
+  private void mergeQuickLinksConfigurations(ServiceModule parent, Map<String, StackModule> allStacks,
+                           Map<String, ServiceModule> commonServices) throws AmbariException {
+    Collection<QuickLinksConfigurationModule> mergedModules = mergeChildModules(allStacks, commonServices, quickLinksConfigurationModules, parent.quickLinksConfigurationModules);
+
+    for (QuickLinksConfigurationModule mergedModule : mergedModules) {
+      quickLinksConfigurationModules.put(mergedModule.getId(), mergedModule);
+      QuickLinksConfigurationInfo moduleInfo = mergedModule.getModuleInfo();
+      if (!moduleInfo.isDeleted()) {
+        serviceInfo.getQuickLinksConfigurationsMap().put(moduleInfo.getFileName(), moduleInfo);
+      } else {
+        serviceInfo.getQuickLinksConfigurationsMap().remove(moduleInfo.getFileName());
+      }
+    }
   }
 
   /**
