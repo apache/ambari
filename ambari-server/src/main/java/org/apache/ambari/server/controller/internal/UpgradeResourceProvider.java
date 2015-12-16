@@ -1026,6 +1026,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         if (null == newDefaultConfigurations) {
           newConfigurationsByType.put(configurationType, existingConfigurations);
           continue;
+        } else {
+          // TODO, should we remove existing configs whose value is NULL even though they don't have a value in the new stack?
+
+          // Remove any configs in the new stack whose value is NULL, unless they currently exist and the value is not NULL.
+          Iterator<Map.Entry<String, String>> iter = newDefaultConfigurations.entrySet().iterator();
+          while (iter.hasNext()) {
+            Map.Entry<String, String> entry = iter.next();
+            if (entry.getValue() == null) {
+              iter.remove();
+            }
+          }
         }
 
         // for every existing configuration, see if an entry exists; if it does

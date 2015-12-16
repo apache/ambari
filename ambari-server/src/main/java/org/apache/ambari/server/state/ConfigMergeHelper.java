@@ -78,6 +78,7 @@ public class ConfigMergeHelper {
         targetStack.getStackName(), targetStack.getStackVersion());
     addToMap(newMap, set);
 
+    // Final result after merging.
     Map<String, Map<String, ThreeWayValue>> result =
         new HashMap<String, Map<String, ThreeWayValue>>();
 
@@ -104,6 +105,7 @@ public class ConfigMergeHelper {
         customValueKeys = CollectionUtils.subtract(valueKeys, oldPairs.keySet());
       }
 
+      // Keep properties with custom values (i.e., changed from default value in old stack)
       if (null != customValueKeys) {
         for (String prop : customValueKeys) {
           String newVal = newPairs.get(prop);

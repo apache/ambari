@@ -19,12 +19,33 @@
 <upgrade-config-changes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
   <services>
+
+    <service name="HDFS">
+      <component name="NAMENODE">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_2_0_0_namenode_no_ranger" summary="NameNode properties without Ranger">
+            <!-- In HDP 2.1, RANGER was not present, so this property must not be added even though it is new in the
+             HDP 2.2 stack. The property is only valid in HDP 2.2 and higher if RANGER is present. -->
+            <type>hdfs-site</type>
+            <transfer operation="delete" delete-key="dfs.namenode.inode.attributes.provider.class"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
+
     <service name="YARN">
       <component name="HISTORY_SERVER">
         <changes>
           <definition xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath" summary="YARN Application Classpath">
             <type>yarn-site</type>
             <set key="yarn.application.classpath" value="$HADOOP_CONF_DIR,/usr/hdp/current/hadoop-client/*,/usr/hdp/current/hadoop-client/lib/*,/usr/hdp/current/hadoop-hdfs-client/*,/usr/hdp/current/hadoop-hdfs-client/lib/*,/usr/hdp/current/hadoop-yarn-client/*,/usr/hdp/current/hadoop-yarn-client/lib/*"/>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_2_0_0_historyserver_no_ranger" summary="YARN properties without Ranger">
+            <!-- In HDP 2.1, RANGER was not present, so this property must not be added even though it is new in the
+             HDP 2.2 stack. The property is only valid in HDP 2.2 and higher if RANGER is present. -->
+            <type>yarn-site</type>
+            <transfer operation="delete" delete-key="yarn.authorization-provider"/>
           </definition>
         </changes>
       </component>
@@ -90,5 +111,18 @@
       </component>
     </service>
   </services>
+
+  <service name="STORM">
+    <component name="NIMBUS">
+      <changes>
+        <definition xsi:type="configure" id="hdp_2_2_0_0_nimbus_no_ranger" summary="Nimbus properties without Ranger">
+          <!-- In HDP 2.1, RANGER was not present, so this property must not be added even though it is new in the
+           HDP 2.2 stack. The property is only valid in HDP 2.2 and higher if RANGER is present. -->
+          <type>storm-site</type>
+          <transfer operation="delete" delete-key="nimbus.authorizer"/>
+        </definition>
+      </changes>
+    </component>
+  </service>
 
 </upgrade-config-changes>
