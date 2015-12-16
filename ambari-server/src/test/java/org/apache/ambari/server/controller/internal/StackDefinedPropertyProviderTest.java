@@ -17,22 +17,17 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
@@ -48,10 +43,11 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -63,10 +59,23 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 
 /**
  * Tests the stack defined property provider.
@@ -75,6 +84,7 @@ public class StackDefinedPropertyProviderTest {
   private static final String HOST_COMPONENT_HOST_NAME_PROPERTY_ID = "HostRoles/host_name";
   private static final String HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID = "HostRoles/component_name";
   private static final String HOST_COMPONENT_STATE_PROPERTY_ID = "HostRoles/state";
+  private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
 
   private Clusters clusters = null;
   private Injector injector = null;
@@ -111,9 +121,9 @@ public class StackDefinedPropertyProviderTest {
     clusters = injector.getInstance(Clusters.class);
     StackId stackId = new StackId("HDP-2.0.5");
 
-    clusters.addCluster("c1", stackId);
+    clusters.addCluster("c2", stackId);
 
-    Cluster cluster = clusters.getCluster("c1");
+    Cluster cluster = clusters.getCluster("c2");
 
     cluster.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -128,7 +138,25 @@ public class StackDefinedPropertyProviderTest {
     host.setHostAttributes(hostAttributes);
     host.persist();
 
-    clusters.mapHostToCluster("h1", "c1");
+    clusters.mapHostToCluster("h1", "c2");
+
+    // Setting up Mocks for Controller, Clusters etc, queried as part of user's Role context
+    // while fetching Metrics.
+    AmbariManagementController amc = createNiceMock(AmbariManagementController.class);
+    Field field = AmbariServer.class.getDeclaredField("clusterController");
+    field.setAccessible(true);
+    field.set(null, amc);
+    Clusters clustersMock = createNiceMock(Clusters.class);
+    Cluster clusterMock = createNiceMock(Cluster.class);
+    expect(amc.getClusters()).andReturn(clustersMock).anyTimes();
+    expect(clustersMock.getCluster(CLUSTER_NAME_PROPERTY_ID)).andReturn(clusterMock).anyTimes();
+    expect(clusterMock.getResourceId()).andReturn(2L).anyTimes();
+    try {
+      expect(clustersMock.getCluster(anyObject(String.class))).andReturn(clusterMock).anyTimes();
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    replay(amc, clustersMock, clusterMock);
   }
 
   @After
@@ -137,6 +165,95 @@ public class StackDefinedPropertyProviderTest {
   }
 
   @Test
+  public void testStackDefinedPropertyProviderAsClusterAdministrator() throws Exception {
+    //Setup user with Role 'ClusterAdministrator'.
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("ClusterAdmin", 2L));
+
+    testPopulateHostComponentResources();
+    testCustomProviders();
+    testPopulateResources_HDP2();
+    testPopulateResources_HDP2_params();
+    testPopulateResources_HDP2_params_singleProperty();
+    testPopulateResources_HDP2_params_category();
+    testPopulateResources_HDP2_params_category2();
+    testPopulateResources_jmx_JournalNode();
+    testPopulateResources_jmx_Storm();
+    testPopulateResources_NoRegionServer();
+    testPopulateResources_HBaseMaster2();
+    testPopulateResources_params_category5();
+    testPopulateResources_ganglia_JournalNode();
+    testPopulateResources_resourcemanager_clustermetrics();
+    testPopulateResourcesWithAggregateFunctionMetrics();
+  }
+
+  @Test
+  public void testStackDefinedPropertyProviderAsAdministrator() throws Exception {
+    //Setup user with Role 'Administrator'
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("Admin"));
+
+    testPopulateHostComponentResources();
+    testCustomProviders();
+    testPopulateResources_HDP2();
+    testPopulateResources_HDP2_params();
+    testPopulateResources_HDP2_params_singleProperty();
+    testPopulateResources_HDP2_params_category();
+    testPopulateResources_HDP2_params_category2();
+    testPopulateResources_jmx_JournalNode();
+    testPopulateResources_jmx_Storm();
+    testPopulateResources_NoRegionServer();
+    testPopulateResources_HBaseMaster2();
+    testPopulateResources_params_category5();
+    testPopulateResources_ganglia_JournalNode();
+    testPopulateResources_resourcemanager_clustermetrics();
+    testPopulateResourcesWithAggregateFunctionMetrics();
+  }
+
+  @Test
+  public void testStackDefinedPropertyProviderAsServiceAdministrator() throws Exception {
+    //Setup user with 'ServiceAdministrator'
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createServiceAdministrator("ServiceAdmin", 2L));
+
+    testPopulateHostComponentResources();
+    testCustomProviders();
+    testPopulateResources_HDP2();
+    testPopulateResources_HDP2_params();
+    testPopulateResources_HDP2_params_singleProperty();
+    testPopulateResources_HDP2_params_category();
+    testPopulateResources_HDP2_params_category2();
+    testPopulateResources_jmx_JournalNode();
+    testPopulateResources_jmx_Storm();
+    testPopulateResources_NoRegionServer();
+    testPopulateResources_HBaseMaster2();
+    testPopulateResources_params_category5();
+    testPopulateResources_ganglia_JournalNode();
+    testPopulateResources_resourcemanager_clustermetrics();
+    testPopulateResourcesWithAggregateFunctionMetrics();
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testStackDefinedPropertyProviderAsViewUser() throws Exception {
+    // Setup user with 'ViewUser'
+    // ViewUser doesn't have the 'CLUSTER_VIEW_METRICS', 'HOST_VIEW_METRICS' and 'SERVICE_VIEW_METRICS', thus
+    // can't retrieve the Metrics.
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser("ViewUser", 2L));
+
+    testPopulateHostComponentResources();
+    testCustomProviders();
+    testPopulateResources_HDP2();
+    testPopulateResources_HDP2_params();
+    testPopulateResources_HDP2_params_singleProperty();
+    testPopulateResources_HDP2_params_category();
+    testPopulateResources_HDP2_params_category2();
+    testPopulateResources_jmx_JournalNode();
+    testPopulateResources_jmx_Storm();
+    testPopulateResources_NoRegionServer();
+    testPopulateResources_HBaseMaster2();
+    testPopulateResources_params_category5();
+    testPopulateResources_ganglia_JournalNode();
+    testPopulateResources_resourcemanager_clustermetrics();
+    testPopulateResourcesWithAggregateFunctionMetrics();
+  }
+
   public void testPopulateHostComponentResources() throws Exception {
     JMXPropertyProviderTest.TestJMXHostProvider tj = new JMXPropertyProviderTest.TestJMXHostProvider(true);
     JMXPropertyProviderTest.TestMetricHostProvider tm = new JMXPropertyProviderTest.TestMetricHostProvider();
@@ -150,7 +267,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "NAMENODE");
     resource.setProperty("HostRoles/state", "STARTED");
@@ -171,7 +288,6 @@ public class StackDefinedPropertyProviderTest {
   }
 
 
-  @Test
   public void testCustomProviders() throws Exception {
 
     StackDefinedPropertyProvider sdpp = new StackDefinedPropertyProvider(
@@ -181,7 +297,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty("HostRoles/host_name", "h1");
     resource.setProperty("HostRoles/component_name", "DATANODE");
     resource.setProperty("HostRoles/state", "STARTED");
@@ -326,7 +442,6 @@ public class StackDefinedPropertyProviderTest {
     }
   }
 
-  @Test
   public void testPopulateResources_HDP2() throws Exception {
 
     URLStreamProvider  streamProvider = new TestStreamProvider();
@@ -350,7 +465,7 @@ public class StackDefinedPropertyProviderTest {
     // resourcemanager
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -378,7 +493,7 @@ public class StackDefinedPropertyProviderTest {
     //namenode
     resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "NAMENODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -389,7 +504,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
   }
 
-  @Test
   public void testPopulateResources_HDP2_params() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -411,7 +525,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -442,7 +556,6 @@ public class StackDefinedPropertyProviderTest {
   }
 
 
-  @Test
   public void testPopulateResources_HDP2_params_singleProperty() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -464,7 +577,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -480,7 +593,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root", "AvailableVCores")));
   }
 
-  @Test
   public void testPopulateResources_HDP2_params_category() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -502,7 +614,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -533,7 +645,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(1,    resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
   }
 
-  @Test
   public void testPopulateResources_HDP2_params_category2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -555,7 +666,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "h1");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -592,7 +703,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertNull(resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/yarn/Queue/root/second_queue", "AppsSubmitted")));
   }
 
-  @Test
   public void testPopulateResources_jmx_JournalNode() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -614,7 +724,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOURNALNODE");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -712,10 +822,9 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(8444, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/dfs/journalnode/cluster/mycluster", "lastWrittenTxId")));
   }
 
-  @Test
   public void testPopulateResources_jmx_Storm() throws Exception {
     // Adjust stack version for cluster
-    Cluster cluster = clusters.getCluster("c1");
+    Cluster cluster = clusters.getCluster("c2");
     cluster.setDesiredStackVersion(new StackId("HDP-2.1.1"));
 
     TestStreamProvider  streamProvider = new TestStreamProvider();
@@ -739,7 +848,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "STORM_REST_API");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -760,7 +869,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(4637.0, resource.getPropertyValue(PropertyHelper.getPropertyId("metrics/api/cluster/summary", "nimbus.uptime")));
   }
 
-  @Test
   public void testPopulateResources_NoRegionServer() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -782,7 +890,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -797,7 +905,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertEquals(preSize, resource.getPropertiesMap().size());
   }
 
-  @Test
   public void testPopulateResources_HBaseMaster2() throws Exception {
     TestStreamProvider  streamProvider = new TestStreamProvider();
     JMXPropertyProviderTest.TestJMXHostProvider hostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(false);
@@ -819,7 +926,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "domu-12-31-39-0e-34-e1.compute-1.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_MASTER");
     resource.setProperty(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -838,7 +945,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertTrue(map.get("metrics/hbase/master").containsKey("IsActiveMaster"));
   }
 
-  @Test
   public void testPopulateResources_params_category5() throws Exception {
     org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider streamProvider =
         new org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider("temporal_ganglia_data_yarn_queues.txt");
@@ -863,7 +969,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "dev01.ambari.apache.org");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
 
@@ -886,7 +992,6 @@ public class StackDefinedPropertyProviderTest {
     Assert.assertNotNull(resource.getPropertyValue(RM_AVAILABLE_MEMORY_PROPERTY));
   }
 
-  @Test
   public void testPopulateResources_ganglia_JournalNode() throws Exception {
     org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider streamProvider =
         new org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider("journalnode_ganglia_data.txt");
@@ -911,7 +1016,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "JOURNALNODE");
 
@@ -1001,7 +1106,6 @@ public class StackDefinedPropertyProviderTest {
     }
   }
 
-  @Test
   public void testPopulateResources_resourcemanager_clustermetrics() throws Exception {
 
     String[] metrics = new String[] {
@@ -1035,7 +1139,7 @@ public class StackDefinedPropertyProviderTest {
     for (String metric : metrics) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
 
-      resource.setProperty("HostRoles/cluster_name", "c1");
+      resource.setProperty("HostRoles/cluster_name", "c2");
       resource.setProperty(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, "ip-10-39-113-33.ec2.internal");
       resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "RESOURCEMANAGER");
 
@@ -1053,7 +1157,6 @@ public class StackDefinedPropertyProviderTest {
 
   }
 
-  @Test
   public void testPopulateResourcesWithAggregateFunctionMetrics() throws Exception {
 
     String metric = "metrics/rpc/NumOpenConnections._sum";
@@ -1086,7 +1189,7 @@ public class StackDefinedPropertyProviderTest {
 
     Resource resource = new ResourceImpl(Resource.Type.Component);
 
-    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/cluster_name", "c2");
     resource.setProperty("HostRoles/service_name", "HBASE");
     resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
 

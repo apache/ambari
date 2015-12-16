@@ -34,11 +34,10 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.utilities.StreamProvider;
+
 import java.util.Map;
 import java.util.Set;
 
-import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
@@ -49,6 +48,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   private AMSPropertyProvider amsPropertyProvider;
   private GangliaPropertyProvider gangliaPropertyProvider;
   private TimelineMetricCacheProvider cacheProvider;
+  private String clusterNamePropertyId;
 
   public MetricsPropertyProviderProxy(
     InternalType type,
@@ -65,6 +65,7 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
     super(componentPropertyInfoMap);
     this.metricsServiceProvider = serviceProvider;
     this.cacheProvider = cacheProvider;
+    this.clusterNamePropertyId = clusterNamePropertyId;
 
     switch (type) {
       case Host:
@@ -182,6 +183,10 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request,
                                          Predicate predicate) throws SystemException {
+
+    if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
+      return resources;
+    }
 
     MetricsService metricsService = metricsServiceProvider.getMetricsServiceType();
 
