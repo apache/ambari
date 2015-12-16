@@ -55,21 +55,15 @@ App.SubSectionTab = DS.Model.extend({
    */
   isActive: DS.attr('boolean', {defaultValue: false}),
 
-  visibleProperties: function() {
-    return this.get('configs').filter(function(c) {
-      return c.get('isVisible') && !c.get('hiddenBySection');
-    });
-  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
-
   /**
    * Number of the errors in all configs
    * @type {number}
    */
   errorsCount: function () {
-    return this.get('visibleProperties').filter(function(config) {
-      return !config.get('isValid') || !config.get('isValidOverride');
+    return this.get('configs').filter(function(config) {
+      return config.get('isVisible') && (!config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false));
     }).length;
-  }.property('visibleProperties.@each.isValid', 'visibleProperties.@each.isValidOverride'),
+  }.property('configs.@each.isVisible', 'configs.@each.isValid', 'configs.@each.overrideErrorTrigger'),
 
   /**
    * If the visibility of subsection is dependent on a value of some config
@@ -81,12 +75,17 @@ App.SubSectionTab = DS.Model.extend({
    * If there is no configs, subsection can't be hidden
    * @type {boolean}
    */
-  isHiddenByFilter: Em.computed.everyBy('visibleProperties', 'isHiddenByFilter', true),
+  isHiddenByFilter: function () {
+    var configs = this.get('configs').filter(function(c) {
+      return !c.get('hiddenBySection') && c.get('isVisible');
+    });
+    return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
+  }.property('configs.@each.isHiddenByFilter'),
 
   /**
    * @type {boolean}
    */
-  someConfigIsVisible: Em.computed.gt('visibleProperties.length', 0),
+  someConfigIsVisible: Em.computed.someBy('configs', 'isVisible', true),
 
   /**
    * Determines if subsection is visible

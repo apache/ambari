@@ -94,25 +94,17 @@ App.SubSection = DS.Model.extend({
 
   showTabs: Em.computed.and('hasTabs', 'someSubSectionTabIsVisible'),
 
-  visibleProperties: function() {
-    return this.get('configs').filter(function(c) {
-      return c.get('isVisible') && !c.get('hiddenBySection');
-    });
-  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
-
-  visibleTabs: Em.computed.filterBy('subSectionTabs', 'isVisible', true),
-
   /**
    * Number of the errors in all configs
    * @type {number}
    */
   errorsCount: function () {
-    var propertiesWithErrors = this.get('visibleProperties').filter(function(c) {
-      return !c.get('isValid') || !c.get('isValidOverride');
+    var visibleTabs = this.get('subSectionTabs').filterProperty('isVisible');
+    var subSectionTabsErrors = visibleTabs.length ? visibleTabs.mapProperty('errorsCount').reduce(Em.sum, 0) : 0;
+    return subSectionTabsErrors + this.get('configs').filter(function(config) {
+      return config.get('isVisible') && (!config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false));
     }).length;
-    var tabsWithErrors = this.get('visibleTabs').mapProperty('errorsCount').reduce(Em.sum, 0);
-    return propertiesWithErrors + tabsWithErrors;
-  }.property('visibleProperties.@each.isValid', 'visibleProperties.@each.isValidOverride', 'visibleTabs.@each.errorsCount'),
+  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configs.@each.overrideErrorTrigger', 'subSectionTabs.@each.isVisible', 'subSectionTabs.@each.errorsCount'),
 
   /**
    * @type {boolean}

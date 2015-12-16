@@ -132,9 +132,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * Number of errors in the configs in the selected service
    * @type {number}
    */
-  errorsCount: function() {
-    return this.get('selectedService.configsWithErrors').rejectProperty('widgetType').length;
-  }.property('selectedService.configsWithErrors'),
+  errorsCount: function () {
+    return this.get('selectedService.configs').filter(function (config) {
+      return Em.isNone(config.get('widgetType'));
+    }).filter(function(config) {
+      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+    }).filterProperty('isVisible').length;
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible','selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Should Next-button be disabled
@@ -661,7 +665,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             } else if (configCondition.get('type') === 'config') {
               //simulate section wrapper for condition type "config"
               themeResource = Em.Object.create({
-                configProperties: [App.config.configId(configCondition.get('configName'), configCondition.get('fileName'))]
+                configProperties: [
+                  Em.Object.create({
+                    name: configCondition.get('configName'),
+                    fileName: configCondition.get('fileName')
+                  })
+                ]
               });
             }
             if (themeResource) {

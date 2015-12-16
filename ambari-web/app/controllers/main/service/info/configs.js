@@ -122,9 +122,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * Number of errors in the configs in the selected service (only for AdvancedTab if App supports Enhanced Configs)
    * @type {number}
    */
-  errorsCount: function() {
-    return this.get('selectedService.configsWithErrors').rejectProperty('widgetType').length;
-  }.property('selectedService.configsWithErrors'),
+  errorsCount: function () {
+    return this.get('selectedService.configs').filter(function (config) {
+      return Em.isNone(config.get('widgetType'));
+    }).filter(function(config) {
+      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+    }).filterProperty('isVisible').length;
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible', 'selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Determines if Save-button should be disabled
