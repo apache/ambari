@@ -16,11 +16,6 @@
  * limitations under the License.
  */
 
-/**
- * THIS IS NOT USED FOR NOW
- * FOR CONFIG GROUPS WE ARE USING OLD MODELS AND LOGIC
- */
-
 var App = require('app');
 
 App.ServiceConfigGroup = DS.Model.extend({

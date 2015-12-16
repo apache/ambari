@@ -2101,15 +2101,7 @@ var urls = {
     'format': function (data) {
       return {
         type: 'POST',
-        data: JSON.stringify([{
-          "ConfigGroup": {
-            "group_name": data.group_name,
-            "tag": data.service_id,
-            "description": data.description,
-            "desired_configs": data.desired_configs,
-            "hosts": data.hosts
-          }
-        }])
+        data: JSON.stringify(data.data)
       }
     }
   },

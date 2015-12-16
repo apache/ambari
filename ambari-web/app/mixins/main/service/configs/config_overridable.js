@@ -225,19 +225,33 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method postNewConfigurationGroup
    */
   postNewConfigurationGroup: function (newConfigGroupData, callback) {
-    var dataHosts = [];
-    newConfigGroupData.hosts.forEach(function (_host) {
-      dataHosts.push({
-        host_name: _host
-      });
-    }, this);
+    var properties = {};
+    newConfigGroupData.properties.forEach(function (propertiy) {
+      properties[propertiy.get('name')] = propertiy.get('value');
+    });
+    var newGroupData = {
+      "ConfigGroup": {
+        "group_name": newConfigGroupData.name,
+        "tag": newConfigGroupData.service_id,
+        "description": newConfigGroupData.description,
+        "desired_configs": newConfigGroupData.desired_configs.map(function (cst) {
+          return {
+            type: Em.get(cst, 'site') || Em.get(cst, 'type'),
+            tag: 'version' + (new Date).getTime(),
+            properties: properties
+          };
+        }),
+        "hosts": newConfigGroupData.hosts.map(function (h) {
+          return {
+            host_name: h
+          };
+        })
+      }
+    };
     var sendData = {
       name: 'config_groups.create',
       data: {
-        'group_name': newConfigGroupData.name,
-        'service_id': newConfigGroupData.service_id,
-        'description': newConfigGroupData.description,
-        'hosts': dataHosts
+        data: [newGroupData]
       },
       success: 'successFunction',
       error: 'errorFunction',
@@ -282,7 +296,7 @@ App.ConfigOverridable = Em.Mixin.create({
         }),
         desired_configs: desiredConfigs.map(function (cst) {
           return {
-            type: Em.get(cst, 'site') || Em.get(cst, 'type') ,
+            type: Em.get(cst, 'site') || Em.get(cst, 'type'),
             tag: Em.get(cst, 'tag')
           };
         })

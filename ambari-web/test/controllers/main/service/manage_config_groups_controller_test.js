@@ -306,6 +306,7 @@ describe('App.ManageConfigGroupsController', function() {
           popup.hide.restore();
         });
         it("", function () {
+          manageConfigGroupsController.set('hostsModifiedConfigGroups', {toCreate: []});
           popup.onPrimary();
           expect(popup.runClearCGQueue.calledOnce).to.be.true;
           expect(popup.runModifyCGQueue.calledOnce).to.be.true;

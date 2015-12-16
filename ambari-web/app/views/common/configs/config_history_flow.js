@@ -183,8 +183,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
   },
 
-
   willInsertElement: function () {
+    this.setDisplayVersion();
+  },
+
+  setDisplayVersion: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
@@ -205,7 +208,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-  },
+  }.observes('allVersionsLoaded'),
 
   onChangeConfigGroup: function () {
     var serviceVersions = this.get('serviceVersions');

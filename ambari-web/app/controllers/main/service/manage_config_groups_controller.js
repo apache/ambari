@@ -192,7 +192,8 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
             description: groupRecord.get('description'),
             hosts: groupRecord.get('hosts').slice(0),
             service_id: groupRecord.get('serviceName'),
-            desired_configs: groupRecord.get('desiredConfigs')
+            desired_configs: groupRecord.get('desiredConfigs'),
+            properties: groupRecord.get('properties')
           });
         }
       }
@@ -698,12 +699,15 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
         App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
         App.store.commit();
         if (duplicated) {
-          self.get('selectedConfigGroup.properties').forEach(function(item) {
+          self.get('selectedConfigGroup.properties').forEach(function (item) {
             var property = App.ServiceConfigProperty.create($.extend(false, {}, item));
             property.set('group', App.ServiceConfigGroup.find(newGroupId));
             properties.push(property);
           });
-          App.ServiceConfigGroup.find(newGroupId).set('properties', properties);
+          App.ServiceConfigGroup.find(newGroupId).setProperties({
+            'properties': properties,
+            'desiredConfigs': self.get('selectedConfigGroup.desiredConfigs')
+          });
         }
         self.get('configGroups').pushObject(App.ServiceConfigGroup.find(newGroupId));
         this.hide();
@@ -896,8 +900,16 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
               if (errors.length > 0) {
                 self.get('subViewController').set('errorMessage', errors.join(". "));
               } else {
-                self.updateConfigGroupOnServicePage();
-                self.hide();
+                if (!self.get('isAddService') && !self.get('isInstaller') && !modifiedConfigGroups.toCreate.everyProperty('properties.length', 0)) {
+                  //update service config versions only if it is service configs page and at least one newly created group had properties
+                  App.router.get('mainServiceInfoConfigsController').loadServiceConfigVersions().done(function () {
+                    self.updateConfigGroupOnServicePage();
+                    self.hide();
+                  });
+                } else {
+                  self.updateConfigGroupOnServicePage();
+                  self.hide();
+                }
               }
             });
           });
