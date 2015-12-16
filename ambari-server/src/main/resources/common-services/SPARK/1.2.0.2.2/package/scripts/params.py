@@ -103,7 +103,7 @@ spark_jobhistoryserver_hosts = default("/clusterHostInfo/spark_jobhistoryserver_
 
 if len(spark_jobhistoryserver_hosts) > 0:
   spark_history_server_host = spark_jobhistoryserver_hosts[0]
-else:
+else:SPARK/1.2.0.2.2/package/scripts/params.py
   spark_history_server_host = "localhost"
 
 # spark-defaults params
@@ -160,7 +160,6 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
     # update default metastore client properties (async wait for metastore component) it is useful in case of
     # blueprint provisioning when hive-metastore and spark-thriftserver is not on the same host.
     spark_hive_properties.update({
-      'hive.metastore.client.connect.retry.delay' : config['configurations']['hive-site']['hive.metastore.client.connect.retry.delay'],
       'hive.metastore.connect.retries' : config['configurations']['hive-site']['hive.metastore.connect.retries'],
       'hive.metastore.client.socket.timeout' : config['configurations']['hive-site']['hive.metastore.client.socket.timeout']
     })
