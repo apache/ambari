@@ -58,6 +58,7 @@ public class ConfigMergeHelper {
     Map<String, Map<String, String>> oldMap = new HashMap<String, Map<String, String>>();
     Map<String, Map<String, String>> newMap = new HashMap<String, Map<String, String>>();
 
+    // Add service properties for old and new stack
     for (String serviceName : cluster.getServices().keySet()) {
       Set<PropertyInfo> oldStackProperties = m_ambariMetaInfo.get().getServiceProperties(
           oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
@@ -68,6 +69,7 @@ public class ConfigMergeHelper {
       addToMap(newMap, newStackProperties);
     }
 
+    // Add stack properties for old and new stack
     Set<PropertyInfo> set = m_ambariMetaInfo.get().getStackProperties(
         oldStack.getStackName(), oldStack.getStackVersion());
     addToMap(oldMap, set);
@@ -76,6 +78,7 @@ public class ConfigMergeHelper {
         targetStack.getStackName(), targetStack.getStackVersion());
     addToMap(newMap, set);
 
+    // Final result after merging.
     Map<String, Map<String, ThreeWayValue>> result =
         new HashMap<String, Map<String, ThreeWayValue>>();
 
@@ -97,6 +100,7 @@ public class ConfigMergeHelper {
         customValueKeys = CollectionUtils.subtract(valueKeys, oldPairs.keySet());
       }
 
+      // Keep properties with custom values (i.e., changed from default value in old stack)
       if (null != customValueKeys) {
         for (String prop : customValueKeys) {
           String newVal = newPairs.get(prop);

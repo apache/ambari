@@ -221,9 +221,23 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <!--Changes for stack 2.2-->
+      <!--HDFS-->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode without Ranger">
+        <task xsi:type="configure" id="hdp_2_2_0_0_namenode_no_ranger"/>
+      </execute-stage>
+
       <!--YARN-->
       <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
         <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_classpath"/>
+      </execute-stage>
+
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for YARN without Ranger">
+        <task xsi:type="configure" id="hdp_2_2_0_0_historyserver_no_ranger"/>
+      </execute-stage>
+
+      <!--STORM-->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus without Ranger">
+        <task xsi:type="configure" id="hdp_2_2_0_0_nimbus_no_ranger"/>
       </execute-stage>
 
       <!--Changes for stack 2.3-->
