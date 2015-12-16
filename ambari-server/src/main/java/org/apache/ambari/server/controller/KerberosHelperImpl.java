@@ -34,10 +34,10 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -60,6 +60,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.security.credential.Credential;
@@ -110,12 +111,14 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,6 +188,16 @@ public class KerberosHelperImpl implements KerberosHelper {
 
   @Inject
   private SecurePasswordHelper securePasswordHelper;
+
+  @Inject
+  private KerberosPrincipalDAO kerberosPrincipalDAO;
+
+  /**
+   * The injector used to create new instances of helper classes like CreatePrincipalsServerAction
+   * and CreateKeytabFilesServerAction.
+   */
+  @Inject
+  private Injector injector;
 
   /**
    * The secure storage facility to use to store KDC administrator credential.
@@ -355,6 +368,57 @@ public class KerberosHelperImpl implements KerberosHelper {
     setAuthToLocalRules(kerberosDescriptor, cluster, kerberosDetails.getDefaultRealm(), configurations, kerberosConfigurations);
 
     return kerberosConfigurations;
+  }
+
+  @Override
+  public boolean ensureHeadlessIdentities(Cluster cluster, Map<String, Map<String, String>> existingConfigurations, Set<String> services)
+      throws KerberosInvalidConfigurationException, AmbariException {
+
+    KerberosDetails kerberosDetails = getKerberosDetails(cluster, null);
+
+    // Only perform this task if Ambari manages Kerberos identities
+    if (kerberosDetails.manageIdentities()) {
+      KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
+
+      Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+      Map<String, Map<String, String>> configurations = addAdditionalConfigurations(cluster,
+          deepCopy(existingConfigurations), null, kerberosDescriptorProperties);
+
+      Map<String, String> kerberosConfiguration = kerberosDetails.getKerberosEnvProperties();
+      KerberosOperationHandler kerberosOperationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kerberosDetails.getKdcType());
+
+      for (String serviceName : services) {
+        // Set properties...
+        KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(serviceName);
+
+        if (serviceDescriptor != null) {
+          Map<String, KerberosComponentDescriptor> componentDescriptors = serviceDescriptor.getComponents();
+          for (KerberosComponentDescriptor componentDescriptor : componentDescriptors.values()) {
+            if (componentDescriptor != null) {
+              List<KerberosIdentityDescriptor> identityDescriptors;
+
+              // Handle the service-level Kerberos identities
+              identityDescriptors = serviceDescriptor.getIdentities(true);
+              if (identityDescriptors != null) {
+                for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
+                  createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                }
+              }
+
+              // Handle the component-level Kerberos identities
+              identityDescriptors = componentDescriptor.getIdentities(true);
+              if (identityDescriptors != null) {
+                for (KerberosIdentityDescriptor identityDescriptor : identityDescriptors) {
+                  createUserIdentity(identityDescriptor, kerberosConfiguration, kerberosOperationHandler, configurations);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return true;
   }
 
   @Override
@@ -914,6 +978,77 @@ public class KerberosHelperImpl implements KerberosHelper {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Creates the principal and cached keytab file for the specified identity, if it is determined to
+   * be user (or headless) identity
+   * <p/>
+   * If the identity is determined not to be a user identity, it is skipped.
+   *
+   * @param identityDescriptor       the Kerberos identity to process
+   * @param kerberosEnvProperties    the kerberos-env properties
+   * @param kerberosOperationHandler the relevant KerberosOperationHandler
+   * @param configurations           the existing configurations for the cluster
+   * @return true if the identity was created; otherwise false
+   * @throws AmbariException
+   */
+  private boolean createUserIdentity(KerberosIdentityDescriptor identityDescriptor,
+                                     Map<String, String> kerberosEnvProperties,
+                                     KerberosOperationHandler kerberosOperationHandler,
+                                     Map<String, Map<String, String>> configurations)
+      throws AmbariException {
+
+    boolean created = false;
+
+    if (identityDescriptor != null) {
+      KerberosPrincipalDescriptor principalDescriptor = identityDescriptor.getPrincipalDescriptor();
+
+      if (principalDescriptor != null) {
+        // If this principal indicates it is a user principal, continue, else skip it.
+        if (KerberosPrincipalType.USER == principalDescriptor.getType()) {
+          String principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
+
+          // If this principal is already in the Ambari database, then don't try to recreate it or it's
+          // keytab file.
+          if (!kerberosPrincipalDAO.exists(principal)) {
+            CreatePrincipalsServerAction.CreatePrincipalResult result;
+
+            result = injector.getInstance(CreatePrincipalsServerAction.class).createPrincipal(
+                principal,
+                false,
+                kerberosEnvProperties,
+                kerberosOperationHandler,
+                null);
+
+            if (result == null) {
+              throw new AmbariException("Failed to create the account for " + principal);
+            } else {
+              KerberosKeytabDescriptor keytabDescriptor = identityDescriptor.getKeytabDescriptor();
+
+              if (keytabDescriptor != null) {
+                Keytab keytab = injector.getInstance(CreateKeytabFilesServerAction.class).createKeytab(
+                    principal,
+                    result.getPassword(),
+                    result.getKeyNumber(),
+                    kerberosOperationHandler,
+                    true,
+                    true,
+                    null);
+
+                if (keytab == null) {
+                  throw new AmbariException("Failed to create the keytab for " + principal);
+                }
+              }
+
+              created = true;
+            }
+          }
+        }
+      }
+    }
+
+    return created;
   }
 
   /**

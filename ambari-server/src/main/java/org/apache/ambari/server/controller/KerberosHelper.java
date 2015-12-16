@@ -235,6 +235,23 @@ public interface KerberosHelper {
       throws KerberosInvalidConfigurationException, AmbariException;
 
   /**
+   * Ensures that the relevant headless (or user) Kerberos identities are created and cached.
+   *
+   * This can be called any number of times and only the missing identities will be created.
+   * @param cluster                the cluster
+   * @param existingConfigurations the cluster's existing configurations
+   * @param services               the set of services to process
+   * @return
+   * @throws AmbariException
+   * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
+   *                                               Kerberos-specific configuration details
+   */
+  boolean ensureHeadlessIdentities(Cluster cluster,
+                                   Map<String, Map<String, String>> existingConfigurations,
+                                   Set<String> services)
+      throws KerberosInvalidConfigurationException, AmbariException;
+
+  /**
    * Create a unique identity to use for testing the general Kerberos configuration.
    *
    * @param cluster               the relevant Cluster
