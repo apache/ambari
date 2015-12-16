@@ -22,7 +22,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,7 +38,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nullable;
 import javax.persistence.RollbackException;
 
-import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -134,6 +132,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -3018,6 +3017,7 @@ public class ClusterImpl implements Cluster {
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
+
       Collection<ClusterConfigMappingEntity> configMappingEntities = clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
 
       // disable previous config
@@ -3044,6 +3044,7 @@ public class ClusterImpl implements Cluster {
 
       clusterDAO.mergeConfigMappings(clusterConfigMappingEntities);
 
+      refresh();
       cacheConfigurations();
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -3128,6 +3129,7 @@ public class ClusterImpl implements Cluster {
     // remove config mappings
     Collection<ClusterConfigMappingEntity> configMappingEntities =
         clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
+
     for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
       String removedClusterConfigType = removedClusterConfig.getType();
       String removedClusterConfigTag = removedClusterConfig.getTag();
@@ -3156,6 +3158,9 @@ public class ClusterImpl implements Cluster {
   public void removeConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
+      // make sure the entity isn't stale in the current unit of work.
+      refresh();
+
       removeAllConfigsForStack(stackId);
 
       cacheConfigurations();
