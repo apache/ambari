@@ -24,7 +24,6 @@ App.ServiceConfigCategory = Ember.Object.extend({
    *  We cant have spaces in the name as this is being used as HTML element id while rendering. Hence we introduced 'displayName' where we can have spaces like 'Secondary Name Node' etc.
    */
   displayName: null,
-  slaveConfigs: null,
   /**
    * check whether to show custom view in category instead of default
    */
@@ -40,38 +39,8 @@ App.ServiceConfigCategory = Ember.Object.extend({
    * Can this category add new properties. Used for custom configurations.
    */
   canAddProperty: false,
-  nonSlaveErrorCount: 0,
-  primaryName: function () {
-    switch (this.get('name')) {
-      case 'DataNode':
-        return 'DATANODE';
-        break;
-      case 'TaskTracker':
-        return 'TASKTRACKER';
-        break;
-      case 'RegionServer':
-        return 'HBASE_REGIONSERVER';
-    }
-    return null;
-  }.property('name'),
 
-
-  isForMasterComponent: Em.computed.existsIn('name', ['NameNode', 'SNameNode', 'JobTracker', 'HBase Master', 'Oozie Master',
-    'Hive Metastore', 'WebHCat Server', 'ZooKeeper Server', 'Ganglia']),
-
-  isForSlaveComponent: Em.computed.existsIn('name', ['DataNode', 'TaskTracker', 'RegionServer']),
-
-  slaveErrorCount: function () {
-    var length = 0;
-    if (this.get('slaveConfigs.groups')) {
-      this.get('slaveConfigs.groups').forEach(function (_group) {
-        length += _group.get('errorCount');
-      }, this);
-    }
-    return length;
-  }.property('slaveConfigs.groups.@each.errorCount'),
-
-  errorCount: Em.computed.sumProperties('slaveErrorCount', 'nonSlaveErrorCount'),
+  errorCount: 0,
 
   isAdvanced : function(){
     var name = this.get('name');

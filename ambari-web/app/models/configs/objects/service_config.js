@@ -21,24 +21,47 @@ var App = require('app');
 App.ServiceConfig = Ember.Object.extend({
   serviceName: '',
   configCategories: [],
-  configs: null,
+  configCategoriesMap: function() {
+    var categoriesMap = {};
+    this.get('configCategories').forEach(function(c) {
+      if (!categoriesMap[c.get('name')]) categoriesMap[c.get('name')] = c;
+    });
+    return categoriesMap;
+  }.property('configCategories.[]'),
+  configs: [],
   restartRequired: false,
   restartRequiredMessage: '',
   restartRequiredHostsAndComponents: {},
   configGroups: [],
   dependentServiceNames: [],
   initConfigsLength: 0, // configs length after initialization in order to watch changes
-  errorCount: function () {
-    var overrideErrors = 0,
-      masterErrors = 0,
-      slaveErrors = 0,
-      configs = this.get('configs'),
-      configCategories = this.get('configCategories'),
-      enhancedConfigsErrors = 0;
-    configCategories.forEach(function (_category) {
-      slaveErrors += _category.get('slaveErrorCount');
-      _category.set('nonSlaveErrorCount', 0);
+
+  errorCount: Em.computed.alias('configsWithErrors.length'),
+
+  visibleProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isVisible') && !c.get('hiddenBySection');
     });
+  }.property('configs.@each.isVisible', 'configs.@each.hiddenBySection'),
+
+  configsWithErrors: function() {
+    return this.get('visibleProperties').filter(function(c) {
+      return !c.get('isValid') || !c.get('isValidOverride');
+    });
+  }.property('visibleProperties.@each.isValid', 'visibleProperties.@each.isValidOverride'),
+
+  observeErrors: function() {
+    this.get('configCategories').setEach('errorCount', 0);
+    this.get('configsWithErrors').forEach(function(c) {
+      if (this.get('configCategoriesMap')[c.get('category')]) {
+        this.get('configCategoriesMap')[c.get('category')].incrementProperty('errorCount');
+      }
+    }, this);
+  }.observes('configsWithErrors'),
+
+  observeForeignKeys: function() {
+    //TODO refactor or move this login to other place
+    var configs = this.get('configs');
     configs.forEach(function (item) {
       if (item.get('isVisible')) {
         var options = item.get('options');
@@ -55,29 +78,7 @@ App.ServiceConfig = Ember.Object.extend({
         }
       }
     });
-    configs.forEach(function (item) {
-      var category = configCategories.findProperty('name', item.get('category'));
-      if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widgetType')) {
-        category.incrementProperty('nonSlaveErrorCount');
-        masterErrors++;
-      }
-      if (!item.get('isValid') && item.get('widgetType') && item.get('isVisible') && !item.get('hiddenBySection')) {
-        enhancedConfigsErrors++;
-      }
-      if (item.get('overrides')) {
-        item.get('overrides').forEach(function (e) {
-          if (e.error) {
-            if (category && !Em.get(e, 'parentSCP.widget')) {
-              category.incrementProperty('nonSlaveErrorCount');
-            }
-            overrideErrors++;
-          }
-        });
-      }
-    });
-    return masterErrors + slaveErrors + overrideErrors + enhancedConfigsErrors;
-  }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
-
+  }.observes('configs.@each.isVisible'),
   /**
    * checks if for example for kdc_type, the value isn't just the pretty version of the saved value, for example mit-kdc
    * and Existing MIT KDC are the same value, but they are interpreted as being changed. This function fixes that
@@ -116,24 +117,6 @@ App.ServiceConfig = Ember.Object.extend({
     this._super();
     this.set('dependentServiceNames', App.StackService.find(this.get('serviceName')).get('dependentServiceNames') || []);
   }
-});
-
-App.SlaveConfigs = Ember.Object.extend({
-  componentName: null,
-  displayName: null,
-  hosts: null,
-  groups: null
-});
-
-App.Group = Ember.Object.extend({
-  name: null,
-  hostNames: null,
-  properties: null,
-  errorCount: function () {
-    if (this.get('properties')) {
-      return this.get('properties').filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-    }
-  }.property('properties.@each.isValid', 'properties.@each.isVisible')
 });
 
 App.ConfigSiteTag = Ember.Object.extend({

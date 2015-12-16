@@ -169,9 +169,8 @@ App.ServiceConfigProperty = Em.Object.extend({
       }
     });
     return originalSCPIssued || overridesIssue;
-  }.property('errorMessage', 'warnMessage', 'overrideErrorTrigger'),
+  }.property('errorMessage', 'warnMessage', 'overrides.@each.warnMessage', 'overrides.@each.errorMessage'),
 
-  overrideErrorTrigger: 0, //Trigger for overridable property error
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
   isNotSaved: false, // user property was added but not saved
@@ -202,11 +201,13 @@ App.ServiceConfigProperty = Em.Object.extend({
   additionalView: null,
 
   /**
-   * On Overridable property error message, change overrideErrorTrigger value to recount number of errors service have
+   * Is property has active override with error
    */
-  observeErrors: function () {
-    this.set("overrideErrorTrigger", this.get("overrideErrorTrigger") + 1);
-  }.observes("overrides.@each.errorMessage"),
+  isValidOverride: function () {
+    return this.get('overrides.length') ? !this.get('overrides').find(function(o) {
+     return o.get('isEditable') && o.get('errorMessage');
+    }) : true;
+  }.property("overrides.@each.errorMessage"),
   /**
    * No override capabilities for fields which are not edtiable
    * and fields which represent master hosts.
