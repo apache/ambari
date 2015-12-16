@@ -61,7 +61,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
@@ -128,7 +128,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/root',
                               owner = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/root',
                               owner = 'root',
@@ -168,10 +168,10 @@ class TestNFSGateway(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -182,7 +182,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -213,10 +213,10 @@ class TestNFSGateway(RMFTestCase):
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -227,7 +227,7 @@ class TestNFSGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),

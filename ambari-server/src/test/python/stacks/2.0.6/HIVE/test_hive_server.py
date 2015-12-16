@@ -418,7 +418,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner='hive',
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
     )
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
@@ -468,7 +468,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content=Template('hive.conf.j2'),
@@ -499,21 +499,21 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
 
@@ -601,7 +601,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner='hive',
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
@@ -650,7 +650,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content=Template('hive.conf.j2'),
@@ -681,21 +681,21 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
 

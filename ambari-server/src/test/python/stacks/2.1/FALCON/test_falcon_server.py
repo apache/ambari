@@ -81,31 +81,31 @@ class TestFalconServer(RMFTestCase):
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = "a",
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = "a",
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),
@@ -129,7 +129,7 @@ class TestFalconServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('HdfsResource', '/apps/falcon',
         security_enabled = False,
@@ -146,7 +146,7 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
         security_enabled = False,
@@ -178,16 +178,16 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
 
   @patch("os.path.isdir")
@@ -246,31 +246,31 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
         cd_access = "a",
         mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/falcon',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
         cd_access = "a",
         mode = 0755,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/webapp',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/etc/falcon',
-        recursive = True,
+        create_parents = True,
         mode = 0755,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/falcon-server/conf',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/usr/hdp/current/falcon-server/conf/falcon-env.sh',
         owner = 'falcon',
@@ -298,21 +298,21 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/data/lineage/graphdb',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
         group = 'hadoop',
         mode = 0775,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/data/lineage',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
         group = 'hadoop',
         mode = 0775,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/falcon',
         security_enabled = False,
@@ -332,7 +332,7 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
         security_enabled = False,
@@ -369,16 +369,16 @@ class TestFalconServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
         cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
         owner = 'falcon',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/falcon-server/bin/falcon-start -port 15000',
         environment = {'HADOOP_HOME': '/usr/hdp/current/hadoop-client'},

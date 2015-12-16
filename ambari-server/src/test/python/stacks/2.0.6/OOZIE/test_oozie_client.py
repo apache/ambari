@@ -37,7 +37,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
@@ -92,7 +92,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
@@ -153,7 +153,7 @@ class TestOozieClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-client/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',

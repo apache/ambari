@@ -35,16 +35,16 @@ class TestHcatClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hcat',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
     )
     self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
       owner = 'hcat',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',
@@ -72,18 +72,18 @@ class TestHcatClient(RMFTestCase):
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/etc/hive/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'hcat',
                               group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/etc/hive-hcatalog/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hcat',
       group = 'hadoop',
     )
     self.assertResourceCalled('Directory', '/var/run/webhcat',
       owner = 'hcat',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'hive-site.xml',
       owner = 'hive',

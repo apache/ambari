@@ -96,7 +96,7 @@ class TestPxf(RMFTestCase):
       self.assertResourceCalled('Directory', '/var/pxf',
               owner=self.PXF_USER,
               group=self.PXF_GROUP,
-              recursive=True)
+              create_parents = True)
 
       self.assertResourceCalled('Execute', 'service pxf-service restart',
                           timeout=self.DEFAULT_TIMEOUT,

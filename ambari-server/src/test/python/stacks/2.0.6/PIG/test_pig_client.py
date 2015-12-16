@@ -35,7 +35,7 @@ class TestPigClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/etc/pig/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hdfs',
       group = 'hadoop'
     )
@@ -70,7 +70,7 @@ class TestPigClient(RMFTestCase):
     )
     
     self.assertResourceCalled('Directory', '/etc/pig/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hdfs',
       group = 'hadoop'
     )
@@ -110,7 +110,7 @@ class TestPigClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/pig-client/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'hdfs',
                               group = 'hadoop'
     )

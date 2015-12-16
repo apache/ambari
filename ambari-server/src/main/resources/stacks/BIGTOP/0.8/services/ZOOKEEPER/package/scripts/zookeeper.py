@@ -29,7 +29,7 @@ def zookeeper(type = None):
 
   Directory(params.config_dir,
             owner=params.zk_user,
-            recursive=True,
+            create_parents = True,
             group=params.user_group
   )
 
@@ -45,19 +45,19 @@ def zookeeper(type = None):
 
   Directory(params.zk_pid_dir,
             owner=params.zk_user,
-            recursive=True,
+            create_parents = True,
             group=params.user_group
   )
 
   Directory(params.zk_log_dir,
             owner=params.zk_user,
-            recursive=True,
+            create_parents = True,
             group=params.user_group
   )
 
   Directory(params.zk_data_dir,
             owner=params.zk_user,
-            recursive=True,
+            create_parents = True,
             group=params.user_group
   )
 

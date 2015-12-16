@@ -31,7 +31,7 @@ def create_topology_mapping():
   # only create the parent directory and set its permission if it does not exist
   if not os.path.exists(parent_dir): 
     Directory(parent_dir, 
-              recursive=True, 
+              create_parents = True, 
               owner=params.hdfs_user, 
               group=params.user_group) 
 
@@ -52,7 +52,7 @@ def create_topology_script():
   # only create the parent directory and set its permission if it does not exist 
   if not os.path.exists(parent_dir): 
     Directory(parent_dir, 
-              recursive=True, 
+              create_parents = True, 
               owner=params.hdfs_user, 
               group=params.user_group) 
 

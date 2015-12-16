@@ -36,7 +36,7 @@ def hive(name=None):
   Directory(hive_config_dir,
             owner=params.hive_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
   XmlConfig("hive-site.xml",
@@ -87,7 +87,7 @@ def crt_directory(name):
   import params
 
   Directory(name,
-            recursive=True,
+            create_parents = True,
             owner=params.hive_user,
             group=params.user_group,
             mode=0755)

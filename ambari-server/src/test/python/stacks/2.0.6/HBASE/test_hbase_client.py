@@ -44,16 +44,16 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -99,7 +99,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -142,16 +142,16 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -197,7 +197,7 @@ class TestHBaseClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),

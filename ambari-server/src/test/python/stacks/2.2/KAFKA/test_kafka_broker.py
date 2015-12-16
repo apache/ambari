@@ -36,50 +36,40 @@ class TestKafkaBroker(RMFTestCase):
                          hdp_stack_version = self.STACK_VERSION,
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-
     self.assertResourceCalled('Directory', '/var/log/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('Directory', '/var/run/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/kafka-broker/config',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/var/log/kafka'),
-                              sudo = True)
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/var/run/kafka'),
-                              sudo = True)
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', '/usr/hdp/current/kafka-broker/config'),
-                              sudo = True)
-
     self.assertResourceCalled('Directory', '/tmp/log/dir',
                               owner = 'kafka',
-                              recursive = True,
+                              create_parents = True,
                               group = 'hadoop',
                               mode = 0755,
                               cd_access = 'a',
+                              recursive_ownership = True,
     )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/tmp/log/dir'),
-                              sudo = True)
 
 
   @patch("os.path.islink")
@@ -97,46 +87,38 @@ class TestKafkaBroker(RMFTestCase):
     self.assertResourceCalled('Directory', '/customdisk/var/log/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('Directory', '/customdisk/var/run/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/kafka-broker/config',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
-                              cd_access = 'a'
+                              cd_access = 'a',
+                              recursive_ownership = True,
     )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/customdisk/var/log/kafka'),
-                              sudo = True)
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/customdisk/var/run/kafka'),
-                              sudo = True)
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', '/usr/hdp/current/kafka-broker/config'),
-                              sudo = True)
 
     self.assertResourceCalled('Directory', '/tmp/log/dir',
                               owner = 'kafka',
-                              recursive = True,
+                              create_parents = True,
                               group = 'hadoop',
                               mode = 0755,
                               cd_access = 'a',
+                              recursive_ownership = True,
     )
-
-    self.assertResourceCalled('Execute', ('chown', '-R', u'kafka:hadoop', u'/tmp/log/dir'),
-                              sudo = True)
 
     self.assertTrue(islink_mock.called)
     self.assertTrue(realpath_mock.called)

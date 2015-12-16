@@ -36,11 +36,11 @@ def service(action=None, name=None, user=None, create_pid_dir=False,
   if create_pid_dir:
     Directory(pid_dir,
               owner=user,
-              recursive=True)
+              create_parents = True)
   if create_log_dir:
     Directory(log_dir,
               owner=user,
-              recursive=True)
+              create_parents = True)
 
   hadoop_env_exports = {
     'HADOOP_LIBEXEC_DIR': params.hadoop_libexec_dir

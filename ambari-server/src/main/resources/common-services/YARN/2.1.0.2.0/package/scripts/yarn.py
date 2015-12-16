@@ -101,12 +101,10 @@ def yarn(name = None):
     Directory(params.jhs_leveldb_state_store_dir,
               owner=params.mapred_user,
               group=params.user_group,
-              recursive=True,
+              create_parents = True,
               cd_access="a",
+              recursive_ownership = True,
               )
-    Execute(("chown", "-R", format("{mapred_user}:{user_group}"), params.jhs_leveldb_state_store_dir),
-            sudo = True,
-    )
 
   if name == "nodemanager":
 
@@ -134,23 +132,28 @@ def yarn(name = None):
 
 
     if not params.security_enabled or params.toggle_nm_security:
-      Directory(params.nm_local_dirs_list + params.nm_log_dirs_list,
+      Directory(params.nm_log_dirs_list,
                 owner=params.yarn_user,
                 group=params.user_group,
-                recursive=True,
+                create_parents = True,
                 cd_access="a",
                 ignore_failures=True,
-                mode=0775
+                mode=0775)
+      Directory(params.nm_local_dirs_list,
+                owner=params.yarn_user,
+                group=params.user_group,
+                create_parents = True,
+                cd_access="a",
+                ignore_failures=True,
+                mode=0775,
+                recursive_mode_flags = {'f': 'a+rw', 'd': 'a+rwx'},
                 )
-      Execute(("chmod", "-R", "755") + tuple(params.nm_local_dirs_list),
-                sudo=True,
-      )
 
   if params.yarn_nodemanager_recovery_dir:
     Directory(InlineTemplate(params.yarn_nodemanager_recovery_dir).get_content(),
               owner=params.yarn_user,
               group=params.user_group,
-              recursive=True,
+              create_parents = True,
               mode=0755,
               cd_access = 'a',
     )
@@ -158,19 +161,19 @@ def yarn(name = None):
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access = 'a',
   )
 
   Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
             owner=params.mapred_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access = 'a',
   )
   Directory([params.yarn_log_dir_prefix],
             owner=params.yarn_user,
-            recursive=True,
+            create_parents = True,
             ignore_failures=True,
             cd_access = 'a',
   )
@@ -245,7 +248,7 @@ def yarn(name = None):
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True,
+       create_parents = True,
        cd_access="a",
     )
 
@@ -254,7 +257,7 @@ def yarn(name = None):
       Directory(params.ats_leveldb_state_store_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True,
+       create_parents = True,
        cd_access="a",
       )
     # app timeline server 1.5 directories
@@ -330,7 +333,7 @@ def yarn(name = None):
 
   Directory(params.cgroups_dir,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             mode=0755,
             cd_access="a")
 
@@ -393,7 +396,7 @@ def yarn(name = None):
     )
 
     Directory(params.hadoop_conf_secure_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               cd_access='a',

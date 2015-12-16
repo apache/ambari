@@ -36,6 +36,21 @@ if os.geteuid() == 0:
     gid = group.gr_gid if group else -1
     if uid != -1 or gid != -1:
       return os.chown(path, uid, gid)
+      
+  def chown_recursive(path, owner, group, follow_links=False):
+    uid = owner.pw_uid if owner else -1
+    gid = group.gr_gid if group else -1
+    
+    if uid == -1 and gid == -1:
+      return
+      
+    for root, dirs, files in os.walk(path, followlinks=follow_links):
+      for name in files + dirs:
+        if follow_links:
+          os.chown(os.path.join(root, name), uid, gid)
+        else:
+          os.lchown(os.path.join(root, name), uid, gid)
+            
   
   def chmod(path, mode):
     return os.chmod(path, mode)
@@ -112,13 +127,21 @@ if os.geteuid() == 0:
     
     
 else:
-
   # os.chown replacement
   def chown(path, owner, group):
     owner = owner.pw_name if owner else ""
     group = group.gr_name if group else ""
     if owner or group:
       shell.checked_call(["chown", owner+":"+group, path], sudo=True)
+      
+  def chown_recursive(path, owner, group, follow_links=False):
+    owner = owner.pw_name if owner else ""
+    group = group.gr_name if group else ""
+    if owner or group:
+      flags = ["-R"]
+      if follow_links:
+        flags.append("-L")
+      shell.checked_call(["chown"] + flags + [owner+":"+group, path], sudo=True)
       
   # os.chmod replacement
   def chmod(path, mode):
@@ -227,3 +250,11 @@ else:
   # shutil.copy replacement
   def copy(src, dst):
     shell.checked_call(["sudo", "cp", "-r", src, dst], sudo=True)
+    
+def chmod_recursive(path, recursive_mode_flags, recursion_follow_links):
+  find_flags = []
+  if recursion_follow_links:
+    find_flags.append('-L')
+    
+  for key, flags in recursive_mode_flags.iteritems():
+    shell.checked_call(["find"] + find_flags + [path, "-type", key, "-exec" , "chmod", flags ,"{}" ,";"])

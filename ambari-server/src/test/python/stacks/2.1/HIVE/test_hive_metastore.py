@@ -190,7 +190,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hive',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
@@ -227,7 +227,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content = Template('hive.conf.j2'),
@@ -261,21 +261,21 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
 
@@ -286,7 +286,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner = 'hive',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group = 'hadoop',
@@ -323,7 +323,7 @@ class TestHiveMetastore(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content = Template('hive.conf.j2'),
@@ -357,21 +357,21 @@ class TestHiveMetastore(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
 
@@ -641,7 +641,7 @@ class TestHiveMetastore(RMFTestCase):
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
-      mode = 0755, recursive = True, cd_access = 'a')
+      mode = 0755, create_parents = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute', ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
         path = ['/bin', '/usr/bin/'],
@@ -722,7 +722,7 @@ class TestHiveMetastore(RMFTestCase):
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
-      mode = 0755, recursive = True, cd_access = 'a')
+      mode = 0755, create_parents = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute', ('cp',
      '--remove-destination',
@@ -797,7 +797,7 @@ class TestHiveMetastore(RMFTestCase):
     # we don't care about configure here - the strings are different anyway because this
     # is an upgrade, so just pop those resources off of the call stack
     self.assertResourceCalledIgnoreEarlier('Directory', '/var/lib/hive', owner = 'hive', group = 'hadoop',
-      mode = 0755, recursive = True, cd_access = 'a')
+      mode = 0755, create_parents = True, cd_access = 'a')
 
     self.assertResourceCalled('Execute',
                               ('rm', '-f', '/usr/hdp/current/hive-server2/lib/ojdbc6.jar'),
@@ -818,7 +818,7 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/hive-server2/lib/native/lib64',
-                              recursive = True)
+                              create_parents = True)
 
     self.assertResourceCalled('Execute',
                               ('yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/hdp/current/hive-server2/lib/native/lib64'))
@@ -835,7 +835,7 @@ class TestHiveMetastore(RMFTestCase):
 
     self.assertResourceCalled('Directory',
                               '/usr/hdp/2.3.0.0-1234/hive/lib/native/lib64',
-                              recursive = True)
+                              create_parents = True)
 
     self.assertResourceCalled('Execute',
                               ('yes | ambari-sudo.sh cp /usr/hdp/current/hive-server2/lib/native/lib64/* /usr/hdp/2.3.0.0-1234/hive/lib/native/lib64'))

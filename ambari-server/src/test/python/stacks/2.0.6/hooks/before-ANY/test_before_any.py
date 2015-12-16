@@ -123,7 +123,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', self.TMP_PATH,
         owner = 'hbase',
         mode = 0775,
-        recursive = True,
+        create_parents = True,
         cd_access='a'
     )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
@@ -155,7 +155,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
         owner = 'root',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/etc/hadoop/conf',
         not_if = 'ls /etc/hadoop/conf',
@@ -173,7 +173,7 @@ class TestHookBeforeInstall(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/tmp/jdk-7u67-linux-x64.tar.gz',
                               content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//jdk-7u67-linux-x64.tar.gz'),
@@ -189,11 +189,10 @@ class TestHookBeforeInstall(RMFTestCase):
                               mode = 0755,
                               cd_access = "a",
                               )
-    self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'some_user', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
+    self.assertResourceCalled('Directory', '/usr/jdk64/jdk1.7.0_45',
+        owner = 'some_user',
+        group = 'hadoop',
+        recursive_ownership = True,
+    )
 
     self.assertNoMoreResources()

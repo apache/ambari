@@ -57,11 +57,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -117,11 +117,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -155,11 +155,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -196,11 +196,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -278,10 +278,10 @@ class TestDatanode(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -292,7 +292,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -324,20 +324,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0751,
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
@@ -355,10 +355,10 @@ class TestDatanode(RMFTestCase):
     
     if snappy_enabled:
       self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-          recursive = True,
+          create_parents = True,
       )
       self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-          recursive = True,
+          create_parents = True,
       )
       self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
           to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -369,7 +369,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -402,20 +402,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0751,
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER

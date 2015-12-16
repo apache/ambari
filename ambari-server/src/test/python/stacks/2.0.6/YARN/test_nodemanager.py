@@ -137,26 +137,10 @@ class TestNodeManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              mode = 0775,
-                              recursive = True,
-                              ignore_failures = True,
-                              cd_access='a'
-                              )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
-                              owner = 'yarn',
-                              recursive = True,
-                              group = 'hadoop',
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a'
-                              )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               ignore_failures = True,
                               mode = 0775,
                               cd_access='a'
@@ -164,59 +148,74 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/yarn/log1',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               ignore_failures = True,
                               mode = 0775,
                               cd_access='a'
                               )
-    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/hadoop/yarn/local',  u'/hadoop/yarn/local1'),
-        sudo = True,
-    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              mode = 0775,
+                              create_parents = True,
+                              ignore_failures = True,
+                              cd_access='a',
+                              recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local1',
+                              owner = 'yarn',
+                              create_parents = True,
+                              group = 'hadoop',
+                              ignore_failures = True,
+                              mode = 0775,
+                              cd_access='a',
+                              recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'}
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -289,7 +288,7 @@ class TestNodeManager(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )
@@ -340,70 +339,69 @@ class TestNodeManager(RMFTestCase):
     self.assertResourceCalled('File', '/var/lib/hadoop-yarn/nm_security_enabled',
                               content= 'Marker file to track first start after enabling/disabling security. During first start yarn local, log dirs are removed and recreated'
     )
-    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              recursive = True,
-                              ignore_failures = True,
-                              mode = 0775,
-                              cd_access='a'
-                              )
     self.assertResourceCalled('Directory', '/hadoop/yarn/log',
                               owner = 'yarn',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               ignore_failures = True,
                               mode = 0775,
-                              cd_access='a'
+                              cd_access='a',
+                              
                               )
-    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/hadoop/yarn/local'),
-        sudo = True,
-    )
+    self.assertResourceCalled('Directory', '/hadoop/yarn/local',
+                              owner = 'yarn',
+                              group = 'hadoop',
+                              create_parents = True,
+                              ignore_failures = True,
+                              mode = 0775,
+                              cd_access='a',
+                              recursive_mode_flags = {'d': 'a+rwx', 'f': 'a+rw'},
+                              )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn/yarn',
       owner = 'yarn',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-mapreduce/mapred',
       owner = 'mapred',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hadoop-yarn',
       owner = 'yarn',
-      recursive = True,
+      create_parents = True,
       ignore_failures = True,
       cd_access = 'a',
     )
@@ -476,7 +474,7 @@ class TestNodeManager(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/cgroups_test/cpu',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access="a"
     )

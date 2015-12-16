@@ -28,7 +28,7 @@ def pig():
   import params
 
   Directory( params.pig_conf_dir,
-    recursive = True,
+    create_parents = True,
     owner = params.hdfs_user,
     group = params.user_group
   )

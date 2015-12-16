@@ -42,7 +42,7 @@ class TestMahoutClient(RMFTestCase):
       '/usr/hdp/current/mahout-client/conf',
       owner = 'mahout',
       group = 'hadoop',
-      recursive = True)
+      create_parents = True)
 
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = "yarn",

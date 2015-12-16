@@ -47,7 +47,7 @@ def slider():
   import params
 
   Directory(params.slider_conf_dir,
-            recursive=True
+            create_parents = True
   )
 
   slider_client_config = params.config['configurations']['slider-client'] if 'configurations' in params.config and 'slider-client' in params.config['configurations'] else {}
@@ -63,7 +63,7 @@ def slider():
   )
 
   Directory(params.storm_slider_conf_dir,
-            recursive=True
+            create_parents = True
   )
 
   File(format("{storm_slider_conf_dir}/storm-slider-env.sh"),

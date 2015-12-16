@@ -100,7 +100,7 @@ def setup_hadoop_env():
     else:
       tc_owner = params.hdfs_user
     Directory(params.hadoop_conf_empty_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )

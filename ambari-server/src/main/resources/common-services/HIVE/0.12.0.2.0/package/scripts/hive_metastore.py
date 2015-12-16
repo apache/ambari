@@ -207,7 +207,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
         Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
 
-        Directory(target_native_libs_directory, recursive=True)
+        Directory(target_native_libs_directory, create_parents = True)
 
         Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
 

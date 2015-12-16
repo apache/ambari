@@ -45,7 +45,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -61,7 +61,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kdc_conf_dir(json_data) +
                  "/" +
@@ -77,7 +77,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kadm5_acl_dir(json_data) +
                  "/" +
@@ -104,7 +104,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -120,7 +120,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kdc_conf_dir(json_data) +
                  "/" +
@@ -136,7 +136,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kadm5_acl_dir(json_data) +
                  "/" +
@@ -163,7 +163,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -179,7 +179,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kdc_conf_dir(json_data) +
                  "/" +
@@ -195,7 +195,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kadm5_acl_dir(json_data) +
                  "/" +
@@ -222,7 +222,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -238,7 +238,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kdc_conf_dir(json_data) +
                  "/" +
@@ -254,7 +254,7 @@ class TestKerberosServer(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0700,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_kadm5_acl_dir(json_data) +
                  "/" +

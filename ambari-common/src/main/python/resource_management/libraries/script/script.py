@@ -610,7 +610,7 @@ class Script(object):
     env_configs_list = config['commandParams']['env_configs_list']
     properties_configs_list = config['commandParams']['properties_configs_list']
 
-    Directory(self.get_tmp_dir(), recursive=True)
+    Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
     output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])

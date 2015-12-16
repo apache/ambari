@@ -56,20 +56,20 @@ def storm(name=None):
             owner=params.storm_user,
             group=params.user_group,
             mode=0777,
-            recursive=True
+            create_parents = True
   )
 
   Directory([params.pid_dir, params.local_dir],
             owner=params.storm_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access="a",
             mode=0755,
   )
 
   Directory(params.conf_dir,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access="a",
   )
 
@@ -115,7 +115,7 @@ def storm(name=None):
               owner=params.storm_user,
               group=params.user_group,
               mode=0755,
-              recursive=True
+              create_parents = True
     )
     
     File(format("{log4j_dir}/cluster.xml"),

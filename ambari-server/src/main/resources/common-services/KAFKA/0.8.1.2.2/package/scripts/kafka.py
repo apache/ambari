@@ -82,8 +82,9 @@ def kafka(upgrade_type=None):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
-    set_dir_ownership(kafka_data_dirs)
+              create_parents = True,
+              recursive_ownership = True,
+    )
 
     PropertiesFile("server.properties",
                       dir=params.conf_dir,
@@ -114,7 +115,7 @@ def kafka(upgrade_type=None):
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
     Directory(params.limits_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )
@@ -150,7 +151,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
 
       Directory(kafka_managed_dir,
                 action="delete",
-                recursive=True)
+                create_parents = True)
 
     elif os.path.islink(kafka_managed_dir) and os.path.realpath(kafka_managed_dir) != kafka_ambari_managed_dir:
       Link(kafka_managed_dir,
@@ -169,8 +170,9 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
-    set_dir_ownership(kafka_managed_dir)
+              create_parents = True,
+              recursive_ownership = True,
+    )
 
   if backup_folder_path:
     # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
@@ -182,7 +184,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
     # Clean up backed up folder
     Directory(backup_folder_path,
               action="delete",
-              recursive=True)
+              create_parents = True)
 
 
 # Uses agent temp dir to store backup files
@@ -194,9 +196,9 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
             cd_access='a',
             owner=params.kafka_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True,
+            recursive_ownership = True,
   )
-  set_dir_ownership(backup_destination_path)
   # Safely copy top-level contents to backup folder
   for file in os.listdir(dir_path):
     File(os.path.join(backup_destination_path, file),
@@ -205,35 +207,13 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
 
   return backup_destination_path
 
-
 def ensure_base_directories():
-  """
-  Make basic Kafka directories, and make sure that their ownership is correct
-  """
   import params
-  base_dirs = [params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir]
-  Directory(base_dirs,
+  Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
             mode=0755,
             cd_access='a',
             owner=params.kafka_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True,
+            recursive_ownership = True,
             )
-  set_dir_ownership(base_dirs)
-
-
-def set_dir_ownership(targets):
-  import params
-  if isinstance(targets, collections.Iterable):
-    directories = targets
-  else:  # If target is a single object, convert it to list
-    directories = [targets]
-  for directory in directories:
-    # If path is empty or a single slash,
-    # may corrupt filesystem permissions
-    if len(directory) > 1:
-      Execute(('chown', '-R', format("{kafka_user}:{user_group}"), directory),
-            sudo=True)
-    else:
-      Logger.warning("Permissions for the folder \"%s\" were not updated due to "
-            "empty path passed: " % directory)

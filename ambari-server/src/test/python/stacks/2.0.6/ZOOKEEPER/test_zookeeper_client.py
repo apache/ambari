@@ -39,7 +39,7 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -61,19 +61,19 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755,
     )
@@ -102,7 +102,7 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -124,19 +124,19 @@ class TestZookeeperClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755
     )

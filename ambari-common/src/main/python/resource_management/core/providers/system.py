@@ -34,7 +34,12 @@ from resource_management.core import ExecuteTimeoutException
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 
-def _ensure_metadata(path, user, group, mode=None, cd_access=None):
+def assert_not_safemode_folder(path, safemode_folders):
+  if os.path.abspath(path) in safemode_folders:
+    raise Fail(("Not performing recursive operation ('recursive_ownership' or 'recursive_mode_flags') on folder '%s'" +
+    " as this can damage the system. Please pass changed safemode_folders parameter to Directory resource if you really intend to do this.") % (path))
+
+def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_ownership=False, recursive_mode_flags=None, recursion_follow_links=False, safemode_folders=[]):
   user_entity = group_entity = None
 
   if user or group:
@@ -62,7 +67,26 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
       Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
   
+  if recursive_ownership:
+    assert_not_safemode_folder(path, safemode_folders)
+    sudo.chown_recursive(path, _user_entity, _group_entity, recursion_follow_links)
+  
   sudo.chown(path, user_entity, group_entity)
+  
+  if recursive_mode_flags:
+    if not isinstance(recursive_mode_flags, dict):
+      raise Fail("'recursion_follow_links' value should be a dictionary with 'f' and(or) 'd' key (for file and directory permission flags)")
+    
+    regexp_to_match = "^({0},)*({0})$".format("[ugoa]+[+=-][rwx]+" )
+    for key, flags in recursive_mode_flags.iteritems():
+      if key != 'd' and key != 'f':
+        raise Fail("'recursive_mode_flags' with value '%s' has unknown key '%s', only keys 'f' and 'd' are valid" % (str(recursive_mode_flags), str(key)))
+          
+      if not re.match(regexp_to_match, flags):
+        raise Fail("'recursive_mode_flags' found '%s', but should value format have the following format: [ugoa...][[+-=][perms...]...]." % (str(flags)))
+    
+    assert_not_safemode_folder(path, safemode_folders)
+    sudo.chmod_recursive(path, recursive_mode_flags, recursion_follow_links)
 
   if mode:
     stat = sudo.stat(path)
@@ -156,7 +180,7 @@ class DirectoryProvider(Provider):
         if path != self.resource.path:
           Logger.info("Following the link {0} to {1} to create the directory".format(self.resource.path, path))
 
-      if self.resource.recursive:
+      if self.resource.create_parents:
         sudo.makedirs(path, self.resource.mode or 0755)
       else:
         dirname = os.path.dirname(path)
@@ -169,7 +193,9 @@ class DirectoryProvider(Provider):
       raise Fail("Applying %s failed, file %s already exists" % (self.resource, path))
     
     _ensure_metadata(path, self.resource.owner, self.resource.group,
-                        mode=self.resource.mode, cd_access=self.resource.cd_access)
+                        mode=self.resource.mode, cd_access=self.resource.cd_access,
+                        recursive_ownership=self.resource.recursive_ownership, recursive_mode_flags=self.resource.recursive_mode_flags, 
+                        recursion_follow_links=self.resource.recursion_follow_links, safemode_folders=self.resource.safemode_folders)
 
   def action_delete(self):
     path = self.resource.path

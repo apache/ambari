@@ -37,31 +37,31 @@ class TestFalconClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('File', '/etc/falcon/conf/falcon-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['falcon-env']['content']),

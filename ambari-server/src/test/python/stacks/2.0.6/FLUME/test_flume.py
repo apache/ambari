@@ -231,7 +231,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
@@ -279,7 +279,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume', cd_access = 'a', mode=0755)
 
@@ -442,7 +442,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory',
                               '/etc/flume/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',
@@ -493,7 +493,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertResourceCalled('Directory',
                               '/usr/hdp/current/flume-server/conf',
                               owner='flume',
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('Directory',
                               '/var/log/flume',

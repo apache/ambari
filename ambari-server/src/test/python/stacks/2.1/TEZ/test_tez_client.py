@@ -43,7 +43,7 @@ class TestTezClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/tez/conf',
       owner = 'tez',
       group = 'hadoop',
-      recursive = True
+      create_parents = True
     )
 
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',

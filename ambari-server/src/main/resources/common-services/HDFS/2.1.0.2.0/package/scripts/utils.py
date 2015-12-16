@@ -206,7 +206,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     if create_pid_dir:
       Directory(pid_dir,
                 owner=user,
-                recursive=True)
+                create_parents = True)
     if create_log_dir:
       if name == "nfs3":
         Directory(log_dir,
@@ -216,7 +216,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
       else:
         Directory(log_dir,
                   owner=user,
-                  recursive=True)
+                  create_parents = True)
 
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.

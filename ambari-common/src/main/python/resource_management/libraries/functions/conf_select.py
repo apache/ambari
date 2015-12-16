@@ -228,7 +228,7 @@ def create(stack_name, package, version, dry_run = False):
       Directory(d,
           mode=0755,
           cd_access='a',
-          recursive=True)
+          create_parents=True)
 
   return dirs
 

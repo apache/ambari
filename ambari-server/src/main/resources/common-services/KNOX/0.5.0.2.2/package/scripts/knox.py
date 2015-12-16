@@ -88,16 +88,14 @@ def knox():
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def knox():
     import params
-
-    directories = [params.knox_data_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir, os.path.join(params.knox_conf_dir, "topologies")]
-    for directory in directories:
-      Directory(directory,
-                owner = params.knox_user,
-                group = params.knox_group,
-                recursive = True,
-                cd_access = "a",
-                mode = 0755,
-      )
+    Directory([params.knox_data_dir, params.knox_logs_dir, params.knox_pid_dir, params.knox_conf_dir, os.path.join(params.knox_conf_dir, "topologies")],
+              owner = params.knox_user,
+              group = params.knox_group,
+              create_parents = True,
+              cd_access = "a",
+              mode = 0755,
+              recursive_ownership = True,
+    )
 
     XmlConfig("gateway-site.xml",
               conf_dir=params.knox_conf_dir,
@@ -139,12 +137,6 @@ def knox():
                       template_tag = None
       )
 
-    dirs_to_chown = tuple(directories)
-    cmd = ('chown','-R',format('{knox_user}:{knox_group}')) + dirs_to_chown
-    Execute(cmd,
-            sudo = True,
-    )
-
     cmd = format('{knox_client_bin} create-master --master {knox_master_secret!p}')
     master_secret_exist = as_user(format('test -f {knox_master_secret_path}'), params.knox_user)
 
@@ -181,20 +173,12 @@ def update_knox_logfolder_permissions():
    cluster in non-working state
   """
   import params
-  knox_dirs = [params.knox_logs_dir]
-
+  
   Directory(params.knox_logs_dir,
             owner = params.knox_user,
             group = params.knox_group,
-            recursive = True,
+            create_parents = True,
             cd_access = "a",
             mode = 0755,
-            )
-
-  for d in knox_dirs:
-    if len(d) > 1:  # If path is empty or a single slash, may corrupt filesystem permissions
-      Execute(('chown', '-R', format("{knox_user}:{knox_group}"), d),
-              sudo=True
-              )
-    else:
-      Logger.warning("Permissions for the Knox folder \"%s\" was not updated due to empty path passed" % d)
+            recursive_ownership = True,
+  )

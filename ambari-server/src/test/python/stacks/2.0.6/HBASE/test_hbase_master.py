@@ -233,16 +233,16 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -288,7 +288,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -306,13 +306,13 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
@@ -370,16 +370,16 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hbase/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -425,7 +425,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -447,13 +447,13 @@ class TestHBaseMaster(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
@@ -517,15 +517,15 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/hbase-master/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True)
+      create_parents = True)
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
 
@@ -576,7 +576,7 @@ class TestHBaseMaster(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -594,14 +594,14 @@ class TestHBaseMaster(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
 
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )

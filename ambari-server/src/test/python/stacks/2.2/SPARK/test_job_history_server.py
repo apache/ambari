@@ -158,13 +158,13 @@ class TestJobHistoryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',
@@ -222,13 +222,13 @@ class TestJobHistoryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('HdfsResource', '/user/spark',

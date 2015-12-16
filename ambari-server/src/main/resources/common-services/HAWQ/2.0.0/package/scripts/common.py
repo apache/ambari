@@ -223,7 +223,7 @@ def __update_limits_file():
   """
   import params
   # Ensure limits directory exists
-  Directory(hawq_constants.limits_conf_dir, recursive=True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
+  Directory(hawq_constants.limits_conf_dir, create_parents = True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
 
   # Generate limits for hawq user
   limits_file_content = "#### HAWQ Limits Parameters  ###########\n"
@@ -266,7 +266,7 @@ def __update_sysctl_file():
   Updates /etc/sysctl.d/hawq_sysctl.conf file with the HAWQ parameters on CentOS/RHEL.
   """
   # Ensure sys ctl sub-directory exists
-  Directory(hawq_constants.sysctl_conf_dir, recursive=True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
+  Directory(hawq_constants.sysctl_conf_dir, create_parents = True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
 
   # Generate temporary file with kernel parameters needed by hawq
   File(hawq_constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=hawq_constants.hawq_user,

@@ -35,7 +35,7 @@ def setup_spark(env, type, action = None):
             owner=params.spark_user,
             group=params.user_group,
             mode=0775,
-            recursive=True
+            create_parents = True
   )
   if type == 'server' and action == 'config':
     params.HdfsResource(params.spark_hdfs_user_dir,

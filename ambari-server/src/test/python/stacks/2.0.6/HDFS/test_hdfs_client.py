@@ -44,7 +44,7 @@ class Test(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/tmp',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'hdfs-site.xml',
                               conf_dir = '/tmp/123',

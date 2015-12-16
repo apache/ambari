@@ -32,7 +32,7 @@ def oozie(is_server=False # TODO: see if see can remove this
                          mode=params.oozie_hdfs_user_mode
     )
   Directory( params.conf_dir,
-             recursive = True,
+             create_parents = True,
              owner = params.oozie_user,
              group = params.user_group
   )
@@ -137,7 +137,7 @@ def oozie_server_specific(
   Directory( oozie_server_directorties,
     owner = params.oozie_user,
     mode = 0755,
-    recursive = True
+    create_parents = True
   )
 
   cmd1 = "sh"

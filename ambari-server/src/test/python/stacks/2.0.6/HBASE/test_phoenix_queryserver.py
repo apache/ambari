@@ -169,7 +169,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       '/usr/hdp/current/hbase-regionserver/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True)
+      create_parents = True)
 
     self.assertResourceCalled('XmlConfig', 'hbase-site.xml',
       owner = 'hbase',
@@ -196,11 +196,11 @@ class TestPhoenixQueryServer(RMFTestCase):
 
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True)
+      create_parents = True)
 
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True)
+      create_parents = True)
 
     self.assertResourceCalled('File',
       '/usr/lib/phoenix/bin/log4j.properties',
@@ -235,16 +235,16 @@ class TestPhoenixQueryServer(RMFTestCase):
       '/usr/hdp/current/hbase-regionserver/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -300,7 +300,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -320,13 +320,13 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
@@ -348,16 +348,16 @@ class TestPhoenixQueryServer(RMFTestCase):
       '/usr/hdp/current/hbase-regionserver/conf',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
       owner = 'hbase',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0777
     )
     self.assertResourceCalled('Directory', '/hadoop',
-                              recursive = True,
+                              create_parents = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Execute', ('chmod', '1777', u'/hadoop'),
@@ -413,7 +413,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
       owner = 'root',
       group = 'root',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hbase.conf',
       content = Template('hbase.conf.j2'),
@@ -438,13 +438,13 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
     self.assertResourceCalled('Directory', '/var/log/hbase',
       owner = 'hbase',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
       cd_access = 'a',
     )
@@ -473,7 +473,7 @@ class TestPhoenixQueryServer(RMFTestCase):
       target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertResourceCalled('Directory', '/etc/hbase/2.3.0.0-1234/0',
-        recursive = True,
+        create_parents = True,
         mode = 0755,
         cd_access = 'a',
     )

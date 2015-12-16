@@ -61,7 +61,7 @@ def setup_kms_db():
 
     Directory(params.java_share_dir,
       mode=0755,
-      recursive=True,
+      create_parents = True,
       cd_access="a"
     )
     
@@ -85,7 +85,7 @@ def setup_kms_db():
 
       Directory(params.jdbc_libs_dir,
         cd_access="a",
-        recursive=True)
+        create_parents = True)
 
       Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
         path=["/bin", "/usr/bin/"])
@@ -171,7 +171,7 @@ def kms():
     Directory(params.kms_conf_dir,
       owner = params.kms_user,
       group = params.kms_group,
-      recursive = True
+      create_parents = True
     )
 
     if params.xa_audit_db_is_enabled:
@@ -201,7 +201,11 @@ def kms():
       mode = 0755
     )
 
-    Execute(('chown','-R',format('{kms_user}:{kms_group}'), format('{kms_home}/')), sudo=True)
+    Directory(format('{kms_home}/'),
+              user = params.kms_user,
+              group = params.kms_group,
+              recursive_ownership = True,
+    )
 
     Directory(params.kms_log_dir,
       owner = params.kms_user,
@@ -301,7 +305,7 @@ def enable_kms_plugin():
       owner = params.kms_user,
       group = params.kms_group,
       mode=0775,
-      recursive = True
+      create_parents = True
     )
     
     File(os.path.join('/etc', 'ranger', params.repo_name, 'policycache',format('kms_{repo_name}.json')),

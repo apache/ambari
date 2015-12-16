@@ -102,7 +102,7 @@ class KerberosScript(Script):
 
     Directory(params.krb5_conf_dir,
               owner='root',
-              recursive=True,
+              create_parents = True,
               group='root',
               mode=0755
     )
@@ -366,7 +366,7 @@ class KerberosScript(Script):
           if (keytab_file_path is not None) and (len(keytab_file_path) > 0):
             head, tail = os.path.split(keytab_file_path)
             if head:
-              Directory(head, recursive=True, mode=0755, owner="root", group="root")
+              Directory(head, create_parents = True, mode=0755, owner="root", group="root")
 
             owner = get_property_value(item, 'keytab_file_owner_name')
             owner_access = get_property_value(item, 'keytab_file_owner_access')
@@ -438,7 +438,7 @@ class KerberosScript(Script):
     if params.jce_policy_zip is not None:
       jce_curl_target = format("{artifact_dir}/{jce_policy_zip}")
       Directory(params.artifact_dir,
-                recursive = True,
+                create_parents = True,
                 )
       File(jce_curl_target,
            content = DownloadSource(format("{jce_location}/{jce_policy_zip}")),
