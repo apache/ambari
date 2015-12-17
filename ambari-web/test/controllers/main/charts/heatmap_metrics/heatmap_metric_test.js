@@ -148,7 +148,7 @@ describe('MainChartHeatmapMetric', function () {
         },
         result: 'background-image:repeating-linear-gradient(-45deg, #FF1E10, #FF1E10 3px, #ff6c00 3px, #ff6c00 6px)'
       }
-    ]
+    ];
 
     testCases.forEach(function(test){
       it(test.title, function () {

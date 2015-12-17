@@ -140,24 +140,32 @@ describe('App.MainDashboardWidgetsView', function () {
   });
 
   describe("#didInsertElement()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'setWidgetsDataModel', Em.K);
       sinon.stub(view, 'setInitPrefObject', Em.K);
       sinon.stub(view, 'setOnLoadVisibleWidgets', Em.K);
       sinon.stub(Em.run, 'next', Em.K);
+      view.didInsertElement();
     });
-    after(function () {
+    afterEach(function () {
       view.setWidgetsDataModel.restore();
       view.setInitPrefObject.restore();
       view.setOnLoadVisibleWidgets.restore();
       Em.run.next.restore();
     });
-    it("", function () {
-      view.didInsertElement();
+    it("setWidgetsDataModel is called once", function () {
       expect(view.setWidgetsDataModel.calledOnce).to.be.true;
+    });
+    it("setInitPrefObject is called once", function () {
       expect(view.setInitPrefObject.calledOnce).to.be.true;
+    });
+    it("setOnLoadVisibleWidgets is called once", function () {
       expect(view.setOnLoadVisibleWidgets.calledOnce).to.be.true;
+    });
+    it("makeSortable is called in the next loop", function () {
       expect(Em.run.next.calledWith(view, 'makeSortable')).to.be.true;
+    });
+    it("isDataLoaded is true", function () {
       expect(view.get('isDataLoaded')).to.be.true
     });
   });
@@ -239,21 +247,10 @@ describe('App.MainDashboardWidgetsView', function () {
       beforeEach(function () {
         sinon.stub(view, 'postUserPref');
         sinon.stub(view, 'translateToReal');
-      });
-      afterEach(function () {
-        view.postUserPref.restore();
-        view.translateToReal.restore();
-      });
-      beforeEach(function () {
         sinon.stub(App.router, 'get', function (k) {
           if ('loginName' === k) return 'tdk';
           return Em.get(App.router, k);
         });
-      });
-      afterEach(function () {
-        App.router.get.restore();
-      });
-      it("", function () {
         plusButtonFilterView.set('hiddenWidgets', [
           Em.Object.create({
             checked: true,
@@ -274,7 +271,16 @@ describe('App.MainDashboardWidgetsView', function () {
         }));
         view.set('persistKey', 'key');
         plusButtonFilterView.applyFilterComplete();
+      });
+      afterEach(function () {
+        view.postUserPref.restore();
+        view.translateToReal.restore();
+        App.router.get.restore();
+      });
+      it("postUserPref is called once", function () {
         expect(view.postUserPref.calledOnce).to.be.true;
+      });
+      it("translateToReal is called with correct data", function () {
         expect(view.translateToReal.getCall(0).args[0]).to.eql(Em.Object.create({
           dashboardVersion: 'new',
           visible: [1],
@@ -283,6 +289,8 @@ describe('App.MainDashboardWidgetsView', function () {
           ],
           threshold: 'threshold'
         }));
+      });
+      it("1 hidden widget", function () {
         expect(plusButtonFilterView.get('hiddenWidgets.length')).to.equal(1);
       });
     });
@@ -352,16 +360,22 @@ describe('App.MainDashboardWidgetsView', function () {
   });
 
   describe("#removeWidget()", function () {
-    it("", function () {
-      var widget = {};
-      var value = {
+    var widget;
+    var value;
+    beforeEach(function () {
+      widget = {};
+      value = {
         visible: [widget],
         hidden: [
           [widget]
         ]
       };
       value = view.removeWidget(value, widget);
+    });
+    it("value.visible is empty", function () {
       expect(value.visible).to.be.empty;
+    });
+    it("value.hidden is empty", function () {
       expect(value.hidden).to.be.empty;
     });
   });
@@ -404,7 +418,7 @@ describe('App.MainDashboardWidgetsView', function () {
     after(function () {
       App.get.restore();
     });
-    it("", function () {
+    it("depends on router.loginName", function () {
       view.propertyDidChange('persistKey');
       expect(view.get('persistKey')).to.equal('user-pref-user-dashboard');
     });
@@ -445,7 +459,7 @@ describe('App.MainDashboardWidgetsView', function () {
     after(function () {
       App.showConfirmationPopup.restore();
     });
-    it("", function () {
+    it("showConfirmationPopup is called once", function () {
       view.resetAllWidgets();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
     });

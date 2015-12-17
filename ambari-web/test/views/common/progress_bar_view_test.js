@@ -22,7 +22,7 @@ describe('App.ProgressBarView', function () {
   var view = App.ProgressBarView.create();
 
   describe("#progressWidth", function () {
-    it("", function () {
+    it("depends on `progress`", function () {
       view.set('progress', 1);
       view.propertyDidChange('progressWidth');
       expect(view.get('progressWidth')).to.equal('width:1%;');

@@ -315,7 +315,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     after(function () {
       controller.stopServices.restore();
     });
-    it("", function() {
+    it('stopServices is called with valid list of services', function() {
       controller.set('content.reassign.component_name', 'JOBTRACKER');
       controller.stopRequiredServices();
       expect(controller.stopServices.calledWith(['HDFS', 'ZOOKEEPER', 'HBASE', 'FLUME', 'SQOOP', 'STORM'])).to.be.true;
@@ -334,7 +334,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.getHostComponentsNames.restore();
       this.mock.restore();
     });
-    it('No commands', function () {
+    it('No commands (isComponentWithDB = false)', function () {
       controller.set('commands', []);
       controller.set('commandsForDB', []);
       this.mock.returns(false);
@@ -342,7 +342,8 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
       expect(controller.get('tasks')).to.be.empty;
     });
-    it('No commands', function () {
+
+    it('No commands (isComponentWithDB = true)', function () {
       controller.set('commands', []);
       controller.set('commandsForDB', []);
       this.mock.returns(true);
@@ -350,6 +351,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
       expect(controller.get('tasks')).to.be.empty;
     });
+
     it('One command', function () {
       controller.set('commands', ['COMMAND1']);
       controller.set('commandsForDB', ['COMMAND1']);
@@ -415,7 +417,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#stopServices()', function () {
-    it('', function () {
+    it('request is sent', function () {
       controller.stopServices();
       expect(App.ajax.send.calledOnce).to.be.true;
     });
@@ -450,11 +452,18 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#onCreateComponent()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'onComponentsTasksSuccess', Em.K);
+    });
+
+    afterEach(function () {
+      controller.onComponentsTasksSuccess.restore();
+    });
+
+    it('onComponentsTasksSuccess is called once', function () {
       controller.onCreateComponent();
       expect(controller.onComponentsTasksSuccess.calledOnce).to.be.true;
-      controller.onComponentsTasksSuccess.restore();
     });
   });
 
@@ -509,16 +518,23 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#reconfigure()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'loadConfigsTags', Em.K);
+    });
+
+    afterEach(function () {
+      controller.loadConfigsTags.restore();
+    });
+
+    it('loadConfigsTags is called once', function () {
       controller.reconfigure();
       expect(controller.loadConfigsTags.calledOnce).to.be.true;
-      controller.loadConfigsTags.restore();
     });
   });
 
   describe('#loadConfigsTags()', function () {
-    it('', function () {
+    it('request is sent', function () {
       controller.loadConfigsTags();
       expect(App.ajax.send.calledOnce).to.be.true;
     });
@@ -663,17 +679,25 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#onLoadConfigsTags()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'getConfigUrlParams', function () {
         return [];
       });
       controller.set('content.reassign.component_name', 'COMP1');
-
       controller.onLoadConfigsTags({});
-      expect(App.ajax.send.calledOnce).to.be.true;
-      expect(controller.getConfigUrlParams.calledWith('COMP1', {})).to.be.true;
+    });
 
+    afterEach(function () {
       controller.getConfigUrlParams.restore();
+    });
+
+    it('request is sent', function () {
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+    it('getConfigUrlParams is called with correct data', function () {
+      expect(controller.getConfigUrlParams.calledWith('COMP1', {})).to.be.true;
     });
   });
 
@@ -731,25 +755,31 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#saveConfigsToServer()', function () {
     beforeEach(function () {
       sinon.stub(controller, 'getServiceConfigData', Em.K);
+      controller.saveConfigsToServer([1]);
     });
     afterEach(function () {
       controller.getServiceConfigData.restore();
     });
-    it('', function () {
-      controller.saveConfigsToServer([1]);
+    it('getServiceConfigData is called with valid data', function () {
       expect(controller.getServiceConfigData.calledWith([1])).to.be.true;
+    });
+    it('request is sent', function () {
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
   describe('#setSecureConfigs()', function () {
+
+    afterEach(function () {
+      Em.tryInvoke(App.get, 'restore');
+    });
+
     it('undefined component and security disabled', function () {
       var secureConfigs = [];
       sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
-      App.get.restore();
     });
     it('component exist and security disabled', function () {
       var secureConfigs = [];
@@ -759,7 +789,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       }]);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
-      App.get.restore();
     });
     it('undefined component and security enabled', function () {
       var secureConfigs = [];
@@ -767,7 +796,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
-      App.get.restore();
     });
     it('component exist and security enabled', function () {
       var secureConfigs = [];
@@ -791,7 +819,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
           "principal": "pValue"
         }
       ]);
-      App.get.restore();
     });
   });
 
@@ -866,7 +893,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.onTaskCompleted.restore();
     });
 
-    it('', function () {
+    it('onTaskCompleted called once', function () {
       controller.onSaveConfigs();
       expect(controller.onTaskCompleted.calledOnce).to.be.true;
     });
@@ -880,7 +907,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.updateComponent.restore();
     });
 
-    it('', function () {
+    it('updateComponent called with valid arguments', function () {
       controller.set('content.masterComponentHosts', [{
         component: 'ZOOKEEPER_SERVER',
         hostName: 'host1'
@@ -922,14 +949,14 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#startServices()', function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(App.router, 'get').returns({"skip.service.checks": "false"});
+      controller.startServices();
     });
-    after(function () {
+    afterEach(function () {
       App.router.get.restore();
     });
-    it('', function () {
-      controller.startServices();
+    it('request is sent', function () {
       expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
@@ -970,14 +997,14 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     it('task success', function () {
       var error = {
         responseText: 'org.apache.ambari.server.controller.spi.NoSuchResourceException'
-      }
+      };
       controller.onDeleteHostComponentsError(error);
       expect(controller.onComponentsTasksSuccess.calledOnce).to.be.true;
     });
     it('unknown error', function () {
       var error = {
         responseText: ''
-      }
+      };
       controller.onDeleteHostComponentsError(error);
       expect(controller.onTaskError.calledOnce).to.be.true;
     });
@@ -1041,7 +1068,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.reassign.component_name', 'COMP1');
       expect(controller.getServiceConfigData([])).to.eql([]);
     });
-    it('Services in stackServicesm but configTypesRendered is empty', function () {
+    it('Services in stackServices, but configTypesRendered is empty', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
       stackServices = [Em.Object.create({
         serviceName: 'S1',
@@ -1050,7 +1077,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.reassign.component_name', 'COMP1');
       expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
     });
-    it('Services in stackServicesm and configTypesRendered has data, but configs is empty', function () {
+    it('Services in stackServices, and configTypesRendered has data, but configs is empty', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
       stackServices = [
         Em.Object.create({
@@ -1061,7 +1088,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       controller.set('content.reassign.component_name', 'COMP1');
       expect(controller.getServiceConfigData([])[0]).to.equal("{\"Clusters\":{\"desired_config\":[]}}");
     });
-    it('Services in stackServicesm and configTypesRendered has data, and configs present', function () {
+    it('Services in stackServices, and configTypesRendered has data, and configs present', function () {
       services = [Em.Object.create({serviceName: 'S1'})];
       stackServices = [
         Em.Object.create({
@@ -1200,7 +1227,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     afterEach(function () {
       App.HostComponent.find.restore();
     });
-    it("", function() {
+    it("valid request is sent", function() {
       controller.startMySqlServer();
       expect(App.ajax.send.calledWith({
         name: 'common.host.host_component.update',
@@ -1232,7 +1259,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
     afterEach(function () {
       App.HostComponent.find.restore();
     });
-    it("", function() {
+    it("valid request is sent", function() {
       controller.set('content', Em.Object.create({
         cluster: Em.Object.create({
           name: 'cl1'
@@ -1263,13 +1290,17 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe("#startNewMySqlServer()", function() {
-    it("", function() {
+
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         reassignHosts: Em.Object.create({
           target: 'host1'
         })
       }));
       controller.startNewMySqlServer();
+    });
+
+    it('valid request is sent', function() {
       expect(App.ajax.send.calledWith({
         name: 'common.host.host_component.update',
         sender: controller,
@@ -1546,12 +1577,6 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         'java.home': 'java.home'
       });
       sinon.stub(controller, 'getConnectionProperty').returns('prop1');
-    });
-    afterEach(function () {
-      App.router.get.restore();
-      controller.getConnectionProperty.restore();
-    });
-    it("", function () {
       controller.set('content.reassignHosts', Em.Object.create({target: 'host1'}));
       controller.reopen({
         dbType: 'type1',
@@ -1559,10 +1584,17 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         preparedDBProperties: {}
       });
       controller.prepareDBCheckAction();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('cluster.custom_action.create');
-      expect(App.ajax.send.getCall(0).args[0].success).to.equal('onCreateActionSuccess');
-      expect(App.ajax.send.getCall(0).args[0].error).to.equal('onTaskError');
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+    });
+    afterEach(function () {
+      App.router.get.restore();
+      controller.getConnectionProperty.restore();
+    });
+    it('valid request is sent', function () {
+      var callArgs = App.ajax.send.getCall(0).args[0];
+      expect(callArgs.name).to.equal('cluster.custom_action.create');
+      expect(callArgs.success).to.equal('onCreateActionSuccess');
+      expect(callArgs.error).to.equal('onTaskError');
+      expect(callArgs.data).to.eql({
         requestInfo: {
           "context": "Check host",
           "action": "check_host",

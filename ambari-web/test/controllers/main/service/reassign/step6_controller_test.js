@@ -247,7 +247,7 @@ describe('App.ReassignMasterWizardStep6Controller', function () {
     afterEach(function () {
       controller.startServices.restore();
     });
-    it("", function () {
+    it("startServices is called with valid arguments", function () {
       controller.startAllServices();
       expect(controller.startServices.calledWith(true)).to.be.true;
     });

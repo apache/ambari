@@ -29,7 +29,7 @@ describe('App.FailedHostsPopupBodyView', function () {
 
 
   describe("#subHeader", function() {
-    it("", function() {
+    it("subHeader is formatted with hosts count", function() {
       view.set('parentView.content', {
         hosts: ['host1', 'host2', 'host3']
       });
@@ -48,7 +48,7 @@ describe('App.FailedHostsPopupBodyView', function () {
       App.format.role.restore();
     });
 
-    it("", function() {
+    it("hosts are mapped from parentView.content", function() {
       view.set('parentView.content', {
         hosts: ['host1', 'long.host.50.chars.commmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm'],
         host_detail: {

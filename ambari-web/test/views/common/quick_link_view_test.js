@@ -45,7 +45,7 @@ describe('App.QuickViewLinks', function () {
     afterEach(function () {
       App.router.get.restore();
     });
-    it("", function () {
+    it("ambariProperties are updated", function () {
       expect(quickViewLinks.get('ambariProperties')).to.eql({p: 1});
     });
   });
@@ -59,22 +59,32 @@ describe('App.QuickViewLinks', function () {
       App.router.get.restore();
       quickViewLinks.loadQuickLinksConfigurations.restore();
     });
-    it("", function () {
+    it("loadQuickLinksConfigurations is called once", function () {
       quickViewLinks.didInsertElement();
       expect(quickViewLinks.loadQuickLinksConfigurations.calledOnce).to.be.true;
     });
   });
 
   describe("#willDestroyElement()", function () {
-    it("", function () {
+
+    beforeEach(function () {
       quickViewLinks.setProperties({
         configProperties: [{}],
         actualTags: [""],
         quickLinks: [{}]
       });
       quickViewLinks.willDestroyElement();
+    });
+
+    it("configProperties empty", function () {
       expect(quickViewLinks.get('configProperties')).to.be.empty;
+    });
+
+    it("actualTags empty", function () {
       expect(quickViewLinks.get('actualTags')).to.be.empty;
+    });
+
+    it("quickLinks empty", function () {
       expect(quickViewLinks.get('quickLinks')).to.be.empty;
     });
   });
@@ -128,13 +138,6 @@ describe('App.QuickViewLinks', function () {
         }
       });
       sinon.stub(quickViewLinks, 'getQuickLinksHosts');
-    });
-    afterEach(function () {
-      quickViewLinks.setConfigProperties.restore();
-      quickViewLinks.getQuickLinksHosts.restore();
-
-    });
-    it("", function () {
       var data = {
         Clusters: {
           desired_configs: {
@@ -145,11 +148,21 @@ describe('App.QuickViewLinks', function () {
         }
       };
       quickViewLinks.loadTagsSuccess(data);
+    });
+    afterEach(function () {
+      quickViewLinks.setConfigProperties.restore();
+      quickViewLinks.getQuickLinksHosts.restore();
+    });
+    it("actualTags is valid", function () {
       expect(quickViewLinks.get('actualTags')[0]).to.eql(Em.Object.create({
         siteName: 'site1',
         tagName: 'tag1'
       }));
+    });
+    it("setConfigProperties is called once", function () {
       expect(quickViewLinks.setConfigProperties.calledOnce).to.be.true;
+    });
+    it("getQuickLinksHosts is called once", function () {
       expect(quickViewLinks.getQuickLinksHosts.calledOnce).to.be.true;
     });
   });
@@ -273,7 +286,7 @@ describe('App.QuickViewLinks', function () {
       mock.getConfigsByTags.restore();
       App.router.get.restore();
     });
-    it("", function () {
+    it("getConfigsByTags called with correct data", function () {
       quickViewLinks.set('actualTags', [{siteName: 'hdfs-site'}]);
       quickViewLinks.set('requiredSiteNames', ['hdfs-site']);
       quickViewLinks.setConfigProperties();
@@ -282,7 +295,7 @@ describe('App.QuickViewLinks', function () {
   });
 
   describe("#setEmptyLinks()", function () {
-    it("", function () {
+    it("empty links are set", function () {
       quickViewLinks.setEmptyLinks();
       expect(quickViewLinks.get('quickLinks')).to.eql([{
         label: quickViewLinks.t('quick.links.error.label'),
@@ -293,7 +306,7 @@ describe('App.QuickViewLinks', function () {
   });
 
   describe("#processOozieHosts()", function () {
-    it("", function () {
+    it("host status is valid", function () {
       quickViewLinks.set('content.hostComponents', [Em.Object.create({
         componentName: 'OOZIE_SERVER',
         workStatus: 'STARTED',
@@ -450,7 +463,7 @@ describe('App.QuickViewLinks', function () {
     afterEach(function () {
       quickViewLinks.getPublicHostName.restore();
     });
-    it("", function () {
+    it("public_name from getPublicHostName", function () {
       quickViewLinks.set('content.hostComponents', [Em.Object.create({
         componentName: 'C1',
         hostName: 'host1'
@@ -474,9 +487,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTPS_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -492,9 +505,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"http",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTP_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTP_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -510,9 +523,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTPS_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -528,9 +541,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"http",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTP_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTP_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -546,9 +559,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"HTTP_ONLY",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTPS_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -564,9 +577,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"HTTPS_ONLY",
             checks:[
-                     {property:"yarn.http.policy",
-                      desired:"HTTPS_ONLY",
-                      site:"yarn-site"}
+              {property:"yarn.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"yarn-site"}
             ]
           }
         },
@@ -584,9 +597,9 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:[
-                     {property:"myservice.http.policy",
-                      desired:"HTTPS_ONLY",
-                      site:"myservice-site"}
+              {property:"myservice.http.policy",
+                desired:"HTTPS_ONLY",
+                site:"myservice-site"}
             ]
           }
         },
@@ -603,23 +616,23 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"oozie.https.port",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              },
-              {
-                "property":"oozie.https.keystore.file",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              },
-              {
-                "property":"oozie.https.keystore.pass",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              }
-            ]
+              [
+                {
+                  "property":"oozie.https.port",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.file",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.pass",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                }
+              ]
           }
         },
         m: "https for oozie (checks for https passed)",
@@ -634,23 +647,23 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"oozie.https.port",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              },
-              {
-                "property":"oozie.https.keystore.file",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              },
-              {
-                "property":"oozie.https.keystore.pass",
-                "desired":"EXIST",
-                "site":"oozie-site"
-              }
-            ]
+              [
+                {
+                  "property":"oozie.https.port",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.file",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                },
+                {
+                  "property":"oozie.https.keystore.pass",
+                  "desired":"EXIST",
+                  "site":"oozie-site"
+                }
+              ]
           }
         },
         m: "http for oozie (checks for https did not pass)",
@@ -664,13 +677,13 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"http.enabled",
-                "desired":"false",
-                "site":"ranger-site"
-              }
-            ]
+              [
+                {
+                  "property":"http.enabled",
+                  "desired":"false",
+                  "site":"ranger-site"
+                }
+              ]
           }
         },
         m: "https for ranger (HDP2.2, checks passed)",
@@ -683,13 +696,13 @@ describe('App.QuickViewLinks', function () {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"http.enabled",
-                "desired":"false",
-                "site":"ranger-site"
-              }
-            ]
+              [
+                {
+                  "property":"http.enabled",
+                  "desired":"false",
+                  "site":"ranger-site"
+                }
+              ]
           }
         },
         m: "http for ranger (HDP2.2, checks for https did not pass)",
@@ -699,28 +712,28 @@ describe('App.QuickViewLinks', function () {
       {
         serviceName: "RANGER",
         configProperties:
-        [
-          {
-            type: 'ranger-admin-site',
-            properties: {'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}
-          },
-        ],
+          [
+            {
+              type: 'ranger-admin-site',
+              properties: {'ranger.service.http.enabled': 'false', 'ranger.service.https.attrib.ssl.enabled': 'true'}
+            },
+          ],
         quickLinksConfig: {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"ranger.service.http.enabled",
-                "desired":"false",
-                "site":"ranger-admin-site"
-              },
-              {
-                "property":"ranger.service.https.attrib.ssl.enabled",
-                "desired":"true",
-                "site":"ranger-admin-site"
-              }
-            ]
+              [
+                {
+                  "property":"ranger.service.http.enabled",
+                  "desired":"false",
+                  "site":"ranger-admin-site"
+                },
+                {
+                  "property":"ranger.service.https.attrib.ssl.enabled",
+                  "desired":"true",
+                  "site":"ranger-admin-site"
+                }
+              ]
           }
         },
 
@@ -730,28 +743,28 @@ describe('App.QuickViewLinks', function () {
       {
         serviceName: "RANGER",
         configProperties:
-        [
-          {
-            type: 'ranger-admin-site',
-            properties: {'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}
-          },
-        ],
+          [
+            {
+              type: 'ranger-admin-site',
+              properties: {'ranger.service.http.enabled': 'true', 'ranger.service.https.attrib.ssl.enabled': 'false'}
+            },
+          ],
         quickLinksConfig: {
           protocol:{
             type:"https",
             checks:
-            [
-              {
-                "property":"ranger.service.http.enabled",
-                "desired":"false",
-                "site":"ranger-admin-site"
-              },
-              {
-                "property":"ranger.service.https.attrib.ssl.enabled",
-                "desired":"true",
-                "site":"ranger-admin-site"
-              }
-            ]
+              [
+                {
+                  "property":"ranger.service.http.enabled",
+                  "desired":"false",
+                  "site":"ranger-admin-site"
+                },
+                {
+                  "property":"ranger.service.https.attrib.ssl.enabled",
+                  "desired":"true",
+                  "site":"ranger-admin-site"
+                }
+              ]
           }
         },
         m: "http for ranger (HDP2.3, checks for https did not pass)",
@@ -780,13 +793,13 @@ describe('App.QuickViewLinks', function () {
           'site':'yarn-site'
         },
         'configProperties':
-        [
-          {
-            'type': 'yarn-site',
-            'properties': {'yarn.timeline-service.webapp.address': 'c6401.ambari.apache.org:8188'}
-          },
-        ],
-        'result': '8188',
+          [
+            {
+              'type': 'yarn-site',
+              'properties': {'yarn.timeline-service.webapp.address': 'c6401.ambari.apache.org:8188'}
+            },
+          ],
+        'result': '8188'
       }),
 
       Em.Object.create({
@@ -800,13 +813,13 @@ describe('App.QuickViewLinks', function () {
           'site':'yarn-site'
         },
         'configProperties':
-        [
-          {
-            'type': 'yarn-site',
-            'properties': {'yarn.timeline-service.webapp.https.address': 'c6401.ambari.apache.org:8090'}
-          },
-        ],
-        'result': '8090',
+          [
+            {
+              'type': 'yarn-site',
+              'properties': {'yarn.timeline-service.webapp.https.address': 'c6401.ambari.apache.org:8090'}
+            },
+          ],
+        'result': '8090'
       })
     ];
 

@@ -432,6 +432,9 @@ describe('utils/helper', function() {
       });
 
       describe("#role()", function() {
+        before(function () {
+          App.format.stackRolesMap = {};
+        });
         beforeEach(function () {
           sinon.stub(App.StackService, 'find').returns([Em.Object.create({
             id: 'S1',
@@ -440,16 +443,19 @@ describe('utils/helper', function() {
           sinon.stub(App.StackServiceComponent, 'find').returns([Em.Object.create({
             id: 'C1',
             displayName: 'c1'
-          })])
+          })]);
         });
         afterEach(function () {
           App.StackService.find.restore();
           App.StackServiceComponent.find.restore();
         });
-        it("", function() {
-          App.format.stackRolesMap = {};
+        it("S1 -> s1", function() {
           expect(App.format.role('S1')).to.equal('s1');
+        });
+        it("C1 -> c1", function() {
           expect(App.format.role('C1')).to.equal('c1');
+        });
+        it("stackRolesMap is not empty", function() {
           expect(App.format.stackRolesMap).to.not.be.empty;
         });
       });

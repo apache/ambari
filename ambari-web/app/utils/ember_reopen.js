@@ -128,6 +128,16 @@ Ember.sum = function (a, b) {
 };
 
 /**
+ * Execute passed callback
+ *
+ * @param {Function} callback
+ * @returns {*}
+ */
+Ember.clb = function (callback) {
+  return callback();
+};
+
+/**
  *
  */
 Ember.RadioButton = Ember.Checkbox.extend({

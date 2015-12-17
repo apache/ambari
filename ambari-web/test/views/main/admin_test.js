@@ -86,7 +86,7 @@ describe('App.MainAdminView', function () {
   });
 
   describe("#willDestroyElement()", function() {
-    it("", function() {
+    it("controller.category is set to null", function() {
       view.willDestroyElement();
       expect(view.get('controller.category')).to.be.null;
     });

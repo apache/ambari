@@ -43,12 +43,16 @@ describe('App.WizardStep3Controller', function () {
     sinon.stub(App.db, 'getDisplayLength', Em.K);
     sinon.stub(App.db, 'getFilterConditions').returns([]);
     sinon.stub(App.router, 'send', Em.K);
+    sinon.stub(App.ajax, 'send', function () {
+      return {done: Em.K}
+    });
   });
 
   afterEach(function () {
     App.db.getDisplayLength.restore();
     App.router.send.restore();
     App.db.getFilterConditions.restore();
+    App.ajax.send.restore();
   });
 
   App.TestAliases.testAsComputedGt(getController(), 'isHostHaveWarnings', 'warnings.length', 0);
@@ -733,14 +737,6 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#doBootstrap()', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('shouldn\'t do nothing if stopBootstrap is true', function () {
       c.set('stopBootstrap', true);
       c.doBootstrap();
@@ -782,13 +778,6 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#isHostsRegistered', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
 
     it('shouldn\'t do nothing if stopBootstrap is true', function () {
       c.set('stopBootstrap', true);
@@ -900,14 +889,6 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#getAllRegisteredHosts', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should call App.ajax.send', function () {
       c.getAllRegisteredHosts();
       expect(App.ajax.send.calledOnce).to.equal(true);
@@ -1011,14 +992,6 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#getHostInfo', function () {
-
-    beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
 
     it('should do ajax request', function () {
       c.getHostInfo();
@@ -2662,29 +2635,6 @@ describe('App.WizardStep3Controller', function () {
 
   });
 
-  describe('#getJDKName', function () {
-
-    beforeEach(function () {
-      sinon.stub($, 'ajax', Em.K);
-      sinon.stub(App, 'get', function (k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-    });
-
-    afterEach(function () {
-      $.ajax.restore();
-      App.get.restore();
-    });
-
-    it('should do proper request to ambari-server', function () {
-      c.getJDKName();
-      expect($.ajax.args[0][0].type).to.contain('GET');
-      expect($.ajax.args[0][0].url).to.contain('/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location');
-    });
-
-  });
-
   describe('#getJDKNameSuccessCallback', function () {
 
     it('should set proper data to controller properties', function () {
@@ -2715,7 +2665,6 @@ describe('App.WizardStep3Controller', function () {
   describe('#doCheckJDK', function () {
 
     beforeEach(function () {
-      sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function (k) {
         if ('testMode' === k) return false;
         return Em.get(App, k);
@@ -2723,11 +2672,10 @@ describe('App.WizardStep3Controller', function () {
     });
 
     afterEach(function () {
-      $.ajax.restore();
       App.get.restore();
     });
 
-    it('should do proper request to the ambari-server', function () {
+    it('should do request to the ambari-server', function () {
 
       var bootHosts = [
           Em.Object.create({name: 'n1', bootStatus: 'REGISTERED'}),
@@ -2741,12 +2689,7 @@ describe('App.WizardStep3Controller', function () {
         jdkLocation: jdkLocation
       });
       c.doCheckJDK();
-      var request = $.ajax.args[0][0], data = JSON.parse(request.data);
-      expect(request.type).to.equal('POST');
-      expect(request.url).to.contain('/requests');
-      expect(data.RequestInfo.parameters.java_home).to.equal(javaHome);
-      expect(data.RequestInfo.parameters.jdk_location).to.equal(jdkLocation);
-      expect(data['Requests/resource_filters'][0].hosts).to.equal('n1,n2');
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });
@@ -2754,7 +2697,6 @@ describe('App.WizardStep3Controller', function () {
   describe('#doCheckJDKsuccessCallback', function () {
 
     beforeEach(function () {
-      sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function (k) {
         if ('testMode' === k) return false;
         return Em.get(App, k);
@@ -2762,7 +2704,6 @@ describe('App.WizardStep3Controller', function () {
     });
 
     afterEach(function () {
-      $.ajax.restore();
       App.get.restore();
     });
 
@@ -2787,7 +2728,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('isJDKWarningsLoaded')).to.equal(expected);
     });
 
-    it('should do proper request to ambari-server', function () {
+    it('should do request to ambari-server', function () {
 
       var data = null,
         jdkRequestIndex = 'jdkRequestIndex',
@@ -2795,8 +2736,7 @@ describe('App.WizardStep3Controller', function () {
       c.set('jdkRequestIndex', jdkRequestIndex);
       c.set('jdkCategoryWarnings', null);
       c.doCheckJDKsuccessCallback(data);
-      expect($.ajax.args[0][0].type).to.equal('GET');
-      expect($.ajax.args[0][0].url).to.contain(url);
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
 
   });

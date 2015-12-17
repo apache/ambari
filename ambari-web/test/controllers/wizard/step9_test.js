@@ -649,11 +649,11 @@ describe('App.InstallerStep9Controller', function () {
         jsonError: true
       }
     ]);
-    tests.forEach(function (test) {
-      it('', function () {
-        c.reopen({hosts: test.hosts});
-        c.hostHasClientsOnly(test.jsonError);
-        test.hosts.forEach(function (host) {
+    tests.forEach(function (test, index1) {
+      test.hosts.forEach(function (host, index2) {
+        it('#test ' + index1 + ' #host ' + index2, function () {
+          c.reopen({hosts: test.hosts});
+          c.hostHasClientsOnly(test.jsonError);
           expect(c.get('hosts').findProperty('hostName', host.hostName).get('status')).to.equal(host.e.status);
           expect(c.get('hosts').findProperty('hostName', host.hostName).get('progress')).to.equal(host.e.progress);
         });

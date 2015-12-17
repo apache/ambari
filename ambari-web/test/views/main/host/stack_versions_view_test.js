@@ -41,7 +41,7 @@ describe('App.MainHostStackVersionsView', function() {
       App.router.get.restore();
       view.filter.restore();
     });
-    it("", function () {
+    it("host.id is updated", function () {
       view.propertyDidChange('host');
       expect(view.get('host.id')).to.equal(1);
     });
@@ -60,7 +60,7 @@ describe('App.MainHostStackVersionsView', function() {
       view.get.restore();
       view.filter.restore();
     });
-    it("", function () {
+    it("content.id is updated", function () {
       view.propertyDidChange('content');
       expect(view.get('content')).to.eql([Em.Object.create({
         id: 1
@@ -69,7 +69,7 @@ describe('App.MainHostStackVersionsView', function() {
   });
 
   describe("#filteredContentInfo", function () {
-    it("", function () {
+    it("formatted with filteredCount and totalCount", function () {
       view.set('filteredCount', 1);
       view.set('totalCount', 2);
       view.propertyDidChange('filteredContentInfo');

@@ -42,7 +42,7 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   });
 
   describe("#curNameNode", function() {
-    it("", function() {
+    it("curNameNode is get from `masterComponentHosts`", function() {
       view.set('controller.content.masterComponentHosts', [{
         component: 'NAMENODE',
         isInstalled: true,
@@ -54,7 +54,7 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   });
 
   describe("#addNameNode", function() {
-    it("", function() {
+    it("addNameNode is get from `masterComponentHosts`", function() {
       view.set('controller.content.masterComponentHosts', [{
         component: 'NAMENODE',
         isInstalled: false,
@@ -66,7 +66,7 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   });
 
   describe("#secondaryNameNode", function() {
-    it("", function() {
+    it("secondaryNameNode is get from `masterComponentHosts`", function() {
       view.set('controller.content.masterComponentHosts', [{
         component: 'SECONDARY_NAMENODE',
         hostName: 'host1'
@@ -77,7 +77,7 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   });
 
   describe("#journalNodes", function() {
-    it("", function() {
+    it("journalNodes is get from `masterComponentHosts`", function() {
       view.set('controller.content.masterComponentHosts', [{
         component: 'JOURNALNODE',
         hostName: 'host1'

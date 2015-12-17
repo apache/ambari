@@ -37,6 +37,16 @@ describe('App.upgradeWizardView', function () {
   });
   view.removeObserver('App.clusterName', view, 'startPolling');
 
+  beforeEach(function () {
+    sinon.stub(App.ajax, 'send').returns({
+      complete: Em.clb
+    });
+  });
+
+  afterEach(function () {
+    App.ajax.send.restore();
+  });
+
   App.TestAliases.testAsComputedOr(view, 'isManualProceedDisabled', ['!isManualDone', 'controller.requestInProgress']);
 
   App.TestAliases.testAsComputedEqualProperties(view, 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
@@ -60,7 +70,7 @@ describe('App.upgradeWizardView', function () {
         activeGroup: Em.Object.create()
       });
     });
-    it("", function () {
+    it("status is updated", function () {
       view.reopen({
         activeStatuses: ['IN_PROGRESS'],
         upgradeGroups: [Em.Object.create({
@@ -156,58 +166,66 @@ describe('App.upgradeWizardView', function () {
       });
       sinon.spy(view, 'doPolling');
       this.clock = sinon.useFakeTimers();
+      view.doPolling();
+      this.clock.tick(App.bgOperationsUpdateInterval);
     });
     afterEach(function () {
       view.get('controller').loadUpgradeData.restore();
       view.doPolling.restore();
       this.clock.restore();
     });
-    it("", function () {
-      view.doPolling();
-      this.clock.tick(App.bgOperationsUpdateInterval);
+    it("loadUpgradeData is called once", function () {
       expect(view.get('controller').loadUpgradeData.calledOnce).to.be.true;
+    });
+    it("doPolling is called twice", function () {
       expect(view.doPolling.calledTwice).to.be.true;
     });
   });
 
   describe("#continue()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.continue({context: Em.Object.create({'status': 'HOLDING_FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'HOLDING_FAILED'}), 'FAILED')).to.be.true;
+    });
+    it("isDetailsOpened is false", function () {
       expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
 
   describe("#complete()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.complete({context: Em.Object.create({'status': 'FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.complete({context: Em.Object.create({'status': 'FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'COMPLETED')).to.be.true;
+    });
+    it("isManualDone is false", function () {
       expect(view.get('isManualDone')).to.be.false;
     });
   });
 
   describe("#retry()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'setUpgradeItemStatus', Em.K);
+      view.retry({context: Em.Object.create({'status': 'FAILED'})});
     });
-    after(function () {
+    afterEach(function () {
       view.get('controller').setUpgradeItemStatus.restore();
     });
-    it("", function () {
-      view.retry({context: Em.Object.create({'status': 'FAILED'})});
+    it("setUpgradeItemStatus is called with correct data", function () {
       expect(view.get('controller').setUpgradeItemStatus.calledWith(Em.Object.create({'status': 'FAILED'}), 'PENDING')).to.be.true;
+    });
+    it("isDetailsOpened is false", function () {
       expect(view.get('isDetailsOpened')).to.be.false;
     });
   });
@@ -226,7 +244,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#resetManualDone()", function() {
-    it("", function() {
+    it("isManualDone is set to false", function() {
       view.set('isManualDone', true);
       view.propertyDidChange('manualItem');
       expect(view.get('isManualDone')).to.be.false;
@@ -417,7 +435,7 @@ describe('App.upgradeWizardView', function () {
     after(function () {
       view.toggleProperty.restore();
     });
-    it("", function () {
+    it("isDetailsOpened is toggled", function () {
       view.toggleDetails();
       expect(view.toggleProperty.calledWith('isDetailsOpened')).to.be.true;
     });
@@ -658,15 +676,6 @@ describe('App.upgradeWizardView', function () {
 
     beforeEach(function () {
       view.set('controller.upgradeId', 1);
-      sinon.stub(App.ajax, 'send').returns({
-        complete: function (callback) {
-          callback();
-        }
-      });
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
     });
 
     cases.forEach(function (item) {
@@ -775,7 +784,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#failedHostsMessage", function() {
-    it("", function() {
+    it("is formatted with slaveComponentStructuredInfo", function() {
       view.set('controller.slaveComponentStructuredInfo', {
         hosts: ['host1']
       });

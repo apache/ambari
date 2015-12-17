@@ -71,6 +71,10 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
     controller.set('serverConfigData', serverConfigData);
   });
 
+  afterEach(function () {
+    controller.destroy();
+  });
+
   describe('#removeConfigs', function() {
 
     var tests = [

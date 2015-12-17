@@ -109,12 +109,15 @@ function getController() {
 describe('App.InstallerStep7Controller', function () {
 
   beforeEach(function () {
+    sinon.stub(App.ajax, 'send', Em.K);
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
     installerStep7Controller = getController();
   });
 
   afterEach(function() {
+    App.ajax.send.restore();
     App.config.setPreDefinedServiceConfigs.restore();
+    installerStep7Controller.destroy();
   });
 
   App.TestAliases.testAsComputedAlias(getController(), 'masterComponentHosts', 'content.masterComponentHosts', 'array');
@@ -421,12 +424,6 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#loadInstalledServicesConfigGroups', function () {
-    before(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
     it('should do ajax request for each received service name', function () {
       var serviceNames = ['s1', 's2', 's3'];
       installerStep7Controller.loadInstalledServicesConfigGroups(serviceNames);
@@ -435,12 +432,6 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#getConfigTags', function () {
-    before(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
     it('should do ajax-request', function () {
       installerStep7Controller.getConfigTags();
       expect(App.ajax.send.calledOnce).to.equal(true);
@@ -476,7 +467,8 @@ describe('App.InstallerStep7Controller', function () {
 
   describe('#checkMySQLHost', function () {
     it('should send query', function () {
-      expect(installerStep7Controller.checkMySQLHost().readyState).to.equal(1);
+      installerStep7Controller.checkMySQLHost();
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 

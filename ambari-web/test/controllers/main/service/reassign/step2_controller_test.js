@@ -96,7 +96,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
   });
 
   describe("#mastersToShow", function() {
-    it("", function() {
+    it("should be like array with `content.reassign.component_name`", function() {
       controller.set('content.reassign.component_name', 'C1');
       controller.propertyDidChange('mastersToShow');
       expect(controller.get('mastersToShow')).to.eql(['C1']);
@@ -104,7 +104,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
   });
 
   describe("#mastersToMove", function() {
-    it("", function() {
+    it("should be like array with `content.reassign.component_name`", function() {
       controller.set('content.reassign.component_name', 'C1');
       controller.propertyDidChange('mastersToMove');
       expect(controller.get('mastersToMove')).to.eql(['C1']);

@@ -304,24 +304,22 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
     beforeEach(function () {
       sinon.stub(App.widgetLayoutMapper, 'map');
       sinon.stub(controller, 'propertyDidChange');
-    });
-    afterEach(function () {
-      App.widgetLayoutMapper.map.restore();
-      controller.propertyDidChange.restore();
-    });
-    it("", function () {
       var params = {
         data: {
           WidgetLayoutInfo: {
             widgets: [
-              {
-                id: 1
-              }
+              {id: 1}
             ]
           }
         }
       };
       controller.hideWidgetSuccessCallback({}, {}, params);
+    });
+    afterEach(function () {
+      App.widgetLayoutMapper.map.restore();
+      controller.propertyDidChange.restore();
+    });
+    it("mapper is called with valid data", function () {
       expect(App.widgetLayoutMapper.map.calledWith({
         items: [{
           WidgetLayoutInfo: {
@@ -335,6 +333,8 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
           }
         }]
       })).to.be.true;
+    });
+    it('`widgets` is forced to be recalculated', function () {
       expect(controller.propertyDidChange.calledWith('widgets')).to.be.true;
     });
   });

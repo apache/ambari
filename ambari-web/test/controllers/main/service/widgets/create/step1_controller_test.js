@@ -38,15 +38,17 @@ describe('App.WidgetWizardStep1Controller', function () {
   });
 
   describe("#chooseOption()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(controller, 'next');
+      controller.chooseOption({context: 'type1'});
     });
-    after(function () {
+    afterEach(function () {
       controller.next.restore();
     });
-    it("", function () {
-      controller.chooseOption({context: 'type1'});
+    it('widgetType is valid', function () {
       expect(controller.get('widgetType')).to.equal('type1');
+    });
+    it('User is moved to the next step', function () {
       expect(controller.next.calledOnce).to.be.true;
     });
   });
@@ -58,14 +60,14 @@ describe('App.WidgetWizardStep1Controller', function () {
     after(function () {
       controller.clearStep.restore();
     });
-    it("", function () {
+    it("clearStep", function () {
       controller.loadStep();
       expect(controller.clearStep.calledOnce).to.be.true;
     });
   });
 
   describe("#clearStep()", function () {
-    it("", function () {
+    it("widgetType is empty", function () {
       controller.clearStep();
       expect(controller.get('widgetType')).to.be.empty;
     });
@@ -78,7 +80,7 @@ describe('App.WidgetWizardStep1Controller', function () {
     after(function () {
       App.router.send.restore();
     });
-    it("", function () {
+    it("user is moved to the next step", function () {
       controller.next();
       expect(App.router.send.calledWith('next')).to.be.true;
     });

@@ -39,11 +39,6 @@ describe('App.WidgetWizardStep3Controller', function () {
   describe("#initPreviewData()", function () {
     beforeEach(function () {
       sinon.stub(controller, 'addObserver');
-    });
-    afterEach(function () {
-      controller.addObserver.restore();
-    });
-    it("", function () {
       controller.set('content', Em.Object.create({
         widgetProperties: 'widgetProperties',
         widgetValues: 'widgetValues',
@@ -55,15 +50,36 @@ describe('App.WidgetWizardStep3Controller', function () {
         controllerName: 'widgetEditController'
       }));
       controller.initPreviewData();
+    });
+    afterEach(function () {
+      controller.addObserver.restore();
+    });
+    it('checking observes calls', function () {
       controller.get('isSharedCheckboxDisabled') ? expect(controller.addObserver.calledWith('isSharedChecked')).to.be.false:
         expect(controller.addObserver.calledWith('isSharedChecked')).to.be.true;
+    });
+    it('check widgetProperties`', function () {
       expect(controller.get('widgetProperties')).to.equal('widgetProperties');
+    });
+    it('check widgetValues', function () {
       expect(controller.get('widgetValues')).to.equal('widgetValues');
+    });
+    it('check widgetMetrics', function () {
       expect(controller.get('widgetMetrics')).to.equal('widgetMetrics');
+    });
+    it('check widgetAuthor', function () {
       expect(controller.get('widgetAuthor')).to.equal('widgetAuthor');
+    });
+    it('check widgetName', function () {
       expect(controller.get('widgetName')).to.equal('widgetName');
+    });
+    it('check widgetDescription', function () {
       expect(controller.get('widgetDescription')).to.equal('widgetDescription');
+    });
+    it('check isSharedChecked', function () {
       expect(controller.get('isSharedChecked')).to.be.true;
+    });
+    it('check isSharedCheckboxDisabled', function () {
       expect(controller.get('isSharedCheckboxDisabled')).to.be.true;
     });
   });
@@ -92,7 +108,8 @@ describe('App.WidgetWizardStep3Controller', function () {
   });
 
   describe("#collectWidgetData()", function () {
-    it("", function () {
+
+    beforeEach(function () {
       controller.setProperties({
         widgetName: 'widgetName',
         content: Em.Object.create({widgetType: 'T1'}),
@@ -103,7 +120,11 @@ describe('App.WidgetWizardStep3Controller', function () {
         widgetValues: [{computedValue: 'cv', value: 'v'}],
         widgetProperties: 'widgetProperties'
       });
-      expect(controller.collectWidgetData()).to.eql({
+    });
+
+    it('collected widget data is valid', function () {
+      var widgetData = controller.collectWidgetData();
+      expect(widgetData).to.eql({
         "WidgetInfo": {
           "widget_name": "widgetName",
           "widget_type": "T1",
@@ -111,14 +132,10 @@ describe('App.WidgetWizardStep3Controller', function () {
           "scope": "CLUSTER",
           "author": "widgetAuthor",
           "metrics": [
-            {
-              "name": "m1"
-            }
+            {"name": "m1" }
           ],
           "values": [
-            {
-              "value": "v"
-            }
+            { "value": "v" }
           ],
           "properties": "widgetProperties"
         }
@@ -138,7 +155,7 @@ describe('App.WidgetWizardStep3Controller', function () {
       App.router.get.restore();
       mock.cancel.restore();
     });
-    it("", function () {
+    it('cancel is called', function () {
       controller.cancel();
       expect(mock.cancel.calledOnce).to.be.true;
     });
@@ -153,6 +170,7 @@ describe('App.WidgetWizardStep3Controller', function () {
       sinon.stub(controller, 'collectWidgetData');
       sinon.stub(App.router, 'get').returns(mock);
       sinon.stub(App.router, 'send');
+      controller.complete();
     });
     afterEach(function () {
       App.router.get.restore();
@@ -160,10 +178,13 @@ describe('App.WidgetWizardStep3Controller', function () {
       controller.collectWidgetData.restore();
       mock.finishWizard.restore();
     });
-    it("", function () {
-      controller.complete();
+    it('widget data is collected', function () {
       expect(controller.collectWidgetData.calledOnce).to.be.true;
+    });
+    it('user is moved to finish the wizard', function () {
       expect(App.router.send.calledWith('complete')).to.be.true;
+    });
+    it('finishWizard is called', function () {
       expect(mock.finishWizard.calledOnce).to.be.true;
     });
   });

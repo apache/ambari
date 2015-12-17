@@ -255,7 +255,7 @@ describe('App.UpdateController', function () {
       App.get.restore();
       controller.computeParameters.restore();
     });
-    it("", function () {
+    it("valid params are added", function () {
       expect(controller.addParamsToHostsUrl([], [], 'url')).to.equal('mock/clusters/mockurl&params&params');
     });
   });
@@ -292,7 +292,7 @@ describe('App.UpdateController', function () {
     afterEach(function () {
       App.hostsMapper.setMetrics.restore();
     });
-    it("", function () {
+    it("setMetrics called with valid arguments", function () {
       controller.loadHostsMetricSuccessCallback({});
       expect(App.hostsMapper.setMetrics.calledWith({})).to.be.true;
     });

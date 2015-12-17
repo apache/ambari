@@ -37,7 +37,7 @@ describe('App.MainAdminStackServicesView', function () {
       App.StackService.find.restore();
       App.Service.find.restore();
     });
-    it("", function () {
+    it("`isInstalled`-flag depends on App.Service", function () {
       view.propertyDidChange('services');
       expect(view.get('services')).to.eql([
         Em.Object.create({serviceName: 'S1', isInstalled: true}),

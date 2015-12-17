@@ -403,7 +403,7 @@ describe('App.AddHostController', function () {
     after(function () {
       App.router.getClusterName.restore();
     });
-    it("", function () {
+    it("cluster data is valid", function () {
       controller.set('clusterStatusTemplate', {'prop': 'clusterStatusTemplate'});
       expect(controller.getCluster()).to.be.eql({
         prop: 'clusterStatusTemplate',
@@ -601,24 +601,28 @@ describe('App.AddHostController', function () {
   });
 
   describe("#saveClients()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(App.StackServiceComponent, 'find').returns('StackServiceComponent');
       sinon.stub(controller, 'getClientsToInstall').returns(['client']);
       sinon.stub(controller, 'setDBProperty', Em.K);
+      controller.set('content.services', [Em.Object.create({'isSelected': true, 'isInstallable': true})]);
+      controller.saveClients();
     });
-    after(function () {
+    afterEach(function () {
       controller.setDBProperty.restore();
       App.StackServiceComponent.find.restore();
       controller.getClientsToInstall.restore();
     });
-    it("", function () {
-      controller.set('content.services', [Em.Object.create({'isSelected': true, 'isInstallable': true})]);
-      controller.saveClients();
+    it("getClientsToInstall called with valid arguments", function () {
       expect(controller.getClientsToInstall.calledWith(
         [Em.Object.create({'isSelected': true, 'isInstallable': true})],
         'StackServiceComponent'
       )).to.be.true;
+    });
+    it('setDBProperty called with valid arguments', function () {
       expect(controller.setDBProperty.calledWith('clientInfo', ['client'])).to.be.true;
+    });
+    it('content.clients are valid', function () {
       expect(controller.get('content.clients')).to.be.eql(['client']);
     });
   });
@@ -752,7 +756,7 @@ describe('App.AddHostController', function () {
     after(function () {
       controller.getDBProperty.restore();
     });
-    it("", function () {
+    it("content.configGroups are valid", function () {
       controller.getServiceConfigGroups();
       expect(controller.get('content.configGroups')).to.eql(['serviceConfigGroup']);
     });
@@ -777,23 +781,29 @@ describe('App.AddHostController', function () {
   });
 
   describe("#loadServiceConfigGroups()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(controller, 'loadServiceConfigGroupsBySlaves', Em.K);
       sinon.stub(controller, 'loadServiceConfigGroupsByClients', Em.K);
       sinon.stub(controller, 'sortServiceConfigGroups', Em.K);
+      controller.loadServiceConfigGroups();
     });
-    after(function () {
+    afterEach(function () {
       controller.loadServiceConfigGroupsBySlaves.restore();
       controller.loadServiceConfigGroupsByClients.restore();
       controller.sortServiceConfigGroups.restore();
     });
-    it("", function () {
-      controller.loadServiceConfigGroups();
+    it("loadServiceConfigGroupsByClients called with []", function () {
       expect(controller.loadServiceConfigGroupsByClients.calledWith([])).to.be.true;
-      expect(controller.loadServiceConfigGroupsBySlaves.calledWith([])).to.be.true;
-      expect(controller.sortServiceConfigGroups.calledWith([])).to.be.true;
-      expect(controller.get('content.configGroups')).to.eql([]);
     });
+    it('loadServiceConfigGroupsBySlaves called with []', function () {
+      expect(controller.loadServiceConfigGroupsBySlaves.calledWith([])).to.be.true;
+    });
+    it('sortServiceConfigGroups called with []', function () {
+      expect(controller.sortServiceConfigGroups.calledWith([])).to.be.true;
+    });
+    it('content.configGroups are empty', function () {
+      expect(controller.get('content.configGroups')).to.eql([]);
+    })
   });
 
   describe("#sortServiceConfigGroups", function () {
@@ -1260,15 +1270,19 @@ describe('App.AddHostController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearInstallOptions', Em.K);
       sinon.stub(controller, 'getCluster').returns({});
+      controller.clearAllSteps();
     });
     afterEach(function () {
       controller.clearInstallOptions.restore();
       controller.getCluster.restore();
     });
-    it("", function () {
-      controller.clearAllSteps();
+    it("getCluster called once", function () {
       expect(controller.getCluster.calledOnce).to.be.true;
+    });
+    it('clearInstallOptions called once', function () {
       expect(controller.clearInstallOptions.calledOnce).to.be.true;
+    });
+    it('content.cluster is empty object', function () {
       expect(controller.get('content.cluster')).to.eql({});
     });
   });
@@ -1298,6 +1312,7 @@ describe('App.AddHostController', function () {
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'updateAll');
       sinon.spy(mock, 'getAllHostNames');
+      controller.finish();
     });
     afterEach(function () {
       controller.clearAllSteps.restore();
@@ -1307,12 +1322,19 @@ describe('App.AddHostController', function () {
       mock.updateAll.restore();
       mock.getAllHostNames.restore();
     });
-    it("", function () {
-      controller.finish();
+    it("clearAllSteps called once", function () {
       expect(controller.clearAllSteps.calledOnce).to.be.true;
+    });
+    it('clearStorageData called once', function () {
       expect(controller.clearStorageData.calledOnce).to.be.true;
+    });
+    it('updateAll called once', function () {
       expect(mock.updateAll.calledOnce).to.be.true;
+    });
+    it('App.updater.immediateRun called with valid arguments', function () {
       expect(App.updater.immediateRun.calledWith('updateHost')).to.be.true;
+    });
+    it('getAllHostNames called once', function () {
       expect(mock.getAllHostNames.calledOnce).to.be.true;
     });
   });

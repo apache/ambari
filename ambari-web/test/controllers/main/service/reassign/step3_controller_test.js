@@ -32,19 +32,21 @@ describe('App.ReassignMasterWizardStep3Controller', function () {
         callback();
       }
     };
-    before(function () {
+    beforeEach(function () {
       sinon.stub(App, 'get').returns(mock);
       sinon.spy(mock, 'getKDCSessionState');
       sinon.stub(App.router, 'send', Em.K);
+      controller.submit();
     });
-    after(function () {
+    afterEach(function () {
       App.get.restore();
       mock.getKDCSessionState.restore();
       App.router.send.restore();
     });
-    it("", function () {
-      controller.submit();
+    it('getKDCSessionState is called once', function () {
       expect(mock.getKDCSessionState.calledOnce).to.be.true;
+    });
+    it('User is moved to the next step', function () {
       expect(App.router.send.calledWith("next")).to.be.true;
     });
   });

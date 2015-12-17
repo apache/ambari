@@ -36,52 +36,87 @@ describe('App.HostComponent', function() {
   });
 
   describe('#isClient', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.clients'), 'contains', Em.K);
       hc.propertyDidChange('isClient');
       hc.get('isClient');
-      expect(App.get('components.clients').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.clients').contains.restore();
+    });
+
+    it('components.clients is called with correct data', function() {
+      expect(App.get('components.clients').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#displayName', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.format, 'role', Em.K);
       hc.propertyDidChange('displayName');
       hc.get('displayName');
-      expect(App.format.role.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.format.role.restore();
+    });
+
+    it('App.format.role is called with correct data', function() {
+      expect(App.format.role.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isMaster', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.masters'), 'contains', Em.K);
       hc.propertyDidChange('isMaster');
       hc.get('isMaster');
-      expect(App.get('components.masters').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.masters').contains.restore();
+    });
+
+    it('components.masters is called with correct data', function() {
+      expect(App.get('components.masters').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isSlave', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.slaves'), 'contains', Em.K);
       hc.propertyDidChange('isSlave');
       hc.get('isSlave');
-      expect(App.get('components.slaves').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.slaves').contains.restore();
+    });
+
+    it('components.slaves is called with correct data', function() {
+      expect(App.get('components.slaves').contains.calledWith('COMP1')).to.be.true;
     });
   });
 
   describe('#isDeletable', function() {
-    it('', function() {
+
+    beforeEach(function () {
       sinon.stub(App.get('components.deletable'), 'contains', Em.K);
       hc.propertyDidChange('isDeletable');
       hc.get('isDeletable');
-      expect(App.get('components.deletable').contains.calledWith('COMP1')).to.be.true;
+    });
+
+    afterEach(function () {
       App.get('components.deletable').contains.restore();
+    });
+
+    it('components.deletable is called with correct data', function() {
+      expect(App.get('components.deletable').contains.calledWith('COMP1')).to.be.true;
     });
   });
 

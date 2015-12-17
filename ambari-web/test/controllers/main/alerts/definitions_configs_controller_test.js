@@ -28,6 +28,10 @@ function getController() {
   });
 }
 
+function getEmptyArray() {
+  return [];
+}
+
 describe('App.MainAlertDefinitionConfigsController', function () {
 
   beforeEach(function () {
@@ -40,21 +44,11 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
     beforeEach(function () {
       controller.set('content', Em.Object.create({}));
-      sinon.stub(controller, 'renderPortConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderMetricConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderWebConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderScriptConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderAggregateConfigs', function () {
-        return [];
-      });
+      sinon.stub(controller, 'renderPortConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderMetricConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderWebConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderScriptConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderAggregateConfigs', getEmptyArray);
     });
 
     afterEach(function () {

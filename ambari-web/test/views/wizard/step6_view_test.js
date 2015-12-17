@@ -111,23 +111,32 @@ describe('App.WizardStep6View', function() {
   });
 
   describe("#checkboxClick()", function() {
+    var e;
     beforeEach(function() {
       sinon.stub(view.get('controller'), 'checkCallback', Em.K);
       sinon.stub(view.get('controller'), 'callValidation', Em.K);
+      e = {
+        context: {
+          checked: true,
+          component: 'c1'
+        }
+      };
+      view.checkboxClick(e);
     });
     afterEach(function() {
       view.get('controller').checkCallback.restore();
       view.get('controller').callValidation.restore();
     });
 
-    it("", function() {
-      var e = {context: {
-        checked: true,
-        component: 'c1'
-      }};
-      view.checkboxClick(e);
+    it("checked is false", function() {
       expect(e.context.checked).to.be.false;
+    });
+
+    it("checkCallback is called with correct data", function() {
       expect(view.get('controller').checkCallback.calledWith('c1')).to.be.true;
+    });
+
+    it("callValidation is called once", function() {
       expect(view.get('controller').callValidation.calledOnce).to.be.true;
     });
   });

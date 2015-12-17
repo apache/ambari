@@ -45,9 +45,8 @@ describe('App.MainHostAlertsController', function () {
       App.router.transitionTo.restore();
     });
 
-    it("", function () {
+    it("transitionTo is called with valid route and data", function () {
       controller.routeToAlertDefinition({context: 'id'});
-      expect(App.AlertDefinition.find.calledWith('id')).to.be.true;
       expect(App.router.transitionTo.calledWith('main.alerts.alertDetails', 'alertDefinition')).to.be.true;
     });
   });

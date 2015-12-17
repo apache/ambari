@@ -264,7 +264,7 @@ describe('App.Host', function () {
   });
 
   describe('#disksMounted', function () {
-    it('', function () {
+    it('depends on diskInfo count', function () {
       host1.set('diskInfo', [
         {}
       ]);
@@ -274,7 +274,7 @@ describe('App.Host', function () {
   });
 
   describe('#coresFormatted', function () {
-    it('', function () {
+    it('depends on cpu, cpuPhysical', function () {
       host1.set('cpu', 1);
       host1.set('cpuPhysical', 2);
       host1.propertyDidChange('coresFormatted');
@@ -298,7 +298,7 @@ describe('App.Host', function () {
   });
 
   describe('#diskUsage', function () {
-    it('', function () {
+    it('depends on diskTotal, diskUsed', function () {
       host1.reopen({
         diskUsed: 10
       });
@@ -309,13 +309,20 @@ describe('App.Host', function () {
   });
 
   describe('#memoryFormatted', function () {
-    it('', function () {
-      host1.set('memory', 1024);
+
+    beforeEach(function () {
       sinon.stub(misc, 'formatBandwidth', Em.K);
+    });
+
+    afterEach(function () {
+      misc.formatBandwidth.restore();
+    });
+
+    it('depends on memory', function () {
+      host1.set('memory', 1024);
       host1.propertyDidChange('memoryFormatted');
       host1.get('memoryFormatted');
       expect(misc.formatBandwidth.calledWith(1048576)).to.be.true;
-      misc.formatBandwidth.restore()
     });
   });
 

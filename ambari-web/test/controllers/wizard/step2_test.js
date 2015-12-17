@@ -239,7 +239,7 @@ describe('App.WizardStep2Controller', function () {
   describe('#sshUserError', function () {
 
     userErrorTests.forEach(function(test) {
-      it('', function() {
+      it(JSON.stringify(test), function() {
         var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, sshUser: test.user}}});
         if(Em.isNone(test.e)) {
           expect(controller.get('sshUserError')).to.equal(null);
@@ -255,7 +255,7 @@ describe('App.WizardStep2Controller', function () {
   describe('#sshPortError', function () {
 
       userErrorTests.forEach(function(test) {
-          it('', function() {
+          it(JSON.stringify(test), function() {
               var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, sshPort: test.sshPort}}});
               if(Em.isNone(test.e)) {
                   expect(controller.get('sshPortError')).to.equal(null);
@@ -574,7 +574,7 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#setAmbariJavaHome', function() {
     beforeEach(function() {
-      sinon.spy($, 'ajax');
+      sinon.stub($, 'ajax', Em.K);
     });
     afterEach(function() {
       $.ajax.restore();

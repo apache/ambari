@@ -83,12 +83,8 @@ describe('App.MainHostDetailsController', function () {
   describe('#stopComponent()', function () {
 
     beforeEach(function () {
-      sinon.stub(App, 'showConfirmationPopup', function (callback) {
-        callback();
-      });
-      sinon.stub(controller, 'checkNnLastCheckpointTime', function (callback) {
-        callback();
-      });
+      sinon.stub(App, 'showConfirmationPopup', Em.clb);
+      sinon.stub(controller, 'checkNnLastCheckpointTime', Em.clb);
       sinon.stub(controller, 'sendComponentCommand');
     });
     afterEach(function () {
@@ -124,7 +120,7 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#pullNnCheckPointTime()", function() {
-    it("", function() {
+    it("valid request is sent", function() {
       controller.pullNnCheckPointTime('host1');
       expect(App.ajax.send.calledWith({
         name: 'common.host_component.getNnCheckPointTime',
@@ -150,10 +146,7 @@ describe('App.MainHostDetailsController', function () {
       expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
         "hostName": "host1",
         "context": {},
-        "component": Em.Object.create({
-          service: {serviceName: 'S1'},
-          componentName: 'COMP1'
-        }),
+        "component": component,
         "HostRoles": {
           "state": "state"
         },
@@ -179,16 +172,7 @@ describe('App.MainHostDetailsController', function () {
       expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
         "hostName": "host1",
         "context": {},
-        "component": [
-          Em.Object.create({
-            service: {serviceName: 'S1'},
-            componentName: 'COMP1'
-          }),
-          Em.Object.create({
-            service: {serviceName: 'S1'},
-            componentName: 'COMP2'
-          })
-        ],
+        "component": component,
         "HostRoles": {
           "state": "state"
         },
@@ -622,7 +606,7 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#loadOozieConfigs()", function() {
-    it("", function() {
+    it("valid request is sent", function() {
       controller.loadOozieConfigs({Clusters: {
         desired_configs: {
           'oozie-env': {
@@ -643,7 +627,7 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#loadStormConfigs()", function() {
-    it("", function() {
+    it("valid request is sent", function() {
       controller.loadStormConfigs({Clusters: {
         desired_configs: {
           'storm-site': {
@@ -663,30 +647,34 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#onLoadStormConfigs()", function() {
+
+    var data = {items: [
+      {
+        type: 'storm-site',
+        properties: {
+          'nimbus.seeds': ''
+        }
+      }
+    ]};
+
     beforeEach(function () {
       sinon.stub(controller, 'getStormNimbusHosts').returns("host1");
       sinon.stub(controller, 'updateZkConfigs', Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
+      controller.set('nimbusHost', 'host2');
+      controller.onLoadStormConfigs(data);
     });
     afterEach(function () {
       controller.getStormNimbusHosts.restore();
       controller.updateZkConfigs.restore();
       controller.saveConfigsBatch.restore();
     });
-    it("", function() {
-      var data = {items: [
-        {
-          type: 'storm-site',
-          properties: {
-            'nimbus.seeds': ''
-          }
-        }
-      ]};
-      controller.set('nimbusHost', 'host2');
-      controller.onLoadStormConfigs(data);
+    it("updateZkConfigs called with valid arguments", function() {
       expect(controller.updateZkConfigs.calledWith({'storm-site': {
         'nimbus.seeds': "'host1'"
       }})).to.be.true;
+    });
+    it('saveConfigsBatch called with valid arguments', function () {
       expect(controller.saveConfigsBatch.calledWith([
         {
           properties: {
@@ -703,7 +691,7 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#loadHiveConfigs()", function() {
-    it("", function() {
+    it("valid request is sent", function() {
       controller.loadHiveConfigs({Clusters: {
         desired_configs: {
           'hive-site': {
@@ -732,7 +720,7 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#loadRangerConfigs()", function() {
-    it("", function() {
+    it("valid request is sent", function() {
       controller.loadRangerConfigs({Clusters: {
         desired_configs: {
           'hdfs-site': {
@@ -763,18 +751,25 @@ describe('App.MainHostDetailsController', function () {
         componentName: 'RANGER_KMS_SERVER',
         hostName: 'host1'
       }]);
-    });
-    afterEach(function(){
-      App.HostComponent.find.restore();
-    });
-    it("", function() {
       controller.set('rangerKMSServerHost', 'host2');
       controller.set('content.hostName', 'host1');
       controller.set('deleteRangerKMSServer', true);
       controller.set('fromDeleteHost', true);
-      expect(controller.getRangerKMSServerHosts()).to.eql(['host2']);
+      this.hosts = controller.getRangerKMSServerHosts();
+    });
+    afterEach(function(){
+      App.HostComponent.find.restore();
+    });
+    it('hosts list is valid', function() {
+      expect(this.hosts).to.eql(['host2']);
+    });
+    it('rangerKMSServerHost is empty', function () {
       expect(controller.get('rangerKMSServerHost')).to.be.empty;
+    });
+    it('deleteRangerKMSServer is false', function () {
       expect(controller.get('deleteRangerKMSServer')).to.be.false;
+    });
+    it('fromDeleteHost is false', function () {
       expect(controller.get('fromDeleteHost')).to.be.false;
     });
   });
@@ -785,18 +780,25 @@ describe('App.MainHostDetailsController', function () {
         componentName: 'NIMBUS',
         hostName: 'host1'
       }]);
-    });
-    afterEach(function(){
-      App.HostComponent.find.restore();
-    });
-    it("", function() {
       controller.set('nimbusHost', 'host2');
       controller.set('content.hostName', 'host1');
       controller.set('deleteNimbusHost', true);
       controller.set('fromDeleteHost', true);
-      expect(controller.getStormNimbusHosts()).to.eql(['host2']);
+      this.hosts = controller.getStormNimbusHosts();
+    });
+    afterEach(function(){
+      App.HostComponent.find.restore();
+    });
+    it("hosts list is valid", function() {
+      expect(this.hosts).to.eql(['host2']);
+    });
+    it('nimbusHost is empty', function () {
       expect(controller.get('nimbusHost')).to.be.empty;
+    });
+    it('deleteNimbusHost is false', function () {
       expect(controller.get('deleteNimbusHost')).to.be.false;
+    });
+    it('fromDeleteHost is false', function () {
       expect(controller.get('fromDeleteHost')).to.be.false;
     });
   });
@@ -1452,8 +1454,14 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#checkRegionServerState()', function () {
-    it('', function () {
-      expect(controller.checkRegionServerState('host1')).to.be.an('object');
+    var result;
+    beforeEach(function () {
+      result = controller.checkRegionServerState('host1');
+    });
+    it('returns object', function () {
+      expect(result).to.be.an('object');
+    });
+    it('request is sent with correct data', function () {
       expect(App.ajax.send.getCall(0).args[0].data.hostNames).to.equal('host1');
     });
   });
@@ -1536,7 +1544,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       App.ModalPopup.show.restore();
     });
-    it('', function () {
+    it('modal popup is shown', function () {
       controller.showRegionServerWarning();
       expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
@@ -1666,7 +1674,7 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function() {
       hostsManagement.setRackInfo.restore();
     });
-    it("", function() {
+    it('setRackInfo called with valid arguments', function() {
       controller.set('content.rack', 'rack');
       controller.set('content.hostName', 'host1');
       controller.setRackIdForHost();
@@ -2946,25 +2954,29 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#installVersionSuccessCallback()", function () {
-    before(function () {
+    var version = Em.Object.create({
+      id: 1,
+      status: 'INIT'
+    });
+    beforeEach(function () {
       this.mock = sinon.stub(App.HostStackVersion, 'find');
+      this.mock.returns(version);
       sinon.stub(App.db, 'set', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+      controller.installVersionSuccessCallback({Requests: {id: 1}}, {}, {version: version});
     });
-    after(function () {
+    afterEach(function () {
       this.mock.restore();
       App.db.set.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
-    it("", function () {
-      var version = Em.Object.create({
-        id: 1,
-        status: 'INIT'
-      });
-      this.mock.returns(version);
-      controller.installVersionSuccessCallback({Requests: {id: 1}}, {}, {version: version});
+    it("status is INSTALLING", function () {
       expect(version.get('status')).to.equal('INSTALLING');
+    });
+    it('valid data is saved to the localDB', function () {
       expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
+    });
+    it('clusterStatus is updated', function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
@@ -3165,7 +3177,16 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#removeHostComponentModel()", function () {
+
     beforeEach(function () {
+      App.cache['services'] = [
+        {
+          ServiceInfo: {
+            service_name: 'S1'
+          },
+          host_components: ['C1_host1']
+        }
+      ];
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           id: 'C1_host1',
@@ -3177,23 +3198,16 @@ describe('App.MainHostDetailsController', function () {
         })
       ]);
       sinon.stub(App.serviceMapper, 'deleteRecord', Em.K);
+      controller.removeHostComponentModel('C1', 'host1');
     });
     afterEach(function () {
       App.HostComponent.find.restore();
       App.serviceMapper.deleteRecord.restore();
     });
-    it("", function () {
-      App.cache['services'] = [
-        {
-          ServiceInfo: {
-            service_name: 'S1'
-          },
-          host_components: ['C1_host1']
-        }
-      ];
-      controller.removeHostComponentModel('C1', 'host1');
+    it("App.cache is updated", function () {
       expect(App.cache['services'][0].host_components).to.be.empty;
-      expect(App.HostComponent.find.calledOnce).to.be.true;
+    });
+    it('Record is deleted', function () {
       expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
     });
   });

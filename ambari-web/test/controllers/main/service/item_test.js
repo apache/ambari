@@ -234,7 +234,7 @@ describe('App.MainServiceItemController', function () {
 
   describe("#startStopPopupPrimary", function () {
 
-
+    var mainServiceItemController;
     var tests = [
       {
         data: {
@@ -283,16 +283,25 @@ describe('App.MainServiceItemController', function () {
     });
 
 
-    tests.forEach(function (test) {
-      it('', function () {
-        var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
-        mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
-        expect($.ajax.calledOnce).to.equal(true);
+    tests.forEach(function (test, index) {
 
+      function setupWithTestData() {
+        mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
+        mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
+      }
+
+      it('request is sent with valid data ' + (index + 1), function () {
+        setupWithTestData();
+        expect($.ajax.calledOnce).to.equal(true);
         expect(JSON.parse($.ajax.args[0][0].data).Body.ServiceInfo.state).to.equal(test.request.Body.ServiceInfo.state);
         expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.request.RequestInfo.context);
-
+      });
+      it('isStopDisabled is true ' + (index + 1), function () {
+        setupWithTestData();
         expect(mainServiceItemController.get('isStopDisabled')).to.equal(true);
+      });
+      it('isStartDisabled is true ' + (index + 1), function () {
+        setupWithTestData();
         expect(mainServiceItemController.get('isStartDisabled')).to.equal(true);
       });
     });

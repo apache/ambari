@@ -76,6 +76,15 @@ describe('App.WizardStep6Controller', function () {
 
   beforeEach(function () {
     controller = getController();
+    sinon.stub(App.ajax, 'send', function () {
+      return {
+        then: Em.K
+      };
+    });
+  });
+
+  afterEach(function () {
+    App.ajax.send.restore();
   });
 
   App.TestAliases.testAsComputedEqual(getController(), 'isAddHostWizard', 'content.controllerName', 'addHostController');
@@ -1311,11 +1320,6 @@ describe('App.WizardStep6Controller', function () {
           }
         ];
       });
-      sinon.stub(App.ajax, 'send', function () {
-        return {
-          then: Em.K
-        };
-      });
     });
 
     afterEach(function () {
@@ -1326,7 +1330,6 @@ describe('App.WizardStep6Controller', function () {
       App.get.restore();
       controller.getCurrentMasterSlaveBlueprint.restore();
       App.Host.find.restore();
-      App.ajax.send.restore();
     });
 
     cases.forEach(function (item) {
