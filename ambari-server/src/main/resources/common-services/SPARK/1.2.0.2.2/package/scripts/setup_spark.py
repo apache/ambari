@@ -86,5 +86,6 @@ def setup_spark(env, type, action = None):
     PropertiesFile(params.spark_thrift_server_conf_file,
       properties = params.config['configurations']['spark-thrift-sparkconf'],
       owner = params.hive_user,
+      group = params.user_group,
       key_value_delimiter = " ",
     )

@@ -19,6 +19,11 @@ limitations under the License.
 
 <configuration supports_final="true">
   <property>
+    <name>hive.metastore.client.socket.timeout</name>
+    <value>1800</value>
+    <description>MetaStore Client socket timeout in seconds</description>
+  </property>
+  <property>
   	<name>hive.metastore.client.connect.retry.delay</name>
   	<value>5</value>
     <description>
