@@ -147,10 +147,7 @@ if security_enabled:
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
 
-if 'spark-thrift-sparkconf' in config['configurations']:
-  if version is None: # set hdp version by hdp-select if "/commandParams/version" is missing
-    version = get_hdp_version('spark-thriftserver')
-  if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 :
+if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations']:
     spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
     spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
     if is_hive_installed:
