@@ -186,7 +186,7 @@ def __update_hawq_site():
     hawq_site_modifiable["enable_secure_filesystem"] = "ON"
     hawq_site_modifiable["krb_server_keyfile"] = hawq_constants.hawq_keytab_file
   else:
-    hawq_site_modifiable["enable_secure_filesystem"] = "OFF"
+    hawq_site_modifiable.pop("enable_secure_filesystem", None) # remove the entry
     hawq_site_modifiable.pop("krb_server_keyfile", None) # remove the entry
 
   XmlConfig("hawq-site.xml",
