@@ -18,30 +18,6 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-
-import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -56,7 +32,9 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
@@ -74,12 +52,41 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.newCapture;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * RequestResourceProvider tests.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ClusterControllerHelper.class})
 public class RequestResourceProviderTest {
 
   private RequestDAO requestDAO;
@@ -1097,6 +1104,89 @@ public class RequestResourceProviderTest {
     for(String key : expectedParams.keySet()) {
       Assert.assertEquals(expectedParams.get(key), capturedRequest.getParameters().get(key));
     }
+  }
+
+  @Test
+  public void testCreateResourcesForCommandWithHostPredicate() throws Exception {
+    Resource.Type type = Resource.Type.Request;
+
+    Capture<ExecuteActionRequest> actionRequest = new Capture<ExecuteActionRequest>();
+    Capture<HashMap<String, String>> propertyMap = new Capture<HashMap<String, String>>();
+    Capture<Request> requestCapture = new Capture<>();
+    Capture<Predicate> predicateCapture = new Capture<>();
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+
+    expect(managementController.createAction(capture(actionRequest),
+      capture(propertyMap))).andReturn(response).anyTimes();
+    expect(response.getMessage()).andReturn("Message").anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters);
+
+    ClusterControllerImpl controller = createNiceMock(ClusterControllerImpl.class);
+    HostComponentProcessResourceProvider hostComponentProcessResourceProvider = createNiceMock(HostComponentProcessResourceProvider.class);
+    PowerMock.mockStatic(ClusterControllerHelper.class);
+    Resource resource = createNiceMock(Resource.class);
+
+    expect(ClusterControllerHelper.getClusterController()).andReturn(controller);
+    expect(controller.ensureResourceProvider(Resource.Type.HostComponent)).andReturn(hostComponentProcessResourceProvider);
+    expect(hostComponentProcessResourceProvider.getResources(
+      capture(requestCapture), capture(predicateCapture))).andReturn(Collections.singleton(resource));
+
+    // replay
+    replay(managementController, response, controller,
+      hostComponentProcessResourceProvider, resource, clusters);
+    PowerMock.replayAll();
+
+    SecurityContextHolder.getContext().setAuthentication(
+      TestAuthenticationFactory.createAdministrator());
+
+    // add the property map to a set for the request.  add more maps for multiple creates
+    Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+
+    Map<String, Object> properties = new LinkedHashMap<String, Object>();
+
+    properties.put(RequestResourceProvider.REQUEST_CLUSTER_NAME_PROPERTY_ID, "c1");
+
+    Set<Map<String, Object>> filterSet = new HashSet<Map<String, Object>>();
+    String predicateProperty = HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID + "=true";
+    Map<String, Object> filterMap = new HashMap<String, Object>();
+    filterMap.put(RequestResourceProvider.HOSTS_PREDICATE, predicateProperty);
+    filterSet.add(filterMap);
+
+    properties.put(RequestResourceProvider.REQUEST_RESOURCE_FILTER_ID, filterSet);
+
+    propertySet.add(properties);
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(RequestResourceProvider.COMMAND_ID, "RESTART");
+    requestInfoProperties.put(RequestResourceProvider.REQUEST_CONTEXT_ID, "Restart All with Stale Configs");
+
+    // create the request
+    Request request = PropertyHelper.getCreateRequest(propertySet, requestInfoProperties);
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+      type,
+      PropertyHelper.getPropertyIds(type),
+      PropertyHelper.getKeyPropertyIds(type),
+      managementController);
+
+    provider.createResources(request);
+    ExecuteActionRequest capturedRequest = actionRequest.getValue();
+
+    Assert.assertTrue(requestCapture.hasCaptured());
+    Assert.assertTrue(predicateCapture.hasCaptured());
+    Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicateCapture.getValue());
+    String propertyIdToAssert = null;
+    Object propertyValueToAssert = null;
+    for (Map.Entry<String, Object> predicateEntry : predicateProperties.entrySet()) {
+      if (predicateEntry.getKey().equals(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID)) {
+        propertyIdToAssert = predicateEntry.getKey();
+        propertyValueToAssert = predicateEntry.getValue();
+      }
+    }
+    Assert.assertNotNull(propertyIdToAssert);
+    Assert.assertEquals("true", (String) propertyValueToAssert);
   }
 
   @Test

@@ -115,8 +115,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
   private static final int HOST_COMPONENT_HTTP_PROPERTY_REQUEST_READ_TIMEOUT = 10000;  //milliseconds
 
   //Parameters from the predicate
-  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID =
-      "params/run_smoke_test";
+  private static final String QUERY_PARAMETERS_RUN_SMOKE_TEST_ID = "params/run_smoke_test";
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID,

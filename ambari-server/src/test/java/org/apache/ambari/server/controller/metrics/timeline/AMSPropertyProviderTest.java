@@ -250,7 +250,6 @@ public class AMSPropertyProviderTest {
     resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
     Map<String, TemporalInfo> temporalInfoMap = Collections.emptyMap();
     Request request = PropertyHelper.getReadRequest(Collections.singleton(PROPERTY_ID1), temporalInfoMap);
-    System.out.println(request);
 
     // when
     Set<Resource> resources = propertyProvider.populateResources(Collections.singleton(resource), request, null);

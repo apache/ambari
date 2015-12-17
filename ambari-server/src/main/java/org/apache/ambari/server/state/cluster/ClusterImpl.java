@@ -3113,7 +3113,7 @@ public class ClusterImpl implements Cluster {
       serviceConfigEntities.remove(serviceConfig);
     }
 
-    // remove any lefover cluster configurations that don't have a service
+    // remove any leftover cluster configurations that don't have a service
     // configuration (like cluster-env)
     List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
       clusterId, stackId);
