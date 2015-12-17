@@ -89,10 +89,8 @@ angular.module('ambariAdminConsole')
     });
   };
 
-  $scope.fillClusters = function (clusters) {
-    $scope.dropDownClusters = [].concat(clusters);
-    $scope.selectedCluster = $scope.dropDownClusters[0];
-    angular.forEach(clusters, function (cluster) {
+    $scope.fillClusters = function (clusters) {
+      $scope.dropDownClusters = [].concat(clusters);
       var options = [{label: "All", value: ''}];
       angular.forEach(clusters, function (cluster) {
         options.push({
@@ -101,9 +99,10 @@ angular.module('ambariAdminConsole')
         });
       });
       $scope.filter.cluster.options = options;
-      $scope.filter.cluster.current = options[0];
-    });
-  };
+      if (!$scope.filter.cluster.current) {
+        $scope.filter.cluster.current = options[0];
+      }
+    };
 
   $scope.fetchClusters = function () {
     return Cluster.getAllClusters().then(function (clusters) {
