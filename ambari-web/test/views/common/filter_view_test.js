@@ -202,31 +202,30 @@ describe('filters.getFilterByType', function () {
   describe('date', function () {
 
     var filter = filters.getFilterByType('date');
-    var currentTime = new Date().getTime();
     var testData = [
       {
         condition: 'Past 1 Day',
-        value: currentTime - 86300000,
+        value: 86300000,
         result: true
       },
       {
         condition: 'Past 2 Days',
-        value: currentTime - 172700000,
+        value: 172700000,
         result: true
       },
       {
         condition: 'Past 7 Days',
-        value: currentTime - 604700000,
+        value: 604700000,
         result: true
       },
       {
         condition: 'Past 14 Days',
-        value: currentTime - 1209500000,
+        value: 1209500000,
         result: true
       },
       {
         condition: 'Past 30 Days',
-        value: currentTime - 2591900000,
+        value: 2591900000,
         result: true
       },
       {
@@ -238,6 +237,8 @@ describe('filters.getFilterByType', function () {
 
     testData.forEach(function(item){
       it('Condition: ' + item.condition + ' - match value: ' + item.value, function () {
+        var currentTime = App.dateTime();
+        item.value = currentTime - item.value;
         expect(filter(item.value, item.condition)).to.equal(item.result);
       })
     });

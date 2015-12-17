@@ -63,9 +63,7 @@ App.ServiceConfigGroup = DS.Model.extend({
    * defines if group is default
    * @type {boolean}
    */
-  isDefault: function() {
-    return this.get('configGroupId') == "-1";
-  }.property('configGroupId'),
+  isDefault: Em.computed.equal('configGroupId', '-1'),
 
   /**
    * list of group names that shows which config
@@ -91,17 +89,13 @@ App.ServiceConfigGroup = DS.Model.extend({
   childConfigGroups: DS.hasMany('App.ServiceConfigGroup'),
 
   hash: DS.attr('string'),
+
   /**
    * Provides a display friendly name. This includes trimming
    * names to a certain length.
    */
   displayName: function () {
-    var name = this.get('name');
-    if (name && name.length>App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-      name = name.substring(0, middle) + "..." + name.substring(name.length-middle);
-    }
-    return name;
+    return App.config.truncateGroupName(this.get('name'));
   }.property('name'),
 
   /**
@@ -112,6 +106,7 @@ App.ServiceConfigGroup = DS.Model.extend({
   /**
    * Provides hosts which are available for inclusion in
    * non-default configuration groups.
+   * @type {Array}
    */
   availableHosts: function () {
     if (this.get('isDefault')) return [];
@@ -131,6 +126,9 @@ App.ServiceConfigGroup = DS.Model.extend({
     return availableHosts;
   }.property('isDefault', 'parentConfigGroup', 'childConfigGroups', 'parentConfigGroup.hosts.@each', 'clusterHosts'),
 
+  /**
+   * @type {boolean}
+   */
   isAddHostsDisabled: Em.computed.or('isDefault', '!availableHosts.length'),
 
   /**
@@ -138,6 +136,9 @@ App.ServiceConfigGroup = DS.Model.extend({
    */
   properties: DS.attr('array', {defaultValue: []}),
 
+  /**
+   * @type {string}
+   */
   propertiesList: function () {
     var result = '';
 

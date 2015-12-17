@@ -55,11 +55,7 @@ App.AlertGroup = DS.Model.extend({
    * @type {string}
    */
   displayName: function () {
-    var name = this.get('name');
-    if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
-      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
-      name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
-    }
+    var name = App.config.truncateGroupName(this.get('name'));
     return this.get('default') ? (name + ' Default') : name;
   }.property('name', 'default'),
 

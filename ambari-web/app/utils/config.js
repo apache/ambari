@@ -51,6 +51,17 @@ App.config = Em.Object.create({
   },
 
   /**
+   * truncate Config Group name to <CONFIG_GROUP_NAME_MAX_LENGTH> length and paste "..." in the middle
+   */
+  truncateGroupName: function (name) {
+    if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+      name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+    }
+    return name;
+  },
+
+  /**
    * Check if Hive installation with new MySQL database created via Ambari is allowed
    * @param osFamily
    * @returns {boolean}

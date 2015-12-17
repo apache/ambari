@@ -323,6 +323,8 @@ var files = [
   'test/models/configs/sub_section_test',
   'test/models/configs/section_test',
   'test/models/configs/service_config_version_test',
+  'test/models/configs/config_group_test',
+  'test/models/configs/stack_config_property_test',
   'test/models/configs/objects/service_config_test',
   'test/models/configs/objects/service_config_category_test',
   'test/models/configs/objects/service_config_property_test',

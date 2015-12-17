@@ -48,3 +48,7 @@ if (!Function.prototype.bind) {
     return fBound;
   };
 }
+
+Number.isFinite = Number.isFinite || function(value) {
+  return typeof value === 'number' && isFinite(value);
+};
