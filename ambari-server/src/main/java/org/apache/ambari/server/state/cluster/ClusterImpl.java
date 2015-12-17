@@ -36,6 +36,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.Nullable;
+import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
 import org.apache.ambari.server.AmbariException;
@@ -61,7 +62,6 @@ import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterStateDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
-import org.apache.ambari.server.orm.dao.ConfigGroupHostMappingDAO;
 import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
@@ -90,8 +90,6 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
 import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
-import org.apache.ambari.server.security.authorization.ResourceType;
-import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ClusterHealthReport;
 import org.apache.ambari.server.state.Clusters;
@@ -192,9 +190,15 @@ public class ClusterImpl implements Cluster {
   private final ReentrantReadWriteLock hostTransitionStateLock = new ReentrantReadWriteLock();
   private final Lock hostTransitionStateWriteLock = hostTransitionStateLock.writeLock();
 
+  /**
+   * The backing cluster entity - this should never be cached locally.
+   */
   private ClusterEntity clusterEntity;
 
-  private long clusterId;
+  /**
+   * The unique ID of the {@link #clusterEntity}.
+   */
+  private final long clusterId;
 
   @Inject
   private ClusterDAO clusterDAO;
@@ -222,9 +226,6 @@ public class ClusterImpl implements Cluster {
 
   @Inject
   private ConfigGroupFactory configGroupFactory;
-
-  @Inject
-  private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
 
   @Inject
   private RequestExecutionFactory requestExecutionFactory;
@@ -278,6 +279,7 @@ public class ClusterImpl implements Cluster {
                      Injector injector) throws AmbariException {
     injector.injectMembers(this);
     this.clusterEntity = clusterEntity;
+    clusterId = clusterEntity.getClusterId();
 
     serviceComponentHosts = new HashMap<String,
       Map<String, Map<String, ServiceComponentHost>>>();
@@ -2165,8 +2167,9 @@ public class ClusterImpl implements Cluster {
           c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
 
           Set<DesiredConfig> configs = map.get(e.getType());
-          if (configs == null)
+          if (configs == null) {
             configs = new HashSet<>();
+          }
 
           configs.add(c);
 
@@ -2195,8 +2198,9 @@ public class ClusterImpl implements Cluster {
                 hostIdToName.get(mappingEntity.getHostId()), mappingEntity.getVersion()));
           }
 
-          for (DesiredConfig c: entry.getValue())
+          for (DesiredConfig c: entry.getValue()) {
             c.setHostOverrides(hostOverrides);
+          }
         }
       }
 
@@ -3017,21 +3021,27 @@ public class ClusterImpl implements Cluster {
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
+      ClusterEntity clusterEntity = getClusterEntity();
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
 
-      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterDAO.getClusterConfigMappingEntitiesByCluster(getClusterId());
-
-      // disable previous config
+      // disable all configs
       for (ClusterConfigMappingEntity e : configMappingEntities) {
         LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
         e.setSelected(0);
       }
 
-      List<ClusterConfigMappingEntity> clusterConfigMappingEntities = clusterDAO.getClusterConfigMappingsByStack(clusterEntity.getClusterId(), stackId);
-      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(clusterConfigMappingEntities);
+      List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
+          clusterEntity.getClusterId(), stackId);
 
+      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(
+          clusterConfigMappingsForStack);
+
+      // loop through all configs and set the latest to enabled for the
+      // specified stack
       for(ClusterConfigMappingEntity e: configMappingEntities){
-        String type = e.getType(); //loop thru all the config mappings
+        String type = e.getType();
         String tag =  e.getTag();
+
         for (ClusterConfigMappingEntity latest : latestConfigMappingByStack) {
           String t = latest.getType();
           String tagLatest = latest.getTag();
@@ -3042,7 +3052,9 @@ public class ClusterImpl implements Cluster {
         }
       }
 
-      clusterDAO.mergeConfigMappings(clusterConfigMappingEntities);
+      clusterEntity.setConfigMappingEntities(configMappingEntities);
+      clusterEntity = clusterDAO.merge(clusterEntity);
+      clusterDAO.mergeConfigMappings(configMappingEntities);
 
       refresh();
       cacheConfigurations();
@@ -3279,13 +3291,20 @@ public class ClusterImpl implements Cluster {
     // Iterate through the topology requests associated with this cluster and look for PROVISION request
     for (TopologyRequestEntity topologyRequest: topologyRequests) {
       TopologyRequest.Type requestAction = TopologyRequest.Type.valueOf(topologyRequest.getAction());
-      if (requestAction == TopologyRequest.Type.PROVISION)
+      if (requestAction == TopologyRequest.Type.PROVISION) {
         return true;
+      }
     }
 
     return false;
   }
 
+  /**
+   * Gets the {@link ClusterEntity} for this {@link Cluster} from the
+   * {@link EntityManager} cache.
+   *
+   * @return
+   */
   private ClusterEntity getClusterEntity() {
     if (!clusterDAO.isManaged(clusterEntity)) {
       clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
@@ -3293,6 +3312,3 @@ public class ClusterImpl implements Cluster {
     return clusterEntity;
   }
 }
-
-
-
