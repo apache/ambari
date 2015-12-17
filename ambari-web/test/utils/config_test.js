@@ -1068,19 +1068,4 @@ describe('App.config', function () {
       });
     });
   });
-
-  describe("#truncateGroupName()", function() {
-
-    it("name is empty", function() {
-      expect(App.config.truncateGroupName('')).to.be.empty;
-    });
-
-    it("name has less than max chars", function() {
-      expect(App.config.truncateGroupName('group1')).to.equal('group1');
-    });
-
-    it("name has more than max chars", function() {
-      expect(App.config.truncateGroupName('group_has_more_than_max_characters')).to.equal('group_has...haracters');
-    });
-  });
 });

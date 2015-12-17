@@ -254,7 +254,11 @@ App.ManageAlertGroupsController = Em.Controller.extend({
         name: group.get('name'),
         default: group.get('default'),
         displayName: function () {
-          var name = App.config.truncateGroupName(this.get('name'));
+          var name = this.get('name');
+          if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+            var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+            name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+          }
           return this.get('default') ? (name + ' Default') : name;
         }.property('name', 'default'),
         label: function () {
@@ -739,7 +743,11 @@ App.ManageAlertGroupsController = Em.Controller.extend({
           name: this.get('alertGroupName').trim(),
           default: false,
           displayName: function () {
-            var name = App.config.truncateGroupName(this.get('name'));
+            var name = this.get('name');
+            if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+              var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+              name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+            }
             return this.get('default') ? (name + ' Default') : name;
           }.property('name', 'default'),
           label: function () {

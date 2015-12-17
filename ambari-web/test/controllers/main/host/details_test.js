@@ -1816,15 +1816,20 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('serviceActiveComponents is correct', function () {
-      var components = [{}];
       controller.reopen({
-        serviceActiveComponents: components
+        serviceActiveComponents: [
+          {}
+        ]
       });
 
       var popup = controller.doRestartAllComponents();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(batchUtils.restartHostComponents.calledWith(components)).to.be.true;
+      expect(batchUtils.restartHostComponents.calledWith(
+          [
+            {}
+          ])
+      ).to.be.true;
     });
     it('serviceActiveComponents is correct, NAMENODE started', function () {
       controller.reopen({

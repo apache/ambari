@@ -45,7 +45,7 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    * Determines if notification configs should be disabled
    * @type {boolean}
    */
-  configsAreDisabled: Em.computed.equal('createNotification', 'no'),
+  configsAreDisabled: true,
 
   /**
    * Config with flag for user auth in the notification
@@ -63,7 +63,8 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
     this.set('createNotification', this.get('categoryConfigsAll').findProperty('name', 'create_notification').get('value'));
     this.set('tlsOrSsl', this.get('categoryConfigsAll').findProperty('name', 'mail.smtp.starttls.enable').get('value') ? 'tls' : 'ssl');
     var smtp_use_auth = this.get('categoryConfigsAll').findProperty('name', 'smtp_use_auth');
-    smtp_use_auth.set('value', Boolean(smtp_use_auth.get('value') === 'true'));
+    var v = (smtp_use_auth.get('value') == 'true');
+    smtp_use_auth.set('value', v);
     this.updateCategoryConfigs();
   },
 
@@ -84,15 +85,15 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    */
   onUseAuthConfigChange: function () {
     var configsToUpdate = ['ambari.dispatch.credential.username', 'ambari.dispatch.credential.password'],
-        useAuthConfigValue = this.get('useAuthConfig.value'),
-        useAuthConfigIsEditable = this.get('useAuthConfig.isEditable');
-
+      useAuthConfigValue = this.get('useAuthConfig.value'),
+      useAuthConfigIsEditable = this.get('useAuthConfig.isEditable'),
+      self = this;
     this.getWithDefault('categoryConfigs', []).forEach(function (config) {
       if (configsToUpdate.contains(config.get('name'))) {
         var flag = useAuthConfigIsEditable ? useAuthConfigValue : false;
-        this.updateConfig(config, flag);
+        self.updateConfig(config, flag);
       }
-    }, this);
+    });
   }.observes('useAuthConfig.value'),
 
   /**
@@ -102,11 +103,13 @@ App.NotificationsConfigsView = App.ServiceConfigsByCategoryView.extend({
    * @method updateCategoryConfigs
    */
   updateCategoryConfigs: function () {
-    var createNotification = this.get('createNotification');
-
+    var createNotification = this.get('createNotification'),
+      self = this;
     this.getWithDefault('categoryConfigs', []).forEach(function (config) {
-      this.updateConfig(config, Boolean(createNotification === 'yes'));
-    }, this);
+      var flag = (createNotification == 'yes');
+      self.updateConfig(config, flag);
+    });
+    this.set('configsAreDisabled', this.get('createNotification') == 'no');
     this.onUseAuthConfigChange();
     this.get('categoryConfigsAll').findProperty('name', 'create_notification').set('value', createNotification);
   }.observes('createNotification'),

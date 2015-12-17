@@ -27,20 +27,17 @@ App.MainController = Em.Controller.extend({
   userTimeOut: 0,
   userTimeOutModal: null,
 
-  /**
-   * @type {string}
-   */
-  updateTitle: function () {
-    var name = App.get('clusterName');
-    if (App.router.get('clusterInstallCompleted')) {
-      if (name && App.router.get('clusterController.isLoaded')) {
+  updateTitle: function(){
+    var name = App.router.get('clusterController.clusterName');
+    if(App.router.get('clusterInstallCompleted')) {
+      if (name && App.router.get('clusterController').get('isLoaded')) {
         name = name.length > 13 ? name.substr(0, 10) + "..." : name;
       } else {
         name = Em.I18n.t('common.loading');
       }
       $('title').text(Em.I18n.t('app.name.subtitle').format(name));
     }
-  }.observes('App.clusterName, App.router.clusterInstallCompleted', 'App.router.clusterController.isLoaded'),
+  }.observes('App.router.clusterController.clusterName, App.router.clusterInstallCompleted', 'App.router.clusterController.isLoaded'),
 
   isClusterDataLoaded: Em.computed.alias('App.router.clusterController.isLoaded'),
 
