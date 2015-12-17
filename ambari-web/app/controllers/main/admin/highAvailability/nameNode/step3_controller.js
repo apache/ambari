@@ -96,6 +96,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       urlParams.push('(type=ams-hbase-site&tag=' + amsHbaseSiteTag + ')');
       this.set("amsHbaseSiteTag", {name : "amsHbaseSiteTag", value : amsHbaseSiteTag});
     }
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      var hawqSiteTag = data.Clusters.desired_configs['hawq-site'].tag;
+      urlParams.push('(type=hawq-site&tag=' + hawqSiteTag + ')');
+      this.set("hawqSiteTag", {name : "hawqSiteTag", value : hawqSiteTag});
+    }
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,

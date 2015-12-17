@@ -120,6 +120,7 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
 
   uniqueInitializers: {
     'hbase.rootdir': '_initHbaseRootDir',
+    'hawq_dfs_url': '_initHawqDfsUrl',
     'instance.volumes': '_initInstanceVolumes',
     'instance.volumes.replacements': '_initInstanceVolumesReplacements',
     'dfs.journalnode.edits.dir': '_initDfsJnEditsDir'
@@ -274,6 +275,28 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
       var currentNameNodeHost = localDB.masterComponentHosts.filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
       value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + dependencies.namespaceId : value;
       configProperty.isVisible = configProperty.value != value;
+      Em.setProperties(configProperty, {
+        value: value,
+        recommendedValue: value
+      });
+    }
+    return configProperty;
+  },
+
+  /**
+   * Unique initializer for <code>hawq_dfs_url</code> (Hawq service)
+   *
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
+   * @param {nnHaConfigDependencies} dependencies
+   * @param {object} initializer
+   * @method _initHawqDfsUrl
+   * @return {object}
+   * @private
+   */
+  _initHawqDfsUrl: function (configProperty, localDB, dependencies, initializer) {
+    if (localDB.installedServices.contains('HAWQ')) {
+      var value = dependencies.serverConfigs.findProperty('type', 'hawq-site').properties['hawq_dfs_url'].replace(/(^.*:[0-9]+)(?=\/)/, dependencies.namespaceId);
       Em.setProperties(configProperty, {
         value: value,
         recommendedValue: value

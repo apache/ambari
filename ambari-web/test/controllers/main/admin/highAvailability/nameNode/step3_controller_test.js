@@ -56,6 +56,12 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
         properties: {
           'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data'
         }
+      },
+      {
+        type: 'hawq-site',
+        properties: {
+          'hawq_dfs_url': 'localhost:8020/hawq_default'
+        }
       }
     ]
   };
@@ -215,7 +221,7 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
       var get = sinon.stub(App, 'get');
       get.withArgs('isHadoopWindowsStack').returns(true);
       sinon.stub(App.Service, 'find', function () {
-        return [{serviceName: 'HDFS'}, {serviceName: 'HBASE'}, {serviceName: 'AMBARI_METRICS'}, {serviceName: 'ACCUMULO'}]
+        return [{serviceName: 'HDFS'}, {serviceName: 'HBASE'}, {serviceName: 'AMBARI_METRICS'}, {serviceName: 'ACCUMULO'}, {serviceName: 'HAWQ'}]
       });
     });
 
@@ -310,6 +316,13 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
           name: 'dfs.journalnode.edits.dir'
         },
         value: '/hadoop/hdfs/journalnode123'
+      },
+      {
+        config: {
+          name: 'hawq_dfs_url',
+          filename: 'hawq-site'
+        },
+        value: nameServiceId + '/hawq_default'
       }
     ]).forEach(function (test) {
       it(test.config.name, function () {
