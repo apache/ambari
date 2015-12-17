@@ -222,7 +222,7 @@ def oozie_server_specific():
   )
   
   Directory(params.oozie_webapps_conf_dir,
-            user = params.oozie_user,
+            owner = params.oozie_user,
             group = params.user_group,
             recursive_ownership = True,
             recursion_follow_links = True,

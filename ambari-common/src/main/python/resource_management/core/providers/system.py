@@ -41,6 +41,7 @@ def assert_not_safemode_folder(path, safemode_folders):
 
 def _ensure_metadata(path, user, group, mode=None, cd_access=None, recursive_ownership=False, recursive_mode_flags=None, recursion_follow_links=False, safemode_folders=[]):
   user_entity = group_entity = None
+  _user_entity = _group_entity = None
 
   if user or group:
     stat = sudo.stat(path)
