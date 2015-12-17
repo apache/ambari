@@ -20,6 +20,21 @@ var App = require('app');
 require('utils/configs/config_initializer_class');
 
 /**
+ * Settings for <code>rm_hosts_with_port</code> initializer
+ * Used for configs that have to be updated with Yarn Resourcemanager HA hosts
+ * addresses and a port to the <code>rmhost1:port,rmhost2:port</code>
+ *
+ * @param {int} port
+ * @returns {{type: string, port: *}}
+ */
+function getRmHaHostsWithPort(port) {
+  return {
+    type: 'rm_hosts_with_port',
+    port: port
+  };
+}
+
+/**
  * Initializer for configs that are updated when Resource Manager HA-mode is activated
  *
  * @class {RmHaConfigInitializer}
@@ -33,7 +48,37 @@ App.RmHaConfigInitializer = App.HaConfigInitializerClass.create({
     'yarn.resourcemanager.webapp.address.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'webAddressPort', true),
     'yarn.resourcemanager.webapp.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'webAddressPort', true),
     'yarn.resourcemanager.webapp.https.address.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),
-    'yarn.resourcemanager.webapp.https.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true)
+    'yarn.resourcemanager.webapp.https.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true),
+    'yarn.resourcemanager.ha': getRmHaHostsWithPort(8032),
+    'yarn.resourcemanager.scheduler.ha': getRmHaHostsWithPort(8030)
+  },
+
+  initializerTypes: [
+    {name: 'rm_hosts_with_port', method: '_initRmHaHostsWithPort'},
+  ],
+  
+  /**
+   * Initializer for configs that should be updated with yarn resourcemanager ha host addresses with port
+   *
+   * @param {configProperty} configProperty
+   * @param {extendedTopologyLocalDB} localDB
+   * @param {HaConfigDependencies} dependencies
+   * @param {object} initializer
+   * @returns {object}
+   * @private
+   * @method _initRmHaHostsWithPort
+   */
+  _initRmHaHostsWithPort: function (configProperty, localDB, dependencies, initializer) {
+    var rmHosts = localDB.masterComponentHosts.filterProperty('component', 'RESOURCEMANAGER').getEach('hostName');
+    for (rmHost in rmHosts) {
+      rmHosts[rmHost] = rmHosts[rmHost] + ":" + initializer.port;
+    }
+    var value = rmHosts.join(',');
+    Em.setProperties(configProperty, {
+      'value': value,
+      'recommendedValue': value
+    });
+   return configProperty;
   }
 
 });
