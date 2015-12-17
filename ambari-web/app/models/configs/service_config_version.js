@@ -22,6 +22,8 @@ var dateUtil = require('utils/date/date');
 
 
 App.ServiceConfigVersion = DS.Model.extend({
+  MAX_AUTHOR_LENGTH: 20,
+  MAX_NOTES_LENGTH: 80,
   serviceName: DS.attr('string'),
   displayName: Em.computed.formatRole('serviceName'),
   groupName: DS.attr('string'),
@@ -41,36 +43,79 @@ App.ServiceConfigVersion = DS.Model.extend({
   canBeMadeCurrent: Em.computed.and('isCompatible', '!isCurrent'),
   isDefault: Em.computed.equal('groupName', 'default'),
   currentTooltip: Em.computed.i18nFormat('dashboard.configHistory.table.current.tooltip', 'displayName', 'configGroupName'),
+
+  /**
+   * @type {string}
+   */
   configGroupName: function () {
     return this.get('isDefault') ? Em.I18n.t('common.default') : this.get('groupName');
   }.property('groupName','isDefault'),
+
+  /**
+   * @type {string}
+   */
   authorFormatted: function () {
     var author = this.get('author');
     if (author) {
-      return author.length > 20 ? author.slice(0, 20) + '...' : author;
+      return author.length > this.get('MAX_AUTHOR_LENGTH') ? author.slice(0, this.get('MAX_AUTHOR_LENGTH')) + '...' : author;
     }
   }.property('author'),
+
+  /**
+   * @type {string}
+   */
   fullNotes: function () {
-    return (typeof this.get('notes') === 'string') ? this.get('notes') || Em.I18n.t('dashboard.configHistory.table.notes.no') : Em.I18n.t('dashboard.configHistory.table.notes.no');
+    return (typeof this.get('notes') === 'string') ?
+           (this.get('notes') || Em.I18n.t('dashboard.configHistory.table.notes.no')) :
+           Em.I18n.t('dashboard.configHistory.table.notes.no');
   }.property('notes'),
+
+  /**
+   * @type {string}
+   */
   briefNotes: function () {
-    return this.get('fullNotes').slice(0, 81);
+    return this.get('fullNotes').slice(0, (this.get('MAX_NOTES_LENGTH') + 1));
   }.property('fullNotes'),
+
+  /**
+   * @type {boolean}
+   */
   moreNotesExists: function () {
-    return (typeof this.get('notes') === 'string') ?  this.get('notes').length > 80 : false;
+    return (typeof this.get('notes') === 'string') && this.get('notes').length > this.get('MAX_NOTES_LENGTH');
   }.property('notes'),
+
+  /**
+   * @type {string}
+   */
   versionText: Em.computed.i18nFormat('dashboard.configHistory.table.version.versionText', 'version'),
+
+  /**
+   * @type {string}
+   */
   makeCurrentButtonText: Em.computed.i18nFormat('dashboard.configHistory.info-bar.revert.versionButton', 'versionText'),
+
+  /**
+   * @type {string}
+   */
   createdDate: function () {
     return dateUtil.dateFormat(this.get('createTime'));
   }.property('createTime'),
+
+  /**
+   * @type {string}
+   */
   timeSinceCreated: function () {
     return $.timeago(this.get('rawCreateTime'));
   }.property('rawCreateTime'),
+
   /**
    * determine whether ServiceConfigVersion is requested from server
    */
   isRequested: DS.attr('boolean'),
+
+  /**
+   * @type {boolean}
+   */
   isRestartRequired: function () {
     if (this.get('service.isRestartRequired') && this.get('isCurrent')) {
       var hostNames = this.get('hosts');
@@ -83,6 +128,10 @@ App.ServiceConfigVersion = DS.Model.extend({
     }
     return false;
   }.property('service.isRestartRequired','isDefault', 'isCurrent', 'hosts', 'service.restartRequiredHostsAndComponents', 'router.mainServiceInfoConfigsController.configGroups'),
+
+  /**
+   * {{view: string, compare: string, revert: string}} disabledActionMessages
+   */
   disabledActionMessages: function () {
     return {
       view: (this.get('isDisplayed')) ? Em.I18n.t('dashboard.configHistory.info-bar.view.button.disabled') : '',
@@ -90,6 +139,10 @@ App.ServiceConfigVersion = DS.Model.extend({
       revert: (this.get('isCurrent')) ? Em.I18n.t('dashboard.configHistory.info-bar.revert.button.disabled') : ''
     }
   }.property('isDisplayed', 'isCurrent'),
+
+  /**
+   * {{view: (string|boolean), compare: (string|boolean), revert: (string|boolean)}} disabledActionAttr
+   */
   disabledActionAttr: function () {
     return {
       view: (this.get('isDisplayed')) ? 'disabled' : false,
