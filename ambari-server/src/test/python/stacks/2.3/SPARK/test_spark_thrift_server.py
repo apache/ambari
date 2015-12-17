@@ -143,6 +143,7 @@ class TestSparkThriftServer(RMFTestCase):
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-thrift-sparkconf.conf',
         key_value_delimiter = ' ',
         owner = 'hive',
+        group = 'hadoop',
         properties = self.getConfig()['configurations']['spark-thrift-sparkconf']
     )
 

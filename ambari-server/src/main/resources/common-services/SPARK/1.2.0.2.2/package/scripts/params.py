@@ -160,7 +160,6 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
     # update default metastore client properties (async wait for metastore component) it is useful in case of
     # blueprint provisioning when hive-metastore and spark-thriftserver is not on the same host.
     spark_hive_properties.update({
-      'hive.metastore.connect.retries' : config['configurations']['hive-site']['hive.metastore.connect.retries'],
       'hive.metastore.client.socket.timeout' : config['configurations']['hive-site']['hive.metastore.client.socket.timeout']
     })
     spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
