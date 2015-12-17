@@ -1430,7 +1430,349 @@ public class ServiceResourceProviderTest {
     // verify
     verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
   }
+  
+  @Test
+  public void testYARNServiceState_STARTED_HA1() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
 
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "STARTED", "", null, null, null);
+
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+    responses.add(shr5);
+    responses.add(shr6);
+    responses.add(shr7);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+  
+  @Test
+  public void testYARNServiceState_STARTED_HA2() throws Exception{
+	AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+    responses.add(shr5);
+    responses.add(shr6);
+    responses.add(shr7);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+    (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);              
+  }
+
+  @Test
+  public void testYARNServiceState_INSTALLED_HA3() throws Exception{
+	AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+    responses.add(shr5);
+    responses.add(shr6);
+    responses.add(shr7);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+    
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+          (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.INSTALLED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);            
+  }
+  
+  @Test
+  public void testYARNServiceState_INSTALLED_HA4() throws Exception{
+	AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr5 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr6 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host101", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr7 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host101", "INSTALLED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+    responses.add(shr5);
+    responses.add(shr6);
+    responses.add(shr7);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+    (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.INSTALLED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);     	  
+  }
+  
+  @Test
+  public void testYARNServiceState_INSTALLED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "INSTALLED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.INSTALLED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);            
+  }
+  
+  @Test
+  public void testYARNServiceState_STARTED() throws Exception{
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("C1", "YARN", "APP_TIMELINE_SERVER", "Host100",  "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr2 = new ServiceComponentHostResponse("C1", "YARN", "RESOURCEMANAGER", "Host100", "STARTED", "", null, null, null);
+    ServiceComponentHostResponse shr3 = new ServiceComponentHostResponse("C1", "YARN", "YARN_CLIENT", "Host100", "INSTALLED", "", null, null, null);
+    ServiceComponentHostResponse shr4 = new ServiceComponentHostResponse("C1", "YARN", "NODEMANAGER", "Host100", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new LinkedHashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+    responses.add(shr2);
+    responses.add(shr3);
+    responses.add(shr4);
+
+    // set expectations
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("C1")).andReturn(cluster).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+
+    expect(stackId.getStackName()).andReturn("S1").anyTimes();
+    expect(stackId.getStackVersion()).andReturn("V1").anyTimes();
+
+
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+        (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(true);
+    expect(componentInfo.isMaster()).andReturn(false);
+    expect(componentInfo.isMaster()).andReturn(false);
+
+    // replay
+    replay(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+
+    ServiceResourceProvider.ServiceState serviceState = new ServiceResourceProvider.YARNServiceState();
+
+    State state = serviceState.getState(managementController, "C1", "YARN");
+    Assert.assertEquals(State.STARTED, state);
+
+    // verify
+    verify(managementController, clusters, cluster, ambariMetaInfo, stackId, componentInfo);
+  }
+  
   @Test
   public void testHiveServiceState_INSTALLED() throws Exception {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
