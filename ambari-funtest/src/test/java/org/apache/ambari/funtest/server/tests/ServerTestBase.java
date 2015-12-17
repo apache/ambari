@@ -20,32 +20,43 @@ package org.apache.ambari.funtest.server.tests;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.funtest.server.LocalAmbariServer;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.funtest.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.controller.ControllerModule;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 
+import java.io.File;
 import java.io.IOException;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLNonTransientConnectionException;
 import java.util.Properties;
 
 /**
  * Base test infrastructure.
  */
 public class ServerTestBase {
+    private static Log LOG = LogFactory.getLog(ServerTestBase.class);
+
     /**
      * Run the ambari server on a thread.
      */
-    protected Thread serverThread = null;
+    protected static Thread serverThread = null;
 
     /**
      * Instance of the local ambari server, which wraps the actual
      * ambari server with test configuration.
      */
-    protected LocalAmbariServer server = null;
+    protected static LocalAmbariServer server = null;
 
     /**
      * Server port
@@ -60,7 +71,7 @@ public class ServerTestBase {
     /**
      * Guice injector using an in-memory DB.
      */
-    protected Injector injector = null;
+    protected static Injector injector = null;
 
     /**
      * Server URL
@@ -68,36 +79,55 @@ public class ServerTestBase {
     protected static String SERVER_URL_FORMAT = "http://localhost:%d";
 
     /**
-     * Start our local server on a thread so that it does not block.
-     *
+     * Initialize the AmbariServer and database once for the entire
+     * duration of the tests since AmbariServer is a singleton.
+     */
+    private static boolean isInitialized;
+
+    /**
+     * Create and populate the DB. Start the AmbariServer.
      * @throws Exception
      */
-    @Before
-    public void setup() throws Exception {
-        InMemoryDefaultTestModule testModule = new InMemoryDefaultTestModule();
-        Properties properties = testModule.getProperties();
-        properties.setProperty(Configuration.AGENT_USE_SSL, "false");
-        properties.setProperty(Configuration.CLIENT_API_PORT_KEY, Integer.toString(serverPort));
-        properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT_KEY, Integer.toString(serverAgentPort));
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        testModule.getProperties().setProperty(Configuration.SRVR_KSTR_DIR_KEY, tmpDir);
-        injector = Guice.createInjector(testModule);
-        server = injector.getInstance(LocalAmbariServer.class);
-        serverThread = new Thread(server);
-        serverThread.start();
-        waitForServer();
+    @BeforeClass
+    public static void setupTest() throws Exception {
+        if (!isInitialized) {
+            Properties properties = new Properties();
+            properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
+            properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
+            properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
+            properties.setProperty(Configuration.METADATA_DIR_PATH, "src/test/resources/stacks");
+            properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
+            properties.setProperty(Configuration.OS_VERSION_KEY, "centos6");
+            properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
+
+            properties.setProperty(Configuration.AGENT_USE_SSL, "false");
+            properties.setProperty(Configuration.CLIENT_API_PORT_KEY, Integer.toString(serverPort));
+            properties.setProperty(Configuration.SRVR_ONE_WAY_SSL_PORT_KEY, Integer.toString(serverAgentPort));
+            String tmpDir = System.getProperty("java.io.tmpdir");
+            properties.setProperty(Configuration.SRVR_KSTR_DIR_KEY, tmpDir);
+
+            ControllerModule testModule = new ControllerModule(properties);
+
+            injector = Guice.createInjector(testModule);
+            injector.getInstance(PersistService.class).start();
+            initDB();
+
+            server = injector.getInstance(LocalAmbariServer.class);
+            serverThread = new Thread(server);
+            serverThread.start();
+            waitForServer();
+
+            isInitialized = true;
+        }
     }
 
-    private String getUserName() {
-        return "admin";
-    }
-
-    private String getPassword() {
-        return "admin";
-    }
-
-    protected String getBasicAuthentication() {
-        String authString = getUserName() + ":" + getPassword();
+    /**
+     * Creates the basic authentication string for admin:admin
+     *
+     * @return
+     */
+    protected static String getBasicAdminAuthentication() {
+        String authString = getAdminUserName() + ":" + getAdminPassword();
         byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
         String authStringEnc = new String(authEncBytes);
 
@@ -105,11 +135,70 @@ public class ServerTestBase {
     }
 
     /**
+     * Creates the DB and populates it.
+     *
+     * @throws IOException
+     * @throws SQLException
+     */
+    protected static void initDB() throws IOException, SQLException {
+        createSourceDatabase();
+    }
+
+    /**
+     * Drops the Derby DB.
+     *
+     * @throws ClassNotFoundException
+     * @throws SQLException
+     */
+    protected static void dropDatabase() throws ClassNotFoundException, SQLException {
+        String DROP_DERBY_URL = "jdbc:derby:memory:myDB/ambari;drop=true";
+        Class.forName(Configuration.JDBC_IN_MEMROY_DRIVER);
+        try {
+            DriverManager.getConnection(DROP_DERBY_URL);
+        } catch (SQLNonTransientConnectionException ignored) {
+            LOG.info("Database dropped ", ignored); //error 08006 expected
+        }
+    }
+
+    /**
+     * Executes Ambari-DDL-Derby-CREATE.sql
+     *
+     * @throws IOException
+     * @throws SQLException
+     */
+    private static void createSourceDatabase() throws IOException, SQLException {
+        //create database
+        File projectDir = new File(System.getProperty("user.dir"));
+        File ddlFile = new File(projectDir.getParentFile(), "ambari-server/src/main/resources/Ambari-DDL-Derby-CREATE.sql");
+        String ddlFilename = ddlFile.getPath();
+        DBAccessor dbAccessor = injector.getInstance(DBAccessor.class);
+        dbAccessor.executeScript(ddlFilename);
+    }
+
+    /**
+     * Gets the default administration user name
+     *
+     * @return
+     */
+    protected static String getAdminUserName() {
+        return "admin";
+    }
+
+    /**
+     * Gets the default administrator password
+     *
+     * @return
+     */
+    protected static String getAdminPassword() {
+        return "admin";
+    }
+
+    /**
      * Waits for the local server until it is ready to accept requests.
      *
      * @throws Exception
      */
-    private void waitForServer() throws Exception {
+    private static void waitForServer() throws Exception {
         int count = 1;
 
         while (!isServerUp()) {
@@ -126,7 +215,7 @@ public class ServerTestBase {
      * @return - True if the local server is responsive to queries.
      *           False, otherwise.
      */
-    private boolean isServerUp() {
+    private static boolean isServerUp() {
         String apiPath = "/api/v1/stacks";
 
         String apiUrl = String.format(SERVER_URL_FORMAT, serverPort) + apiPath;
@@ -134,7 +223,7 @@ public class ServerTestBase {
         GetMethod getMethod = new GetMethod(apiUrl);
 
         try {
-            getMethod.addRequestHeader("Authorization", getBasicAuthentication());
+            getMethod.addRequestHeader("Authorization", getBasicAdminAuthentication());
             getMethod.addRequestHeader("X-Requested-By", "ambari");
             int statusCode = httpClient.executeMethod(getMethod);
             String response = getMethod.getResponseBodyAsString();
@@ -150,17 +239,21 @@ public class ServerTestBase {
     }
 
     /**
-     * Shut down the local server.
+     * Perform common initialization for each test case.
+     *
+     * @throws Exception
+     */
+    @Before
+    public void setup() throws Exception {
+
+    }
+
+    /**
+     * Perform common clean up for each test case.
      *
      * @throws Exception
      */
     @After
     public void teardown() throws Exception {
-        if (serverThread != null) {
-            serverThread.interrupt();
-        }
-        if (server != null) {
-            server.stopServer();
-        }
     }
 }

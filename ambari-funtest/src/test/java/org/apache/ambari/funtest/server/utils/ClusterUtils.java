@@ -23,6 +23,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.apache.ambari.funtest.server.AmbariUserRole;
 import org.apache.ambari.funtest.server.ClusterConfigParams;
 import org.apache.ambari.funtest.server.ConnectionParams;
 import org.apache.ambari.funtest.server.WebRequest;
@@ -31,6 +32,7 @@ import org.apache.ambari.funtest.server.api.cluster.AddDesiredConfigurationWebRe
 import org.apache.ambari.funtest.server.api.cluster.CreateClusterWebRequest;
 import org.apache.ambari.funtest.server.api.cluster.CreateConfigurationWebRequest;
 import org.apache.ambari.funtest.server.api.cluster.GetRequestStatusWebRequest;
+import org.apache.ambari.funtest.server.api.cluster.SetUserPrivilegeWebRequest;
 import org.apache.ambari.funtest.server.api.host.AddHostWebRequest;
 import org.apache.ambari.funtest.server.api.host.RegisterHostWebRequest;
 import org.apache.ambari.funtest.server.api.service.AddServiceWebRequest;
@@ -38,16 +40,23 @@ import org.apache.ambari.funtest.server.api.service.InstallServiceWebRequest;
 import org.apache.ambari.funtest.server.api.servicecomponent.AddServiceComponentWebRequest;
 import org.apache.ambari.funtest.server.api.servicecomponenthost.BulkAddServiceComponentHostsWebRequest;
 import org.apache.ambari.funtest.server.api.servicecomponenthost.BulkSetServiceComponentHostStateWebRequest;
+import org.apache.ambari.funtest.server.api.user.CreateUserWebRequest;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.State;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClusterUtils {
+
+    private static Log LOG = LogFactory.getLog(ClusterUtils.class);
 
     @Inject
     private Injector injector;
@@ -58,6 +67,11 @@ public class ClusterUtils {
         String clusterName = "c1";
         String hostName = "host1";
         String clusterVersion = "HDP-2.2.0";
+
+        /**
+         * Create a cluster
+         */
+        jsonResponse = RestApiUtils.executeRequest(new CreateClusterWebRequest(serverParams, clusterName, clusterVersion));
 
         /**
          * Register a host
@@ -79,11 +93,6 @@ public class ClusterUtils {
             host1.setHostAttributes(hostAttributes);
             host1.persist();
         }
-
-        /**
-         * Create a cluster
-         */
-        jsonResponse = RestApiUtils.executeRequest(new CreateClusterWebRequest(serverParams, clusterName, clusterVersion));
 
         /**
          * Add the registered host to the new cluster
@@ -145,8 +154,10 @@ public class ClusterUtils {
          */
         jsonResponse = RestApiUtils.executeRequest(new BulkSetServiceComponentHostStateWebRequest(serverParams,
                     clusterName, State.INIT, State.INSTALLED));
-        int requestId = parseRequestId(jsonResponse);
-        RequestStatusPoller.poll(serverParams, clusterName, requestId);
+        if (!jsonResponse.isJsonNull()) {
+            int requestId = parseRequestId(jsonResponse);
+            RequestStatusPoller.poll(serverParams, clusterName, requestId);
+        }
 
         /**
          * Start the service component hosts
@@ -154,13 +165,112 @@ public class ClusterUtils {
 
         jsonResponse = RestApiUtils.executeRequest(new BulkSetServiceComponentHostStateWebRequest(serverParams,
                 clusterName, State.INSTALLED, State.STARTED));
-        requestId = parseRequestId(jsonResponse);
-        RequestStatusPoller.poll(serverParams, clusterName, requestId);
+        if (!jsonResponse.isJsonNull()) {
+            int requestId = parseRequestId(jsonResponse);
+            RequestStatusPoller.poll(serverParams, clusterName, requestId);
+        }
 
         /**
          * Start the service
          */
         //jsonResponse = RestApiUtils.executeRequest(new StartServiceWebRequest(serverParams, clusterName, serviceName));
+    }
+
+    /**
+     * Creates a user with the specified role.
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @param userRole
+     * @throws Exception
+     */
+    public static void createUser(ConnectionParams connectionParams, String clusterName,String userName,
+                                 String password, AmbariUserRole userRole ) throws Exception {
+        JsonElement jsonResponse;
+
+        jsonResponse = RestApiUtils.executeRequest(new CreateUserWebRequest(connectionParams, userName, password,
+                CreateUserWebRequest.ActiveUser.TRUE, CreateUserWebRequest.AdminUser.FALSE));
+
+        LOG.info(jsonResponse);
+
+        if (userRole != AmbariUserRole.NONE) {
+            jsonResponse = RestApiUtils.executeRequest(new SetUserPrivilegeWebRequest(connectionParams,
+                    clusterName, userName, userRole, PrincipalTypeEntity.USER_PRINCIPAL_TYPE_NAME));
+
+            LOG.info(jsonResponse);
+        }
+    }
+
+    /**
+     * Creates a user with CLUSTER.USER privilege.
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @throws Exception
+     */
+    public static void createUserClusterUser(ConnectionParams connectionParams, String clusterName,
+                                              String userName, String password) throws Exception {
+        createUser(connectionParams, clusterName, userName, password, AmbariUserRole.CLUSTER_USER);
+    }
+
+    /**
+     * Creates a user with SERVICE.OPERATOR privilege
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @throws Exception
+     */
+    public static void createUserServiceOperator(ConnectionParams connectionParams, String clusterName,
+                                              String userName, String password) throws Exception {
+        createUser(connectionParams, clusterName, userName, password, AmbariUserRole.SERVICE_OPERATOR);
+    }
+
+    /**
+     * Creates a user with SERVICE.ADMINISTRATOR privilege
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @throws Exception
+     */
+    public static void createUserServiceAdministrator(ConnectionParams connectionParams, String clusterName,
+                                              String userName, String password) throws Exception {
+        createUser(connectionParams, clusterName, userName, password, AmbariUserRole.SERVICE_ADMINISTRATOR);
+    }
+
+    /**
+     * Creates a user with CLUSTER.OPERATOR privilege
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @throws Exception
+     */
+    public static void createUserClusterOperator(ConnectionParams connectionParams, String clusterName,
+                                              String userName, String password) throws Exception {
+        createUser(connectionParams, clusterName, userName, password, AmbariUserRole.CLUSTER_OPERATOR);
+    }
+
+    /**
+     * Creates a user with CLUSTER.ADMINISTRATOR privilege.
+     *
+     * @param connectionParams
+     * @param clusterName
+     * @param userName
+     * @param password
+     * @throws Exception
+     */
+    public static void createUserClusterAdministrator(ConnectionParams connectionParams, String clusterName,
+                                              String userName, String password) throws Exception {
+        createUser(connectionParams, clusterName, userName, password, AmbariUserRole.CLUSTER_ADMINISTRATOR);
     }
 
     /**

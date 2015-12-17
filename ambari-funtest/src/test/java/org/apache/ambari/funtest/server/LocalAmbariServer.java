@@ -19,9 +19,7 @@
 package org.apache.ambari.funtest.server;
 
 import com.google.inject.Inject;
-import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.controller.AmbariServer;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.google.inject.Injector;
@@ -68,7 +66,6 @@ public class LocalAmbariServer implements Runnable {
       LOG.info("Attempting to start ambari server...");
 
       AmbariServer.setupProxyAuth();
-      injector.getInstance(GuiceJpaInitializer.class);
       ambariServer = injector.getInstance(AmbariServer.class);
       ambariServer.initViewRegistry();
       ambariServer.run();
@@ -90,10 +87,6 @@ public class LocalAmbariServer implements Runnable {
 
     if (ambariServer != null) {
       ambariServer.stop();
-    }
-
-    if (injector != null) {
-        injector.getInstance(PersistService.class).stop();
     }
   }
 }

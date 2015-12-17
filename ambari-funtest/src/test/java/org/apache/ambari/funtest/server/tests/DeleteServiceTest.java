@@ -22,6 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.apache.ambari.funtest.server.ConnectionParams;
 import org.apache.ambari.funtest.server.WebResponse;
+import org.apache.ambari.funtest.server.api.cluster.DeleteClusterWebRequest;
 import org.apache.ambari.funtest.server.api.service.DeleteServiceWebRequest;
 import org.apache.ambari.funtest.server.api.service.GetServiceWebRequest;
 import org.apache.ambari.funtest.server.api.service.StopServiceWebRequest;
@@ -43,7 +44,8 @@ import org.apache.ambari.server.state.State;
 
 import org.apache.commons.httpclient.HttpStatus;
 
-import org.junit.Ignore;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
 
 import java.util.List;
@@ -56,8 +58,10 @@ import static org.junit.Assert.assertTrue;
  * Simple test that starts the local ambari server,
  * tests it's status and shuts down the server.
  */
-@Ignore
 public class DeleteServiceTest extends ServerTestBase {
+
+    private static Log LOG = LogFactory.getLog(DeleteServiceTest.class);
+
     /**
      * Set up a test cluster with a service, a host and a few components.
      * Attempt to delete the service. Verify the state of the DB.
@@ -193,5 +197,9 @@ public class DeleteServiceTest extends ServerTestBase {
          */
         hostComponentDesiredStateEntities = hostComponentDesiredStateDAO.findAll();
         assertEquals(hostComponentDesiredStateEntities.size(), 0);
+
+        jsonResponse = RestApiUtils.executeRequest(new DeleteClusterWebRequest(params, clusterName));
+
+        LOG.info(jsonResponse);
     }
 }

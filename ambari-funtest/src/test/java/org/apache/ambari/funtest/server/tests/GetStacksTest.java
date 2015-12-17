@@ -18,7 +18,6 @@
 
 package org.apache.ambari.funtest.server.tests;
 
-import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;
@@ -39,10 +38,9 @@ import java.io.IOException;
 import org.apache.http.HttpStatus;
 
 /**
- * Simple test that starts the local ambari server,
- * tests it's status and shuts down the server.
+ * Simple test to get the list of stacks. Does not touch the DB.
  */
-public class StartStopServerTest extends ServerTestBase {
+public class GetStacksTest extends ServerTestBase {
   /**
    * Waits for the ambari server to startup and then checks it's
    * status by querying /api/v1/stacks (does not touch the DB)
@@ -75,7 +73,7 @@ public class StartStopServerTest extends ServerTestBase {
     GetMethod getMethod = new GetMethod(stacksUrl);
 
     try {
-      getMethod.addRequestHeader("Authorization", getBasicAuthentication());
+      getMethod.addRequestHeader("Authorization", getBasicAdminAuthentication());
       getMethod.addRequestHeader("X-Requested-By", "ambari");
       int statusCode = httpClient.executeMethod(getMethod);
 
