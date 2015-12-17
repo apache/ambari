@@ -137,6 +137,7 @@
         </executions>
       </plugin>
       <plugin>
+        <inherited>false</inherited>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
