@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -48,6 +48,8 @@ import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.alert.AlertGroup;
 import org.apache.ambari.server.state.alert.AlertTarget;
@@ -63,7 +65,7 @@ import com.google.inject.Inject;
  */
 @StaticallyInject
 public class AlertTargetResourceProvider extends
- AbstractResourceProvider {
+ AbstractAuthorizedResourceProvider {
 
   protected static final String ALERT_TARGET = "AlertTarget";
   protected static final String ALERT_TARGET_ID = "AlertTarget/id";
@@ -122,10 +124,18 @@ public class AlertTargetResourceProvider extends
    */
   AlertTargetResourceProvider() {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS);
+
+    // For now only allow an Ambari administrator to create, update, and manage Alert Targets.
+    // If an alert target can associated with a particular cluster, than a cluster administrator
+    // should be able to do this as well.
+    EnumSet<RoleAuthorization> requiredAuthorizations = EnumSet.of(RoleAuthorization.CLUSTER_MANAGE_ALERTS);
+    setRequiredCreateAuthorizations(requiredAuthorizations);
+    setRequiredUpdateAuthorizations(requiredAuthorizations);
+    setRequiredDeleteAuthorizations(requiredAuthorizations);
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
+  protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
       UnsupportedPropertyException, ResourceAlreadyExistsException,
       NoSuchParentResourceException {
@@ -173,7 +183,7 @@ public class AlertTargetResourceProvider extends
   }
 
   @Override
-  public RequestStatus updateResources(final Request request,
+  protected RequestStatus updateResourcesAuthorized(final Request request,
       Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
@@ -202,7 +212,7 @@ public class AlertTargetResourceProvider extends
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
       NoSuchResourceException, NoSuchParentResourceException {
 
@@ -237,6 +247,11 @@ public class AlertTargetResourceProvider extends
   @Override
   protected Set<String> getPKPropertyIds() {
     return PK_PROPERTY_IDS;
+  }
+
+  @Override
+  protected ResourceType getResourceType(Request request, Predicate predicate) {
+    return ResourceType.AMBARI;
   }
 
   /**
@@ -341,7 +356,7 @@ public class AlertTargetResourceProvider extends
   /**
    * Updates existing {@link AlertTargetEntity}s with the specified properties.
    *
-   * @param requestMaps
+   * @param requestMap
    *          a set of property maps, one map for each entity.
    * @throws AmbariException
    *           if the entity could not be found.

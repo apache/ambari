@@ -95,7 +95,7 @@ public class DefaultProviderModule extends AbstractProviderModule {
       case AlertGroup:
         return new AlertGroupResourceProvider(managementController);
       case AlertNotice:
-        return new AlertNoticeResourceProvider();
+        return new AlertNoticeResourceProvider(managementController);
       case Upgrade:
         return new UpgradeResourceProvider(managementController);
       case UpgradeGroup:

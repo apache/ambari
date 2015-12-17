@@ -170,7 +170,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_STATUS_INFO'", "'View status information'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_CONFIGS'", "'View configurations'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.COMPARE_CONFIGS'", "'Compare configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_ALERTS'", "'View service alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.VIEW_ALERTS'", "'View service-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.START_STOP'", "'Start/Stop/Restart Service'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.DECOMMISSION_RECOMMISSION'", "'Decommission/recommission'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.RUN_SERVICE_CHECK'", "'Run service checks'"}, false);
@@ -178,9 +178,10 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.RUN_CUSTOM_COMMAND'", "'Perform service-specific tasks'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MODIFY_CONFIGS'", "'Modify configurations'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MANAGE_CONFIG_GROUPS'", "'Manage configuration groups'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MANAGE_ALERTS'", "'Manage service-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.MOVE'", "'Move to another host'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.ENABLE_HA'", "'Enable HA'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.TOGGLE_ALERTS'", "'Enable/disable service alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.TOGGLE_ALERTS'", "'Enable/disable service-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'SERVICE.ADD_DELETE_SERVICES'", "'Add Service to cluster'"}, false);
 
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'HOST.VIEW_METRICS'", "'View metrics'"}, false);
@@ -194,10 +195,11 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_STATUS_INFO'", "'View status information'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_CONFIGS'", "'View configuration'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_STACK_DETAILS'", "'View stack version details'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_ALERTS'", "'View alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.VIEW_ALERTS'", "'View cluster-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_CREDENTIALS'", "'Manage external credentials'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MODIFY_CONFIGS'", "'Modify cluster configurations'"}, false);
-    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_ALERTS'", "'Enable/disable alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.MANAGE_ALERTS'", "'Manage cluster-level alerts'"}, false);
+    dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_ALERTS'", "'Enable/disable cluster-level alerts'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.TOGGLE_KERBEROS'", "'Enable/disable Kerberos'"}, false);
     dbAccessor.insertRow(ROLE_AUTHORIZATION_TABLE, columnNames, new String[]{"'CLUSTER.UPGRADE_DOWNGRADE_STACK'", "'Upgrade/downgrade stack'"}, false);
 
@@ -274,6 +276,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("SERVICE.MODIFY_CONFIGS", serviceAdministratorAndUp);
     map.put("SERVICE.MANAGE_CONFIG_GROUPS", serviceAdministratorAndUp);
     map.put("CLUSTER.MANAGE_CONFIG_GROUPS", serviceAdministratorAndUp);
+    map.put("SERVICE.MANAGE_ALERTS", serviceAdministratorAndUp);
     map.put("SERVICE.MOVE", serviceAdministratorAndUp);
     map.put("SERVICE.ENABLE_HA", serviceAdministratorAndUp);
     map.put("SERVICE.TOGGLE_ALERTS", serviceAdministratorAndUp);
@@ -291,6 +294,7 @@ public class UpgradeCatalog230 extends AbstractUpgradeCatalog {
     map.put("CLUSTER.VIEW_ALERTS", clusterUserAndUp);
     map.put("CLUSTER.MANAGE_CREDENTIALS", clusterAdministratorAndUp);
     map.put("CLUSTER.MODIFY_CONFIGS", clusterAdministratorAndUp);
+    map.put("CLUSTER.MANAGE_ALERTS", clusterAdministratorAndUp);
     map.put("CLUSTER.TOGGLE_ALERTS", clusterAdministratorAndUp);
     map.put("CLUSTER.TOGGLE_KERBEROS", clusterAdministratorAndUp);
     map.put("CLUSTER.UPGRADE_DOWNGRADE_STACK", clusterAdministratorAndUp);

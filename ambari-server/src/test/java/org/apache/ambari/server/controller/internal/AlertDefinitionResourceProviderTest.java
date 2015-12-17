@@ -50,6 +50,10 @@ import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -61,6 +65,7 @@ import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,6 +76,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * AlertDefinition tests
@@ -95,6 +102,11 @@ public class AlertDefinitionResourceProviderTest {
     m_injector.injectMembers(m_factory);
   }
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   /**
    * @throws Exception
    */
@@ -110,11 +122,35 @@ public class AlertDefinitionResourceProviderTest {
     assertEquals(0, results.size());
   }
 
+  @Test
+  public void testGetResourcesClusterPredicateAsAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createClusterAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createServiceAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsClusterUser() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createClusterUser(), true);
+  }
+
+  @Test
+  public void testGetResourcesClusterPredicateAsViewUser() throws Exception {
+    testGetResourcesClusterPredicate(TestAuthenticationFactory.createViewUser(99L), false);
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testGetResourcesClusterPredicate() throws Exception {
+  private void testGetResourcesClusterPredicate(Authentication authentication, boolean expectResults) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
@@ -126,7 +162,8 @@ public class AlertDefinitionResourceProviderTest {
     Cluster cluster = createMock(Cluster.class);
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Predicate predicate = new PredicateBuilder().property(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
@@ -135,26 +172,54 @@ public class AlertDefinitionResourceProviderTest {
 
     replay(amc, clusters, cluster, dao);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AlertDefinitionResourceProvider provider = createProvider(amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
-    assertEquals(1, results.size());
+    assertEquals(expectResults ? 1 : 0, results.size());
 
-    Resource r = results.iterator().next();
+    if(expectResults) {
+      Resource r = results.iterator().next();
 
-    Assert.assertEquals("my_def", r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
+      Assert.assertEquals("my_def", r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-    Assert.assertEquals("Mock Label",
-        r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
+      Assert.assertEquals("Mock Label",
+          r.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_LABEL));
+    }
 
     verify(amc, clusters, cluster, dao);
+  }
+
+  @Test
+  public void testGetSingleResourceAsAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsServiceAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetSingleResourceAsViewUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createViewUser(99L));
   }
 
   /**
    * @throws Exception
    */
-  @Test
-  public void testGetSingleResource() throws Exception {
+  private void testGetSingleResource(Authentication authentication) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
@@ -179,6 +244,8 @@ public class AlertDefinitionResourceProviderTest {
     expect(dao.findById(1L)).andReturn(getMockEntities().get(0));
 
     replay(amc, clusters, cluster, dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
     Set<Resource> results = provider.getResources(request, predicate);
@@ -213,14 +280,38 @@ public class AlertDefinitionResourceProviderTest {
     Assert.assertNotNull(r.getPropertyValue("AlertDefinition/source/type"));
   }
 
-  /**
+  @Test
+  public void testGetResourcesAssertSourceTypeAsAdministrator() throws Exception {
+    testGetResourcesAssertSourceType(TestAuthenticationFactory.createAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAssertSourceTypeAsClusterAdministrator() throws Exception {
+    testGetResourcesAssertSourceType(TestAuthenticationFactory.createClusterAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAssertSourceTypeAsServiceAdministrator() throws Exception {
+    testGetResourcesAssertSourceType(TestAuthenticationFactory.createServiceAdministrator(), true);
+  }
+
+  @Test
+  public void testGetResourcesAssertSourceTypeAsClusterUser() throws Exception {
+    testGetResourcesAssertSourceType(TestAuthenticationFactory.createClusterUser(), true);
+  }
+
+  @Test
+  public void testGetResourcesAssertSourceTypeAsViewUser() throws Exception {
+    testGetResourcesAssertSourceType(TestAuthenticationFactory.createViewUser(99L), false);
+  }
+
+/**
    * Tests that the source structure returned has the entire set of
    * subproperties on it (such as reporting)
    *
    * @throws Exception
    */
-  @Test
-  public void testGetResourcesAssertSourceType() throws Exception {
+  private void testGetResourcesAssertSourceType(Authentication authentication, boolean expectResults) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME,
         AlertDefinitionResourceProvider.ALERT_DEF_ID,
@@ -234,7 +325,8 @@ public class AlertDefinitionResourceProviderTest {
     Cluster cluster = createMock(Cluster.class);
     expect(amc.getClusters()).andReturn(clusters).atLeastOnce();
     expect(clusters.getCluster((String) anyObject())).andReturn(cluster).atLeastOnce();
-    expect(cluster.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(cluster.getClusterId()).andReturn(1L).anyTimes();
+    expect(cluster.getResourceId()).andReturn(4L).anyTimes();
 
     Predicate predicate = new PredicateBuilder().property(
         AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME).equals("c1").toPredicate();
@@ -243,20 +335,24 @@ public class AlertDefinitionResourceProviderTest {
 
     replay(amc, clusters, cluster, dao);
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
     AlertDefinitionResourceProvider provider = createProvider(amc);
     Set<Resource> results = provider.getResources(request, predicate);
 
-    assertEquals(1, results.size());
+    assertEquals(expectResults ? 1 : 0, results.size());
 
-    Resource resource = results.iterator().next();
+    if(expectResults) {
+      Resource resource = results.iterator().next();
 
-    Assert.assertEquals("my_def",
-        resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
+      Assert.assertEquals("my_def",
+          resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-    Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+      Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
 
-    Assert.assertTrue(reporting.containsKey("ok"));
-    Assert.assertTrue(reporting.containsKey("critical"));
+      Assert.assertTrue(reporting.containsKey("ok"));
+      Assert.assertTrue(reporting.containsKey("critical"));
+    }
 
     verify(amc, clusters, cluster, dao);
 
@@ -268,22 +364,49 @@ public class AlertDefinitionResourceProviderTest {
         AlertDefinitionResourceProvider.ALERT_DEF_NAME);
 
     results = provider.getResources(request, predicate);
-    resource = results.iterator().next();
 
-    Assert.assertEquals(
-        "my_def",
-        resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
+    if(!results.isEmpty()) {
+      Resource resource = results.iterator().next();
 
-    reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+      Assert.assertEquals(
+          "my_def",
+          resource.getPropertyValue(AlertDefinitionResourceProvider.ALERT_DEF_NAME));
 
-    Assert.assertNull(reporting);
+      Map<String, String> reporting = (Map<String, String>) resource.getPropertyValue("AlertDefinition/source/reporting");
+
+      Assert.assertNull(reporting);
+    }
+  }
+
+  @Test
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsViewUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createViewUser(99L));
   }
 
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResources(Authentication authentication) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -301,6 +424,8 @@ public class AlertDefinitionResourceProviderTest {
         new HashSet<String>()).once();
 
     replay(amc, clusters, cluster, dao, definitionHash);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     Gson gson = m_factory.getGson();
     MetricSource source = (MetricSource)getMockSource();
@@ -402,11 +527,36 @@ public class AlertDefinitionResourceProviderTest {
     verify(amc, clusters, cluster, dao);
   }
 
+  @Test
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsViewUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testUpdateResources() throws Exception {
+  private void testUpdateResources(Authentication authentication) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -424,6 +574,8 @@ public class AlertDefinitionResourceProviderTest {
         new HashSet<String>()).atLeastOnce();
 
     replay(amc, clusters, cluster, dao, definitionHash);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     MetricSource source = (MetricSource) getMockSource();
 
@@ -557,6 +709,8 @@ public class AlertDefinitionResourceProviderTest {
 
     replay(amc, clusters, cluster, dao, definitionHash);
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
+
     MetricSource source = (MetricSource) getMockSource();
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(AlertDefinitionResourceProvider.ALERT_DEF_CLUSTER_NAME, "c1");
@@ -592,11 +746,35 @@ public class AlertDefinitionResourceProviderTest {
     verify(amc, clusters, cluster, dao);
   }
 
+  @Test
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsViewUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testDeleteResources() throws Exception {
+  public void testDeleteResources(Authentication authentication) throws Exception {
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
     Cluster cluster = createMock(Cluster.class);
@@ -614,6 +792,8 @@ public class AlertDefinitionResourceProviderTest {
         new HashSet<String>()).atLeastOnce();
 
     replay(amc, clusters, cluster, dao, definitionHash);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertDefinitionResourceProvider provider = createProvider(amc);
 
@@ -667,6 +847,12 @@ public class AlertDefinitionResourceProviderTest {
     Source source = getMockSource();
     String sourceJson = new Gson().toJson(source);
 
+    ResourceEntity clusterResourceEntity = new ResourceEntity();
+    clusterResourceEntity.setId(4L);
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setResource(clusterResourceEntity);
+
     AlertDefinitionEntity entity = new AlertDefinitionEntity();
     entity.setClusterId(Long.valueOf(1L));
     entity.setComponentName(null);
@@ -680,6 +866,7 @@ public class AlertDefinitionResourceProviderTest {
     entity.setServiceName(null);
     entity.setSourceType(SourceType.METRIC);
     entity.setSource(sourceJson);
+    entity.setCluster(clusterEntity);
     return Arrays.asList(entity);
   }
 

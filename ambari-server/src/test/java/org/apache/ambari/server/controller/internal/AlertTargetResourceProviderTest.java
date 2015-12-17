@@ -26,6 +26,7 @@ import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.newCapture;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.resetToStrict;
 import static org.easymock.EasyMock.verify;
@@ -53,6 +54,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -60,6 +63,7 @@ import org.apache.ambari.server.state.alert.TargetType;
 import org.apache.ambari.server.utils.CollectionPresentationUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -69,6 +73,8 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * {@link AlertTargetResourceProvider} tests.
@@ -98,12 +104,41 @@ public class AlertTargetResourceProviderTest {
     Assert.assertNotNull(m_injector);
   }
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsClusterUser() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test
+  public void testGetResourcesNoPredicateAsViewUser() throws Exception {
+    testGetResourcesNoPredicate(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testGetResourcesNoPredicate() throws Exception {
+  public void testGetResourcesNoPredicate(Authentication authentication) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
         AlertTargetResourceProvider.ALERT_TARGET_ID,
@@ -112,6 +147,8 @@ public class AlertTargetResourceProviderTest {
 
     expect(m_dao.findAllTargets()).andReturn(getMockEntities());
     replay(m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, null);
@@ -135,12 +172,36 @@ public class AlertTargetResourceProviderTest {
     verify(m_dao);
   }
 
+  @Test
+  public void testGetSingleResourceAsAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsServiceAdministrator() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test
+  public void testGetSingleResourceAsClusterUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test
+  public void testGetSingleResourceAsViewUser() throws Exception {
+    testGetSingleResource(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testGetSingleResource() throws Exception {
+  private void testGetSingleResource(Authentication authentication) throws Exception {
     Request request = PropertyHelper.getReadRequest(
         AlertTargetResourceProvider.ALERT_TARGET_DESCRIPTION,
         AlertTargetResourceProvider.ALERT_TARGET_ID,
@@ -157,6 +218,8 @@ public class AlertTargetResourceProviderTest {
         getMockEntities().get(0)).atLeastOnce();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Set<Resource> results = provider.getResources(request, predicate);
@@ -202,16 +265,42 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsClusterUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsViewUser() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateResources() throws Exception {
-    Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
+  private void testCreateResources(Authentication authentication) throws Exception {
+    Capture<AlertTargetEntity> targetCapture = newCapture();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -237,11 +326,35 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testCreateResourcesWithGroupsAsAdministrator() throws Exception {
+    testCreateResourcesWithGroups(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithGroupsAsClusterAdministrator() throws Exception {
+    testCreateResourcesWithGroups(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithGroupsAsServiceAdministrator() throws Exception {
+    testCreateResourcesWithGroups(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithGroupsAsClusterUser() throws Exception {
+    testCreateResourcesWithGroups(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithGroupsAsViewUser() throws Exception {
+    testCreateResourcesWithGroups(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateResourcesWithGroups() throws Exception {
+  private void testCreateResourcesWithGroups(Authentication authentication) throws Exception {
     List<Long> groupIds = Arrays.asList(1L, 2L, 3L);
     List<AlertGroupEntity> groups = new ArrayList<AlertGroupEntity>();
     AlertGroupEntity group1 = new AlertGroupEntity();
@@ -258,6 +371,8 @@ public class AlertTargetResourceProviderTest {
     expectLastCall();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -287,16 +402,42 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testCreateGlobalTargetAsAdministrator() throws Exception {
+    testCreateGlobalTarget(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateGlobalTargetAsClusterAdministrator() throws Exception {
+    testCreateGlobalTarget(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateGlobalTargetAsServiceAdministrator() throws Exception {
+    testCreateGlobalTarget(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateGlobalTargetAsClusterUser() throws Exception {
+    testCreateGlobalTarget(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateGlobalTargetAsViewUser() throws Exception {
+    testCreateGlobalTarget(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateGlobalTarget() throws Exception {
+  private void testCreateGlobalTarget(Authentication authentication) throws Exception {
     Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -327,16 +468,42 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testCreateResourceWithRecipientArrayAsAdministrator() throws Exception {
+    testCreateResourceWithRecipientArray(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithRecipientArrayAsClusterAdministrator() throws Exception {
+    testCreateResourceWithRecipientArray(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithRecipientArrayAsServiceAdministrator() throws Exception {
+    testCreateResourceWithRecipientArray(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithRecipientArrayAsClusterUser() throws Exception {
+    testCreateResourceWithRecipientArray(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesWithRecipientArrayAsViewUser() throws Exception {
+    testCreateResourceWithRecipientArray(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testCreateResourceWithRecipientArray() throws Exception {
+  private void testCreateResourceWithRecipientArray(Authentication  authentication) throws Exception {
     Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getRecipientCreationProperties();
@@ -365,17 +532,43 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testCreateResourceWithAlertStatesAsAdministrator() throws Exception {
+    testCreateResourceWithAlertStates(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithAlertStatesAsClusterAdministrator() throws Exception {
+    testCreateResourceWithAlertStates(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithAlertStatesAsServiceAdministrator() throws Exception {
+    testCreateResourceWithAlertStates(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithAlertStatesAsClusterUser() throws Exception {
+    testCreateResourceWithAlertStates(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourceWithAlertStatesAsViewUser() throws Exception {
+    testCreateResourceWithAlertStates(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testCreateResourceWithAlertStates() throws Exception {
+  private void testCreateResourceWithAlertStates(Authentication authentication) throws Exception {
     Capture<AlertTargetEntity> targetCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(targetCapture));
     expectLastCall();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -407,12 +600,36 @@ public class AlertTargetResourceProviderTest {
   }
 
 
+  @Test
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsClusterUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsViewUser() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testUpdateResources() throws Exception {
+  private void testUpdateResources(Authentication authentication) throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -423,6 +640,8 @@ public class AlertTargetResourceProviderTest {
     expect(m_dao.merge(capture(entityCapture))).andReturn(target).once();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -457,12 +676,36 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testUpdateResourcesWithGroupsAsAdministrator() throws Exception {
+    testUpdateResourcesWithGroups(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithGroupsAsClusterAdministrator() throws Exception {
+    testUpdateResourcesWithGroups(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithGroupsAsServiceAdministrator() throws Exception {
+    testUpdateResourcesWithGroups(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithGroupsAsClusterUser() throws Exception {
+    testUpdateResourcesWithGroups(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesWithGroupsAsViewUser() throws Exception {
+    testUpdateResourcesWithGroups(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
   @SuppressWarnings("unchecked")
-  public void testUpdateResourcesWithGroups() throws Exception {
+  private void testUpdateResourcesWithGroups(Authentication authentication) throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
@@ -484,6 +727,8 @@ public class AlertTargetResourceProviderTest {
     expect(m_dao.merge(capture(entityCapture))).andReturn(target).once();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();
@@ -514,16 +759,42 @@ public class AlertTargetResourceProviderTest {
     verify(m_amc, m_dao);
   }
 
+  @Test
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsClusterUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsViewUser() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createViewUser(99L));
+  }
+
   /**
    * @throws Exception
    */
-  @Test
-  public void testDeleteResources() throws Exception {
+  private void testDeleteResources(Authentication authentication) throws Exception {
     Capture<AlertTargetEntity> entityCapture = new Capture<AlertTargetEntity>();
     m_dao.create(capture(entityCapture));
     expectLastCall().times(1);
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
 
@@ -557,7 +828,31 @@ public class AlertTargetResourceProviderTest {
   }
 
   @Test
-  public void testOverwriteDirective() throws Exception {
+  public void testOverwriteDirectiveAsAdministrator() throws Exception {
+    testOverwriteDirective(TestAuthenticationFactory.createAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testOverwriteDirectiveAsClusterAdministrator() throws Exception {
+    testOverwriteDirective(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testOverwriteDirectiveAsServiceAdministrator() throws Exception {
+    testOverwriteDirective(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testOverwriteDirectiveAsClusterUser() throws Exception {
+    testOverwriteDirective(TestAuthenticationFactory.createClusterUser());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testOverwriteDirectiveAsViewUser() throws Exception {
+    testOverwriteDirective(TestAuthenticationFactory.createViewUser(99L));
+  }
+
+  private void testOverwriteDirective(Authentication authentication) throws Exception {
     // mock out returning an existing entity
     AlertTargetEntity entity = getMockEntities().get(0);
     expect(m_dao.findTargetByName(ALERT_TARGET_NAME)).andReturn(entity).atLeastOnce();
@@ -565,6 +860,8 @@ public class AlertTargetResourceProviderTest {
     expect(m_dao.merge(capture(targetCapture))).andReturn(entity).once();
 
     replay(m_amc, m_dao);
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AlertTargetResourceProvider provider = createProvider(m_amc);
     Map<String, Object> requestProps = getCreationProperties();

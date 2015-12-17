@@ -1016,7 +1016,7 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'SERVICE.VIEW_STATUS_INFO', 'View status information' FROM dual UNION ALL
   SELECT 'SERVICE.VIEW_CONFIGS', 'View configurations' FROM dual UNION ALL
   SELECT 'SERVICE.COMPARE_CONFIGS', 'Compare configurations' FROM dual UNION ALL
-  SELECT 'SERVICE.VIEW_ALERTS', 'View service alerts' FROM dual UNION ALL
+  SELECT 'SERVICE.VIEW_ALERTS', 'View service-level alerts' FROM dual UNION ALL
   SELECT 'SERVICE.START_STOP', 'Start/Stop/Restart Service' FROM dual UNION ALL
   SELECT 'SERVICE.DECOMMISSION_RECOMMISSION', 'Decommission/recommission' FROM dual UNION ALL
   SELECT 'SERVICE.RUN_SERVICE_CHECK', 'Run service checks' FROM dual UNION ALL
@@ -1024,9 +1024,10 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'SERVICE.RUN_CUSTOM_COMMAND', 'Perform service-specific tasks' FROM dual UNION ALL
   SELECT 'SERVICE.MODIFY_CONFIGS', 'Modify configurations' FROM dual UNION ALL
   SELECT 'SERVICE.MANAGE_CONFIG_GROUPS', 'Manage configuration groups' FROM dual UNION ALL
+  SELECT 'SERVICE.MANAGE_ALERTS', 'Manage service-level alerts' from dual UNION ALL
   SELECT 'SERVICE.MOVE', 'Move to another host' FROM dual UNION ALL
   SELECT 'SERVICE.ENABLE_HA', 'Enable HA' FROM dual UNION ALL
-  SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service alerts' FROM dual UNION ALL
+  SELECT 'SERVICE.TOGGLE_ALERTS', 'Enable/disable service-level alerts' FROM dual UNION ALL
   SELECT 'SERVICE.ADD_DELETE_SERVICES', 'Add Service to cluster' FROM dual UNION ALL
   SELECT 'HOST.VIEW_METRICS', 'View metrics' FROM dual UNION ALL
   SELECT 'HOST.VIEW_STATUS_INFO', 'View status information' FROM dual UNION ALL
@@ -1038,11 +1039,12 @@ INSERT INTO roleauthorization(authorization_id, authorization_name)
   SELECT 'CLUSTER.VIEW_STATUS_INFO', 'View status information' FROM dual UNION ALL
   SELECT 'CLUSTER.VIEW_CONFIGS', 'View configuration' FROM dual UNION ALL
   SELECT 'CLUSTER.VIEW_STACK_DETAILS', 'View stack version details' FROM dual UNION ALL
-  SELECT 'CLUSTER.VIEW_ALERTS', 'View alerts' FROM dual UNION ALL
+  SELECT 'CLUSTER.VIEW_ALERTS', 'View cluster-level alerts' FROM dual UNION ALL
   SELECT 'CLUSTER.MANAGE_CREDENTIALS', 'Manage external credentials' from dual UNION ALL
   SELECT 'CLUSTER.MODIFY_CONFIGS', 'Modify cluster configurations' from dual UNION ALL
   SELECT 'CLUSTER.MANAGE_CONFIG_GROUPS', 'Manage cluster config groups' from dual UNION ALL
-  SELECT 'CLUSTER.TOGGLE_ALERTS', 'Enable/disable alerts' FROM dual UNION ALL
+  SELECT 'CLUSTER.MANAGE_ALERTS', 'Manage cluster-level alerts' from dual UNION ALL
+  SELECT 'CLUSTER.TOGGLE_ALERTS', 'Enable/disable cluster-level alerts' FROM dual UNION ALL
   SELECT 'CLUSTER.TOGGLE_KERBEROS', 'Enable/disable Kerberos' FROM dual UNION ALL
   SELECT 'CLUSTER.UPGRADE_DOWNGRADE_STACK', 'Upgrade/downgrade stack' FROM dual UNION ALL
   SELECT 'AMBARI.ADD_DELETE_CLUSTERS', 'Create new clusters' FROM dual UNION ALL
@@ -1110,6 +1112,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='SERVICE.ADMINISTRATOR' UNION ALL
@@ -1137,6 +1140,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.OPERATOR' UNION ALL
@@ -1167,6 +1171,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
@@ -1185,6 +1190,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_CREDENTIALS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM adminpermission WHERE permission_name='CLUSTER.ADMINISTRATOR';
@@ -1204,6 +1210,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'SERVICE.RUN_CUSTOM_COMMAND' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'SERVICE.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.MOVE' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.ENABLE_HA' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'SERVICE.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
@@ -1222,6 +1229,7 @@ INSERT INTO permission_roleauthorization(permission_id, authorization_id)
   SELECT permission_id, 'CLUSTER.MANAGE_CREDENTIALS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MODIFY_CONFIGS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.MANAGE_CONFIG_GROUPS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
+  SELECT permission_id, 'CLUSTER.MANAGE_ALERTS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_ALERTS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.TOGGLE_KERBEROS' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL
   SELECT permission_id, 'CLUSTER.UPGRADE_DOWNGRADE_STACK' FROM adminpermission WHERE permission_name='AMBARI.ADMINISTRATOR' UNION ALL

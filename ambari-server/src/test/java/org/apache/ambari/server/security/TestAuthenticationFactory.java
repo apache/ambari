@@ -164,6 +164,7 @@ public class TestAuthenticationFactory {
         RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
         RoleAuthorization.CLUSTER_MODIFY_CONFIGS,
         RoleAuthorization.CLUSTER_TOGGLE_ALERTS,
+        RoleAuthorization.CLUSTER_MANAGE_ALERTS,
         RoleAuthorization.CLUSTER_TOGGLE_KERBEROS,
         RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK,
         RoleAuthorization.CLUSTER_VIEW_ALERTS,

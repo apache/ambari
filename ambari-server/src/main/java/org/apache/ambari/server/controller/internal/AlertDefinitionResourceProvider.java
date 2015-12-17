@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -50,6 +50,7 @@ import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -174,7 +175,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         createAlertDefinitions(request.getProperties());
         return null;
       }
@@ -185,7 +186,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
   }
 
   private void createAlertDefinitions(Set<Map<String, Object>> requestMaps)
-    throws AmbariException {
+      throws AmbariException, AuthorizationException {
     List<AlertDefinitionEntity> entities = new ArrayList<AlertDefinitionEntity>();
 
     String clusterName = null;
@@ -235,6 +236,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       if (null != id) {
         AlertDefinitionEntity entity = alertDefinitionDAO.findById(Long.parseLong(id));
         if (null != entity) {
+          AlertResourceProviderUtils.verifyViewAuthorization(entity);
           results.add(toResource(clusterName, entity, requestPropertyIds));
         }
       } else {
@@ -245,11 +247,21 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           throw new NoSuchResourceException("Parent Cluster resource doesn't exist", e);
         }
 
-        List<AlertDefinitionEntity> entities = alertDefinitionDAO.findAll(
-            cluster.getClusterId());
+        List<AlertDefinitionEntity> entities = alertDefinitionDAO.findAll(cluster.getClusterId());
+
+        // Any service name that is not empty or equal to "AMBARI" indicates a service-level alert
+        boolean serviceLevelAuthorization = AlertResourceProviderUtils.hasViewAuthorization("_SERVICE_NAME_", cluster.getResourceId());
+        boolean clusterLevelAuthorization = AlertResourceProviderUtils.hasViewAuthorization("", cluster.getResourceId());
 
         for (AlertDefinitionEntity entity : entities) {
-          results.add(toResource(clusterName, entity, requestPropertyIds));
+          String serviceName = entity.getServiceName();
+
+          // Include the alert in the results if the authenticated user is authorized to get it
+          if((StringUtils.isEmpty(serviceName) || "AMBARI".equals(serviceName))
+              ? clusterLevelAuthorization
+              : serviceLevelAuthorization) {
+            results.add(toResource(clusterName, entity, requestPropertyIds));
+          }
         }
       }
     }
@@ -345,6 +357,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
 
       final AlertDefinitionEntity entity = alertDefinitionDAO.findById(definitionId.longValue());
 
+      AlertResourceProviderUtils.verifyManageAuthorization(entity);
+
       modifyResources(new Command<Void>() {
         @Override
         public Void invoke() throws AmbariException {
@@ -382,7 +396,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    * @throws AmbariException
    */
   private void populateEntity(AlertDefinitionEntity entity,
-      Map<String, Object> requestMap) throws AmbariException {
+      Map<String, Object> requestMap) throws AmbariException, AuthorizationException {
 
     // some fields are required on creation; on update we keep what's there
     boolean bCreate = true;
@@ -509,56 +523,80 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
       throw new IllegalArgumentException("Source must be specified");
     }
 
-    Cluster cluster = getManagementController().getClusters().getCluster(
-        clusterName);
+    Clusters clusters = getManagementController().getClusters();
+    Cluster cluster = clusters.getCluster(clusterName);
+    Long clusterId = cluster.getClusterId();
+
+    boolean managed = false;
+    boolean toggled = false;
 
     // at this point, we have either validated all required properties or
     // we are using the exiting entity properties where not defined, so we
     // can do simply null checks
-    entity.setClusterId(Long.valueOf(cluster.getClusterId()));
+    if (!clusterId.equals(entity.getClusterId())) {
+      entity.setClusterId(clusterId);
+      managed = true;
+    }
 
-    if (null != componentName) {
+    if ((null != componentName) && !componentName.equals(entity.getComponentName())) {
       entity.setComponentName(componentName);
+      managed = true;
     }
 
-    if (null != definitionName) {
+    if ((null != definitionName) && !definitionName.equals(entity.getDefinitionName())) {
       entity.setDefinitionName(definitionName);
+      managed = true;
     }
 
-    if (null != label) {
+    if ((null != label) && !label.equals(entity.getLabel())) {
       entity.setLabel(label);
+      managed = true;
     }
 
-    if (null != description) {
+    if ((null != description) && !description.equals(entity.getDescription())) {
       entity.setDescription(description);
+      managed = true;
     }
 
-    if (null != enabled) {
-      entity.setEnabled(enabled.booleanValue());
+    if ((null != enabled) && !enabled.equals(entity.getEnabled())) {
+      entity.setEnabled(enabled);
+      toggled = true;
     }
 
-    if (null != ignoreHost) {
-      entity.setHostIgnored(ignoreHost.booleanValue());
+    if ((null != ignoreHost) && !ignoreHost.equals(entity.isHostIgnored())) {
+      entity.setHostIgnored(ignoreHost);
+      managed = true;
     }
 
-    if (null != interval) {
+    if ((null != interval) && !interval.equals(entity.getScheduleInterval())) {
       entity.setScheduleInterval(interval);
+      managed = true;
     }
 
-    if (null != serviceName) {
+    if ((null != serviceName) && !serviceName.equals(entity.getServiceName())) {
       entity.setServiceName(serviceName);
+      managed = true;
     }
 
-    if (null != sourceType) {
+    if ((null != sourceType) && !sourceType.equals(entity.getSourceType())) {
       entity.setSourceType(sourceType);
+      managed = true;
     }
 
     if (null != source) {
       entity.setSource(source.toString());
+      managed = true;
     }
 
-    if (null != scope) {
+    if ((null != scope) && !scope.equals(entity.getScope())) {
       entity.setScope(scope);
+      managed = true;
+    }
+
+    if (managed) {
+      AlertResourceProviderUtils.verifyManageAuthorization(entity);
+    } else if (toggled) {
+      AlertResourceProviderUtils.verifyToggleAuthorization(entity);
     }
 
     entity.setHash(UUID.randomUUID().toString());
@@ -677,7 +715,7 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
    *
    * @param propertyMap
    */
-  private void scheduleImmediateAlert(Map<String, Object> propertyMap) {
+  private void scheduleImmediateAlert(Map<String, Object> propertyMap) throws AuthorizationException {
     Clusters clusters = getManagementController().getClusters();
     String stringId = (String) propertyMap.get(ALERT_DEF_ID);
     long id = Long.parseLong(stringId);
@@ -696,6 +734,8 @@ public class AlertDefinitionResourceProvider extends AbstractControllerResourceP
           ambariException);
       return;
     }
+
+    AlertResourceProviderUtils.verifyExecuteAuthorization(entity);
 
     Set<String> hostNames = alertDefinitionHash.getAssociatedHosts(cluster,
         entity.getSourceType(),
