@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('utils/configs/ha_config_initializer_class');
+require('utils/configs/hosts_based_initializer_mixin');
 
 /**
  * @typedef {topologyLocalDB} extendedTopologyLocalDB
@@ -80,43 +81,46 @@ function getReplaceNamespaceConfig(toReplace) {
  *
  * @class {NnHaConfigInitializer}
  */
-App.NnHaConfigInitializer = App.HaConfigInitializerClass.create({
+App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
-  initializers: {
-    'dfs.ha.namenodes.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
-    'dfs.namenode.rpc-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnRpcPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.rpc-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '8020', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.http-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.http-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '50070', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.https-address.${dfs.nameservices}.nn1': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpsPort', true),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.namenode.https-address.${dfs.nameservices}.nn2': [
-      App.HaConfigInitializerClass.getHostWithPortConfig('NAMENODE', false, '', '', '50470', false),
-      getRenameWithNamespaceConfig('${dfs.nameservices}')
-    ],
-    'dfs.client.failover.proxy.provider.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
-    'dfs.nameservices': getNamespaceConfig(),
-    'fs.defaultFS': getNamespaceConfig('hdfs://'),
-    'dfs.namenode.shared.edits.dir': [
-      App.HaConfigInitializerClass.getHostsWithPortConfig('JOURNALNODE', 'qjournal://', '/${dfs.nameservices}', ';', '8485', false),
-      getReplaceNamespaceConfig('${dfs.nameservices}')
-    ],
-    'ha.zookeeper.quorum': App.HaConfigInitializerClass.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true)
-  },
+  initializers: function () {
+
+    return {
+      'dfs.ha.namenodes.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
+      'dfs.namenode.rpc-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnRpcPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.rpc-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '8020', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.http-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.http-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '50070', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.https-address.${dfs.nameservices}.nn1': [
+        this.getHostWithPortConfig('NAMENODE', true, '', '', 'nnHttpsPort', true),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.namenode.https-address.${dfs.nameservices}.nn2': [
+        this.getHostWithPortConfig('NAMENODE', false, '', '', '50470', false),
+        getRenameWithNamespaceConfig('${dfs.nameservices}')
+      ],
+      'dfs.client.failover.proxy.provider.${dfs.nameservices}': getRenameWithNamespaceConfig('${dfs.nameservices}'),
+      'dfs.nameservices': getNamespaceConfig(),
+      'fs.defaultFS': getNamespaceConfig('hdfs://'),
+      'dfs.namenode.shared.edits.dir': [
+        this.getHostsWithPortConfig('JOURNALNODE', 'qjournal://', '/${dfs.nameservices}', ';', '8485', false),
+        getReplaceNamespaceConfig('${dfs.nameservices}')
+      ],
+      'ha.zookeeper.quorum': this.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true)
+    };
+  }.property(),
 
   uniqueInitializers: {
     'hbase.rootdir': '_initHbaseRootDir',

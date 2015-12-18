@@ -33,7 +33,6 @@ function getController() {
     })
   });
 }
-
 describe('App.MainHostDetailsController', function () {
 
   beforeEach(function () {
@@ -1044,15 +1043,9 @@ describe('App.MainHostDetailsController', function () {
       };
 
     beforeEach(function () {
-      sinon.stub(controller, "getZkServerHosts", Em.K);
-      sinon.stub(controller, "concatZkNames", Em.K);
-      sinon.stub(controller, "setZKConfigs", Em.K);
       sinon.stub(controller, 'saveConfigsBatch', Em.K);
     });
     afterEach(function () {
-      controller.getZkServerHosts.restore();
-      controller.concatZkNames.restore();
-      controller.setZKConfigs.restore();
       controller.saveConfigsBatch.restore();
     });
 
@@ -1097,203 +1090,281 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#setZKConfigs()', function () {
-    it('configs is null', function () {
-      expect(controller.setZKConfigs(null)).to.be.false;
-    });
-    it('zks is null', function () {
-      expect(controller.setZKConfigs({}, '', null)).to.be.false;
-    });
-    it('isHaEnabled = true', function () {
-      var configs = {'core-site': {}};
-      App.HostComponent.find().clear();
-      App.store.load(App.Service, {
-        id: 'HDFS',
-        service_name: 'HDFS'
+  describe('#updateZkConfigs()', function () {
+    var makeHostComponentModel = function(componentName, hostNames) {
+      return hostNames.map(function(hostName) {
+        return {
+          componentName: componentName,
+          hostName: hostName
+        };
       });
-      App.propertyDidChange('isHaEnabled');
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "core-site": {
-          "ha.zookeeper.quorum": "host1:2181"
-        }
-      });
-      App.store.load(App.HostComponent, {
-        id: 'SECONDARY_NAMENODE_host1',
-        component_name: 'SECONDARY_NAMENODE'
-      });
-      App.propertyDidChange('isHaEnabled');
-    });
-    it('hbase-site is present', function () {
-      var configs = {'hbase-site': {}};
-      expect(controller.setZKConfigs(configs, '', ['host1', 'host2'])).to.be.true;
-      expect(configs).to.eql({
-        "hbase-site": {
-          "hbase.zookeeper.quorum": "host1,host2"
-        }
-      });
-    });
-    it('accumulo-site is present', function () {
-      var configs = {'accumulo-site': {}};
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "accumulo-site": {
-          "instance.zookeeper.host": 'host1:2181'
-        }
-      });
-    });
-    it('webhcat-site is present', function () {
-      var configs = {'webhcat-site': {}};
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "webhcat-site": {
-          "templeton.zookeeper.hosts": "host1:2181"
-        }
-      });
-    });
-    it('hive-site is present and stack < 2.2', function () {
-      var version = App.get('currentStackVersion');
-      var configs = {'hive-site': {}};
-      App.set('currentStackVersion', 'HDP-2.1.0');
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "hive-site": {
-          'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181"
-        }
-      });
-      App.set('currentStackVersion', version);
-    });
-    it('hive-site is present and stack > 2.2', function () {
-      var version = App.get('currentStackVersion');
-      var configs = {'hive-site': {}};
-      App.set('currentStackVersion', 'HDP-2.2.0');
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "hive-site": {
-          'hive.cluster.delegation.token.store.zookeeper.connectString': "host1:2181",
-          'hive.zookeeper.quorum': "host1:2181"
-        }
-      });
-      App.set('currentStackVersion', version);
-    });
-    it('yarn-site is present and stack > 2.2', function () {
-      var version = App.get('currentStackVersion');
-      var configs = {'yarn-site': {}};
-      App.set('currentStackVersion', 'HDP-2.2.0');
-      expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
-      expect(configs).to.eql({
-        "yarn-site": {
-          'hadoop.registry.zk.quorum': "host1:2181",
-          'yarn.resourcemanager.zk-address': "host1:2181"
-        }
-      });
-      App.set('currentStackVersion', version);
-    });
-    it('storm-site is present', function () {
-      var configs = {'storm-site': {}};
-      expect(controller.setZKConfigs(configs, '', ["host1", 'host2'])).to.be.true;
-      expect(configs).to.eql({
-        "storm-site": {
-          "storm.zookeeper.servers": "['host1','host2']"
-        }
-      });
-    });
-    it('isRMHaEnabled true', function () {
-      var configs = {'yarn-site': {}};
-      sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
-      expect(controller.setZKConfigs(configs, 'host1:2181', ['host1', 'host2'])).to.be.true;
-      expect(configs).to.eql({
-        "yarn-site": {
-          "yarn.resourcemanager.zk-address": "host1:2181"
-        }
-      });
-      App.get.restore();
-    });
-  });
+    };
 
-  describe('#concatZkNames()', function () {
-    it('No ZooKeeper hosts', function () {
-      expect(controller.concatZkNames([])).to.equal('');
-    });
-    it('One ZooKeeper host', function () {
-      expect(controller.concatZkNames(['host1'], '2181')).to.equal('host1:2181');
-    });
-    it('Two ZooKeeper hosts', function () {
-      expect(controller.concatZkNames(['host1', 'host2'], '2181')).to.equal('host1:2181,host2:2181');
-    });
-  });
-
-  describe('#getZkServerHosts()', function () {
-
-    beforeEach(function () {
-      controller.set('content', {});
-    });
-
-    afterEach(function () {
-      App.HostComponent.find.restore();
-    });
-
-    it('No ZooKeeper hosts, fromDeleteHost = false', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return []
-      });
-      controller.set('fromDeleteHost', false);
-      expect(controller.getZkServerHosts()).to.be.empty;
-    });
-
-    it('No ZooKeeper hosts, fromDeleteHost = true', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return []
-      });
-      controller.set('fromDeleteHost', true);
-      expect(controller.getZkServerHosts()).to.be.empty;
-      expect(controller.get('fromDeleteHost')).to.be.false;
-    });
-
-    it('One ZooKeeper host, fromDeleteHost = false', function () {
-      controller.set('fromDeleteHost', false);
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'ZOOKEEPER_SERVER_host1',
-            componentName: 'ZOOKEEPER_SERVER',
-            hostName: 'host1'
+    var tests = [
+      {
+        appGetterStubs: {
+          isHaEnabled: true
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "core-site": {
+            "ha.zookeeper.quorum": "host2:8080"
           }
-        ]
-      });
-      expect(controller.getZkServerHosts()).to.eql(['host1']);
-    });
-
-    it('One ZooKeeper host match current host name, fromDeleteHost = true', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'ZOOKEEPER_SERVER_host1',
-            componentName: 'ZOOKEEPER_SERVER',
-            hostName: 'host1'
+        },
+        m: 'NameNode HA enabled, ha.zookeeper.quorum config should be updated',
+        e: {
+          configs: {
+            "core-site": {
+              "ha.zookeeper.quorum": "host1:2181,host2:2181"
+            }
           }
-        ]
-      });
-      controller.set('fromDeleteHost', true);
-      controller.set('content.hostName', 'host1');
-      expect(controller.getZkServerHosts()).to.be.empty;
-      expect(controller.get('fromDeleteHost')).to.be.false;
-    });
-
-    it('One ZooKeeper host does not match current host name, fromDeleteHost = true', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'ZOOKEEPER_SERVER_host1',
-            componentName: 'ZOOKEEPER_SERVER',
-            hostName: 'host1'
+        }
+      },
+      {
+        appGetterStubs: {
+          isHaEnabled: false
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "core-site": {
+            "ha.zookeeper.quorum": "host3:8080"
           }
-        ]
+        },
+        m: 'NameNode HA disabled, ha.zookeeper.quorum config should be untouched',
+        e: {
+          configs: {
+            "core-site": {
+              "ha.zookeeper.quorum": "host3:8080"
+            }
+          }
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "hbase-site": {
+            "hbase.zookeeper.quorum": "host3"
+          }
+        },
+        m: 'hbase.zookeeper.quorum property update test',
+        e: {
+          configs: {
+            "hbase-site": {
+              "hbase.zookeeper.quorum": "host1,host2"
+            }
+          }
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        ctrlStubs: {
+          'content.hostName': 'host2',
+          fromDeleteHost: true
+        },
+        configs: {
+          "zoo.cfg": {
+            "clientPort": "1919"
+          },
+          "accumulo-site": {
+            "instance.zookeeper.host": "host3:2020"
+          }
+        },
+        m: 'instance.zookeeper.host property update test, zookeper marked to delete from host2',
+        e: {
+          configs: {
+            "zoo.cfg": {
+              "clientPort": "1919"
+            },
+            "accumulo-site": {
+              "instance.zookeeper.host": "host1:1919"
+            }
+          }
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "webhcat-site": {
+            "templeton.zookeeper.hosts": "host3:2020"
+          }
+        },
+        m: 'templeton.zookeeper.hosts property update test',
+        e: {
+          configs: {
+            "webhcat-site": {
+              "templeton.zookeeper.hosts": "host1:2181,host2:2181"
+            }
+          }
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "hive-site": {
+            "hive.cluster.delegation.token.store.zookeeper.connectString": "host3:2020"
+          }
+        },
+        m: 'hive.cluster.delegation.token.store.zookeeper.connectString property update test',
+        e: {
+          configs: {
+            "hive-site": {
+              "hive.cluster.delegation.token.store.zookeeper.connectString": "host1:2181,host2:2181"
+            }
+          }
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "storm-site": {
+            "storm.zookeeper.servers": "['host3','host2']"
+          }
+        },
+        m: 'storm.zookeeper.servers property update test',
+        e: {
+          configs: {
+            "storm-site": {
+              "storm.zookeeper.servers": "['host1','host2']"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          isRMHaEnabled: true
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "yarn-site": {
+            "yarn.resourcemanager.zk-address": "host3:2181"
+          }
+        },
+        m: 'yarn.resourcemanager.zk-address property, ResourceManager HA enabled. Property value should be changed.',
+        e: {
+          configs: {
+            "yarn-site": {
+              "yarn.resourcemanager.zk-address": "host1:2181,host2:2181"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          isRMHaEnabled: false
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "yarn-site": {
+            "yarn.resourcemanager.zk-address": "host3:2181"
+          }
+        },
+        m: 'yarn.resourcemanager.zk-address property, ResourceManager HA not activated. Property value should be untouched.',
+        e: {
+          configs: {
+            "yarn-site": {
+              "yarn.resourcemanager.zk-address": "host3:2181"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          currentStackVersionNumber: '2.2'
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "hive-site": {
+            "hive.zookeeper.quorum": "host3:2181"
+          }
+        },
+        m: 'hive.zookeeper.quorum property, current stack version is 2.2 property should be updated.',
+        e: {
+          configs: {
+            "hive-site": {
+              "hive.zookeeper.quorum": "host1:2181,host2:2181"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          currentStackVersionNumber: '2.1'
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "hive-site": {
+            "hive.zookeeper.quorum": "host3:2181"
+          }
+        },
+        m: 'hive.zookeeper.quorum property, current stack version is 2.1 property should be untouched.',
+        e: {
+          configs: {
+            "hive-site": {
+              "hive.zookeeper.quorum": "host3:2181"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          currentStackVersionNumber: '2.1'
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "yarn-site": {
+            "hadoop.registry.zk.quorum": "host3:2181"
+          }
+        },
+        m: 'hadoop.registry.zk.quorum property, current stack version is 2.1 property should be untouched.',
+        e: {
+          configs: {
+            "yarn-site": {
+              "hadoop.registry.zk.quorum": "host3:2181"
+            }
+          }
+        }
+      },
+      {
+        appGetterStubs: {
+          currentStackVersionNumber: '2.2'
+        },
+        hostComponentModel: makeHostComponentModel('ZOOKEEPER_SERVER', ['host1', 'host2']),
+        configs: {
+          "yarn-site": {
+            "hadoop.registry.zk.quorum": "host3:2181"
+          }
+        },
+        m: 'hadoop.registry.zk.quorum property, current stack version is 2.2 property should be changed.',
+        e: {
+          configs: {
+            "yarn-site": {
+              "hadoop.registry.zk.quorum": "host1:2181,host2:2181"
+            }
+          }
+        }
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        if (test.appGetterStubs) {
+          Em.keys(test.appGetterStubs).forEach(function(key) {
+            sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
+          });
+        }
+        if (test.ctrlStubs) {
+          var stub = sinon.stub(controller, 'get');
+          Em.keys(test.ctrlStubs).forEach(function(key) {
+            stub.withArgs(key).returns(test.ctrlStubs[key]);
+          });
+        }
+        sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
+        controller.updateZkConfigs(test.configs);
+        expect(test.configs).to.be.eql(test.e.configs);
+        if (test.ctrlStubs) controller.get.restore();
+        if (test.appGetterStubs) App.get.restore();
+        App.HostComponent.find.restore();
       });
-      controller.set('fromDeleteHost', true);
-      controller.set('content.hostName', 'host2');
-      expect(controller.getZkServerHosts()[0]).to.equal("host1");
-      expect(controller.get('fromDeleteHost')).to.be.false;
     });
   });
 
@@ -3090,7 +3161,11 @@ describe('App.MainHostDetailsController', function () {
         Em.keys(item.input).forEach(function (key) {
           controller.set(key, item.input[key]);
         });
-        expect(controller.getHiveHosts().toArray()).to.eql(item.hiveHosts);
+        var hostsMap = controller.getHiveHosts().toArray();
+        var expectedHosts = hostsMap.filter(function(hostInfo) {
+          return ['WEBHCAT_SERVER', 'HIVE_METASTORE'].contains(hostInfo.component) && hostInfo.isInstalled === true;
+        }).mapProperty('hostName').uniq();
+        expect(expectedHosts).to.include.same.members(item.hiveHosts);
         expect(controller.get('hiveMetastoreHost')).to.be.empty;
         expect(controller.get('webhcatServerHost')).to.be.empty;
         expect(controller.get('fromDeleteHost')).to.be.false;
@@ -3412,4 +3487,297 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+  describe('#onLoadHiveConfigs', function() {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'saveConfigsBatch', Em.K);
+    });
+
+    afterEach(function() {
+      controller.saveConfigsBatch.restore();
+    });
+
+    var makeHostComponentModel = function(componentName, hostNames) {
+      if (Em.isArray(componentName)) {
+        return componentName.map(function(componentName, index) {
+          return makeHostComponentModel(componentName, hostNames[index]);
+        }).reduce(function(p,c) { return p.concat(c); }, []);
+      }
+      return hostNames.map(function(hostName) {
+        return {
+          componentName: componentName,
+          hostName: hostName
+        };
+      });
+    };
+
+    var makeFileNameProps = function(fileName, configs) {
+      var ret = {
+        type: fileName,
+        properties: {}
+      };
+      var propRet = {};
+      configs.forEach(function(property) {
+        propRet[property[0]] = property[1];
+      });
+      ret.properties = propRet;
+      return ret;
+    };
+
+    var makeEmptyPropAttrs = function() {
+      var fileNames = Array.prototype.slice.call(arguments);
+      var ret = {};
+      fileNames.forEach(function(fileName) {
+        ret[fileName] = {};
+      });
+      return ret;
+    };
+
+    var inlineComponentHostInfo = function(hostComponentModel) {
+      return hostComponentModel.mapProperty('componentName').uniq()
+        .map(function(componentName) {
+          return componentName + ":" + hostComponentModel.filterProperty('componentName', componentName).mapProperty('hostName').join();
+        }).join(',');
+    };
+
+    var tests = [
+      {
+        hostComponentModel: makeHostComponentModel(['HIVE_SERVER', 'HIVE_METASTORE'], [['host1', 'host2'], ['host1']]),
+        configs: {
+          items: [
+            makeFileNameProps('hive-site', [
+              ['hive.metastore.uris', 'thrift://host1:9090']
+            ]),
+            makeFileNameProps('hive-env', [
+              ['hive_user', 'hive_user_val'],
+              ['webhcat_user', 'webhcat_user_val']
+            ]),
+            makeFileNameProps('webhcat-site', [
+              ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
+            ]),
+            makeFileNameProps('core-site', [
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
+              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+            ])
+          ]
+        },
+        m: 'Components: {0}, appropriate configs should be changed, thrift port 9090, Controller stubs: {1}',
+        e: {
+          configs: [
+            {
+              "properties": {
+                "hive-site": makeFileNameProps('hive-site', [
+                  ['hive.metastore.uris', 'thrift://host1:9090']
+                ]).properties,
+                "webhcat-site": makeFileNameProps('webhcat-site', [
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9090,hive.metastore.sasl.enabled=false']
+                ]).properties,
+                "hive-env": makeFileNameProps('hive-env', [
+                  ['hive_user', 'hive_user_val'],
+                  ['webhcat_user', 'webhcat_user_val']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
+            },
+            {
+              "properties": {
+                "core-site": makeFileNameProps('core-site', [
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2'],
+                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("core-site")
+            },
+          ]
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel(['HIVE_SERVER', 'HIVE_METASTORE', 'WEBHCAT_SERVER'], [['host1', 'host2'], ['host1'], ['host2']]),
+        ctrlStubs: {
+          webhcatServerHost: 'host3'
+        },
+        configs: {
+          items: [
+            makeFileNameProps('hive-site', [
+              ['hive.metastore.uris', 'thrift://host1']
+            ]),
+            makeFileNameProps('hive-env', [
+              ['hive_user', 'hive_user_val'],
+              ['webhcat_user', 'webhcat_user_val']
+            ]),
+            makeFileNameProps('webhcat-site', [
+              ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
+            ]),
+            makeFileNameProps('core-site', [
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
+              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+            ])
+          ]
+        },
+        m: 'Components: {0}, appropriate configs should be changed, thrift port should be default 9083, Controller Stubs: {1}',
+        e: {
+          configs: [
+            {
+              "properties": {
+                "hive-site": makeFileNameProps('hive-site', [
+                  ['hive.metastore.uris', 'thrift://host1:9083,thrift://host2:9083,thrift://host3:9083']
+                ]).properties,
+                "webhcat-site": makeFileNameProps('webhcat-site', [
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083\\,thrift://host2:9083\\,thrift://host3:9083,hive.metastore.sasl.enabled=false']
+                ]).properties,
+                "hive-env": makeFileNameProps('hive-env', [
+                  ['hive_user', 'hive_user_val'],
+                  ['webhcat_user', 'webhcat_user_val']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
+            },
+            {
+              "properties": {
+                "core-site": makeFileNameProps('core-site', [
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3'],
+                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2,host3']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("core-site")
+            },
+          ]
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel(['HIVE_SERVER', 'HIVE_METASTORE', 'WEBHCAT_SERVER'], [['host1'], ['host1'], ['host1']]),
+        ctrlStubs: {
+          webhcatServerHost: 'host3',
+          hiveMetastoreHost: 'host2'
+        },
+        configs: {
+          items: [
+            makeFileNameProps('hive-site', [
+              ['hive.metastore.uris', 'thrift://host1:1111']
+            ]),
+            makeFileNameProps('hive-env', [
+              ['hive_user', 'hive_user_val'],
+              ['webhcat_user', 'webhcat_user_val']
+            ]),
+            makeFileNameProps('webhcat-site', [
+              ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
+            ]),
+            makeFileNameProps('core-site', [
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
+              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+            ])
+          ]
+        },
+        m: 'Components: {0}, appropriate configs should be changed, thrift port should be 1111, Controller Stubs: {1}',
+        e: {
+          configs: [
+            {
+              "properties": {
+                "hive-site": makeFileNameProps('hive-site', [
+                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host2:1111,thrift://host3:1111']
+                ]).properties,
+                "webhcat-site": makeFileNameProps('webhcat-site', [
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host2:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                ]).properties,
+                "hive-env": makeFileNameProps('hive-env', [
+                  ['hive_user', 'hive_user_val'],
+                  ['webhcat_user', 'webhcat_user_val']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
+            },
+            {
+              "properties": {
+                "core-site": makeFileNameProps('core-site', [
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host2,host3'],
+                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host2,host3']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("core-site")
+            },
+          ]
+        }
+      },
+      {
+        hostComponentModel: makeHostComponentModel(['HIVE_SERVER', 'HIVE_METASTORE', 'WEBHCAT_SERVER'], [['host1', 'host2'], ['host1','host2'], ['host1', 'host3']]),
+        ctrlStubs: {
+          fromDeleteHost: true,
+          'content.hostName': 'host2',
+          webhcatServerHost: '',
+          hiveMetastoreHost: ''
+        },
+        configs: {
+          items: [
+            makeFileNameProps('hive-site', [
+              ['hive.metastore.uris', 'thrift://host1:1111']
+            ]),
+            makeFileNameProps('hive-env', [
+              ['hive_user', 'hive_user_val'],
+              ['webhcat_user', 'webhcat_user_val']
+            ]),
+            makeFileNameProps('webhcat-site', [
+              ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:9083,hive.metastore.sasl.enabled=false']
+            ]),
+            makeFileNameProps('core-site', [
+              ['hadoop.proxyuser.hive_user_val.hosts', 'host1'],
+              ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1']
+            ])
+          ]
+        },
+        m: 'Components: {0}, appropriate configs should be changed, thrift port should be default 9083, Controller Stubs: {1}',
+        e: {
+          configs: [
+            {
+              "properties": {
+                "hive-site": makeFileNameProps('hive-site', [
+                  ['hive.metastore.uris', 'thrift://host1:1111,thrift://host3:1111']
+                ]).properties,
+                "webhcat-site": makeFileNameProps('webhcat-site', [
+                  ['templeton.hive.properties', 'hive.metastore.local=false,hive.metastore.uris=thrift://host1:1111\\,thrift://host3:1111,hive.metastore.sasl.enabled=false']
+                ]).properties,
+                "hive-env": makeFileNameProps('hive-env', [
+                  ['hive_user', 'hive_user_val'],
+                  ['webhcat_user', 'webhcat_user_val']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("hive-site", "webhcat-site", "hive-env")
+            },
+            {
+              "properties": {
+                "core-site": makeFileNameProps('core-site', [
+                  ['hadoop.proxyuser.hive_user_val.hosts', 'host1,host3'],
+                  ['hadoop.proxyuser.webhcat_user_val.hosts', 'host1,host3']
+                ]).properties
+              },
+              "properties_attributes": makeEmptyPropAttrs("core-site")
+            },
+          ]
+        }
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m.format(inlineComponentHostInfo(test.hostComponentModel), test.ctrlStubs ? JSON.stringify(test.ctrlStubs) : 'None'), function() {
+        if (test.appGetterStubs) {
+          Em.keys(test.appGetterStubs).forEach(function(key) {
+            sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
+          });
+        }
+        if (test.ctrlStubs) {
+          var stub = sinon.stub(controller, 'get');
+          Em.keys(test.ctrlStubs).forEach(function(key) {
+            stub.withArgs(key).returns(test.ctrlStubs[key]);
+          });
+        }
+        sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
+        controller.onLoadHiveConfigs(test.configs);
+        var configs = controller.saveConfigsBatch.args[0];
+        var properties = configs[0];
+        expect(properties).to.be.eql(test.e.configs);
+        if (test.ctrlStubs) controller.get.restore();
+        if (test.appGetterStubs) App.get.restore();
+        App.HostComponent.find.restore();
+      });
+    });
+  });
 });

@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('utils/configs/config_initializer_class');
+require('utils/configs/hosts_based_initializer_mixin');
 
 /**
  * Settings for <code>rm_hosts_with_port</code> initializer
@@ -39,24 +40,26 @@ function getRmHaHostsWithPort(port) {
  *
  * @class {RmHaConfigInitializer}
  */
-App.RmHaConfigInitializer = App.HaConfigInitializerClass.create({
+App.RmHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedInitializerMixin, {
 
-  initializers: {
-    'yarn.resourcemanager.hostname.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', ''),
-    'yarn.resourcemanager.hostname.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false,'', '', ''),
-    'yarn.resourcemanager.zk-address': App.HaConfigInitializerClass.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
-    'yarn.resourcemanager.webapp.address.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'webAddressPort', true),
-    'yarn.resourcemanager.webapp.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'webAddressPort', true),
-    'yarn.resourcemanager.webapp.https.address.rm1': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),
-    'yarn.resourcemanager.webapp.https.address.rm2': App.HaConfigInitializerClass.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true),
-    'yarn.resourcemanager.ha': getRmHaHostsWithPort(8032),
-    'yarn.resourcemanager.scheduler.ha': getRmHaHostsWithPort(8030)
-  },
+  initializers: function () {
+    return {
+      'yarn.resourcemanager.hostname.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', ''),
+      'yarn.resourcemanager.hostname.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false,'', '', ''),
+      'yarn.resourcemanager.zk-address': this.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
+      'yarn.resourcemanager.webapp.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'webAddressPort', true),
+      'yarn.resourcemanager.webapp.address.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'webAddressPort', true),
+      'yarn.resourcemanager.webapp.https.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),
+      'yarn.resourcemanager.webapp.https.address.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true),
+      'yarn.resourcemanager.ha': getRmHaHostsWithPort(8032),
+      'yarn.resourcemanager.scheduler.ha': getRmHaHostsWithPort(8030)
+    };
+  }.property(),
 
   initializerTypes: [
     {name: 'rm_hosts_with_port', method: '_initRmHaHostsWithPort'},
   ],
-  
+
   /**
    * Initializer for configs that should be updated with yarn resourcemanager ha host addresses with port
    *
