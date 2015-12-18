@@ -110,6 +110,10 @@ public class ClusterConfigurationRequest {
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
 
     try {
+      AmbariContext.getController().getKerberosHelper()
+        .ensureHeadlessIdentities(cluster, clusterConfiguration.getFullProperties(),
+          new HashSet<String>(blueprint.getServices()));
+
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, clusterConfiguration.getFullProperties(),
         new HashSet<String>(blueprint.getServices()));

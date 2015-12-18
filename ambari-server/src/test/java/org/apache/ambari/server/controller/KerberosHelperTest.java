@@ -2401,7 +2401,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).times(1);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).times(1);
     expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).times(1);
-    expect(cluster.getClusterName()).andReturn("c1").times(2);
+    expect(cluster.getClusterName()).andReturn("c1").times(4);
     expect(cluster.getHosts()).andReturn(Arrays.asList(host1, host2, host3)).times(1);
     expect(cluster.getServices()).andReturn(servicesMap).times(1);
 
@@ -2490,6 +2490,10 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     ambariMetaInfo.init();
+
+    CredentialStoreService credentialStoreService = injector.getInstance(CredentialStoreService.class);
+    credentialStoreService.setCredential(cluster.getClusterName(), KerberosHelper.KDC_ADMINISTRATOR_CREDENTIAL_ALIAS,
+      new PrincipalKeyCredential("principal", "password"), CredentialStoreType.TEMPORARY);
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
     kerberosHelper.ensureHeadlessIdentities(cluster, existingConfigurations, services);
