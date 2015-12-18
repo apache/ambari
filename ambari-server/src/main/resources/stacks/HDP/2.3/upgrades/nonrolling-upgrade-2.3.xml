@@ -437,6 +437,7 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 

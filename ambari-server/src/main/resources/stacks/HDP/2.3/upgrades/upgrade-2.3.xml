@@ -226,6 +226,7 @@
       <service-check>false</service-check>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
