@@ -43,6 +43,7 @@ from resource_management.libraries.functions.version_select_util import get_comp
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
@@ -68,6 +69,8 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
+DISTRO_SELECT_PACKAGE_NAME = "hdp-select"
+HDP_VERSION_PLACEHOLDER = "${hdp_version}"
 
 def get_path_from_configuration(name, configuration):
   subdicts = filter(None, name.split('/'))
@@ -94,6 +97,7 @@ class Script(object):
   3 path to service metadata dir (Directory "package" inside service directory)
   4 path to file with structured command output (file will be created)
   """
+  stack_version_from_hdp_select = None
   structuredOut = {}
   command_data_file = ""
   basedir = ""
@@ -235,7 +239,37 @@ class Script(object):
       raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
     method = getattr(self, command_name)
     return method
-
+  
+  @staticmethod
+  def get_stack_version_from_hdp_select():
+    """
+    This works in a lazy way (calculates the version first time and stores it). 
+    If you need to recalculate the version explicitly set:
+    
+    Script.stack_version_from_hdp_select = None
+    
+    before the call. However takes a bit of time, so better to avoid.
+    
+    :param install_hdp_select: whether to ensure if hdp-select is installed, before checking the version.
+    Set this to false, if you're sure hdp-select is present at the point you call this, to save some time.
+    
+    :return: hdp version including the build number. e.g.: 2.3.4.0-1234.
+    """
+    if not Script.stack_version_from_hdp_select:
+      Script.stack_version_from_hdp_select = packages_analyzer.getInstalledPackageVersion(DISTRO_SELECT_PACKAGE_NAME)
+      
+    return Script.stack_version_from_hdp_select
+  
+  @staticmethod
+  def format_package_name(name):
+    """
+    This function replaces ${hdp_version} placeholder into actual version.
+    """
+    package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+    hdp_version_package_formatted = Script.get_stack_version_from_hdp_select().replace('.', package_delimiter).replace('-', package_delimiter) if HDP_VERSION_PLACEHOLDER in name else name
+    package_name = name.replace(HDP_VERSION_PLACEHOLDER, hdp_version_package_formatted)
+    
+    return package_name
 
   @staticmethod
   def get_config():
@@ -397,8 +431,9 @@ class Script(object):
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
+          #import pydevd;pydevd.settrace(host='192.168.64.1',stdoutToServer=True, stderrToServer=True)
           if not Script.matches_any_regexp(package['name'], exclude_packages):
-            name = package['name']
+            name = Script.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.

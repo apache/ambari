@@ -33,7 +33,7 @@ def accumulo_service( name,
 
     if action == 'start':
       Directory(os.path.expanduser("~"), 
-                user = params.accumulo_user,
+                owner = params.accumulo_user,
                 group = params.user_group,
                 recursive_ownership = True,
                 ignore_failures=True

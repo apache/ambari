@@ -334,7 +334,7 @@ class InstallPackages(Script):
     # Install packages
     packages_were_checked = False
     try:
-      Package(self.get_base_packages_to_install())
+      Package('hdp-select', action="upgrade")
       
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -342,10 +342,10 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       for package in filtered_package_list:
-        name = self.format_package_name(package['name'], self.repository_version)
-        Package(name,
-                use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
-                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
+        name = Script.format_package_name(package['name'])
+        Package(name
+        # action="upgrade" - should we user ugrade action here? to updated not versioned packages?       
+        )
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
@@ -407,37 +407,9 @@ class InstallPackages(Script):
     )
     return repo['repoName'], file_name
 
-  def format_package_name(self, package_name, repo_id):
-    """
-    This method overcomes problems at SLES SP3. Zypper here behaves differently
-    than at SP1, and refuses to install packages by mask if there is any installed package that
-    matches this mask.
-    So we preppend concrete HDP version to mask under Suse
-    """
-    if OSCheck.is_suse_family() and '*' in package_name:
-      mask_version = re.search(r'((_\d+)*(_)?\*)', package_name).group(0)
-      formatted_version = '_' + repo_id.replace('.', '_').replace('-', '_') + '*'
-      return package_name.replace(mask_version, formatted_version)
-    else:
-      return package_name
-
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
-    
-  def get_base_packages_to_install(self):
-    """
-    HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
-    """
-    base_packages_to_install = ['fuse']
-    
-    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-      base_packages_to_install.append('libfuse2')
-    else:
-      base_packages_to_install.append('fuse-libs')
-      
-    return base_packages_to_install
-
     
   def filter_package_list(self, package_list):
     """

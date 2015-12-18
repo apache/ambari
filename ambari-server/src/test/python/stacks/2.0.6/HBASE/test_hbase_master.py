@@ -35,20 +35,27 @@ class TestHBaseMaster(RMFTestCase):
                        config_file="hbase_no_phx.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       try_install=True
+                       try_install=True,
+                       checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
     )
     self.assertResourceCalled('Package', 'hbase_2_3_*',)
 
     self.assertNoMoreResources()
-
+  
+  
+  #@patch('resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call', new=('','',''))
   def test_install_hbase_master_default_with_phx(self):
+    #import resource_management
+    import itertools
+    #resource_management.libraries.functions.packages_analyzer.rmf_shell.checked_call = lambda a, b: '','',''
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_master.py",
                        classname = "HbaseMaster",
                        command = "install",
                        config_file="hbase_with_phx.json",
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       try_install=True
+                       try_install=True,
+                       checked_call_mocks = [(0, "OK.", ""),(0, "OK.", "")],
     )
     self.assertResourceCalled('Package', 'hbase_2_3_*',)
     self.assertResourceCalled('Package', 'phoenix_2_3_*',)

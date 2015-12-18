@@ -27,13 +27,13 @@
       <version>1.2.1.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>spark_2_2_*</name>
+              <name>spark_${hdp_version}</name>
             </package>
             <package>
-              <name>spark_2_2_*-python</name>
+              <name>spark_${hdp_version}-python</name>
             </package>
           </packages>
         </osSpecific>
@@ -41,10 +41,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>spark-2-2-.*</name>
+              <name>spark-${hdp_version}</name>
             </package>
             <package>
-              <name>spark-2-2-.*-python</name>
+              <name>spark-${hdp_version}-python</name>
             </package>
           </packages>
         </osSpecific>

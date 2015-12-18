@@ -21,30 +21,6 @@
     <service>
       <name>SLIDER</name>
       <version>0.80.0.2.4</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>slider_2_4_*</name>
-            </package>
-            <package>
-              <name>storm_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>slider-2-4-.*</name>
-            </package>
-            <package>
-              <name>storm-2-4-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
     </service>
   </services>
 </metainfo>

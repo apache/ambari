@@ -32,13 +32,13 @@
       </themes>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>ranger_2_2_*-admin</name>
+              <name>ranger_${hdp_version}-admin</name>
             </package>
             <package>
-              <name>ranger_2_2_*-usersync</name>
+              <name>ranger_${hdp_version}-usersync</name>
             </package>
           </packages>
         </osSpecific>
@@ -46,10 +46,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>ranger-2-2-.*-admin</name>
+              <name>ranger-${hdp_version}-admin</name>
             </package>
             <package>
-              <name>ranger-2-2-.*-usersync</name>
+              <name>ranger-${hdp_version}-usersync</name>
             </package>
           </packages>
         </osSpecific>

@@ -26,10 +26,10 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>pig_2_3_*</name>
+              <name>pig_${hdp_version}</name>
             </package>
             <package>
-              <name>datafu_2_3_*</name>
+              <name>datafu_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,10 +37,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>pig-2-3-.*</name>
+              <name>pig-${hdp_version}</name>
             </package>
             <package>
-              <name>datafu-2-3-.*</name>
+              <name>datafu-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

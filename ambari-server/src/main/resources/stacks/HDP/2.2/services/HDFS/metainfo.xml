@@ -22,13 +22,20 @@
       <name>HDFS</name>
       <displayName>HDFS</displayName>
       <version>2.6.0.2.2</version>
-
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>hadoop_2_2_*</name>
+              <name>rpcbind</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <packages>
+            <package>
+              <name>hadoop_${hdp_version}</name>
             </package>
             <package>
               <name>snappy</name>
@@ -41,34 +48,34 @@
               <skipUpgrade>true</skipUpgrade>
             </package>
             <package>
-              <name>hadooplzo_2_2_*</name>
+              <name>hadooplzo_${hdp_version}</name>
             </package>
             <package>
-              <name>hadoop_2_2_*-libhdfs</name>
+              <name>hadoop_${hdp_version}-libhdfs</name>
             </package>
           </packages>
         </osSpecific>
 
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>hadoop-2-2-.*-client</name>
+              <name>hadoop-${hdp_version}-client</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-hdfs-datanode</name>
+              <name>hadoop-${hdp_version}-hdfs-datanode</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-hdfs-journalnode</name>
+              <name>hadoop-${hdp_version}-hdfs-journalnode</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-hdfs-namenode</name>
+              <name>hadoop-${hdp_version}-hdfs-namenode</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-hdfs-secondarynamenode</name>
+              <name>hadoop-${hdp_version}-hdfs-secondarynamenode</name>
             </package>
             <package>
-              <name>hadoop-2-2-.*-hdfs-zkfc</name>
+              <name>hadoop-${hdp_version}-hdfs-zkfc</name>
             </package>
             <package>
               <name>libsnappy1</name>
@@ -77,14 +84,10 @@
               <name>libsnappy-dev</name>
             </package>
             <package>
-              <name>hadooplzo-2-2-.*</name>
+              <name>hadooplzo-${hdp_version}</name>
             </package>
             <package>
-              <name>liblzo2-2</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>libhdfs0-2-2-.*</name>
+              <name>libhdfs0-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

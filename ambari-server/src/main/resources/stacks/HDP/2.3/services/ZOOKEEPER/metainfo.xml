@@ -23,29 +23,28 @@
       <version>3.4.6.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>zookeeper_2_3_*</name>
+              <name>zookeeper_${hdp_version}</name>
             </package>
             <package>
-              <name>zookeeper_2_3_*-server</name>
+              <name>zookeeper_${hdp_version}-server</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>zookeeper-2-3-.*</name>
+              <name>zookeeper-${hdp_version}</name>
             </package>
             <package>
-              <name>zookeeper-2-3-.*-server</name>
+              <name>zookeeper-${hdp_version}-server</name>
             </package>
           </packages>
         </osSpecific>
       </osSpecifics>
-
     </service>
   </services>
 </metainfo>
