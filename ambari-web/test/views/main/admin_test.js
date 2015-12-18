@@ -30,7 +30,7 @@ describe('App.MainAdminView', function () {
     });
   });
 
-  describe('#categories', function () {
+  describe.skip('#categories', function () {
 
     var cases = [
       {

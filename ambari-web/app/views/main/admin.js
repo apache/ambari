@@ -23,17 +23,21 @@ App.MainAdminView = Em.View.extend({
   selectedBinding: 'controller.category',
   categories: function() {
     var items = [];
-    items.push({
-      name: 'stackAndUpgrade',
-      url: 'stackAndUpgrade.index',
-      label: Em.I18n.t('admin.stackUpgrade.title')
-    });
-    items.push({
-      name: 'adminServiceAccounts',
-      url: 'adminServiceAccounts',
-      label: Em.I18n.t('common.serviceAccounts')
-    });
-    if (!App.get('isHadoopWindowsStack')) {
+    if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+      items.push({
+        name: 'stackAndUpgrade',
+        url: 'stackAndUpgrade.index',
+        label: Em.I18n.t('admin.stackUpgrade.title')
+      });
+    }
+    if(App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS')) {
+      items.push({
+        name: 'adminServiceAccounts',
+        url: 'adminServiceAccounts',
+        label: Em.I18n.t('common.serviceAccounts')
+      });
+    }
+    if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
       items.push({
         name: 'kerberos',
         url: 'adminKerberos.index',

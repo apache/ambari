@@ -43,7 +43,7 @@ App.MainMenuView = Em.CollectionView.extend({
               {label: Em.I18n.t('menu.item.alerts'), routing: 'alerts'}
           );
         }
-        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+        if (App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')) {
           result.push({ label: Em.I18n.t('menu.item.admin'), routing: 'admin'});
         }
       }
@@ -110,17 +110,21 @@ App.MainMenuView = Em.CollectionView.extend({
       // create dropdown categories for each menu item
       if (itemName == 'admin') {
         categories = [];
-        categories.push({
-          name: 'stackAndUpgrade',
-          url: 'stack',
-          label: Em.I18n.t('admin.stackUpgrade.title')
-        });
-        categories.push({
-          name: 'adminServiceAccounts',
-          url: 'serviceAccounts',
-          label: Em.I18n.t('common.serviceAccounts')
-        });
-        if (!App.get('isHadoopWindowsStack')) {
+        if(App.isAuthorized('CLUSTER.VIEW_STACK_DETAILS, CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
+          categories.push({
+            name: 'stackAndUpgrade',
+            url: 'stack',
+            label: Em.I18n.t('admin.stackUpgrade.title')
+          });
+        }
+        if(App.isAuthorized('AMBARI.SET_SERVICE_USERS_GROUPS')) {
+          categories.push({
+            name: 'adminServiceAccounts',
+            url: 'serviceAccounts',
+            label: Em.I18n.t('common.serviceAccounts')
+          });
+        }
+        if (!App.get('isHadoopWindowsStack') && App.isAuthorized('CLUSTER.TOGGLE_KERBEROS')) {
           categories.push({
             name: 'kerberos',
             url: 'kerberos/',
