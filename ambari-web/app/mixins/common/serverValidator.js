@@ -149,6 +149,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
       })
     }
 
+    this.set('initialConfigValues', recommendations.blueprint.configurations);
     return App.ajax.send({
       'name': 'config.recommendations',
       'sender': this,

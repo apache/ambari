@@ -160,7 +160,7 @@ App.ConfigInitializerClass = Em.Object.extend({
       var args = [].slice.call(arguments);
       return this[uniqueInitializer].apply(this, args);
     }
-
+    Em.set(configProperty, 'initialValue', Em.get(configProperty, 'value'));
     return configProperty;
   },
 

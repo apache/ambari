@@ -261,7 +261,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         configGroup = this.get('selectedConfigGroup');
       }
       var recommendations = this.get('hostGroups');
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
       delete recommendations.config_groups;
 
       var dataToSend = {
@@ -269,9 +268,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
-      if (changedConfigs) {
-        dataToSend.recommend = 'configuration-dependencies';
-        dataToSend.changed_configurations = changedConfigs;
+      var clearConfigsOnAddService = this.isConfigHasInitialState();
+      if (clearConfigsOnAddService) {
+        recommendations.blueprint.configurations = this.get('initialConfigValues');
+      } else {
+        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+        if (changedConfigs) {
+          dataToSend.recommend = 'configuration-dependencies';
+          dataToSend.changed_configurations = changedConfigs;
+        }
       }
       if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
         var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
@@ -285,7 +290,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           stackVersionUrl: App.get('stackVersionURL'),
           dataToSend: dataToSend,
           selectedConfigGroup: configGroup.get('isDefault') ? null : configGroup.get('name'),
-          initial: initial
+          initial: initial,
+          clearConfigsOnAddService: clearConfigsOnAddService
         },
         success: 'dependenciesSuccess',
         error: 'dependenciesError',
@@ -298,6 +304,46 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     } else {
       return null;
     }
+  },
+
+  /**
+   * Defines if there is any changes made by user.
+   * Check all properties except recommended properties from popup
+   *
+   * @returns {boolean}
+   */
+  isConfigHasInitialState: function() {
+    return !this.get('stepConfigs').filter(function(stepConfig) {
+      return stepConfig.get('changedConfigProperties').filter(function(c) {
+        return !this.get('changedProperties').map(function(changed) {
+          return App.config.configId(changed.propertyName, changed.fileName);
+        }).contains(App.config.configId(c.get('name'), c.get('filename')));
+      }, this).length;
+    }, this).length;
+  },
+
+
+  /**
+   * Set all config values to their default (initialValue)
+   */
+  clearConfigValues: function() {
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      stepConfig.get('changedConfigProperties').forEach(function(c) {
+        var recommendedProperty = this.get('_dependentConfigValues').find(function(d) {
+          return App.config.configId(d.propertyName, d.fileName) == App.config.configId(c.get('name'), c.get('filename'));
+        });
+        if (recommendedProperty) {
+          var initialValue = recommendedProperty.value;
+          if (Em.isNone(initialValue)) {
+            stepConfig.get('configs').removeObject(c);
+          } else {
+            c.set('value', initialValue);
+            c.set('recommendedValue', initialValue);
+          }
+          this.get('_dependentConfigValues').removeObject(recommendedProperty);
+        }
+      }, this)
+    }, this);
   },
 
   /**
@@ -338,6 +384,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   dependenciesSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations, params.selectedConfigGroup);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
+    if (params.clearConfigsOnAddService) {
+      this.clearDependenciesForInstalledServices(this.get('installedServiceNames'), this.get('stepConfigs'));
+      this.clearConfigValues();
+    }
     if (!params.initial) {
       this.updateDependentConfigs();
     }
@@ -647,26 +697,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     });
     this.set('recommendationTimeStamp', (new Date).getTime());
   },
-
-  /**
-   * Add and remove dependencies based on recommendations
-   *
-   * @param {String[]} [serviceNames=undefined] - list of services to apply changes
-   */
-  addRemoveDependentConfigs: function(serviceNames) {
-    var self = this;
-    this.get('stepConfigs').forEach(function(serviceConfigs) {
-      if (serviceNames && !serviceNames.contains(serviceConfigs.get('serviceName'))) {
-        return;
-      }
-      var selectedGroup = self.getGroupForService(serviceConfigs.get('serviceName'));
-      if (selectedGroup) {
-        self._addRecommendedProperties(serviceConfigs, selectedGroup);
-        self._removeUnRecommendedProperties(serviceConfigs, selectedGroup);
-      }
-    });
-  },
-
 
   /**
    * add configs that was recommended and wasn't present in stepConfigs

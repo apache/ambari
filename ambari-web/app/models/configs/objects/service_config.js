@@ -60,7 +60,7 @@ App.ServiceConfig = Ember.Object.extend({
   }.observes('configsWithErrors'),
 
   observeForeignKeys: function() {
-    //TODO refactor or move this login to other place
+    //TODO refactor or move this logic to other place
     var configs = this.get('configs');
     configs.forEach(function (item) {
       if (item.get('isVisible')) {
@@ -102,6 +102,19 @@ App.ServiceConfig = Ember.Object.extend({
 
     return configs.someProperty('isNotDefaultValue');
   },
+
+  /**
+   * Collection of properties that were changed:
+   * for saved properties use - <code>isNotDefaultValue<code>
+   * for not saved properties (on wizards, for new services) use
+   *    - <code>isNotInitialValue<code>
+   * for added properties use - <code>isNotSaved<code>
+   */
+  changedConfigProperties: function() {
+    return this.get('configs').filter(function(c) {
+      return c.get('isNotDefaultValue') || c.get('isNotSaved') || c.get('isNotInitialValue');
+    }, this);
+  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isNotSaved', 'configs.@each.isNotInitialValue'),
 
   isPropertiesChanged: function() {
     var requiredByAgent = this.get('configs').filterProperty('isRequiredByAgent');

@@ -573,7 +573,9 @@ App.ConfigInitializer = App.ConfigInitializerClass.create({
     var re = new RegExp(regex);
     recommendedValue = recommendedValue.replace(re, replaceWith);
     Em.set(configProperty, 'recommendedValue', recommendedValue);
-    Em.set(configProperty, 'value', Em.isNone(Em.get(configProperty, 'recommendedValue')) ? '' : recommendedValue);
+    var value = Em.isNone(Em.get(configProperty, 'recommendedValue')) ? '' : recommendedValue;
+    Em.set(configProperty, 'value', value);
+    Em.set(configProperty, 'initialValue', value);
     return configProperty;
   },
 

@@ -129,7 +129,12 @@ describe('App.ListConfigWidgetView', function () {
   });
 
   describe('#calculateVal', function () {
-
+    beforeEach(function() {
+      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K)
+    });
+    afterEach(function() {
+      view.sendRequestRorDependentConfigs.restore();
+    });
     it('value updates if some option', function () {
       view.toggleOption({context: view.get('options')[2]});
       expect(view.get('config.value')).to.equal('2,1,3');
@@ -145,11 +150,15 @@ describe('App.ListConfigWidgetView', function () {
 
     beforeEach(function() {
       sinon.stub(view, 'restoreDependentConfigs', Em.K);
-      sinon.stub(view.get('controller'), 'removeCurrentFromDependentList', Em.K)
+      sinon.stub(view.get('controller'), 'removeCurrentFromDependentList', Em.K);
+      sinon.stub(view, 'sendRequestRorDependentConfigs', function() {return {
+        done: function() {}
+      }});
     });
     afterEach(function() {
       view.restoreDependentConfigs.restore();
       view.get('controller.removeCurrentFromDependentList').restore();
+      view.sendRequestRorDependentConfigs.restore();
     });
     it('should restore saved value', function () {
       view.toggleOption({context: view.get('options')[0]});
@@ -164,6 +173,13 @@ describe('App.ListConfigWidgetView', function () {
   });
 
   describe('#toggleOption', function () {
+
+    beforeEach(function() {
+      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K)
+    });
+    afterEach(function() {
+      view.sendRequestRorDependentConfigs.restore();
+    });
 
     it('should doesn\'t do nothing if maximum number of options is selected', function () {
       view.toggleOption({context: view.get('options')[2]});

@@ -79,14 +79,14 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
-    if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
+    if (!config || (!config.get('isValid') && config.get('isNotDefaultValue'))) return $.Deferred().resolve().promise();
     if (['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
-       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || p.displayType === 'user') && config.get('oldValue') !== config.get('value')) {
+       if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || Em.get(p, 'displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
          return controller.getRecommendationsForDependencies([{

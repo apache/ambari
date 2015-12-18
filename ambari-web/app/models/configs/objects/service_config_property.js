@@ -201,6 +201,23 @@ App.ServiceConfigProperty = Em.Object.extend({
   additionalView: null,
 
   /**
+   * If config is saved we should compare config <code>value<code> with <code>savedValue<code> to
+   * find out if it was changed, but if config in not saved there is no <code>savedValue<code>, so
+   * we should use <code>initialValue<code> instead.
+   */
+  isNotInitialValue: function() {
+    if (Em.isNone(this.get('savedValue')) && !Em.isNone(this.get('initialValue'))) {
+      var value = this.get('value'), initialValue = this.get('initialValue');
+      if (this.get('stackConfigProperty.valueAttributes.type') == 'float') {
+        initialValue = !Em.isNone(initialValue) ? '' + parseFloat(initialValue) : null;
+        value = '' + parseFloat(value);
+      }
+      return initialValue !== value;
+    }
+    return false;
+  }.property('initialValue', 'savedValue', 'value', 'stackConfigProperty.valueAttributes.type'),
+
+  /**
    * Is property has active override with error
    */
   isValidOverride: function () {
