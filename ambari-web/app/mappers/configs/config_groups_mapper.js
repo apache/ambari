@@ -126,7 +126,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
     return {
       id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
-      config_group_id: '-1',
+      config_group_id: -1,
       name: 'Default',
       service_name: serviceName,
       description: 'Default cluster level ' + App.format.role(serviceName) + ' configuration',

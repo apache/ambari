@@ -28,7 +28,7 @@ App.ServiceConfigGroup = DS.Model.extend({
 
   /**
    * original id for config group that is get from server
-   * for default groups "-1"
+   * for default groups -1
    * @property {number}
    */
   configGroupId: DS.attr('number'),
@@ -63,7 +63,7 @@ App.ServiceConfigGroup = DS.Model.extend({
    * defines if group is default
    * @type {boolean}
    */
-  isDefault: Em.computed.equal('configGroupId', '-1'),
+  isDefault: Em.computed.equal('configGroupId', -1),
 
   /**
    * list of group names that shows which config
