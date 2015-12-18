@@ -138,7 +138,8 @@ describe('App.ServiceConfigVersion', function () {
 
     it("should return created date", function() {
       model.set('createTime', 1450267588961);
-      expect(model.get('createdDate')).to.equal('Wed, Dec 16, 2015 14:06');
+      moment.tz.setDefault('America/Los_Angeles');
+      expect(model.get('createdDate')).to.equal('Wed, Dec 16, 2015 04:06');
     });
 
   });
