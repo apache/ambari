@@ -52,15 +52,13 @@ describe('App.SubSection', function () {
       expect(model.get('errorsCount')).to.equal(3);
     });
 
-    it('should use configs.@each.overrideErrorTrigger', function() {
+    it('should use configs.@each.isValidOverride', function() {
       // original value is valid
       var validOriginalSCP = model.get('configs').objectAt(0);
       // add override with not valid value
-      validOriginalSCP.set('overrides', [
-        App.ServiceConfigProperty.create({ isValid: false }),
-        App.ServiceConfigProperty.create({ isValid: true })
-      ]);
-      expect(model.get('errorsCount')).to.equal(4);
+      validOriginalSCP.set('isValidOverride', false);
+      validOriginalSCP.set('isValid', true);
+      expect(model.get('errorsCount')).to.equal(3);
     });
 
   });

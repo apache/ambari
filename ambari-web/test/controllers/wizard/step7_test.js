@@ -1531,30 +1531,13 @@ describe('App.InstallerStep7Controller', function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {
 
-      installerStep7Controller.reopen({selectedService: {
-        configs: [
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
-          Em.Object.create({isVisible: true, isValid: true}),
-          Em.Object.create({isVisible: true, isValid: false})
-        ]
-      }});
-
-      expect(installerStep7Controller.get('errorsCount')).to.equal(1);
-
-    });
-
-    it('should ignore configs with widgets (enhanced configs) and hidden configs', function () {
-
-      installerStep7Controller.reopen({selectedService: {
-        configs: [
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
-          Em.Object.create({isVisible: false, isValid: false}),
-          Em.Object.create({isVisible: true, isValid: true}),
-          Em.Object.create({isVisible: true, isValid: false})
-        ]
-      }});
+      installerStep7Controller.reopen({selectedService: Em.Object.create({
+          configsWithErrors: Em.A([
+            Em.Object.create({widget: {}}),
+            Em.Object.create({widget: null})
+          ])
+        })
+      });
 
       expect(installerStep7Controller.get('errorsCount')).to.equal(1);
 

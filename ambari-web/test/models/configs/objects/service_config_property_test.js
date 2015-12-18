@@ -335,15 +335,6 @@ describe('App.ServiceConfigProperty', function () {
 
   App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
 
-  describe('#overrideErrorTrigger', function () {
-    it('should be an increment', function () {
-      serviceConfigProperty.set('overrides', configsData[0].overrides);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(1);
-      serviceConfigProperty.set('overrides', []);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(2);
-    });
-  });
-
   describe('#isPropertyOverridable', function () {
     overridableFalseData.forEach(function (item) {
       it('should be false', function () {

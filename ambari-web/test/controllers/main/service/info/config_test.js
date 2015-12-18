@@ -778,30 +778,12 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {
 
-      mainServiceInfoConfigsController.reopen({selectedService: {
-        configs: [
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
-          Em.Object.create({isVisible: true, isValid: true}),
-          Em.Object.create({isVisible: true, isValid: false})
-        ]
-      }});
-
-      expect(mainServiceInfoConfigsController.get('errorsCount')).to.equal(1);
-
-    });
-
-    it('should ignore configs with widgets (enhanced configs) and hidden configs', function () {
-
-      mainServiceInfoConfigsController.reopen({selectedService: {
-        configs: [
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: false}),
-          Em.Object.create({isVisible: true, widgetType: 'type', isValid: true}),
-          Em.Object.create({isVisible: false, isValid: false}),
-          Em.Object.create({isVisible: true, isValid: true}),
-          Em.Object.create({isVisible: true, isValid: false})
-        ]
-      }});
+      mainServiceInfoConfigsController.reopen({selectedService: Em.Object.create({
+        configsWithErrors: Em.A([
+          Em.Object.create({widget: {}}),
+          Em.Object.create({widget: null})
+        ])
+      })});
 
       expect(mainServiceInfoConfigsController.get('errorsCount')).to.equal(1);
 
