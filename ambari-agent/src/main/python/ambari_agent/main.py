@@ -321,7 +321,7 @@ def main(heartbeat_stop_callback=None):
       #
       if connected or stopped:
         if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:
-          ExitHelper.execute_cleanup()
+          ExitHelper().execute_cleanup()
           stop_agent()
         logger.info("finished")
         break
