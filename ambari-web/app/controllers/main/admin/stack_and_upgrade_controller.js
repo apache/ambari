@@ -565,8 +565,25 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       sender: this,
       data: {
         upgradeId: this.get('upgradeId')
-      }
+      },
+      error: 'abortUpgradeErrorCallback'
     });
+  },
+
+  /**
+   * error callback of <code>abortUpgrade()</code>
+   * @param {object} data
+   */
+  abortUpgradeErrorCallback: function (data) {
+    var header = Em.I18n.t('admin.stackUpgrade.state.paused.fail.header');
+    var body = Em.I18n.t('admin.stackUpgrade.state.paused.fail.body');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        body = body + ' ' + json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(header, body);
   },
 
   retryUpgrade: function () {

@@ -1492,6 +1492,8 @@ Em.I18n.translations = {
   'admin.stackVersions.version.downgrade.running': "Downgrade: In Process",
   'admin.stackVersions.version.downgrade.aborted': "Downgrade: Aborted",
   'admin.stackVersions.version.downgrade.suspended': "Downgrade: Paused",
+  'admin.stackUpgrade.state.paused.fail.header': "Pause Upgrade failed",
+  'admin.stackUpgrade.state.paused.fail.body': "Upgrade could not be paused. Try again later.",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
