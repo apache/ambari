@@ -26,7 +26,7 @@
         "stack_id": "HDP-2.2",
         "repository_version": "2.2.0.1-885",
         "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
-        "package_list": "[{\"name\":\"hadoop_${stack_version}\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_${stack_version}\"},{\"name\":\"hadoop_${stack_version}-libhdfs\"},{\"name\":\"ambari-log4j\"}]"
+        "package_list": "[{\"name\":\"hadoop_${hdp_version}\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_${hdp_version}\"},{\"name\":\"hadoop_${hdp_version}-libhdfs\"},{\"name\":\"ambari-log4j\"}]"
     }, 
     "serviceName": "null", 
     "role": "install_packages", 
@@ -44,7 +44,7 @@
         "script_type": "PYTHON",
         "repository_version": "2.2.0.1-885",
         "base_urls": "[{\"name\":\"HDP-UTILS\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-UTILS-1.1.0.20\"},{\"name\":\"HDP\",\"baseUrl\":\"http://repo1/HDP/centos5/2.x/updates/2.2.0.0\",\"repositoryId\":\"HDP-2.2\"}]",
-        "package_list": "[{\"name\":\"hadoop_${stack_version}\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_${stack_version}\"},{\"name\":\"hadoop_${stack_version}-libhdfs\"},{\"name\":\"ambari-log4j\"}]",
+        "package_list": "[{\"name\":\"hadoop_${hdp_version}\"},{\"name\":\"snappy\"},{\"name\":\"snappy-devel\"},{\"name\":\"lzo\"},{\"name\":\"hadooplzo_${hdp_version}\"},{\"name\":\"hadoop_${hdp_version}-libhdfs\"},{\"name\":\"ambari-log4j\"}]",
         "script": "install_packages.py"
     }, 
     "commandId": "14-1", 

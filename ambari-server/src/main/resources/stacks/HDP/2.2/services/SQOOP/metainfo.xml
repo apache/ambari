@@ -35,7 +35,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>sqoop_${stack_version}</name>
+              <name>sqoop_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -43,7 +43,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>sqoop-${stack_version}</name>
+              <name>sqoop-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

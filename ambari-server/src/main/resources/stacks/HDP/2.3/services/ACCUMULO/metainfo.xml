@@ -27,7 +27,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>accumulo_${stack_version}</name>
+              <name>accumulo_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -35,7 +35,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>accumulo-${stack_version}</name>
+              <name>accumulo-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

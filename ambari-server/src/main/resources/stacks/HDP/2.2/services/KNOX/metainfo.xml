@@ -26,7 +26,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>knox_${stack_version}</name>
+              <name>knox_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -34,7 +34,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>knox-${stack_version}</name>
+              <name>knox-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

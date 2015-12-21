@@ -29,7 +29,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>ranger_${stack_version}-kms</name>
+              <name>ranger_${hdp_version}-kms</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,7 +37,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>ranger-${stack_version}-kms</name>
+              <name>ranger-${hdp_version}-kms</name>
             </package>
           </packages>
         </osSpecific>

@@ -34,7 +34,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>storm_${stack_version}</name>
+              <name>storm_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -42,7 +42,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>storm-${stack_version}</name>
+              <name>storm-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

@@ -26,10 +26,10 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>slider_${stack_version}</name>
+              <name>slider_${hdp_version}</name>
             </package>
             <package>
-              <name>storm_${stack_version}-slider-client</name>
+              <name>storm_${hdp_version}-slider-client</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,10 +37,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>slider-${stack_version}</name>
+              <name>slider-${hdp_version}</name>
             </package>
             <package>
-              <name>storm-${stack_version}-slider-client</name>
+              <name>storm-${hdp_version}-slider-client</name>
             </package>
           </packages>
         </osSpecific>

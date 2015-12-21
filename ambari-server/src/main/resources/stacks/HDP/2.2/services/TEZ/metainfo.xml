@@ -28,7 +28,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>tez_${stack_version}</name>
+              <name>tez_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -36,7 +36,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>tez-${stack_version}</name>
+              <name>tez-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>

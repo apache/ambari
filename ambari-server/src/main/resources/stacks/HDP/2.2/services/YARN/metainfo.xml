@@ -35,13 +35,13 @@
           <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hadoop_${stack_version}-yarn</name>
+              <name>hadoop_${hdp_version}-yarn</name>
             </package>
             <package>
-              <name>hadoop_${stack_version}-mapreduce</name>
+              <name>hadoop_${hdp_version}-mapreduce</name>
             </package>
             <package>
-              <name>hadoop_${stack_version}-hdfs</name>
+              <name>hadoop_${hdp_version}-hdfs</name>
             </package>
           </packages>
         </osSpecific>
@@ -49,10 +49,10 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-${stack_version}-yarn</name>
+              <name>hadoop-${hdp_version}-yarn</name>
             </package>
             <package>
-              <name>hadoop-${stack_version}-mapreduce</name>
+              <name>hadoop-${hdp_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -75,7 +75,7 @@
           <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hadoop_${stack_version}-mapreduce</name>
+              <name>hadoop_${hdp_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>
@@ -83,7 +83,7 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hadoop-${stack_version}-mapreduce</name>
+              <name>hadoop-${hdp_version}-mapreduce</name>
             </package>
           </packages>
         </osSpecific>

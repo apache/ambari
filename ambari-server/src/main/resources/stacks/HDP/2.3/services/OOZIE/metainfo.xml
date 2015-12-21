@@ -48,10 +48,10 @@
           <osFamily>redhat5,redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
-              <name>oozie_${stack_version}</name>
+              <name>oozie_${hdp_version}</name>
             </package>
             <package>
-              <name>falcon_${stack_version}</name>
+              <name>falcon_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -59,10 +59,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>oozie-${stack_version}</name>
+              <name>oozie-${hdp_version}</name>
             </package>
             <package>
-              <name>falcon-${stack_version}</name>
+              <name>falcon-${hdp_version}</name>
             </package>
             <package>
               <name>extjs</name>

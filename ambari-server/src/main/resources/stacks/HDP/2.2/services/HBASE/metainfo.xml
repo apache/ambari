@@ -28,10 +28,10 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>hbase_${stack_version}</name>
+              <name>hbase_${hdp_version}</name>
             </package>
             <package>
-              <name>phoenix_${stack_version}</name>
+              <name>phoenix_${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -39,10 +39,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>hbase-${stack_version}</name>
+              <name>hbase-${hdp_version}</name>
             </package>
             <package>
-              <name>phoenix-${stack_version}</name>
+              <name>phoenix-${hdp_version}</name>
             </package>
           </packages>
         </osSpecific>
