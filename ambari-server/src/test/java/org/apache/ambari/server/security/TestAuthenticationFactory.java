@@ -152,6 +152,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.AMBARI));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.allOf(RoleAuthorization.class)));
     return permissionEntity;
@@ -159,6 +160,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createClusterAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.CLUSTER_ADMINISTRATOR_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
@@ -199,6 +201,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createServiceAdministratorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(5);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.CLUSTER_VIEW_ALERTS,
@@ -229,6 +232,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createServiceOperatorPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(6);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
@@ -253,6 +257,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createClusterUserPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.CLUSTER_USER_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.SERVICE_VIEW_CONFIGS,
@@ -273,6 +278,7 @@ public class TestAuthenticationFactory {
 
   private static PermissionEntity createViewUserPermission() {
     PermissionEntity permissionEntity = new PermissionEntity();
+    permissionEntity.setId(PermissionEntity.VIEW_USER_PERMISSION);
     permissionEntity.setResourceType(createResourceTypeEntity(ResourceType.CLUSTER));
     permissionEntity.setAuthorizations(createAuthorizations(EnumSet.of(
         RoleAuthorization.VIEW_USE

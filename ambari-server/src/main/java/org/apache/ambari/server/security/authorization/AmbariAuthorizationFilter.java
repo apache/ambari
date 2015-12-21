@@ -117,7 +117,7 @@ public class AmbariAuthorizationFilter implements Filter {
     if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
       Authentication defaultAuthentication = getDefaultAuthentication();
       if (defaultAuthentication != null) {
-        context.setAuthentication(authentication);
+        context.setAuthentication(defaultAuthentication);
         authentication = defaultAuthentication;
       }
     }
@@ -221,7 +221,7 @@ public class AmbariAuthorizationFilter implements Filter {
       String username = configuration.getDefaultApiAuthenticatedUser();
 
       if (!StringUtils.isEmpty(username)) {
-        final User user = users.getAnyUser(username);
+        final User user = users.getUser(username, UserType.LOCAL);
 
         if (user != null) {
           Principal principal = new Principal() {
