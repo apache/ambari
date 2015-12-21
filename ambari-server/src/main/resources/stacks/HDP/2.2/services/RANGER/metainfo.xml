@@ -35,10 +35,10 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>ranger_${hdp_version}-admin</name>
+              <name>ranger_${stack_version}-admin</name>
             </package>
             <package>
-              <name>ranger_${hdp_version}-usersync</name>
+              <name>ranger_${stack_version}-usersync</name>
             </package>
           </packages>
         </osSpecific>
@@ -46,10 +46,10 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>ranger-${hdp_version}-admin</name>
+              <name>ranger-${stack_version}-admin</name>
             </package>
             <package>
-              <name>ranger-${hdp_version}-usersync</name>
+              <name>ranger-${stack_version}-usersync</name>
             </package>
           </packages>
         </osSpecific>

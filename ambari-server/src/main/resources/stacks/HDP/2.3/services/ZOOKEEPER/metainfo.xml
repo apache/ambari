@@ -26,10 +26,10 @@
           <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>zookeeper_${hdp_version}</name>
+              <name>zookeeper_${stack_version}</name>
             </package>
             <package>
-              <name>zookeeper_${hdp_version}-server</name>
+              <name>zookeeper_${stack_version}-server</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,10 +37,10 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>zookeeper-${hdp_version}</name>
+              <name>zookeeper-${stack_version}</name>
             </package>
             <package>
-              <name>zookeeper-${hdp_version}-server</name>
+              <name>zookeeper-${stack_version}-server</name>
             </package>
           </packages>
         </osSpecific>

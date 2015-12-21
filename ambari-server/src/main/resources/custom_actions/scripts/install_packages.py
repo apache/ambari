@@ -342,9 +342,9 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       for package in filtered_package_list:
-        name = Script.format_package_name(package['name'])
+        name = self.format_package_name(package['name'])
         Package(name
-        # action="upgrade" - should we user ugrade action here? to updated not versioned packages?       
+        # action="upgrade" # should we use "upgrade" action here, to upgrade not versioned packages?       
         )
     except Exception, err:
       ret_code = 1
