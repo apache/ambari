@@ -818,27 +818,26 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     };
     var configsByService = {}, dependencies = this.get('configDependencies');
 
-    stepConfigs.forEach(function (service) {
-      if (!configsByService[service.get('serviceName')])  {
-        configsByService[service.get('serviceName')] = service.get('configs');
+    configs.forEach(function (_config) {
+      if (!configsByService[_config.serviceName]) {
+        configsByService[_config.serviceName] = [];
       }
-      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
-        this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
+      var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
+      this.updateHostOverrides(serviceConfigProperty, _config);
+      if (this.get('wizardController.name') === 'addServiceController') {
+        this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
       }
+      if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
+        App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
+      }
+      serviceConfigProperty.validate();
+      configsByService[_config.serviceName].pushObject(serviceConfigProperty);
     }, this);
 
-    configs.forEach(function (_config) {
-      if (configsByService[_config.serviceName]) {
-        var serviceConfigProperty = App.ServiceConfigProperty.create(_config);
-        this.updateHostOverrides(serviceConfigProperty, _config);
-        if (this.get('wizardController.name') === 'addServiceController') {
-          this._updateIsEditableFlagForConfig(serviceConfigProperty, true);
-        }
-        if (!this.get('content.serviceConfigProperties.length') && !serviceConfigProperty.get('hasInitialValue')) {
-          App.ConfigInitializer.initialValue(serviceConfigProperty, localDB, dependencies);
-        }
-        serviceConfigProperty.validate();
-        configsByService[_config.serviceName].pushObject(serviceConfigProperty);
+    stepConfigs.forEach(function (service) {
+      service.set('configs', configsByService[service.get('serviceName')]);
+      if (['addServiceController', 'installerController'].contains(this.get('wizardController.name'))) {
+        this.addHostNamesToConfigs(service, localDB.masterComponentHosts, localDB.slaveComponentHosts);
       }
     }, this);
     return stepConfigs;
