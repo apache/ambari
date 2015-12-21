@@ -16,7 +16,6 @@
  */
 
 var App = require('app');
-var misc = require('utils/misc');
 
 App.serviceMapper = App.QuickDataMapper.create({
   model: App.Service,
@@ -56,7 +55,6 @@ App.serviceMapper = App.QuickDataMapper.create({
         App.serviceMetricsMapper.mapExtendedModel(item);
         return self.parseIt(item, self.get('config'));
       });
-      parsedCacheServices = misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), parsedCacheServices);
       App.store.loadMany(this.get('model'), parsedCacheServices);
       App.store.commit();
       this.set('initialAppLoad', true);
