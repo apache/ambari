@@ -681,6 +681,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           groupName = this.get('configGroupName').trim(),
           newGroupId = App.ServiceConfigGroup.groupId(serviceName, groupName);
 
+        if (duplicated) {
+          self.get('selectedConfigGroup.properties').forEach(function (item) {
+            var property = App.ServiceConfigProperty.create($.extend(false, {}, item));
+            property.set('group', App.ServiceConfigGroup.find(newGroupId));
+            properties.push(property);
+          });
+        }
+
         App.store.load(App.ServiceConfigGroup, {
           id: newGroupId,
           name: this.get('configGroupName').trim(),
@@ -690,25 +698,14 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
           service_id: serviceName,
           service_name: serviceName,
           hosts: [],
-          desiredConfigs: [],
-          properties: []
+          desired_configs: duplicated ? self.get('selectedConfigGroup.desiredConfigs') : [],
+          properties: duplicated ? properties : []
         });
         App.store.commit();
         var childConfigGroups = defaultConfigGroup.get('childConfigGroups').mapProperty('id');
         childConfigGroups.push(newGroupId);
         App.store.load(App.ServiceConfigGroup, App.configGroupsMapper.generateDefaultGroup(self.get('serviceName'), defaultConfigGroup.get('hosts'), childConfigGroups));
         App.store.commit();
-        if (duplicated) {
-          self.get('selectedConfigGroup.properties').forEach(function (item) {
-            var property = App.ServiceConfigProperty.create($.extend(false, {}, item));
-            property.set('group', App.ServiceConfigGroup.find(newGroupId));
-            properties.push(property);
-          });
-          App.ServiceConfigGroup.find(newGroupId).setProperties({
-            'properties': properties,
-            'desiredConfigs': self.get('selectedConfigGroup.desiredConfigs')
-          });
-        }
         self.get('configGroups').pushObject(App.ServiceConfigGroup.find(newGroupId));
         this.hide();
       }

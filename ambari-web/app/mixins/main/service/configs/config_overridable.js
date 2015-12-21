@@ -226,8 +226,8 @@ App.ConfigOverridable = Em.Mixin.create({
    */
   postNewConfigurationGroup: function (newConfigGroupData, callback) {
     var properties = {};
-    newConfigGroupData.properties.forEach(function (propertiy) {
-      properties[propertiy.get('name')] = propertiy.get('value');
+    newConfigGroupData.properties.forEach(function (property) {
+      properties[property.get('name')] = property.get('value');
     });
     var newGroupData = {
       "ConfigGroup": {
