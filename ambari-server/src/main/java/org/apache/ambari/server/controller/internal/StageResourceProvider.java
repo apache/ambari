@@ -90,6 +90,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
   public static final String STAGE_SKIPPABLE = "Stage/skippable";
   public static final String STAGE_PROGRESS_PERCENT = "Stage/progress_percent";
   public static final String STAGE_STATUS = "Stage/status";
+  public static final String STAGE_DISPLAY_STATUS = "Stage/display_status";
   public static final String STAGE_START_TIME = "Stage/start_time";
   public static final String STAGE_END_TIME = "Stage/end_time";
 
@@ -117,6 +118,7 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     PROPERTY_IDS.add(STAGE_SKIPPABLE);
     PROPERTY_IDS.add(STAGE_PROGRESS_PERCENT);
     PROPERTY_IDS.add(STAGE_STATUS);
+    PROPERTY_IDS.add(STAGE_DISPLAY_STATUS);
     PROPERTY_IDS.add(STAGE_START_TIME);
     PROPERTY_IDS.add(STAGE_END_TIME);
 
@@ -303,7 +305,8 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     }
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus(), requestedIds);
+    setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
 
     return resource;
   }
@@ -370,7 +373,8 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
 
     setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
-    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus(), requestedIds);
+    setResourceProperty(resource, STAGE_DISPLAY_STATUS, status.getDisplayStatus(), requestedIds);
 
     return resource;
   }
