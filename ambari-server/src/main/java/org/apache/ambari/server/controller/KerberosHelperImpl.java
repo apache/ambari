@@ -381,10 +381,20 @@ public class KerberosHelperImpl implements KerberosHelper {
 
       Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
       Map<String, Map<String, String>> configurations = addAdditionalConfigurations(cluster,
-          deepCopy(existingConfigurations), null, kerberosDescriptorProperties);
+        deepCopy(existingConfigurations), null, kerberosDescriptorProperties);
 
       Map<String, String> kerberosConfiguration = kerberosDetails.getKerberosEnvProperties();
       KerberosOperationHandler kerberosOperationHandler = kerberosOperationHandlerFactory.getKerberosOperationHandler(kerberosDetails.getKdcType());
+      PrincipalKeyCredential administratorCredential = getKDCAdministratorCredentials(cluster.getClusterName());
+
+      try {
+        kerberosOperationHandler.open(administratorCredential, kerberosDetails.getDefaultRealm(), kerberosConfiguration);
+      } catch (KerberosOperationException e) {
+        String message = String.format("Failed to process the identities, could not properly open the KDC operation handler: %s",
+          e.getMessage());
+        LOG.error(message);
+        throw new AmbariException(message, e);
+      }
 
       for (String serviceName : services) {
         // Set properties...
@@ -415,6 +425,15 @@ public class KerberosHelperImpl implements KerberosHelper {
           }
         }
       }
+
+      // The KerberosOperationHandler needs to be closed, if it fails to close ignore the
+      // exception since there is little we can or care to do about it now.
+      try {
+        kerberosOperationHandler.close();
+      } catch (KerberosOperationException e) {
+        // Ignore this...
+      }
+
     }
 
     return true;

@@ -125,7 +125,7 @@ public class ClusterConfigurationRequestTest {
     expectLastCall().andReturn(controller).anyTimes();
 
     expect(controller.getClusters()).andReturn(clusters).anyTimes();
-    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).once();
+    expect(controller.getKerberosHelper()).andReturn(kerberosHelper).times(2);
 
     expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
 
@@ -154,8 +154,11 @@ public class ClusterConfigurationRequestTest {
     Map<String, String> properties = new HashMap<>();
     properties.put("testPorperty", "testValue");
     kerberosConfig.put("testConfigType", properties);
+    expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
+      (Set.class))).andReturn(true).once();
     expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Set.class))).andReturn(kerberosConfig).anyTimes();
+      (Set.class))).andReturn(kerberosConfig).once();
+
 
     PowerMock.replay(stack, blueprint, topology, controller, clusters, kerberosHelper, ambariContext,
       AmbariContext
