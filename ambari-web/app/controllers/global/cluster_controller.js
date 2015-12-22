@@ -43,6 +43,11 @@ App.ClusterController = Em.Controller.extend({
   isServiceMetricsLoaded: false,
 
   /**
+   * @type {boolean}
+   */
+  isHostComponentMetricsLoaded: false,
+
+  /**
    * Ambari uses custom jdk.
    * @type {Boolean}
    */
@@ -241,7 +246,9 @@ App.ClusterController = Em.Controller.extend({
           updater.updateServiceMetric(function () {
             self.set('isServiceMetricsLoaded', true);
             // make second call, because first is light since it doesn't request host-component metrics
-            updater.updateServiceMetric(Em.K);
+            updater.updateServiceMetric(function() {
+              self.set('isHostComponentMetricsLoaded', true);
+            });
             // components config loading doesn't affect overall progress
             updater.updateComponentConfig(function () {
               self.set('isComponentsConfigLoaded', true);
