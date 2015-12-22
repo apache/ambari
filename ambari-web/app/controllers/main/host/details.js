@@ -1244,6 +1244,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
       urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
     }
+    if (services.someProperty('serviceName', 'ACCUMULO')) {
+      urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
+    }
     return urlParams;
   },
 
@@ -1282,6 +1285,30 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           properties_attributes: {
             'yarn-site': attributes['yarn-site']
+          }
+        }
+      );
+    }
+    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+      groups.push(
+        {
+          properties: {
+            'hbase-site': configs['hbase-site']
+          },
+          properties_attributes: {
+            'hbase-site': attributes['hbase-site']
+          }
+        }
+      );
+    }
+    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+      groups.push(
+        {
+          properties: {
+            'accumulo-site': configs['accumulo-site']
+          },
+          properties_attributes: {
+            'accumulo-site': attributes['accumulo-site']
           }
         }
       );
