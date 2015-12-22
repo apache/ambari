@@ -122,5 +122,5 @@ class TestHcatClient(RMFTestCase):
       call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute',('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
+    self.assertResourceCalled('Execute',('hdp-select', 'set', 'hive-webhcat', version), sudo=True,)
     self.assertNoMoreResources()
