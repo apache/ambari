@@ -59,6 +59,9 @@ HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
 HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
 HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
 
+CHECK_COMMAND_TIMEOUT_KEY = 'check.command.timeout'
+CHECK_COMMAND_TIMEOUT_DEFAULT = 60.0
+
 HADOOPUSER_KEY = '{{cluster-env/hadoop.user.name}}'
 HADOOPUSER_DEFAULT = 'hadoop'
 logger = logging.getLogger('ambari_alerts')
@@ -102,6 +105,10 @@ def execute(configurations={}, parameters={}, host_name=None):
   security_enabled = False
   if SECURITY_ENABLED_KEY in configurations:
     security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+
+  check_command_timeout = CHECK_COMMAND_TIMEOUT_DEFAULT
+  if CHECK_COMMAND_TIMEOUT_KEY in parameters:
+    check_command_timeout = float(parameters[CHECK_COMMAND_TIMEOUT_KEY])
 
   # defaults
   smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
@@ -173,7 +180,7 @@ def execute(configurations={}, parameters={}, host_name=None):
     try:
       Execute(cmd, user=smokeuser,
         path=["/bin/", "/usr/bin/", "/usr/sbin/", bin_dir],
-        timeout=30 )
+        timeout=int(check_command_timeout) )
 
       total_time = time.time() - start_time
 

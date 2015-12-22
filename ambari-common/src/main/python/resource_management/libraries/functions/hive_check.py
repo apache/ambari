@@ -27,7 +27,7 @@ from resource_management.libraries.functions import format
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
                            transport_mode="binary", http_endpoint="cliservice", ssl=False, ssl_keystore=None,
-                           ssl_password=None):
+                           ssl_password=None, check_command_timeout=30):
   """
   Hive thrift SASL port check
   """
@@ -41,7 +41,6 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
 
   # to pass as beeline argument
   ssl_str = str(ssl).lower()
-  beeline_check_timeout = 30
   beeline_url = ['jdbc:hive2://{address}:{port}/', "transportMode={transport_mode}"]
 
   # append url according to used transport
@@ -66,5 +65,5 @@ def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd
   Execute(cmd,
           user=smokeuser,
           path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-          timeout=beeline_check_timeout
+          timeout=check_command_timeout
   )
