@@ -269,9 +269,11 @@ App.config = Em.Object.create({
    * @param {object} config
    */
   restrictSecureProperties: function (config) {
-    var isReadOnly = config.isSecureConfig && App.get('isKerberosEnabled');
-    config.isReconfigurable = !isReadOnly;
-    config.isOverridable = !isReadOnly;
+    if (config.isSecureConfig) {
+      var isReadOnly = App.get('isKerberosEnabled');
+      config.isReconfigurable = config.isReconfigurable && !isReadOnly;
+      config.isOverridable = config.isOverridable && !isReadOnly;
+    }
   },
 
   /**
