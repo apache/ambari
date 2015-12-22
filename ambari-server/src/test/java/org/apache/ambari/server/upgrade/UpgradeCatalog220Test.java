@@ -250,7 +250,6 @@ public class UpgradeCatalog220Test {
     Method updateAccumuloConfigs = UpgradeCatalog220.class.getDeclaredMethod("updateAccumuloConfigs");
     Method updateKerberosDescriptorArtifacts = AbstractUpgradeCatalog.class.getDeclaredMethod("updateKerberosDescriptorArtifacts");
     Method updateKnoxTopology = UpgradeCatalog220.class.getDeclaredMethod("updateKnoxTopology");
-    Method updateOozieConfigs = UpgradeCatalog220.class.getDeclaredMethod("updateOozieConfigs");
 
     UpgradeCatalog220 upgradeCatalog220 = createMockBuilder(UpgradeCatalog220.class)
       .addMockedMethod(updateAMSConfigs)
@@ -269,7 +268,6 @@ public class UpgradeCatalog220Test {
       .addMockedMethod(updateAccumuloConfigs)
       .addMockedMethod(updateKerberosDescriptorArtifacts)
       .addMockedMethod(updateKnoxTopology)
-      .addMockedMethod(updateOozieConfigs)
       .createMock();
 
     upgradeCatalog220.updateHbaseEnvConfig();
@@ -302,8 +300,6 @@ public class UpgradeCatalog220Test {
     upgradeCatalog220.updateKnoxTopology();
     expectLastCall().once();
     upgradeCatalog220.updateKerberosDescriptorArtifacts();
-    expectLastCall().once();
-    upgradeCatalog220.updateOozieConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog220);
@@ -1617,54 +1613,6 @@ public class UpgradeCatalog220Test {
     easyMockSupport.replayAll();
     replay(upgradeCatalog220);
     upgradeCatalog220.updateAccumuloConfigs();
-    easyMockSupport.verifyAll();
-  }
-
-  @Test
-  public void testUpdateOozieConfigs() throws Exception {
-    EasyMockSupport easyMockSupport = new EasyMockSupport();
-    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
-    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
-    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
-
-    final Config oozieSiteConf = easyMockSupport.createNiceMock(Config.class);
-    final Map<String, String> propertiesOozieSite = new HashMap<String, String>() {{
-      put("oozie.service.HadoopAccessorService.hadoop.configurations", "*=/etc/hadoop/conf");
-    }};
-
-    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
-      @Override
-      protected void configure() {
-        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
-        bind(Clusters.class).toInstance(mockClusters);
-        bind(EntityManager.class).toInstance(entityManager);
-
-        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
-        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
-      }
-    });
-
-    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
-    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
-      put("normal", mockClusterExpected);
-    }}).atLeastOnce();
-    expect(mockClusterExpected.getDesiredConfigByType("oozie-site")).andReturn(oozieSiteConf).atLeastOnce();
-    expect(oozieSiteConf.getProperties()).andReturn(propertiesOozieSite).once();
-
-    UpgradeCatalog220 upgradeCatalog220 = createMockBuilder(UpgradeCatalog220.class)
-        .withConstructor(Injector.class)
-        .withArgs(mockInjector)
-        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
-            Map.class, boolean.class, boolean.class)
-        .createMock();
-    upgradeCatalog220.updateConfigurationPropertiesForCluster(mockClusterExpected, "oozie-site",
-        Collections.singletonMap("oozie.service.HadoopAccessorService.hadoop.configurations", "*={{hadoop_conf_dir}}"),
-        true, false);
-    expectLastCall().once();
-
-    easyMockSupport.replayAll();
-    replay(upgradeCatalog220);
-    upgradeCatalog220.updateOozieConfigs();
     easyMockSupport.verifyAll();
   }
 }

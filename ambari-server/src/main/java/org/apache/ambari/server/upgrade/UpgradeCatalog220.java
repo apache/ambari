@@ -32,18 +32,38 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
+
+
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
-import org.apache.ambari.server.state.kerberos.*;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -324,7 +344,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
     updateAccumuloConfigs();
     updateKerberosDescriptorArtifacts();
     updateKnoxTopology();
-    updateOozieConfigs();
   }
 
   protected void updateKnoxTopology() throws AmbariException {
@@ -1347,24 +1366,6 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
           updateConfigurationPropertiesForCluster(cluster, "client", properties, true, false);
         }
       } // else -- no special client-configuration is necessary.
-    }
-  }
-
-  protected void updateOozieConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
-      Config oozieSiteProps = cluster.getDesiredConfigByType(OOZIE_SITE_CONFIG);
-      if (oozieSiteProps != null) {
-        // Update oozie.service.HadoopAccessorService.hadoop.configurations
-        Map<String, String> updateProperties = new HashMap<>();
-        String oozieHadoopConfigProperty = oozieSiteProps.getProperties().get(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME);
-        if(oozieHadoopConfigProperty != null && oozieHadoopConfigProperty.contains(OLD_DEFAULT_HADOOP_CONFIG_PATH)) {
-          String updatedOozieHadoopConfigProperty = oozieHadoopConfigProperty.replaceAll(
-              OLD_DEFAULT_HADOOP_CONFIG_PATH, NEW_DEFAULT_HADOOP_CONFIG_PATH);
-          updateProperties.put(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME, updatedOozieHadoopConfigProperty);
-          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, updateProperties, true, false);
-        }
-      }
     }
   }
 }
