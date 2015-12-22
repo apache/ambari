@@ -59,7 +59,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     Logger.info("Called service {0} with upgrade_type: {1}".format(action, str(upgrade_type)))
     setup_ranger_hdfs(upgrade_type=upgrade_type)
     import params
-    if do_format:
+    if do_format and not params.hdfs_namenode_format_disabled:
       format_namenode()
       pass
 
