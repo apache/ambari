@@ -32,11 +32,13 @@ import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,11 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog221.class);
+
+  private static final String OOZIE_SITE_CONFIG = "oozie-site";
+  private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
+  private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
+  private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
 
 
   // ----- Constructors ------------------------------------------------------
@@ -104,6 +111,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
     updateAlerts();
+    updateOozieConfigs();
   }
 
   protected void updateAlerts() {
@@ -175,5 +183,22 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     return sourceJson.toString();
   }
 
+  protected void updateOozieConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config oozieSiteProps = cluster.getDesiredConfigByType(OOZIE_SITE_CONFIG);
+      if (oozieSiteProps != null) {
+        // Update oozie.service.HadoopAccessorService.hadoop.configurations
+        Map<String, String> updateProperties = new HashMap<>();
+        String oozieHadoopConfigProperty = oozieSiteProps.getProperties().get(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME);
+        if(oozieHadoopConfigProperty != null && oozieHadoopConfigProperty.contains(OLD_DEFAULT_HADOOP_CONFIG_PATH)) {
+          String updatedOozieHadoopConfigProperty = oozieHadoopConfigProperty.replaceAll(
+              OLD_DEFAULT_HADOOP_CONFIG_PATH, NEW_DEFAULT_HADOOP_CONFIG_PATH);
+          updateProperties.put(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME, updatedOozieHadoopConfigProperty);
+          updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, updateProperties, true, false);
+        }
+      }
+    }
+  }
 
 }

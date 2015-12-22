@@ -19,22 +19,33 @@
 package org.apache.ambari.server.upgrade;
 
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
@@ -79,17 +90,19 @@ public class UpgradeCatalog221Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateAlerts = UpgradeCatalog221.class.getDeclaredMethod("updateAlerts");
-
-
+    Method updateOozieConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateOozieConfigs");
 
     UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
-            .addMockedMethod(addNewConfigurationsFromXml)
-            .addMockedMethod(updateAlerts)
-            .createMock();
+      .addMockedMethod(addNewConfigurationsFromXml)
+      .addMockedMethod(updateAlerts)
+      .addMockedMethod(updateOozieConfigs)
+      .createMock();
 
     upgradeCatalog221.addNewConfigurationsFromXml();
     expectLastCall().once();
     upgradeCatalog221.updateAlerts();
+    expectLastCall().once();
+    upgradeCatalog221.updateOozieConfigs();
     expectLastCall().once();
 
 
@@ -131,6 +144,54 @@ public class UpgradeCatalog221Test {
 
     String result = upgradeCatalog221.addCheckCommandTimeoutParam(inputSource);
     Assert.assertEquals(result, expectedSource);
+  }
+
+  @Test
+  public void testUpdateOozieConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config oozieSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Map<String, String> propertiesOozieSite = new HashMap<String, String>() {{
+      put("oozie.service.HadoopAccessorService.hadoop.configurations", "*=/etc/hadoop/conf");
+    }};
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+    expect(mockClusterExpected.getDesiredConfigByType("oozie-site")).andReturn(oozieSiteConf).atLeastOnce();
+    expect(oozieSiteConf.getProperties()).andReturn(propertiesOozieSite).once();
+
+    UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+    upgradeCatalog221.updateConfigurationPropertiesForCluster(mockClusterExpected, "oozie-site",
+        Collections.singletonMap("oozie.service.HadoopAccessorService.hadoop.configurations", "*={{hadoop_conf_dir}}"),
+        true, false);
+    expectLastCall().once();
+
+    easyMockSupport.replayAll();
+    replay(upgradeCatalog221);
+    upgradeCatalog221.updateOozieConfigs();
+    easyMockSupport.verifyAll();
   }
 
 }

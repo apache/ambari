@@ -24,23 +24,46 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
+import org.apache.ambari.server.orm.dao.ArtifactDAO;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
+import org.apache.ambari.server.orm.entities.ArtifactEntity;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.UpgradeEntity;
+
+
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.alert.SourceType;
-import org.apache.ambari.server.state.kerberos.*;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
+import org.apache.ambari.server.state.kerberos.KerberosComponentDescriptor;
+import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.ambari.server.state.stack.upgrade.UpgradeType;
@@ -77,9 +100,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 
 /**
- * Upgrade catalog for version 2.1.3.
+ * Upgrade catalog for version 2.2.0.
  */
-public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
+public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
 
   private static final String UPGRADE_TABLE = "upgrade";
   private static final String STORM_SITE = "storm-site";
@@ -106,18 +129,18 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   private static final String RANGER_ENV_CONFIG = "ranger-env";
   private static final String RANGER_UGSYNC_SITE_CONFIG = "ranger-ugsync-site";
   private static final String ZOOKEEPER_LOG4J_CONFIG = "zookeeper-log4j";
-  private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String NIMBS_MONITOR_FREQ_SECS_PROPERTY = "nimbus.monitor.freq.secs";
   private static final String STORM_METRICS_REPORTER = "metrics.reporter.register";
   private static final String HIVE_SERVER2_OPERATION_LOG_LOCATION_PROPERTY = "hive.server2.logging.operation.log.location";
+  private static final String HADOOP_ENV_CONFIG = "hadoop-env";
   private static final String CONTENT_PROPERTY = "content";
   private static final String HADOOP_ENV_CONTENT_TO_APPEND = "\n{% if is_datanode_max_locked_memory_set %}\n" +
-                                    "# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. \n" +
-                                    "# Makes sense to fix only when runing DN as root \n" +
-                                    "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
-                                    "  ulimit -l {{datanode_max_locked_memory}}\n" +
-                                    "fi\n" +
-                                    "{% endif %}\n";
+    "# Fix temporary bug, when ulimit from conf files is not picked up, without full relogin. \n" +
+    "# Makes sense to fix only when runing DN as root \n" +
+    "if [ \"$command\" == \"datanode\" ] && [ \"$EUID\" -eq 0 ] && [ -n \"$HADOOP_SECURE_DN_USER\" ]; then\n" +
+    "  ulimit -l {{datanode_max_locked_memory}}\n" +
+    "fi\n" +
+    "{% endif %}\n";
 
   private static final String DOWNGRADE_ALLOWED_COLUMN = "downgrade_allowed";
   private static final String UPGRADE_SKIP_FAILURE_COLUMN = "skip_failures";
@@ -153,7 +176,12 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   /**
    * Logger.
    */
-  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog213.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UpgradeCatalog220.class);
+
+  private static final String OOZIE_SITE_CONFIG = "oozie-site";
+  private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
+  private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
+  private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
 
   @Inject
   DaoUtils daoUtils;
@@ -172,7 +200,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    * @param injector Guice injector to track dependencies and uses bindings to inject them.
    */
   @Inject
-  public UpgradeCatalog213(Injector injector) {
+  public UpgradeCatalog220(Injector injector) {
     super(injector);
     this.injector = injector;
   }
@@ -184,7 +212,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
    */
   @Override
   public String getTargetVersion() {
-    return "2.1.3";
+    return "2.2.0";
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -288,8 +316,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       upgradeDAO.merge(upgrade);
 
       LOG.info(String.format("Updated upgrade id %s, upgrade pack %s from version %s to %s",
-          upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
-          upgrade.getToVersion()));
+        upgrade.getId(), upgrade.getUpgradePackage(), upgrade.getFromVersion(),
+        upgrade.getToVersion()));
     }
 
     // make the columns nullable now that they have defaults
@@ -301,13 +329,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
-    updateHadoopEnv();
+    updateAlertDefinitions();
     updateStormConfigs();
     updateAMSConfigs();
     updateHDFSConfigs();
     updateHbaseEnvConfig();
     updateFlumeEnvConfig();
-    updateAlertDefinitions();
+    updateHadoopEnv();
     updateKafkaConfigs();
     updateRangerEnvConfig();
     updateRangerUgsyncSiteConfig();
@@ -472,37 +500,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
-    if (artifactEntity != null) {
-      Map<String, Object> data = artifactEntity.getArtifactData();
-
-      if (data != null) {
-        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
-
-        if (kerberosDescriptor != null) {
-          KerberosServiceDescriptor hdfsService = kerberosDescriptor.getService("HDFS");
-          if(hdfsService != null) {
-            // before 2.1.3 hdfs indentity expected to be in HDFS service
-            KerberosIdentityDescriptor hdfsIdentity = hdfsService.getIdentity("hdfs");
-            KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
-            hdfsIdentity.setName("hdfs");
-            hdfsService.removeIdentity("hdfs");
-            namenodeComponent.putIdentity(hdfsIdentity);
-          }
-          updateKerberosDescriptorIdentityReferences(kerberosDescriptor, "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
-          updateKerberosDescriptorIdentityReferences(kerberosDescriptor.getServices(), "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
-
-          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
-          artifactDAO.merge(artifactEntity);
-        }
-      }
-    }
-  }
-
-  /**
    * Populate the upgrade table with values for the columns upgrade_type and upgrade_package.
    * The upgrade_type will default to {@code org.apache.ambari.server.state.stack.upgrade.UpgradeType.ROLLING}
    * whereas the upgrade_package will be calculated.
@@ -530,8 +527,8 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
               String upgradeType = rs.getString("upgrade_type");
 
               LOG.info(MessageFormat.format("Populating rows for the upgrade table record with " +
-                      "upgrade_id: {0,number,#}, cluster_id: {1,number,#}, from_version: {2}, to_version: {3}, direction: {4}",
-                  upgradeId, clusterId, fromVersion, toVersion, direction));
+                  "upgrade_id: {0,number,#}, cluster_id: {1,number,#}, from_version: {2}, to_version: {3}, direction: {4}",
+                upgradeId, clusterId, fromVersion, toVersion, direction));
 
               // Set all upgrades that have been done so far to type "rolling"
               if (StringUtils.isEmpty(upgradeType)) {
@@ -645,6 +642,38 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  protected void updateKerberosDescriptorArtifact(ArtifactDAO artifactDAO, ArtifactEntity artifactEntity) throws AmbariException {
+    if (artifactEntity != null) {
+      Map<String, Object> data = artifactEntity.getArtifactData();
+
+      if (data != null) {
+        final KerberosDescriptor kerberosDescriptor = new KerberosDescriptorFactory().createInstance(data);
+
+        if (kerberosDescriptor != null) {
+          KerberosServiceDescriptor hdfsService = kerberosDescriptor.getService("HDFS");
+          if(hdfsService != null) {
+            // before 2.2.0 hdfs indentity expected to be in HDFS service
+            KerberosIdentityDescriptor hdfsIdentity = hdfsService.getIdentity("hdfs");
+            KerberosComponentDescriptor namenodeComponent = hdfsService.getComponent("NAMENODE");
+            hdfsIdentity.setName("hdfs");
+            hdfsService.removeIdentity("hdfs");
+            namenodeComponent.putIdentity(hdfsIdentity);
+          }
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor, "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+          updateKerberosDescriptorIdentityReferences(kerberosDescriptor.getServices(), "/HDFS/hdfs", "/HDFS/NAMENODE/hdfs");
+
+          artifactEntity.setArtifactData(kerberosDescriptor.toMap());
+          artifactDAO.merge(artifactEntity);
+        }
+      }
+    }
+  }
+
+  /**
+   * If still on HDP 2.1, then no repo versions exist, so need to bootstrap the HDP 2.1 repo version,
    * If still on HDP 2.1, then no repo versions exist, so need to bootstrap the HDP 2.1 repo version,
    * and mark it as CURRENT in the cluster_version table for the cluster, as well as the host_version table
    * for all hosts.
@@ -670,7 +699,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       ClusterEntity clusterEntity = clusterDAO.findByName(cluster.getClusterName());
       final StackId stackId = cluster.getCurrentStackVersion();
       LOG.info(MessageFormat.format("Analyzing cluster {0}, currently at stack {1} and version {2}",
-          cluster.getClusterName(), stackId.getStackName(), stackId.getStackVersion()));
+        cluster.getClusterName(), stackId.getStackName(), stackId.getStackVersion()));
 
       if (stackId.getStackName().equalsIgnoreCase("HDP") && stackId.getStackVersion().equalsIgnoreCase("2.1")) {
         final StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
@@ -694,22 +723,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           addSequence("repo_version_id_seq", repoVersionIdSeq, false);
 
           repoVersionEntity = repositoryVersionDAO.create(
-              stackEntity, hardcodedInitialVersion, displayName, operatingSystems);
+            stackEntity, hardcodedInitialVersion, displayName, operatingSystems);
           LOG.info(MessageFormat.format("Created Repo Version with ID: {0,number,#}\n, Display Name: {1}, Repo URLs: {2}\n",
-              repoVersionEntity.getId(), displayName, operatingSystems));
+            repoVersionEntity.getId(), displayName, operatingSystems));
         }
 
         // Create the Cluster Version if it doesn't already exist.
         ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStackAndVersion(cluster.getClusterName(),
-            stackId, hardcodedInitialVersion);
+          stackId, hardcodedInitialVersion);
 
         if (null != clusterVersionEntity) {
           LOG.info(MessageFormat.format("A Cluster Version version for cluster: {0}, version: {1}, already exists; its state is {2}.",
-              cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(), clusterVersionEntity.getState()));
+            cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(), clusterVersionEntity.getState()));
 
           // If there are not CURRENT cluster versions, make this one the CURRENT one.
           if (clusterVersionEntity.getState() != RepositoryVersionState.CURRENT &&
-              clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).isEmpty()) {
+            clusterVersionDAO.findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.CURRENT).isEmpty()) {
             clusterVersionEntity.setState(RepositoryVersionState.CURRENT);
             clusterVersionDAO.merge(clusterVersionEntity);
           }
@@ -719,10 +748,10 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           addSequence("cluster_version_id_seq", clusterVersionIdSeq, false);
 
           clusterVersionEntity = clusterVersionDAO.create(clusterEntity, repoVersionEntity, RepositoryVersionState.CURRENT,
-              System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+            System.currentTimeMillis(), System.currentTimeMillis(), "admin");
           LOG.info(MessageFormat.format("Created Cluster Version with ID: {0,number,#}, cluster: {1}, version: {2}, state: {3}.",
-              clusterVersionEntity.getId(), cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(),
-              clusterVersionEntity.getState()));
+            clusterVersionEntity.getId(), cluster.getClusterName(), clusterVersionEntity.getRepositoryVersion().getVersion(),
+            clusterVersionEntity.getState()));
         }
 
         // Create the Host Versions if they don't already exist.
@@ -731,16 +760,16 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         if (null != hosts && !hosts.isEmpty()) {
           for (HostEntity hostEntity : hosts) {
             HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(cluster.getClusterName(),
-                stackId, hardcodedInitialVersion, hostEntity.getHostName());
+              stackId, hardcodedInitialVersion, hostEntity.getHostName());
 
             if (null != hostVersionEntity) {
               LOG.info(MessageFormat.format("A Host Version version for cluster: {0}, version: {1}, host: {2}, already exists; its state is {3}.",
-                  cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
-                  hostEntity.getHostName(), hostVersionEntity.getState()));
+                cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
+                hostEntity.getHostName(), hostVersionEntity.getState()));
 
               if (hostVersionEntity.getState() != RepositoryVersionState.CURRENT &&
-                  hostVersionDAO.findByClusterHostAndState(cluster.getClusterName(), hostEntity.getHostName(),
-                      RepositoryVersionState.CURRENT).isEmpty()) {
+                hostVersionDAO.findByClusterHostAndState(cluster.getClusterName(), hostEntity.getHostName(),
+                  RepositoryVersionState.CURRENT).isEmpty()) {
                 hostVersionEntity.setState(RepositoryVersionState.CURRENT);
                 hostVersionDAO.merge(hostVersionEntity);
               }
@@ -756,13 +785,13 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
               hostVersionEntity = new HostVersionEntity(hostEntity, repoVersionEntity, RepositoryVersionState.CURRENT);
               hostVersionDAO.create(hostVersionEntity);
               LOG.info(MessageFormat.format("Created Host Version with ID: {0,number,#}, cluster: {1}, version: {2}, host: {3}, state: {4}.",
-                  hostVersionEntity.getId(), cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
-                  hostEntity.getHostName(), hostVersionEntity.getState()));
+                hostVersionEntity.getId(), cluster.getClusterName(), hostVersionEntity.getRepositoryVersion().getVersion(),
+                hostEntity.getHostName(), hostVersionEntity.getState()));
             }
           }
         } else {
           LOG.info(MessageFormat.format("Not inserting any Host Version records since cluster {0} does not have any hosts.",
-              cluster.getClusterName()));
+            cluster.getClusterName()));
         }
       }
     }
@@ -797,6 +826,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
     Map<String, Cluster> clusterMap = getCheckedClusterMap(clusters);
     for (final Cluster cluster : clusterMap.values()) {
       long clusterID = cluster.getClusterId();
+
       final AlertDefinitionEntity journalNodeProcessAlertDefinitionEntity = alertDefinitionDAO.findByName(
         clusterID, "journalnode_process");
       final AlertDefinitionEntity hostDiskUsageAlertDefinitionEntity = alertDefinitionDAO.findByName(
@@ -814,13 +844,14 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
       }
 
       if (hostDiskUsageAlertDefinitionEntity != null) {
-        hostDiskUsageAlertDefinitionEntity.setDescription("This host-level alert is triggered if the amount of disk " +
-          "space used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL");
+        hostDiskUsageAlertDefinitionEntity.setDescription("This host-level alert is triggered if the amount of disk space " +
+            "used goes above specific thresholds. The default threshold values are 50% for WARNING and 80% for CRITICAL.");
         hostDiskUsageAlertDefinitionEntity.setLabel("Host Disk Usage");
 
         alertDefinitionDAO.merge(hostDiskUsageAlertDefinitionEntity);
         LOG.info("ambari_agent_disk_usage alert definition was updated.");
       }
+
     }
   }
 
@@ -850,35 +881,19 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
     rootJson.getAsJsonObject("reporting").getAsJsonObject("ok").remove("text");
     rootJson.getAsJsonObject("reporting").getAsJsonObject("ok").addProperty(
-            "text", "HTTP {0} response in {2:.3f}s");
+      "text", "HTTP {0} response in {2:.3f}s");
 
     rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").remove("text");
     rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").addProperty(
-            "text", "HTTP {0} response from {1} in {2:.3f}s ({3})");
+      "text", "HTTP {0} response from {1} in {2:.3f}s ({3})");
     rootJson.getAsJsonObject("reporting").getAsJsonObject("warning").remove("value");
 
     rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("text");
     rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").addProperty("text",
-            "Connection failed to {1} ({3})");
+      "Connection failed to {1} ({3})");
     rootJson.getAsJsonObject("reporting").getAsJsonObject("critical").remove("value");
 
     return rootJson.toString();
-  }
-
-  protected void updateZookeeperLog4j() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-
-    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
-      Config zookeeperLog4jConfig = cluster.getDesiredConfigByType(ZOOKEEPER_LOG4J_CONFIG);
-      if (zookeeperLog4jConfig != null) {
-        String content = zookeeperLog4jConfig.getProperties().get(CONTENT_PROPERTY);
-        if (content != null) {
-          content = content.replaceAll("[\n^]\\s*log4j\\.rootLogger\\s*=\\s*INFO\\s*,\\s*CONSOLE", "\nlog4j.rootLogger=INFO, ROLLINGFILE");
-          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
-          updateConfigurationPropertiesForCluster(cluster, ZOOKEEPER_LOG4J_CONFIG, updates, true, false);
-        }
-      }
-    }
   }
 
   protected void updateHadoopEnv() throws AmbariException {
@@ -899,7 +914,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
 
   protected void updateHDFSConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(
-            AmbariManagementController.class);
+      AmbariManagementController.class);
     Map<String, Cluster> clusterMap = getCheckedClusterMap(ambariManagementController.getClusters());
 
     for (final Cluster cluster : clusterMap.values()) {
@@ -908,6 +923,22 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         Set<String> removePropertiesSet = new HashSet<>();
         removePropertiesSet.add("dfs.namenode.rpc-address");
         removeConfigurationPropertiesFromCluster(cluster, HDFS_SITE_CONFIG, removePropertiesSet);
+      }
+    }
+  }
+
+  protected void updateZookeeperLog4j() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config zookeeperLog4jConfig = cluster.getDesiredConfigByType(ZOOKEEPER_LOG4J_CONFIG);
+      if (zookeeperLog4jConfig != null) {
+        String content = zookeeperLog4jConfig.getProperties().get(CONTENT_PROPERTY);
+        if (content != null) {
+          content = content.replaceAll("[\n^]\\s*log4j\\.rootLogger\\s*=\\s*INFO\\s*,\\s*CONSOLE", "\nlog4j.rootLogger=INFO, ROLLINGFILE");
+          Map<String, String> updates = Collections.singletonMap(CONTENT_PROPERTY, content);
+          updateConfigurationPropertiesForCluster(cluster, ZOOKEEPER_LOG4J_CONFIG, updates, true, false);
+        }
       }
     }
   }
@@ -1196,6 +1227,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
               updateConfigurationPropertiesForCluster(cluster, KAFKA_BROKER, newProperties, true, true);
             }
           }
+
           Config kafkaEnv = cluster.getDesiredConfigByType(KAFKA_ENV_CONFIG);
           if (kafkaEnv != null) {
             String kafkaEnvContent = kafkaEnv.getProperties().get(CONTENT_PROPERTY);
@@ -1208,7 +1240,6 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
         }
       }
     }
-
   }
 
   protected void updateRangerEnvConfig() throws AmbariException {
@@ -1329,7 +1360,7 @@ public class UpgradeCatalog213 extends AbstractUpgradeCatalog {
           if (properties == null) {
             properties = new HashMap<String, String>();
           }
-          // <2.1.3 did not account for a custom service principal.
+          // <2.2.0 did not account for a custom service principal.
           // Need to ensure that the client knows the server's principal (the primary) to properly authenticate.
           properties.put("kerberos.server.primary", "{{bare_accumulo_principal}}");
           updateConfigurationPropertiesForCluster(cluster, "client", properties, true, false);
