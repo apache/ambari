@@ -54,7 +54,8 @@ def slider():
 
   XmlConfig("slider-client.xml",
             conf_dir=params.slider_conf_dir,
-            configurations=slider_client_config
+            configurations=slider_client_config,
+            mode=0644
   )
 
   File(format("{slider_conf_dir}/slider-env.sh"),
