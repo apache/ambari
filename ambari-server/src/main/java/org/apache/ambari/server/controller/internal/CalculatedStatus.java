@@ -315,12 +315,15 @@ public class CalculatedStatus {
       int total = summary.getTaskTotal();
       boolean skip = summary.isStageSkippable();
       Map<HostRoleStatus, Integer> counts = calculateStatusCounts(summary.getTaskStatuses());
-      displayStatus = calculateDisplayStatus(counts, displayStatus);
 
       HostRoleStatus stageStatus = calculateSummaryStatus(counts, total, skip);
+      if (null == displayStatus) {
+        displayStatus = stageStatus;
+      }
+
+      displayStatus = calculateDisplayStatus(counts, displayStatus);
 
       stageStatuses.add(stageStatus);
-
       taskStatuses.addAll(summary.getTaskStatuses());
     }
 
@@ -388,19 +391,19 @@ public class CalculatedStatus {
   }
 
   /**
-   * Calculate a display status for upgrade group.
-   * Since we iterate over all tasks in all stages that belong to group, we have to
-   * pass a previous status from previous stages, so the most severe status is selected
+   * Calculate a display status for upgrade group. Since we iterate over all
+   * tasks in all stages that belong to group, we have to pass a previous status
+   * from previous stages, so the most severe status is selected
    *
-   * @param counters   counts of resources that are in various states
-   * @param previousStatus previous status (from previous stages)
+   * @param counters
+   *          counts of resources that are in various states
+   * @param previousStatus
+   *          previous status (from previous stages)
    *
-   * @return display status based on statuses of tasks in different states. May be SKIPPED_FAILED, FAILED
-   * or null if there is no failures at all
+   * @return display status based on statuses of tasks in different states.
    */
   private static HostRoleStatus calculateDisplayStatus(Map<HostRoleStatus, Integer> counters, HostRoleStatus previousStatus) {
     return previousStatus != null && previousStatus.equals(HostRoleStatus.SKIPPED_FAILED) || counters.get(HostRoleStatus.SKIPPED_FAILED) > 0 ? HostRoleStatus.SKIPPED_FAILED :
-           previousStatus != null && previousStatus.equals(HostRoleStatus.FAILED) || counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED :
-           null;
+           previousStatus != null && previousStatus.equals(HostRoleStatus.FAILED) || counters.get(HostRoleStatus.FAILED) > 0 ? HostRoleStatus.FAILED : previousStatus;
   }
 }

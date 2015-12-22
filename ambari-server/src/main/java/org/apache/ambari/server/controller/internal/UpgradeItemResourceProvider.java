@@ -93,6 +93,7 @@ public class UpgradeItemResourceProvider extends ReadOnlyResourceProvider {
     for (String p : StageResourceProvider.PROPERTY_IDS) {
       STAGE_MAPPED_IDS.put(p, p.replace("Stage/", "UpgradeItem/"));
     }
+
     PROPERTY_IDS.addAll(STAGE_MAPPED_IDS.values());
 
     // keys
