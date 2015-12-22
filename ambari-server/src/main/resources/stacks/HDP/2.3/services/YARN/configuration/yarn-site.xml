@@ -85,7 +85,7 @@
   </property>
   <property>
     <name>yarn.timeline-service.entity-group-fs-store.group-id-plugin-classes</name>
-    <value>org.apache.tez.dag.history.logging.ats.TimelineCachePluginImpl</value>
+    <value></value>
     <description>Plugins that can translate a timeline entity read request into a list of timeline cache ids, separated by commas. </description>
     <value-attributes>
       <empty-value-valid>true</empty-value-valid>
