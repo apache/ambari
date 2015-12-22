@@ -45,7 +45,7 @@
               <name>hive_2_3_*-webhcat</name>
             </package>
             <package>
-              <name>atlas-metadata*-hive-plugin</name>
+              <name>atlas-metadata*</name>
             </package>
           </packages>
         </osSpecific>
@@ -84,7 +84,7 @@
               <name>hive-2-3-.*-webhcat</name>
             </package>
             <package>
-              <name>atlas-metadata.*-hive-plugin</name>
+              <name>atlas-metadata.*</name>
             </package>
           </packages>
         </osSpecific>
