@@ -43,7 +43,8 @@ class TestSliderClient(RMFTestCase):
     self.assertResourceCalled('XmlConfig',
                               'slider-client.xml',
                               conf_dir='/usr/hdp/current/slider-client/conf',
-                              configurations=self.getConfig()['configurations']['slider-client']
+                              configurations=self.getConfig()['configurations']['slider-client'],
+                              mode=0644
     )
 
     self.assertResourceCalled('File', '/usr/hdp/current/slider-client/conf/slider-env.sh',
