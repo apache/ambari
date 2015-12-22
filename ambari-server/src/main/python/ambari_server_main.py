@@ -60,6 +60,7 @@ SERVER_START_CMD = "{0} " \
     "-XX:+UseConcMarkSweepGC " + \
     "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " \
     "-Dsun.zip.disableMemoryMapping=true " + \
+    "-Djava.security.egd=file:/dev/./urandom " + \
     "{1} {2} " \
     "-cp {3} "\
     "org.apache.ambari.server.controller.AmbariServer " \
