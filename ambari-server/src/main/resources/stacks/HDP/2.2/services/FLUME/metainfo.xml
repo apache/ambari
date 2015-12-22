@@ -29,7 +29,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>flume_${hdp_version}</name>
+              <name>flume_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -37,7 +37,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>flume-${hdp_version}</name>
+              <name>flume-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

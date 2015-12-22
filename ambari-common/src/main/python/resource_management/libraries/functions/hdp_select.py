@@ -20,6 +20,7 @@ limitations under the License.
 
 import os
 import sys
+import re
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
@@ -263,3 +264,21 @@ def get_hdp_versions(stack_root):
   if not versions:
     versions = get_versions_from_stack_root(stack_root)
   return versions
+
+def get_hdp_version_before_install(component_name):
+  """
+  Works in the similar way to 'hdp-select status component', 
+  but also works for not yet installed packages.
+  
+  Note: won't work if doing initial install.
+  """
+  component_dir = HADOOP_HOME_DIR_TEMPLATE.format("current", component_name)
+  if os.path.islink(component_dir):
+    hdp_version = os.path.basename(os.path.dirname(os.readlink(component_dir)))
+    match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
+    if match is None:
+      Logger.info('Failed to get extracted version with hdp-select in method get_hdp_version_before_install')
+      return None # lazy fail
+    return hdp_version
+  else:
+    return None

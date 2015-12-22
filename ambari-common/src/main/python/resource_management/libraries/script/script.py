@@ -70,7 +70,7 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
 DISTRO_SELECT_PACKAGE_NAME = "hdp-select"
-HDP_VERSION_PLACEHOLDER = "${hdp_version}"
+STACK_VERSION_PLACEHOLDER = "${stack_version}"
 
 def get_path_from_configuration(name, configuration):
   subdicts = filter(None, name.split('/'))
@@ -97,7 +97,7 @@ class Script(object):
   3 path to service metadata dir (Directory "package" inside service directory)
   4 path to file with structured command output (file will be created)
   """
-  stack_version_from_hdp_select = None
+  stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
   basedir = ""
@@ -142,17 +142,26 @@ class Script(object):
         json.dump(Script.structuredOut, fp)
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
+      
+  def get_component_name(self):
+    stack_name = Script.get_stack_name()
+    stack_to_component = self.get_stack_to_component()
+    
+    if stack_to_component and stack_name:
+      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+      return component_name
+    
+    return None
 
   def save_component_version_to_structured_out(self):
     """
     :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
     :return: Append the version number to the structured out.
     """
-    from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
-    stack_to_component = self.get_stack_to_component()
-    if stack_to_component and stack_name:
-      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+    stack_name = Script.get_stack_name()
+    component_name = self.get_component_name()
+    
+    if component_name and stack_name:
       component_version = get_component_version(stack_name, component_name)
 
       if component_version:
@@ -240,34 +249,36 @@ class Script(object):
     method = getattr(self, command_name)
     return method
   
-  @staticmethod
-  def get_stack_version_from_hdp_select():
+  def get_stack_version_before_packages_installed(self):
     """
     This works in a lazy way (calculates the version first time and stores it). 
     If you need to recalculate the version explicitly set:
     
-    Script.stack_version_from_hdp_select = None
+    Script.stack_version_from_distro_select = None
     
     before the call. However takes a bit of time, so better to avoid.
-    
-    :param install_hdp_select: whether to ensure if hdp-select is installed, before checking the version.
-    Set this to false, if you're sure hdp-select is present at the point you call this, to save some time.
-    
+
     :return: hdp version including the build number. e.g.: 2.3.4.0-1234.
     """
-    if not Script.stack_version_from_hdp_select:
-      Script.stack_version_from_hdp_select = packages_analyzer.getInstalledPackageVersion(DISTRO_SELECT_PACKAGE_NAME)
+    # preferred way is to get the actual selected version of current component
+    component_name = self.get_component_name()
+    if not Script.stack_version_from_distro_select and component_name:
+      from resource_management.libraries.functions import hdp_select
+      Script.stack_version_from_distro_select = hdp_select.get_hdp_version_before_install(component_name)
       
-    return Script.stack_version_from_hdp_select
+    # if hdp-select has not yet been done (situations like first install), we can use hdp-select version itself.
+    if not Script.stack_version_from_distro_select:
+      Script.stack_version_from_distro_select = packages_analyzer.getInstalledPackageVersion(DISTRO_SELECT_PACKAGE_NAME)
+      
+    return Script.stack_version_from_distro_select
   
-  @staticmethod
-  def format_package_name(name):
+  def format_package_name(self, name):
     """
-    This function replaces ${hdp_version} placeholder into actual version.
+    This function replaces ${stack_version} placeholder into actual version.
     """
     package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
-    hdp_version_package_formatted = Script.get_stack_version_from_hdp_select().replace('.', package_delimiter).replace('-', package_delimiter) if HDP_VERSION_PLACEHOLDER in name else name
-    package_name = name.replace(HDP_VERSION_PLACEHOLDER, hdp_version_package_formatted)
+    stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
+    package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
     
     return package_name
 
@@ -431,9 +442,8 @@ class Script(object):
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
-          #import pydevd;pydevd.settrace(host='192.168.64.1',stdoutToServer=True, stderrToServer=True)
           if not Script.matches_any_regexp(package['name'], exclude_packages):
-            name = Script.format_package_name(package['name'])
+            name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.

@@ -55,7 +55,7 @@
         </component>
 
       </components>
-
+      
       <osSpecifics>
         <osSpecific>
           <osFamily>any</osFamily>
@@ -67,19 +67,16 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
+          <osFamily>redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
-              <name>hive_${hdp_version}</name>
+              <name>hive_${stack_version}</name>
             </package>
             <package>
-              <name>hive_${hdp_version}-hcatalog</name>
+              <name>hive_${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive_${hdp_version}-webhcat</name>
-            </package>
-            <package>
-              <name>atlas-metadata_${hdp_version}-hive-plugin</name>
+              <name>hive_${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
@@ -106,24 +103,21 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hive-${hdp_version}</name>
+              <name>hive-${stack_version}</name>
             </package>
             <package>
-              <name>hive-${hdp_version}-hcatalog</name>
+              <name>hive-${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive-${hdp_version}-webhcat</name>
-            </package>
-            <package>
-              <name>atlas-metadata-${hdp_version}-hive-plugin</name>
+              <name>hive-${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,debian7,ubuntu12,ubuntu14</osFamily>
+          <osFamily>redhat6,ubuntu12</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>
