@@ -24,6 +24,7 @@ import os
 import tempfile
 import shutil
 import stat
+import errno
 from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
@@ -67,7 +68,23 @@ if os.geteuid() == 0:
     shutil.copy(src, dst)
     
   def makedirs(path, mode):
-    os.makedirs(path, mode)
+    try:
+      os.makedirs(path, mode)
+    except OSError as ex:
+      if ex.errno == errno.ENOENT:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.islink(dirname) and not os.path.exists(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a broken symlink".format(path, dirname))
+      elif ex.errno == errno.ENOTDIR:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.isfile(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a file".format(path, dirname))
+      elif ex.errno == errno.ELOOP:
+        dirname = os.path.dirname(ex.filename)
+        if os.path.islink(dirname) and not os.path.exists(dirname):
+          raise Fail("Cannot create directory '{0}' as '{1}' is a looped symlink".format(path, dirname))
+        
+      raise
   
   def makedir(path, mode):
     os.mkdir(path)
