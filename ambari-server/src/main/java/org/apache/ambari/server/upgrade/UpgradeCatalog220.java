@@ -1079,7 +1079,7 @@ public class UpgradeCatalog220 extends AbstractUpgradeCatalog {
           }
 
           Config amsEnv = cluster.getDesiredConfigByType(AMS_ENV);
-          if (amsHbaseEnv != null) {
+          if (amsEnv != null) {
             Map<String, String> amsEnvProperties = amsEnv.getProperties();
             String content = amsEnvProperties.get("content");
             Map<String, String> newProperties = new HashMap<>();

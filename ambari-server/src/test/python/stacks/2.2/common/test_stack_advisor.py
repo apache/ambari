@@ -2024,6 +2024,7 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.lowerLimit": "0.3",
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hbase.hregion.memstore.flush.size": "134217728",
+          "hbase.zookeeper.property.clientPort": "61181",
           "hfile.block.cache.size": "0.3",
           "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
           "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
@@ -2197,6 +2198,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'

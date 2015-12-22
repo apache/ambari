@@ -118,6 +118,15 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if params.security_enabled:
     merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
 
+  if not params.is_hbase_distributed:
+    File(format("{hbase_conf_dir}/core-site.xml"),
+         action='delete',
+         owner=params.hbase_user)
+
+    File(format("{hbase_conf_dir}/hdfs-site.xml"),
+         action='delete',
+         owner=params.hbase_user)
+
   XmlConfig("hbase-site.xml",
             conf_dir = params.hbase_conf_dir,
             configurations = merged_ams_hbase_site,

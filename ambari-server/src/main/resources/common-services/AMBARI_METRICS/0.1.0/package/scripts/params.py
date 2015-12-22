@@ -147,7 +147,7 @@ max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_lim
 if not is_hbase_distributed:
   zookeeper_quorum_hosts = 'localhost'
 else:
-  zookeeper_quorum_hosts = default("/hostname", 'localhost')
+  zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
@@ -201,8 +201,6 @@ if security_enabled:
   regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
-
-  zk_servicename = ams_zookeeper_principal_name.rpartition('/')[0]
 
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):

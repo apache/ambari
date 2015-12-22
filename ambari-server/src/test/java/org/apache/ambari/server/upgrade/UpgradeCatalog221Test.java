@@ -20,14 +20,21 @@ package org.apache.ambari.server.upgrade;
 
 
 import com.google.inject.AbstractModule;
+import com.google.common.collect.Maps;
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
+import org.apache.ambari.server.controller.KerberosHelper;
+import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -36,12 +43,15 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.persistence.EntityManager;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -55,6 +65,10 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.capture;
+import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
   private Injector injector;
@@ -194,4 +208,205 @@ public class UpgradeCatalog221Test {
     easyMockSupport.verifyAll();
   }
 
+  @Test
+  public void testUpdateAmsHbaseSiteConfigs() throws Exception {
+
+    Map<String, String> clusterEnvProperties = new HashMap<String, String>();
+    Map<String, String> amsHbaseSecuritySite = new HashMap<String, String>();
+    Map<String, String> newPropertiesAmsHbaseSite = new HashMap<String, String>();
+
+    //Unsecure
+    amsHbaseSecuritySite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");
+    newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");
+    testAmsHbaseSiteUpdates(new HashMap<String, String>(),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
+
+    //Secure
+    amsHbaseSecuritySite.put("zookeeper.znode.parent", "/ams-hbase-secure");
+    newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-secure");
+    testAmsHbaseSiteUpdates(new HashMap<String, String>(),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
+
+    //Unsecure with empty value
+    clusterEnvProperties.put("security_enabled","false");
+    amsHbaseSecuritySite.put("zookeeper.znode.parent", "");
+    newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");
+    testAmsHbaseSiteUpdates(new HashMap<String, String>(),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
+
+    //Secure with /hbase value
+    clusterEnvProperties.put("security_enabled","true");
+    amsHbaseSecuritySite.put("zookeeper.znode.parent", "/hbase");
+    newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-secure");
+    testAmsHbaseSiteUpdates(new HashMap<String, String>(),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
+
+  }
+
+  private void testAmsHbaseSiteUpdates(Map<String, String> oldPropertiesAmsHbaseSite,
+                                       Map<String, String> newPropertiesAmsHbaseSite,
+                                       Map<String, String> amsHbaseSecuritySiteProperties,
+                                       Map<String, String> clusterEnvProperties ) throws AmbariException {
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+
+    Config mockAmsHbaseSite = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-hbase-site")).andReturn(mockAmsHbaseSite).atLeastOnce();
+    expect(mockAmsHbaseSite.getProperties()).andReturn(oldPropertiesAmsHbaseSite).times(2);
+
+    Config mockAmsHbaseSecuritySite = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("ams-hbase-security-site")).andReturn(mockAmsHbaseSecuritySite).anyTimes();
+    expect(mockAmsHbaseSecuritySite.getProperties()).andReturn(amsHbaseSecuritySiteProperties).anyTimes();
+
+    Config clusterEnv = easyMockSupport.createNiceMock(Config.class);
+    expect(cluster.getDesiredConfigByType("cluster-env")).andReturn(clusterEnv).anyTimes();
+    expect(clusterEnv.getProperties()).andReturn(clusterEnvProperties).anyTimes();
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAmsHbaseSite, mockAmsHbaseSecuritySite, clusterEnv, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).anyTimes();
+
+    replay(controller, injector2);
+    new UpgradeCatalog221(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesAmsHbaseSite, updatedProperties).areEqual());
+  }
+
+  @Test
+  public void testUpdateAmsHbaseSecuritySiteConfigs() throws Exception{
+
+    Map<String, String> oldPropertiesAmsHbaseSecuritySite = new HashMap<String, String>() {
+      {
+        put("zookeeper.znode.parent", "/ams-hbase-secure");
+      }
+    };
+
+    Map<String, String> newPropertiesAmsHbaseSecuritySite = new HashMap<String, String>() {
+      {
+      }
+    };
+
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    Clusters clusters = easyMockSupport.createNiceMock(Clusters.class);
+    final Cluster cluster = easyMockSupport.createNiceMock(Cluster.class);
+    Config mockAmsHbaseSecuritySite = easyMockSupport.createNiceMock(Config.class);
+
+    expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", cluster);
+    }}).once();
+
+    expect(cluster.getDesiredConfigByType("ams-hbase-security-site")).andReturn(mockAmsHbaseSecuritySite).atLeastOnce();
+    expect(mockAmsHbaseSecuritySite.getProperties()).andReturn(oldPropertiesAmsHbaseSecuritySite).times(2);
+
+    Injector injector = easyMockSupport.createNiceMock(Injector.class);
+    expect(injector.getInstance(Gson.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null).anyTimes();
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class)).anyTimes();
+
+    replay(injector, clusters, mockAmsHbaseSecuritySite, cluster);
+
+    AmbariManagementControllerImpl controller = createMockBuilder(AmbariManagementControllerImpl.class)
+      .addMockedMethod("createConfiguration")
+      .addMockedMethod("getClusters", new Class[] { })
+      .addMockedMethod("createConfig")
+      .withConstructor(createNiceMock(ActionManager.class), clusters, injector)
+      .createNiceMock();
+
+    Injector injector2 = easyMockSupport.createNiceMock(Injector.class);
+    Capture<Map> propertiesCapture = EasyMock.newCapture();
+
+    expect(injector2.getInstance(AmbariManagementController.class)).andReturn(controller).anyTimes();
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(controller.createConfig(anyObject(Cluster.class), anyString(), capture(propertiesCapture), anyString(),
+      anyObject(Map.class))).andReturn(createNiceMock(Config.class)).once();
+
+    replay(controller, injector2);
+    new UpgradeCatalog221(injector2).updateAMSConfigs();
+    easyMockSupport.verifyAll();
+
+    Map<String, String> updatedProperties = propertiesCapture.getValue();
+    assertTrue(Maps.difference(newPropertiesAmsHbaseSecuritySite, updatedProperties).areEqual());
+
+  }
+
+  @Test
+  public void testUpdateAmsHbaseEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    Method updateAmsHbaseEnvContent = UpgradeCatalog221.class.getDeclaredMethod("updateAmsHbaseEnvContent", String.class);
+    UpgradeCatalog221 upgradeCatalog221 = new UpgradeCatalog221(injector);
+    String oldContent = "some_content\n" +
+      "{% if security_enabled %}\n" +
+      "export HBASE_OPTS=\"$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}\"\n" +
+      "export HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}\"\n" +
+      "export HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}\"\n" +
+      "export HBASE_ZOOKEEPER_OPTS=\"$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}} -Dzookeeper.sasl.client.username={{zk_servicename}}\"\n" +
+      "{% endif %}";
+
+    String expectedContent = "some_content\n" +
+      "{% if security_enabled %}\n" +
+      "export HBASE_OPTS=\"$HBASE_OPTS -Djava.security.auth.login.config={{client_jaas_config_file}}\"\n" +
+      "export HBASE_MASTER_OPTS=\"$HBASE_MASTER_OPTS -Djava.security.auth.login.config={{master_jaas_config_file}}\"\n" +
+      "export HBASE_REGIONSERVER_OPTS=\"$HBASE_REGIONSERVER_OPTS -Djava.security.auth.login.config={{regionserver_jaas_config_file}}\"\n" +
+      "export HBASE_ZOOKEEPER_OPTS=\"$HBASE_ZOOKEEPER_OPTS -Djava.security.auth.login.config={{ams_zookeeper_jaas_config_file}}\"\n" +
+      "{% endif %}";
+
+    String result = (String) updateAmsHbaseEnvContent.invoke(upgradeCatalog221, oldContent);
+    Assert.assertEquals(expectedContent, result);
+  }
+
+  @Test
+  public void testUpdateAmsEnvContent() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException
+  {
+    Method updateAmsEnvContent = UpgradeCatalog221.class.getDeclaredMethod("updateAmsEnvContent", String.class);
+    UpgradeCatalog221 upgradeCatalog221 = new UpgradeCatalog221(injector);
+    String oldContent = "some_content\n" +
+      "# AMS Collector options\n" +
+      "export AMS_COLLECTOR_OPTS=\"-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native\"\n" +
+      "{% if security_enabled %}\n" +
+      "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}} " +
+      "-Dzookeeper.sasl.client.username={{zk_servicename}}\"\n" +
+      "{% endif %}";
+
+    String expectedContent = "some_content\n" +
+      "# AMS Collector options\n" +
+      "export AMS_COLLECTOR_OPTS=\"-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native\"\n" +
+      "{% if security_enabled %}\n" +
+      "export AMS_COLLECTOR_OPTS=\"$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}}\"\n" +
+      "{% endif %}";
+
+    String result = (String) updateAmsEnvContent.invoke(upgradeCatalog221, oldContent);
+    Assert.assertEquals(expectedContent, result);
+  }
 }

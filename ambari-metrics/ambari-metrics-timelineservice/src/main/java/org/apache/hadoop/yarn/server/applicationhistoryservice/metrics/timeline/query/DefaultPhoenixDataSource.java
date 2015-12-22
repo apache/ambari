@@ -41,7 +41,7 @@ public class DefaultPhoenixDataSource implements ConnectionProvider {
     String zookeeperClientPort = hbaseConf.getTrimmed(ZOOKEEPER_CLIENT_PORT,
       "2181");
     String zookeeperQuorum = hbaseConf.getTrimmed(ZOOKEEPER_QUORUM);
-    String znodeParent = hbaseConf.getTrimmed(ZNODE_PARENT, "/hbase");
+    String znodeParent = hbaseConf.getTrimmed(ZNODE_PARENT, "/ams-hbase-unsecure");
     if (zookeeperQuorum == null || zookeeperQuorum.isEmpty()) {
       throw new IllegalStateException("Unable to find Zookeeper quorum to " +
         "access HBase store using Phoenix.");
