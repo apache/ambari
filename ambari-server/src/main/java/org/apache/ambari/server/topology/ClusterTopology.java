@@ -19,6 +19,8 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction;
 
 import java.util.Collection;
 import java.util.Map;
@@ -156,6 +158,14 @@ public interface ClusterTopology {
   public void setConfigRecommendationStrategy(ConfigRecommendationStrategy strategy);
 
   public ConfigRecommendationStrategy getConfigRecommendationStrategy();
+
+  /**
+   * Set request provision action : INSTALL vs INSTALL_AND_START
+   * @param provisionAction @ProvisionAction
+   */
+  public void setProvisionAction(ProvisionAction provisionAction);
+
+  public ProvisionAction getProvisionAction();
 
   public Map<String, AdvisedConfiguration> getAdvisedConfigurations();
 

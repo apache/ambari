@@ -53,6 +53,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.PROVISION_ACTION_PROPERTY;
+
 
 /**
  * Resource provider for cluster resources.
@@ -342,6 +344,7 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     baseUnsupported.remove("configurations");
     baseUnsupported.remove("credentials");
     baseUnsupported.remove("config_recommendation_strategy");
+    baseUnsupported.remove("provision_action");
 
     return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
@@ -494,9 +497,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     String rawRequestBody = requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY);
     Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
+    SecurityConfiguration securityConfiguration =
+      securityConfigurationFactory.createSecurityConfigurationFromRequest(rawBodyMap, false);
 
-    SecurityConfiguration securityConfiguration = securityConfigurationFactory.createSecurityConfigurationFromRequest
-      (rawBodyMap, false);
     ProvisionClusterRequest createClusterRequest;
     try {
       createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);

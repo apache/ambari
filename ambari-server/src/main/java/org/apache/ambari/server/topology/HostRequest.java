@@ -18,14 +18,6 @@
 
 package org.apache.ambari.server.topology;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.api.predicate.PredicateCompiler;
@@ -43,6 +35,15 @@ import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction.INSTALL_ONLY;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
@@ -178,11 +179,18 @@ public class HostRequest implements Comparable<HostRequest> {
 
     InstallHostTask installTask = new InstallHostTask();
     topologyTasks.add(installTask);
-    StartHostTask startTask = new StartHostTask();
-    topologyTasks.add(startTask);
-
     logicalTaskMap.put(installTask, new HashMap<String, Long>());
-    logicalTaskMap.put(startTask, new HashMap<String, Long>());
+
+    boolean skipStartTaskCreate = topology.getProvisionAction().equals(INSTALL_ONLY);
+
+    StartHostTask startTask = null;
+    if (!skipStartTaskCreate) {
+      startTask = new StartHostTask();
+      topologyTasks.add(startTask);
+      logicalTaskMap.put(startTask, new HashMap<String, Long>());
+    } else {
+      LOG.info("Skipping Start task creation since provision action = " + topology.getProvisionAction());
+    }
 
     // lower level logical component level tasks which get mapped to physical tasks
     HostGroup hostGroup = getHostGroup();
@@ -204,7 +212,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
       Stack stack = hostGroup.getStack();
       // if component isn't a client, add a start task
-      if (stack!=null && !stack.getComponentInfo(component).isClient()) {
+      if (!skipStartTaskCreate && stack != null && !stack.getComponentInfo(component).isClient()) {
         HostRoleCommand logicalStartTask = context.createAmbariTask(
             getRequestId(), id, component, hostName, AmbariContext.TaskType.START);
         logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);
@@ -218,11 +226,15 @@ public class HostRequest implements Comparable<HostRequest> {
     topologyTasks.add(new RegisterWithConfigGroupTask());
     InstallHostTask installTask = new InstallHostTask();
     topologyTasks.add(installTask);
-    StartHostTask startTask = new StartHostTask();
-    topologyTasks.add(startTask);
-
     logicalTaskMap.put(installTask, new HashMap<String, Long>());
-    logicalTaskMap.put(startTask, new HashMap<String, Long>());
+
+    boolean skipStartTaskCreate = topology.getProvisionAction().equals(INSTALL_ONLY);
+
+    if (!skipStartTaskCreate) {
+      StartHostTask startTask = new StartHostTask();
+      topologyTasks.add(startTask);
+      logicalTaskMap.put(startTask, new HashMap<String, Long>());
+    }
 
     AmbariContext ambariContext = topology.getAmbariContext();
     // lower level logical component level tasks which get mapped to physical tasks
