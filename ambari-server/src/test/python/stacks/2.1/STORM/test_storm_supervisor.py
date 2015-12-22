@@ -58,7 +58,7 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ | awk {'print $1'} > /var/run/storm/supervisor.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -141,7 +141,7 @@ class TestStormSupervisor(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.supervisor$ | awk {'print $1'} > /var/run/storm/supervisor.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )

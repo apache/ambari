@@ -58,7 +58,7 @@ class TestStormNimbus(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -118,7 +118,7 @@ class TestStormNimbus(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep storm.daemon.nimbus$ | awk {'print $1'} > /var/run/storm/nimbus.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
