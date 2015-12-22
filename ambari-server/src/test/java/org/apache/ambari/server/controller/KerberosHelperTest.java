@@ -61,6 +61,9 @@ import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
+import org.apache.ambari.server.serveraction.ActionLog;
+import org.apache.ambari.server.serveraction.kerberos.CreateKeytabFilesServerAction;
+import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerAction;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
@@ -99,7 +102,9 @@ import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
+import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.easymock.Capture;
+import org.easymock.CaptureType;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
 import org.junit.After;
@@ -193,6 +198,8 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         bind(KerberosHelper.class).to(KerberosHelperImpl.class);
         bind(CredentialStoreService.class).to(CredentialStoreServiceImpl.class);
+        bind(CreatePrincipalsServerAction.class).toInstance(createMock(CreatePrincipalsServerAction.class));
+        bind(CreateKeytabFilesServerAction.class).toInstance(createMock(CreateKeytabFilesServerAction.class));
       }
     });
 
@@ -1978,17 +1985,17 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).atLeastOnce();
 
     final KerberosPrincipalDescriptor principalDescriptor1 = createMockPrincipalDescriptor(
-        "service1/_HOST@${realm}", "service1user", "service1-site/service.kerberos.principal");
+        "service1/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service1user", "service1-site/service.kerberos.principal");
     final KerberosPrincipalDescriptor principalDescriptor1a = createMockPrincipalDescriptor(
-        "component1a/_HOST@${realm}", "service1user", "service1-site/component1a.kerberos.principal");
+        "component1a/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service1user", "service1-site/component1a.kerberos.principal");
     final KerberosPrincipalDescriptor principalDescriptor1b = createMockPrincipalDescriptor(
-        "component1b/_HOST@${realm}", "service1user", "service1-site/component1b.kerberos.principal");
+        "component1b/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service1user", "service1-site/component1b.kerberos.principal");
     final KerberosPrincipalDescriptor principalDescriptor2a = createMockPrincipalDescriptor(
-        "component2a/_HOST@${realm}", "service2user", "service2-site/component2a.kerberos.principal");
+        "component2a/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service2user", "service2-site/component2a.kerberos.principal");
     final KerberosPrincipalDescriptor principalDescriptor2b = createMockPrincipalDescriptor(
-        "component2b/_HOST@${realm}", "service2user", "service2-site/component2b.kerberos.principal");
+        "component2b/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service2user", "service2-site/component2b.kerberos.principal");
     final KerberosPrincipalDescriptor principalDescriptor3a = createMockPrincipalDescriptor(
-        "component3a/_HOST@${realm}", "service3user", "service3-site/component3a.kerberos.principal");
+        "component3a/_HOST@${realm}", KerberosPrincipalType.SERVICE, "service3user", "service3-site/component3a.kerberos.principal");
 
     final KerberosKeytabDescriptor keytabDescriptor1 = createMockKeytabDescriptor(
         "keytab1", "service1-site/service.kerberos.keytab");
@@ -2249,7 +2256,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     injector.getInstance(AmbariMetaInfo.class).init();
 
     Map<String, Map<String, String>> updates1 = kerberosHelper.getServiceConfigurationUpdates(
-        cluster, existingConfigurations,        new HashSet<String>(Arrays.asList("SERVICE1", "SERVICE2", "SERVICE3")));
+        cluster, existingConfigurations, new HashSet<String>(Arrays.asList("SERVICE1", "SERVICE2", "SERVICE3")));
 
     Map<String, Map<String, String>> updates2 = kerberosHelper.getServiceConfigurationUpdates(
         cluster, existingConfigurations, new HashSet<String>(Arrays.asList("SERVICE1", "SERVICE3")));
@@ -2346,6 +2353,162 @@ public class KerberosHelperTest extends EasyMockSupport {
     assertEquals(expectedExistingConfigurations, existingConfigurations);
   }
 
+  @Test
+  public void testEnsureHeadlessIdentities() throws Exception {
+    Map<String, String> propertiesKrb5Conf = new HashMap<String, String>();
+
+    Map<String, String> propertiesKerberosEnv = new HashMap<String, String>();
+    propertiesKerberosEnv.put("realm", "EXAMPLE.COM");
+    propertiesKerberosEnv.put("kdc_type", "mit-kdc");
+    propertiesKerberosEnv.put("password_length", "20");
+    propertiesKerberosEnv.put("password_min_lowercase_letters", "1");
+    propertiesKerberosEnv.put("password_min_uppercase_letters", "1");
+    propertiesKerberosEnv.put("password_min_digits", "1");
+    propertiesKerberosEnv.put("password_min_punctuation", "0");
+    propertiesKerberosEnv.put("password_min_whitespace","0");
+
+    Config configKrb5Conf = createMock(Config.class);
+    expect(configKrb5Conf.getProperties()).andReturn(propertiesKrb5Conf).times(1);
+
+    Config configKerberosEnv = createMock(Config.class);
+    expect(configKerberosEnv.getProperties()).andReturn(propertiesKerberosEnv).times(1);
+
+    Host host1 = createMockHost("host1");
+    Host host2 = createMockHost("host3");
+    Host host3 = createMockHost("host2");
+
+    Map<String, ServiceComponentHost> service1Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    service1Component1HostMap.put("host1", createMockServiceComponentHost());
+
+    Map<String, ServiceComponentHost> service2Component1HostMap = new HashMap<String, ServiceComponentHost>();
+    service2Component1HostMap.put("host2", createMockServiceComponentHost());
+
+    Map<String, ServiceComponent> service1ComponentMap = new HashMap<String, ServiceComponent>();
+    service1ComponentMap.put("COMPONENT11", createMockComponent("COMPONENT11", true, service1Component1HostMap));
+
+    Map<String, ServiceComponent> service2ComponentMap = new HashMap<String, ServiceComponent>();
+    service2ComponentMap.put("COMPONENT21", createMockComponent("COMPONENT21", true, service2Component1HostMap));
+
+    Service service1 = createMockService("SERVICE1", service1ComponentMap);
+    Service service2 = createMockService("SERVICE2", service2ComponentMap);
+
+    Map<String, Service> servicesMap = new HashMap<String, Service>();
+    servicesMap.put("SERVICE1", service1);
+    servicesMap.put("SERVICE2", service2);
+
+    Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(configKrb5Conf).times(1);
+    expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(configKerberosEnv).times(1);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).times(1);
+    expect(cluster.getCurrentStackVersion()).andReturn(new StackId("HDP", "2.2")).times(1);
+    expect(cluster.getClusterName()).andReturn("c1").times(2);
+    expect(cluster.getHosts()).andReturn(Arrays.asList(host1, host2, host3)).times(1);
+    expect(cluster.getServices()).andReturn(servicesMap).times(1);
+
+    Map<String, String> kerberosDescriptorProperties = new HashMap<String, String>();
+    kerberosDescriptorProperties.put("additional_realms", "");
+    kerberosDescriptorProperties.put("keytab_dir", "/etc/security/keytabs");
+    kerberosDescriptorProperties.put("realm", "${kerberos-env/realm}");
+
+    ArrayList<KerberosIdentityDescriptor> service1Component1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    service1Component1Identities.add(createMockIdentityDescriptor(
+        "s1c1_1.user",
+        createMockPrincipalDescriptor("s1c1_1@${realm}", KerberosPrincipalType.USER, "s1c1", null),
+        createMockKeytabDescriptor("s1c1_1.user.keytab", null)
+    ));
+    service1Component1Identities.add(createMockIdentityDescriptor(
+        "s1c1_1.service",
+        createMockPrincipalDescriptor("s1c1_1/_HOST@${realm}", KerberosPrincipalType.SERVICE, "s1c1", null),
+        createMockKeytabDescriptor("s1c1_1.service.keytab", null)
+    ));
+
+    HashMap<String, KerberosComponentDescriptor> service1ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+    service1ComponentDescriptorMap.put("COMPONENT11", createMockComponentDescriptor("COMPONENT11", service1Component1Identities, null));
+
+    List<KerberosIdentityDescriptor> service1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    service1Identities.add(createMockIdentityDescriptor(
+        "s1_1.user",
+        createMockPrincipalDescriptor("s1_1@${realm}", KerberosPrincipalType.USER, "s1", null),
+        createMockKeytabDescriptor("s1_1.user.keytab", null)
+    ));
+    service1Identities.add(createMockIdentityDescriptor(
+        "s1_1.service",
+        createMockPrincipalDescriptor("s1/_HOST@${realm}", KerberosPrincipalType.SERVICE, "s1", null),
+        createMockKeytabDescriptor("s1.service.keytab", null)
+    ));
+
+    KerberosServiceDescriptor service1KerberosDescriptor = createMockServiceDescriptor("SERVICE1", service1ComponentDescriptorMap, service1Identities);
+
+    ArrayList<KerberosIdentityDescriptor> service2Component1Identities = new ArrayList<KerberosIdentityDescriptor>();
+    service2Component1Identities.add(createMockIdentityDescriptor(
+        "s2_1.user",
+        createMockPrincipalDescriptor("s2_1@${realm}", KerberosPrincipalType.USER, "s2", null),
+        createMockKeytabDescriptor("s2_1.user.keytab", null)
+    ));
+    service2Component1Identities.add(createMockIdentityDescriptor(
+        "s2c1_1.service",
+        createMockPrincipalDescriptor("s2c1_1/_HOST@${realm}", KerberosPrincipalType.SERVICE, "s2c1", null),
+        createMockKeytabDescriptor("s2c1_1.service.keytab", null)
+    ));
+
+    HashMap<String, KerberosComponentDescriptor> service2ComponentDescriptorMap = new HashMap<String, KerberosComponentDescriptor>();
+    service2ComponentDescriptorMap.put("COMPONENT21", createMockComponentDescriptor("COMPONENT21", service2Component1Identities, null));
+
+    KerberosServiceDescriptor service2KerberosDescriptor = createMockServiceDescriptor("SERVICE2", service2ComponentDescriptorMap, null);
+
+    KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getProperties()).andReturn(kerberosDescriptorProperties);
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(service1KerberosDescriptor).times(1);
+    expect(kerberosDescriptor.getService("SERVICE2")).andReturn(service2KerberosDescriptor).times(1);
+
+    setupGetDescriptorFromStack(kerberosDescriptor);
+
+    Map<String, Map<String, String>> existingConfigurations = new HashMap<String, Map<String, String>>();
+    existingConfigurations.put("kerberos-env", propertiesKerberosEnv);
+
+    Set<String> services = new HashSet<String>() {
+      {
+        add("SERVICE1");
+        add("SERVICE2");
+      }
+    };
+
+    Capture<? extends String> capturePrincipal = newCapture(CaptureType.ALL);
+    Capture<? extends String> capturePrincipalForKeytab = newCapture(CaptureType.ALL);
+
+    CreatePrincipalsServerAction createPrincipalsServerAction = injector.getInstance(CreatePrincipalsServerAction.class);
+    expect(createPrincipalsServerAction.createPrincipal(capture(capturePrincipal), eq(false), anyObject(Map.class),  anyObject(KerberosOperationHandler.class), isNull(ActionLog.class)))
+        .andReturn(new CreatePrincipalsServerAction.CreatePrincipalResult("anything", "password", 1))
+        .times(3);
+
+    CreateKeytabFilesServerAction createKeytabFilesServerAction = injector.getInstance(CreateKeytabFilesServerAction.class);
+    expect(createKeytabFilesServerAction.createKeytab(capture(capturePrincipalForKeytab), eq("password"), eq(1), anyObject(KerberosOperationHandler.class), eq(true), eq(true), isNull(ActionLog.class)))
+        .andReturn(new Keytab())
+        .times(3);
+    
+    replayAll();
+
+    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    ambariMetaInfo.init();
+
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    kerberosHelper.ensureHeadlessIdentities(cluster, existingConfigurations, services);
+
+    verifyAll();
+
+    List<? extends String> capturedPrincipals = capturePrincipal.getValues();
+    assertEquals(3, capturedPrincipals.size());
+    assertTrue(capturedPrincipals.contains("s1_1@EXAMPLE.COM"));
+    assertTrue(capturedPrincipals.contains("s1c1_1@EXAMPLE.COM"));
+    assertTrue(capturedPrincipals.contains("s2_1@EXAMPLE.COM"));
+
+    List<? extends String> capturedPrincipalsForKeytab = capturePrincipalForKeytab.getValues();
+    assertEquals(3, capturedPrincipalsForKeytab.size());
+    assertTrue(capturedPrincipalsForKeytab.contains("s1_1@EXAMPLE.COM"));
+    assertTrue(capturedPrincipalsForKeytab.contains("s1c1_1@EXAMPLE.COM"));
+    assertTrue(capturedPrincipalsForKeytab.contains("s2_1@EXAMPLE.COM"));
+  }
+
   private void setClusterController() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
@@ -2363,8 +2526,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     Resource resource = createStrictMock(Resource.class);
     Set<Resource> result = Collections.singleton(resource);
 
-    Capture<Predicate> predicateCapture = new Capture<Predicate>();
-    Capture<Request> requestCapture = new Capture<Request>();
+    Capture<Predicate> predicateCapture = newCapture();
+    Capture<Request> requestCapture = newCapture();
 
     //todo: validate captures
 
@@ -2394,8 +2557,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     ResourceProvider resourceProvider = createStrictMock(ResourceProvider.class);
     expect(clusterController.ensureResourceProvider(Resource.Type.Artifact)).andReturn(resourceProvider).once();
 
-    Capture<Predicate> predicateCapture = new Capture<Predicate>();
-    Capture<Request> requestCapture = new Capture<Request>();
+    Capture<Predicate> predicateCapture = newCapture();
+    Capture<Request> requestCapture = newCapture();
 
     //todo: validate captures
 
@@ -3575,11 +3738,11 @@ public class KerberosHelperTest extends EasyMockSupport {
   }
 
   private KerberosPrincipalDescriptor createMockPrincipalDescriptor(String value,
-                                                                    String localUsername,
+                                                                    KerberosPrincipalType type, String localUsername,
                                                                     String configuration) {
     KerberosPrincipalDescriptor descriptor = createMock(KerberosPrincipalDescriptor.class);
     expect(descriptor.getValue()).andReturn(value).anyTimes();
-    expect(descriptor.getType()).andReturn(KerberosPrincipalType.SERVICE).anyTimes();
+    expect(descriptor.getType()).andReturn(type).anyTimes();
     expect(descriptor.getLocalUsername()).andReturn(localUsername).anyTimes();
     expect(descriptor.getConfiguration()).andReturn(configuration).anyTimes();
     return descriptor;
