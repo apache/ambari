@@ -17,17 +17,14 @@
  */
 
 var App = require('app');
-var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
   disabledServices: [],
 
-  content:function () {
-    var items = App.router.get('mainServiceController.content').filter(function(item){
+  content: function () {
+    return App.router.get('mainServiceController.content').filter(function(item){
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-    var stackServices = App.StackService.find().mapProperty('serviceName');
-    return misc.sortByOrder(stackServices, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
 
   didInsertElement:function () {
@@ -124,12 +121,10 @@ App.MainServiceMenuView = Em.CollectionView.extend({
 App.TopNavServiceMenuView = Em.CollectionView.extend({
   disabledServices: [],
 
-  content:function () {
-    var items = App.router.get('mainServiceController.content').filter(function(item){
+  content: function () {
+    return App.router.get('mainServiceController.content').filter(function (item) {
       return !this.get('disabledServices').contains(item.get('id'));
     }, this);
-    var stackServices = App.StackService.find().mapProperty('serviceName');
-    return misc.sortByOrder(stackServices, items);
   }.property('App.router.mainServiceController.content', 'App.router.mainServiceController.content.length'),
 
   didInsertElement:function () {

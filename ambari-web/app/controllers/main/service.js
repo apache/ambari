@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainServiceController = Em.ArrayController.extend({
 
@@ -29,7 +30,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (!App.router.get('clusterController.isLoaded')) {
       return [];
     }
-    return App.Service.find();
+    return misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), App.Service.find().toArray());
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   /**
