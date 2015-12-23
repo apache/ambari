@@ -205,8 +205,7 @@
             "hbase.security.authorization": "true", 
             "hbase.master.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM", 
             "hbase.regionserver.keytab.file": "/etc/security/keytabs/ams-hbase.regionserver.keytab", 
-            "zookeeper.znode.parent": "/ams-hbase-secure", 
-            "hbase.regionserver.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM", 
+            "hbase.regionserver.kerberos.principal": "amshbase/_HOST@EXAMPLE.COM",
             "hbase.myclient.keytab": "/etc/security/keytabs/ams.collector.keytab", 
             "ams.zookeeper.keytab": "/etc/security/keytabs/zk.service.ams.keytab", 
             "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal": "true", 
@@ -585,7 +584,8 @@
             "hbase.client.scanner.caching": "10000", 
             "phoenix.sequence.saltBuckets": "2", 
             "hbase.hstore.flusher.count": "2", 
-            "hbase.zookeeper.peerport": "61288"
+            "hbase.zookeeper.peerport": "61288",
+            "zookeeper.znode.parent": "/ams-hbase-secure"
         }, 
         "yarn-env": {
             "yarn_pid_dir_prefix": "/var/run/hadoop-yarn", 

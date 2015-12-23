@@ -59,7 +59,7 @@ class TestStormRestApi(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )
@@ -119,7 +119,7 @@ class TestStormRestApi(TestStormBase):
     self.assertResourceCalled('Execute', "/usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ && /usr/jdk64/jdk1.7.0_45/bin/jps -l  | grep /usr/lib/storm/contrib/storm-rest/storm-rest-.*\\.jar$ | awk {'print $1'} > /var/run/storm/restapi.pid",
         logoutput = True,
         path = ['/usr/bin'],
-        tries = 6,
+        tries = 12,
         user = 'storm',
         try_sleep = 10,
     )

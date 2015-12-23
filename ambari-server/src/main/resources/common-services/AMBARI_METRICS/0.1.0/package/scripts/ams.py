@@ -34,12 +34,12 @@ def ams(name=None):
 
     Directory(params.ams_collector_conf_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     XmlConfig("ams-site.xml",
@@ -77,7 +77,7 @@ def ams(name=None):
                   username = params.ams_user,
                   password = Script.get_password(params.ams_user))
 
-    if params.is_hdfs_rootdir:
+    if not params.is_local_fs_rootdir:
       # Configuration needed to support NN HA
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
@@ -155,7 +155,7 @@ def ams(name=None):
 
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,
-              recursive=True
+              create_parents = True
     )
 
     TemplateConfig(
@@ -184,14 +184,16 @@ def ams(name=None):
     Directory(params.ams_collector_conf_dir,
               owner=params.ams_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True,
+              recursive_ownership = True,
     )
-
+    
     Directory(params.ams_checkpoint_dir,
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True
+              create_parents = True,
+              recursive_ownership = True
     )
 
     XmlConfig("ams-site.xml",
@@ -241,7 +243,7 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True,
+              create_parents = True,
               mode=0755,
     )
 
@@ -249,7 +251,7 @@ def ams(name=None):
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True,
+              create_parents = True,
               mode=0755,
     )
 
@@ -261,7 +263,7 @@ def ams(name=None):
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
     Directory(params.limits_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )
@@ -281,11 +283,11 @@ def ams(name=None):
                 mode = 0755,
                 group=params.user_group,
                 cd_access="a",
-                recursive=True
+                create_parents = True
       )
     pass
 
-    if params.is_hdfs_rootdir:
+    if not params.is_local_fs_rootdir and params.is_ams_distributed:
       # Configuration needed to support NN HA
       XmlConfig("hdfs-site.xml",
             conf_dir=params.ams_collector_conf_dir,
@@ -329,28 +331,28 @@ def ams(name=None):
     Directory(params.ams_monitor_conf_dir,
               owner=params.ams_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_monitor_log_dir,
               owner=params.ams_user,
               group=params.user_group,
               mode=0755,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.ams_monitor_pid_dir,
               owner=params.ams_user,
               group=params.user_group,
               mode=0755,
-              recursive=True
+              create_parents = True
     )
 
     Directory(format("{ams_monitor_dir}/psutil/build"),
               owner=params.ams_user,
               group=params.user_group,
               cd_access="a",
-              recursive=True)
+              create_parents = True)
 
     Execute(format("{sudo} chown -R {ams_user}:{user_group} {ams_monitor_dir}")
     )

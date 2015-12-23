@@ -55,8 +55,6 @@
         </component>
 
       </components>
-
-
       
       <osSpecifics>
         <osSpecific>
@@ -72,13 +70,13 @@
           <osFamily>redhat6,redhat7,suse11</osFamily>
           <packages>
             <package>
-              <name>hive_2_2_*</name>
+              <name>hive_${stack_version}</name>
             </package>
             <package>
-              <name>hive_2_2_*-hcatalog</name>
+              <name>hive_${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive_2_2_*-webhcat</name>
+              <name>hive_${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>
@@ -108,13 +106,13 @@
           <osFamily>ubuntu12</osFamily>
           <packages>
             <package>
-              <name>hive-2-2-.*</name>
+              <name>hive-${stack_version}</name>
             </package>
             <package>
-              <name>hive-2-2-.*-hcatalog</name>
+              <name>hive-${stack_version}-hcatalog</name>
             </package>
             <package>
-              <name>hive-2-2-.*-webhcat</name>
+              <name>hive-${stack_version}-webhcat</name>
             </package>
           </packages>
         </osSpecific>

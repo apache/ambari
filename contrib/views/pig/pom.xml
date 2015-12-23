@@ -85,7 +85,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
         <exclusions>
             <exclusion>
                 <groupId>tomcat</groupId>
@@ -96,7 +96,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
         <exclusions>
             <exclusion>
                 <groupId>tomcat</groupId>
@@ -122,13 +122,18 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-minicluster</artifactId>
-      <version>${hadoop-version}</version>
+      <version>${hadoop.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>commons-validator</groupId>
       <artifactId>commons-validator</artifactId>
       <version>1.4.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.ambari.contrib.views</groupId>
@@ -139,7 +144,6 @@
 
   <properties>
     <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
-    <hadoop-version>2.2.0</hadoop-version>
     <ambari.version>2.0.0.0-SNAPSHOT</ambari.version>
     <ui.directory>${basedir}/src/main/resources/ui/pig-web</ui.directory>
   </properties>
@@ -193,7 +197,7 @@
               <!-- optional: The default argument is actually "install", so unless
                    you need to run some other npm command, you can remove this whole <configuration>
                    section. -->
-              <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+              <arguments>install --unsafe-perm</arguments>
             </configuration>
           </execution>
         </executions>

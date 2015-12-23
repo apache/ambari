@@ -138,7 +138,7 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       if (response.localdb && !$.isEmptyObject(response.localdb)) {
         this.set('localdb', response.localdb);
         // restore HAWizard data if process was started
-        var isHAWizardStarted = App.isAccessible('ADMIN') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
+        var isHAWizardStarted = App.isAuthorized('SERVICE.ENABLE_HA') && !App.isEmptyObject(response.localdb.HighAvailabilityWizard);
         if (params.data.overrideLocaldb || isHAWizardStarted) {
           var localdbTables = (App.db.data.app && App.db.data.app.tables) ? App.db.data.app.tables : {};
           var authenticated = Em.get(App, 'db.data.app.authenticated') || false;
@@ -195,10 +195,8 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
    */
   setClusterStatus: function (newValue, opt) {
     if (App.get('testMode')) return false;
-    if (!App.isAccessible('ADMIN')) {
-      Em.assert('Non-Admin user should not execute setClusterStatus function', true);
-    }
     var user = App.db.getUser();
+    var auth = App.db.getAuth();
     var login = App.db.getLoginName();
     var val = {clusterName: this.get('clusterName')};
     if (newValue) {
@@ -221,6 +219,8 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
       if (newValue.localdb) {
         if (newValue.localdb.app && newValue.localdb.app.user)
           delete newValue.localdb.app.user;
+        if (newValue.localdb.app && newValue.localdb.app.auth)
+          delete newValue.localdb.app.auth;
         if (newValue.localdb.app && newValue.localdb.app.loginName)
           delete newValue.localdb.app.loginName;
         if (newValue.localdb.app && newValue.localdb.app.tables)
@@ -231,11 +231,13 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         val.localdb = newValue.localdb;
       } else {
         delete App.db.data.app.user;
+        delete App.db.data.app.auth;
         delete App.db.data.app.loginName;
         delete App.db.data.app.tables;
         delete App.db.data.app.authenticated;
         val.localdb = App.db.data;
         App.db.setUser(user);
+        App.db.setAuth(auth);
         App.db.setLoginName(login);
       }
       if (!$.mocho) {

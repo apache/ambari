@@ -29,13 +29,13 @@
     </div>
 
     <div {{bind-attr class="isUploading:hide: :pull-right :uploadwrap" }}>
-      <button type="button" {{action 'upload' 'open'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right content.meta.writeAccess::disabled"}}>
+      <button type="button" {{action 'upload' 'open'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right"}}>
         <i class="fa fa-upload"></i> Upload
       </button>
     </div>
 
     {{!-- MKDIR --}}
-    {{mkdir-input create="mkdir" path=path canCreate=content.meta.writeAccess}}
+    {{mkdir-input create="mkdir" path=path canCreate=true}}
 
     </div>
   </div>
@@ -115,8 +115,8 @@
                   <i class="fa fa-chevron-left fa-gr fa-fw"></i> Delete
                 </a>
                 <ul class="dropdown-menu left-submenu">
-                  {{confirm-delete confirm="deleteFile" deleteForever=true selector='bulkDropdown' access=content.meta.writeAccess}}
-                  {{confirm-delete confirm="deleteFile" deleteForever=false selector='bulkDropdown' access=content.meta.writeAccess}}
+                  {{confirm-delete confirm="deleteFile" deleteForever=true selector='bulkDropdown' access=true}}
+                  {{confirm-delete confirm="deleteFile" deleteForever=false selector='bulkDropdown' access=true}}
                 </ul>
               </li>
             </ul>

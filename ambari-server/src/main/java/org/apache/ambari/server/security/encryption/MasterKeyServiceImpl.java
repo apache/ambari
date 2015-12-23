@@ -88,9 +88,7 @@ public class MasterKeyServiceImpl implements MasterKeyService {
    */
   public MasterKeyServiceImpl() {
     String key = readMasterKey();
-    if (key == null) {
-      throw new IllegalStateException("Cannot read master key from environment.");
-    } else {
+    if (key != null) {
       this.master = key.toCharArray();
     }
   }

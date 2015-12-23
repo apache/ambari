@@ -18,14 +18,24 @@
 
 package org.apache.ambari.server.security;
 
-import com.google.inject.Singleton;
+import javax.servlet.ServletRequest;
+
 import org.apache.ambari.server.configuration.Configuration;
+
+import com.google.inject.Singleton;
 
 /**
  * AmbariViewsSecurityHeaderFilter adds security-related headers to HTTP response messages for Ambari Views
  */
 @Singleton
 public class AmbariViewsSecurityHeaderFilter extends AbstractSecurityHeaderFilter {
+
+
+  @Override
+  protected boolean checkPrerequisites(ServletRequest servletRequest) {
+    servletRequest.setAttribute(AbstractSecurityHeaderFilter.DENY_HEADER_OVERRIDES_FLAG, "true");
+    return true;
+  }
 
   @Override
   protected void processConfig(Configuration configuration) {

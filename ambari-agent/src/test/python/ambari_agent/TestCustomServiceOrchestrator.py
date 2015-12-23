@@ -396,7 +396,6 @@ class TestCustomServiceOrchestrator(TestCase):
     FileCache_mock.return_value = None
     FileCache_mock.cache_dir = MagicMock()
     resolve_hook_script_path_mock.return_value = None
-#     shell.kill_process_with_children = MagicMock()
     dummy_controller = MagicMock()
     cfg = AmbariConfig()
     cfg.set('agent', 'tolerate_download_failures', 'true')

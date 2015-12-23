@@ -50,16 +50,16 @@ def webhcat():
             owner=params.webhcat_user,
             mode=0755,
             group=params.user_group,
-            recursive=True)
+            create_parents = True)
 
   Directory(params.templeton_log_dir,
             owner=params.webhcat_user,
             mode=0755,
             group=params.user_group,
-            recursive=True)
+            create_parents = True)
 
   Directory(params.config_dir,
-            recursive=True,
+            create_parents = True,
             owner=params.webhcat_user,
             group=params.user_group,
             cd_access="a")
@@ -116,7 +116,7 @@ def webhcat():
   
   Directory(params.webhcat_conf_dir,
        cd_access='a',
-       recursive=True
+       create_parents = True
   )
 
   log4j_webhcat_filename = 'webhcat-log4j.properties'

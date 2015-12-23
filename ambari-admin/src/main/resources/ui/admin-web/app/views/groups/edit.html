@@ -47,7 +47,7 @@
   <div class="form-group">
       <label for="" class="col-sm-2 control-label">Privileges</label>
       <div class="col-sm-10">
-        <table class="table">
+        <table class="table" ng-hide="hidePrivileges">
           <thead>
             <tr>
               <th>Cluster</th>
@@ -63,6 +63,9 @@
               <td>
                 <span tooltip="{{item}}" ng-repeat="item in privilege">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
+            </tr>
+            <tr>
+              <td ng-show="noClusterPriv">No cluster privileges</td>
             </tr>
           </tbody>
           <thead class="view-permission-header">
@@ -80,6 +83,9 @@
               <td>
                 <span tooltip="{{item}}" ng-repeat="item in privilege.privileges">{{item | translate}}{{$last ? '' : ', '}}</span>
               </td>
+            </tr>
+            <tr>
+              <td ng-show="noViewPriv">No view privileges</td>
             </tr>
           </tbody>
         </table>

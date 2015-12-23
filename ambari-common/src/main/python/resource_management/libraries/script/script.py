@@ -42,6 +42,8 @@ from resource_management.core.resources.packaging import Package
 from resource_management.libraries.functions.version_select_util import get_component_version
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions import packages_analyzer
 from resource_management.libraries.script.config_dictionary import ConfigDictionary, UnknownConfiguration
 from resource_management.core.resources.system import Execute
 from contextlib import closing
@@ -67,6 +69,8 @@ USAGE = """Usage: {0} <COMMAND> <JSON_CONFIG> <BASEDIR> <STROUTPUT> <LOGGING_LEV
 """
 
 _PASSWORD_MAP = {"/configurations/cluster-env/hadoop.user.name":"/configurations/cluster-env/hadoop.user.password"}
+DISTRO_SELECT_PACKAGE_NAME = "hdp-select"
+STACK_VERSION_PLACEHOLDER = "${stack_version}"
 
 def get_path_from_configuration(name, configuration):
   subdicts = filter(None, name.split('/'))
@@ -93,6 +97,7 @@ class Script(object):
   3 path to service metadata dir (Directory "package" inside service directory)
   4 path to file with structured command output (file will be created)
   """
+  stack_version_from_distro_select = None
   structuredOut = {}
   command_data_file = ""
   basedir = ""
@@ -137,17 +142,26 @@ class Script(object):
         json.dump(Script.structuredOut, fp)
     except IOError, err:
       Script.structuredOut.update({"errMsg" : "Unable to write to " + self.stroutfile})
+      
+  def get_component_name(self):
+    stack_name = Script.get_stack_name()
+    stack_to_component = self.get_stack_to_component()
+    
+    if stack_to_component and stack_name:
+      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+      return component_name
+    
+    return None
 
   def save_component_version_to_structured_out(self):
     """
     :param stack_name: One of HDP, HDPWIN, PHD, BIGTOP.
     :return: Append the version number to the structured out.
     """
-    from resource_management.libraries.functions.default import default
-    stack_name = default("/hostLevelParams/stack_name", None)
-    stack_to_component = self.get_stack_to_component()
-    if stack_to_component and stack_name:
-      component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
+    stack_name = Script.get_stack_name()
+    component_name = self.get_component_name()
+    
+    if component_name and stack_name:
       component_version = get_component_version(stack_name, component_name)
 
       if component_version:
@@ -234,7 +248,39 @@ class Script(object):
       raise Fail("Script '{0}' has no method '{1}'".format(sys.argv[0], command_name))
     method = getattr(self, command_name)
     return method
+  
+  def get_stack_version_before_packages_installed(self):
+    """
+    This works in a lazy way (calculates the version first time and stores it). 
+    If you need to recalculate the version explicitly set:
+    
+    Script.stack_version_from_distro_select = None
+    
+    before the call. However takes a bit of time, so better to avoid.
 
+    :return: hdp version including the build number. e.g.: 2.3.4.0-1234.
+    """
+    # preferred way is to get the actual selected version of current component
+    component_name = self.get_component_name()
+    if not Script.stack_version_from_distro_select and component_name:
+      from resource_management.libraries.functions import hdp_select
+      Script.stack_version_from_distro_select = hdp_select.get_hdp_version_before_install(component_name)
+      
+    # if hdp-select has not yet been done (situations like first install), we can use hdp-select version itself.
+    if not Script.stack_version_from_distro_select:
+      Script.stack_version_from_distro_select = packages_analyzer.getInstalledPackageVersion(DISTRO_SELECT_PACKAGE_NAME)
+      
+    return Script.stack_version_from_distro_select
+  
+  def format_package_name(self, name):
+    """
+    This function replaces ${stack_version} placeholder into actual version.
+    """
+    package_delimiter = '-' if OSCheck.is_ubuntu_family() else '_'
+    stack_version_package_formatted = self.get_stack_version_before_packages_installed().replace('.', package_delimiter).replace('-', package_delimiter) if STACK_VERSION_PLACEHOLDER in name else name
+    package_name = name.replace(STACK_VERSION_PLACEHOLDER, stack_version_package_formatted)
+    
+    return package_name
 
   @staticmethod
   def get_config():
@@ -302,6 +348,15 @@ class Script(object):
       return None
 
     return format_hdp_stack_version(stack_version_unformatted)
+
+
+  @staticmethod
+  def in_stack_upgrade():
+    from resource_management.libraries.functions.default import default
+
+    upgrade_direction = default("/commandParams/upgrade_direction", None)
+    return upgrade_direction is not None and upgrade_direction in [Direction.UPGRADE, Direction.DOWNGRADE]
+
 
   @staticmethod
   def is_hdp_stack_greater(formatted_hdp_stack_version, compare_to_version):
@@ -388,7 +443,7 @@ class Script(object):
         package_list = json.loads(package_list_str)
         for package in package_list:
           if not Script.matches_any_regexp(package['name'], exclude_packages):
-            name = package['name']
+            name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
             # <osFamily>any<osFamily> which would cause installation failure on Windows.
@@ -600,7 +655,7 @@ class Script(object):
     env_configs_list = config['commandParams']['env_configs_list']
     properties_configs_list = config['commandParams']['properties_configs_list']
 
-    Directory(self.get_tmp_dir(), recursive=True)
+    Directory(self.get_tmp_dir(), create_parents = True)
 
     conf_tmp_dir = tempfile.mkdtemp(dir=self.get_tmp_dir())
     output_filename = os.path.join(self.get_tmp_dir(), config['commandParams']['output_file'])

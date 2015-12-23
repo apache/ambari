@@ -19,12 +19,12 @@
 <div class="users-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">Roles</li>
+      <li class="active">{{clusterId}} Roles</li>
     </ol>
   </div>
   <hr>
   <div class="pull-right">
-    <i class="glyphicon glyphicon-th-large layout-switch-icon disabled" ng-click="switchToBlock()" tooltip="Switch to block view"></i>
+    <i class="glyphicon glyphicon-th-large layout-switch-icon disabled" ng-click="switchToBlock()" tooltip="Switch&nbsp;to&nbsp;block&nbsp;view"></i>
     <i class="glyphicon glyphicon-list layout-switch-icon"></i>
   </div>
   <table class="table table-striped table-hover">
@@ -72,6 +72,9 @@
     </tr>
     </tbody>
   </table>
+  <div class="alert alert-info col-sm-12" ng-show="!users.length">
+    No users to display.
+  </div>
   <div class="col-sm-12">
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>

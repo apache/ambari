@@ -22,6 +22,12 @@ describe('App.MainAdminKerberosController', function() {
 
   var controller = App.MainAdminKerberosController.create({});
 
+  App.TestAliases.testAsComputedEqual(controller, 'isManualKerberos', 'kdc_type', 'none');
+
+  App.TestAliases.testAsComputedSomeBy(controller, 'isPropertiesChanged', 'stepConfigs', 'isPropertiesChanged', true);
+
+  App.TestAliases.testAsComputedOr(controller, 'isSaveButtonDisabled', ['isSubmitDisabled', '!isPropertiesChanged']);
+
   describe('#prepareConfigProperties', function() {
     beforeEach(function() {
       sinon.stub(App.Service, 'find').returns([
@@ -33,7 +39,7 @@ describe('App.MainAdminKerberosController', function() {
         Em.Object.create({ name: 'prop2', isEditable: true, serviceName: 'KERBEROS'}),
         Em.Object.create({ name: 'prop3', isEditable: true, serviceName: 'HDFS'}),
         Em.Object.create({ name: 'prop4', isEditable: true, serviceName: 'Cluster'}),
-        Em.Object.create({ name: 'prop5', isEditable: true, serviceName: 'SERVICE1'}),
+        Em.Object.create({ name: 'prop5', isEditable: true, serviceName: 'SERVICE1'})
       ]);
     });
 
@@ -195,6 +201,7 @@ describe('App.MainAdminKerberosController', function() {
       App.ajax.send.restore();
       mock.callback.restore();
       controller.getSecurityType.restore();
+      Em.tryInvoke(App.get, 'restore');
     });
 
     [
@@ -225,7 +232,6 @@ describe('App.MainAdminKerberosController', function() {
             controller.set('securityEnabled', test.securityEnabled);
             controller.set('kdc_type', test.kdc_type);
             controller.getKDCSessionState(mock.callback);
-            App.get.restore();
             if (test.result) {
               expect(mock.callback.calledOnce).to.be.false;
               expect(App.ajax.send.calledOnce).to.be.true;
@@ -249,6 +255,7 @@ describe('App.MainAdminKerberosController', function() {
     afterEach(function () {
       App.ajax.send.restore();
       mock.callback.restore();
+      Em.tryInvoke(App.get, 'restore');
     });
 
     [
@@ -279,7 +286,6 @@ describe('App.MainAdminKerberosController', function() {
             controller.set('securityEnabled', test.securityEnabled);
             controller.set('kdc_type', test.kdc_type);
             controller.getSecurityType(mock.callback);
-            App.get.restore();
             if (test.result) {
               expect(mock.callback.calledOnce).to.be.false;
               expect(App.ajax.send.calledOnce).to.be.true;

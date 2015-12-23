@@ -42,7 +42,7 @@ describe('App.MainMenuView', function () {
       });
     });
 
-    describe('#dropdownCategories', function () {
+    describe.skip('#dropdownCategories', function () {
 
       var cases = [
         {

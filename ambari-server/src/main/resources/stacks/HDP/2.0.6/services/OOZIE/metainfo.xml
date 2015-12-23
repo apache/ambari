@@ -22,5 +22,12 @@
       <name>OOZIE</name>
       <extends>common-services/OOZIE/4.0.0.2.0</extends>
     </service>
+
+    <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
   </services>
 </metainfo>

@@ -32,7 +32,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute, Link
+from resource_management.core.resources.system import Execute, Link, Directory
 
 HDP_SELECT = '/usr/bin/hdp-select'
 
@@ -94,6 +94,7 @@ class UpgradeSetAll(Script):
       Logger.warning("Both 'commandParams/version' and 'commandParams/downgrade_from_version' must be specified to unlink configs on downgrade.")
       return
 
+    Logger.info("Unlinking all configs when downgrading from HDP 2.3 to 2.2")
 
     # normalize the versions
     stack_23 = format_hdp_stack_version("2.3")
@@ -131,16 +132,22 @@ class UpgradeSetAll(Script):
     # calculate the parent and backup directories
     original_conf_parent_directory = os.path.abspath(os.path.join(original_conf_directory, os.pardir))
     backup_conf_directory = os.path.join(original_conf_parent_directory, "conf.backup")
-    if not os.path.isdir(backup_conf_directory):
-      Logger.info("Skipping restoring config from backup {0} since it does not exist".format(backup_conf_directory))
-    elif not os.path.islink(original_conf_directory):
-      Logger.info("Skipping the unlink of {0}; it is not a symlink or does not exist".format(original_conf_directory))
-    else:
-      Logger.info("Unlinking {0} and restoring {1}".format(original_conf_directory, backup_conf_directory))
+    Logger.info("Analyzing potential link {0}".format(original_conf_directory))
+
+    if os.path.islink(original_conf_directory):
       # remove the old symlink
       Execute(("rm", original_conf_directory), sudo=True)
+    elif os.path.isdir(original_conf_directory):
+      Directory(original_conf_directory, action="delete")
+    else:
+      Logger.info("  Skipping the unlink of {0}; it is not a symlink or does not exist".format(original_conf_directory))
+
+    if os.path.isdir(backup_conf_directory):
       # rename the backup to the original name
+      Logger.info("  Unlinking {0} and restoring {1}".format(original_conf_directory, backup_conf_directory))
       Execute(("mv", backup_conf_directory, original_conf_directory), sudo=True)
+    else:
+      Logger.info("  Skipping restoring config from backup {0} since it does not exist".format(backup_conf_directory))
 
 
 def link_config(old_conf, link_conf):
@@ -154,12 +161,16 @@ def link_config(old_conf, link_conf):
   :old_conf: the old config directory, ie /etc/[component]/conf
   :link_conf: the new target for the config directory, ie /usr/hdp/current/[component-dir]/conf
   """
+  if os.path.islink(old_conf):
+    # if the link exists but is wrong, then change it
+    if os.path.realpath(old_conf) != link_conf:
+      Link(old_conf, to = link_conf)
+    else:
+      Logger.debug("Skipping {0}; it is already a link".format(old_conf))
+    return
+
   if not os.path.exists(old_conf):
     Logger.debug("Skipping {0}; it does not exist".format(old_conf))
-    return
-  
-  if os.path.islink(old_conf):
-    Logger.debug("Skipping {0}; it is already a link".format(old_conf))
     return
 
   old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))

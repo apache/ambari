@@ -90,7 +90,7 @@ def setup_ranger_plugin(component_select_name, service_name,
       owner = component_user,
       group = component_group,
       mode=0775,
-      recursive = True,
+      create_parents = True,
       cd_access = 'a'
     )
 

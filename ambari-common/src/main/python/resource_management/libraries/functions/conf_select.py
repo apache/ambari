@@ -26,9 +26,17 @@ import hdp_select
 import subprocess
 
 from resource_management.core import shell
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Directory, Link
+from resource_management.core.resources.system import Directory
+from resource_management.core.resources.system import Execute
+from resource_management.core.resources.system import Link
+from resource_management.libraries.functions.default import default
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.core.shell import as_sudo
+
 
 PACKAGE_DIRS = {
   "accumulo": [
@@ -193,13 +201,15 @@ def _valid(stack_name, package, ver):
 def create(stack_name, package, version, dry_run = False):
   """
   Creates a config version for the specified package
-  :stack_name: the name of the stack
-  :package: the name of the package, as-used by conf-select
-  :version: the version number to create
+  :param stack_name: the name of the stack
+  :param package: the name of the package, as-used by conf-select
+  :param version: the version number to create
+  :return List of directories created
   """
-
+  Logger.info("Checking if need to create versioned conf dir /etc/{0}/{1}/0".format(package, version))
   if not _valid(stack_name, package, version):
-    return
+    Logger.info("Will not create it since parameters are not valid.")
+    return []
 
   command = "dry-run-create" if dry_run else "create-conf-dir"
 
@@ -218,7 +228,7 @@ def create(stack_name, package, version, dry_run = False):
       Directory(d,
           mode=0755,
           cd_access='a',
-          recursive=True)
+          create_parents=True)
 
   return dirs
 
@@ -239,41 +249,30 @@ def select(stack_name, package, version, try_create=True):
 
   shell.checked_call(get_cmd("set-conf-dir", package, version), logoutput=False, quiet=False, sudo=True)
 
-  # Create the symbolic link using 'PACKAGE_DIRS' for the given package
-  # Starting with 2.3, we have sym links instead of flat directories.
-  # Eg: /etc/<service-name>/conf -> /etc/<service-name>/2.3.x.y-<version>/0
-  # But, in case of Express upgrade from HDP 2.1-> HDP 2.3 where we have
-  # deleted the /etc/<service-name>/conf directory, the above mentioned
-  # symlink needs to be created here.
+  # for consistency sake, we must ensure that the /etc/<component>/conf symlink exists and
+  # points to /usr/hdp/current/<component>/conf - this is because some people still prefer to
+  # use /etc/<component>/conf even though /usr/hdp is the "future"
   if package in PACKAGE_DIRS:
-    conf_dirs = PACKAGE_DIRS[package]
-    Logger.info("For package : {0}, DIRS = {1}".format(package, conf_dirs))
-    for dirInfo in conf_dirs:
-      if "conf_dir" in dirInfo and "current_dir" in dirInfo:
-        conf_dir = dirInfo["conf_dir"]
-        current_dir = dirInfo["current_dir"]
-        Logger.info("For package : {0}, Source dir: {1}, Dest dir: {2}".format(package, conf_dir, current_dir))
-        if os.path.exists(current_dir):
-          real_path_of_current_dir = os.path.realpath(current_dir)
-          normalized_conf_dir = (os.path.normpath(conf_dir)).strip()
-          normalized_current_dir = (os.path.normpath(real_path_of_current_dir)).strip()
-          Logger.info("Normalized Conf Dir : {0}, Normalized Current Dir : {1}".format(normalized_conf_dir, normalized_current_dir))
-          if os.path.isdir(normalized_current_dir) and normalized_current_dir != normalized_conf_dir:
-            if not os.path.isdir(normalized_conf_dir) and not os.path.islink(normalized_conf_dir):
-              Link(normalized_conf_dir,
-                   to=normalized_current_dir)
-              Logger.info("{0} directory doesn't exist. Created Symlink : {1} -> {2}".format(normalized_conf_dir, normalized_conf_dir, normalized_current_dir))
-              return
-            # In case, 'normalized_conf_dir' does have a symlink and it's not the one mentioned in 'PACKAGE_DIRS',
-            # we remove the symlink and make it point to correct symlink.
-            if os.path.islink(normalized_conf_dir) and os.readlink(normalized_conf_dir) != normalized_current_dir:
-              Logger.info("{0} exists and points to incorrect path {1}".format(normalized_conf_dir, os.readlink(normalized_conf_dir)))
-              Link(normalized_conf_dir,
-                   action="delete")
-              Logger.info("Removed existing symlink for {0}".format(normalized_conf_dir))
-              Link(normalized_conf_dir,
-                   to=normalized_current_dir)
-              Logger.info("Created Symlink : {0} -> {1}".format(normalized_conf_dir, normalized_current_dir))
+    Logger.info("Ensuring that {0} has the correct symlink structure".format(package))
+
+    directory_list = PACKAGE_DIRS[package]
+    for directory_structure in directory_list:
+      conf_dir = directory_structure["conf_dir"]
+      current_dir = directory_structure["current_dir"]
+
+      # if /etc/<component>/conf is not a symlink, we need to change it
+      if not os.path.islink(conf_dir):
+        # if it exists, try to back it up
+        if os.path.exists(conf_dir):
+          parent_directory = os.path.dirname(conf_dir)
+          conf_install_dir = os.path.join(parent_directory, "conf.backup")
+
+          Execute(("cp", "-R", "-p", conf_dir, conf_install_dir),
+            not_if = format("test -e {conf_install_dir}"), sudo = True)
+
+          Directory(conf_dir, action="delete")
+
+        Link(conf_dir, to = current_dir)
 
 
 def get_hadoop_conf_dir(force_latest_on_upgrade=False):
@@ -293,68 +292,205 @@ def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   before the hdp-select/conf-select would have been called.
   """
   hadoop_conf_dir = "/etc/hadoop/conf"
+  stack_name = None
+  version = None
+  allow_setting_conf_select_symlink = False
 
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
-    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+  if not Script.in_stack_upgrade():
+    # During normal operation, the HDP stack must be 2.3 or higher
+    if Script.is_hdp_stack_greater_or_equal("2.2"):
+      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
-    stack_info = hdp_select._get_upgrade_stack()
+    if Script.is_hdp_stack_greater_or_equal("2.3"):
+      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+      stack_name = default("/hostLevelParams/stack_name", None)
+      version = default("/commandParams/version", None)
 
-    # if upgrading to >= HDP 2.3
-    if stack_info is not None and Script.is_hdp_stack_greater_or_equal("2.3"):
-      stack_name = stack_info[0]
-      stack_version = stack_info[1]
+      if stack_name and version:
+        version = str(version)
+        allow_setting_conf_select_symlink = True
+  else:
+    # During an upgrade/downgrade, which can be a Rolling or Express Upgrade, need to calculate it based on the version
+    '''
+    Whenever upgrading to HDP 2.2, or downgrading back to 2.2, need to use /etc/hadoop/conf
+    Whenever upgrading to HDP 2.3, or downgrading back to 2.3, need to use a versioned hadoop conf dir
 
-      # determine if hdp-select has been run and if not, then use the current
-      # hdp version until this component is upgraded
-      if not force_latest_on_upgrade:
-        current_hdp_version = hdp_select.get_role_component_current_hdp_version()
-        if current_hdp_version is not None and stack_version != current_hdp_version:
-          stack_version = current_hdp_version
+    Type__|_Source_|_Target_|_Direction_____________|_Comment_____________________________________________________________
+    Normal|        | 2.2    |                       | Use /etc/hadoop/conf
+    Normal|        | 2.3    |                       | Use /etc/hadoop/conf, which should be a symlink to /usr/hdp/current/hadoop-client/conf
+    EU    | 2.1    | 2.3    | Upgrade               | Use versioned /usr/hdp/current/hadoop-client/conf
+          |        |        | No Downgrade Allowed  | Invalid
+    EU/RU | 2.2    | 2.2.*  | Any                   | Use /usr/hdp/current/hadoop-client/conf
+    EU/RU | 2.2    | 2.3    | Upgrade               | Use /usr/hdp/$version/hadoop/conf, which should be a symlink destination
+          |        |        | Downgrade             | Use /usr/hdp/current/hadoop-client/conf
+    EU/RU | 2.3    | 2.3.*  | Any                   | Use /usr/hdp/$version/hadoop/conf, which should be a symlink destination
+    '''
 
-      # only change the hadoop_conf_dir path, don't conf-select this older version
-      hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(stack_version)
+    # The method "is_hdp_stack_greater_or_equal" uses "stack_version" which is the desired stack, e.g., 2.2 or 2.3
+    # In an RU, it is always the desired stack, and doesn't change even during the Downgrade!
+    # In an RU Downgrade from HDP 2.3 to 2.2, the first thing we do is 
+    # rm /etc/[component]/conf and then mv /etc/[component]/conf.backup /etc/[component]/conf
+    if Script.is_hdp_stack_greater_or_equal("2.2"):
+      hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
-      # ensure the new HDP stack is conf-selected, but only if it exists
-      # there are cases where hadoop might not be installed, such as on a host with only ZK
-      if os.path.exists(hadoop_conf_dir):
-        select(stack_name, "hadoop", stack_version)
+      # This contains the "version", including the build number, that is actually used during a stack upgrade and
+      # is the version upgrading/downgrading to.
+      stack_info = hdp_select._get_upgrade_stack()
 
+      if stack_info is not None:
+        stack_name = stack_info[0]
+        version = stack_info[1]
+      else:
+        raise Fail("Unable to get parameter 'version'")
+      
+      Logger.info("In the middle of a stack upgrade/downgrade for Stack {0} and destination version {1}, determining which hadoop conf dir to use.".format(stack_name, version))
+      # This is the version either upgrading or downgrading to.
+      if compare_versions(format_hdp_stack_version(version), "2.3.0.0") >= 0:
+        # Determine if hdp-select has been run and if not, then use the current
+        # hdp version until this component is upgraded.
+        if not force_latest_on_upgrade:
+          current_hdp_version = hdp_select.get_role_component_current_hdp_version()
+          if current_hdp_version is not None and version != current_hdp_version:
+            version = current_hdp_version
+            Logger.info("hdp-select has not yet been called to update the symlink for this component, keep using version {0}".format(current_hdp_version))
+
+        # Only change the hadoop_conf_dir path, don't conf-select this older version
+        hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(version)
+        Logger.info("Hadoop conf dir: {0}".format(hadoop_conf_dir))
+
+        allow_setting_conf_select_symlink = True
+
+  if allow_setting_conf_select_symlink:
+    # If not in the middle of an upgrade and on HDP 2.3 or higher, or if
+    # upgrading stack to version 2.3.0.0 or higher (which may be upgrade or downgrade), then consider setting the
+    # symlink for /etc/hadoop/conf.
+    # If a host does not have any HDFS or YARN components (e.g., only ZK), then it will not contain /etc/hadoop/conf
+    # Therefore, any calls to conf-select will fail.
+    # For that reason, if the hadoop conf directory exists, then make sure it is set.
+    if os.path.exists(hadoop_conf_dir):
+      Logger.info("The hadoop conf dir {0} exists, will call conf-select on it for version {1}".format(hadoop_conf_dir, version))
+      select(stack_name, "hadoop", version)
+
+  Logger.info("Using hadoop conf dir: {0}".format(hadoop_conf_dir))
   return hadoop_conf_dir
 
 
-def create_config_links(stack_id, stack_version):
-  """
-  Creates config links
-  stack_id:  stack id, ie HDP-2.3
-  stack_version:  version to set, ie 2.3.0.0-1234
-  """
-  if stack_id is None:
-    Logger.info("Cannot create config links when stack_id is not defined")
-    return
-  args = stack_id.upper().split('-')
-  if len(args) != 2:
-    Logger.info("Unrecognized stack id {0}".format(stack_id))
-    return
-  if args[0] != "HDP":
-    Logger.info("Unrecognized stack name {0}".format(args[0]))
-  if version.compare_versions(version.format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
-    Logger.info("Cannot link configs unless HDP-2.3 or higher")
-    return
-  for k, v in PACKAGE_DIRS.iteritems():
-    dirs = create(args[0], k, stack_version, dry_run = True)
-    if 0 == len(dirs):
-      Logger.debug("Package {0} is not installed".format(k))
-    else:
-      need = False
-      for new_conf_dir in dirs:
-        if not os.path.exists(new_conf_dir):
-          need = True
+def convert_conf_directories_to_symlinks(package, version, dirs, skip_existing_links=True, link_to="current"):
 
-      if need:
-        Logger.info("Creating conf dirs {0} for {1}".format(",".join(dirs), k))
-        try:
-          select(args[0], k, stack_version)
-        except Exception, err:
-          # don't ruin someone's day
-          Logger.logger.exception("'conf-select set' failed to link '{0}'. Error: {1}".format(k, str(err)))
+  """
+  Assumes HDP 2.3+, moves around directories and creates the conf symlink for the given package.
+  If the package does not exist, then no work is performed.
 
+  - Creates a /etc/<component>/conf.backup directory
+  - Copies all configs from /etc/<component>/conf to conf.backup
+  - Removes /etc/<component>/conf
+  - Creates /etc/<component>/<version>/0
+  - Creates /usr/hdp/current/<component>-client/conf -> /etc/<component>/<version>/0
+  - Links /etc/<component>/conf to <something>
+  -- /etc/<component>/conf -> /usr/hdp/current/[component]-client/conf
+  -- /etc/<component>/conf -> /etc/<component>/conf.backup
+
+  :param package: the package to create symlinks for (zookeeper, falcon, etc)
+  :param version: the version number to use with conf-select (2.3.0.0-1234)
+  :param dirs: the directories associated with the package (from PACKAGE_DIRS)
+  :param skip_existing_links: True to not do any work if already a symlink
+  :param link_to: link to "current" or "backup"
+  """
+  bad_dirs = []
+  for dir_def in dirs:
+    if not os.path.exists(dir_def['conf_dir']):
+      bad_dirs.append(dir_def['conf_dir'])
+
+  if len(bad_dirs) > 0:
+    Logger.info("Skipping {0} as it does not exist.".format(",".join(bad_dirs)))
+    return
+
+  # existing links should be skipped since we assume there's no work to do
+  if skip_existing_links:
+    bad_dirs = []
+    for dir_def in dirs:
+      # check if conf is a link already
+      old_conf = dir_def['conf_dir']
+      if os.path.islink(old_conf):
+        Logger.info("{0} is already link to {1}".format(old_conf, os.path.realpath(old_conf)))
+        bad_dirs.append(old_conf)
+
+  if len(bad_dirs) > 0:
+    return
+
+  # make backup dir and copy everything in case configure() was called after install()
+  backup_dir = None
+  for dir_def in dirs:
+    old_conf = dir_def['conf_dir']
+    old_parent = os.path.abspath(os.path.join(old_conf, os.pardir))
+    backup_dir = os.path.join(old_parent, "conf.backup")
+    Logger.info("Backing up {0} to {1} if destination doesn't exist already.".format(old_conf, backup_dir))
+    Execute(("cp", "-R", "-p", old_conf, backup_dir),
+      not_if = format("test -e {backup_dir}"), sudo = True)
+
+  # we're already in the HDP stack
+  # Create the versioned /etc/[component]/[version]/0 folder.
+  # The component must be installed on the host.
+  versioned_confs = create("HDP", package, version, dry_run = True)
+
+  Logger.info("Package {0} will have new conf directories: {1}".format(package, ", ".join(versioned_confs)))
+
+  need_dirs = []
+  for d in versioned_confs:
+    if not os.path.exists(d):
+      need_dirs.append(d)
+
+  if len(need_dirs) > 0:
+    create("HDP", package, version)
+
+    # find the matching definition and back it up (not the most efficient way) ONLY if there is more than one directory
+    if len(dirs) > 1:
+      for need_dir in need_dirs:
+        for dir_def in dirs:
+          if 'prefix' in dir_def and need_dir.startswith(dir_def['prefix']):
+            old_conf = dir_def['conf_dir']
+            versioned_conf = need_dir
+            Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+              only_if = format("ls -d {old_conf}/*"))
+    elif 1 == len(dirs) and 1 == len(need_dirs):
+      old_conf = dirs[0]['conf_dir']
+      versioned_conf = need_dirs[0]
+      Execute(as_sudo(["cp", "-R", "-p", os.path.join(old_conf, "*"), versioned_conf], auto_escape=False),
+        only_if = format("ls -d {old_conf}/*"))
+
+
+  # /usr/hdp/current/[component] is already set to to the correct version, e.g., /usr/hdp/[version]/[component]
+  
+  link_component_conf_to_versioned_config(package, version)
+
+  # Symlink /etc/[component]/conf to /etc/[component]/conf.backup
+  try:
+    # No more references to /etc/[component]/conf
+    for dir_def in dirs:
+      # E.g., /etc/[component]/conf
+      new_symlink = dir_def['conf_dir']
+
+      # Remove new_symlink to pave the way, but only if it's a directory
+      if not os.path.islink(new_symlink):
+        Directory(new_symlink, action="delete")
+
+      if link_to in ["current", "backup"]:
+        # link /etc/[component]/conf -> /usr/hdp/current/[component]-client/conf
+        if link_to == "backup":
+          Link(new_symlink, to = backup_dir)
+        else:
+          Link(new_symlink, to = dir_def['current_dir'])
+      else:
+        Logger.error("Unsupported 'link_to' argument. Could not link package {0}".format(package))
+  except Exception, e:
+    Logger.warning("Could not change symlink for package {0} to point to {1} directory. Error: {2}".format(package, link_to, e))
+
+
+def link_component_conf_to_versioned_config(package, version):
+  """
+  Make /usr/hdp/[version]/[component]/conf point to the versioned config.
+  """
+  try:
+    select("HDP", package, version)
+  except Exception, e:
+    Logger.warning("Could not select the directory for package {0}. Error: {1}".format(package, e))

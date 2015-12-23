@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import time
+import os
 
 def accumulo_service( name,
                       action = 'start'): # 'start' or 'stop' or 'status'
@@ -31,10 +32,13 @@ def accumulo_service( name,
     pid_exists = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if action == 'start':
-      Execute(as_sudo(['chown','-R',params.accumulo_user+":"+params.user_group,
-                       format("$(getent passwd {accumulo_user} | cut -d: -f6)")],
-                      auto_escape=False),
-              ignore_failures=True)
+      Directory(os.path.expanduser("~"), 
+                owner = params.accumulo_user,
+                group = params.user_group,
+                recursive_ownership = True,
+                ignore_failures=True
+      )
+      
       if name != 'tserver':
         Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState NORMAL"),
                 not_if=as_user(pid_exists, params.accumulo_user),

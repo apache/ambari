@@ -16,9 +16,13 @@
 * limitations under the License.
 }}
 
-<div>
-  <a {{action "toggle"}} {{bind-attr class=":fa iconClass"}}> {{heading}}</a>
-  <div class="pull-right">
+<div class="clearfix">
+
+  <a {{action "toggle"}} {{bind-attr class=":fa iconClass :collapsible-row" data-original-title=heading}}
+          data-toggle="tooltip" data-placement="top"
+          title>{{heading}}</a>
+
+  <div class="pull-right widget-controls">
     {{#each control in controls}}
       <a {{action 'sendControlAction' control.action}} {{bind-attr class=":fa control.icon" title="control.tooltip"}}></a>
     {{/each}}

@@ -51,6 +51,17 @@ App.config = Em.Object.create({
   },
 
   /**
+   * truncate Config Group name to <CONFIG_GROUP_NAME_MAX_LENGTH> length and paste "..." in the middle
+   */
+  truncateGroupName: function (name) {
+    if (name && name.length > App.config.CONFIG_GROUP_NAME_MAX_LENGTH) {
+      var middle = Math.floor(App.config.CONFIG_GROUP_NAME_MAX_LENGTH / 2);
+      name = name.substring(0, middle) + "..." + name.substring(name.length - middle);
+    }
+    return name;
+  },
+
+  /**
    * Check if Hive installation with new MySQL database created via Ambari is allowed
    * @param osFamily
    * @returns {boolean}
@@ -258,9 +269,11 @@ App.config = Em.Object.create({
    * @param {object} config
    */
   restrictSecureProperties: function (config) {
-    var isReadOnly = config.isSecureConfig && App.get('isKerberosEnabled');
-    config.isReconfigurable = !isReadOnly;
-    config.isOverridable = !isReadOnly;
+    if (config.isSecureConfig) {
+      var isReadOnly = App.get('isKerberosEnabled');
+      config.isReconfigurable = config.isReconfigurable && !isReadOnly;
+      config.isOverridable = config.isOverridable && !isReadOnly;
+    }
   },
 
   /**
@@ -436,7 +449,7 @@ App.config = Em.Object.create({
    * @returns {*}
    */
   formatPropertyValue: function(serviceConfigProperty, originalValue) {
-    var value = originalValue || Em.get(serviceConfigProperty, 'value'),
+    var value = Em.isNone(originalValue) ? Em.get(serviceConfigProperty, 'value') : originalValue,
         displayType = Em.get(serviceConfigProperty, 'displayType') || Em.get(serviceConfigProperty, 'valueAttributes.type'),
         category = Em.get(serviceConfigProperty, 'category');
     switch (displayType) {

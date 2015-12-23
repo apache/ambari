@@ -22,10 +22,14 @@ require('views/main/alert_definitions_view');
 
 var view;
 
+function getView() {
+  return App.MainAlertDefinitionsView.create({});
+}
+
 describe('App.MainAlertDefinitionsView', function () {
 
   beforeEach(function () {
-    view = App.MainAlertDefinitionsView.create({});
+    view = getView();
     sinon.stub(App.db, 'setFilterConditions', Em.K);
     sinon.stub(App.db, 'getFilterConditions', Em.K);
     sinon.stub(App.db, 'getDisplayLength', Em.K);
@@ -40,6 +44,8 @@ describe('App.MainAlertDefinitionsView', function () {
     App.db.setStartIndex.restore();
     view.initFilters.restore();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'totalCount', 'content.length', 'number');
 
   describe('#serviceFilterView', function () {
     it('Add Ambari service to filters', function () {

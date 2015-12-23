@@ -121,7 +121,7 @@ class Pxf(Script):
     Directory(params.pxf_instance_dir,
               owner=params.pxf_user,
               group=params.pxf_group,
-              recursive=True)
+              create_parents = True)
 
 
 if __name__ == "__main__":

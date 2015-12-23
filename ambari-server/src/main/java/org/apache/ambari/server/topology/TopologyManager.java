@@ -18,16 +18,20 @@
 
 package org.apache.ambari.server.topology;
 
+import com.google.inject.Injector;
 import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorBlueprintProcessor;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
+import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -40,6 +44,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
+import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
 import org.apache.ambari.server.utils.RetryHelper;
@@ -99,10 +105,6 @@ public class TopologyManager {
   @Inject
   private SecurityConfigurationFactory securityConfigurationFactory;
 
-  @Inject
-  private CredentialStoreService credentialStoreService;
-
-
   /**
    * A boolean not cached thread-local (volatile) to prevent double-checked
    * locking on the synchronized keyword.
@@ -141,14 +143,20 @@ public class TopologyManager {
     // get the id prior to creating ambari resources which increments the counter
     Long provisionId = ambariContext.getNextRequestId();
 
+    final Stack stack = topology.getBlueprint().getStack();
+    boolean configureSecurity = false;
     SecurityConfiguration securityConfiguration = processSecurityConfiguration(request);
     if (securityConfiguration != null && securityConfiguration.getType() == SecurityType.KERBEROS) {
-
+      configureSecurity = true;
       addKerberosClient(topology);
+
+      // refresh default stack config after adding KERBEROS_CLIENT component to topology
+      topology.getBlueprint().getConfiguration().setParentConfiguration(stack.getConfiguration(topology.getBlueprint
+        ().getServices()));
 
       // create Cluster resource with security_type = KERBEROS, this will trigger cluster Kerberization
       // upon host install task execution
-      ambariContext.createAmbariResources(topology, clusterName, securityConfiguration.getType());
+      ambariContext.createAmbariResources(topology, clusterName, SecurityType.KERBEROS);
       if (securityConfiguration.getDescriptor() != null) {
         submitKerberosDescriptorAsArtifact(clusterName, securityConfiguration.getDescriptor());
       }
@@ -167,6 +175,8 @@ public class TopologyManager {
     request.setClusterId(clusterId);
     // set recommendation strategy
     topology.setConfigRecommendationStrategy(request.getConfigRecommendationStrategy());
+    // set provision action requested
+    topology.setProvisionAction(request.getProvisionAction());
     // persist request after it has successfully validated
     PersistedTopologyRequest persistedRequest = RetryHelper.executeWithRetry(new Callable<PersistedTopologyRequest>() {
       @Override
@@ -177,10 +187,8 @@ public class TopologyManager {
 
     clusterTopologyMap.put(clusterId, topology);
 
-    final Stack stack = topology.getBlueprint().getStack();
-
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(
-      ambariContext, topology, true, stackAdvisorBlueprintProcessor));
+      ambariContext, topology, true, stackAdvisorBlueprintProcessor, configureSecurity));
     LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
@@ -640,7 +648,7 @@ public class TopologyManager {
 
       if (!configChecked) {
         configChecked = true;
-        if (!ambariContext.doesConfigurationWithTagExist(topology.getClusterId(), TOPOLOGY_RESOLVED_TAG)) {
+        if (!ambariContext.isTopologyResolved(topology.getClusterId())) {
           LOG.info("TopologyManager.replayRequests: no config with TOPOLOGY_RESOLVED found, adding cluster config request");
           addClusterConfigRequest(topology, new ClusterConfigurationRequest(
             ambariContext, topology, false, stackAdvisorBlueprintProcessor));
@@ -683,7 +691,7 @@ public class TopologyManager {
         CLUSTER_CONFIG_TASK_MAX_TIME_IN_MILLIS_PROPERTY_NAME);
 
     long timeout = 1000 * 60 * 30; // 30 minutes
-    long delay = 100; //ms
+    long delay = 1000; //ms
 
     if (timeoutStr != null) {
       timeout = Long.parseLong(timeoutStr);

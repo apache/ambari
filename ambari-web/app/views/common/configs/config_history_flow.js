@@ -65,9 +65,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     return App.ServiceConfigVersion.find().filterProperty('serviceName', this.get('serviceName'));
   }.property('serviceName'),
 
-  showCompareVersionBar: function() {
-    return !Em.isNone(this.get('compareServiceVersion'));
-  }.property('compareServiceVersion'),
+  showCompareVersionBar: Em.computed.bool('compareServiceVersion'),
 
   isSaveDisabled: Em.computed.or('controller.isSubmitDisabled', '!controller.versionLoaded', '!controller.isPropertiesChanged'),
 
@@ -185,8 +183,11 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.$('[data-toggle=tooltip], [data-toggle=arrow-tooltip]').remove();
   },
 
-
   willInsertElement: function () {
+    this.setDisplayVersion();
+  },
+
+  setDisplayVersion: function () {
     var serviceVersions = this.get('serviceVersions');
     var startIndex = 0;
     var currentIndex = 0;
@@ -207,7 +208,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-  },
+  }.observes('allVersionsLoaded'),
 
   onChangeConfigGroup: function () {
     var serviceVersions = this.get('serviceVersions');

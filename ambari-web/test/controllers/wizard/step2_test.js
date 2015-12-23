@@ -23,6 +23,11 @@ require('models/host');
 require('models/host_component');
 require('messages');
 var c;
+
+function getController() {
+  return App.WizardStep2Controller.create({content: {controllerName: ''}});
+}
+
 describe('App.WizardStep2Controller', function () {
 
   var userErrorTests = Em.A([
@@ -54,28 +59,22 @@ describe('App.WizardStep2Controller', function () {
 
 
   beforeEach(function() {
-    c = App.WizardStep2Controller.create();
+    c = getController();
   });
 
-  describe('#isInstaller', function() {
-    it('true if controllerName is installerController', function() {
-      var controller = App.WizardStep2Controller.create({content: {controllerName: 'installerController'}});
-      expect(controller.get('isInstaller')).to.equal(true);
-    });
-    it('false if controllerName isn\'t installerController', function() {
-      var controller = App.WizardStep2Controller.create({content: {controllerName: 'addServiceController'}});
-      expect(controller.get('isInstaller')).to.equal(false);
-    });
-  });
+  App.TestAliases.testAsComputedEqual(getController(), 'isInstaller', 'content.controllerName', 'installerController');
 
-  describe('#manualInstall', function() {
-    it('should be equal to content.installOptions.manualInstall', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: true}}});
-      expect(controller.get('manualInstall')).to.equal(true);
-      controller.toggleProperty('content.installOptions.manualInstall');
-      expect(controller.get('manualInstall')).to.equal(false);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(getController(), 'manualInstall', 'content.installOptions.manualInstall', 'boolean');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'sshKey', 'content.installOptions.sshKey', 'string');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'sshUser', 'content.installOptions.sshUser', 'string');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'sshPort', 'content.installOptions.sshPort', 'string');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'agentUser', 'content.installOptions.agentUser', 'string');
+
+  App.TestAliases.testAsComputedOr(getController(), 'isSubmitDisabled', ['hostsError', 'sshKeyError', 'sshUserError', 'sshPortError', 'agentUserError']);
 
   describe('#hostNames', function() {
     it('should be equal to content.installOptions.hostNames', function() {
@@ -86,52 +85,7 @@ describe('App.WizardStep2Controller', function () {
     });
   });
 
-  describe('#sshKey', function() {
-    it('should be equal to content.installOptions.sshKey', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {sshKey: '123'}}});
-      expect(controller.get('sshKey')).to.equal('123');
-      controller.set('content.installOptions.sshKey', '321');
-      expect(controller.get('sshKey')).to.equal('321');
-    });
-  });
-
-  describe('#sshUser', function() {
-    it('should be equal to content.installOptions.sshUser', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {sshUser: '123'}}});
-      expect(controller.get('sshUser')).to.equal('123');
-      controller.set('content.installOptions.sshUser', '321');
-      expect(controller.get('sshUser')).to.equal('321');
-    });
-  });
-
-  describe('#sshPort', function() {
-      it('should be equal to content.installOptions.sshPort', function() {
-          var controller = App.WizardStep2Controller.create({content: {installOptions: {sshPort: '123'}}});
-          expect(controller.get('sshPort')).to.equal('123');
-          controller.set('content.installOptions.sshPort', '321');
-          expect(controller.get('sshPort')).to.equal('321');
-      });
-  });
-
-  describe('#agentUser', function() {
-    it('should be equal to content.installOptions.agentUser', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {agentUser: '123'}}});
-      expect(controller.get('agentUser')).to.equal('123');
-      controller.set('content.installOptions.agentUser', '321');
-      expect(controller.get('agentUser')).to.equal('321');
-    });
-  });
-
-  describe('#installType', function() {
-    it('should be manualDriven if manualInstall is selected', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: true}}});
-      expect(controller.get('installType')).to.equal('manualDriven');
-    });
-    it('should be ambariDriven if manualInstall isn\'t selected', function() {
-      var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: false}}});
-      expect(controller.get('installType')).to.equal('ambariDriven');
-    });
-  });
+  App.TestAliases.testAsComputedIfThenElse(getController(), 'installType', 'manualInstall', 'manualDriven', 'ambariDriven');
 
   describe('#updateHostNameArr()', function () {
 
@@ -285,7 +239,7 @@ describe('App.WizardStep2Controller', function () {
   describe('#sshUserError', function () {
 
     userErrorTests.forEach(function(test) {
-      it('', function() {
+      it(JSON.stringify(test), function() {
         var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, sshUser: test.user}}});
         if(Em.isNone(test.e)) {
           expect(controller.get('sshUserError')).to.equal(null);
@@ -301,7 +255,7 @@ describe('App.WizardStep2Controller', function () {
   describe('#sshPortError', function () {
 
       userErrorTests.forEach(function(test) {
-          it('', function() {
+          it(JSON.stringify(test), function() {
               var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, sshPort: test.sshPort}}});
               if(Em.isNone(test.e)) {
                   expect(controller.get('sshPortError')).to.equal(null);
@@ -519,46 +473,6 @@ describe('App.WizardStep2Controller', function () {
 
   });
 
-  describe('#isSubmitDisabled', function () {
-
-    var controller = App.WizardStep2Controller.create({
-      hostsError: '',
-      sshKeyError: '',
-      sshUserError: '',
-      sshPortError: '',
-      agentUserError: ''
-    });
-
-    it('should return value if hostsError is not empty', function () {
-      controller.set('hostsError', 'error');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshKeyError is not empty', function () {
-      controller.set('sshKeyError', 'error');
-      controller.set('hostsError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshUserError is not empty', function () {
-      controller.set('sshUserError', 'error');
-      controller.set('sshKeyError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if agentUserError is not empty', function () {
-      controller.set('agentUserError', 'error');
-      controller.set('sshUserError', '');
-      expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-
-    it('should return value if sshPortError is not empty', function () {
-        controller.set('sshPortError', 'error');
-        controller.set('agentUserError', '');
-        expect(controller.get('isSubmitDisabled')).to.be.true;
-    });
-  });
-
   describe('#installedHostsPopup', function() {
     beforeEach(function() {
       sinon.spy(App.ModalPopup, 'show');
@@ -660,7 +574,7 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#setAmbariJavaHome', function() {
     beforeEach(function() {
-      sinon.spy($, 'ajax');
+      sinon.stub($, 'ajax', Em.K);
     });
     afterEach(function() {
       $.ajax.restore();

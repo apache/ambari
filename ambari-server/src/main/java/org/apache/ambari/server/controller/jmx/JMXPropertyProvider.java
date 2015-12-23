@@ -121,7 +121,7 @@ public class JMXPropertyProvider extends ThreadPoolEnabledPropertyProvider {
                              String componentNamePropertyId,
                              String statePropertyId) {
 
-    super(componentMetrics, hostNamePropertyId, metricHostProvider);
+    super(componentMetrics, hostNamePropertyId, metricHostProvider, clusterNamePropertyId);
 
     this.streamProvider           = streamProvider;
     this.jmxHostProvider          = jmxHostProvider;

@@ -26,6 +26,20 @@ describe('App.InstallerController', function () {
 
   var installerController = App.InstallerController.create();
 
+  after(function () {
+    installerController.destroy();
+  });
+
+  beforeEach(function () {
+    sinon.stub(App.ajax, 'send', function () {
+      return {complete: Em.K};
+    });
+  });
+
+  afterEach(function () {
+    App.ajax.send.restore();
+  });
+
   describe('#init', function () {
     var c;
     beforeEach(function () {
@@ -80,14 +94,7 @@ describe('App.InstallerController', function () {
   });
 
   describe('#checkRepoURL', function() {
-     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function(data){
-        return null;
-      });
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it ('Should reload installed stacks', function() {
       var stacks = Em.A([
         Em.Object.create({
@@ -113,7 +120,7 @@ describe('App.InstallerController', function () {
                 })
               ])
             })
-          ]) 
+          ])
         })
       ]);
       var wizard = Em.Object.create({
@@ -185,7 +192,7 @@ describe('App.InstallerController', function () {
                 })
               ])
             })
-          ]) 
+          ])
         })
       ]);
       var resolve = false;
@@ -267,7 +274,7 @@ describe('App.InstallerController', function () {
                 })
               ])
             })
-          ]) 
+          ])
         })
       ]);
       var resolve = false;

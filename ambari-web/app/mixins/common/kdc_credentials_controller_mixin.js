@@ -33,9 +33,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    *
    * @type {boolean}
    */
-  isStorePersisted: function() {
-    return App.get('isCredentialStorePersistent');
-  }.property('App.isCredentialStorePersistent'),
+  isStorePersisted: Em.computed.alias('App.isCredentialStorePersistent'),
 
   /**
    * List of required UI-only properties needed for storing KDC credentials
@@ -81,8 +79,8 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    */
   createKDCCredentials: function(configs) {
     var resource = credentialsUtils.createCredentialResource(
-      configs.findProperty('name', 'admin_principal').get('value'),
-      configs.findProperty('name', 'admin_password').get('value'),
+      Em.getWithDefault(configs.findProperty('name', 'admin_principal') || {}, 'value', ''),
+      Em.getWithDefault(configs.findProperty('name', 'admin_password') || {}, 'value', ''),
       this._getStorageTypeValue(configs));
     return credentialsUtils.createOrUpdateCredentials(App.get('clusterName'), this.get('credentialAlias'), resource);
   },
@@ -123,7 +121,12 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
           configObject.isEditable = false;
         }
       }
-      configs.pushObject(configObject);
+      var configProperty = configs.findProperty('name', configObject.name);
+      if (!Em.isNone(configProperty)) {
+        Em.setProperties(configProperty, configObject);
+      } else {
+        configs.pushObject(configObject);
+      }
     });
   },
 
@@ -135,7 +138,7 @@ App.KDCCredentialsControllerMixin = Em.Mixin.create({
    */
   _getStorageTypeValue: function(configs) {
     if (this.get('isStorePersisted')) {
-      return configs.findProperty('name', 'persist_credentials').get('value') === "true" ?
+      return Em.getWithDefault(configs.findProperty('name', 'persist_credentials') || {}, 'value', '') === "true" ?
         credentialsUtils.STORE_TYPES.PERSISTENT :
         credentialsUtils.STORE_TYPES.TEMPORARY;
     }

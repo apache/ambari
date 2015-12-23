@@ -21,19 +21,11 @@ var App = require('app');
 App.FileController = Ember.ObjectController.extend({
   needs:['files'],
   actions:{
-    confirmPreview:function (option) {
-      if (this.get('content.readAccess')) {
-        this.store.linkFor([this.get('content')],option).then(function (link) {
-          window.location.href = link;
-        },Em.run.bind(this,this.sendAlert));
-      }
+    confirmPreview:function (file) {
+      this.downloadFile(file, "browse");
     },
     download:function (option) {
-      if (this.get('content.readAccess')) {
-        this.store.linkFor([this.get('content')],option).then(function (link) {
-          window.location.href = link;
-        },Em.run.bind(this,this.sendAlert));
-      }
+      this.downloadFile(this.get('content'), option);
     },
     preview:function (option) {
       this.send('showPreviewModal',this.get('content'));
@@ -59,9 +51,6 @@ App.FileController = Ember.ObjectController.extend({
       this.set('isRenaming',true);
     },
     open:function (file) {
-      if (!this.get('content.readAccess')) {
-        return false;
-      }
       if (this.get('content.isDirectory')) {
         return this.transitionToRoute('files',{queryParams: {path: this.get('content.id')}});
       } else{
@@ -70,13 +59,9 @@ App.FileController = Ember.ObjectController.extend({
       }
     },
     deleteFile:function (deleteForever) {
-      if (this.get('dirInfo.writeAccess')) {
-        this.store
-          .remove(this.get('content'),!deleteForever)
-          .then(null,Em.run.bind(this,this.deleteErrorCallback,this.get('content')));
-      } else {
-        this.send('showAlert',{message:'Permission denied'});
-      }
+      this.store
+        .remove(this.get('content'),!deleteForever)
+        .then(null,Em.run.bind(this,this.deleteErrorCallback,this.get('content')));
     }
   },
   selected:false,
@@ -113,5 +98,20 @@ App.FileController = Ember.ObjectController.extend({
 
   sendAlert:function (error) {
     this.send('showAlert',error);
+  },
+  downloadFile: function(files, option) {
+    var _this = this;
+    this.store.linkFor([files], option, false, true).then(function(link) {
+      var that = _this;
+      Ember.$.get(link).done(function(data) {
+        if(data.allowed) {
+          that.store.linkFor([files],option).then(function (link) {
+            window.location.href = link;
+          },Em.run.bind(that,that.sendAlert));
+        }
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        that.send('showAlert', jqXHR);
+      });
+    }, Em.run.bind(this,this.sendAlert));
   }
 });

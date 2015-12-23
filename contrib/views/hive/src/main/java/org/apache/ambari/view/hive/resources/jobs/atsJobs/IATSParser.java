@@ -28,4 +28,6 @@ public interface IATSParser {
   HiveQueryId getHiveQueryIdByOperationId(String guidString);
 
   TezDagId getTezDAGByName(String name);
+
+  TezDagId getTezDAGByEntity(String entity);
 }

@@ -39,9 +39,9 @@ def get_lzo_packages(stack_version_unformatted):
 
   if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     if OSCheck.is_redhat_family() or OSCheck.is_suse_family():
-      lzo_packages += [format("hadooplzo_{underscored_version}_*")]
+      lzo_packages += [format("hadooplzo_*")]
     elif OSCheck.is_ubuntu_family():
-      lzo_packages += [format("hadooplzo_{dashed_version}_*")]
+      lzo_packages += [format("hadooplzo_*")]
   else:
     lzo_packages += ["hadoop-lzo"]
 

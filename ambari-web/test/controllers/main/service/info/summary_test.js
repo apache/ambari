@@ -19,6 +19,10 @@
 var App = require('app');
 require('controllers/main/service/info/summary');
 
+function getController() {
+  return App.MainServiceInfoSummaryController.create();
+}
+
 describe('App.MainServiceInfoSummaryController', function () {
 
   var controller;
@@ -26,6 +30,8 @@ describe('App.MainServiceInfoSummaryController', function () {
   beforeEach(function () {
     controller = App.MainServiceInfoSummaryController.create();
   });
+
+App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isServiceWithEnhancedWidgets', 'someWidgetGraphExists']);
 
   describe('#setRangerPlugins', function () {
 
@@ -298,24 +304,22 @@ describe('App.MainServiceInfoSummaryController', function () {
     beforeEach(function () {
       sinon.stub(App.widgetLayoutMapper, 'map');
       sinon.stub(controller, 'propertyDidChange');
-    });
-    afterEach(function () {
-      App.widgetLayoutMapper.map.restore();
-      controller.propertyDidChange.restore();
-    });
-    it("", function () {
       var params = {
         data: {
           WidgetLayoutInfo: {
             widgets: [
-              {
-                id: 1
-              }
+              {id: 1}
             ]
           }
         }
       };
       controller.hideWidgetSuccessCallback({}, {}, params);
+    });
+    afterEach(function () {
+      App.widgetLayoutMapper.map.restore();
+      controller.propertyDidChange.restore();
+    });
+    it("mapper is called with valid data", function () {
       expect(App.widgetLayoutMapper.map.calledWith({
         items: [{
           WidgetLayoutInfo: {
@@ -329,6 +333,8 @@ describe('App.MainServiceInfoSummaryController', function () {
           }
         }]
       })).to.be.true;
+    });
+    it('`widgets` is forced to be recalculated', function () {
       expect(controller.propertyDidChange.calledWith('widgets')).to.be.true;
     });
   });

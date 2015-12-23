@@ -1088,14 +1088,14 @@ h1 {
 }
 
 .spinner {
-  width: 36px;
-  height: 36px;
+  width: @spinner-default-width;
+  height: @spinner-default-height;
   background: url("/img/spinner.gif");
   margin: 0 auto;
 
   &.service-button-spinner {
-    width: 30px;
-    height: 30px;
+    width: @spinner-small-width;
+    height: @spinner-small-height;
     background-size: cover;
   }
 }
@@ -1369,9 +1369,9 @@ h1 {
   }
   .db-connection {
     .spinner {
-      width: 30px;
-      height: 30px;
-      background-size: 30px 30px;
+      width: @spinner-small-width;
+      height: @spinner-small-height;
+      background-size: cover;
     }
     .icon-ok-sign, .icon-warning-sign {
       font-size: 27px;
@@ -1820,6 +1820,7 @@ a:focus {
     display: none;
     resize: none;
     overflow: hidden;
+    box-sizing: border-box;
   }
 
   .task-top-wrap {

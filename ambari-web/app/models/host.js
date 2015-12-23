@@ -105,9 +105,7 @@ App.Host = DS.Model.extend({
    */
   disksMounted: Em.computed.alias('diskInfo.length'),
 
-  coresFormatted: function() {
-    return this.get('cpu') + ' (' + this.get('cpuPhysical') + ')';
-  }.property('cpu', 'cpuPhysical'),
+  coresFormatted: Em.computed.format('{0} ({1})', 'cpu', 'cpuPhysical'),
 
   /**
    * API return diskTotal and diskFree. Need to save their different

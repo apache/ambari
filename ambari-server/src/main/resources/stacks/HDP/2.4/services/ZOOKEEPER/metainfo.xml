@@ -21,31 +21,6 @@
     <service>
       <name>ZOOKEEPER</name>
       <version>3.4.6.2.4</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>zookeeper_2_4_*</name>
-            </package>
-	        <package>
-	          <name>zookeeper_2_4_*-server</name>
-	        </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>zookeeper-2-4-.*</name>
-            </package>
-            <package>
-              <name>zookeeper-2-4-.*-server</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
     </service>
   </services>
 </metainfo>

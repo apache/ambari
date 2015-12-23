@@ -449,7 +449,7 @@ public class UpgradeCatalog200Test {
     expect(mockFlumeEnv.getProperties()).andReturn(propertiesFlumeEnv).atLeastOnce();
 
     easyMockSupport.replayAll();
-    mockInjector.getInstance(UpgradeCatalog213.class).updateFlumeEnvConfig();
+    mockInjector.getInstance(UpgradeCatalog200.class).updateFlumeEnvConfig();
     easyMockSupport.verifyAll();
   }
 

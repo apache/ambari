@@ -22,6 +22,10 @@ require('views/main/dashboard/widgets/hbase_regions_in_transition');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widget');
 
+function getView() {
+  return App.HBaseRegionsInTransitionView.create({model_type:null});
+}
+
 describe('App.HBaseRegionsInTransitionView', function() {
 
   var tests = [
@@ -98,5 +102,13 @@ describe('App.HBaseRegionsInTransitionView', function() {
       });
     });
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'data', 'model.regionsInTransition', 'number');
+
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresh2');
+
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
+
+  App.TestAliases.testAsComputedAnd(getView(), 'isOrange', ['!isGreen', '!isRed']);
 
 });

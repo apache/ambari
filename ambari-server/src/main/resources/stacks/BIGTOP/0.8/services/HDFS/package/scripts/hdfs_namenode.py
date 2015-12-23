@@ -77,7 +77,7 @@ def create_name_dirs(directories):
             mode=0755,
             owner=params.hdfs_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
 
@@ -125,7 +125,7 @@ def format_namenode(force=None):
       )
     
       Directory(mark_dir,
-        recursive = True
+        create_parents = True
       )
 
 

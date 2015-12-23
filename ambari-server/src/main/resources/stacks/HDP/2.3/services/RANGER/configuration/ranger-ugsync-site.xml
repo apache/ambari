@@ -340,7 +340,7 @@
 
   <property>
     <name>ranger.usersync.group.usermapsyncenabled</name>
-    <value>false</value>
+    <value>true</value>
     <display-name>Group User Map Sync</display-name>
     <description>Sync specific groups for users?</description>
     <value-attributes>

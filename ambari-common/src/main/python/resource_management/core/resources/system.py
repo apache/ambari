@@ -58,8 +58,13 @@ class Directory(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
-  follow = BooleanArgument(default=True) # follow links?
-  recursive = BooleanArgument(default=False) # this work for 'create', 'delete' is anyway recursive
+  follow = BooleanArgument(default=True)  # follow links?
+  """
+  Example:
+  Directory('/a/b/c/d', create_parents=False) # will fail unless /a/b/c exists
+  Directory('/a/b/c/d', create_parents=True) # will succeed if /a/b/c doesn't exists
+  """
+  create_parents = BooleanArgument(default=False)
   """
   Grants x-bit for all the folders up-to the directory
   
@@ -71,6 +76,78 @@ class Directory(Resource):
   The letters can be combined together.
   """
   cd_access = ResourceArgument()
+  """
+  If True sets the user and group mentioned in arguments, for all the contents of folder and its subfolder.
+  
+  CAUNTION: THIS IS NO RECOMENDED TO USE THIS, please treat such a usages as last resort hacks. 
+  The problem with using recursive permissions setting is that the system can be damaged badly by doing this,
+  imagine recursively setting for '/' or '/etc' (it can break the system) or other important for user folder.
+  This is partially fixed by 'safemode_folders' feature, but still is risky.
+  
+  See also: safemode_folders, recursion_follow_links
+  """
+  recursive_ownership = BooleanArgument(default=False)
+  
+  """
+  A dictionary, which gives the mode flags which should be set for files in key 'f', and for
+  directories in key 'd'.
+  
+  The format of those flags should be symbolic format used in chmod. From chmod man page:
+  the format of a symbolic mode is [ugoa...][[+-=][perms...]...], 
+  where perms is either zero or more letters from the set rwxXst, or a single letter from the set ugo.  
+  Multiple symbolic modes can be given, separated  by commas.
+  
+  u - user who is owner
+  g - user from group
+  o - other users
+  a - all
+  
+  Example:
+  recursive_mode_flags = {
+    'd': 'u+rwx,g+rx' # for subfolders, enforce 'rwx' (read,write,execute) for owner of the file, and 'rx' (read,execute) for group, don't change 'others' permissions
+    'f': 'u+rw,go+r' # for files in the directory, enforce 'rw' (read, write) for owner of the file, and 'r' (read) for group and others.
+  }
+  
+  recursive_mode_flags = {
+    'd': 'a+rwx' # for subfolders, enforce rwxrwxrwx (777) permisons. 
+    'f': 'a+rw' # for files in the directory, enforce adding 'rw' (read,write) to original permissions. If file had 'x' bit before it will stay there.
+  }
+  
+  CAUNTION: THIS IS NO RECOMENDED TO USE THIS, please treat such a usages as last resort hacks. 
+  The problem with using recursive permissions setting is that the system can be damaged badly by doing this,
+  imagine recursively setting permissions for '/' or '/etc' (it can break the system) or other important for user folder.
+  This is partially fixed by 'safemode_folders' feature, but still is risky. 
+  
+  See also: safemode_folders, recursion_follow_links   
+  """
+  recursive_mode_flags = ResourceArgument(default=None)
+  
+  """
+  This is the list folder which are not allowed to be recursively chmod-ed or chown-ed. (recursive_ownership and recursive_mode_flags).
+  Fail exception will appear if tried.
+  
+  Example of a dangerous code, which will not be succeed:
+  Directory("/",
+    owner="my_user", 
+    recursive_ownership=True
+  )
+  
+  This aims to the resolve the problem of mistakenly doing recursive actions for system necessary folders.
+  which results in damaging the operating system.
+  """
+  safemode_folders =  ForcedListArgument(default=["/", "/bin", "/sbin", "/etc", "/dev",
+                                                  "/proc", "/var", "/usr", "/home", "/boot", "/lib", "/opt",
+                                                  "/mnt", "/media", "/srv", "/root", "/sys" ])
+  
+  """
+  If True while recursive chown/chmod is done (recursive_ownership or recursive_mode_flags),
+  symlinks will be followed, duing recursion walking, also 
+  this will also make chmod/chown to set permissions for symlink targets, not for symlink itself.
+  
+  Note: if recursion_follow_links=False chmod will not set permissions nor on symlink neither on targets. 
+  As according to chmod man: 'This is not a problem since the permissions of symbolic links are never used'. 
+  """
+  recursion_follow_links = BooleanArgument(default=False)
 
   actions = Resource.actions + ["create", "delete"]
 

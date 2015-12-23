@@ -140,6 +140,33 @@ public class AggregatorTest {
   }
 
   @Test
+  public void testReadJobBothATSAndViewV2() throws Exception {
+    HiveQueryId hiveQueryId = getSampleHiveQueryIdV2("ENTITY-NAME");
+    hiveQueryId.operationId = Aggregator.hexStringToUrlSafeBase64("1b2b");
+    MockATSParser atsParser = getMockATSWithQueries(hiveQueryId);
+
+    MockJobResourceManager jobResourceManager = getJobResourceManagerWithJobs(getSampleViewJob("1"));
+
+    StoredOperationHandle operationHandle = getSampleOperationHandle("5", "1");
+    operationHandle.setGuid("1b2b");
+    MockOperationHandleResourceManager operationHandleResourceManager = getOperationHandleRMWithEntities(operationHandle);
+
+    Aggregator aggregator = new Aggregator(jobResourceManager,
+      operationHandleResourceManager,
+      atsParser);
+
+    List<Job> aggregated = aggregator.readAll("luke");
+
+    Assert.assertEquals(1, aggregated.size());
+    Job job = aggregated.get(0);
+    Assert.assertEquals("1", job.getId());
+    Assert.assertEquals("app_test_1", job.getApplicationId());
+    Assert.assertEquals("ENTITY-NAME", job.getDagId());
+    Assert.assertEquals("SUCCEEDED", job.getStatus());
+  }
+
+
+  @Test
   public void testReadJobComplex() throws Exception {
     //job both on ATS and View
     HiveQueryId hiveQueryId1 = getSampleHiveQueryId("ENTITY-NAME");
@@ -229,6 +256,12 @@ public class AggregatorTest {
     hiveQueryId.user = "luke";
     hiveQueryId.operationId = "fUjdt-VMRYuKRPCDTUr_rg";
     hiveQueryId.dagNames = new LinkedList<String>();
+    return hiveQueryId;
+  }
+
+  private HiveQueryId getSampleHiveQueryIdV2(String id) {
+    HiveQueryId hiveQueryId = getSampleHiveQueryId(id);
+    hiveQueryId.version = HiveQueryId.ATS_15_RESPONSE_VERSION;
     return hiveQueryId;
   }
 
@@ -410,6 +443,15 @@ public class AggregatorTest {
     @Override
     public TezDagId getTezDAGByName(String name) {
       return new TezDagId();
+    }
+
+    @Override
+    public TezDagId getTezDAGByEntity(String entity) {
+      TezDagId dagId = new TezDagId();
+      dagId.applicationId = "app_test_1";
+      dagId.entity = entity;
+      dagId.status = "SUCCEEDED";
+      return dagId;
     }
 
     public List<HiveQueryId> getHiveQueryIds() {

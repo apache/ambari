@@ -20,6 +20,7 @@ var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var hostsManagement = require('utils/hosts');
 var stringUtils = require('utils/string_utils');
+require('utils/configs/add_component_config_initializer');
 
 App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDownload, App.InstallComponent, App.InstallNewVersion, {
 
@@ -761,11 +762,56 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method updateZkConfigs
    */
   updateZkConfigs: function (configs) {
-    var zks = this.getZkServerHosts();
     var portValue = configs['zoo.cfg'] && Em.get(configs['zoo.cfg'], 'clientPort');
-    var zkPort = typeof portValue === 'udefined' ? '2181' : portValue;
-    var zksWithPort = this.concatZkNames(zks, zkPort);
-    this.setZKConfigs(configs, zksWithPort, zks);
+    var zkPort = typeof portValue === 'undefined' ? '2181' : portValue;
+    var initializer = App.AddZooKeeperComponentsInitializer;
+    var hostComponentsTopology = {
+      masterComponentHosts: []
+    };
+    var masterComponents = this.bootstrapHostsMapping('ZOOKEEPER_SERVER');
+    if (this.get('fromDeleteHost') || this.get('fromDeleteZkServer')) {
+      this.set('fromDeleteHost', false);
+      this.set('fromDeleteZkServer', false);
+      var removedHost = masterComponents.findProperty('hostName', this.get('content.hostName'));
+      if (!Em.isNone(removedHost)) {
+        Em.set(removedHost, 'isInstalled', false);
+      }
+    }
+    var dependencies = {
+      zkClientPort: zkPort
+    };
+    hostComponentsTopology.masterComponentHosts = masterComponents;
+    Em.keys(configs).forEach(function(fileName) {
+      var properties = configs[fileName];
+      Em.keys(properties).forEach(function(propertyName) {
+        var propertyDef = {
+          fileName: fileName,
+          name: propertyName,
+          value: properties[propertyName]
+        };
+        var configProperty = initializer.initialValue(propertyDef, hostComponentsTopology, dependencies);
+        initializer.updateSiteObj(configs[fileName], configProperty);
+      });
+    });
+  },
+
+  /**
+   *
+   * @param {string} componentName
+   * @param {string[]} [hostNames]
+   * @returns {}
+   */
+  bootstrapHostsMapping: function(componentName, hostNames) {
+    if (Em.isNone(hostNames)) {
+      hostNames = App.HostComponent.find().filterProperty('componentName', componentName).mapProperty('hostName');
+    }
+    return hostNames.map(function(hostName) {
+      return {
+        component: componentName,
+        hostName: hostName,
+        isInstalled: true
+      };
+    });
   },
 
   /**
@@ -827,35 +873,49 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method onLoadHiveConfigs
    */
   onLoadHiveConfigs: function (data) {
-    var
-      hiveMetastoreHost = this.get('hiveMetastoreHost'),
-      webhcatServerHost = this.get('webhcatServerHost'),
-      hiveMSHosts = this.getHiveHosts(),
-      hiveMasterHosts = hiveMSHosts.concat(App.HostComponent.find().filterProperty('componentName', 'HIVE_SERVER').mapProperty('hostName')).uniq().sort().join(','),
-      configs = {},
-      attributes = {},
-      port = "",
-      hiveUser = "",
-      webhcatUser = "";
-
+    var hiveMetastoreHost = this.get('hiveMetastoreHost');
+    var webhcatServerHost = this.get('webhcatServerHost');
+    var port = "";
+    var configs = {};
+    var attributes = {};
+    var localDB = {
+      masterComponentHosts: this.getHiveHosts()
+    };
+    var dependencies = {
+      hiveMetastorePort: ""
+    };
+    var initializer = App.AddHiveComponentsInitializer;
     data.items.forEach(function (item) {
       configs[item.type] = item.properties;
       attributes[item.type] = item.properties_attributes || {};
     }, this);
 
+
     port = configs['hive-site']['hive.metastore.uris'].match(/:[0-9]{2,4}/);
     port = port ? port[0].slice(1) : "9083";
 
-    hiveUser = configs['hive-env']['hive_user'];
-    webhcatUser = configs['hive-env']['webhcat_user'];
+    dependencies.hiveMetastorePort = port;
 
-    for (var i = 0; i < hiveMSHosts.length; i++) {
-      hiveMSHosts[i] = "thrift://" + hiveMSHosts[i] + ":" + port;
-    }
-    configs['hive-site']['hive.metastore.uris'] = hiveMSHosts.join(',');
-    configs['webhcat-site']['templeton.hive.properties'] = configs['webhcat-site']['templeton.hive.properties'].replace(/thrift.+[0-9]{2,},/i, hiveMSHosts.join('\\,') + ",");
-    configs['core-site']['hadoop.proxyuser.' + hiveUser + '.hosts'] = hiveMasterHosts;
-    configs['core-site']['hadoop.proxyuser.' + webhcatUser + '.hosts'] = hiveMasterHosts;
+    initializer.setup({
+      hiveUser: configs['hive-env']['hive_user'],
+      webhcatUser: configs['hive-env']['webhcat_user']
+    });
+
+    ['hive-site', 'webhcat-site', 'hive-env', 'core-site'].forEach(function(fileName) {
+      if (configs[fileName]) {
+        Em.keys(configs[fileName]).forEach(function(propertyName) {
+          var propertyDef = {
+            fileName: fileName,
+            name: propertyName,
+            value: configs[fileName][propertyName]
+          };
+          configs[fileName][propertyName] = Em.get(initializer.initialValue(propertyDef, localDB, dependencies), 'value');
+        });
+      }
+    });
+
+    initializer.cleanup();
+
     var groups = [
       {
         properties: {
@@ -953,32 +1013,47 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   deleteWebHCatServer: false,
 
   getHiveHosts: function () {
-    var
-      hiveHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE').mapProperty('hostName'),
-      webhcatHosts = App.HostComponent.find().filterProperty('componentName', 'WEBHCAT_SERVER').mapProperty('hostName'),
-      hiveMetastoreHost = this.get('hiveMetastoreHost'),
-      webhcatServerHost = this.get('webhcatServerHost');
+    var self = this;
+    var removePerformed = this.get('fromDeleteHost') || this.get('deleteHiveMetaStore') || this.get('deleteHiveServer') || this.get('deleteWebHCatServer');
+    var hiveMasterComponents = ['WEBHCAT_SERVER', 'HIVE_METASTORE', 'HIVE_SERVER'];
+    var masterComponentsMap = hiveMasterComponents.map(function(componentName) {
+      return self.bootstrapHostsMapping(componentName);
+    }).reduce(function(p,c) {
+      return p.concat(c);
+    });
 
-    hiveHosts = hiveHosts.concat(webhcatHosts).uniq();
+    if (removePerformed) {
+      self.setProperties({
+        deleteHiveMetaStore: false,
+        deleteHiveServer: false,
+        deleteWebHCatServer: false,
+        fromDeleteHost: false
+      });
+      masterComponentsMap = masterComponentsMap.map(function(masterComponent) {
+        masterComponent.isInstalled = masterComponent.hostName !== self.get('content.hostName');
+        return masterComponent;
+      });
+    }
 
-    if (!!hiveMetastoreHost) {
-      hiveHosts.push(hiveMetastoreHost);
+    if (!!this.get('hiveMetastoreHost')) {
+      masterComponentsMap.push({
+        component: 'HIVE_METASTORE',
+        hostName: this.get('hiveMetastoreHost'),
+        isInstalled: !removePerformed
+      });
       this.set('hiveMetastoreHost', '');
     }
 
-    if (!!webhcatServerHost) {
-      hiveHosts.push(webhcatServerHost);
-      this.set('webhcatServerHost' ,'');
+    if (!!this.get('webhcatServerHost')) {
+      masterComponentsMap.push({
+        component: 'WEBHCAT_SERVER',
+        hostName: this.get('webhcatServerHost'),
+        isInstalled: !removePerformed
+      });
+      this.set('webhcatServerHost', '');
     }
 
-    if (this.get('fromDeleteHost') || this.get('deleteHiveMetaStore') || this.get('deleteHiveServer') || this.get('deleteWebHCatServer')) {
-      this.set('deleteHiveMetaStore', false);
-      this.set('deleteHiveServer', false);
-      this.set('deleteWebHCatServer', false);
-      this.set('fromDeleteHost', false);
-      hiveHosts = hiveHosts.without(this.get('content.hostName'));
-    }
-    return hiveHosts.sort();
+    return masterComponentsMap;
   },
 
   /**
@@ -1218,6 +1293,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
       urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
     }
+    if (services.someProperty('serviceName', 'ACCUMULO')) {
+      urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
+    }
     return urlParams;
   },
 
@@ -1260,62 +1338,31 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       );
     }
+    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+      groups.push(
+        {
+          properties: {
+            'hbase-site': configs['hbase-site']
+          },
+          properties_attributes: {
+            'hbase-site': attributes['hbase-site']
+          }
+        }
+      );
+    }
+    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+      groups.push(
+        {
+          properties: {
+            'accumulo-site': configs['accumulo-site']
+          },
+          properties_attributes: {
+            'accumulo-site': attributes['accumulo-site']
+          }
+        }
+      );
+    }
     this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
-  },
-  /**
-   *
-   * Set new values for some configs (based on available ZooKeeper Servers)
-   * @param configs {object}
-   * @param zksWithPort {string}
-   * @param zks {array}
-   * @return {Boolean}
-   */
-  setZKConfigs: function (configs, zksWithPort, zks) {
-    if (typeof configs !== 'object' || !Array.isArray(zks)) return false;
-    if (App.get('isHaEnabled') && configs['core-site']) {
-      App.config.updateHostsListValue(configs['core-site'], 'ha.zookeeper.quorum', zksWithPort);
-    }
-    if (configs['hbase-site']) {
-      App.config.updateHostsListValue(configs['hbase-site'], 'hbase.zookeeper.quorum', zks.join(','));
-    }
-    if (configs['accumulo-site']) {
-      App.config.updateHostsListValue(configs['accumulo-site'], 'instance.zookeeper.host', zksWithPort);
-    }
-    if (configs['webhcat-site']) {
-      App.config.updateHostsListValue(configs['webhcat-site'], 'templeton.zookeeper.hosts', zksWithPort);
-    }
-    if (configs['hive-site']) {
-      App.config.updateHostsListValue(configs['hive-site'], 'hive.cluster.delegation.token.store.zookeeper.connectString', zksWithPort);
-    }
-    if (configs['storm-site']) {
-      configs['storm-site']['storm.zookeeper.servers'] = JSON.stringify(zks).replace(/"/g, "'");
-    }
-    if (App.get('isRMHaEnabled') && configs['yarn-site']) {
-      App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
-    }
-    if (App.get('isHadoop22Stack')) {
-      if (configs['hive-site']) {
-        App.config.updateHostsListValue(configs['hive-site'], 'hive.zookeeper.quorum', zksWithPort);
-      }
-      if (configs['yarn-site']) {
-        App.config.updateHostsListValue(configs['yarn-site'], 'hadoop.registry.zk.quorum', zksWithPort);
-        App.config.updateHostsListValue(configs['yarn-site'], 'yarn.resourcemanager.zk-address', zksWithPort);
-      }
-    }
-    return true;
-  },
-  /**
-   * concatenate URLs to ZOOKEEPER hosts with port "2181",
-   * as value of config divided by comma
-   * @param zks {array}
-   * @param port {string}
-   */
-  concatZkNames: function (zks, port) {
-    var zks_with_port = '';
-    zks.forEach(function (zk) {
-      zks_with_port += zk + ':' + port + ',';
-    });
-    return zks_with_port.slice(0, -1);
   },
 
   /**
@@ -1329,21 +1376,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @type {bool}
    */
   fromDeleteZkServer: false,
-
-  /**
-   * Get list of hostnames where ZK Server is installed
-   * @returns {string[]}
-   * @method getZkServerHosts
-   */
-  getZkServerHosts: function () {
-    var zks = App.HostComponent.find().filterProperty('componentName', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-    if (this.get('fromDeleteHost') || this.get('fromDeleteZkServer')) {
-      this.set('fromDeleteHost', false);
-      this.set('fromDeleteZkServer', false);
-      return zks.without(this.get('content.hostName'));
-    }
-    return zks;
-  },
 
   /**
    * Send command to server to install selected host component

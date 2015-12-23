@@ -17,17 +17,11 @@
  */
 package org.apache.ambari.server.serveraction.upgrades;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -65,11 +59,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.gson.Gson;
-import com.google.inject.Guice;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests upgrade-related server side actions
@@ -364,6 +363,12 @@ public class ConfigureActionTest {
     transfer.deleteKey = "*";
     transfer.preserveEdits = true;
     transfer.keepKeys.add("copyKey");
+    // The below key should be ignored/not added as it doesn't exist originally as part of transfer.
+    transfer.keepKeys.add("keyNotExisting");
+    // The 'null' passed as part of key should be ignored as part of transfer operation.
+    transfer.keepKeys.add(null);
+
+
     transfers.add(transfer);
     commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, new Gson().toJson(transfers));
 
@@ -376,6 +381,9 @@ public class ConfigureActionTest {
     assertEquals(6, map.size());
     assertTrue(map.containsKey("initLimit")); // it just changed to 11 from 10
     assertTrue(map.containsKey("copyKey")); // is new
+    // Below two keys should not have been added in the map.
+    assertFalse(map.containsKey("keyNotExisting"));
+    assertFalse(map.containsKey(null));
   }
 
   @Test

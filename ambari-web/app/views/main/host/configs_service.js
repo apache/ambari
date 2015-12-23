@@ -27,8 +27,6 @@ App.MainHostServiceConfigsView = Em.View.extend({
 
   isConfigsEditable: false,
 
-  content: function () {
-    return App.router.get('mainHostDetailsController.content');
-  }.property('App.router.mainHostDetailsController.content')
+  content: Em.computed.alias('App.router.mainHostDetailsController.content')
 
 });

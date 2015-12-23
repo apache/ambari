@@ -237,6 +237,18 @@ public class UpgradeResourceProviderTest {
     injector = null;
   }
 
+  /**
+   * Obtain request id from the {@code RequestStatus}
+   * @param requestStatus reqult of the {@code createResources}
+   * @return id of the request
+   */
+  private long getRequestId(RequestStatus requestStatus){
+    assertEquals(1, requestStatus.getAssociatedResources().size());
+    Resource r = requestStatus.getAssociatedResources().iterator().next();
+    String id = r.getPropertyValue("Upgrade/request_id").toString();
+    return Long.parseLong(id);
+  }
+
   @Test
   public void testCreateResourcesWithAutoSkipFailures() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
@@ -605,7 +617,7 @@ public class UpgradeResourceProviderTest {
   public void testDowngradeToBase() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
-    Map<String, Object> requestProps = new HashMap<String, Object>();
+    Map<String, Object> requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
@@ -614,19 +626,19 @@ public class UpgradeResourceProviderTest {
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    RequestStatus status = upgradeResourceProvider.createResources(request);
+    upgradeResourceProvider.createResources(request);
 
     List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
     assertEquals(1, upgrades.size());
 
-    requestProps = new HashMap<String, Object>();
+    requestProps = new HashMap<>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_test");
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     try {
-      status = upgradeResourceProvider.createResources(request);
+      upgradeResourceProvider.createResources(request);
       Assert.fail("Expected an exception going downgrade with no upgrade pack");
     } catch (Exception e) {
       // !!! expected
@@ -638,11 +650,11 @@ public class UpgradeResourceProviderTest {
     requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
 
-    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    Map<String, String> requestInfoProperties = new HashMap<>();
     requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
 
     request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
-    status = upgradeResourceProvider.createResources(request);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
     assertEquals(1, status.getAssociatedResources().size());
     Resource r = status.getAssociatedResources().iterator().next();
     String id = r.getPropertyValue("Upgrade/request_id").toString();
@@ -663,6 +675,91 @@ public class UpgradeResourceProviderTest {
       assertEquals("downgrade", map.get("upgrade_direction"));
     }
 
+  }
+
+  
+
+  /**
+   * Test Downgrade from the partially completed upgrade
+   */
+  @Test
+  public void testNotFullDowngrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add additional service for the test
+    Service service = cluster.addService("HIVE");
+    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+    service.persist();
+
+    ServiceComponent component = service.addServiceComponent("HIVE_SERVER");
+    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+    sch.setVersion("2.1.1.0");
+
+    // create upgrade request
+    Map<String, Object> requestProps = new HashMap<>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_TYPE, "NON_ROLLING");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    // check that upgrade was created and groups for the tested services are on place
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    List<UpgradeGroupEntity> groups = upgrades.get(0).getUpgradeGroups();
+    boolean isHiveGroupFound = false;
+    boolean isZKGroupFound = false;
+
+    // look only for testing groups
+    for (UpgradeGroupEntity group: groups) {
+      if (group.getName().equalsIgnoreCase("hive")) {
+        isHiveGroupFound = true;
+      } else if (group.getName().equalsIgnoreCase("zookeeper")){
+        isZKGroupFound = true;
+      }
+    }
+
+    assertTrue(isHiveGroupFound);
+    assertTrue(isZKGroupFound);
+
+    isHiveGroupFound = false;
+    isZKGroupFound = false;
+    sch.setVersion("2.2.0.0");
+
+    // create downgrade with one upgraded service
+    StackId stackId = new StackId("HDP", "2.2.0");
+    cluster.setDesiredStackVersion(stackId, true);
+
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.0");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_PACK, "upgrade_nonrolling_new_stack");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_SKIP_PREREQUISITE_CHECKS, "true");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.0.0");
+
+    Map<String, String> requestInfoProperties = new HashMap<>();
+    requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProperties);
+    RequestStatus status = upgradeResourceProvider.createResources(request);
+    UpgradeEntity upgradeEntity = upgradeDao.findUpgradeByRequestId(getRequestId(status));
+
+    for (UpgradeGroupEntity group: upgradeEntity.getUpgradeGroups()) {
+      if (group.getName().equalsIgnoreCase("hive")) {
+        isHiveGroupFound = true;
+      } else if (group.getName().equalsIgnoreCase("zookeeper")){
+        isZKGroupFound = true;
+      }
+    }
+
+    // as services not updated, nothing to downgrade
+    assertTrue(isHiveGroupFound);
+    assertFalse(isZKGroupFound);
   }
 
 
@@ -1021,7 +1118,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, UpgradePack> upgradePacks = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
     UpgradePack upgrade = upgradePacks.get("upgrade_to_new_stack");
-    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade);
+    upgradeResourceProvider.applyStackAndProcessConfigurations(stack211.getStackName(), cluster, "2.2.0.0", Direction.UPGRADE, upgrade, "admin");
 
     Map<String, Map<String, String>> expectedConfigurations = expectedConfigurationsCapture.getValue();
     Map<String, String> expectedFooType = expectedConfigurations.get("foo-site");

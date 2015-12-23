@@ -119,7 +119,7 @@ class TestZookeeperServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -141,19 +141,19 @@ class TestZookeeperServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755,
     )
@@ -177,7 +177,7 @@ class TestZookeeperServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/zookeeper/conf',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper-env.sh',
       owner = 'zookeeper',
@@ -199,19 +199,19 @@ class TestZookeeperServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/var/log/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       mode = 0755,
     )
     self.assertResourceCalled('Directory', '/hadoop/zookeeper',
       owner = 'zookeeper',
       group = 'hadoop',
-      recursive = True,
+      create_parents = True,
       cd_access='a',
       mode = 0755,
     )
@@ -382,6 +382,7 @@ class TestZookeeperServer(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalledIgnoreEarlier('Link', ('/etc/zookeeper/conf'), to='/usr/hdp/current/zookeeper-client/conf')
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'zookeeper-server', version), sudo=True)
 

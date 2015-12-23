@@ -38,9 +38,14 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
               } else {
                 if (router.get('clusterInstallCompleted')) {
                   App.router.get('clusterController').loadClientServerClockDistance().done(function () {
-                    App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
-                      router.get('mainController').initialize();
-                    });
+                    if (!App.get('isOnlyViewUser')) {
+                      App.router.get('clusterController').checkDetailedRepoVersion().done(function () {
+                        router.get('mainController').initialize();
+                      });
+                    } else {
+                      App.router.transitionTo('main.views.index');
+                      App.router.get('clusterController').set('isLoaded', true); // hide loading bar
+                    }
                   });
                 }
                 else {
@@ -49,7 +54,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
                       var currentClusterStatus = App.clusterStatus.get('value');
                       if (router.get('currentState.parentState.name') !== 'views'
                           && currentClusterStatus && self.get('installerStatuses').contains(currentClusterStatus.clusterState)) {
-                        if (App.isAccessible('ADMIN')) {
+                        if (App.isAuthorized('AMBARI.ADD_DELETE_CLUSTERS')) {
                           self.redirectToInstaller(router, currentClusterStatus, false);
                         } else {
                           Em.run.next(function () {
@@ -306,13 +311,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         router.set('mainAlertInstancesController.isUpdating', false);
       },
 
-      unroutePath: function (router, context) {
+      exitRoute: function (router, context, callback) {
         var controller = router.get('mainAlertDefinitionDetailsController');
-        if (!controller.get('forceTransition') && controller.get('isEditing')) {
-          controller.showSavePopup(context);
+        if (controller.get('isEditing')) {
+          controller.showSavePopup(callback);
         } else {
-          controller.set('forceTransition', false);
-          this._super(router, context);
+          callback();
         }
       }
     }),
@@ -327,7 +331,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   admin: Em.Route.extend({
     route: '/admin',
     enter: function (router, transition) {
-      if (router.get('loggedIn') && !App.isAccessible('upgrade_ADMIN')) {
+      if (router.get('loggedIn') && !App.isAuthorized('CLUSTER.TOGGLE_KERBEROS, AMBARI.SET_SERVICE_USERS_GROUPS, CLUSTER.UPGRADE_DOWNGRADE_STACK, CLUSTER.VIEW_STACK_DETAILS')) {
         Em.run.next(function () {
           router.transitionTo('main.dashboard.index');
         });
@@ -335,7 +339,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     },
 
     routePath: function (router, event) {
-      if (!App.isAccessible('upgrade_ADMIN')) {
+      if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
         Em.run.next(function () {
           App.router.transitionTo('main.dashboard.index');
         });
@@ -651,12 +655,12 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
             }
           });
         },
-        unroutePath: function (router, context) {
+        exitRoute: function (router, context, callback) {
           var controller = router.get('mainServiceInfoConfigsController');
-          if (!controller.get('forceTransition') && controller.hasUnsavedChanges()) {
-            controller.showSavePopup(context);
+          if (controller.hasUnsavedChanges()) {
+            controller.showSavePopup(callback);
           } else {
-            this._super(router, context);
+            callback();
           }
         }
       }),

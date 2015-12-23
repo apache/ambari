@@ -43,63 +43,64 @@ module.exports = App.WizardRoute.extend({
 
   enter: function (router) {
     var self = this;
+    router.get('mainController').dataLoading().done(function () {
+      Ember.run.next(function () {
+        var addHostController = router.get('addHostController');
+        App.router.get('updateController').set('isWorking', false);
+        App.ModalPopup.show({
+          classNames: ['full-width-modal'],
+          header: Em.I18n.t('hosts.add.header'),
+          bodyClass: App.AddHostView.extend({
+            controllerBinding: 'App.router.addHostController'
+          }),
+          primary: Em.I18n.t('form.cancel'),
+          secondary: null,
+          showFooter: false,
 
-    Ember.run.next(function () {
-      var addHostController = router.get('addHostController');
-      App.router.get('updateController').set('isWorking', false);
-      App.ModalPopup.show({
-        classNames: ['full-width-modal'],
-        header: Em.I18n.t('hosts.add.header'),
-        bodyClass: App.AddHostView.extend({
-          controllerBinding: 'App.router.addHostController'
-        }),
-        primary: Em.I18n.t('form.cancel'),
-        secondary: null,
-        showFooter: false,
-
-        onPrimary: function () {
-          this.hide();
-          App.router.get('updateController').set('isWorking', true);
-          router.transitionTo('hosts.index');
-        },
-        onClose: function () {
-          var popupContext = this;
-          if (addHostController.get('currentStep') == '6') {
-            App.ModalPopup.show({
-              header: Em.I18n.t('hosts.add.exit.header'),
-              body: Em.I18n.t('hosts.add.exit.body'),
-              onPrimary: function () {
-                self.leaveWizard(router, popupContext);
-              }
-            });
-          } else {
-            self.leaveWizard(router, this);
+          onPrimary: function () {
+            this.hide();
+            App.router.get('updateController').set('isWorking', true);
+            router.transitionTo('hosts.index');
+          },
+          onClose: function () {
+            var popupContext = this;
+            if (addHostController.get('currentStep') == '6') {
+              App.ModalPopup.show({
+                header: Em.I18n.t('hosts.add.exit.header'),
+                body: Em.I18n.t('hosts.add.exit.body'),
+                onPrimary: function () {
+                  self.leaveWizard(router, popupContext);
+                }
+              });
+            } else {
+              self.leaveWizard(router, this);
+            }
+          },
+          didInsertElement: function () {
+            this.fitHeight();
           }
-        },
-        didInsertElement: function () {
-          this.fitHeight();
+        });
+        var currentClusterStatus = App.clusterStatus.get('value');
+        if (currentClusterStatus) {
+          switch (currentClusterStatus.clusterState) {
+            case 'ADD_HOSTS_DEPLOY_PREP_2' :
+              addHostController.setCurrentStep('4');
+              break;
+            case 'ADD_HOSTS_INSTALLING_3' :
+            case 'SERVICE_STARTING_3' :
+              addHostController.setCurrentStep('5');
+              break;
+            case 'ADD_HOSTS_INSTALLED_4' :
+              addHostController.setCurrentStep('6');
+              break;
+            default:
+              break;
+          }
         }
-      });
-      var currentClusterStatus = App.clusterStatus.get('value');
-      if (currentClusterStatus) {
-        switch (currentClusterStatus.clusterState) {
-          case 'ADD_HOSTS_DEPLOY_PREP_2' :
-            addHostController.setCurrentStep('4');
-            break;
-          case 'ADD_HOSTS_INSTALLING_3' :
-          case 'SERVICE_STARTING_3' :
-            addHostController.setCurrentStep('5');
-            break;
-          case 'ADD_HOSTS_INSTALLED_4' :
-            addHostController.setCurrentStep('6');
-            break;
-          default:
-            break;
-        }
-      }
 
-      App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
-      router.transitionTo('step' + addHostController.get('currentStep'));
+        App.router.get('wizardWatcherController').setUser(addHostController.get('name'));
+        router.transitionTo('step' + addHostController.get('currentStep'));
+      });
     });
 
   },

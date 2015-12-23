@@ -74,6 +74,9 @@ ams_monitor_script = "/usr/sbin/ambari-metrics-monitor"
 
 ams_hbase_home_dir = "/usr/lib/ams-hbase/"
 
+ams_hbase_normalizer_enabled = default("/configurations/ams-hbase-site/hbase.normalizer.enabled", None)
+ams_hbase_fifo_compaction_enabled = default("/configurations/ams-site/timeline.metrics.hbase.fifo.compaction.enabled", None)
+
 #hadoop params
 
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
@@ -86,7 +89,8 @@ hbase_root_dir = config['configurations']['ams-hbase-site']['hbase.rootdir']
 hbase_pid_dir = status_params.hbase_pid_dir
 
 is_hbase_distributed = config['configurations']['ams-hbase-site']['hbase.cluster.distributed']
-is_hdfs_rootdir = hbase_root_dir.startswith('hdfs://')
+is_local_fs_rootdir = hbase_root_dir.startswith('file://')
+is_ams_distributed = config['configurations']['ams-site']['timeline.metrics.service.operation.mode'] == 'distributed'
 
 # security is disabled for embedded mode, when HBase is backed by file
 security_enabled = False if not is_hbase_distributed else config['configurations']['cluster-env']['security_enabled']
@@ -140,7 +144,10 @@ else:
 
 max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_limit", "32768")
 
-zookeeper_quorum_hosts = 'localhost'
+if not is_hbase_distributed:
+  zookeeper_quorum_hosts = 'localhost'
+else:
+  zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
@@ -194,8 +201,6 @@ if security_enabled:
   regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
   regionserver_keytab_path = config['configurations']['ams-hbase-security-site']['hbase.regionserver.keytab.file']
   regionserver_jaas_princ = config['configurations']['ams-hbase-security-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
-
-  zk_servicename = ams_zookeeper_principal_name.rpartition('/')[0]
 
 #log4j.properties
 if (('ams-hbase-log4j' in config['configurations']) and ('content' in config['configurations']['ams-hbase-log4j'])):

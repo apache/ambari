@@ -35,7 +35,7 @@ def setup_spark(env, type, action = None):
             owner=params.spark_user,
             group=params.user_group,
             mode=0775,
-            recursive=True
+            create_parents = True
   )
   if type == 'server' and action == 'config':
     params.HdfsResource(params.spark_hdfs_user_dir,
@@ -86,5 +86,6 @@ def setup_spark(env, type, action = None):
     PropertiesFile(params.spark_thrift_server_conf_file,
       properties = params.config['configurations']['spark-thrift-sparkconf'],
       owner = params.hive_user,
+      group = params.user_group,
       key_value_delimiter = " ",
     )

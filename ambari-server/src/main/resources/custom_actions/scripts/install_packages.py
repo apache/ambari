@@ -33,6 +33,7 @@ from ambari_commons.os_check import OSCheck, OSConst
 from resource_management.libraries.functions.packages_analyzer import allInstalledPackages
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.hdp_select import get_hdp_versions
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.repo_version_history \
   import read_actual_version_from_history_file, write_actual_version_to_history_file, REPO_VERSION_HISTORY_FILE
 
@@ -77,6 +78,13 @@ class InstallPackages(Script):
       base_urls = json.loads(config['commandParams']['base_urls'])
       package_list = json.loads(config['commandParams']['package_list'])
       stack_id = config['commandParams']['stack_id']
+
+    # current stack information
+    self.current_hdp_stack_version = None
+    if 'stack_version' in config['hostLevelParams']:
+      current_stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+      self.current_hdp_stack_version = format_hdp_stack_version(current_stack_version_unformatted)
+
 
     stack_name = None
     self.stack_root_folder = None
@@ -137,10 +145,12 @@ class InstallPackages(Script):
     self.old_versions = get_hdp_versions(self.stack_root_folder)
 
     try:
+      is_package_install_successful = False
       ret_code = self.install_packages(package_list)
       if ret_code == 0:
         self.structured_output['package_installation_result'] = 'SUCCESS'
         self.put_structured_out(self.structured_output)
+        is_package_install_successful = True
       else:
         num_errors += 1
     except Exception, err:
@@ -151,10 +161,47 @@ class InstallPackages(Script):
     if num_errors > 0:
       raise Fail("Failed to distribute repositories/install packages")
 
-    if 'package_installation_result' in self.structured_output and \
-      'actual_version' in self.structured_output and \
-      self.structured_output['package_installation_result'] == 'SUCCESS':
-      conf_select.create_config_links(stack_id, self.structured_output['actual_version'])
+    # if installing a version of HDP that needs some symlink love, then create them
+    if is_package_install_successful and 'actual_version' in self.structured_output:
+      self._create_config_links_if_necessary(stack_id, self.structured_output['actual_version'])
+
+
+  def _create_config_links_if_necessary(self, stack_id, stack_version):
+    """
+    Sets up the required structure for /etc/<component>/conf symlinks and /usr/hdp/current
+    configuration symlinks IFF the current stack is < HDP 2.3+ and the new stack is >= HDP 2.3
+
+    stack_id:  stack id, ie HDP-2.3
+    stack_version:  version to set, ie 2.3.0.0-1234
+    """
+    if stack_id is None:
+      Logger.info("Cannot create config links when stack_id is not defined")
+      return
+
+    args = stack_id.upper().split('-')
+    if len(args) != 2:
+      Logger.info("Unrecognized stack id {0}, cannot create config links".format(stack_id))
+      return
+
+    if args[0] != "HDP":
+      Logger.info("Unrecognized stack name {0}, cannot create config links".format(args[0]))
+
+    if compare_versions(format_hdp_stack_version(args[1]), "2.3.0.0") < 0:
+      Logger.info("Configuration symlinks are not needed for {0}, only HDP-2.3+".format(stack_version))
+      return
+
+    for package_name, directories in conf_select.PACKAGE_DIRS.iteritems():
+      # if already on HDP 2.3, then we should skip making conf.backup folders
+      if self.current_hdp_stack_version and compare_versions(self.current_hdp_stack_version, '2.3') >= 0:
+        Logger.info("The current cluster stack of {0} does not require backing up configurations; "
+                    "only conf-select versioned config directories will be created.".format(stack_version))
+        # only link configs for all known packages
+        conf_select.link_component_conf_to_versioned_config(package_name, stack_version)
+      else:
+        # link configs and create conf.backup folders for all known packages
+        conf_select.convert_conf_directories_to_symlinks(package_name, stack_version, directories,
+          skip_existing_links = False, link_to = "backup")
+
 
   def compute_actual_version(self):
     """
@@ -287,7 +334,7 @@ class InstallPackages(Script):
     # Install packages
     packages_were_checked = False
     try:
-      Package(self.get_base_packages_to_install())
+      Package('hdp-select', action="upgrade")
       
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -295,10 +342,10 @@ class InstallPackages(Script):
       packages_were_checked = True
       filtered_package_list = self.filter_package_list(package_list)
       for package in filtered_package_list:
-        name = self.format_package_name(package['name'], self.repository_version)
-        Package(name,
-                use_repos=list(self.current_repo_files) if OSCheck.is_ubuntu_family() else self.current_repositories,
-                skip_repos=[self.REPO_FILE_NAME_PREFIX + "*"] if OSCheck.is_redhat_family() else [])
+        name = self.format_package_name(package['name'])
+        Package(name
+        # action="upgrade" # should we use "upgrade" action here, to upgrade not versioned packages?       
+        )
     except Exception, err:
       ret_code = 1
       Logger.logger.exception("Package Manager failed to install packages. Error: {0}".format(str(err)))
@@ -360,37 +407,9 @@ class InstallPackages(Script):
     )
     return repo['repoName'], file_name
 
-  def format_package_name(self, package_name, repo_id):
-    """
-    This method overcomes problems at SLES SP3. Zypper here behaves differently
-    than at SP1, and refuses to install packages by mask if there is any installed package that
-    matches this mask.
-    So we preppend concrete HDP version to mask under Suse
-    """
-    if OSCheck.is_suse_family() and '*' in package_name:
-      mask_version = re.search(r'((_\d+)*(_)?\*)', package_name).group(0)
-      formatted_version = '_' + repo_id.replace('.', '_').replace('-', '_') + '*'
-      return package_name.replace(mask_version, formatted_version)
-    else:
-      return package_name
-
   def abort_handler(self, signum, frame):
     Logger.error("Caught signal {0}, will handle it gracefully. Compute the actual version if possible before exiting.".format(signum))
     self.check_partial_install()
-    
-  def get_base_packages_to_install(self):
-    """
-    HACK: list packages which should be installed without disabling any repos. (This is planned to fix in Ambari-2.2)
-    """
-    base_packages_to_install = ['fuse']
-    
-    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-      base_packages_to_install.append('libfuse2')
-    else:
-      base_packages_to_install.append('fuse-libs')
-      
-    return base_packages_to_install
-
     
   def filter_package_list(self, package_list):
     """

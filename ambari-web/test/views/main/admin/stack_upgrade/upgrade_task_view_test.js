@@ -28,8 +28,10 @@ describe('App.upgradeTaskView', function () {
   view.removeObserver('content.isExpanded', view, 'doPolling');
   view.removeObserver('outsideView', view, 'doPolling');
 
+  App.TestAliases.testAsComputedOr(view, 'showContent', ['outsideView', 'content.isExpanded']);
+
   describe("#logTabId", function() {
-    it("", function() {
+    it("depends on `elementId`", function() {
       view.reopen({
         elementId: 'elementId'
       });
@@ -38,7 +40,7 @@ describe('App.upgradeTaskView', function () {
   });
 
   describe("#errorTabId", function() {
-    it("", function() {
+    it("depends on `elementId`", function() {
       view.reopen({
         elementId: 'elementId'
       });
@@ -47,7 +49,7 @@ describe('App.upgradeTaskView', function () {
   });
 
   describe("#logTabIdLink", function() {
-    it("", function() {
+    it("depends on `logTabId`", function() {
       view.reopen({
         logTabId: 'elementId-log-tab'
       });
@@ -56,7 +58,7 @@ describe('App.upgradeTaskView', function () {
   });
 
   describe("#errorTabIdLInk", function() {
-    it("", function() {
+    it("depends on `errorTabId`", function() {
       view.reopen({
         errorTabId: 'elementId-error-tab'
       });
@@ -71,7 +73,7 @@ describe('App.upgradeTaskView', function () {
     after(function () {
       view.toggleProperty.restore();
     });
-    it("", function () {
+    it("`errorLogOpened` is toggled", function () {
       view.copyErrLog();
       expect(view.toggleProperty.calledWith('errorLogOpened')).to.be.true;
     });
@@ -84,7 +86,7 @@ describe('App.upgradeTaskView', function () {
     after(function () {
       view.toggleProperty.restore();
     });
-    it("", function () {
+    it("outputLogOpened is toggled", function () {
       view.copyOutLog();
       expect(view.toggleProperty.calledWith('outputLogOpened')).to.be.true;
     });
@@ -97,7 +99,7 @@ describe('App.upgradeTaskView', function () {
     after(function () {
       view.openLogWindow.restore();
     });
-    it("", function () {
+    it("stderr is open with openLogWindow", function () {
       view.set('content.stderr', 'stderr');
       view.openErrorLog();
       expect(view.openLogWindow.calledWith('stderr')).to.be.true;
@@ -111,7 +113,7 @@ describe('App.upgradeTaskView', function () {
     after(function () {
       view.openLogWindow.restore();
     });
-    it("", function () {
+    it("stdout is open with openLogWindow", function () {
       view.set('content.stdout', 'stdout');
       view.openOutLog();
       expect(view.openLogWindow.calledWith('stdout')).to.be.true;
@@ -133,55 +135,37 @@ describe('App.upgradeTaskView', function () {
           body: mockAppendChild
         }
       };
-    before(function () {
+    beforeEach(function () {
       sinon.stub(window, 'open').returns(mockWindow);
       sinon.spy(mockWindow.document, 'write');
       sinon.spy(mockWindow.document, 'close');
       sinon.spy(mockWindow.document, 'createElement');
       sinon.spy(mockWindow.document, 'createTextNode');
       sinon.spy(mockAppendChild, 'appendChild');
+      view.openLogWindow('log');
     });
-    after(function () {
+    afterEach(function () {
       window.open.restore();
       mockWindow.document.write.restore();
       mockWindow.document.close.restore();
       mockWindow.document.createElement.restore();
       mockWindow.document.createTextNode.restore();
+      mockAppendChild.appendChild.restore();
     });
-    it("", function () {
-      view.openLogWindow('log');
+    it("window.open is called once", function () {
       expect(window.open.calledOnce).to.be.true;
+    });
+    it("pre-element is created", function () {
       expect(mockWindow.document.createElement.calledWith('pre')).to.be.true;
+    });
+    it("log-node is created", function () {
       expect(mockWindow.document.createTextNode.calledWith('log')).to.be.true;
+    });
+    it("two nodes are appended", function () {
       expect(mockAppendChild.appendChild.calledTwice).to.be.true;
+    });
+    it("document is closed", function () {
       expect(mockWindow.document.close.calledOnce).to.be.true;
-    });
-  });
-
-  describe("#showContent", function() {
-    it("outsideView = false, content.isExpanded = false", function() {
-      view.set('outsideView', false);
-      view.set('content.isExpanded', false);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.false;
-    });
-    it("outsideView = true, content.isExpanded = false", function() {
-      view.set('outsideView', true);
-      view.set('content.isExpanded', false);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
-    });
-    it("outsideView = false, content.isExpanded = true", function() {
-      view.set('outsideView', false);
-      view.set('content.isExpanded', true);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
-    });
-    it("outsideView = true, content.isExpanded = true", function() {
-      view.set('outsideView', true);
-      view.set('content.isExpanded', true);
-      view.propertyDidChange('showContent');
-      expect(view.get('showContent')).to.be.true;
     });
   });
 

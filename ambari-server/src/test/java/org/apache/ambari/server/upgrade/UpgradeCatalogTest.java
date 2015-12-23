@@ -30,12 +30,14 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -100,11 +102,18 @@ public class UpgradeCatalogTest {
     injector  = Guice.createInjector(new UpgradeHelperModuleTest());
     injector.getInstance(GuiceJpaInitializer.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
+
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
   }
 
   @After
   public void teardown() throws AmbariException {
     injector.getInstance(PersistService.class).stop();
+
+    // Clear the authenticated user
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test

@@ -57,11 +57,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -117,11 +117,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -155,11 +155,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -196,11 +196,11 @@ class TestDatanode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-datanode.pid',
         action = ['delete'],
@@ -278,10 +278,10 @@ class TestDatanode(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -292,7 +292,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -324,20 +324,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0751,
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
@@ -355,10 +355,10 @@ class TestDatanode(RMFTestCase):
     
     if snappy_enabled:
       self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-          recursive = True,
+          create_parents = True,
       )
       self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-          recursive = True,
+          create_parents = True,
       )
       self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
           to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -369,7 +369,7 @@ class TestDatanode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -402,20 +402,20 @@ class TestDatanode(RMFTestCase):
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0751,
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/lib/ambari-agent/data/datanode',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/data',
                               owner = 'hdfs',
                               ignore_failures = True,
                               group = 'hadoop',
                               mode = 0755,
-                              recursive = True,
+                              create_parents = True,
                               cd_access='a'
                               )
     content = resource_management.libraries.functions.dfs_datanode_helper.DATA_DIR_TO_MOUNT_HEADER
@@ -461,6 +461,7 @@ class TestDatanode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
+    self.assertResourceCalled('Link', ('/etc/hadoop/conf'), to='/usr/hdp/current/hadoop-client/conf')
     self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-datanode', version), sudo=True,)
 
     self.assertNoMoreResources()
@@ -475,8 +476,9 @@ class TestDatanode(RMFTestCase):
        mocks_dict['call'].call_args_list[0][0][0])
 
 
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart(self, time_mock):
+  def test_post_upgrade_restart(self, time_mock, socket_gethostbyname_mock):
     shell_call_output = """
       Live datanodes (2):
 
@@ -498,6 +500,7 @@ class TestDatanode(RMFTestCase):
       Last contact: Fri Dec 12 20:47:21 UTC 2014
     """
     mocks_dict = {}
+    socket_gethostbyname_mock.return_value = "test_host"
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                        classname = "DataNode",
                        command = "post_upgrade_restart",
@@ -512,10 +515,11 @@ class TestDatanode(RMFTestCase):
     self.assertEqual(mocks_dict['call'].call_count,1)
 
 
-
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart_datanode_not_ready(self, time_mock):
+  def test_post_upgrade_restart_datanode_not_ready(self, time_mock, socket_gethostbyname_mock):
     mocks_dict = {}
+    socket_gethostbyname_mock.return_value = "test_host"
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
@@ -532,10 +536,12 @@ class TestDatanode(RMFTestCase):
       self.assertEqual(mocks_dict['call'].call_count,12)
 
 
+  @patch("socket.gethostbyname")
   @patch('time.sleep')
-  def test_post_upgrade_restart_bad_returncode(self, time_mock):
+  def test_post_upgrade_restart_bad_returncode(self, time_mock, socket_gethostbyname_mock):
     try:
       mocks_dict = {}
+      socket_gethostbyname_mock.return_value = "test_host"
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
                          classname = "DataNode",
                          command = "post_upgrade_restart",
@@ -579,7 +585,37 @@ class TestDatanode(RMFTestCase):
       if str(err.message) != expected_message:
         self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
 
-    self.assertResourceCalled("Execute", "hdfs dfsadmin -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010", tries=1, user="hdfs")
+    self.assertResourceCalled("Execute", "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010", tries=1, user="hdfs")
+
+  @patch("resource_management.core.shell.call")
+  @patch('time.sleep')
+  def test_stop_during_upgrade(self, time_mock, call_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    call_mock_side_effects = [(0, ""), ]
+    call_mock.side_effects = call_mock_side_effects
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+
+    try:
+      self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                         classname = "DataNode",
+                         command = "stop",
+                         config_dict = json_content,
+                         hdp_stack_version = self.STACK_VERSION,
+                         target = RMFTestCase.TARGET_COMMON_SERVICES,
+                         call_mocks = call_mock_side_effects,
+                         command_args=["rolling"])
+
+      raise Fail("Expected a fail since datanode didn't report a shutdown")
+    except Exception, err:
+      expected_message = "DataNode has not shutdown."
+      if str(err.message) != expected_message:
+        self.fail("Expected this exception to be thrown. " + expected_message + ". Got this instead, " + str(err.message))
+
+    self.assertResourceCalled("Execute", "hdfs dfsadmin -fs hdfs://ns1 -D ipc.client.connect.max.retries=5 -D ipc.client.connect.retry.interval=1000 -getDatanodeInfo 0.0.0.0:8010", tries=1, user="hdfs")
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

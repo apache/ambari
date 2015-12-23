@@ -56,29 +56,9 @@ describe('App.MainController', function () {
     });
   });
 
-  describe('#isClusterDataLoaded', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(true);
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isClusterDataLoaded')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'isClusterDataLoaded', 'App.router.clusterController.isLoaded', 'boolean');
 
-  describe('#clusterDataLoadedPercent', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns(16);
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return 16', function() {
-      expect(mainController.get('clusterDataLoadedPercent')).to.be.equal(16);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(mainController, 'clusterDataLoadedPercent', 'App.router.clusterController.clusterDataLoadedPercent', 'string');
 
   describe('#initialize', function() {
     var initialize = false;
@@ -165,129 +145,6 @@ describe('App.MainController', function () {
         "success": "getServerVersionSuccessCallback",
         "error": "getServerVersionErrorCallback"
       });
-    });
-  });
-
-  describe('#stopAllService', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        stopAllService: function(func) {
-          if (func) {
-            func();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call event', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.stopAllService(event);
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#startAllService', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        startAllService: function(func) {
-          if (func) {
-            func();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call event', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.startAllService(event);
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#isStopAllDisabled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isStopAllDisabled')).to.be.true;
-    });
-  });
-
-  describe('#gotoAddService', function() {
-    var done = false;
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        gotoAddService: function() {
-          done = true;
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should call router', function() {
-      mainController.gotoAddService();
-      expect(done).to.be.true;
-    });
-  });
-
-  describe('#isStartAllDisabled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isStartAllDisabled')).to.be.true;
-    });
-  });
-
-  describe('#isAllServicesInstalled', function() {
-    beforeEach(function () {
-      sinon.stub(mainController, 'scRequest').returns(true);
-    });
-    afterEach(function () {
-      mainController.scRequest.restore();
-    });
-    it ('Should return true', function() {
-      expect(mainController.get('isAllServicesInstalled')).to.be.true;
-    });
-  });
-
-  describe('#scRequest', function() {
-    beforeEach(function () {
-      sinon.stub(App.router, 'get').returns({
-        get: function(request) {
-          if (request) {
-            request();
-          }
-        }
-      });
-    });
-    afterEach(function () {
-      App.router.get.restore();
-    });
-    it ('Should return true', function() {
-      var done = false;
-      var event = function() {
-        done = true;
-      };
-      mainController.scRequest(event);
-      expect(done).to.be.true;
     });
   });
 

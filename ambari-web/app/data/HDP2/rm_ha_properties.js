@@ -22,9 +22,10 @@ module.exports =
     serviceName: 'MISC',
     displayName: 'MISC',
     configCategories: [
-      App.ServiceConfigCategory.create({ name: 'YARN', displayName: 'YARN'})
+      App.ServiceConfigCategory.create({ name: 'YARN', displayName: 'YARN'}),
+      App.ServiceConfigCategory.create({ name: 'HAWQ', displayName: 'HAWQ'})
     ],
-    sites: ['yarn-site'],
+    sites: ['yarn-site', 'hawq-site'],
     configs: [
     /**********************************************HDFS***************************************/
       {
@@ -159,6 +160,29 @@ module.exports =
         "value": "/yarn-leader-election",
         "category": "YARN",
         "filename": "yarn-site",
+        serviceName: 'MISC'
+      },
+    /**********************************************HAWQ***************************************/
+      {
+        "name": "yarn.resourcemanager.ha",
+        "displayName": "yarn.resourcemanager.ha",
+        "description": "Comma separated yarn resourcemanager host addresses with port",
+        "isReconfigurable": false,
+        "recommendedValue": "",
+        "value": "",
+        "category": "HAWQ",
+        "filename": "yarn-client",
+        serviceName: 'MISC'
+      },
+      {
+        "name": "yarn.resourcemanager.scheduler.ha",
+        "displayName": "yarn.resourcemanager.scheduler.ha",
+        "description": "Comma separated yarn resourcemanager scheduler addresses with port",
+        "isReconfigurable": false,
+        "recommendedValue": "",
+        "value": "",
+        "category": "HAWQ",
+        "filename": "yarn-client",
         serviceName: 'MISC'
       }
     ]

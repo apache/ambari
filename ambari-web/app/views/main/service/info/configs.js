@@ -28,10 +28,18 @@ App.MainServiceInfoConfigsView = Em.View.extend({
     App.router.get('mainController').isLoading.call(App.router.get('clusterController'), 'isConfigsPropertiesLoaded').done(function () {
       self.get('controller').loadStep();
     });
+    this.resetConfigTabSelection();
   },
 
   willDestroyElement: function() {
     this.get('controller').clearStep();
+  },
+
+  /**
+   * reset selection flag of tabs on entering Configs page
+   */
+  resetConfigTabSelection: function() {
+    App.Tab.find().filterProperty('serviceName', this.get('controller.content.serviceName')).setEach('isActive', false);
   },
 
   /**

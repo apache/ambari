@@ -24,7 +24,7 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
 
 /**
  * Enum that wraps the various type, text and failure messages for the checks
- * done for Rolling Upgrades.
+ * done for Stack Upgrades.
  */
 @SuppressWarnings("serial")
 public enum CheckDescription {

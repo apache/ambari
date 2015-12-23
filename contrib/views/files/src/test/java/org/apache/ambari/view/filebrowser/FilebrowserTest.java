@@ -143,7 +143,7 @@ public class FilebrowserTest{
     JSONObject responseObject = (JSONObject) listdir.getEntity();
     JSONArray statuses = (JSONArray) responseObject.get("files");
     System.out.println(statuses.size());
-    Response response2 = fileBrowserService.download().browse("/tmp/testUpload.tmp", false, httpHeaders, uriInfo);
+    Response response2 = fileBrowserService.download().browse("/tmp/testUpload.tmp", false, false, httpHeaders, uriInfo);
     Assert.assertEquals(200, response2.getStatus());
   }
 

@@ -41,10 +41,10 @@
           </span>
         {{/if}}
         {{#unless controller.editing.label.isEditing}}
-          {{#isAccessible ADMIN}}
+          {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
             <a {{action edit controller.editing.label target="controller"}} class="edit-description-button"><i
                 class="icon-pencil"></i></a>
-          {{/isAccessible}}
+          {{/isAuthorized}}
         {{/unless}}
       </div>
       {{! Alert Definition Name end }}
@@ -69,14 +69,14 @@
           <h4>{{t common.configuration}}</h4>
         </div>
         <div class="pull-right span5 row-fluid" style="padding:0 10px;">
-          {{#isAccessible ADMIN}}
+          {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
             {{#unless App.router.mainAlertDefinitionConfigsController.canEdit}}
               <a {{action editConfigs target="App.router.mainAlertDefinitionConfigsController"}}
                   class="pull-right edit-link">
                 {{t common.edit}}
               </a>
             {{/unless}}
-          {{/isAccessible}}
+          {{/isAuthorized}}
         </div>
       </div>
       {{view App.AlertDefinitionConfigsView contentBinding="view.controller.content" alertDefinitionTypeBinding="view.controller.content.type" canEdit=false}}
@@ -100,33 +100,23 @@
           <div class="span4 property-name">{{t alerts.table.state}}:</div>
           <div class="span8">
             {{#if controller.content.enabled}}
-              {{#isAccessible ADMIN}}
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span
                       class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.enabled.tooltip"}}>
                     {{view.enabledDisplay}}
                   </span>
                 </a>
-              {{/isAccessible}}
-              {{#isAccessible NON_ADMIN}}
-                <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  {{t alerts.table.state.enabled}}
-                </span>
-              {{/isAccessible}}
+              {{/isAuthorized}}
             {{else}}
-              {{#isAccessible ADMIN}}
+              {{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
                 <a href="#" {{action "toggleState" controller.content target="controller"}} {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span
                       class="enable-disable-button" {{translateAttr data-original-title="alerts.table.state.disabled.tooltip"}}>
                     {{view.disabledDisplay}}
                   </span>
                 </a>
-              {{/isAccessible}}
-              {{#isAccessible NON_ADMIN}}
-                <span {{bindAttr class="controller.content.enabled:alert-definition-enable:alert-definition-disable"}}>
-                  {{t alerts.table.state.disabled}}
-                </span>
-              {{/isAccessible}}
+              {{/isAuthorized}}
             {{/if}}
           </div>
         </div>

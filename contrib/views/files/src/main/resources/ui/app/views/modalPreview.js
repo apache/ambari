@@ -21,7 +21,7 @@ var App = require('app');
 App.ModalPreviewView = Em.View.extend({
   actions:{
     confirm:function (file) {
-      this.get('controller.controllers.files').send('confirmPreview', this.get('controller.file'));
+      this.get('controller.controllers.file').send('confirmPreview', this.get('controller.file'));
       this.$('.preview').modal('hide');
     },
     close:function () {

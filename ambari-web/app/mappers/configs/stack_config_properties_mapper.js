@@ -169,7 +169,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     config.category = uiConfigProperty && uiConfigProperty.category ? uiConfigProperty.category : App.config.getDefaultCategory(true, c.type);
 
     if (uiConfigProperty) {
-      config.index = uiConfigProperty.index || Infinity;
+      config.index = (uiConfigProperty.index !== undefined) ? uiConfigProperty.index : Infinity;
       if (uiConfigProperty.displayType) {
         c.property_value_attributes.type = uiConfigProperty.displayType;
         config.radioName = uiConfigProperty.radioName;

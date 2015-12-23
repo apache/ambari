@@ -49,9 +49,7 @@ App.ChartPieView = Em.View.extend({
     this.appendSvg();
   },
 
-  selector:function () {
-    return '#' + this.get('elementId');
-  }.property('elementId'),
+  selector: Em.computed.format('#{0}', 'elementId'),
 
   appendSvg:function () {
 

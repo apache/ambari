@@ -28,6 +28,10 @@ describe('App.HighAvailabilityProgressPopupController', function () {
     controller = App.HighAvailabilityProgressPopupController.create();
   });
 
+  after(function () {
+    controller.destroy();
+  });
+
   describe('#startTaskPolling', function () {
 
     beforeEach(function () {

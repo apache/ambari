@@ -81,12 +81,13 @@ public class AuthorizationHelper {
    * authorizations with the one indicated.
    *
    * @param resourceType          a resource type being acted upon
-   * @param resourceId            the resource id (relative to the resource type) being acted upon
+   * @param resourceId            the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorization the required authorization
    * @return true if authorized; otherwise false
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)
    */
-  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, RoleAuthorization requiredAuthorization) {
+  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, 
+                                     RoleAuthorization requiredAuthorization) {
     return isAuthorized(getAuthentication(), resourceType, resourceId, EnumSet.of(requiredAuthorization));
   }
 
@@ -96,12 +97,13 @@ public class AuthorizationHelper {
    * authorizations with one from the provided set of authorizations.
    *
    * @param resourceType           a resource type being acted upon
-   * @param resourceId             the resource id (relative to the resource type) being acted upon
+   * @param resourceId             the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorizations a set of requirements for which one match will allow authorization
    * @return true if authorized; otherwise false
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)
    */
-  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, Set<RoleAuthorization> requiredAuthorizations) {
+  public static boolean isAuthorized(ResourceType resourceType, Long resourceId, 
+                                     Set<RoleAuthorization> requiredAuthorizations) {
     return isAuthorized(getAuthentication(), resourceType, resourceId, requiredAuthorizations);
   }
 
@@ -109,15 +111,15 @@ public class AuthorizationHelper {
    * Determines if the specified authenticated user is authorized to perform an operation on the
    * specific resource by matching the authenticated user's authorizations with the one indicated.
    *
-   * @param authentication         the authenticated user and associated access privileges
+   * @param authentication        the authenticated user and associated access privileges
    * @param resourceType          a resource type being acted upon
-   * @param resourceId            the resource id (relative to the resource type) being acted upon
+   * @param resourceId            the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorization the required authorization
    * @return true if authorized; otherwise false
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)
    */
-  public static boolean isAuthorized(Authentication authentication, ResourceType resourceType, Long resourceId,
-                                     RoleAuthorization requiredAuthorization) {
+  public static boolean isAuthorized(Authentication authentication, ResourceType resourceType,
+                                     Long resourceId, RoleAuthorization requiredAuthorization) {
     return isAuthorized(authentication, resourceType, resourceId, EnumSet.of(requiredAuthorization));
   }
 
@@ -129,16 +131,14 @@ public class AuthorizationHelper {
    * The specified resource type is a high-level resource such as {@link ResourceType#AMBARI Ambari},
    * a {@link ResourceType#CLUSTER cluster}, or a {@link ResourceType#VIEW view}.
    * <p/>
-   * The specified resource id is the identifier of the relevant resource of the given resource type.
-   * If the resource is {@link ResourceType#AMBARI Ambari}, the identifier should be <code>null</code>,
-   * else for a {@link ResourceType#CLUSTER cluster} or a {@link ResourceType#VIEW view} the resource
-   * id should be a valid resource id or <code>null</code> to indicate any resource of the given type.
+   * The specified resource id is the (admin)resource id referenced by a specific resource instance
+   * such as a cluster or view.
    *
    * @param authentication         the authenticated user and associated access privileges
    * @param resourceType           a resource type being acted upon
-   * @param resourceId             the resource id (relative to the resource type) being acted upon
+   * @param resourceId             the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorizations a set of requirements for which one match will allow authorization
-   * @return true if authorized; otherwize false
+   * @return true if authorized; otherwise false
    */
   public static boolean isAuthorized(Authentication authentication, ResourceType resourceType,
                                      Long resourceId, Set<RoleAuthorization> requiredAuthorizations) {
@@ -157,15 +157,15 @@ public class AuthorizationHelper {
         ResourceType privilegeResourceType = ResourceType.translate(privilegeResource.getResourceType().getName());
         boolean resourceOK;
 
-        if ((resourceType == null) || (privilegeResourceType == null)){
-          resourceOK = true;
-        } else if (ResourceType.AMBARI == privilegeResourceType) {
+        if (ResourceType.AMBARI == privilegeResourceType) {
           // This resource type indicates administrative access
           resourceOK = true;
-        } else if (resourceType == privilegeResourceType) {
+        } else if (ResourceType.VIEW == privilegeResourceType) {
+          // For a VIEW USER.
+          resourceOK = true;
+        } else if ((resourceType == null) || (resourceType == privilegeResourceType)) {
           resourceOK = (resourceId == null) || resourceId.equals(privilegeResource.getId());
         } else {
-          // This is not an expected resource type, so skip this authority
           resourceOK = false;
         }
 
@@ -203,7 +203,7 @@ public class AuthorizationHelper {
    * If not authorized, an {@link AuthorizationException} will be thrown.
    *
    * @param resourceType           a resource type being acted upon
-   * @param resourceId             the resource id (relative to the resource type) being acted upon
+   * @param resourceId             the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorizations a set of requirements for which one match will allow authorization
    * @throws AuthorizationException if authorization is not granted
    * @see #isAuthorized(ResourceType, Long, Set)
@@ -226,7 +226,7 @@ public class AuthorizationHelper {
    *
    * @param authentication         the authenticated user and associated access privileges
    * @param resourceType           a resource type being acted upon
-   * @param resourceId             the resource id (relative to the resource type) being acted upon
+   * @param resourceId             the privilege resource id (or adminresource.id) of the relevant resource
    * @param requiredAuthorizations a set of requirements for which one match will allow authorization
    * @throws AuthorizationException if authorization is not granted
    * @see #isAuthorized(Authentication, ResourceType, Long, Set)

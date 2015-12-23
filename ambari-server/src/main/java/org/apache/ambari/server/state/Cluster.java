@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
 import org.apache.ambari.server.state.scheduler.RequestExecution;
 
@@ -53,6 +54,11 @@ public interface Cluster {
    * Set the Cluster Name
    */
   void setClusterName(String clusterName);
+
+  /**
+   * Gets the Cluster's resource ID
+   */
+  Long getResourceId();
 
   /**
    * Add a service to a cluster
@@ -404,10 +410,16 @@ public interface Cluster {
    */
   boolean isConfigTypeExists(String configType);
   /**
-   * Gets the desired configurations for the cluster.
+   * Gets the active desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */
   Map<String, DesiredConfig> getDesiredConfigs();
+
+  /**
+   * Gets all versions of the desired configurations for the cluster.
+   * @return a map of type-to-configuration information.
+   */
+  Map<String, Set<DesiredConfig>> getAllDesiredConfigVersions();
 
 
   /**
@@ -499,7 +511,7 @@ public interface Cluster {
    * @param id
    * @throws AmbariException
    */
-  void deleteConfigGroup(Long id) throws AmbariException;
+  void deleteConfigGroup(Long id) throws AmbariException, AuthorizationException;
 
   /**
    * Find all config groups associated with the give hostname
@@ -613,4 +625,10 @@ public interface Cluster {
    * Clear cluster caches and re-read data from database
    */
   void invalidateData();
+
+  /**
+   * Returns whether this cluster was provisioned by a Blueprint or not.
+   * @return true if the cluster was deployed with a Blueprint otherwise false.
+   */
+  boolean isBluePrintDeployed();
 }

@@ -28,19 +28,13 @@ App.showManageCredentialsPopup = function () {
     primary: Em.I18n.t('common.save'),
 
     thirdClass: 'pull-left btn-danger',
-    third: function() {
-      return this.get('formView.isRemovable') ?
-        Em.I18n.t('common.remove') :
-        null;
-    }.property('formView.isRemovable'),
+    third: Em.computed.ifThenElse('formView.isRemovable', Em.I18n.t('common.remove'), null),
 
     isCredentialsRemoved: false,
 
     disablePrimary: Em.computed.alias('formView.isSubmitDisabled'),
 
-    formView: function() {
-      return this.get('childViews').findProperty('viewName', 'manageCredentialsForm');
-    }.property(),
+    formView: Em.computed.findBy('childViews', 'viewName', 'manageCredentialsForm'),
 
     onPrimary: function() {
       var self = this;

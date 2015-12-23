@@ -18,11 +18,6 @@
 
 package org.apache.ambari.server.upgrade;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Connection;
@@ -40,7 +35,6 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.ConfigurationResponse;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -61,6 +55,12 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.Provider;
 import com.google.inject.persist.PersistService;
+
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.newCapture;
 
 
 /**
@@ -260,8 +260,16 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
         .once();
 
     Capture<ConfigurationRequest> captureCR = new Capture<ConfigurationRequest>();
-    expect(controller.createConfiguration(capture(captureCR)))
-        .andReturn(createNiceMock(ConfigurationResponse.class))
+    Capture<Cluster> clusterCapture = newCapture();
+    Capture<String> typeCapture = newCapture();
+    Capture<Map> propertiesCapture = newCapture();
+    Capture<String> tagCapture = newCapture();
+    Capture<Map> attributesCapture = newCapture();
+
+
+    expect(controller.createConfig(capture(clusterCapture), capture(typeCapture),
+        capture(propertiesCapture), capture(tagCapture), capture(attributesCapture) ))
+        .andReturn(createNiceMock(Config.class))
         .once();
 
     /* ****
@@ -274,10 +282,7 @@ public class UpgradeCatalog211Test extends EasyMockSupport {
 
     verifyAll();
 
-    ConfigurationRequest capturedCR = captureCR.getValue();
-    Assert.assertNotNull(capturedCR);
-
-    Map<String, String> capturedCRProperties = capturedCR.getProperties();
+    Map<String, String> capturedCRProperties = propertiesCapture.getValue();
     Assert.assertNotNull(capturedCRProperties);
     Assert.assertFalse(capturedCRProperties.containsKey("create_attributes_template"));
     Assert.assertTrue(capturedCRProperties.containsKey("ad_create_attributes_template"));

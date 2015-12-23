@@ -39,13 +39,9 @@ App.MainController = Em.Controller.extend({
     }
   }.observes('App.router.clusterController.clusterName, App.router.clusterInstallCompleted', 'App.router.clusterController.isLoaded'),
 
-  isClusterDataLoaded: function(){
-    return App.router.get('clusterController.isLoaded');
-  }.property('App.router.clusterController.isLoaded'),
+  isClusterDataLoaded: Em.computed.alias('App.router.clusterController.isLoaded'),
 
-  clusterDataLoadedPercent: function(){
-    return App.router.get('clusterController.clusterDataLoadedPercent');
-  }.property('App.router.clusterController.clusterDataLoadedPercent'),
+  clusterDataLoadedPercent: Em.computed.alias('App.router.clusterController.clusterDataLoadedPercent'),
   /**
    * run all processes and cluster's data loading
    */
@@ -121,37 +117,6 @@ App.MainController = Em.Controller.extend({
     }, App.pageReloadTime)
     );
   }.observes("App.router.location.lastSetURL", "App.clusterStatus.isInstalled"),
-
-  scRequest: function(request) {
-    return App.router.get('mainServiceController').get(request);
-  },
-
-  isAllServicesInstalled: function() {
-    return this.scRequest('isAllServicesInstalled');
-  }.property('App.router.mainServiceController.content.content.@each',
-  'App.router.mainServiceController.content.content.length'),
-
-  isStartAllDisabled: function() {
-    return this.scRequest('isStartAllDisabled');
-  }.property('App.router.mainServiceController.isStartStopAllClicked',
-  'App.router.mainServiceController.content.@each.healthStatus'),
-
-  isStopAllDisabled: function() {
-    return this.scRequest('isStopAllDisabled');
-  }.property('App.router.mainServiceController.isStartStopAllClicked',
-  'App.router.mainServiceController.content.@each.healthStatus'),
-
-  gotoAddService: function() {
-    App.router.get('mainServiceController').gotoAddService();
-  },
-
-  startAllService: function(event){
-    App.router.get('mainServiceController').startAllService(event);
-  },
-
-  stopAllService: function(event){
-    App.router.get('mainServiceController').stopAllService(event);
-  },
 
   /**
    * check server version and web client version
@@ -249,7 +214,9 @@ App.MainController = Em.Controller.extend({
               setInterval(function(){self.countDown();}, 1000)
             },
             countDown: function() {
-              this.set('remainTime', this.get('remainTime') - 1);
+              if (this.get('remainTime') > 0) {
+                this.set('remainTime', this.get('remainTime') - 1);
+              }
               if (this.get('remainTime') == 0) {
                 App.router.logOff({});
               }

@@ -34,7 +34,7 @@ describe('App.WizardStep4View', function () {
     afterEach(function () {
       App.get('router').set.restore();
     });
-    it('', function () {
+    it('router.transitionInProgress is set to false', function () {
       view.didInsertElement();
       expect(App.get('router').set.calledWith('transitionInProgress', false)).to.be.true;
     });

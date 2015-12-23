@@ -128,6 +128,16 @@ Ember.sum = function (a, b) {
 };
 
 /**
+ * Execute passed callback
+ *
+ * @param {Function} callback
+ * @returns {*}
+ */
+Ember.clb = function (callback) {
+  return callback();
+};
+
+/**
  *
  */
 Ember.RadioButton = Ember.Checkbox.extend({
@@ -216,4 +226,59 @@ Em.View.reopen({
 
 Ember.TextArea.reopen({
   attributeBindings: ['readonly']
+});
+
+
+Ember.Route.reopen({
+  /**
+   *  When you move to a new route by pressing the back or forward button, change url manually, click on link with url defined in href,
+   *  call Router.transitionTo or Router.route this method is called.
+   *  This method unites unroutePath, navigateAway and exit events to handle Route leaving in one place.
+   *  Also unlike the exit event it is possible to stop transition inside this handler.
+   *  To proceed transition just call callback..
+   *
+   * @param {Router}  router
+   * @param {Object|String} context context from transition or path from route
+   * @param {callback} callback should be called to proceed transition
+   */
+  exitRoute: function (router, context, callback) {
+    callback();
+  }
+});
+
+Ember.Router.reopen({
+
+  // reopen original transitionTo and route methods to add calling of exitRoute
+
+  transitionTo: function (router, context) {
+    var self = this;
+    var args = arguments;
+    var transitionTo = self._super;
+    var callback = function () {
+      transitionTo.apply(self, args);
+    };
+    if (!this.get('currentState.exitRoute')) {
+      callback();
+    } else {
+      this.get('currentState').exitRoute(this, context, callback);
+    }
+  },
+
+  route: function (path) {
+    var self = this;
+    var args = arguments;
+    var transitionTo = self._super;
+    var callback = function () {
+      self.get('location').setURL(path);
+      transitionTo.apply(self, args);
+    };
+    var realPath;
+    if (!this.get('currentState.exitRoute')) {
+      callback();
+    } else {
+      realPath = this.get('currentState').absoluteRoute(this);
+      this.get('location').setURL(realPath);
+      this.get('currentState').exitRoute(this, path, callback);
+    }
+  }
 });

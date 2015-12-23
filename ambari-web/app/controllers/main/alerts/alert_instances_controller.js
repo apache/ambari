@@ -242,9 +242,7 @@ App.MainAlertInstancesController = Em.Controller.extend({
          * Number of all critical and warning alert instances
          * @type {Boolean}
          */
-        filteredCount: function () {
-          return App.router.get('mainAlertDefinitionsController.unhealthyAlertInstancesCount');
-        }.property('alertsNumber'),
+        filteredCount: Em.computed.alias('App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount'),
 
         content: function () {
           return this.get('controller.unhealthyAlertInstances');

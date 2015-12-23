@@ -20,15 +20,21 @@
 var App = require('app');
 require('views/main/host');
 
+function getView() {
+  return App.MainHostView.create({
+    controller: App.MainHostController.create()
+  });
+}
+
 describe('App.MainHostView', function () {
 
   var view;
 
   beforeEach(function () {
-    view = App.MainHostView.create({
-      controller: App.MainHostController.create()
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'colPropAssoc', 'controller.colPropAssoc', 'array');
 
   describe('#didInsertElement', function () {
 

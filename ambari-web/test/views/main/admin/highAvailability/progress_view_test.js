@@ -36,7 +36,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
     afterEach(function () {
       view.get('controller').loadStep.restore();
     });
-    it("", function () {
+    it("loadStep is called once", function () {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
     });
@@ -119,7 +119,7 @@ describe('App.HighAvailabilityProgressPageView', function () {
       afterEach(function () {
         taskView.onStatus.restore();
       });
-      it("", function () {
+      it("onStatus is called once", function () {
         taskView.didInsertElement();
         expect(taskView.onStatus.calledOnce).to.be.true;
       });

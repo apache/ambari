@@ -36,6 +36,10 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
@@ -43,15 +47,19 @@ import org.apache.ambari.server.topology.SecurityConfiguration;
 import org.apache.ambari.server.topology.SecurityConfigurationFactory;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactory;
+import org.springframework.security.core.Authentication;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.PROVISION_ACTION_PROPERTY;
 
 
 /**
@@ -154,13 +162,54 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
    */
   ClusterResourceProvider(AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
-  }
 
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_ADD_DELETE_CLUSTERS));
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_CLUSTER);
+    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
+  }
 
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected Set<String> getPKPropertyIds() {
+    return pkPropertyIds;
+  }
+
+  /**
+   * {@inheritDoc}  Overridden to support configuration.
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
+
+    // extract to own method
+    baseUnsupported.remove("blueprint");
+    baseUnsupported.remove("host_groups");
+    baseUnsupported.remove("default_password");
+    baseUnsupported.remove("configurations");
+    baseUnsupported.remove("credentials");
+    baseUnsupported.remove("config_recommendation_strategy");
+    baseUnsupported.remove("provision_action");
+
+    return checkConfigPropertyIds(baseUnsupported, "Clusters");
+  }
+
+
+  // ----- AbstractAuthorizedResourceProvider ------------------------------------------------
+
+  @Override
+  protected boolean isAuthorizedToCreateResources(Authentication authentication, Request request) {
+    return AuthorizationHelper.isAuthorized(authentication, ResourceType.AMBARI, null, getRequiredCreateAuthorizations());
+  }
+
+  @Override
+  protected boolean isAuthorizedToDeleteResources(Authentication authentication, Predicate predicate) throws SystemException {
+    return AuthorizationHelper.isAuthorized(authentication, ResourceType.AMBARI, null, getRequiredDeleteAuthorizations());
+  }
+
+  @Override
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
              UnsupportedPropertyException,
              ResourceAlreadyExistsException,
@@ -194,9 +243,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
+    // Authorization checks are performed internally. If the user is not allowed to access a particular
+    // cluster, it should not show up in the responses.
     Set<ClusterResponse> responses = getResources(new Command<Set<ClusterResponse>>() {
       @Override
-      public Set<ClusterResponse> invoke() throws AmbariException {
+      public Set<ClusterResponse> invoke() throws AmbariException, AuthorizationException {
         return getManagementController().getClusters(requests);
       }
     });
@@ -208,10 +259,6 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
     }
 
     // Allow internal call to bypass permissions check.
-    Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
-    boolean ignorePermissions = requestInfoProperties == null ? false :
-        Boolean.valueOf(requestInfoProperties.get(GET_IGNORE_PERMISSIONS_PROPERTY_ID));
-
     for (ClusterResponse response : responses) {
 
       String clusterName = response.getClusterName();
@@ -235,15 +282,14 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
         LOG.debug("Adding ClusterResponse to resource"
             + ", clusterResponse=" + response.toString());
       }
-      if (ignorePermissions || includeCluster(clusterName, true)) {
-        resources.add(resource);
-      }
+
+      resources.add(resource);
     }
     return resources;
   }
 
   @Override
-  public RequestStatus updateResources(final Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(final Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ClusterRequest>   requests = new HashSet<ClusterRequest>();
@@ -253,14 +299,12 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
       Set<Map<String, Object>> propertyMaps = getPropertyMaps(requestPropertyMap, predicate);
       for (Map<String, Object> propertyMap : propertyMaps) {
         ClusterRequest clusterRequest = getRequest(propertyMap);
-        if (includeCluster(clusterRequest.getClusterName(), false)) {
-          requests.add(clusterRequest);
-        }
+        requests.add(clusterRequest);
       }
     }
     response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return getManagementController().updateClusters(requests, request.getRequestInfoProperties());
       }
     });
@@ -304,12 +348,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       final ClusterRequest clusterRequest = getRequest(propertyMap);
-      if (includeCluster(clusterRequest.getClusterName(), false)) {
         modifyResources(new Command<Void>() {
           @Override
           public Void invoke() throws AmbariException {
@@ -317,33 +360,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
             return null;
           }
         });
-      }
     }
     notifyDelete(Resource.Type.Cluster, predicate);
     return getRequestStatus(null);
-  }
-
-  @Override
-  protected Set<String> getPKPropertyIds() {
-    return pkPropertyIds;
-  }
-
-  /**
-   * {@inheritDoc}  Overridden to support configuration.
-   */
-  @Override
-  public Set<String> checkPropertyIds(Set<String> propertyIds) {
-    Set<String> baseUnsupported = super.checkPropertyIds(propertyIds);
-
-    // extract to own method
-    baseUnsupported.remove("blueprint");
-    baseUnsupported.remove("host_groups");
-    baseUnsupported.remove("default_password");
-    baseUnsupported.remove("configurations");
-    baseUnsupported.remove("credentials");
-    baseUnsupported.remove("config_recommendation_strategy");
-
-    return checkConfigPropertyIds(baseUnsupported, "Clusters");
   }
 
 
@@ -494,9 +513,9 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     String rawRequestBody = requestInfoProperties.get(Request.REQUEST_INFO_BODY_PROPERTY);
     Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
+    SecurityConfiguration securityConfiguration =
+      securityConfigurationFactory.createSecurityConfigurationFromRequest(rawBodyMap, false);
 
-    SecurityConfiguration securityConfiguration = securityConfigurationFactory.createSecurityConfigurationFromRequest
-      (rawBodyMap, false);
     ProvisionClusterRequest createClusterRequest;
     try {
       createClusterRequest = topologyRequestFactory.createProvisionClusterRequest(properties, securityConfiguration);
@@ -534,25 +553,11 @@ public class ClusterResourceProvider extends AbstractControllerResourceProvider 
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         getManagementController().createCluster(getRequest(properties));
         return null;
       }
     });
-  }
-
-  /**
-   * Determine whether or not the cluster resource identified
-   * by the given cluster name should be included based on the
-   * permissions granted to the current user.
-   *
-   * @param clusterName  the cluster name
-   * @param readOnly     indicate whether or not this is for a read only operation
-   *
-   * @return true if the cluster should be included based on the permissions of the current user
-   */
-  private boolean includeCluster(String clusterName, boolean readOnly) {
-    return getManagementController().getClusters().checkPermission(clusterName, readOnly);
   }
 
 }

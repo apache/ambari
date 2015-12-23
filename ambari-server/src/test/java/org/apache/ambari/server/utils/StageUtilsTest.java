@@ -17,8 +17,10 @@
  */
 package org.apache.ambari.server.utils;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -446,6 +448,12 @@ public class StageUtilsTest extends EasyMockSupport {
             return hbrsServiceComponentHosts.get((String) args[0]);
           }
         }).anyTimes();
+    Map<String, ServiceComponentHost> hbrsHosts = Maps.filterKeys(hbrsServiceComponentHosts, new Predicate<String>() {
+      @Override
+      public boolean apply(String s) {
+        return s.equals("h1");
+      }
+    });
     expect(hbrsComponent.getServiceComponentHosts()).andReturn(hbrsServiceComponentHosts).anyTimes();
     expect(hbrsComponent.isClientComponent()).andReturn(false).anyTimes();
 
@@ -585,6 +593,9 @@ public class StageUtilsTest extends EasyMockSupport {
     Set<String> serverHost = info.get(StageUtils.AMBARI_SERVER_HOST);
     assertEquals(1, serverHost.size());
     assertEquals(StageUtils.getHostName(), serverHost.iterator().next());
+
+    // check host role replacing by the projected topology
+    assertTrue(getDecompressedSet(info.get("hbase_rs_hosts")).contains(9));
 
     // Validate substitutions...
     info = StageUtils.substituteHostIndexes(info);

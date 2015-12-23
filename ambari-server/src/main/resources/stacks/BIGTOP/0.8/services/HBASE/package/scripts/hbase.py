@@ -29,19 +29,19 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   Directory( params.hbase_conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
-      recursive = True
+      create_parents = True
   )
 
   Directory (params.tmp_dir,
              owner = params.hbase_user,
-             recursive = True
+             create_parents = True
   )
 
   Directory (os.path.join(params.local_dir, "jars"),
              owner = params.hbase_user,
              group = params.user_group,
              mode=0775,
-             recursive = True
+             create_parents = True
   )
 
   XmlConfig( "hbase-site.xml",
@@ -100,12 +100,12 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
   if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
-      recursive = True
+      create_parents = True
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
-      recursive = True
+      create_parents = True
     )
 
   if (params.log4j_props != None):

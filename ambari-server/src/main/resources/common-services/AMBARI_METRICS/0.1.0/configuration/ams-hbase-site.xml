@@ -143,7 +143,7 @@
   </property>
   <property>
     <name>hbase.normalizer.period</name>
-    <value>3600000</value>
+    <value>600000</value>
     <description>Period in ms at which the region normalizer runs in the Master.</description>
   </property>
   <property>
@@ -187,6 +187,14 @@
     <value>307200000</value>
     <description>
       Size in bytes of pages cached during GROUP BY spilling. Default is 100Mb.
+    </description>
+  </property>
+  <property>
+    <name>hbase.hregion.max.filesize</name>
+    <value>4294967296</value>
+    <description>
+      Maximum HFile size. If the sum of the sizes of a region’s HFiles has grown
+      to exceed this value, the region is split in two. Default is 10Gb.
     </description>
   </property>
   <property>
@@ -316,9 +324,6 @@
       Set directory for Phoenix spill files. If possible set this to a
       different mount point from the one for hbase.rootdir in embedded mode.
     </description>
-    <value-attributes>
-      <type>directory</type>
-    </value-attributes>
   </property>
   <property>
     <name>phoenix.mutate.batchSize</name>
@@ -377,6 +382,10 @@
         <name>hbase.rootdir</name>
       </property>
     </depends-on>
+  </property>
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value>/ams-hbase-unsecure</value>
   </property>
 
 </configuration>

@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -47,6 +48,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -107,13 +112,20 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
                             MaintenanceStateHelper maintenanceStateHelper) {
     super(propertyIds, keyPropertyIds, managementController);
     this.maintenanceStateHelper = maintenanceStateHelper;
+
+
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.SERVICE_ADD_DELETE_SERVICES));
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+    setRequiredGetAuthorizations(RoleAuthorization.AUTHORIZATIONS_VIEW_SERVICE);
+    setRequiredUpdateAuthorizations(RoleAuthorization.AUTHORIZATIONS_UPDATE_CLUSTER);
   }
 
 
   // ----- ResourceProvider ------------------------------------------------
 
   @Override
-  public RequestStatus createResources(Request request)
+  protected RequestStatus createResourcesAuthorized(Request request)
       throws SystemException,
              UnsupportedPropertyException,
              ResourceAlreadyExistsException,
@@ -126,7 +138,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     createResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         createComponents(requests);
         return null;
       }
@@ -191,7 +203,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return updateComponents(requests, request.getRequestInfoProperties(), runSmokeTest);
       }
     });
@@ -202,7 +214,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<ServiceComponentRequest> requests = new HashSet<ServiceComponentRequest>();
@@ -211,7 +223,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       }
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
         return deleteComponents(requests);
       }
     });
@@ -249,7 +261,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
   // Create the components for the given requests.
   public synchronized void createComponents(
-      Set<ServiceComponentRequest> requests) throws AmbariException {
+      Set<ServiceComponentRequest> requests) throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -282,6 +294,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException(
             "Attempted to add a component to a cluster which doesn't exist:", e);
+      }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+        throw new AuthorizationException("The user is not authorized to create components");
       }
 
       if (request.getServiceName() == null
@@ -570,7 +586,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   // Update the components for the given requests.
   protected synchronized RequestStatusResponse updateComponents(Set<ServiceComponentRequest> requests,
                                                              Map<String, String> requestProperties, boolean runSmokeTest)
-      throws AmbariException {
+      throws AmbariException, AuthorizationException {
 
     if (requests.isEmpty()) {
       LOG.warn("Received an empty requests set");
@@ -723,6 +739,12 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
 
       State oldScState = sc.getDesiredState();
       if (newState != oldScState) {
+        // The if user is trying to start or stop the component, ensure authorization
+        if (((newState == State.INSTALLED) || (newState == State.STARTED)) &&
+            !AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_START_STOP)) {
+          throw new AuthorizationException("The authenticated user is not authorized to start or stop components of services");
+        }
+
         if (!State.isValidDesiredStateTransition(oldScState, newState)) {
           // FIXME throw correct error
           throw new AmbariException("Invalid transition for"
@@ -837,7 +859,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
         ignoredScHosts, runSmokeTest, false);
   }
 
-  protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException {
+  protected RequestStatusResponse deleteComponents(Set<ServiceComponentRequest> requests) throws AmbariException, AuthorizationException {
     AmbariManagementController controller = getManagementController();
     Clusters clusters = controller.getClusters();
     AmbariMetaInfo ambariMetaInfo = controller.getAmbariMetaInfo();
@@ -858,6 +880,10 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       } catch (ClusterNotFoundException e) {
         throw new ParentObjectNotFoundException(
               "Attempted to add a component to a cluster which doesn't exist:", e);
+      }
+
+      if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, cluster.getResourceId(), RoleAuthorization.SERVICE_ADD_DELETE_SERVICES)) {
+        throw new AuthorizationException("The user is not authorized to delete components");
       }
 
       if (request.getServiceName() == null || request.getServiceName().isEmpty()) {

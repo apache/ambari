@@ -31,6 +31,7 @@
   <properties>
     <ambari.version>2.0.0.0-SNAPSHOT</ambari.version>
     <ambari.dir>${project.parent.parent.basedir}</ambari.dir>
+    <hadoop.version>2.7.1</hadoop.version>
   </properties>
   <modules>
     <module>files</module>

@@ -77,7 +77,9 @@ import org.apache.ambari.server.orm.entities.ViewInstanceDataEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.ResourceType;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -98,10 +100,12 @@ import org.apache.ambari.view.validation.ValidationResult;
 import org.apache.ambari.view.validation.Validator;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * ViewRegistry tests.
@@ -225,6 +229,11 @@ public class ViewRegistryTest {
     reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
         privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo,
         clusters);
+  }
+
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   @Test
@@ -1236,24 +1245,14 @@ public class ViewRegistryTest {
   public void testIncludeDefinitionForAdmin() {
     ViewRegistry registry = ViewRegistry.getInstance();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
-    AmbariGrantedAuthority adminAuthority = createNiceMock(AmbariGrantedAuthority.class);
-    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
-    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
 
-    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-    authorities.add(adminAuthority);
+    replay(configuration);
 
-    securityHelper.getCurrentAuthorities();
-    EasyMock.expectLastCall().andReturn(authorities);
-    expect(adminAuthority.getPrivilegeEntity()).andReturn(privilegeEntity);
-    expect(privilegeEntity.getPermission()).andReturn(permissionEntity);
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION);
-
-    replay(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
 
     Assert.assertTrue(registry.includeDefinition(viewEntity));
 
-    verify(securityHelper, adminAuthority, privilegeEntity, permissionEntity, configuration);
+    verify(configuration);
   }
 
   @Test
@@ -1261,19 +1260,15 @@ public class ViewRegistryTest {
     ViewRegistry registry = ViewRegistry.getInstance();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
 
-    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
+    expect(viewEntity.getInstances()).andReturn(Collections.<ViewInstanceEntity>emptyList()).anyTimes();
 
-    Collection<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
+    replay(viewEntity, configuration);
 
-    securityHelper.getCurrentAuthorities();
-    EasyMock.expectLastCall().andReturn(authorities);
-    expect(viewEntity.getInstances()).andReturn(instances);
-
-    replay(securityHelper, viewEntity, configuration);
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser(1L));
 
     Assert.assertFalse(registry.includeDefinition(viewEntity));
 
-    verify(securityHelper, viewEntity, configuration);
+    verify(viewEntity, configuration);
   }
 
   @Test
@@ -1282,29 +1277,25 @@ public class ViewRegistryTest {
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     ViewInstanceEntity instanceEntity = createNiceMock(ViewInstanceEntity.class);
     ResourceEntity resourceEntity = createNiceMock(ResourceEntity.class);
-    AmbariGrantedAuthority viewUseAuthority = createNiceMock(AmbariGrantedAuthority.class);
-    PrivilegeEntity privilegeEntity = createNiceMock(PrivilegeEntity.class);
-    PermissionEntity permissionEntity = createNiceMock(PermissionEntity.class);
-
-    Collection<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
-    authorities.add(viewUseAuthority);
+    ResourceTypeEntity resourceTypeEntity = createNiceMock(ResourceTypeEntity.class);
 
     Collection<ViewInstanceEntity> instances = new ArrayList<ViewInstanceEntity>();
     instances.add(instanceEntity);
 
     expect(viewEntity.getInstances()).andReturn(instances);
     expect(instanceEntity.getResource()).andReturn(resourceEntity);
-    expect(viewUseAuthority.getPrivilegeEntity()).andReturn(privilegeEntity).anyTimes();
-    expect(privilegeEntity.getPermission()).andReturn(permissionEntity).anyTimes();
-    expect(privilegeEntity.getResource()).andReturn(resourceEntity).anyTimes();
-    expect(permissionEntity.getId()).andReturn(PermissionEntity.VIEW_USER_PERMISSION).anyTimes();
-    securityHelper.getCurrentAuthorities();
-    EasyMock.expectLastCall().andReturn(authorities).anyTimes();
-    replay(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity, configuration);
+    expect(resourceEntity.getId()).andReturn(54L).anyTimes();
+    expect(resourceEntity.getResourceType()).andReturn(resourceTypeEntity).anyTimes();
+    expect(resourceTypeEntity.getId()).andReturn(ResourceType.VIEW.getId()).anyTimes();
+    expect(resourceTypeEntity.getName()).andReturn(ResourceType.VIEW.name()).anyTimes();
+
+    replay(viewEntity, instanceEntity, resourceEntity, resourceTypeEntity, configuration);
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createViewUser(resourceEntity.getId()));
 
     Assert.assertTrue(registry.includeDefinition(viewEntity));
 
-    verify(securityHelper, viewEntity, instanceEntity, viewUseAuthority, privilegeEntity, permissionEntity, configuration);
+    verify(viewEntity, instanceEntity, resourceEntity, resourceTypeEntity, configuration);
   }
 
   @Test

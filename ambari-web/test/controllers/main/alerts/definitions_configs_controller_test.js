@@ -20,35 +20,35 @@ var App = require('app');
 
 var controller;
 
+function getController() {
+  return App.MainAlertDefinitionConfigsController.create({
+    allServices: ['service1', 'service2', 'service3'],
+    allComponents: ['component1', 'component2', 'component3'],
+    aggregateAlertNames: ['alertDefinitionName', 'alertDefinitionName2', 'alertDefinitionName3']
+  });
+}
+
+function getEmptyArray() {
+  return [];
+}
+
 describe('App.MainAlertDefinitionConfigsController', function () {
 
   beforeEach(function () {
-    controller = App.MainAlertDefinitionConfigsController.create({
-      allServices: ['service1', 'service2', 'service3'],
-      allComponents: ['component1', 'component2', 'component3'],
-      aggregateAlertNames: ['alertDefinitionName', 'alertDefinitionName2', 'alertDefinitionName3']
-    });
+    controller = getController();
   });
+
+  App.TestAliases.testAsComputedOr(getController(), 'hasErrors', ['someConfigIsInvalid', 'hasThresholdsError']);
 
   describe('#renderConfigs()', function () {
 
     beforeEach(function () {
       controller.set('content', Em.Object.create({}));
-      sinon.stub(controller, 'renderPortConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderMetricConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderWebConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderScriptConfigs', function () {
-        return [];
-      });
-      sinon.stub(controller, 'renderAggregateConfigs', function () {
-        return [];
-      });
+      sinon.stub(controller, 'renderPortConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderMetricConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderWebConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderScriptConfigs', getEmptyArray);
+      sinon.stub(controller, 'renderAggregateConfigs', getEmptyArray);
     });
 
     afterEach(function () {

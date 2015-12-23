@@ -227,7 +227,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       rangerKMSServerHostsArray = []
       for rangeKMSServerHost in rangerKMSServerHosts:
         rangerKMSServerHostsArray.append(rangeKMSServerHost["Hosts"]["host_name"])
-      keyserverHostsString = ",".join(rangerKMSServerHostsArray)
+      keyserverHostsString = ";".join(rangerKMSServerHostsArray)
       if "kms-env" in services["configurations"] and "kms_port" in services["configurations"]["kms-env"]["properties"]:
         keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
 

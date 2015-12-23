@@ -23,6 +23,10 @@ require('views/main/dashboard/widgets/namenode_rpc');
 require('views/main/dashboard/widgets/text_widget');
 require('views/main/dashboard/widget');
 
+function getView() {
+  return App.NameNodeRpcView.create({model_type:null});
+}
+
 describe('App.NameNodeRpcView', function() {
 
   var tests = [
@@ -103,5 +107,9 @@ describe('App.NameNodeRpcView', function() {
       });
     });
   });
+
+  App.TestAliases.testAsComputedGtProperties(getView(), 'isRed', 'data', 'thresh2');
+
+  App.TestAliases.testAsComputedLteProperties(getView(), 'isGreen', 'data', 'thresh1');
 
 });

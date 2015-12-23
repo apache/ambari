@@ -84,87 +84,98 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#getRequestData()", function () {
-    var mixinObject = mixinClass.create();
-    it("", function () {
-      var data = [
-        {
-          "name": "regionserver.Server.percentFilesLocal",
-          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-          "service_name": "HBASE",
-          "component_name": "HBASE_REGIONSERVER"
-        },
-        {
-          "name": "regionserver.Server.percentFilesLocal2",
-          "metric_path": "w2",
-          "service_name": "HBASE",
-          "component_name": "HBASE_REGIONSERVER"
-        },
-        {
-          "name": "regionserver.Server.percentFilesLocal",
-          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-          "service_name": "HBASE",
-          "component_name": "HBASE_REGIONSERVER",
-          "host_component_criteria": 'c1'
-        },
-        {
-          "name": "regionserver.Server.percentFilesLocal",
-          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-          "service_name": "HDFS",
-          "component_name": "DATANODE",
-          "host_component_criteria": 'c1'
-        }
-      ];
+    var data = [
+      {
+        "name": "regionserver.Server.percentFilesLocal",
+        "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+        "service_name": "HBASE",
+        "component_name": "HBASE_REGIONSERVER"
+      },
+      {
+        "name": "regionserver.Server.percentFilesLocal2",
+        "metric_path": "w2",
+        "service_name": "HBASE",
+        "component_name": "HBASE_REGIONSERVER"
+      },
+      {
+        "name": "regionserver.Server.percentFilesLocal",
+        "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+        "service_name": "HBASE",
+        "component_name": "HBASE_REGIONSERVER",
+        "host_component_criteria": 'c1'
+      },
+      {
+        "name": "regionserver.Server.percentFilesLocal",
+        "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+        "service_name": "HDFS",
+        "component_name": "DATANODE",
+        "host_component_criteria": 'c1'
+      }
+    ];
 
-      expect(JSON.stringify(mixinObject.getRequestData(data))).to.eql(JSON.stringify({
-        "HBASE_HBASE_REGIONSERVER": {
-          "name": "regionserver.Server.percentFilesLocal",
-          "service_name": "HBASE",
-          "component_name": "HBASE_REGIONSERVER",
-          "metric_paths": [
-            {
-              "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-              "metric_type": "POINT_IN_TIME",
-              "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
-              "context": {}
-            },
-            {
-              "metric_path": "w2",
-              "metric_type": "POINT_IN_TIME",
-              "id": "w2_POINT_IN_TIME",
-              "context": {}
-            }
-          ]
-        },
-        "HBASE_HBASE_REGIONSERVER_c1": {
-          "name": "regionserver.Server.percentFilesLocal",
-          "service_name": "HBASE",
-          "component_name": "HBASE_REGIONSERVER",
-          "host_component_criteria": "c1",
-          "metric_paths": [
-            {
-              "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-              "metric_type": "POINT_IN_TIME",
-              "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
-              "context": {}
-            }
-          ]
-        },
-        "HDFS_DATANODE_c1": {
-          "name": "regionserver.Server.percentFilesLocal",
-          "service_name": "HDFS",
-          "component_name": "DATANODE",
-          "host_component_criteria": "c1",
-          "metric_paths": [
-            {
-              "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
-              "metric_type": "POINT_IN_TIME",
-              "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
-              "context": {}
-            }
-          ]
-        }
-      }));
+    beforeEach(function () {
+      this.requestData = mixinClass.create().getRequestData(data);
     });
+
+    it('HBASE_HBASE_REGIONSERVER', function () {
+      var HBASE_HBASE_REGIONSERVER = {
+        "name": "regionserver.Server.percentFilesLocal",
+        "service_name": "HBASE",
+        "component_name": "HBASE_REGIONSERVER",
+        "metric_paths": [
+          {
+            "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+            "metric_type": "POINT_IN_TIME",
+            "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
+            "context": {}
+            },
+          {
+            "metric_path": "w2",
+            "metric_type": "POINT_IN_TIME",
+            "id": "w2_POINT_IN_TIME",
+            "context": {}
+            }
+          ]
+        };
+      expect(JSON.stringify(this.requestData['HBASE_HBASE_REGIONSERVER'])).to.equal(JSON.stringify(HBASE_HBASE_REGIONSERVER));
+    });
+
+    it('HBASE_HBASE_REGIONSERVER_c1', function () {
+      var HBASE_HBASE_REGIONSERVER_c1 = {
+        "name": "regionserver.Server.percentFilesLocal",
+        "service_name": "HBASE",
+        "component_name": "HBASE_REGIONSERVER",
+        "host_component_criteria": "c1",
+        "metric_paths": [
+          {
+            "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+            "metric_type": "POINT_IN_TIME",
+            "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
+            "context": {}
+          }
+        ]
+      };
+      expect(JSON.stringify(this.requestData['HBASE_HBASE_REGIONSERVER_c1'])).to.equal(JSON.stringify(HBASE_HBASE_REGIONSERVER_c1));
+    });
+
+    it('HDFS_DATANODE_c1', function () {
+      var HDFS_DATANODE_c1 = {
+        "name": "regionserver.Server.percentFilesLocal",
+        "service_name": "HDFS",
+        "component_name": "DATANODE",
+        "host_component_criteria": "c1",
+        "metric_paths": [
+          {
+            "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+            "metric_type": "POINT_IN_TIME",
+            "id": "metrics/hbase/regionserver/percentFilesLocal_POINT_IN_TIME",
+            "context": {}
+          }
+        ]
+      };
+      expect(JSON.stringify(this.requestData['HDFS_DATANODE_c1'])).to.equal(JSON.stringify(HDFS_DATANODE_c1));
+    });
+
   });
 
   describe("#getServiceComponentMetrics()", function () {
@@ -175,7 +186,7 @@ describe('App.WidgetMixin', function () {
     after(function () {
       App.ajax.send.restore();
     });
-    it("", function () {
+    it("valid request is sent", function () {
       var request = {
         service_name: 'S1',
         component_name: 'C1',
@@ -209,7 +220,7 @@ describe('App.WidgetMixin', function () {
 
   describe("#getMetricsSuccessCallback()", function () {
     var mixinObject = mixinClass.create();
-    it("", function () {
+    it("metric is mapped from provided path", function () {
       var data = {
         metrics: {
           "hbase": {
@@ -241,7 +252,7 @@ describe('App.WidgetMixin', function () {
       App.ajax.send.restore();
       mixinObject.computeHostComponentCriteria.restore();
     });
-    it("", function () {
+    it("valid request is sent", function () {
       var request = {
         component_name: 'C1',
         metric_paths: [
@@ -344,18 +355,20 @@ describe('App.WidgetMixin', function () {
 
   describe("#cloneWidget()", function () {
     var mixinObject = mixinClass.create();
-
+    var popup;
     before(function () {
       sinon.spy(App, 'showConfirmationPopup');
       sinon.stub(mixinObject, 'postWidgetDefinition', Em.K);
+      popup = mixinObject.cloneWidget();
     });
     after(function () {
       App.showConfirmationPopup.restore();
       mixinObject.postWidgetDefinition.restore();
     });
-    it("", function () {
-      var popup = mixinObject.cloneWidget();
+    it("popup is shown", function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+    it('postWidgetDefinition is called', function () {
       popup.onPrimary();
       expect(mixinObject.postWidgetDefinition.calledOnce).to.be.true;
     });
@@ -372,7 +385,7 @@ describe('App.WidgetMixin', function () {
       App.ajax.send.restore();
       mixinObject.collectWidgetData.restore();
     });
-    it("", function () {
+    it("valid request is sent", function () {
       mixinObject.postWidgetDefinition();
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'widgets.wizard.add',
@@ -415,7 +428,9 @@ describe('App.WidgetLoadAggregator', function () {
   });
 
   describe("#groupRequests()", function () {
-    it("", function () {
+    var result;
+
+    beforeEach(function () {
       var requests = [
         {
           startCallName: 'n1',
@@ -466,15 +481,31 @@ describe('App.WidgetLoadAggregator', function () {
           })
         }
       ];
-      var result = aggregator.groupRequests(requests);
+      result = aggregator.groupRequests(requests);
+    });
 
+    it("result['n1_C1'].subRequests.length", function () {
       expect(result['n1_C1'].subRequests.length).to.equal(1);
+    });
+    it("result['n1_C1'].data.metric_paths.length", function () {
       expect(result['n1_C1'].data.metric_paths.length).to.equal(1);
+    });
+    it("result['n1_C1_graph'].subRequests.length", function () {
       expect(result['n1_C1_graph'].subRequests.length).to.equal(1);
+    });
+    it("result['n1_C1_graph'].data.metric_paths.length", function () {
       expect(result['n1_C1_graph'].data.metric_paths.length).to.equal(1);
+    });
+    it("result['n2_C1'].subRequests.length", function () {
       expect(result['n2_C1'].subRequests.length).to.equal(1);
+    });
+    it("result['n2_C1'].data.metric_paths.length", function () {
       expect(result['n2_C1'].data.metric_paths.length).to.equal(1);
+    });
+    it("result['n1_C2'].subRequests.length", function () {
       expect(result['n1_C2'].subRequests.length).to.equal(1);
+    });
+    it("result['n1_C2'].data.metric_paths.length", function () {
       expect(result['n1_C2'].data.metric_paths.length).to.equal(1);
     });
   });

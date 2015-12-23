@@ -27,10 +27,22 @@ angular.module('ambariAdminConsole')
       // Refresh data for rendering
       $scope.permissionsEdit = permissions;
       $scope.permissions = angular.copy(permissions);
+      var orderedRoles = [
+        'CLUSTER.USER',
+        'SERVICE.OPERATOR',
+        'SERVICE.ADMINISTRATOR',
+        'CLUSTER.OPERATOR',
+        'CLUSTER.ADMINISTRATOR'
+      ];
+      var pms = [];
+      for (var key in orderedRoles) {
+        pms.push($scope.permissions[orderedRoles[key]]);
+      }
+      $scope.permissions = pms;
     })
     .catch(function(data) {
       Alert.error('Cannot load cluster data', data.data.message);
-    });;
+    });
   }
  
   reloadClusterData();

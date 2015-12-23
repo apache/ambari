@@ -29,7 +29,7 @@ describe('App.HighAvailabilityWizardStep8View', function () {
   });
 
   describe("#step8BodyText", function() {
-    it("", function() {
+    it("step8BodyText is formatted with dependent data", function() {
       view.set('controller.content.masterComponentHosts', [
         {
           component: 'NAMENODE',

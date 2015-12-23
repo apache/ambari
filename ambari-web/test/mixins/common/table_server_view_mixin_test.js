@@ -217,14 +217,16 @@ describe('App.MainConfigHistoryView', function() {
   describe("#updaterSuccessCb()", function () {
     beforeEach(function () {
       sinon.stub(view, 'propertyDidChange');
+      view.set('filteringComplete', false);
+      view.updaterSuccessCb();
     });
     afterEach(function () {
       view.propertyDidChange.restore();
     });
-    it("", function () {
-      view.set('filteringComplete', false);
-      view.updaterSuccessCb();
+    it('pageContent is forced to be recalculated', function () {
       expect(view.propertyDidChange.calledWith('pageContent')).to.be.true;
+    });
+    it('filteringComplete is updated', function () {
       expect(view.get('filteringComplete')).to.be.true;
     });
   });

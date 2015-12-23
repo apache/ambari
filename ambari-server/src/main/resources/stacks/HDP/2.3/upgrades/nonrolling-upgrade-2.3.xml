@@ -136,7 +136,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -316,6 +316,7 @@
         <component>ZKFC</component>
         <component>NAMENODE</component>
         <component>SECONDARY_NAMENODE</component>
+        <component>NFS_GATEWAY</component>
         <component>HDFS_CLIENT</component>
       </service>
     </group>
@@ -329,11 +330,10 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="HDFS_LEAFE_SAFEMODE" title="HDFS - Wait to leave Safemode">
+    <group xsi:type="cluster" name="HDFS_LEAVE_SAFEMODE" title="HDFS - Wait to leave Safemode">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <direction>UPGRADE</direction>
 
       <execute-stage service="HDFS" component="NAMENODE" title="Wait to leave Safemode">
         <task xsi:type="execute" hosts="all" summary="Wait for NameNode to leave Safemode">
@@ -437,6 +437,7 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 

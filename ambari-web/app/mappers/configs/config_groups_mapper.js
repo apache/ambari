@@ -67,9 +67,9 @@ App.configGroupsMapper = App.QuickDataMapper.create({
         json.items.forEach(function (configGroup) {
           if (configGroup.group_name != 'default') {
             if (mapFromVersions) {
-              configGroup.id = configGroup.service_name + configGroup.group_id;
+              configGroup.id = App.ServiceConfigGroup.groupId(configGroup.service_name, configGroup.group_name);
             } else {
-              configGroup.id = configGroup.ConfigGroup.tag + configGroup.ConfigGroup.id;
+              configGroup.id = App.ServiceConfigGroup.groupId(configGroup.ConfigGroup.tag, configGroup.ConfigGroup.group_name);
               configGroup.hosts = configGroup.ConfigGroup.hosts.mapProperty('host_name');
               configGroup.service_name = configGroup.ConfigGroup.tag;
             }
@@ -126,7 +126,7 @@ App.configGroupsMapper = App.QuickDataMapper.create({
   generateDefaultGroup: function (serviceName, hostNames, childConfigGroups) {
     return {
       id: App.ServiceConfigGroup.getParentConfigGroupId(serviceName),
-      config_group_id: '-1',
+      config_group_id: -1,
       name: 'Default',
       service_name: serviceName,
       description: 'Default cluster level ' + App.format.role(serviceName) + ' configuration',

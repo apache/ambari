@@ -40,9 +40,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
-  hasChangedDependencies: function() {
-    return App.get('isClusterSupportsEnhancedConfigs') && this.get('isControllerSupportsEnhancedConfigs') && this.get('changedProperties.length') > 0;
-  }.property('changedProperties.length'),
+  hasChangedDependencies: Em.computed.and('App.isClusterSupportsEnhancedConfigs', 'isControllerSupportsEnhancedConfigs', 'changedProperties.length'),
 
   /**
    * defines is block with changed dependent configs should be shown
@@ -183,7 +181,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       return p && p.concat(c);
     });
     var cleanDependencies = this.get('_dependentConfigValues').reject(function(item) {
-      if ('hadoop.proxyuser'.contains(Em.get(item, 'name'))) return false;
+      if (Em.get(item, 'propertyName').contains('hadoop.proxyuser')) return false;
       if (installedServices.contains(Em.get(item, 'serviceName'))) {
         var stackProperty = App.configsCollection.getConfigByName(item.propertyName, item.fileName);
         var parentConfigs = stackProperty && stackProperty.propertyDependsOn;
@@ -263,7 +261,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         configGroup = this.get('selectedConfigGroup');
       }
       var recommendations = this.get('hostGroups');
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
       delete recommendations.config_groups;
 
       var dataToSend = {
@@ -271,9 +268,15 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
-      if (changedConfigs) {
-        dataToSend.recommend = 'configuration-dependencies';
-        dataToSend.changed_configurations = changedConfigs;
+      var clearConfigsOnAddService = this.isConfigHasInitialState();
+      if (clearConfigsOnAddService) {
+        recommendations.blueprint.configurations = this.get('initialConfigValues');
+      } else {
+        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+        if (changedConfigs) {
+          dataToSend.recommend = 'configuration-dependencies';
+          dataToSend.changed_configurations = changedConfigs;
+        }
       }
       if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
         var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
@@ -287,7 +290,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           stackVersionUrl: App.get('stackVersionURL'),
           dataToSend: dataToSend,
           selectedConfigGroup: configGroup.get('isDefault') ? null : configGroup.get('name'),
-          initial: initial
+          initial: initial,
+          clearConfigsOnAddService: clearConfigsOnAddService
         },
         success: 'dependenciesSuccess',
         error: 'dependenciesError',
@@ -300,6 +304,46 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     } else {
       return null;
     }
+  },
+
+  /**
+   * Defines if there is any changes made by user.
+   * Check all properties except recommended properties from popup
+   *
+   * @returns {boolean}
+   */
+  isConfigHasInitialState: function() {
+    return !this.get('stepConfigs').filter(function(stepConfig) {
+      return stepConfig.get('changedConfigProperties').filter(function(c) {
+        return !this.get('changedProperties').map(function(changed) {
+          return App.config.configId(changed.propertyName, changed.fileName);
+        }).contains(App.config.configId(c.get('name'), c.get('filename')));
+      }, this).length;
+    }, this).length;
+  },
+
+
+  /**
+   * Set all config values to their default (initialValue)
+   */
+  clearConfigValues: function() {
+    this.get('stepConfigs').forEach(function(stepConfig) {
+      stepConfig.get('changedConfigProperties').forEach(function(c) {
+        var recommendedProperty = this.get('_dependentConfigValues').find(function(d) {
+          return App.config.configId(d.propertyName, d.fileName) == App.config.configId(c.get('name'), c.get('filename'));
+        });
+        if (recommendedProperty) {
+          var initialValue = recommendedProperty.value;
+          if (Em.isNone(initialValue)) {
+            stepConfig.get('configs').removeObject(c);
+          } else {
+            c.set('value', initialValue);
+            c.set('recommendedValue', initialValue);
+          }
+          this.get('_dependentConfigValues').removeObject(recommendedProperty);
+        }
+      }, this)
+    }, this);
   },
 
   /**
@@ -340,6 +384,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   dependenciesSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations, params.selectedConfigGroup);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
+    if (params.clearConfigsOnAddService) {
+      this.clearDependenciesForInstalledServices(this.get('installedServiceNames'), this.get('stepConfigs'));
+      this.clearConfigValues();
+    }
     if (!params.initial) {
       this.updateDependentConfigs();
     }
@@ -651,26 +699,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   },
 
   /**
-   * Add and remove dependencies based on recommendations
-   *
-   * @param {String[]} [serviceNames=undefined] - list of services to apply changes
-   */
-  addRemoveDependentConfigs: function(serviceNames) {
-    var self = this;
-    this.get('stepConfigs').forEach(function(serviceConfigs) {
-      if (serviceNames && !serviceNames.contains(serviceConfigs.get('serviceName'))) {
-        return;
-      }
-      var selectedGroup = self.getGroupForService(serviceConfigs.get('serviceName'));
-      if (selectedGroup) {
-        self._addRecommendedProperties(serviceConfigs, selectedGroup);
-        self._removeUnRecommendedProperties(serviceConfigs, selectedGroup);
-      }
-    });
-  },
-
-
-  /**
    * add configs that was recommended and wasn't present in stepConfigs
    * @param stepConfigs
    * @param selectedGroup
@@ -698,6 +726,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
             isRequired: stackProperty && stackProperty.isRequired !== false
           });
+          if (!Em.get(propertyToAdd, 'isDeleted')) {
+            addedProperty.set('initialValue', null);
+          }
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();
         } else {

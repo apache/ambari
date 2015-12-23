@@ -496,10 +496,10 @@
   </property>
   <property>
     <name>timeline.metrics.service.watcher.initial.delay</name>
-    <value>120</value>
+    <value>600</value>
     <description>
       The time to delay first watcher check execution
-      Default resolution is 2 minutes.
+      Default resolution is 10 minutes.
     </description>
   </property>
   <property>
@@ -517,6 +517,13 @@
     <description>
       The maximum time to wait for a single watcher check execution
       Default resolution is 30 seconds.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.hbase.fifo.compaction.enabled</name>
+    <value>true</value>
+    <description>
+      Enable Compaction policy for lower for Precision and Minute aggregate tables.
     </description>
   </property>
 

@@ -27,31 +27,6 @@
       <comment>Comprehensive security for Hadoop</comment>
       <version>0.5.0.2.3</version>
 
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>ranger_2_3_*-admin</name>
-            </package>
-            <package>
-              <name>ranger_2_3_*-usersync</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-2-3-.*-admin</name>
-            </package>
-            <package>
-              <name>ranger-2-3-.*-usersync</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
       <themes>
         <theme>
           <fileName>theme_version_2.json</fileName>
@@ -64,6 +39,12 @@
         <config-type>ranger-ugsync-site</config-type>
       </configuration-dependencies>
 
+      <quickLinksConfigurations>
+        <quickLinksConfiguration>
+          <fileName>quicklinks.json</fileName>
+          <default>true</default>
+        </quickLinksConfiguration>
+      </quickLinksConfigurations>
     </service>
   </services>
 </metainfo>

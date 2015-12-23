@@ -36,9 +36,7 @@ App.ManageCredentialsFormView = Em.View.extend({
    * Status of persistent storage. Returns <code>true</code> if persistent storage is available.
    * @type {boolean}
    */
-  storePersisted: function() {
-    return App.get('isCredentialStorePersistent');
-  }.property('App.isCredentialStorePersistent'),
+  storePersisted: Em.computed.alias('App.isCredentialStorePersistent'),
 
   /**
    * Disable checkbox if persistent storage not available

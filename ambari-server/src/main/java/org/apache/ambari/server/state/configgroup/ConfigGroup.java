@@ -152,6 +152,9 @@ public interface ConfigGroup {
    */
   public void removeHost(Long hostId) throws AmbariException;
 
+  /**
+   * Name of service which config group is wired to
+   */
   String getServiceName();
 
   void setServiceName(String serviceName);

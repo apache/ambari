@@ -160,12 +160,12 @@ class StormUpgrade(Script):
     # Delete from local directory
     if os.path.isdir(storm_local_directory):
       Logger.info("Deleting storm local directory, {0}".format(storm_local_directory))
-      Directory(storm_local_directory, action="delete", recursive=True)
+      Directory(storm_local_directory, action="delete", create_parents = True)
 
     # Recreate storm local directory
     Logger.info("Recreating storm local directory, {0}".format(storm_local_directory))
     Directory(storm_local_directory, mode=0755, owner=params.storm_user,
-      group=params.user_group, recursive=True)
+      group=params.user_group, create_parents = True)
 
     # The file doesn't exist, so create it
     Logger.info("Saving marker file to {0} with contents: {1}".format(marker_file, str(json_map)))

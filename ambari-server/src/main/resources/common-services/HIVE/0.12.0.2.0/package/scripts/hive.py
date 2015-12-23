@@ -240,7 +240,7 @@ def hive(name=None):
 
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner='root',
             group='root'
             )
@@ -308,7 +308,7 @@ def fill_conf_dir(component_conf_dir):
   Directory(component_conf_dir,
             owner=params.hive_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
   XmlConfig("mapred-site.xml",
@@ -359,7 +359,7 @@ def crt_directory(name):
   import params
 
   Directory(name,
-            recursive=True,
+            create_parents = True,
             cd_access='a',
             owner=params.hive_user,
             group=params.user_group,
@@ -398,7 +398,7 @@ def jdbc_connector():
       Execute(format("yes | {sudo} cp {jars_path_in_archive} {hive_lib}"))
 
       Directory(params.jdbc_libs_dir,
-                recursive=True)
+                create_parents = True)
 
       Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
 

@@ -34,7 +34,8 @@ App.MainServiceItemView = Em.View.extend({
     'NAMENODE': ['DECOMMISSION', 'REBALANCEHDFS'],
     'RESOURCEMANAGER': ['DECOMMISSION', 'REFRESHQUEUES'],
     'HBASE_MASTER': ['DECOMMISSION'],
-    'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP']
+    'KNOX_GATEWAY': ['STARTDEMOLDAP','STOPDEMOLDAP'],
+    'HAWQMASTER': ['IMMEDIATE_STOP_CLUSTER']
   },
 
    addActionMap: function() {
@@ -150,7 +151,7 @@ App.MainServiceItemView = Em.View.extend({
           disabled: App.allHostNames.length === App.HostComponent.find().filterProperty('componentName', master).mapProperty('hostName').length
         }));
       });
-      if (service.get('serviceTypes').contains('HA_MODE')) {
+      if (service.get('serviceTypes').contains('HA_MODE') && App.isAuthorized('SERVICE.ENABLE_HA')) {
         switch (service.get('serviceName')) {
           case 'HDFS':
             options.push(actionMap.TOGGLE_NN_HA);
@@ -184,6 +185,23 @@ App.MainServiceItemView = Em.View.extend({
           }
         });
       }
+
+      var hawqMasterComponent = App.StackServiceComponent.find().findProperty('componentName','HAWQMASTER');
+      if (serviceName === 'HAWQ' && hawqMasterComponent) {
+        var hawqMasterCustomCommands = hawqMasterComponent.get('customCommands');
+        customCommandToStopCluster = 'IMMEDIATE_STOP_CLUSTER';
+        if (hawqMasterCustomCommands && hawqMasterCustomCommands.contains(customCommandToStopCluster)) {
+        options.push(self.createOption(actionMap.IMMEDIATE_STOP_CLUSTER, {
+          label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+          context: {
+            label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+            service: hawqMasterComponent.get('serviceName'),
+            component: hawqMasterComponent.get('componentName'),
+            command: customCommandToStopCluster
+          }
+        })) };
+      }
+
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
         if (App.get('components.addableToHost').contains(item.component)) {
           item.action = 'add' + item.component;
@@ -249,7 +267,7 @@ App.MainServiceItemView = Em.View.extend({
   }.property('maintenance'),
 
   hasConfigTab: function() {
-    return !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
+    return App.isAuthorized('CLUSTER.VIEW_CONFIGS') && !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
   hasHeatmapTab: function() {

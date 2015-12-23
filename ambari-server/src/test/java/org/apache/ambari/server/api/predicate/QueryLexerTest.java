@@ -26,7 +26,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * QueryLexer unit tests
@@ -408,5 +410,4 @@ public class QueryLexerTest {
     QueryLexer lexer = new QueryLexer();
     lexer.tokens("StackConfigurations/property_type.matches((.*USER.*)|(.*GROUP.*)|StackConfigurations/property_type.matches(.*GROUP.*)");
   }
-
 }

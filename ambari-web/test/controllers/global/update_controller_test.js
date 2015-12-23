@@ -28,6 +28,10 @@ describe('App.UpdateController', function () {
     updateServiceMetric: function(){}
   });
 
+  App.TestAliases.testAsComputedAlias(App.UpdateController.create(), 'clusterName', 'App.router.clusterController.clusterName', 'string');
+
+  App.TestAliases.testAsComputedAnd(App.UpdateController.create(), 'updateAlertInstances', ['isWorking', '!App.router.mainAlertInstancesController.isUpdating']);
+
   describe('#getUrl()', function () {
 
     it('testMode = true', function () {
@@ -251,7 +255,7 @@ describe('App.UpdateController', function () {
       App.get.restore();
       controller.computeParameters.restore();
     });
-    it("", function () {
+    it("valid params are added", function () {
       expect(controller.addParamsToHostsUrl([], [], 'url')).to.equal('mock/clusters/mockurl&params&params');
     });
   });
@@ -288,7 +292,7 @@ describe('App.UpdateController', function () {
     afterEach(function () {
       App.hostsMapper.setMetrics.restore();
     });
-    it("", function () {
+    it("setMetrics called with valid arguments", function () {
       controller.loadHostsMetricSuccessCallback({});
       expect(App.hostsMapper.setMetrics.calledWith({})).to.be.true;
     });
@@ -308,7 +312,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'stackUpgrade',
-          parentStateName: null,
+          parentStateName: 'admin',
           wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
@@ -317,7 +321,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           wizardIsNotFinished: true,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 1,
@@ -326,7 +330,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           wizardIsNotFinished: false,
           isLoadUpgradeDataPending: false,
           loadUpgradeDataCallCount: 0,
@@ -335,7 +339,7 @@ describe('App.UpdateController', function () {
         },
         {
           currentStateName: 'versions',
-          parentStateName: null,
+          parentStateName: 'admin',
           wizardIsNotFinished: true,
           isLoadUpgradeDataPending: true,
           loadUpgradeDataCallCount: 0,
@@ -426,7 +430,9 @@ describe('App.UpdateController', function () {
         appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
           loadUpgradeData: mock.loadUpgradeData,
           isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-        })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished);
+        })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
+          .withArgs('router.currentState.name').returns(item.currentStateName)
+          .withArgs('router.currentState.parentState.name').returns(item.parentStateName);;
         controller.updateUpgradeState(mock.callback);
         expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
         expect(mock.callback.callCount).to.equal(item.callbackCallCount);

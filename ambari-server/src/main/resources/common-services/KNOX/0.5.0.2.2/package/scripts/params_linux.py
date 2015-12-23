@@ -25,6 +25,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from status_params import *
@@ -65,8 +66,6 @@ if stack_name and stack_name.upper() == "HDP":
     knox_data_dir = format('/usr/hdp/{version}/knox/data')
     Logger.info(format("Detected HDP with stack version {version}, will use knox_data_dir = {knox_data_dir}"))
 
-
-knox_logs_dir = '/var/log/knox'
 
 knox_master_secret_path = format('{knox_data_dir}/security/master')
 knox_cert_store_path = format('{knox_data_dir}/security/keystores/gateway.jks')

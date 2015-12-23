@@ -139,13 +139,17 @@ App.ConfigsComparator = Em.Mixin.create({
 
     if (compareNonDefaultVersions) {
       allConfigs.forEach(function (serviceConfig) {
-        this.setCompareConfigs(serviceConfig, serviceVersionMap, compareVersionNumber, this.get('selectedVersion'));
+        if (Em.get(serviceConfig, 'isRequiredByAgent') !== false) {
+          this.setCompareConfigs(serviceConfig, serviceVersionMap, compareVersionNumber, this.get('selectedVersion'));
+        }
       }, this);
     } else {
       allConfigs.forEach(function (serviceConfig) {
-        var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion').get('version')];
-        var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
-        this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
+        if (Em.get(serviceConfig, 'isRequiredByAgent') !== false) {
+          var serviceCfgVersionMap = serviceVersionMap[this.get('compareServiceVersion').get('version')];
+          var compareConfig = serviceCfgVersionMap[serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
+          this.setCompareDefaultGroupConfig(serviceConfig, compareConfig);
+        }
       }, this);
     }
   },
@@ -310,7 +314,7 @@ App.ConfigsComparator = Em.Mixin.create({
       isOverridable: false,
       isReconfigurable: false,
       isRequired: false,
-      isRequiredByAgent: false,
+      isRequiredByAgent: true,
       isSecureConfig: false,
       isUserProperty: true,
       isVisible: true,

@@ -72,9 +72,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * True if Kerberos is installed on the cluster and the kdc_type on the server is set to "none"
    * @type {Boolean}
    */
-  isManualKerberos: function () {
-    return App.get('router.mainAdminKerberosController.kdc_type') === 'none';
-  }.property('App.router.mainAdminKerberosController.kdc_type'),
+  isManualKerberos: Em.computed.equal('App.router.mainAdminKerberosController.kdc_type', 'none'),
 
   showDownloadCsv: function () {
     return !!App.get('router.mainAdminKerberosController.kdc_type')

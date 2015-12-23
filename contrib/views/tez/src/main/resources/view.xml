@@ -42,6 +42,10 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <service-class>org.apache.ambari.view.tez.rest.ViewStatusResource</service-class>
   </resource>
   <resource>
+    <name>rmredirect</name>
+    <service-class>org.apache.ambari.view.tez.rest.RMRedirectResource</service-class>
+  </resource>
+  <resource>
     <name>rmproxy</name>
     <service-class>org.apache.ambari.view.tez.rest.RMProxyResource</service-class>
   </resource>

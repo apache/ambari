@@ -51,6 +51,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   public static final Set<String> healthyStates = Collections.singleton("STARTED");
   protected final String hostNamePropertyId;
   private final MetricHostProvider metricHostProvider;
+  private final String clusterNamePropertyId;
 
   /**
    * Executor service is shared between all childs of current class
@@ -78,10 +79,12 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
    */
   public ThreadPoolEnabledPropertyProvider(Map<String, Map<String, PropertyInfo>> componentMetrics,
                                            String hostNamePropertyId,
-                                           MetricHostProvider metricHostProvider) {
+                                           MetricHostProvider metricHostProvider,
+                                           String clusterNamePropertyId) {
     super(componentMetrics);
     this.hostNamePropertyId = hostNamePropertyId;
     this.metricHostProvider = metricHostProvider;
+    this.clusterNamePropertyId = clusterNamePropertyId;
   }
 
   // ----- Thread pool -------------------------------------------------------
@@ -117,6 +120,9 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   public Set<Resource> populateResources(Set<Resource> resources, Request request, Predicate predicate)
       throws SystemException {
 
+    if(!checkAuthorizationForMetrics(resources, clusterNamePropertyId)) {
+      return resources;
+    }
     // Get a valid ticket for the request.
     Ticket ticket = new Ticket();
 

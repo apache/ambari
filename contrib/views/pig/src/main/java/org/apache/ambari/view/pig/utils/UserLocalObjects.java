@@ -21,7 +21,7 @@ package org.apache.ambari.view.pig.utils;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.pig.templeton.client.TempletonApi;
 import org.apache.ambari.view.pig.templeton.client.TempletonApiFactory;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsApiException;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
@@ -35,15 +35,15 @@ public class UserLocalObjects {
   /**
    * HdfsApi user-local instance
    */
-  private static ViewUserLocal<HdfsApi> hdfsApi;
+  private static UserLocal<HdfsApi> hdfsApi;
 
   /**
    * TempletonApi user-local instance
    */
-  private static ViewUserLocal<TempletonApi> templetonApi;
+  private static UserLocal<TempletonApi> templetonApi;
 
   static {
-    templetonApi = new ViewUserLocal<TempletonApi>(TempletonApi.class) {
+    templetonApi = new UserLocal<TempletonApi>(TempletonApi.class) {
       @Override
       protected synchronized TempletonApi initialValue(ViewContext context) {
         TempletonApiFactory templetonApiFactory = new TempletonApiFactory(context);
@@ -51,7 +51,7 @@ public class UserLocalObjects {
       }
     };
 
-    hdfsApi = new ViewUserLocal<HdfsApi>(HdfsApi.class) {
+    hdfsApi = new UserLocal<HdfsApi>(HdfsApi.class) {
       @Override
       protected synchronized HdfsApi initialValue(ViewContext context) {
         try {

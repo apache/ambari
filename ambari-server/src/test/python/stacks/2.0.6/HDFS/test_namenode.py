@@ -60,7 +60,7 @@ class TestNamenode(RMFTestCase):
                               user = 'hdfs',
                               )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -74,11 +74,11 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -89,7 +89,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6405.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -173,7 +173,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -187,11 +187,11 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -202,7 +202,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -299,7 +299,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -313,11 +313,11 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -331,7 +331,7 @@ class TestNamenode(RMFTestCase):
                               user='hdfs',
                               )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -412,11 +412,11 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -426,8 +426,8 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -509,11 +509,11 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -523,8 +523,8 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -609,11 +609,11 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -626,8 +626,8 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
         user = 'hdfs',
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -701,7 +701,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode/namenode-formatted/',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/dfs.exclude',
                               owner = 'hdfs',
@@ -715,11 +715,11 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -729,8 +729,8 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -817,11 +817,11 @@ class TestNamenode(RMFTestCase):
     # command is run before the namenode launches
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
         action = ['delete'],
@@ -831,8 +831,8 @@ class TestNamenode(RMFTestCase):
         environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -927,11 +927,11 @@ class TestNamenode(RMFTestCase):
     # command is run before the namenode launches
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
                               owner = 'hdfs',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid',
                               action = ['delete'],
@@ -941,8 +941,8 @@ class TestNamenode(RMFTestCase):
                               environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
                               not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
                               )
-    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://ns1 -safemode get | grep 'Safe mode is OFF'",
-                              tries=180,
+    self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
+                              tries=65,
                               try_sleep=10,
                               user="hdfs",
                               logoutput=True
@@ -1089,10 +1089,10 @@ class TestNamenode(RMFTestCase):
 
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -1103,7 +1103,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -1134,17 +1134,17 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
         to = '/usr/lib/hadoop/lib/libsnappy.so',
@@ -1155,7 +1155,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/security/limits.d/hdfs.conf',
                               content = Template('hdfs.conf.j2'),
@@ -1186,7 +1186,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namenode',
                               owner = 'hdfs',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
@@ -1230,6 +1230,9 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', rebalance_cmd,
                               logoutput = False,
                               on_new_line = FunctionMock('handle_new_line'),
+                              )
+    self.assertResourceCalled('File', ccache_path,
+                              action = ['delete'],
                               )
     self.assertNoMoreResources()
 
@@ -1423,6 +1426,42 @@ class TestNamenode(RMFTestCase):
     self.assertTrue(len(calls) >= 1)
     self.assertTrue(calls[0].startsWith("conf-select create-conf-dir --package hadoop --stack-version 2.3.2.0-2844 --conf-version 0"))
 
+
+  @patch("hdfs_namenode.is_active_namenode")
+  @patch("resource_management.libraries.functions.setup_ranger_plugin_xml.setup_ranger_plugin")
+  @patch("utils.get_namenode_states")
+  def test_upgrade_restart_eu_with_ranger(self, get_namenode_states_mock, setup_ranger_plugin_mock, is_active_nn_mock):
+    is_active_nn_mock.return_value = True
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_eu.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.4.0-1111'
+    json_content['commandParams']['version'] = version
+
+    active_namenodes = [('nn1', 'c6401.ambari.apache.org:50070')]
+    standby_namenodes = [('nn2', 'c6402.ambari.apache.org:50070')]
+    unknown_namenodes = []
+
+    mocks_dict = {}
+    get_namenode_states_mock.return_value = active_namenodes, standby_namenodes, unknown_namenodes
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "start",
+                       command_args=["nonrolling"],
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None, ''), (0, None)],
+                       mocks_dict=mocks_dict)
+
+    self.assertTrue(setup_ranger_plugin_mock.called)
+
+    self.assertResourceCalledByIndex(7, 'Execute',
+      ('mv', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh', '/usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh.bak'),
+      only_if='test -f /usr/hdp/2.3.4.0-1111/hadoop/conf/set-hdfs-plugin-env.sh',
+      sudo=True)
+
   def test_pre_upgrade_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -1437,7 +1476,7 @@ class TestNamenode(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-hdfs-namenode', version), sudo=True)
-    self.assertNoMoreResources()
+
 
   @patch("resource_management.core.shell.call")
   def test_pre_upgrade_restart_23(self, call_mock):
@@ -1469,11 +1508,28 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -report -live',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -report -live',
                               user='hdfs',
                               tries=60,
                               try_sleep=10
                               )
+    self.assertNoMoreResources()
+
+  def test_post_upgrade_ha_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "post_upgrade_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -report -live',
+                              user='hdfs',
+                              tries=60,
+                              try_sleep=10
+    )
     self.assertNoMoreResources()
 
   def test_prepare_rolling_upgrade__upgrade(self):
@@ -1493,12 +1549,37 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
       logoutput = True, user = 'hdfs')
     
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade prepare',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade prepare',
       logoutput = True, user = 'hdfs')
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
       logoutput = True, user = 'hdfs')
     
+    self.assertNoMoreResources()
+
+  def test_prepare_rolling_upgrade__upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_secured.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content['commandParams']['upgrade_direction'] = 'upgrade'
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "prepare_rolling_upgrade",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
+
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade prepare',
+                              logoutput = True, user = 'hdfs')
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True, user = 'hdfs')
+
     self.assertNoMoreResources()
   
 
@@ -1538,15 +1619,40 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade finalize',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade finalize',
                               logoutput = True,
                               user = 'hdfs',
                               )
-    self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade query',
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertNoMoreResources()
+
+  def test_finalize_ha_rolling_upgrade(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/ha_default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "finalize_rolling_upgrade",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade finalize',
+                              logoutput = True,
+                              user = 'hdfs',
+                              )
+    self.assertResourceCalled('Execute', 'hdfs dfsadmin -fs hdfs://ns1 -rollingUpgrade query',
                               logoutput = True,
                               user = 'hdfs',
                               )
@@ -1584,6 +1690,7 @@ class TestNamenode(RMFTestCase):
     del json_content['commandParams']['version']
     json_content['hostLevelParams']['stack_name'] = 'HDP'
     json_content['hostLevelParams']['stack_version'] = '2.2'
+    json_content['commandParams']['version'] = version
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
@@ -1596,9 +1703,9 @@ class TestNamenode(RMFTestCase):
                        mocks_dict = mocks_dict)
     import sys
     self.assertEquals("/usr/hdp/current/hadoop-client/conf", sys.modules["params"].hadoop_conf_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/libexec", sys.modules["params"].hadoop_libexec_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/bin", sys.modules["params"].hadoop_bin_dir)
-    self.assertEquals("/usr/hdp/current/hadoop-client/sbin", sys.modules["params"].hadoop_bin)
+    self.assertEquals("/usr/hdp/{0}/hadoop/libexec".format(version), sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/bin".format(version), sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/hdp/{0}/hadoop/sbin".format(version), sys.modules["params"].hadoop_bin)
 
   @patch.object(shell, "call")
   def test_pre_upgrade_restart_23_params(self, call_mock):

@@ -418,7 +418,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner='hive',
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
     )
 
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
@@ -468,7 +468,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content=Template('hive.conf.j2'),
@@ -499,21 +499,21 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner='hive',
                               mode=0755,
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
 
@@ -601,7 +601,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/hive/conf',
                               owner='hive',
                               group='hadoop',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
@@ -650,7 +650,7 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
                               owner='root',
                               group='root',
-                              recursive=True,
+                              create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
                               content=Template('hive.conf.j2'),
@@ -681,21 +681,21 @@ class TestHiveServer(RMFTestCase):
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner='hive',
                               group='hadoop',
                               mode=0755,
-                              recursive=True,
+                              create_parents = True,
                               cd_access='a',
     )
 
@@ -931,11 +931,13 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
     )
     self.assertNoMoreResources()
 
+  @patch("os.path.exists")
   @patch("resource_management.core.shell.call")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
-  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock, call_mock):
+  def test_pre_upgrade_restart_23(self, copy_to_hdfs_mock, call_mock, os_path__exists_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    os_path__exists_mock.return_value = False
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'
@@ -952,6 +954,7 @@ From source with checksum 150f554beae04f76f814f59549dead8b"""
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/hive/conf'), to='/usr/hdp/current/hive-client/conf')
     self.assertResourceCalled('Execute',
 
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hive-server2', version), sudo=True,)

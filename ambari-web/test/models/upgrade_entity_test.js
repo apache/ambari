@@ -19,12 +19,18 @@
 var App = require('app');
 require('models/upgrade_entity');
 
+function getModel() {
+  return App.upgradeEntity.create();
+}
+
 describe('App.upgradeEntity', function () {
   var model;
 
   beforeEach(function () {
-    model = App.upgradeEntity.create();
+    model = getModel();
   });
+
+  App.TestAliases.testAsComputedNotEqual(getModel(), 'isVisible', 'status', 'PENDING');
 
   describe("#isRunning", function() {
     it("status IN_PROGRESS", function() {
@@ -144,10 +150,19 @@ describe('App.upgradeEntity', function () {
       {
         input: {
           type: 'GROUP',
-          status: 'ABORTED',
+          status: 'PENDING',
           hasExpandableItems: true
         },
         upgradeGroupStatus: 'SUBITEM_FAILED',
+        title: 'pending upgrade group with expandable items'
+      },
+      {
+        input: {
+          type: 'GROUP',
+          status: 'ABORTED',
+          hasExpandableItems: true
+        },
+        upgradeGroupStatus: 'SUSPENDED',
         title: 'aborted upgrade group with expandable items'
       },
       {

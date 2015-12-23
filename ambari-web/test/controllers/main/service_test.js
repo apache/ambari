@@ -21,6 +21,10 @@ require('controllers/main/service');
 
 var mainServiceController;
 
+function getController() {
+  return App.MainServiceController.create({});
+}
+
 describe('App.MainServiceController', function () {
 
   var tests = Em.A([
@@ -74,10 +78,11 @@ describe('App.MainServiceController', function () {
     }
 
   ]);
-
   beforeEach(function() {
-    mainServiceController = App.MainServiceController.create();
+    mainServiceController = getController();
   });
+
+  App.TestAliases.testAsComputedNotEqual(getController(), 'isStartStopAllClicked', 'App.router.backgroundOperationsController.allOperationsCount', 0);
 
   describe('#isStartAllDisabled', function () {
     tests.forEach(function (test) {
@@ -101,26 +106,6 @@ describe('App.MainServiceController', function () {
         expect(mainServiceController.get('isStopAllDisabled')).to.equals(test.eStop);
       });
     });
-  });
-
-  describe('#isStartStopAllClicked', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.router, 'get', function () {
-        return Em.Object.create({
-          allOperationsCount: 1
-        });
-      });
-    });
-
-    afterEach(function () {
-      App.router.get.restore();
-    });
-
-    it('should be based on BG ops count', function () {
-      expect(mainServiceController.get('isStartStopAllClicked')).to.be.true;
-    });
-
   });
 
   describe('#cluster', function() {
@@ -330,27 +315,7 @@ describe('App.MainServiceController', function () {
 
   });
 
-  describe('#isRestartAllRequiredDisabled', function () {
-
-    it('should be false if there is at least one service with isRestartRequired=true', function () {
-      mainServiceController.reopen({
-        content: [
-          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: true}
-        ]
-      });
-      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.false;
-    });
-
-    it('should be true if there is no services with isRestartRequired=true', function () {
-      mainServiceController.reopen({
-        content: [
-          {isRestartRequired: false}, {isRestartRequired: false}, {isRestartRequired: false}
-        ]
-      });
-      expect(mainServiceController.get('isRestartAllRequiredDisabled')).to.be.true;
-    });
-
-  });
+  App.TestAliases.testAsComputedEveryBy(getController(), 'isRestartAllRequiredDisabled', 'content', 'isRestartRequired', false);
 
   describe('#restartAllRequired', function () {
 
@@ -397,7 +362,11 @@ describe('App.MainServiceController', function () {
     });
 
     it('should show confirmation popup with list of services and call restartHostComponents after confirmation', function () {
-      var popup = mainServiceController.restartAllRequired();
+      var popup;
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: false
+      });
+      popup = mainServiceController.restartAllRequired();
       popup.onPrimary();
       expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
       expect(mainServiceController.restartHostComponents.calledWith([
@@ -412,6 +381,13 @@ describe('App.MainServiceController', function () {
           hosts: 'hostName2'
         }
       ])).to.be.true;
+    });
+
+    it('should not open popup if isRestartAllRequiredDisabled is true', function(){
+      mainServiceController.reopen({
+        isRestartAllRequiredDisabled: true
+      });
+      expect(mainServiceController.restartAllRequired()).to.be.null;
     });
 
   });

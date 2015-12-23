@@ -29,6 +29,7 @@ from resource_management.libraries.resources.execute_hadoop import ExecuteHadoop
 from resource_management.libraries.functions import Direction
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+from utils import get_dfsadmin_base_command
 
 if OSCheck.is_windows_family():
   from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
@@ -58,7 +59,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     Logger.info("Called service {0} with upgrade_type: {1}".format(action, str(upgrade_type)))
     setup_ranger_hdfs(upgrade_type=upgrade_type)
     import params
-    if do_format:
+    if do_format and not params.hdfs_namenode_format_disabled:
       format_namenode()
       pass
 
@@ -114,8 +115,8 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
-
-    is_namenode_safe_mode_off = format("{hdfs_binary} dfsadmin -fs {namenode_address} -safemode get | grep 'Safe mode is OFF'")
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
+    is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
     if params.dfs_ha_enabled:
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
@@ -167,7 +168,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
         try:
           # Wait up to 30 mins
           Execute(is_namenode_safe_mode_off,
-                  tries=180,
+                  tries=65,
                   try_sleep=10,
                   user=params.hdfs_user,
                   logoutput=True
@@ -227,7 +228,7 @@ def create_name_dirs(directories):
             mode=0755,
             owner=params.hdfs_user,
             group=params.user_group,
-            recursive=True,
+            create_parents = True,
             cd_access="a",
   )
 
@@ -277,7 +278,7 @@ def format_namenode(force=None):
         )
         for m_dir in mark_dir:
           Directory(m_dir,
-            recursive = True
+            create_parents = True
           )
   else:
     if params.dfs_ha_namenode_active is not None and \
@@ -297,7 +298,7 @@ def format_namenode(force=None):
           )
           for m_dir in mark_dir:
             Directory(m_dir,
-              recursive = True
+              create_parents = True
             )
 
 def is_namenode_formatted(params):
@@ -315,7 +316,7 @@ def is_namenode_formatted(params):
   if marked:
     for mark_dir in mark_dirs:
       Directory(mark_dir,
-        recursive = True
+        create_parents = True
       )      
     return marked  
   
@@ -333,7 +334,7 @@ def is_namenode_formatted(params):
     elif os.path.isfile(old_mark_dir):
       for mark_dir in mark_dirs:
         Directory(mark_dir,
-                  recursive = True,
+                  create_parents = True,
         )
       Directory(old_mark_dir,
         action = "delete"
@@ -401,7 +402,7 @@ def decommission():
     # need to execute each command scoped to a particular namenode
     nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs hdfs://{namenode_rpc} -refreshNodes')
   else:
-    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -refreshNodes')
+    nn_refresh_cmd = format('cmd /c hadoop dfsadmin -fs {namenode_address} -refreshNodes')
   Execute(nn_refresh_cmd, user=hdfs_user)
 
 

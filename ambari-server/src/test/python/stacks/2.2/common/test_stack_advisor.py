@@ -2024,6 +2024,7 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.lowerLimit": "0.3",
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hbase.hregion.memstore.flush.size": "134217728",
+          "hbase.zookeeper.property.clientPort": "61181",
           "hfile.block.cache.size": "0.3",
           "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
           "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
@@ -2197,6 +2198,7 @@ class TestHDP22StackAdvisor(TestCase):
     services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
     services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
     expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
     # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
@@ -3013,22 +3015,22 @@ class TestHDP22StackAdvisor(TestCase):
     # Test 6 - Multiple RANGER_KMS_SERVERs
     services["services"][len(services["services"])-1]["components"][0]["StackServiceComponents"]["hostnames"].append("host2")
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEqual("kms://http@host1,host2:9292/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+    self.assertEqual("kms://http@host1;host2:9292/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
     # Test 6 - Multiple RANGER_KMS_SERVERs and custom port
     configurations["kms-env"] = {"properties": {"kms_port": "1111"}}
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEqual("kms://http@host1,host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+    self.assertEqual("kms://http@host1;host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
     # Test 7 - Override by API caller
     configurations["hadoop-env"] = {"properties": {"keyserver_host": "myhost1", "keyserver_port": "2222"}}
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEqual("kms://http@host1,host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+    self.assertEqual("kms://http@host1;host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
     # Test - 'https' in KMS URL
     configurations["ranger-kms-site"] = {"properties": {"ranger.service.https.attrib.ssl.enabled": "true"}}
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEqual("kms://https@host1,host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+    self.assertEqual("kms://https@host1;host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
     # Test 8 - Dynamic maximum for 'dfs.namenode.handler.count'
     hosts['items'][1]['Hosts']['cpu_count'] = 9

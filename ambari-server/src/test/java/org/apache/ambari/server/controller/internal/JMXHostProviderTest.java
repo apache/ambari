@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -46,6 +45,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -61,6 +62,7 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 public class JMXHostProviderTest {
   private Injector injector;
@@ -80,16 +82,23 @@ public class JMXHostProviderTest {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
-    AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
 
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
+
+    // Clear the authenticated user
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
   private void createService(String clusterName,
-                             String serviceName, State desiredState) throws AmbariException {
+                             String serviceName, State desiredState)
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -102,7 +111,7 @@ public class JMXHostProviderTest {
 
   private void createServiceComponent(String clusterName,
                                       String serviceName, String componentName, State desiredState)
-    throws AmbariException {
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -117,7 +126,7 @@ public class JMXHostProviderTest {
 
   private void createServiceComponentHost(String clusterName,
                                           String serviceName, String componentName, String hostname,
-                                          State desiredState) throws AmbariException {
+                                          State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -130,7 +139,7 @@ public class JMXHostProviderTest {
     controller.createHostComponents(requests);
   }
 
-  private void createHDFSServiceConfigs(boolean version1) throws AmbariException {
+  private void createHDFSServiceConfigs(boolean version1) throws AmbariException, AuthorizationException {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-0.1", null);
     controller.createCluster(r);
@@ -141,9 +150,6 @@ public class JMXHostProviderTest {
     String componentName1 = "NAMENODE";
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
-
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
-    mapRequestProps.put("context", "Called from a test");
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -207,7 +213,7 @@ public class JMXHostProviderTest {
     }
   }
 
-  private void createConfigs() throws AmbariException {
+  private void createConfigs() throws AmbariException, AuthorizationException {
     String clusterName = "c1";
     ClusterRequest r = new ClusterRequest(null, clusterName, "HDP-2.0.6", null);
     controller.createCluster(r);
@@ -380,7 +386,7 @@ public class JMXHostProviderTest {
     providerModule.managementController = managementControllerMock;
 
     Set<String> result = providerModule.getHostNames("c1", "DATANODE");
-    Assert.assertTrue(result.iterator().next().toString().equals("host1"));
+    Assert.assertTrue(result.iterator().next().equals("host1"));
 
   }
 

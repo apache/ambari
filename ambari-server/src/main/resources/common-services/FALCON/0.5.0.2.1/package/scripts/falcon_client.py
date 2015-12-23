@@ -52,7 +52,7 @@ class FalconClientLinux(FalconClient):
     if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
       return
 
-    Logger.info("Executing Falcon Client Rolling Upgrade pre-restart")
+    Logger.info("Executing Falcon Client Stack Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
     hdp_select.select("falcon-client", params.version)
 

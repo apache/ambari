@@ -3705,7 +3705,6 @@ class TestAmbariServer(TestCase):
 
     # test not run setup if ambari-server setup executed with jdbc properties
     args = reset_mocks()
-    # is_server_runing_mock.return_value = (False, 1)
     args.jdbc_driver= "path/to/driver"
     args.jdbc_db = "test_db_name"
 
@@ -3771,7 +3770,6 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.return_value = 3,"",""
     extract_views_mock.return_value = 0
     read_ambari_user_mock.return_value = "ambari"
-    #read_password_mock.return_value = "bigdata2"
     get_ambari_properties_mock.return_value = properties
     store_password_file_mock.return_value = "encrypted_bigdata2"
     ensure_jdbc_driver_installed_mock.return_value = True
@@ -3977,7 +3975,6 @@ class TestAmbariServer(TestCase):
     args = reset_mocks()
     args.dbms = "postgres"
 
-    #get_remote_script_line_mock.return_value = None
     try:
       #remote db case
       reset(args)
@@ -4123,12 +4120,10 @@ class TestAmbariServer(TestCase):
   @patch.object(PGConfig, "_setup_db")
   @patch("ambari_server.dbConfiguration_linux.print_info_msg")
   @patch("ambari_server.dbConfiguration_linux.run_os_command")
-  #@patch("ambari_server.serverSetup.parse_properties_file")
   @patch("ambari_server.serverSetup.is_root")
-  #@patch("ambari_server.serverSetup.check_database_name_property")
   @patch("ambari_server.serverSetup.is_server_runing")
-  def test_silent_reset(self, is_server_runing_mock, #check_database_name_property_mock,
-                        is_root_mock, #parse_properties_file_mock,
+  def test_silent_reset(self, is_server_runing_mock,
+                        is_root_mock,
                         run_os_command_mock, print_info_msg_mock,
                         setup_db_mock):
     is_root_mock.return_value = True
@@ -4357,7 +4352,6 @@ class TestAmbariServer(TestCase):
     except FatalException as e:
       # Expected
       self.assertTrue('Unable to start Ambari Server as user' in e.reason)
-      #self.assertFalse(parse_properties_file_mock.called)
 
     # If not active instance, exception should be thrown
     args = reset_mocks()
@@ -4678,32 +4672,6 @@ class TestAmbariServer(TestCase):
     args = [""]
     _ambari_server_.restore(args)
     self.assertTrue(bkrestore_mock.called)
-    pass
-
-  @patch("ambari_server.serverUpgrade.is_root")
-  @patch("ambari_server.serverUpgrade.check_database_name_property")
-  @patch("ambari_server.serverUpgrade.run_stack_upgrade")
-  def test_upgrade_stack(self, run_stack_upgrade_mock,
-                         check_database_name_property_mock, is_root_mock):
-    # Testing call under non-root
-    is_root_mock.return_value = False
-
-    args = ['', 'HDP-2.0']
-    try:
-      upgrade_stack(args)
-      self.fail("Should throw exception")
-    except FatalException as fe:
-      # Expected
-      self.assertTrue("root-level" in fe.reason)
-      pass
-
-    # Testing calls under root
-    is_root_mock.return_value = True
-    run_stack_upgrade_mock.return_value = 0
-    upgrade_stack(args)
-
-    self.assertTrue(run_stack_upgrade_mock.called)
-    run_stack_upgrade_mock.assert_called_with(['', 'HDP-2.0'], "HDP", "2.0", None, None)
     pass
 
   @patch("ambari_server.serverUpgrade.get_ambari_properties")
@@ -7102,7 +7070,6 @@ class TestAmbariServer(TestCase):
       else:
         return True
 
-    #get_YN_input_method.side_effect = yn_input_side_effect()
     get_YN_input_method.side_effect = [True, ]
 
     def valid_input_side_effect(*args, **kwargs):
@@ -7692,7 +7659,6 @@ class TestAmbariServer(TestCase):
     propertyMap = {"1": "1", "2": "2"}
     properties = MagicMock()
     f = MagicMock(name="file")
-    # f.__enter__.return_value = f #mimic file behavior
     search_file_mock.return_value = conf_file
     open_mock.return_value = f
 
@@ -7885,7 +7851,6 @@ class TestAmbariServer(TestCase):
     check_ambari_user_mock.return_value = (0, False, 'user', None)
     check_jdbc_drivers_mock.return_value = 0
     check_postgre_up_mock.return_value = "running", 0, "", ""
-    #is_local_database_mock.return_value = True
     configure_postgres_mock.return_value = 0, "", ""
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0

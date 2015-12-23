@@ -18,12 +18,14 @@ limitations under the License.
 
 """
 
-import sys
-from resource_management import *
 from hcat import hcat
-from setup_atlas_hive import setup_atlas_hive
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.logger import Logger
+from resource_management.core.exceptions import ClientComponentHasNoStatus
+from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.script.script import Script
 
 
 class HCatClient(Script):
@@ -49,7 +51,34 @@ class HCatClientWindows(HCatClient):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HCatClientDefault(HCatClient):
   def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
+    # HCat client doesn't have a first-class entry in hdp-select. Since clients always
+    # update after daemons, this ensures that the hcat directories are correct on hosts
+    # which do not include the WebHCat daemon
+    return {"HDP": "hive-webhcat"}
+
+
+  def pre_upgrade_restart(self, env, upgrade_type=None):
+    """
+    Execute hdp-select before reconfiguring this client to the new HDP version.
+
+    :param env:
+    :param upgrade_type:
+    :return:
+    """
+    Logger.info("Executing Hive HCat Client Stack Upgrade pre-restart")
+
+    import params
+    env.set_params(params)
+
+    # this function should not execute if the version can't be determined or
+    # is not at least HDP 2.2.0.0
+    if not params.version or compare_versions(params.version, "2.2", format=True) < 0:
+      return
+
+    # HCat client doesn't have a first-class entry in hdp-select. Since clients always
+    # update after daemons, this ensures that the hcat directories are correct on hosts
+    # which do not include the WebHCat daemon
+    hdp_select.select("hive-webhcat", params.version)
 
 
 if __name__ == "__main__":

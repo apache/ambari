@@ -24,26 +24,6 @@
     <service>
       <name>RANGER_KMS</name>
       <version>0.5.0.2.4</version>
-
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>ranger_2_4_*-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-2-4-.*-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-
     </service>
   </services>
 </metainfo>

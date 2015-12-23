@@ -47,7 +47,7 @@ def hbase_decommission(env):
   import params
 
   env.set_params(params)
-  kinit_cmd = params.kinit_cmd
+  kinit_cmd = params.kinit_cmd_master
 
   File(params.region_drainer,
        content=StaticFile("draining_servers.rb"),

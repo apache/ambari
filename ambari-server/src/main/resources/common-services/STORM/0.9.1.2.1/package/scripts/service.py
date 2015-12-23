@@ -35,11 +35,7 @@ def service(name, action = 'start'):
   pid_file = status_params.pid_files[name]
   no_op_test = as_user(format(
     "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1"), user=params.storm_user)
-
-  if name == "logviewer" or name == "drpc":
-    tries_count = 12
-  else:
-    tries_count = 6
+  tries_count = 12
 
   if name == 'ui':
     process_grep = "backtype.storm.ui.core$"

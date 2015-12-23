@@ -65,7 +65,7 @@ App.ModalPopup = Ember.View.extend({
   showCloseButton: true,
 
   didInsertElement: function () {
-    if (this.autoHeight) {
+    if (this.autoHeight && !$.mocho) {
       var block = this.$().find('#modal > .modal-body').first();
       if(block.offset()) {
         block.css('max-height', $(window).height() - block.offset().top  - this.marginBottom + $(window).scrollTop()); // fix popup height

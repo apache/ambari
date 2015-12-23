@@ -57,8 +57,8 @@ def replace_underscores(function_to_decorate):
 class AptProvider(PackageProvider):
 
   @replace_underscores
-  def install_package(self, name, use_repos=[], skip_repos=[]):
-    if use_repos or not self._check_existence(name):
+  def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
+    if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       copied_sources_files = []
       is_tmp_dir_created = False
@@ -109,8 +109,8 @@ class AptProvider(PackageProvider):
     return "Unable to lock the administration directory" in out
 
   @replace_underscores
-  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
-    return self.install_package(name, use_repos, skip_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
+    return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   @replace_underscores
   def remove_package(self, name):

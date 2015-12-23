@@ -1,0 +1,28 @@
+{
+  "name": "default",
+  "description": "default quick links configuration",
+  "configuration": {
+    "protocol":
+    {
+      "type":"HTTP_ONLY"
+    },
+
+    "links": [
+      {
+        "name": "falcon_web_ui",
+        "label": "Falcon Web UI",
+        "requires_user_name": "true",
+        "url":"%@://%@:%@/index.html?user.name=%@",
+        "template":"%@://%@:%@/index.html?user.name=%@",
+        "port":{
+          "http_property": "falcon_port",
+          "http_default_port": "15000",
+          "https_property": "falcon_port",
+          "https_default_port": "15000",
+          "regex": "^(\\d+)$",
+          "site": "falcon-env"
+        }
+      }
+    ]
+  }
+}

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.HostAddedEvent;
@@ -145,11 +144,10 @@ public class AlertHostListener {
 
           try {
             m_alertDefinitionDao.create(definition);
-          } catch (AmbariException ambariException) {
+          } catch (Exception e) {
             LOG.error(
                 "Unable to create an alert definition named {} in cluster {}",
-                definition.getDefinitionName(), definition.getClusterId(),
-                ambariException);
+                definition.getDefinitionName(), definition.getClusterId(), e);
           }
         }
       }

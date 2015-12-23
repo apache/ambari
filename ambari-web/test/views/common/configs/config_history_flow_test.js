@@ -31,6 +31,8 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     serviceVersions: []
   });
 
+  App.TestAliases.testAsComputedAlias(view, 'serviceName', 'controller.selectedService.serviceName', 'string');
+
   describe('#isSaveDisabled', function () {
     var testCases = [
       {
@@ -234,15 +236,25 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#openFullList()', function () {
-    it('', function () {
-      var event = {
+    var event;
+    beforeEach(function () {
+      event = {
         stopPropagation: Em.K
       };
       sinon.spy(event, 'stopPropagation');
       view.openFullList(event);
-      expect(event.stopPropagation.calledOnce).to.be.true;
-      expect(view.get('showFullList')).to.be.true;
+    });
+
+    afterEach(function () {
       event.stopPropagation.restore();
+    });
+
+    it('stopPropagation is called once', function () {
+      expect(event.stopPropagation.calledOnce).to.be.true;
+    });
+
+    it('stopPropagation is true', function () {
+      expect(view.get('stopPropagation')).to.be.true;
     });
   });
 
@@ -277,11 +289,18 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#didInsertElement()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App, 'tooltip');
       view.didInsertElement();
-      expect(App.tooltip.calledOnce).to.be.true;
+    });
+
+    afterEach(function () {
       App.tooltip.restore();
+    });
+
+    it('App.tooltip is called onñe', function () {
+      expect(App.tooltip.calledOnce).to.be.true;
     });
   });
 
@@ -559,12 +578,18 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#sendRevertCall()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
       view.sendRevertCall(Em.Object.create());
+    });
 
-      expect(App.ajax.send.calledOnce).to.be.true;
+    afterEach(function () {
       App.ajax.send.restore();
+    });
+
+    it('request is sent', function () {
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
@@ -572,15 +597,18 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     beforeEach(function () {
       sinon.spy(view.get('controller'), 'loadStep');
       sinon.stub(App.router.get('updateController'), 'updateComponentConfig', Em.K);
+      view.sendRevertCallSuccess();
     });
     afterEach(function () {
       view.get('controller').loadStep.restore();
       App.router.get('updateController').updateComponentConfig.restore();
     });
-    it('', function () {
-      view.sendRevertCallSuccess();
 
+    it('loadStep is called', function () {
       expect(view.get('controller').loadStep.calledOnce).to.be.true;
+    });
+
+    it('updateComponentConfig is called', function () {
       expect(App.router.get('updateController').updateComponentConfig.calledOnce).to.be.true;
     });
   });
@@ -627,28 +655,46 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#shiftBack()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(view, 'decrementProperty', Em.K);
       sinon.stub(view, 'adjustFlowView', Em.K);
       view.shiftBack();
+    });
 
-      expect(view.decrementProperty.calledWith('startIndex')).to.be.true;
-      expect(view.adjustFlowView.calledOnce).to.be.true;
+    afterEach(function () {
       view.adjustFlowView.restore();
       view.decrementProperty.restore();
+    });
+
+    it('decrementProperty is called with correct data', function () {
+      expect(view.decrementProperty.calledWith('startIndex')).to.be.true;
+    });
+
+    it('adjustFlowView is called once', function () {
+      expect(view.adjustFlowView.calledOnce).to.be.true;
     });
   });
 
   describe('#shiftForward()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(view, 'incrementProperty', Em.K);
       sinon.stub(view, 'adjustFlowView', Em.K);
       view.shiftForward();
+    });
 
-      expect(view.incrementProperty.calledWith('startIndex')).to.be.true;
-      expect(view.adjustFlowView.calledOnce).to.be.true;
+    afterEach(function () {
       view.adjustFlowView.restore();
       view.incrementProperty.restore();
+    });
+
+    it('startIndex++', function () {
+      expect(view.incrementProperty.calledWith('startIndex')).to.be.true;
+    });
+
+    it('adjustFlowView is called once', function () {
+      expect(view.adjustFlowView.calledOnce).to.be.true;
     });
   });
 
@@ -724,4 +770,16 @@ describe.skip('App.ConfigHistoryFlowView', function () {
       });
     });
   });
+});
+
+function getView() {
+  return App.ConfigsServiceVersionBoxView.create();
+}
+
+describe('App.ConfigsServiceVersionBoxView', function () {
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionAttr', 'serviceVersion.disabledActionAttr', 'object');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'disabledActionMessages', 'serviceVersion.disabledActionMessages', 'object');
+
 });

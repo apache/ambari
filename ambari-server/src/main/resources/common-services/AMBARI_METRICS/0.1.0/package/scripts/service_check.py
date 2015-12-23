@@ -38,8 +38,8 @@ import socket
 class AMSServiceCheck(Script):
   AMS_METRICS_POST_URL = "/ws/v1/timeline/metrics/"
   AMS_METRICS_GET_URL = "/ws/v1/timeline/metrics?%s"
-  AMS_CONNECT_TRIES = 10
-  AMS_CONNECT_TIMEOUT = 10
+  AMS_CONNECT_TRIES = 30
+  AMS_CONNECT_TIMEOUT = 15
 
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
@@ -67,21 +67,24 @@ class AMSServiceCheck(Script):
     env.set_params(params)
 
     random_value1 = random.random()
-    current_time = int(time.time()) * 1000
-    metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
-                           current_time=current_time).get_content()
-    Logger.info("Generated metrics:\n%s" % metric_json)
-
     headers = {"Content-type": "application/json"}
 
     for i in xrange(0, self.AMS_CONNECT_TRIES):
       try:
+        current_time = int(time.time()) * 1000
+        metric_json = Template('smoketest_metrics.json.j2', hostname=params.hostname, random1=random_value1,
+                           current_time=current_time).get_content()
+        Logger.info("Generated metrics:\n%s" % metric_json)
+
         Logger.info("Connecting (POST) to %s:%s%s" % (params.metric_collector_host,
                                                       params.metric_collector_port,
                                                       self.AMS_METRICS_POST_URL))
         conn = httplib.HTTPConnection(params.metric_collector_host,
                                         int(params.metric_collector_port))
         conn.request("POST", self.AMS_METRICS_POST_URL, metric_json, headers)
+
+        response = conn.getresponse()
+        Logger.info("Http response: %s %s" % (response.status, response.reason))
       except (httplib.HTTPException, socket.error) as ex:
         if i < self.AMS_CONNECT_TRIES - 1:  #range/xrange returns items from start to end-1
           time.sleep(self.AMS_CONNECT_TIMEOUT)
@@ -91,9 +94,6 @@ class AMSServiceCheck(Script):
         else:
           raise Fail("Metrics were not saved. Service check has failed. "
                "\nConnection failed.")
-
-      response = conn.getresponse()
-      Logger.info("Http response: %s %s" % (response.status, response.reason))
 
       data = response.read()
       Logger.info("Http data: %s" % data)

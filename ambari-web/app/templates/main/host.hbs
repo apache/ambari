@@ -20,9 +20,9 @@
 
   <div class="box-header row">
     <div class="hosts-actions pull-left">
-      {{#isAccessible ADMIN}}
+      {{#isAuthorized "HOST.ADD_DELETE_COMPONENTS, HOST.TOGGLE_MAINTENANCE, HOST.ADD_DELETE_HOSTS"}}
         {{view App.HostTableMenuView}}
-      {{/isAccessible}}
+      {{/isAuthorized}}
     </div>
     <div class="health-status-bar pull-left">
       {{#view view.statusFilter categoriesBinding="view.categories"}}

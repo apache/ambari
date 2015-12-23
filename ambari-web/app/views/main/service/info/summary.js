@@ -84,9 +84,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    */
   collapsedSections: null,
 
-  servicesHaveClients: function() {
-    return App.get('services.hasClient');
-  }.property('App.services.hasClient'),
+  servicesHaveClients: Em.computed.alias('App.services.hasClient'),
 
   hasManyServers: Em.computed.gt('servers.length', 1),
 
@@ -399,9 +397,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    * Key-name to store time range in Persist
    * @type {string}
    */
-  persistKey: function () {
-    return 'time-range-service-' + this.get('service.serviceName');
-  }.property(),
+  persistKey: Em.computed.format('time-range-service-{0}', 'service.serviceName'),
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {
@@ -466,7 +462,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    */
   widgetActions: function() {
     var options = [];
-    if (App.isAccessible('MANAGER')) {
+    if (App.isAuthorized('SERVICE.MODIFY_CONFIGS')) {
       if (App.supports.customizedWidgetLayout) {
         options.pushObjects(this.get('staticWidgetLayoutActions'));
       }

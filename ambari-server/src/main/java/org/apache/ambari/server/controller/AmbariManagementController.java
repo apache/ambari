@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -38,6 +38,7 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
@@ -74,8 +75,9 @@ public interface AmbariManagementController {
    * @param request  the request object which defines the cluster to be created
    *
    * @throws AmbariException thrown if the cluster cannot be created
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
-  public void createCluster(ClusterRequest request) throws AmbariException;
+  public void createCluster(ClusterRequest request) throws AmbariException, AuthorizationException;
 
   /**
    * Create the host component defined by the attributes in the given request object.
@@ -85,7 +87,7 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the host component cannot be created
    */
   public void createHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Creates a configuration.
@@ -95,7 +97,15 @@ public interface AmbariManagementController {
    * @throws AmbariException when the configuration cannot be created.
    */
   public ConfigurationResponse createConfiguration(ConfigurationRequest request)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
+
+  /**
+   * Create cluster config
+   * TODO move this method to Cluster? doesn't seem to be on its place
+   * @return config created
+   */
+  Config createConfig(Cluster cluster, String type, Map<String, String> properties,
+                      String versionTag, Map<String, Map<String, String>> propertiesAttributes);
 
   /**
    * Creates users.
@@ -135,9 +145,10 @@ public interface AmbariManagementController {
    * @return a set of cluster responses
    *
    * @throws AmbariException thrown if the resource cannot be read
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
   public Set<ClusterResponse> getClusters(Set<ClusterRequest> requests)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Get the host components identified by the given request objects.
@@ -224,10 +235,11 @@ public interface AmbariManagementController {
    * @return a track action response
    *
    * @throws AmbariException thrown if the resource cannot be updated
+   * @throws AuthorizationException thrown if the authenticated user is not authorized to perform this operation
    */
   public RequestStatusResponse updateClusters(Set<ClusterRequest> requests,
                                               Map<String, String> requestProperties)
-      throws AmbariException;
+      throws AmbariException, AuthorizationException;
 
   /**
    * Updates the users specified.
@@ -278,7 +290,7 @@ public interface AmbariManagementController {
    * @throws AmbariException thrown if the resource cannot be deleted
    */
   public RequestStatusResponse deleteHostComponents(
-      Set<ServiceComponentHostRequest> requests) throws AmbariException;
+      Set<ServiceComponentHostRequest> requests) throws AmbariException, AuthorizationException;
 
   /**
    * Deletes the users specified.
@@ -773,5 +785,11 @@ public interface AmbariManagementController {
   Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(Set<StackConfigurationDependencyRequest> requests) throws AmbariException;
 
   TimelineMetricCacheProvider getTimelineMetricCacheProvider();
+
+  /**
+   * Returns KerberosHelper instance
+   * @return
+   */
+  KerberosHelper getKerberosHelper();
 }
 

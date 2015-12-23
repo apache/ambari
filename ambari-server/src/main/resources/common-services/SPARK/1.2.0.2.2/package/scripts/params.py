@@ -27,6 +27,7 @@ import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -152,13 +153,16 @@ if security_enabled:
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
-if version and compare_versions(format_hdp_stack_version(version), '2.3.2.0') >= 0 \
-    and 'spark-thrift-sparkconf' in config['configurations']:
+if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations']:
   spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
   spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
-
   if is_hive_installed:
-      spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
+    # update default metastore client properties (async wait for metastore component) it is useful in case of
+    # blueprint provisioning when hive-metastore and spark-thriftserver is not on the same host.
+    spark_hive_properties.update({
+      'hive.metastore.client.socket.timeout' : config['configurations']['hive-site']['hive.metastore.client.socket.timeout']
+    })
+    spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']

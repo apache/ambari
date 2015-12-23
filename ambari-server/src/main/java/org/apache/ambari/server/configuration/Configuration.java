@@ -190,11 +190,7 @@ public class Configuration {
   public static final String SERVER_JDBC_DRIVER_KEY = "server.jdbc.driver";
   public static final String SERVER_JDBC_URL_KEY = "server.jdbc.url";
   public static final String SERVER_JDBC_PROPERTIES_PREFIX = "server.jdbc.properties.";
-  public static final String ROLLING_UPGRADE_MIN_STACK_KEY = "rolling.upgrade.min.stack";
-  public static final String ROLLING_UPGRADE_MAX_STACK_KEY = "rolling.upgrade.max.stack";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_KEY = "rolling.upgrade.skip.packages.prefixes";
-  public static final String ROLLING_UPGRADE_MIN_STACK_DEFAULT = "HDP-2.2";
-  public static final String ROLLING_UPGRADE_MAX_STACK_DEFAULT = "";
   public static final String ROLLING_UPGRADE_SKIP_PACKAGES_PREFIXES_DEFAULT = "";
   public static final String JWT_AUTH_ENBABLED = "authentication.jwt.enabled";
   public static final String JWT_AUTH_PROVIDER_URL = "authentication.jwt.providerUrl";
@@ -1000,14 +996,6 @@ public class Configuration {
 
   public String getStackAdvisorScript() {
     return properties.getProperty(STACK_ADVISOR_SCRIPT, STACK_ADVISOR_SCRIPT_DEFAULT);
-  }
-
-  public String getRollingUpgradeMinStack() {
-    return properties.getProperty(ROLLING_UPGRADE_MIN_STACK_KEY, ROLLING_UPGRADE_MIN_STACK_DEFAULT);
-  }
-
-  public String getRollingUpgradeMaxStack() {
-    return properties.getProperty(ROLLING_UPGRADE_MAX_STACK_KEY, ROLLING_UPGRADE_MAX_STACK_DEFAULT);
   }
 
   /**

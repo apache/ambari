@@ -127,7 +127,7 @@ public class RestMetricsPropertyProvider extends ThreadPoolEnabledPropertyProvid
     String statePropertyId,
     String componentName){
 
-    super(componentMetrics, hostNamePropertyId, metricHostProvider);
+    super(componentMetrics, hostNamePropertyId, metricHostProvider, clusterNamePropertyId);
     this.metricsProperties = metricsProperties;
     this.streamProvider = streamProvider;
     this.clusterNamePropertyId = clusterNamePropertyId;

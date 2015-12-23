@@ -36,6 +36,10 @@ module.exports = Em.Application.create({
   isAdmin: false,
   isOperator: false,
   isPermissionDataLoaded: false,
+  auth: null,
+  isOnlyViewUser: function() {
+    return App.auth && (App.auth.length == 0 || (App.isAuthorized('VIEW.USE') && App.auth.length == 1));
+  }.property('auth'),
 
   /**
    * @type {boolean}
@@ -75,8 +79,8 @@ module.exports = Em.Application.create({
    * @returns {boolean}
    */
   upgradeAborted: function () {
-    return this.get('upgradeState') === "ABORTED" && !App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeState', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+    return this.get('upgradeState') === "ABORTED";
+  }.property('upgradeState'),
 
   /**
    * RU is running
@@ -92,26 +96,17 @@ module.exports = Em.Application.create({
   wizardIsNotFinished: function () {
     return this.get('upgradeIsRunning') ||
            this.get('upgradeAborted') ||
-           App.router.get('wizardWatcherController.isNonWizardUser') ||
-           App.router.get('mainAdminStackAndUpgradeController.isSuspended');
-  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser', 'router.mainAdminStackAndUpgradeController.isSuspended'),
+           App.router.get('wizardWatcherController.isNonWizardUser');
+  }.property('upgradeIsRunning', 'upgradeAborted', 'router.wizardWatcherController.isNonWizardUser'),
 
-  /**
-   * compute user access rights by permission type
-   * types:
-   *  - ADMIN
-   *  - MANAGER
-   *  - OPERATOR
-   *  - ONLY_ADMIN
-   * prefix "upgrade_" mean that element will not be unconditionally blocked while stack upgrade running
-   * @param type {string}
-   * @return {boolean}
-   */
-  isAccessible: function (type) {
-    if (!App.router.get('mainAdminStackAndUpgradeController.isSuspended') &&
+  isAuthorized: function(authRoles, options) {
+    var result = false;
+    authRoles = $.map(authRoles.split(","), $.trim);
+
+    if (!(this.get('upgradeState') == "ABORTED") &&
         !App.get('supports.opsDuringRollingUpgrade') &&
-        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) &&
-        !type.contains('upgrade_')) {
+        !['INIT', 'COMPLETED'].contains(this.get('upgradeState')) ||
+        !App.auth){
       return false;
     }
 
@@ -119,25 +114,11 @@ module.exports = Em.Application.create({
       return false;
     }
 
-    if (type.contains('upgrade_')) {
-      //slice off "upgrade_" prefix to have actual permission type
-      type = type.slice(8);
-    }
+    authRoles.forEach(function(auth) {
+      result = result || App.auth.contains(auth);
+    });
 
-    switch (type) {
-      case 'ADMIN':
-        return this.get('isAdmin');
-      case 'NON_ADMIN':
-        return !this.get('isAdmin');
-      case 'MANAGER':
-        return this.get('isAdmin') || this.get('isOperator');
-      case 'OPERATOR':
-        return this.get('isOperator');
-      case 'ONLY_ADMIN':
-        return this.get('isAdmin') && !this.get('isOperator');
-      default:
-        return false;
-    }
+    return result;
   },
 
   isStackServicesLoaded: false,

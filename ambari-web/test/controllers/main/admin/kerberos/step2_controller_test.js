@@ -19,14 +19,24 @@
 var App = require('app');
 var setups = require('test/init_model_test');
 
+function getController() {
+  return App.KerberosWizardStep2Controller.create({});
+}
+
 describe('App.KerberosWizardStep2Controller', function() {
+
+  App.TestAliases.testAsComputedAlias(getController(), 'isBackBtnDisabled', 'testConnectionInProgress', 'boolean');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'hostNames', 'App.allHostNames');
+
+  App.TestAliases.testAsComputedAlias(getController(), 'isConfigsLoaded', 'wizardController.stackConfigsLoaded', 'boolean');
 
   describe('#createKerberosSiteObj', function() {
     var controller;
 
     beforeEach(function() {
       setups.setupStackVersion(this, 'HDP-2.3');
-      controller = App.KerberosWizardStep2Controller.create({});
+      controller = getController();
       sinon.stub(controller, 'tweakKdcTypeValue', Em.K);
       sinon.stub(controller, 'tweakManualKdcProperties', Em.K);
     });
@@ -84,4 +94,5 @@ describe('App.KerberosWizardStep2Controller', function() {
       });
     });
   });
+
 });

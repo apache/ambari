@@ -21,50 +21,6 @@
     <service>
       <name>OOZIE</name>
       <version>4.2.0.2.4</version>
-
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>any</osFamily>
-          <packages>
-            <package>
-              <name>zip</name>
-            </package>
-            <package>
-              <name>mysql-connector-java</name>
-              <skipUpgrade>true</skipUpgrade>
-            </package>
-            <package>
-              <name>extjs</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>redhat5,redhat6,redhat7,suse11</osFamily>
-          <packages>
-            <package>
-              <name>oozie_2_4_*</name>
-            </package>
-            <package>
-              <name>falcon_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>oozie-2-4-.*</name>
-            </package>
-            <package>
-              <name>falcon-2-4-.*</name>
-            </package>
-            <package>
-              <name>libxml2-utils</name>
-            </package>
-          </packages>
-        </osSpecific>
-
-      </osSpecifics>
     </service>
   </services>
 </metainfo>

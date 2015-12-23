@@ -28,8 +28,10 @@ import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.UserType;
 import org.apache.ambari.server.security.authorization.Users;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -89,53 +91,77 @@ public class JwtAuthenticationFilter implements Filter {
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
 
-    if (jwtProperties != null && isAuthenticationRequired()) {
-      HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-      HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
+    if(jwtProperties == null){
+      //disable filter if not configured
+      filterChain.doFilter(servletRequest, servletResponse);
+      return;
+    }
 
-      String serializedJWT = getJWTFromCookie(httpServletRequest);
-      if (serializedJWT != null) {
-        SignedJWT jwtToken = null;
-        try {
-          jwtToken = SignedJWT.parse(serializedJWT);
-          boolean valid = validateToken(jwtToken);
+    HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+    HttpServletResponse httpServletResponse = (HttpServletResponse) servletResponse;
 
-          if (valid) {
-            String userName = jwtToken.getJWTClaimsSet().getSubject();
-            User user = users.getUser(userName, UserType.JWT);
-            if (user == null) {
-              // create user in local database on first login, usually we cannot fetch all users
-              // from external authentication provider (as we do during ldap-sync process)
-              users.createUser(userName, null, UserType.JWT, true, false);
-              user = users.getUser(userName, UserType.JWT);
+    String serializedJWT = getJWTFromCookie(httpServletRequest);
+    if (serializedJWT != null && isAuthenticationRequired(serializedJWT)) {
+      SignedJWT jwtToken;
+      try {
+        jwtToken = SignedJWT.parse(serializedJWT);
+
+        boolean valid = validateToken(jwtToken);
+
+        if (valid) {
+          String userName = jwtToken.getJWTClaimsSet().getSubject();
+          User user = users.getUser(userName, UserType.JWT);
+          if (user == null) {
+
+            //TODO this is temporary check for conflicts, until /users API will change to use user_id instead of name as PK
+            User existingUser = users.getAnyUser(userName);
+            if (existingUser != null && existingUser.getUserType() != UserType.JWT) {
+
+              LOG.error("Access for JWT user [{}] restricted. Detected conflict with local user ", userName);
+
+              // directly send HTTP status 500 to avoid redirect loop, as jwt token is already confirmed to be valid
+              httpServletResponse.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                "Cannot create JWT user: conflict detected");
+
+              //interrupt filter chain
+              return;
             }
 
-            Collection<AmbariGrantedAuthority> userAuthorities =
-                users.getUserAuthorities(user.getUserName(), user.getUserType());
-
-            JwtAuthentication token = new JwtAuthentication(jwtToken, user, userAuthorities);
-            token.setAuthenticated(true);
-
-            SecurityContextHolder.getContext().setAuthentication(token);
-
-
-          } else {
-            LOG.warn("JWT authentication failed");
-            if (ignoreFailure) {
-              filterChain.doFilter(servletRequest, servletResponse);
-            } else {
-              //used to indicate authentication failure, not used here as we have more than one filter
-              entryPoint.commence(httpServletRequest, httpServletResponse, new BadCredentialsException("Invalid JWT " +
-                  "token"));
-            }
+            // create user in local database on first login, usually we cannot fetch all users
+            // from external authentication provider (as we do during ldap-sync process)
+            users.createUser(userName, null, UserType.JWT, true, false);
+            user = users.getUser(userName, UserType.JWT);
           }
 
+          Collection<AmbariGrantedAuthority> userAuthorities =
+                  users.getUserAuthorities(user.getUserName(), user.getUserType());
+
+          JwtAuthentication authentication = new JwtAuthentication(serializedJWT, user, userAuthorities);
+          authentication.setAuthenticated(true);
+
+          SecurityContextHolder.getContext().setAuthentication(authentication);
 
 
-        } catch (ParseException e) {
-          LOG.warn("Unable to parse the JWT token", e);
+        } else {
+          //clear security context if authentication was required, but failed
+          SecurityContextHolder.clearContext();
+
+          LOG.warn("JWT authentication failed");
+          if (ignoreFailure) {
+            filterChain.doFilter(servletRequest, servletResponse);
+          } else {
+            //used to indicate authentication failure, not used here as we have more than one filter
+            entryPoint.commence(httpServletRequest, httpServletResponse, new BadCredentialsException("Invalid JWT " +
+                    "token"));
+          }
         }
+
+
+      } catch (ParseException e) {
+        LOG.warn("Unable to parse the JWT token", e);
       }
+    } else {
+      LOG.trace("No JWT cookie found, do nothing");
     }
 
     filterChain.doFilter(servletRequest, servletResponse);
@@ -155,9 +181,25 @@ public class JwtAuthenticationFilter implements Filter {
    * Do not try to validate JWT if user already authenticated via other provider
    * @return true, if JWT validation required
    */
-  private boolean isAuthenticationRequired() {
+  private boolean isAuthenticationRequired(String token) {
     Authentication existingAuth = SecurityContextHolder.getContext().getAuthentication();
-    return !(existingAuth != null && existingAuth.isAuthenticated()) || existingAuth instanceof JwtAuthentication;
+
+    //authenticate if no auth
+    if(existingAuth == null || !existingAuth.isAuthenticated() ){
+      return true;
+    }
+
+    //revalidate if token was changed
+    if(existingAuth instanceof JwtAuthentication && !StringUtils.equals(token, (String) existingAuth.getCredentials())){
+      return true;
+    }
+
+    //always try to authenticate in case of anonymous user
+    if (existingAuth instanceof AnonymousAuthenticationToken) {
+      return true;
+    }
+
+    return false;
   }
 
   /**
@@ -170,7 +212,6 @@ public class JwtAuthenticationFilter implements Filter {
   protected String getJWTFromCookie(HttpServletRequest req) {
     String serializedJWT = null;
     Cookie[] cookies = req.getCookies();
-    String userName = null;
     if (cookies != null) {
       for (Cookie cookie : cookies) {
         if (cookieName.equals(cookie.getName())) {

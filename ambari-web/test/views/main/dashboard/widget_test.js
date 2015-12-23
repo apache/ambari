@@ -93,15 +93,9 @@ describe('App.DashboardWidgetView', function () {
   });
 
   describe("#deleteWidgetComplete()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.spy(dashboardWidgetView.get('parentView'), 'postUserPref');
       sinon.spy(dashboardWidgetView.get('parentView'), 'translateToReal');
-    });
-    after(function () {
-      dashboardWidgetView.get('parentView').postUserPref.restore();
-      dashboardWidgetView.get('parentView').translateToReal.restore();
-    });
-    it("", function () {
       dashboardWidgetView.set('parentView.currentPrefObject', {
         dashboardVersion: 'new',
         visible: ['1', '2'],
@@ -110,12 +104,20 @@ describe('App.DashboardWidgetView', function () {
       });
       dashboardWidgetView.set('parentView.persistKey', 'key');
       dashboardWidgetView.deleteWidgetComplete();
+    });
+    afterEach(function () {
+      dashboardWidgetView.get('parentView').postUserPref.restore();
+      dashboardWidgetView.get('parentView').translateToReal.restore();
+    });
+    it("postUserPref is called with correct data", function () {
       expect(dashboardWidgetView.get('parentView').postUserPref.calledWith('key', {
         dashboardVersion: 'new',
         visible: ['2'],
         hidden: ['1'],
         threshold: 'threshold'
       }));
+    });
+    it("translateToReal is called with valid data", function () {
       expect(dashboardWidgetView.get('parentView').translateToReal.calledWith({
         dashboardVersion: 'new',
         visible: ['2'],
@@ -231,7 +233,7 @@ describe('App.DashboardWidgetView', function () {
   describe("#widgetConfig", function() {
     var widget = dashboardWidgetView.get('widgetConfig').create();
     describe("#hintInfo", function() {
-      it("", function() {
+      it("is formatted with maxValue", function() {
         widget.set('maxValue', 1);
         widget.propertyDidChange('hintInfo');
         expect(widget.get('hintInfo')).to.equal(Em.I18n.t('dashboard.widgets.hintInfo.common').format(1));

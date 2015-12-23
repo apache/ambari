@@ -69,15 +69,19 @@ class RecoveryAlert(BaseAlert):
     if component in recovery_actions:
       recovery_action_info = recovery_actions[component]
 
-    recovered_times = 0
-    if 'count' in recovery_action_info:
-      recovered_times = recovery_action_info['count']
-    lastResetText = ""
-    if 'lastReset' in recovery_action_info:
-      lastResetText = " since " + str(datetime.datetime.fromtimestamp(recovery_action_info['lastReset']))
     warned_threshold_reached = False
     if 'warnedThresholdReached' in recovery_action_info:
       warned_threshold_reached = recovery_action_info['warnedThresholdReached']
+
+    recovered_times = 0
+    lastResetText = ""
+
+    # The alert should not go away if warned_threshold_reached (max_lifetime_count reached)
+    if not self.recovery_manager.is_action_info_stale(component) or warned_threshold_reached:
+      if 'count' in recovery_action_info:
+        recovered_times = recovery_action_info['count']
+      if 'lastReset' in recovery_action_info:
+        lastResetText = " since " + str(datetime.datetime.fromtimestamp(recovery_action_info['lastReset']))
 
     if recovered_times >= self.critical_count or warned_threshold_reached:
       result = self.RESULT_CRITICAL

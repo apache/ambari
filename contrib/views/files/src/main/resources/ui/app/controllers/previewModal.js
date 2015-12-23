@@ -19,12 +19,13 @@
 var App = require('app');
 
 App.PreviewModalController = Em.ObjectController.extend({
-    needs:['files'],
+    needs:['files', 'file'],
     offset: 3000 ,
     startIndex:0,
     file:Em.computed.alias('content'),
     filePageText:'',
-    pagecontent: Ember.computed('file','startIndex', 'endIndex', function() {
+    reload: false,
+    pagecontent: Ember.computed('file', 'startIndex', 'endIndex', 'reload', function() {
         var file = this.get('file');
         var filepath = file.get('path');
         var filePageText = this.get('filePageText');
@@ -54,6 +55,9 @@ App.PreviewModalController = Em.ObjectController.extend({
             },
             error: function( jqXhr, textStatus, errorThrown ){
                 console.log( "Preview Fail pagecontent : " + errorThrown );
+              self.send('removePreviewModal');
+              self.send('showAlert', jqXhr);
+              self.set('reload', !self.get('reload'));
             }
         });
 
@@ -77,7 +81,7 @@ App.PreviewModalController = Em.ObjectController.extend({
         next: function(){
             console.log('Next');
             this.set('startIndex', this.get('startIndex') + this.get('offset'));
-            return self.get('filePageText');
+            return this.get('filePageText');
         },
         prev: function(){
             console.log('Prev');

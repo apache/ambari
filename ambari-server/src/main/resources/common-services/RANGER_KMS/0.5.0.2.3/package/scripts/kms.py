@@ -36,6 +36,7 @@ from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 import re
+import time
 
 def password_validation(password, key):
   import params
@@ -60,7 +61,7 @@ def setup_kms_db():
 
     Directory(params.java_share_dir,
       mode=0755,
-      recursive=True,
+      create_parents = True,
       cd_access="a"
     )
     
@@ -84,7 +85,7 @@ def setup_kms_db():
 
       Directory(params.jdbc_libs_dir,
         cd_access="a",
-        recursive=True)
+        create_parents = True)
 
       Execute(as_sudo(['yes', '|', 'cp', params.libs_path_in_archive, params.jdbc_libs_dir], auto_escape=False),
         path=["/bin", "/usr/bin/"])
@@ -113,8 +114,8 @@ def setup_kms_db():
     dba_setup = format('ambari-python-wrap {kms_home}/dba_script.py -q')
     db_setup = format('ambari-python-wrap {kms_home}/db_setup.py')
 
-    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user)
-    Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user)
+    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
+    Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
 def setup_java_patch():
   import params
@@ -127,7 +128,7 @@ def setup_java_patch():
     if params.db_flavor.lower() == 'sqla':
       env_dict = {'RANGER_KMS_HOME':params.kms_home, 'JAVA_HOME': params.java_home, 'LD_LIBRARY_PATH':params.ld_library_path}
 
-    Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user)
+    Execute(setup_java_patch, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
     kms_lib_path = format('{kms_home}/ews/webapp/lib/')
     files = os.listdir(kms_lib_path)
@@ -170,7 +171,7 @@ def kms():
     Directory(params.kms_conf_dir,
       owner = params.kms_user,
       group = params.kms_group,
-      recursive = True
+      create_parents = True
     )
 
     if params.xa_audit_db_is_enabled:
@@ -200,7 +201,11 @@ def kms():
       mode = 0755
     )
 
-    Execute(('chown','-R',format('{kms_user}:{kms_group}'), format('{kms_home}/')), sudo=True)
+    Directory(format('{kms_home}/'),
+              user = params.kms_user,
+              group = params.kms_group,
+              recursive_ownership = True,
+    )
 
     Directory(params.kms_log_dir,
       owner = params.kms_user,
@@ -276,20 +281,16 @@ def enable_kms_plugin():
   import params
 
   if params.has_ranger_admin:
-    ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
-    ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
-    response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
-    if response_code is not None and response_code == 200:
-      user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
+    count = 0
+    while count < 5:
+      ranger_flag = check_ranger_service()
+      if ranger_flag:
+        break
+      else:
+        time.sleep(5) # delay for 5 seconds
+        count = count + 1
     else:
-      raise Fail('Ranger service is not started on given host')   
-
-    if user_resp_code is not None and user_resp_code == 200:
-      get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
-      if not get_repo_flag:
-        create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
-    else:
-      raise Fail('Ambari admin user creation failed')
+      Logger.error("Ranger service is not reachable after {0} tries".format(count))
 
     current_datetime = datetime.now()
 
@@ -304,7 +305,7 @@ def enable_kms_plugin():
       owner = params.kms_user,
       group = params.kms_group,
       mode=0775,
-      recursive = True
+      create_parents = True
     )
     
     File(os.path.join('/etc', 'ranger', params.repo_name, 'policycache',format('kms_{repo_name}.json')),
@@ -353,6 +354,31 @@ def enable_kms_plugin():
       mode = 0640
       )
   
+def check_ranger_service():
+  import params
+
+  ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
+  ambari_username_password_for_ranger = format("{ambari_ranger_admin}:{ambari_ranger_password}")
+  response_code = ranger_adm_obj.check_ranger_login_urllib2(params.policymgr_mgr_url)
+
+  if response_code is not None and response_code == 200:
+    user_resp_code = ranger_adm_obj.create_ambari_admin_user(params.ambari_ranger_admin, params.ambari_ranger_password, params.admin_uname_password)
+    if user_resp_code is not None and user_resp_code == 200:
+      get_repo_flag = get_repo(params.policymgr_mgr_url, params.repo_name, ambari_username_password_for_ranger)
+      if not get_repo_flag:
+        create_repo_flag = create_repo(params.policymgr_mgr_url, json.dumps(params.kms_ranger_plugin_repo), ambari_username_password_for_ranger)
+        if create_repo_flag:
+          return True
+        else:
+          return False
+      else:
+        return True
+    else:
+      Logger.error('Ambari admin user creation failed')
+      return False
+  else:
+    Logger.error('Ranger service is not reachable host')
+    return False
 
 def create_repo(url, data, usernamepassword):
   try:
@@ -369,13 +395,17 @@ def create_repo(url, data, usernamepassword):
     response = json.loads(json.JSONEncoder().encode(result.read()))
     if response_code == 200:
       Logger.info('Repository created Successfully')
+      return True
     else:
       Logger.info('Repository not created')
+      return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      raise Fail("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
+      Logger.error("Error creating service. Http status code - {0}. \n {1}".format(e.code, e.read()))
+      return False
     else:
-      raise Fail("Error creating service. Reason - {0}.".format(e.reason))
+      Logger.error("Error creating service. Reason - {0}.".format(e.reason))
+      return False
 
 def get_repo(url, name, usernamepassword):
   try:
@@ -401,6 +431,8 @@ def get_repo(url, name, usernamepassword):
       return False
   except urllib2.URLError, e:
     if isinstance(e, urllib2.HTTPError):
-      raise Fail("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
+      Logger.error("Error getting {0} service. Http status code - {1}. \n {2}".format(name, e.code, e.read()))
+      return False
     else:
-      raise Fail("Error getting {0} service. Reason - {1}.".format(name, e.reason))
+      Logger.error("Error getting {0} service. Reason - {1}.".format(name, e.reason))
+      return False

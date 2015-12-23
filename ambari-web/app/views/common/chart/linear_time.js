@@ -167,9 +167,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
    */
   seriesTemplate: null,
 
-  _containerSelector: function () {
-    return '#' + this.get('id') + '-container';
-  }.property('id'),
+  _containerSelector: Em.computed.format('#{0}-container', 'id'),
 
   _popupSelector: Em.computed.concat('', '_containerSelector', 'popupSuffix'),
 
@@ -915,9 +913,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         titleId: null,
         titleClass: null,
 
-        isReady: function () {
-          return this.get('parentView.graph.isPopupReady');
-        }.property('parentView.graph.isPopupReady'),
+        isReady: Em.computed.alias('parentView.graph.isPopupReady'),
 
         didInsertElement: function () {
           var popupBody = this;

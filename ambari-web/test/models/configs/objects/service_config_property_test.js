@@ -189,6 +189,17 @@ var serviceConfigProperty,
         recommendedValue: 'recommended'
       },
       result: {
+        value: '',
+        recommendedValue: 'recommended'
+      }
+    },
+    {
+      initial: {
+        value: null,
+        savedValue: 'default',
+        recommendedValue: 'recommended'
+      },
+      result: {
         value: 'default',
         recommendedValue: 'recommended'
       }
@@ -310,20 +321,19 @@ var serviceConfigProperty,
     }
   ];
 
+function getProperty() {
+  return App.ServiceConfigProperty.create();
+}
+
 describe('App.ServiceConfigProperty', function () {
 
   beforeEach(function () {
-    serviceConfigProperty = App.ServiceConfigProperty.create();
+    serviceConfigProperty = getProperty();
   });
 
-  describe('#overrideErrorTrigger', function () {
-    it('should be an increment', function () {
-      serviceConfigProperty.set('overrides', configsData[0].overrides);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(1);
-      serviceConfigProperty.set('overrides', []);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(2);
-    });
-  });
+  App.TestAliases.testAsComputedFirstNotBlank(getProperty(), 'placeholder', ['placeholderText', 'savedValue']);
+
+  App.TestAliases.testAsComputedAnd(getProperty(), 'hideFinalIcon', ['!isFinal', 'isNotEditable']);
 
   describe('#isPropertyOverridable', function () {
     overridableFalseData.forEach(function (item) {
@@ -449,6 +459,15 @@ describe('App.ServiceConfigProperty', function () {
     it('not required', function () {
       serviceConfigProperty.setProperties({
         isRequired: false,
+        value: ''
+      });
+      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
+      expect(serviceConfigProperty.get('error')).to.be.false;
+    });
+    it('test-db-connection widget', function () {
+      serviceConfigProperty.setProperties({
+        isRequired: true,
+        widgetType: 'test-db-connection',
         value: ''
       });
       expect(serviceConfigProperty.get('errorMessage')).to.be.empty;

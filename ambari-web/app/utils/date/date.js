@@ -131,13 +131,14 @@ module.exports = {
       return Em.I18n.t('common.na');
     }
     if (endDate.getFullYear() != 1969 && endTimestamp > 0) {
-      return '' + this.timingFormat(endTimestamp - startTimestamp, 1); //lasted for xx secs
+      durationSummary = '' + this.timingFormat(endTimestamp - startTimestamp, 1);
+      return durationSummary.contains('-') ? Em.I18n.t('common.na') : durationSummary; //lasted for xx secs
     } else {
       // still running, duration till now
       var time = (App.dateTimeWithTimeZone() - startTimestamp) < 0 ? 0 : (App.dateTimeWithTimeZone() - startTimestamp);
       durationSummary = '' + this.timingFormat(time, 1);
     }
-    return durationSummary;
+    return durationSummary.contains('-') ? Em.I18n.t('common.na') : durationSummary;
   },
 
   /**

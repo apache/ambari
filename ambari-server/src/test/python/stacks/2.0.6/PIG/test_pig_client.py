@@ -35,7 +35,7 @@ class TestPigClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/etc/pig/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hdfs',
       group = 'hadoop'
     )
@@ -70,7 +70,7 @@ class TestPigClient(RMFTestCase):
     )
     
     self.assertResourceCalled('Directory', '/etc/pig/conf',
-      recursive = True,
+      create_parents = True,
       owner = 'hdfs',
       group = 'hadoop'
     )
@@ -110,7 +110,7 @@ class TestPigClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/usr/hdp/current/pig-client/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'hdfs',
                               group = 'hadoop'
     )
@@ -166,7 +166,7 @@ class TestPigClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute',
+    self.assertResourceCalledIgnoreEarlier('Execute',
                               ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 

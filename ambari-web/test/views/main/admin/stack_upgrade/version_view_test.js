@@ -24,7 +24,8 @@ describe('App.mainAdminStackVersionsView', function () {
   var view = App.MainAdminStackVersionsView.create({
     controller: {
       currentVersion: {
-        repository_version: "2.2.1.0"
+        repository_version: "2.2.1.0",
+        runningCheckRequests: []
       },
       load: Em.K
     }
@@ -225,7 +226,7 @@ describe('App.mainAdminStackVersionsView', function () {
     after(function () {
       view.observesCategories.restore();
     });
-    it("", function() {
+    it("observesCategories is called once", function() {
       view.didInsertElement();
       expect(view.observesCategories.calledOnce).to.be.true;
     });
@@ -233,19 +234,11 @@ describe('App.mainAdminStackVersionsView', function () {
 
   describe("#observesCategories()", function () {
     var mock = {format: Em.K};
-    before(function () {
+    beforeEach(function () {
       sinon.stub(Em.I18n, 't').returns(mock);
       sinon.stub(mock, 'format').returns('label');
       sinon.stub(view, 'filterBy').returns([]);
       sinon.stub(view, 'filterVersions');
-    });
-    after(function () {
-      Em.I18n.t.restore();
-      mock.format.restore();
-      view.filterBy.restore();
-      view.filterVersions.restore();
-    });
-    it("", function () {
       view.set('categories', [
         Em.Object.create({
           labelKey: 'labelKey',
@@ -254,20 +247,26 @@ describe('App.mainAdminStackVersionsView', function () {
         })
       ]);
       view.observesCategories();
+    });
+    afterEach(function () {
+      Em.I18n.t.restore();
+      mock.format.restore();
+      view.filterBy.restore();
+      view.filterVersions.restore();
+    });
+    it("categories[0].label is updated", function () {
       expect(view.get('categories')[0].get('label')).to.equal('label');
+    });
+    it("filterVersions is called once", function () {
       expect(view.filterVersions.calledOnce).to.be.true;
     });
   });
 
   describe("#selectCategory()", function() {
-    before(function () {
+    var event;
+    beforeEach(function () {
       sinon.stub(view, 'filterVersions');
-    });
-    after(function () {
-      view.filterVersions.restore();
-    });
-    it("", function() {
-      var event = {
+      event = {
         context: Em.Object.create({
           isSelected: false
         })
@@ -279,8 +278,17 @@ describe('App.mainAdminStackVersionsView', function () {
         event.context
       ]);
       view.selectCategory(event);
+    });
+    afterEach(function () {
+      view.filterVersions.restore();
+    });
+    it("categories[0].isSelected false", function() {
       expect(view.get('categories')[0].get('isSelected')).to.be.false;
+    });
+    it("isSelected is true", function() {
       expect(event.context.get('isSelected')).to.be.true;
+    });
+    it("filterVersions is called with correct data", function() {
       expect(view.filterVersions.calledWith(event.context)).to.be.true;
     });
   });
@@ -294,7 +302,7 @@ describe('App.mainAdminStackVersionsView', function () {
       view.filterBy.restore();
       view.observesCategories.restore();
     });
-    it("", function() {
+    it("isVisible for repoVersion is updated", function() {
       view.set('repoVersions', [Em.Object.create({id: 1})]);
       view.filterVersions();
       expect(view.get('repoVersions')[0].get('isVisible')).to.be.true;
@@ -347,22 +355,35 @@ describe('App.mainAdminStackVersionsView', function () {
     after(function () {
       view.poll.restore();
     });
-    it("", function() {
+    it("poll is called once", function() {
       view.willInsertElement();
       expect(view.poll.calledOnce).to.be.true;
     });
   });
 
   describe("#willDestroyElement()", function() {
-    before(function () {
+    var request;
+    beforeEach(function () {
+      request = {
+        abort: Em.K
+      };
       sinon.stub(window, 'clearTimeout', Em.K);
-    });
-    after(function () {
-      window.clearTimeout.restore();
-    });
-    it("", function() {
+      sinon.spy(request, 'abort');
+      view.set('controller.runningCheckRequests', [request, request]);
       view.willDestroyElement();
+    });
+    afterEach(function () {
+      window.clearTimeout.restore();
+      request.abort.restore();
+    });
+    it("clearTimeout is called once", function() {
       expect(window.clearTimeout.calledOnce).to.be.true;
+    });
+    it("abort is called twice", function() {
+      expect(request.abort.calledTwice).to.be.true;
+    });
+    it("runningCheckRequests is empty", function() {
+      expect(view.get('controller.runningCheckRequests')).to.have.length(0);
     });
   });
 
@@ -373,7 +394,7 @@ describe('App.mainAdminStackVersionsView', function () {
     after(function () {
       window.setTimeout.restore();
     });
-    it("", function() {
+    it("setTimeout is called once", function() {
       view.doPolling();
       expect(window.setTimeout.calledOnce).to.be.true;
     });

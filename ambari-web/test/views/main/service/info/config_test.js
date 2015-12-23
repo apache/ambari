@@ -20,13 +20,40 @@
 var App = require('app');
 require('views/main/service/info/configs');
 
-describe('App.MainServiceInfoConfigsView', function() {
+describe('App.MainServiceInfoConfigsView', function () {
 
-  var view = App.MainServiceInfoConfigsView.create({
-    controller: Em.Object.create()
+  var view;
+
+  beforeEach(function () {
+    view = App.MainServiceInfoConfigsView.create({
+      controller: Em.Object.create()
+    });
   });
 
-  describe('#updateComponentInformation', function() {
+  describe("#resetConfigTabSelection()", function () {
+    var tab = Em.Object.create({
+      serviceName: 'S1',
+      isActive: true
+    });
+
+    beforeEach(function () {
+      sinon.stub(App.Tab, 'find').returns([tab]);
+      sinon.stub(view, 'updateComponentInformation');
+    });
+
+    afterEach(function () {
+      App.Tab.find.restore();
+      view.updateComponentInformation.restore();
+    });
+
+    it("isActive should be false", function () {
+      view.set('controller.content', Em.Object.create({serviceName: 'S1'}));
+      view.resetConfigTabSelection();
+      expect(tab.get('isActive')).to.be.false;
+    });
+  });
+
+  describe('#updateComponentInformation', function () {
 
     var testCases = [
       {
@@ -64,8 +91,8 @@ describe('App.MainServiceInfoConfigsView', function() {
         }
       }
     ];
-    testCases.forEach(function(test) {
-      it(test.title, function() {
+    testCases.forEach(function (test) {
+      it(test.title, function () {
         view.set('controller.content', test.content);
         view.updateComponentInformation();
         expect(view.get('componentsCount')).to.equal(test.result.componentsCount);

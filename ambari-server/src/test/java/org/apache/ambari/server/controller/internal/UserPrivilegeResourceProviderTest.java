@@ -63,7 +63,7 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test(expected = SystemException.class)
   public void testCreateResources() throws Exception {
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.createResources(createNiceMock(Request.class));
   }
@@ -75,24 +75,24 @@ public class UserPrivilegeResourceProviderTest extends EasyMockSupport {
 
   @Test
   public void testGetResources_NonAdministrator_Self() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User1");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User1");
   }
 
   @Test(expected = AuthorizationException.class)
   public void testGetResources_NonAdministrator_Other() throws Exception {
-    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1"), "User10");
+    getResourcesTest(TestAuthenticationFactory.createClusterAdministrator("User1", 2L), "User10");
   }
 
   @Test(expected = SystemException.class)
   public void testUpdateResources() throws Exception {
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.updateResources(createNiceMock(Request.class), createNiceMock(Predicate.class));
   }
 
   @Test(expected = SystemException.class)
   public void testDeleteResources() throws Exception {
-    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1"));
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createClusterAdministrator("user1", 2L));
     UserPrivilegeResourceProvider resourceProvider = new UserPrivilegeResourceProvider();
     resourceProvider.deleteResources(createNiceMock(Predicate.class));
   }

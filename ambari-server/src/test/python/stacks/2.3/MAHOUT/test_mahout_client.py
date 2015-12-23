@@ -42,7 +42,7 @@ class TestMahoutClient(RMFTestCase):
       '/usr/hdp/current/mahout-client/conf',
       owner = 'mahout',
       group = 'hadoop',
-      recursive = True)
+      create_parents = True)
 
     self.assertResourceCalled('XmlConfig', 'yarn-site.xml',
       owner = "yarn",
@@ -103,9 +103,7 @@ class TestMahoutClient(RMFTestCase):
       call_mocks = itertools.cycle([(0, None, '')]),
       mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),
-        sudo = True,
-    )
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'mahout-client', '2.3.0.0-1234'),sudo = True)
     self.assertNoMoreResources()
 
     import sys

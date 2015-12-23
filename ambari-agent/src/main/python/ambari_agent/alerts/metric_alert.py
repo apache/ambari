@@ -241,7 +241,12 @@ class MetricAlert(BaseAlert):
       if json_is_valid:
         for attr in jmx_property_value:
           if attr not in json_data:
-            raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+            beans = json_response['beans']
+            for jmx_prop_list_item in beans:
+              if "name" in jmx_prop_list_item and jmx_prop_list_item["name"] == jmx_property_key:
+                if attr not in jmx_prop_list_item:
+                  raise Exception("Unable to find {0} in JSON from {1} ".format(attr, url))
+                json_data = jmx_prop_list_item
 
           value_list.append(json_data[attr])
 

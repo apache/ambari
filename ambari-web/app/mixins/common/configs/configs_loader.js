@@ -44,6 +44,7 @@ App.ConfigsLoader = Em.Mixin.create(App.GroupsMappingMixin, {
    * @returns {$.ajax}
    */
   loadServiceConfigVersions: function () {
+    this.set('allVersionsLoaded', false);
     return App.ajax.send({
       name: 'service.serviceConfigVersions.get',
       data: {

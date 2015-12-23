@@ -896,6 +896,7 @@ public class AmbariManagementControllerImplTest {
     expect(clusterRequest.getClusterId()).andReturn(1L).times(6);
     expect(clusterRequest.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(clusters.getClusterById(1L)).andReturn(cluster).times(2);
+    expect(cluster.getResourceId()).andReturn(1L).times(3);
     expect(cluster.getClusterName()).andReturn("cluster").times(2);
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getCurrentClusterVersion()).andReturn(null).anyTimes();

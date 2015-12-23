@@ -26,7 +26,7 @@
   <td>
     {{#rename-input fileBinding='content' confirm='rename' isRenaming=isRenaming}}
       <div class="file-name allow-open">
-      {{#file-shaker action="open" isValid=content.readAccess}}
+      {{#file-shaker action="open" isValid=true}}
         <span>
           <a>
             <strong>
@@ -56,20 +56,16 @@
     {{#unless isMoving}}
       <ul class="list-inline file-actions text-right">
         <li>
-        {{#if content.readAccess}}
           {{#if content.isDirectory}}
-            <a href="#" {{action 'download' 'zip'}} data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>
+            <a href="#" {{action 'download' 'zip'}} target="_blank" data-toggle="tooltip" data-placement="bottom" title="Download zip"><i class="fa fa-archive fa-fw fa-lg"></i></a>
           {{else}}
-            <a href="#" {{action 'download' 'browse'}} data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>
+            <a href="#" {{action 'download' 'browse'}} target="_blank" data-toggle="tooltip" data-placement="bottom" title="Download"><i class="fa fa-download fa-fw fa-lg"></i></a>
           {{/if}}
-        {{/if}}
         </li>
         <li>
           <a href="#" {{action 'moveFile' 'cut' this.content}} data-toggle="tooltip" data-placement="bottom" title="Move"><i class="fa fa-level-down fa-rotate-270 fa-fw fa-lg"></i></a>
         </li>
-        {{#if dirInfo.writeAccess}}
-          <li>{{popover-delete confirm="deleteFile"}}</li>
-        {{/if}}
+        <li>{{popover-delete confirm="deleteFile"}}</li>
       </ul>
     {{/unless}}
   </td>

@@ -22,7 +22,13 @@ require('views/wizard/step1_view');
 var view;
 var controller;
 
+function getView() {
+  return App.WizardStep1View.create();
+}
+
 describe('App.WizardStep1View', function () {
+
+  App.TestAliases.testAsComputedAnd(getView(), 'showErrorsWarningCount', ['isSubmitDisabled', 'totalErrorCnt']);
 
   describe('#operatingSystems', function () {
     beforeEach(function () {
@@ -204,42 +210,9 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#isNoOsChecked', function () {
-    view = App.WizardStep1View.create();
+  App.TestAliases.testAsComputedEveryBy(getView(), 'isNoOsChecked', 'operatingSystems', 'isSelected', false);
 
-    var tests = Em.A([
-      {
-        operatingSystems: [
-          {'isSelected': false},
-          {'isSelected': false}
-        ],
-        e: true
-      },
-      {
-        operatingSystems: [
-          {'isSelected': true},
-          {'isSelected': false}
-        ],
-        e: false
-      },
-      {
-        operatingSystems: [
-          {'isSelected': true},
-          {'isSelected': true}
-        ],
-        e: false
-      }
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.operatingSystems.mapProperty('isSelected').join(', '), function () {
-        var operatingSystems = view.get('operatingSystems');
-        Ember.set(operatingSystems[0], 'isSelected', test.operatingSystems[0].isSelected);
-        Ember.set(operatingSystems[1], 'isSelected', test.operatingSystems[1].isSelected);
-        expect(view.get('isNoOsChecked')).to.equal(test.e);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedOr(getView(), 'isSubmitDisabled', ['invalidFormatUrlExist', 'isNoOsChecked', 'invalidUrlExist', 'controller.content.isCheckInProgress']);
 
   describe('#stacks', function () {
 
@@ -276,148 +249,9 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  describe('#isSubmitDisabled', function () {
+  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', App.Repository.validation['INVALID']);
 
-    var tests = Em.A([
-      {
-        invalidFormatUrlExist: false,
-        isNoOsChecked: false,
-        invalidUrlExist: false,
-        checkInProgress: false,
-        e: false
-      },
-      {
-        invalidFormatUrlExist: true,
-        isNoOsChecked: false,
-        invalidUrlExist: false,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: false,
-        isNoOsChecked: true,
-        invalidUrlExist: false,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: false,
-        isNoOsChecked: false,
-        invalidUrlExist: true,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: true,
-        isNoOsChecked: false,
-        invalidUrlExist: true,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: true,
-        isNoOsChecked: true,
-        invalidUrlExist: false,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: false,
-        isNoOsChecked: true,
-        invalidUrlExist: true,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: true,
-        isNoOsChecked: true,
-        invalidUrlExist: true,
-        checkInProgress: false,
-        e: true
-      },
-      {
-        invalidFormatUrlExist: true,
-        isNoOsChecked: false,
-        invalidUrlExist: false,
-        checkInProgress: true,
-        e: true
-      }
-    ]);
-
-    tests.forEach(function (test) {
-      it(test.invalidFormatUrlExist.toString() + ' ' + test.isNoOsChecked.toString() + ' ' + test.invalidUrlExist.toString()+ ' ' + test.checkInProgress.toString(), function () {
-        view = App.WizardStep1View.create();
-        view.reopen({
-          invalidFormatUrlExist: test.invalidFormatUrlExist,
-          isNoOsChecked: test.isNoOsChecked,
-          invalidUrlExist: test.invalidUrlExist
-        });
-        view.set('controller', {});
-        view.set('controller.content', {});
-        view.set('controller.content.isCheckInProgress', test.checkInProgress);
-        expect(view.get('isSubmitDisabled')).to.equal(test.e);
-      });
-    });
-  });
-
-  describe('#showErrorsWarningCount', function() {
-    var tests = [
-      {
-        isSubmitDisabled: true,
-        totalErrorCnt: 0,
-        e: false
-      },
-      {
-        isSubmitDisabled: true,
-        totalErrorCnt: 1,
-        e: true
-      },
-      {
-        isSubmitDisabled: false,
-        totalErrorCnt: 0,
-        e: false
-      }
-    ];
-    tests.forEach(function(test) {
-      it(test.isSubmitDisabled.toString() + ' ' + test.totalErrorCnt.toString(), function () {
-        var view = App.WizardStep1View.create();
-        view.reopen({
-          isSubmitDisabled: test.isSubmitDisabled,
-          totalErrorCnt: test.totalErrorCnt
-        });
-        expect(view.get('showErrorsWarningCount')).to.equal(test.e);
-      })
-    });
-  });
-
-  describe('#invalidUrlExist', function () {
-    var tests = Em.A([
-      {
-        allRepositories: [Em.Object.create({validation: 'icon-exclamation-sign'})],
-        m: 'invalidCnt: 1, validation: icon-exclamation-sign',
-        e: true
-      },
-      {
-        allRepositories: [Em.Object.create({validation: ''})],
-        m: 'invalidCnt: 1, validation: ""',
-        e: false
-      },
-      {
-        allRepositories: [Em.Object.create({validation: ''})],
-        m: 'invalidCnt: 0, validation: ""',
-        e: false
-      }
-    ]);
-    tests.forEach(function (test) {
-      it(test.m, function () {
-        view = App.WizardStep1View.create();
-        view.reopen({
-          allRepositories: test.allRepositories
-        });
-        expect(view.get('invalidUrlExist')).to.equal(test.e);
-      });
-    });
-  });
+  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidFormatUrlExist', 'allRepositories', 'invalidFormatError', true);
 
   describe('#totalErrorCnt', function () {
     var tests = Em.A([

@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var misc = require('utils/misc');
 
 App.MainServiceMenuView = Em.CollectionView.extend({
   disabledServices: [],

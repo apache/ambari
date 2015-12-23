@@ -21,18 +21,26 @@ var lazyloading = require('utils/lazy_loading');
 require('views/wizard/step3/hostWarningPopupBody_view');
 var view;
 
+function getView() {
+  return App.WizardStep3HostWarningPopupBody.create({
+    didInsertElement: Em.K,
+    $: function() {
+      return Em.Object.create({
+        toggle: Em.K
+      })
+    }
+  });
+}
+
 describe('App.WizardStep3HostWarningPopupBody', function() {
 
   beforeEach(function() {
-    view = App.WizardStep3HostWarningPopupBody.create({
-      didInsertElement: Em.K,
-      $: function() {
-        return Em.Object.create({
-          toggle: Em.K
-        })
-      }
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAlias(getView(), 'warningsByHost', 'bodyController.warningsByHost', 'array');
+
+  App.TestAliases.testAsComputedAlias(getView(), 'warnings', 'bodyController.warnings', 'array');
 
   describe('#onToggleBlock', function() {
     it('should toggle', function() {

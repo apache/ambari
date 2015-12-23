@@ -56,7 +56,12 @@ public class UserDAO {
     return daoUtils.selectList(query);
   }
 
+  /**
+   * Results in Exception if two users with same name but different types present in DB
+   * As such situation is valid, use {@link #findUserByNameAndType(String, UserType)} instead
+   */
   @RequiresSession
+  @Deprecated
   public UserEntity findUserByName(String userName) {
     TypedQuery<UserEntity> query = entityManagerProvider.get().createNamedQuery("userByName", UserEntity.class);
     query.setParameter("username", userName.toLowerCase());

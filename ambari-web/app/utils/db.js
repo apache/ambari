@@ -189,6 +189,10 @@ App.db.setUser = function (user) {
   App.db.set('app', 'user', user);
 };
 
+App.db.setAuth = function (auth) {
+  App.db.set('app', 'auth', auth);
+};
+
 App.db.setAuthenticated = function (authenticated) {
   App.db.set('app', 'authenticated', authenticated);
   App.db.data = localStorage.getObject('ambari');
@@ -344,6 +348,10 @@ App.db.setKerberosWizardConfigTag = function (tag) {
  */
 App.db.getUser = function () {
   return App.db.get('app', 'user');
+};
+
+App.db.getAuth = function () {
+  return App.db.get('app', 'auth');
 };
 
 App.db.getLoginName = function () {

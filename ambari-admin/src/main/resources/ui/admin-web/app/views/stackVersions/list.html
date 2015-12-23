@@ -41,7 +41,7 @@
         <select class="form-control"
                 ng-change="resetPagination()"
                 ng-model="filter.cluster.current"
-                ng-options="item.label for item in filter.cluster.options"
+                ng-options="item.label for item in filter.cluster.options track by item.value"
           ></select>
       </th>
       <th></th>

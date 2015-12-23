@@ -206,7 +206,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     if create_pid_dir:
       Directory(pid_dir,
                 owner=user,
-                recursive=True)
+                create_parents = True)
     if create_log_dir:
       if name == "nfs3":
         Directory(log_dir,
@@ -216,7 +216,7 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
       else:
         Directory(log_dir,
                   owner=user,
-                  recursive=True)
+                  create_parents = True)
 
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.
@@ -358,3 +358,19 @@ def get_hdfs_binary(distro_component_name):
       hdfs_binary = "/usr/hdp/current/{0}/bin/hdfs".format(distro_component_name)
 
   return hdfs_binary
+
+def get_dfsadmin_base_command(hdfs_binary, use_specific_namenode = False):
+  """
+  Get the dfsadmin base command constructed using hdfs_binary path and passing namenode address as explicit -fs argument
+  :param hdfs_binary: path to hdfs binary to use
+  :param use_specific_namenode: flag if set and Namenode HA is enabled, then the dfsadmin command will use
+  current namenode's address
+  :return: the constructed dfsadmin base command
+  """
+  import params
+  dfsadmin_base_command = ""
+  if params.dfs_ha_enabled and use_specific_namenode:
+    dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs hdfs://{params.namenode_rpc}")
+  else:
+    dfsadmin_base_command = format("{hdfs_binary} dfsadmin -fs {params.namenode_address}")
+  return dfsadmin_base_command

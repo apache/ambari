@@ -27,8 +27,10 @@
                 <div class="columns">
                   {{#each column in table.visibleColumns}}
                     <div>
-                      <strong>{{column.name}}</strong>
-                      <span class="pull-right">{{format-column-type column}}</span>
+                      <div class="column-name" {{bind-attr data-original-title=column.name}}
+                              data-toggle="tooltip" data-placement="top" title>{{column.name}}
+                      </div>
+                      <span class="pull-right widget-controls">{{format-column-type column}}</span>
                     </div>
                   {{/each}}
                   {{#if table.canGetNextPage}}

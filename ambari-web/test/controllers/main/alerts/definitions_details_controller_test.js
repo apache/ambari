@@ -20,14 +20,32 @@ var App = require('app');
 
 var controller;
 
+function getController() {
+  return App.MainAlertDefinitionDetailsController.create({
+    content: Em.Object.create({
+      label: 'label'
+    })
+  });
+}
+
 describe('App.MainAlertDefinitionDetailsController', function () {
 
   beforeEach(function () {
-    controller = App.MainAlertDefinitionDetailsController.create({
-      content: Em.Object.create({
-        label: 'label'
-      })
+    controller = getController();
+  });
+
+  App.TestAliases.testAsComputedMapBy(getController(), 'groupsList', 'content.groups', 'displayName');
+
+  App.TestAliases.testAsComputedOr(getController(), 'isEditing', ['editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit']);
+
+  describe('#showSavePopup', function () {
+    var popup;
+    beforeEach(function () {
+      popup = getController().showSavePopup();
     });
+
+    App.TestAliases.testAsComputedOr(getController().showSavePopup(), 'disablePrimary', ['App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors']);
+
   });
 
   describe('#labelValidation()', function () {

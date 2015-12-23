@@ -125,11 +125,13 @@ public class BlueprintConfigurationProcessor {
   private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
-   * Statically-defined set of properties that can support using a nameservice name
+   * Statically-defined set of properties that can support HA using a nameservice name
    *   in the configuration, rather than just a host name.
+   *   This set also contains other HA properties that will be exported if the
+   *   expected hostname information is not found.
    */
   private static Set<String> configPropertiesWithHASupport =
-    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes"));
+    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes", "policymgr_external_url"));
 
   /**
    * Statically-defined list of filters to apply on property exports.
@@ -243,6 +245,10 @@ public class BlueprintConfigurationProcessor {
             final String originalValue = typeMap.get(propertyName);
             final String updatedValue =
               updater.updateForClusterCreate(propertyName, originalValue, clusterProps, clusterTopology);
+            
+            if(updatedValue == null ) {
+              continue;
+            }
 
             if (!updatedValue.equals(originalValue)) {
               configTypesUpdated.add(type);
@@ -1519,7 +1525,7 @@ public class BlueprintConfigurationProcessor {
    * Topology based updater which replaces original host names (possibly more than one) contained in a property
    * value with the host names which runs the associated component in the new cluster.
    */
-  private static class MultipleHostTopologyUpdater implements PropertyUpdater {
+  protected static class MultipleHostTopologyUpdater implements PropertyUpdater {
 
     private static final Character DEFAULT_SEPARATOR = ',';
 
@@ -1589,6 +1595,10 @@ public class BlueprintConfigurationProcessor {
         return origValue;
       }
 
+      if (origValue.contains("localhost") && topology.getHostGroupsForComponent(component).size() == 1) {
+        return origValue.replace("localhost", topology.getHostAssignmentsForComponent(component).iterator().next());
+      }
+
       String prefix = null;
       Collection<String> hostStrings = getHostStrings(origValue, topology);
       if (hostStrings.isEmpty()) {
@@ -1616,26 +1626,39 @@ public class BlueprintConfigurationProcessor {
         }
       }
 
+      return sb.append(resolveHostGroupPlaceholder(origValue, prefix, hostStrings)).toString();
+    }
+
+    /**
+     * Resolves the host group place holders in the passed in original value.
+     * @param originalValue The original value containing the place holders to be resolved.
+     * @param prefix The prefix to be added to the returned value.
+     * @param hostStrings The collection of host names that are mapped to the host groups to be resolved
+     * @return The new value with place holders resolved.
+     */
+    protected String resolveHostGroupPlaceholder(String originalValue, String prefix, Collection<String> hostStrings) {
       String suffix = null;
+      StringBuilder sb = new StringBuilder();
+
       // parse out prefix if one exists
-      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(origValue);
+      Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(originalValue);
       if (matcher.find()) {
         int indexOfStart = matcher.start();
         // handle the case of a YAML config property
-        if ((indexOfStart > 0) && (!origValue.substring(0, indexOfStart).equals("['"))) {
+        if ((indexOfStart > 0) && (!originalValue.substring(0, indexOfStart).equals("['")) && (!originalValue.substring(0, indexOfStart).equals("[")) ) {
           // append prefix before adding host names
-          prefix = origValue.substring(0, indexOfStart);
+          prefix = originalValue.substring(0, indexOfStart);
           sb.append(prefix);
         }
 
         // parse out suffix if one exists
-        int indexOfEnd = -1;
-        while (matcher.find()) {
+        int indexOfEnd;
+        do {
           indexOfEnd = matcher.end();
-        }
+        } while (matcher.find());
 
-        if ((indexOfEnd > -1) && (indexOfEnd < (origValue.length() - 1))) {
-          suffix = origValue.substring(indexOfEnd);
+        if (indexOfEnd < (originalValue.length())) {
+          suffix = originalValue.substring(indexOfEnd);
         }
       }
 
@@ -1654,7 +1677,7 @@ public class BlueprintConfigurationProcessor {
         sb.append(host);
       }
 
-      if ((suffix != null) && (!suffix.equals("']"))) {
+      if ((suffix != null) && (!suffix.equals("']")) && (!suffix.equals("]")) ) {
         sb.append(suffix);
       }
       return sb.toString();
@@ -1806,13 +1829,22 @@ public class BlueprintConfigurationProcessor {
   /**
    * Return properties of the form ['value']
    */
-  private static class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
+   static class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
 
     // currently, only plain and single-quoted Yaml flows are supported by this updater
     enum FlowStyle {
       SINGLE_QUOTED,
       PLAIN
     }
+
+    /**
+     * Regexp to extract the inner part of a string enclosed in []
+     */
+    private static Pattern REGEX_IN_BRACKETS = Pattern.compile("\\s*\\[(?<INNER>.*)\\]\\s*");
+    /**
+     * Regexp to extract the inner part of a string enclosed in ''
+     */
+    private static Pattern REGEX_IN_QUOTES = Pattern.compile("\\s*'(?<INNER>.*)'\\s*");
 
     private final FlowStyle flowStyle;
 
@@ -1828,7 +1860,8 @@ public class BlueprintConfigurationProcessor {
 
     /**
      * Format input String of the form, str1,str2 to ['str1','str2']
-     *
+     * If the input string is already surrounded by [] ignore those
+     * and process the part from within the square brackets.
      * @param origValue  input string
      *
      * @return formatted string
@@ -1836,10 +1869,20 @@ public class BlueprintConfigurationProcessor {
     @Override
     public String doFormat(String origValue) {
       StringBuilder sb = new StringBuilder();
+
+      Matcher m = REGEX_IN_BRACKETS.matcher(origValue);
+      if (m.matches())
+        origValue = m.group("INNER");
+
       if (origValue != null) {
         sb.append("[");
         boolean isFirst = true;
         for (String value : origValue.split(",")) {
+
+          m = REGEX_IN_QUOTES.matcher(value);
+          if (m.matches())
+            value = m.group("INNER");
+
           if (!isFirst) {
             sb.append(",");
           } else {
@@ -2037,9 +2080,9 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
-    Map<String, PropertyUpdater> rangerKmsSitePropsMap = new HashMap<String, PropertyUpdater>();
 
 
 
@@ -2058,7 +2101,6 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("application-properties", atlasPropsMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
-    singleHostTopologyUpdaters.put("kms-site", rangerKmsSitePropsMap);
 
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
@@ -2077,6 +2119,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
     multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
     multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
+    multiHostTopologyUpdaters.put("kms-site", multiRangerKmsSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -2094,13 +2137,12 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.http-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.https-address", new SingleHostTopologyUpdater("NAMENODE"));
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
-    hdfsSiteMap.put("dfs.encryption.key.provider.uri", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
-    coreSiteMap.put("hadoop.security.key.provider.path", new OptionalSingleHostTopologyUpdater("RANGER_KMS_SERVER"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false));
+    multiHdfsSiteMap.put("dfs.encryption.key.provider.uri", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -2139,6 +2181,7 @@ public class BlueprintConfigurationProcessor {
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.yarn.hosts", new MultipleHostTopologyUpdater("RESOURCEMANAGER"));
+    multiCoreSiteMap.put("hadoop.security.key.provider.path", new MultipleHostTopologyUpdater("RANGER_KMS_SERVER", ';', false));
     multiWebhcatSiteMap.put("templeton.hive.properties", new TempletonHivePropertyUpdater());
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
@@ -2304,8 +2347,8 @@ public class BlueprintConfigurationProcessor {
     rangerAdminPropsMap.put("policymgr_external_url", new SingleHostTopologyUpdater("RANGER_ADMIN"));
 
     // RANGER KMS
-    rangerKmsSitePropsMap.put("hadoop.kms.key.provider.uri", new SingleHostTopologyUpdater("RANGER_KMS_SERVER"));
-
+    multiRangerKmsSiteMap.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     // Required due to AMBARI-4933.  These no longer seem to be required as the default values in the stack
     // are now correct but are left here in case an existing blueprint still contains an old value.
     hadoopEnvMap.put("namenode_heapsize", new MPropertyUpdater());

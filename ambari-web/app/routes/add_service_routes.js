@@ -23,7 +23,7 @@ module.exports = App.WizardRoute.extend({
   route: '/service/add',
 
   enter: function (router) {
-    if (App.isAccessible('ADMIN')) {
+    if (App.isAuthorized('SERVICE.ADD_DELETE_SERVICES')) {
       // `getSecurityStatus` call is required to retrieve information related to kerberos type: Manual or automated kerberos
       router.get('mainController').isLoading.call(router.get('clusterController'),'isClusterNameLoaded').done(function () {
         App.router.get('mainAdminKerberosController').getSecurityStatus().always(function () {
@@ -192,9 +192,12 @@ module.exports = App.WizardRoute.extend({
         wizardStep6Controller.showValidationIssuesAcceptBox(function () {
           addServiceController.saveSlaveComponentHosts(wizardStep6Controller);
           addServiceController.get('content').set('serviceConfigProperties', null);
-          addServiceController.setDBProperty('serviceConfigProperties', null);
-          addServiceController.setDBProperty('groupsToDelete', []);
-          addServiceController.setDBProperty('recommendationsConfigs', null);
+          addServiceController.setDBProperties({
+            serviceConfigProperties: null,
+            groupsToDelete: null,
+            recommendationsHostGroups: wizardStep6Controller.get('content.recommendationsHostGroups'),
+            recommendationsConfigs: null
+          });
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.get('wizardStep7Controller').clearDependentConfigs();
           router.transitionTo('step4');

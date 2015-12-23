@@ -22,7 +22,7 @@ import org.apache.ambari.view.pig.HDFSTest;
 import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.utils.NotFoundFormattedException;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.json.simple.JSONObject;
 import org.junit.*;
@@ -51,7 +51,7 @@ public class ScriptTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    ViewUserLocal.dropAllConnections(HdfsApi.class);
+    UserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Override

@@ -46,7 +46,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -72,7 +72,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -96,7 +96,7 @@ class TestKerberosClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory', '/tmp/AMBARI-artifacts/',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/tmp/AMBARI-artifacts//UnlimitedJCEPolicyJDK7.zip',
                             content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//UnlimitedJCEPolicyJDK7.zip'),
@@ -118,7 +118,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -144,7 +144,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     file_path = (use_cases.get_krb5_conf_dir(json_data) +
                  "/" +
@@ -278,7 +278,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/spnego.service.keytab",
                               owner='root',
@@ -303,7 +303,7 @@ class TestKerberosClient(RMFTestCase):
                               owner='root',
                               group='root',
                               mode=0755,
-                              recursive=True)
+                              create_parents = True)
 
     self.assertResourceCalled('File', "/etc/security/keytabs/smokeuser.headless.keytab",
                           owner='ambari-qa',

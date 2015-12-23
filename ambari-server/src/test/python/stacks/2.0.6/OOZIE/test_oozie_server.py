@@ -89,7 +89,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               group = 'hadoop',
@@ -142,67 +142,67 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
-                              recursive = True,
+                              create_parents = True,
                               group = 'hadoop',
                               mode = 0755,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
@@ -297,7 +297,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               group = 'hadoop',
@@ -347,67 +347,67 @@ class TestOozieServer(RMFTestCase):
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               cd_access = 'a',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
-                              recursive = True,
+                              create_parents = True,
                               group = 'hadoop',
                               mode = 0755,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
                               not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
@@ -433,7 +433,7 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/java/* /usr/lib/oozie/libext')
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext/native/lib64',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Execute', 'yes | ambari-sudo.sh cp /tmp/sqla-client-jdbc/native/lib64/* /usr/lib/oozie/libext/native/lib64')
     self.assertResourceCalled('Execute', 'ambari-sudo.sh chown -R oozie:hadoop /usr/lib/oozie/libext/*')
@@ -658,7 +658,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
     )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
@@ -706,68 +706,68 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/oozie//var/tmp/oozie',
         owner = 'oozie',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0755,
         cd_access='a'
     )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
@@ -837,7 +837,7 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
                               )
     self.assertResourceCalled('XmlConfig', 'oozie-site.xml',
                               owner = 'oozie',
@@ -885,68 +885,68 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/oozie//var/tmp/oozie',
         owner = 'oozie',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0755,
         cd_access='a'
     )
     self.assertResourceCalled('Directory', '/var/run/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/log/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/tmp/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/oozie/data',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/webapps/',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server/conf',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/var/lib/oozie/oozie-server',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie/libext',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('Execute', ('tar', '-xvf', '/usr/lib/oozie/oozie-sharelib.tar.gz', '-C', '/usr/lib/oozie'),
         not_if = "ambari-sudo.sh su oozie -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1' || test -f /usr/lib/oozie/.hashcode && test -d /usr/lib/oozie/share && [[ `cat /usr/lib/oozie/.hashcode` == 'abc123hash' ]]",
@@ -1003,7 +1003,7 @@ class TestOozieServer(RMFTestCase):
       self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf/hive',
                               owner = 'oozie',
                               group = 'hadoop',
-                              recursive = True
+                              create_parents = True
                               )
       self.assertResourceCalled('XmlConfig', 'hive-site',
                                 owner = 'oozie',
@@ -1358,7 +1358,7 @@ class TestOozieServer(RMFTestCase):
       recursive_chmod = True,
       owner = 'oozie',
       group = 'hadoop',
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
       action = ['create_on_execute'],
       mode = 0755 )
@@ -1374,7 +1374,7 @@ class TestOozieServer(RMFTestCase):
       user = 'hdfs', 
       dfs_type = '',
       action = ['execute'],
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)
@@ -1431,7 +1431,7 @@ class TestOozieServer(RMFTestCase):
       recursive_chmod = True,
       owner = 'oozie',
       group = 'hadoop',
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf',
       type = 'directory',
       action = ['create_on_execute'],
       mode = 0755 )
@@ -1447,7 +1447,7 @@ class TestOozieServer(RMFTestCase):
       user = 'hdfs',
       dfs_type = '',
       action = ['execute'],
-      hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf' )
+      hadoop_conf_dir = '/usr/hdp/2.3.0.0-1234/hadoop/conf' )
 
     self.assertResourceCalled('Execute', '/usr/hdp/2.3.0.0-1234/oozie/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020',
       user='oozie', logoutput = True)

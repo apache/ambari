@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var databaseUtils = require('utils/configs/database');
 
@@ -26,8 +25,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   name: 'mainServiceInfoConfigsController',
 
   isHostsConfigsPage: false,
-
-  forceTransition: false,
 
   isRecommendedLoaded: true,
 
@@ -38,8 +35,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   selectedService: null,
 
   selectedConfigGroup: null,
-
-  selectedServiceNameTrigger: null,
 
   requestsInProgress: [],
 
@@ -118,24 +113,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   canEdit: function () {
     return (this.get('selectedVersion') == this.get('currentDefaultVersion') || !this.get('selectedConfigGroup.isDefault'))
-        && !this.get('isCompareMode') && App.isAccessible('MANAGER') && !this.get('isHostsConfigsPage');
+        && !this.get('isCompareMode') && App.isAuthorized('SERVICE.MODIFY_CONFIGS') && !this.get('isHostsConfigsPage');
   }.property('selectedVersion', 'isCompareMode', 'currentDefaultVersion', 'selectedConfigGroup.isDefault'),
 
-  serviceConfigs: function () {
-    return App.config.get('preDefinedServiceConfigs');
-  }.property('App.config.preDefinedServiceConfigs'),
+  serviceConfigs: Em.computed.alias('App.config.preDefinedServiceConfigs'),
 
   /**
    * Number of errors in the configs in the selected service (only for AdvancedTab if App supports Enhanced Configs)
    * @type {number}
    */
-  errorsCount: function () {
-    return this.get('selectedService.configs').filter(function (config) {
-      return Em.isNone(config.get('widgetType'));
-    }).filter(function(config) {
-      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
-    }).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.isVisible', 'selectedService.configs.@each.overrideErrorTrigger'),
+  errorsCount: function() {
+    return this.get('selectedService.configsWithErrors').filter(function(c) {
+      return Em.isNone(c.get('widget'));
+    }).length;
+  }.property('selectedService.configsWithErrors'),
 
   /**
    * Determines if Save-button should be disabled
@@ -153,7 +144,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * Determines if some config value is changed
    * @type {boolean}
    */
-  isPropertiesChanged: Em.computed.someBy('stepConfigs', 'isPropertiesChanged', true),
+  isPropertiesChanged: Em.computed.alias('selectedService.isPropertiesChanged'),
 
   /**
    * Filter text will be located here
@@ -278,7 +269,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
       saveInProgress: false,
       isInit: true,
       hash: null,
-      forceTransition: false,
       dataIsLoaded: false,
       versionLoaded: false,
       filter: '',
@@ -484,15 +474,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
+    var self = this;
     this.get('servicesToLoad').forEach(function(serviceName) {
       var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
-      var serviceNames = [ serviceName ];
-      if(serviceName === 'OOZIE') {
-        // For Oozie, also add ELService properties which are marked as FALCON properties.
-        serviceNames.push('FALCON');
-      }
+      var configTypes = App.StackService.find(serviceName).get('configTypeList');
       var configsByService = this.get('allConfigs').filter(function (c) {
-        return serviceNames.contains(c.get('serviceName'));
+        return configTypes.contains(App.config.getConfigTagFromFileName(c.get('filename')));
       });
       var serviceConfig = App.config.createServiceConfig(serviceName, configGroups, configsByService, configsByService.length);
       this.addHostNamesToConfigs(serviceConfig);
@@ -500,18 +487,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }, this);
 
     var selectedService = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    if (this.get('selectedService.serviceName') != selectedService.get('serviceName')) {
-      this.propertyDidChange('selectedServiceNameTrigger');
-    }
     this.set('selectedService', selectedService);
     this.checkOverrideProperty(selectedService);
-    if (!App.Service.find().someProperty('serviceName', 'RANGER')) {
-      App.config.removeRangerConfigs(this.get('stepConfigs'));
-    } else {
+    if (App.Service.find().someProperty('serviceName', 'RANGER')) {
       this.setVisibilityForRangerProperties(selectedService);
+    } else {
+      App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this._onLoadComplete();
-    this.getRecommendationsForDependencies(null, true, Em.K, this.get('selectedConfigGroup'));
+    this.getRecommendationsForDependencies(null, true, function () {self._onLoadComplete();}, this.get('selectedConfigGroup'));
     App.loadTimer.finish('Service Configs Page');
   },
 

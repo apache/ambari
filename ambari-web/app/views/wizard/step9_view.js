@@ -80,9 +80,7 @@ App.WizardStep9View = App.TableView.extend({
    */
   categoryObject: Em.Object.extend({
     hostsCount: 0,
-    label: function () {
-      return "%@ (%@)".fmt(this.get('value'), this.get('hostsCount'));
-    }.property('value', 'hostsCount'),
+    label: Em.computed.format('{0} ({1})', 'value', 'hostsCount'),
     isActive: false,
     itemClass: Em.computed.ifThenElse('isActive', 'active', '')
   }),
@@ -111,10 +109,7 @@ App.WizardStep9View = App.TableView.extend({
    * Css-string to overall progress-bar width-property
    * @type {string}
    */
-  barWidth: function () {
-    var controller = this.get('controller');
-    return 'width: ' + controller.get('progress') + '%;';
-  }.property('controller.progress'),
+  barWidth: Em.computed.format('width: {0}%;', 'controller.progress'),
 
   /**
    * Filter hosts info shown up on bottom of the box. Set by filter function, when 'seletedCategory' changed
@@ -287,6 +282,13 @@ App.WizardStep9View = App.TableView.extend({
 
 });
 
+function hostStatus(statuses) {
+  return Em.computed('isHostCompleted', 'obj.status', function () {
+    statuses = Em.makeArray(statuses);
+    return this.get('isHostCompleted') && statuses.contains(this.get('obj.status'));
+  });
+}
+
 App.HostStatusView = Em.View.extend({
 
   tagName: 'tr',
@@ -313,33 +315,25 @@ App.HostStatusView = Em.View.extend({
    * Css-string to progress-bar width-property
    * @type {string}
    */
-  barWidth: function () {
-    return 'width: ' + this.get('obj.progress') + '%;';
-  }.property('obj.progress'),
+  barWidth: Em.computed.format('width: {0}%;','obj.progress'),
 
   /**
    * Is current host failed
    * @type {bool}
    */
-  isFailed: function () {
-    return (this.get('isHostCompleted') && (this.get('obj.status') === 'failed' || this.get('obj.status') === 'heartbeat_lost'));
-  }.property('obj.status', 'isHostCompleted'),
+  isFailed: hostStatus(['failed', 'heartbeat_lost']),
 
   /**
    * Is current host successfully installed
    * @type {bool}
    */
-  isSuccess: function () {
-    return (this.get('isHostCompleted') && this.get('obj.status') === 'success');
-  }.property('obj.status', 'isHostCompleted'),
+  isSuccess: hostStatus('success'),
 
   /**
    * Current host has warnings
    * @type {bool}
    */
-  isWarning: function () {
-    return(this.get('isHostCompleted') && this.get('obj.status') === 'warning');
-  }.property('obj.status', 'isHostCompleted'),
+  isWarning: hostStatus('warning'),
 
   /**
    * Current host completed all its tasks

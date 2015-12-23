@@ -36,50 +36,70 @@ describe('MainConfigHistoryController', function () {
     });
   });
   describe('#load()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'updateTotalCounter', Em.K);
       sinon.stub(controller, 'loadConfigVersionsToModel').returns({done: Em.K});
-
       controller.load();
-      expect(controller.updateTotalCounter.calledOnce).to.be.true;
+    });
 
+    afterEach(function () {
       controller.updateTotalCounter.restore();
       controller.loadConfigVersionsToModel.restore();
     });
+
+    it('updateTotalCounter is called once', function () {
+      expect(controller.updateTotalCounter.calledOnce).to.be.true;
+    });
   });
   describe('#loadConfigVersionsToModel()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App.HttpClient, 'get', Em.K);
       sinon.stub(controller, 'getUrl', Em.K);
       sinon.stub(controller, 'getQueryParameters', function(){
         return [1];
       });
-
       controller.loadConfigVersionsToModel();
-      expect(App.HttpClient.get.calledOnce).to.be.true;
-      expect(controller.getQueryParameters.calledOnce).to.be.true;
-      expect(controller.getUrl.calledWith([1])).to.be.true;
+    });
 
-
+    afterEach(function () {
       controller.getUrl.restore();
       controller.getQueryParameters.restore();
       App.HttpClient.get.restore();
     });
+
+    it('HttpClient.get is called once', function () {
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+
+    it('getQueryParameters is called once', function () {
+      expect(controller.getQueryParameters.calledOnce).to.be.true;
+    });
+
+    it('getUrl is called with correct data', function () {
+      expect(controller.getUrl.calledWith([1])).to.be.true;
+    });
   });
 
   describe('#updateTotalCounter()', function () {
-    it('', function () {
+
+    beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
-
       controller.updateTotalCounter();
-      expect(App.ajax.send.calledOnce).to.be.true;
+    });
 
+    afterEach(function () {
       App.ajax.send.restore();
+    });
+
+    it('ajax-request is sent', function () {
+      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
   describe('#updateTotalCounterSuccess()', function () {
-    it('', function () {
+    it('totalCount is updated', function () {
       controller.updateTotalCounterSuccess({itemTotal: 1});
       expect(controller.get('totalCount')).to.equal(1);
     });

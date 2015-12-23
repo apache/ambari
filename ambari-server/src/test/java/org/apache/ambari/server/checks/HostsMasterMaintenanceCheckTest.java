@@ -57,8 +57,6 @@ public class HostsMasterMaintenanceCheckTest {
     request.setRepositoryVersion("not null");
     HostsMasterMaintenanceCheck hmmc = new HostsMasterMaintenanceCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     hmmc.config = config;
     Assert.assertTrue(hmmc.isApplicable(request));
     Assert.assertTrue(new HostsMasterMaintenanceCheck().isApplicable(request));

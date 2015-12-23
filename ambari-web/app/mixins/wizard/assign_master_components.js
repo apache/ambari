@@ -137,9 +137,7 @@ App.AssignMasterComponents = Em.Mixin.create({
    * Master components which could be assigned to multiple hosts
    * @type {string[]}
    */
-  multipleComponents: function () {
-    return App.get('components.multipleMasters');
-  }.property('App.components.multipleMasters'),
+  multipleComponents: Em.computed.alias('App.components.multipleMasters'),
 
   /**
    * Master components which could be assigned to multiple hosts

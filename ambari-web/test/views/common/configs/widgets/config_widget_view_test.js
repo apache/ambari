@@ -19,19 +19,28 @@
 var App = require('app');
 
 var view;
+
+function getView() {
+  return App.ConfigWidgetView.create({
+    initPopover: Em.K,
+    config: Em.Object.create({
+      isOriginalSCP: false,
+      isPropertyOverridable: false,
+      cantBeUndone: false,
+      isNotDefaultValue: false
+    })
+  });
+}
+
 describe('App.ConfigWidgetView', function () {
 
   beforeEach(function () {
-    view = App.ConfigWidgetView.create({
-      initPopover: Em.K,
-      config: Em.Object.create({
-        isOriginalSCP: false,
-        isPropertyOverridable: false,
-        cantBeUndone: false,
-        isNotDefaultValue: false
-      })
-    });
+    view = getView();
   });
+
+  App.TestAliases.testAsComputedAnd(getView(), 'showPencil', ['supportSwitchToTextBox', '!disabled']);
+
+  App.TestAliases.testAsComputedOr(getView(), 'doNotShowWidget', ['isPropertyUndefined', 'config.showAsTextBox']);
 
   describe('#undoAllowed', function () {
 

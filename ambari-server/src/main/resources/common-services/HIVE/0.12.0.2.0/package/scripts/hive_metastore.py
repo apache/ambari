@@ -193,7 +193,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
     # ensure that the JDBC drive is present for the schema tool; if it's not
     # present, then download it first
-    if params.hive_jdbc_driver in params.hive_jdbc_drivers_list and params.hive_use_existing_db:
+    if params.hive_jdbc_driver in params.hive_jdbc_drivers_list:
       target_directory = format("/usr/hdp/{version}/hive/lib")
 
       # download it if it does not exist
@@ -207,7 +207,7 @@ class HiveMetastoreDefault(HiveMetastore):
 
         Execute(format("yes | {sudo} cp {jars_in_hive_lib} {target_directory}"))
 
-        Directory(target_native_libs_directory, recursive=True)
+        Directory(target_native_libs_directory, create_parents = True)
 
         Execute(format("yes | {sudo} cp {libs_in_hive_lib} {target_native_libs_directory}"))
 

@@ -167,10 +167,6 @@ require('views/main/admin/stack_upgrade/versions_view');
 require('views/main/admin/stack_upgrade/menu_view');
 require('views/main/admin/stack_upgrade/failed_hosts_modal_view');
 require('views/main/admin/stack_and_upgrade_view');
-require('views/main/admin/advanced');
-require('views/main/admin/advanced/password');
-require('views/main/admin/audit');
-require('views/main/admin/authentication');
 
 require('views/main/admin/kerberos');
 require('views/main/admin/kerberos/disable_view');

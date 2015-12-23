@@ -20,17 +20,9 @@
     <name>hawq_master_address_host</name>
     <display-name>HAWQ Master</display-name>
     <value>localhost</value>
-    <description>The host name of HAWQ master.</description>
-    <value-attributes>
-      <type>componentHost</type>
-    </value-attributes>
-  </property>
-
-  <property>
-    <name>hawq_standby_address_host</name>
-    <display-name>HAWQ Standby Master</display-name>
-    <value>localhost</value>
-    <description>The host name of HAWQ standby.</description>
+    <description>
+      The hostname of HAWQ master.
+    </description>
     <value-attributes>
       <type>componentHost</type>
     </value-attributes>
@@ -40,9 +32,23 @@
     <name>hawq_master_address_port</name>
     <display-name>HAWQ Master Port</display-name>
     <value>5432</value>
-    <description>The port of HAWQ master.</description>
+    <description>
+      The port number of HAWQ master.
+    </description>
     <value-attributes>
       <type>int</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hawq_standby_address_host</name>
+    <display-name>HAWQ Standby Master</display-name>
+    <value>localhost</value>
+    <description>
+      The hostname of HAWQ standby.
+    </description>
+    <value-attributes>
+      <type>componentHost</type>
     </value-attributes>
   </property>
 
@@ -50,7 +56,9 @@
     <name>hawq_segment_address_port</name>
     <display-name>HAWQ Segment Port</display-name>
     <value>40000</value>
-    <description>The port of HAWQ segment.</description>
+    <description>
+      The port number of HAWQ segment.
+    </description>
     <value-attributes>
       <type>int</type>
     </value-attributes>
@@ -60,14 +68,18 @@
     <name>hawq_dfs_url</name>
     <display-name>HAWQ DFS URL</display-name>
     <value>localhost:8020/hawq_default</value>
-    <description>URL for accessing HDFS.</description>
+    <description>
+      URL for accessing HDFS.
+    </description>
   </property>
 
   <property>
     <name>hawq_master_directory</name>
     <display-name>HAWQ Master Directory</display-name>
     <value>/data/hawq/master</value>
-    <description>The directory of HAWQ master.</description>
+    <description>
+      The directory of HAWQ master.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -77,7 +89,9 @@
     <name>hawq_segment_directory</name>
     <display-name>HAWQ Segment Directory</display-name>
     <value>/data/hawq/segment</value>
-    <description>The directory of HAWQ segment.</description>
+    <description>
+      The directory of HAWQ segment.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -87,7 +101,9 @@
     <name>hawq_master_temp_directory</name>
     <display-name>HAWQ Master Temp Directory</display-name>
     <value>/tmp</value>
-    <description>The temporary directory reserved for HAWQ master.</description>
+    <description>
+      The temporary directory reserved for HAWQ master.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -97,7 +113,9 @@
     <name>hawq_segment_temp_directory</name>
     <display-name>HAWQ Segment Temp Directory</display-name>
     <value>/tmp</value>
-    <description>The temporary directory reserved for HAWQ segment.</description>
+    <description>
+      The temporary directory reserved for HAWQ segment.
+    </description>
     <value-attributes>
       <type>directory</type>
     </value-attributes>
@@ -108,95 +126,83 @@
     <name>hawq_global_rm_type</name>
     <value>none</value>
     <description>The resource manager type to start for allocating resource. 
-      'none' means HAWQ resource manager exclusively uses whole
-      cluster; 'yarn' means HAWQ resource manager contacts YARN
-      resource manager to negotiate resource.
+      'none' means HAWQ resource manager exclusively uses whole cluster; 'yarn' means HAWQ resource manager
+      contacts YARN resource manager to negotiate resource.
     </description>
   </property>
 
   <property>
     <name>hawq_rm_memory_limit_perseg</name>
     <value>64GB</value>
-    <description>The limit of memory usage in a HAWQ segment when 
-      hawq_global_rm_type is set 'none'.
+    <description>
+      The limit of memory usage in a HAWQ segment when hawq_global_rm_type is set 'none'.
     </description>
   </property>
 
   <property>
     <name>hawq_rm_nvcore_limit_perseg</name>
     <value>16</value>
-    <description>The limit of virtual core usage in a HAWQ segment when 
-      hawq_global_rm_type is set 'none'.
+    <description>
+      The limit of virtual core usage in a HAWQ segment when hawq_global_rm_type is set 'none'.
     </description>
   </property>
 
   <property>
     <name>hawq_rm_yarn_address</name>
     <value>localhost:8032</value>
-    <description>The address of YARN resource manager server.</description>
+    <description>
+      The address of YARN resource manager server.
+    </description>
   </property>
 
   <property>
     <name>hawq_rm_yarn_scheduler_address</name>
     <value>localhost:8030</value>
-    <description>The address of YARN scheduler server.</description>
+    <description>
+      The address of YARN scheduler server.
+    </description>
   </property>
 
   <property>
     <name>hawq_rm_yarn_queue_name</name>
     <value>default</value>
-    <description>The YARN queue name to register HAWQ resource manager.</description>
+    <description>
+      The YARN queue name to register HAWQ resource manager.
+    </description>
   </property>
 
   <property>
     <name>hawq_rm_yarn_app_name</name>
     <value>hawq</value>
-    <description>The application name to register HAWQ resource manager in YARN.</description>
+    <description>
+      The application name to register HAWQ resource manager in YARN.
+    </description>
   </property>
 
   <property>
     <name>hawq_re_cpu_enable</name>
     <value>false</value>
+    <description>
+      The control to enable/disable CPU resource enforcement.
+    </description>
   </property>
 
   <property>
     <name>hawq_re_cgroup_mount_point</name>
     <value>/sys/fs/cgroup</value>
+    <description>
+      The mount point of CGroup file system for resource enforcement.
+      For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
+    </description>
   </property>
 
   <property>
     <name>hawq_re_cgroup_hierarchy_name</name>
-    <value>hadoop-yarn</value>
-  </property>
-
-  <property>
-    <name>hawq_re_cleanup_period</name>
-    <value>180</value>
-  </property>
-
-  <property>
-    <name>hawq_re_cpu_weight</name>
-    <value>1024.0</value>
-  </property>
-
-  <property>
-    <name>hawq_re_vcore_pcore_ratio</name>
-    <value>1.0</value>
-  </property>
-
-  <property>
-    <name>hawq_resourcemanager_master_address_domainsocket_port</name>
-    <value>5436</value>
-  </property>
-
-  <property>
-    <name>hawq_rm_master_port</name>
-    <value>5437</value>
-  </property>
-
-  <property>
-    <name>hawq_rm_segment_port</name>
-    <value>5438</value>
+    <value>hawq</value>
+    <description>
+      The name of the hierarchy to accomodate CGroup directories/files for resource enforcement.
+      For example, /sys/fs/cgroup/cpu/hawq for CPU sub-system.
+    </description>
   </property>
 
 </configuration>

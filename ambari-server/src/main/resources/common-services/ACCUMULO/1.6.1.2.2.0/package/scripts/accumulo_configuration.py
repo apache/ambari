@@ -29,7 +29,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
       mode=0755,
       owner = params.accumulo_user,
       group = params.user_group,
-      recursive = True
+      create_parents = True
   )
 
   if name == 'client':
@@ -65,7 +65,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                mode=0700,
                owner = params.accumulo_user,
                group = params.user_group,
-               recursive = True
+               create_parents = True
     )
     # create a site file for server processes
     configs = {}
@@ -85,7 +85,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     Directory( params.pid_dir,
                owner = params.accumulo_user,
                group = params.user_group,
-               recursive = True,
+               create_parents = True,
                cd_access = "a",
                mode = 0755,
     )
@@ -94,7 +94,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     Directory (params.log_dir,
                owner = params.accumulo_user,
                group = params.user_group,
-               recursive = True,
+               create_parents = True,
                cd_access = "a",
                mode = 0755,
     )

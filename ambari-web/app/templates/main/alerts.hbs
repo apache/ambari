@@ -16,11 +16,11 @@
 * limitations under the License.
 }}
 
-{{#isAccessible ADMIN}}
+{{#isAuthorized "SERVICE.TOGGLE_ALERTS"}}
   <div id="alert-actions-button" class="pull-left">
     {{view App.MainAlertDefinitionActionsView controllerBinding="App.router.mainAlertDefinitionActionsController"}}
   </div>
-{{/isAccessible}}
+{{/isAuthorized}}
 
 <div id="alert-groups-filter" class="pull-left advanced-header-table groups-filter">
 {{#if App.router.clusterController.isAlertsLoaded}}
@@ -63,32 +63,32 @@
               <time class="timeago" {{bindAttr data-original-title="alertDefinition.lastTriggeredFormatted"}}>{{alertDefinition.lastTriggeredAgoFormatted}}</time>
             </td>
             <td class="last toggle-state-button alert-state">
-              {{#if alertDefinition.enabled}}
-                {{#isAccessible ADMIN}}
+              {{#if alertDefinition.enabled not=true}}
+                {{#isAuthorized "CLUSTER.TOGGLE_ALERTS"}}
                   <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span class="enable-disable-button" {{bindAttr data-original-title="view.enabledTooltip"}}>
                     {{view.enabledDisplay}}
                   </span>
                   </a>
-                {{/isAccessible}}
-                {{#isAccessible NON_ADMIN}}
-                  <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                    {{t alerts.table.state.enabled}}
-                  </span>
-                {{/isAccessible}}
+                {{/isAuthorized}}
+                {{#isNotAuthorized "CLUSTER.TOGGLE_ALERTS"}}
+                    <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
+                      {{view.enabledDisplay}}
+                    </span>
+                {{/isNotAuthorized}}
               {{else}}
-                {{#isAccessible ADMIN}}
+                {{#isAuthorized "CLUSTER.TOGGLE_ALERTS"}}
                   <a href="#" {{action "toggleState" alertDefinition target="controller"}} {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
                   <span class="enable-disable-button" {{bindAttr data-original-title="view.disabledTooltip"}}>
                     {{view.disabledDisplay}}
                   </span>
                   </a>
-                {{/isAccessible}}
-                {{#isAccessible NON_ADMIN}}
+                {{/isAuthorized}}
+                {{#isNotAuthorized "CLUSTER.TOGGLE_ALERTS"}}
                   <span {{bindAttr class="alertDefinition.enabled:alert-definition-enable:alert-definition-disable"}}>
-                    {{t alerts.table.state.disabled}}
+                    {{view.disabledDisplay}}
                   </span>
-                {{/isAccessible}}
+                {{/isNotAuthorized}}
               {{/if}}
             </td>
           </tr>

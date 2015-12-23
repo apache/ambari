@@ -21,6 +21,7 @@ Ambari Agent
 """
 import re
 import os
+import time
 from resource_management.core.environment import Environment
 from resource_management.core.base import Fail
 from resource_management.core.resources.system import Execute
@@ -37,7 +38,7 @@ from resource_management.libraries.functions import namenode_ha_utils
 import ambari_simplejson as json # simplejson is much faster comparing to Python 2.6 json module and has the same functions set.
 import subprocess
 
-JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources.json'
+JSON_PATH = '/var/lib/ambari-agent/tmp/hdfs_resources_{timestamp}.json'
 JAR_PATH = '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar'
 
 RESOURCE_TO_JSON_FIELDS = {
@@ -101,13 +102,14 @@ class HdfsResourceJar:
     logoutput = main_resource.resource.logoutput
     principal_name = main_resource.resource.principal_name
     jar_path=JAR_PATH
-    json_path=JSON_PATH
+    timestamp = time.time()
+    json_path=format(JSON_PATH)
 
     if security_enabled:
       main_resource.kinit()
 
     # Write json file to disk
-    File(JSON_PATH,
+    File(json_path,
          owner = user,
          content = json.dumps(env.config['hdfs_files'])
     )

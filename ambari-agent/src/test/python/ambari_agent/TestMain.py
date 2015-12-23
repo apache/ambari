@@ -333,7 +333,6 @@ class TestMain(unittest.TestCase):
     self.assertTrue(setup_logging_mock.called)
     if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
       self.assertTrue(stop_mock.called)
-    #self.assertTrue(resolve_ambari_config_mock.called)
     self.assertTrue(perform_prestart_checks_mock.called)
     if OSCheck.get_os_family() != OSConst.WINSRV_FAMILY:
       self.assertTrue(daemonize_mock.called)

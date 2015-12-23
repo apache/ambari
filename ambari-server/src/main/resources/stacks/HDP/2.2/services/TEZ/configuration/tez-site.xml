@@ -269,7 +269,7 @@
 
   <property>
     <name>tez.counters.max</name>
-    <value>2000</value>
+    <value>5000</value>
     <description>The number of allowed counters for the executing DAG</description>
   </property>
 
@@ -352,6 +352,11 @@
        Template replaces __APPLICATION_ID__ with the actual applicationId and
        __HISTORY_URL_BASE__ with the value from the tez.tez-ui.history-url.base config property
     </description>
+  </property>
+
+  <property>
+    <name>tez.tez-ui.history-url.base</name>
+    <description></description>
   </property>
 
 </configuration>

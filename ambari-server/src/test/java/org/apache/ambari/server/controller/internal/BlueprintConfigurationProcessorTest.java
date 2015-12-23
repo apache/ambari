@@ -18,7 +18,11 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
@@ -258,6 +262,41 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(((Map) properties.get("kerberos-env")).size(), 0);
     assertEquals(((Map) properties.get("krb5-conf")).size(), 0);
     assertEquals(((Map) properties.get("tez-site")).size(), 0);
+  }
+
+  @Test
+  public void testDoUpdateForBlueprintExportRangerHAPolicyMgrExternalUrlProperty() throws Exception {
+    // Given
+    Map<String, String> rangerAdminProperties = Maps.newHashMap();
+    rangerAdminProperties.put("DB_FLAVOR", "test_db_flavor");
+    rangerAdminProperties.put("policymgr_external_url", "test_policymgr_external_url");
+
+
+    Map<String, Map<String, String>> properties =
+      ImmutableMap.of("admin-properties", rangerAdminProperties);
+
+
+    Configuration clusterConfig = new Configuration(properties, ImmutableMap.<String, Map<String,Map<String,String>>>of());
+
+    Collection<String> hostGroup1Components = ImmutableSet.of("RANGER_ADMIN");
+    TestHostGroup group1 = new TestHostGroup("group1", hostGroup1Components, Collections.singleton("testhost1"));
+
+    Collection<String> hostGroup2Components = ImmutableSet.of("RANGER_ADMIN");
+    TestHostGroup group2 = new TestHostGroup("group2", hostGroup2Components, Collections.singleton("testhost2"));
+
+
+    Collection<TestHostGroup> hostGroups = ImmutableSet.of(group1, group2);
+
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+
+    // When
+    configProcessor.doUpdateForBlueprintExport();
+
+    // Then
+    assertEquals("policymgr_external_url property's original value should be exported when Ranger Admin is deployed to multiple hosts.", "test_policymgr_external_url", properties.get("admin-properties").get("policymgr_external_url"));
+
   }
 
   @Test
@@ -5683,8 +5722,9 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> kmsSiteProperties = new HashMap<String, String>();
     properties.put(kmsSiteConfigType, kmsSiteProperties);
-    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@%HOSTGROUP::group1%:9292/kms");
-
+    kmsSiteProperties.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      createHostAddress("%HOSTGROUP::group1%", "2181") + "," + createHostAddress("%HOSTGROUP::group2%", "2181"));
+    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@localhost:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5698,9 +5738,11 @@ public class BlueprintConfigurationProcessorTest {
     kmsServerComponents.add("RANGER_KMS_SERVER");
 
     TestHostGroup group1 = new TestHostGroup("group1", kmsServerComponents, Collections.singleton("host1"));
+    TestHostGroup group2 = new TestHostGroup("group2", kmsServerComponents, Collections.singleton("host2"));
 
-
-    Collection<TestHostGroup> hostGroups = Collections.singleton(group1);
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
 
     ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
@@ -5709,7 +5751,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("dbks://http@host1:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
+    assertEquals("host1:2181,host2:2181", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string"));
+    assertEquals("dbks://http@localhost:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
   }
 
 
@@ -5722,8 +5765,8 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> kmsSiteProperties = new HashMap<String, String>();
     properties.put(kmsSiteConfigType, kmsSiteProperties);
-    kmsSiteProperties.put("hadoop.kms.key.provider.uri", "dbks://http@localhost:9292/kms");
-
+    kmsSiteProperties.put("hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string",
+      createHostAddress("%HOSTGROUP::group1%", "2181"));
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5748,7 +5791,8 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("dbks://http@host1:9292/kms", clusterConfig.getPropertyValue(kmsSiteConfigType, "hadoop.kms.key.provider.uri"));
+    assertEquals("host1:2181", clusterConfig.getPropertyValue(kmsSiteConfigType,
+      "hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string"));
   }
 
 
@@ -5760,7 +5804,7 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> configProperties = new HashMap<String, String>();
 
     properties.put(configType, configProperties);
-    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%:9292/kms");
+    configProperties.put("dfs.encryption.key.provider.uri", "kms://http@%HOSTGROUP::group1%;%HOSTGROUP::group2%:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5792,7 +5836,7 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
+    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "dfs.encryption.key.provider.uri"));
   }
 
 
@@ -5895,7 +5939,7 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> configProperties = new HashMap<String, String>();
 
     properties.put(configType, configProperties);
-    configProperties.put("hadoop.security.key.provider.path", "kms://http@%HOSTGROUP::group1%:9292/kms");
+    configProperties.put("hadoop.security.key.provider.path", "kms://http@%HOSTGROUP::group1%;%HOSTGROUP::group2%:9292/kms");
 
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
@@ -5927,7 +5971,7 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForClusterCreate();
 
     // Then
-    assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
+    assertEquals("kms://http@host1;host2:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
   }
 
 
@@ -6018,6 +6062,214 @@ public class BlueprintConfigurationProcessorTest {
 
     // Then
     assertEquals("kms://http@host1:9292/kms", clusterConfig.getPropertyValue(configType, "hadoop.security.key.provider.path"));
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatSingleValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValue() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "test_value1,test_value2";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value']";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueFormatWithPlainFlowStyleSingleValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value]";
+    assertEquals(expectedValue, newValue);
+  }
+
+
+  @Test
+  public void testYamlMultiValueWithSingleQuoteFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null);
+    String originalValue = "['test_value1','test_value2']";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "['test_value1','test_value2']";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testYamlMultiValueWithPlainFlowStyleFormatMultiValueInSquareBrackets() throws Exception {
+    // Given
+    BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator  yamlMultiValuePropertyDecorator = new BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator(null, BlueprintConfigurationProcessor.YamlMultiValuePropertyDecorator.FlowStyle.PLAIN);
+    String originalValue = "[test_value1,test_value2]";
+
+
+    // When
+    String newValue = yamlMultiValuePropertyDecorator.doFormat(originalValue);
+
+    // Then
+    String expectedValue =  "[test_value1,test_value2]";
+    assertEquals(expectedValue, newValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithYamlPropertySingleHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue1 = "['%HOSTGROUP::group_1%']";
+    String propertyOriginalValue2 = "[%HOSTGROUP::group_1%]";
+
+    // When
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, null, ImmutableList.<String>of("host1:100"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, null, ImmutableList.<String>of("host1:100"));
+
+    // Then
+    assertEquals("host1:100", updatedValue1);
+
+    assertEquals("host1:100", updatedValue2);
+  }
+
+
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithYamlPropertyMultiHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue1 = "['%HOSTGROUP::group_1%', '%HOSTGROUP::group_2%']";
+    String propertyOriginalValue2 = "[%HOSTGROUP::group_1%, %HOSTGROUP::group_2%]";
+
+    // When
+    String updatedValue1 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue1, null, ImmutableList.<String>of("host1:100", "host2:200"));
+    String updatedValue2 = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue2, null, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("host1:100,host2:200", updatedValue1);
+
+    assertEquals("host1:100,host2:200", updatedValue2);
+  }
+
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithSingleHostWithSuffixValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "http://%HOSTGROUP::group_1%#";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100"));
+
+    // Then
+    assertEquals("http://host1:100#", updatedValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithMultiHostWithSuffixValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "http://%HOSTGROUP::group_1,HOSTGROUP::group_2%/resource";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("http://host1:100,host2:200/resource", updatedValue);
+  }
+
+  @Test
+  public void testMultipleHostTopologyUpdaterWithMultiHostValue() throws Exception {
+    // Given
+    String component = "test_component";
+    BlueprintConfigurationProcessor.MultipleHostTopologyUpdater mhtu = new BlueprintConfigurationProcessor.MultipleHostTopologyUpdater(component);
+
+    String propertyOriginalValue = "%HOSTGROUP::group_1%:11,%HOSTGROUP::group_2%:11";
+
+    // When
+    String updatedValue = mhtu.resolveHostGroupPlaceholder(propertyOriginalValue, null, ImmutableList.<String>of("host1:100", "host2:200"));
+
+    // Then
+    assertEquals("host1:100,host2:200", updatedValue);
   }
 
 

@@ -25,7 +25,7 @@ from ambari_agent.RecoveryManager import RecoveryManager
 from mock.mock import patch, MagicMock, call
 
 
-class TestRecoveryManager(TestCase):
+class _TestRecoveryManager(TestCase):
   command = {
     "commandType": "STATUS_COMMAND",
     "payloadLevel": "EXECUTION_COMMAND",
@@ -516,7 +516,7 @@ class TestRecoveryManager(TestCase):
   @patch.object(RecoveryManager, "_now_")
   def test_recovery_report(self, time_mock):
     time_mock.side_effect = \
-      [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1715]
+      [1000, 1071, 1072, 1470, 1471, 1472, 1543, 1644, 1815]
 
     rm = RecoveryManager(tempfile.mktemp())
     rec_st = rm.get_recovery_status()
@@ -630,3 +630,59 @@ class TestRecoveryManager(TestCase):
     self.assertTrue(rm.configured_for_recovery("D"))
     self.assertFalse(rm.configured_for_recovery("E"))
     self.assertTrue(rm.configured_for_recovery("F"))
+
+  @patch.object(RecoveryManager, "_now_")
+  def test_reset_if_window_passed_since_last_attempt(self, time_mock):
+    time_mock.side_effect = \
+      [1000, 1071, 1372]
+    rm = RecoveryManager(tempfile.mktemp(), True)
+
+    rm.update_config(2, 5, 1, 4, True, True, "", "")
+
+    rm.execute("COMPONENT")
+    actions = rm.get_actions_copy()["COMPONENT"]
+    self.assertEquals(actions['lastReset'], 1000)
+    rm.execute("COMPONENT")
+    actions = rm.get_actions_copy()["COMPONENT"]
+    self.assertEquals(actions['lastReset'], 1000)
+    #reset if window_in_sec seconds passed since last attempt
+    rm.execute("COMPONENT")
+    actions = rm.get_actions_copy()["COMPONENT"]
+    self.assertEquals(actions['lastReset'], 1372)
+
+
+  @patch.object(RecoveryManager, "_now_")
+  def test_is_action_info_stale(self, time_mock):
+
+    rm = RecoveryManager(tempfile.mktemp(), True)
+    rm.update_config(5, 60, 5, 16, True, False, "", "")
+
+    time_mock.return_value = 0
+    self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))
+
+    rm.actions["COMPONENT_NAME"] = {
+      "lastAttempt": 0,
+      "count": 0,
+      "lastReset": 0,
+      "lifetimeCount": 0,
+      "warnedLastAttempt": False,
+      "warnedLastReset": False,
+      "warnedThresholdReached": False
+    }
+    time_mock.return_value = 3600
+    self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))
+
+    rm.actions["COMPONENT_NAME"] = {
+      "lastAttempt": 1,
+      "count": 1,
+      "lastReset": 0,
+      "lifetimeCount": 1,
+      "warnedLastAttempt": False,
+      "warnedLastReset": False,
+      "warnedThresholdReached": False
+    }
+    time_mock.return_value = 3601
+    self.assertFalse(rm.is_action_info_stale("COMPONENT_NAME"))
+
+    time_mock.return_value = 3602
+    self.assertTrue(rm.is_action_info_stale("COMPONENT_NAME"))

@@ -84,7 +84,7 @@ class TestGangliaServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/libexec/hdp/ganglia',
         owner = 'root',
         group = 'root',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmetad',
         content = StaticFile('gmetad.init'),
@@ -173,17 +173,16 @@ class TestGangliaServer(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/ganglia',
         mode=0755,
-        recursive=True
+        create_parents = True
     )
     self.assertResourceCalled('Directory', '/var/lib/ganglia-web/dwoo',
-        recursive = True,
+        owner = 'wwwrun',
+        create_parents = True,
+        recursive_ownership = True,
         mode = 0755,
     )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'wwwrun', '/var/lib/ganglia-web/dwoo'),
-        sudo = True,
-    )
     self.assertResourceCalled('Directory', '/srv/www/cgi-bin',
-        recursive = True,
+        create_parents = True,
     )
     self.assertResourceCalled('TemplateConfig', '/srv/www/cgi-bin/rrd.py',
                               owner = "root",
@@ -193,7 +192,7 @@ class TestGangliaServer(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/lib/ganglia/rrds',
                               owner = 'nobody',
                               group = 'nobody',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               )
     self.assertResourceCalled('File', '/etc/apache2/conf.d/ganglia.conf',

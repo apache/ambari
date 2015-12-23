@@ -50,9 +50,8 @@ App.DashboardWidgetView = Em.View.extend({
    * used by re-sort
    * @type {string}
    */
-  viewID: function () {
-    return 'widget-' + this.get('id');
-  }.property('id'),
+  viewID: Em.computed.format('widget-{0}', 'id'),
+
   attributeBindings: ['viewID'],
 
   /**
@@ -118,9 +117,7 @@ App.DashboardWidgetView = Em.View.extend({
   widgetConfig: Ember.Object.extend({
     thresh1: '',
     thresh2: '',
-    hintInfo: function () {
-      return Em.I18n.t('dashboard.widgets.hintInfo.common').format(this.get('maxValue'));
-    }.property('maxValue'),
+    hintInfo: Em.computed.i18nFormat('dashboard.widgets.hintInfo.common', 'maxValue'),
     isThresh1Error: false,
     isThresh2Error: false,
     errorMessage1: "",

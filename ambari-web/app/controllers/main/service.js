@@ -17,6 +17,7 @@
  */
 
 var App = require('app');
+var misc = require('utils/misc');
 
 App.MainServiceController = Em.ArrayController.extend({
 
@@ -29,7 +30,7 @@ App.MainServiceController = Em.ArrayController.extend({
     if (!App.router.get('clusterController.isLoaded')) {
       return [];
     }
-    return App.Service.find();
+    return misc.sortByOrder(App.StackService.find().mapProperty('serviceName'), App.Service.find().toArray());
   }.property('App.router.clusterController.isLoaded').volatile(),
 
   /**
@@ -83,16 +84,12 @@ App.MainServiceController = Em.ArrayController.extend({
    * Should "Refresh All"-button be disabled
    * @type {bool}
    */
-  isRestartAllRequiredDisabled: function () {
-    return !this.get('content').someProperty('isRestartRequired');
-  }.property('content.@each.isRestartRequired'),
+  isRestartAllRequiredDisabled: Em.computed.everyBy('content', 'isRestartRequired', false),
 
   /**
    * @type {bool}
    */
-  isStartStopAllClicked: function () {
-    return (App.router.get('backgroundOperationsController').get('allOperationsCount') !== 0);
-  }.property('App.router.backgroundOperationsController.allOperationsCount'),
+  isStartStopAllClicked: Em.computed.notEqual('App.router.backgroundOperationsController.allOperationsCount', 0),
 
   /**
    * Callback for <code>start all service</code> button
@@ -305,17 +302,21 @@ App.MainServiceController = Em.ArrayController.extend({
     var self = this;
     var servicesList = [];
     var hostComponentsToRestart = [];
-    App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
-      hostComponentsToRestart.push({
-        component_name: hostComponent.get('componentName'),
-        service_name: hostComponent.get('service.serviceName'),
-        hosts: hostComponent.get('hostName')
+    if (!this.get('isRestartAllRequiredDisabled')) {
+      App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
+        hostComponentsToRestart.push({
+          component_name: hostComponent.get('componentName'),
+          service_name: hostComponent.get('service.serviceName'),
+          hosts: hostComponent.get('hostName')
+        });
+        servicesList.push(hostComponent.get('service.displayName'));
       });
-      servicesList.push(hostComponent.get('service.displayName'));
-    });
-    return App.showConfirmationPopup(function () {
-      self.restartHostComponents(hostComponentsToRestart);
-    }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+      return App.showConfirmationPopup(function () {
+        self.restartHostComponents(hostComponentsToRestart);
+      }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+    } else {
+      return null;
+    }
   },
 
   /**

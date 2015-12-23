@@ -28,7 +28,7 @@ import org.apache.ambari.view.pig.resources.scripts.ScriptService;
 import org.apache.ambari.view.pig.persistence.utils.StorageUtil;
 import org.apache.ambari.view.pig.resources.scripts.models.PigScript;
 import org.apache.ambari.view.pig.utils.MisconfigurationFormattedException;
-import org.apache.ambari.view.utils.ViewUserLocal;
+import org.apache.ambari.view.utils.UserLocal;
 import org.apache.ambari.view.utils.hdfs.HdfsApi;
 import org.apache.ambari.view.utils.hdfs.HdfsUtil;
 import org.json.simple.JSONObject;
@@ -56,7 +56,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    ViewUserLocal.dropAllConnections(HdfsApi.class);
+    UserLocal.dropAllConnections(HdfsApi.class);
   }
 
   @Override
@@ -65,7 +65,7 @@ public class ScriptTestHDFSUnmanaged extends HDFSTest {
     super.setUp();
     handler = createNiceMock(ViewResourceHandler.class);
     context = createNiceMock(ViewContext.class);
-    ViewUserLocal.dropAllConnections(HdfsApi.class);
+    UserLocal.dropAllConnections(HdfsApi.class);
     StorageUtil.dropAllConnections();
   }
 

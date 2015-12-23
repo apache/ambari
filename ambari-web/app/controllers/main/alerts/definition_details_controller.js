@@ -44,12 +44,6 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
   lastDayAlertsCount: null,
 
   /**
-   * Define if let user leave the page
-   * @type {Boolean}
-   */
-  forceTransition: false,
-
-  /**
    * List of all group names related to alert definition
    * @type {Array}
    */
@@ -263,16 +257,14 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
    * Define if label or configs are in edit mode
    * @type {Boolean}
    */
-  isEditing: function () {
-    return this.get('editing.label.isEditing') || App.router.get('mainAlertDefinitionConfigsController.canEdit');
-  }.property('editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit'),
+  isEditing: Em.computed.or('editing.label.isEditing', 'App.router.mainAlertDefinitionConfigsController.canEdit'),
 
   /**
    * If some configs or label are changed and user navigates away, show this popup with propose to save changes
    * @param {String} path
    * @method showSavePopup
    */
-  showSavePopup: function (path) {
+  showSavePopup: function (callback) {
     var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
@@ -282,18 +274,14 @@ App.MainAlertDefinitionDetailsController = Em.Controller.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.discard'),
       third: Em.I18n.t('common.cancel'),
-      disablePrimary: function () {
-        return App.router.get('mainAlertDefinitionDetailsController.editing.label.isError') || App.router.get('mainAlertDefinitionConfigsController.hasErrors');
-      }.property('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
+      disablePrimary: Em.computed.or('App.router.mainAlertDefinitionDetailsController.editing.label.isError', 'App.router.mainAlertDefinitionConfigsController.hasErrors'),
       onPrimary: function () {
         self.saveLabelAndConfigs();
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onSecondary: function () {
-        self.set('forceTransition', true);
-        App.router.route(path);
+        callback();
         this.hide();
       },
       onThird: function () {

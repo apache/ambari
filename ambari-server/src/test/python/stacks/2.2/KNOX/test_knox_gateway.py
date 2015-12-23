@@ -42,37 +42,42 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/var/run/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf/topologies',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('XmlConfig', 'gateway-site.xml',
@@ -98,16 +103,6 @@ class TestKnoxGateway(RMFTestCase):
                               group='knox',
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
-    )
-    self.assertResourceCalled('Execute', ('chown',
-     '-R',
-     'knox:knox',
-     '/usr/hdp/current/knox-server/data/',
-     '/var/log/knox',
-     '/var/run/knox',
-     '/usr/hdp/current/knox-server/conf',
-     '/usr/hdp/current/knox-server/conf/topologies'),
-        sudo = True,
     )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -307,9 +302,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True,  tries = 3, try_sleep = 1,
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),
-        sudo = True,
-    )
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),sudo = True)
     self.assertResourceCalled('Execute', ('cp',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar'),
@@ -379,9 +372,7 @@ class TestKnoxGateway(RMFTestCase):
      '/var/lib/knox/data'),
         sudo = True, tries = 3, try_sleep = 1,
     )
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),
-        sudo = True,
-    )
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'knox-server', version),sudo = True)
     self.assertResourceCalled('Execute', ('cp',
      '/tmp/knox-upgrade-backup/knox-conf-backup.tar',
      '/usr/hdp/current/knox-server/conf/knox-conf-backup.tar'),
@@ -498,37 +489,42 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/data/',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/var/log/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/var/run/knox',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
     self.assertResourceCalled('Directory', '/usr/hdp/current/knox-server/conf/topologies',
                               owner = 'knox',
                               group = 'knox',
-                              recursive = True,
+                              create_parents = True,
                               mode = 0755,
                               cd_access = "a",
+                              recursive_ownership = True,
     )
 
     self.assertResourceCalled('XmlConfig', 'gateway-site.xml',
@@ -555,15 +551,6 @@ class TestKnoxGateway(RMFTestCase):
                               owner = 'knox',
                               content = InlineTemplate(self.getConfig()['configurations']['admin-topology']['content'])
     )
-    self.assertResourceCalled('Execute', ('chown',
-                                          '-R',
-                                          'knox:knox',
-                                          '/usr/hdp/current/knox-server/data/',
-                                          '/var/log/knox',
-                                          '/var/run/knox',
-                                          '/usr/hdp/current/knox-server/conf', '/usr/hdp/current/knox-server/conf/topologies'),
-                              sudo = True,
-                              )
     self.assertResourceCalled('Execute', '/usr/hdp/current/knox-server/bin/knoxcli.sh create-master --master sa',
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if = "ambari-sudo.sh su knox -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]test -f /usr/hdp/current/knox-server/data/security/master'",
@@ -589,6 +576,14 @@ class TestKnoxGateway(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/hdp/current/knox-server/pids',
         to = '/var/run/knox',
     )
+    self.assertResourceCalled('Directory', '/var/log/knox',
+                              owner = 'knox',
+                              mode = 0755,
+                              group = 'knox',
+                              create_parents = True,
+                              cd_access = 'a',
+                              recursive_ownership = True,
+                              )
     self.assertResourceCalled("Execute", "/usr/hdp/current/knox-server/bin/gateway.sh start",
                               environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
                               not_if = u'ls /var/run/knox/gateway.pid >/dev/null 2>&1 && ps -p `cat /var/run/knox/gateway.pid` >/dev/null 2>&1',

@@ -96,7 +96,7 @@ def flume(action = None):
     )
 
     Directory(params.flume_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.flume_user,
               )
     Directory(params.flume_log_dir, 

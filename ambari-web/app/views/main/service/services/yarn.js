@@ -23,36 +23,15 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
   templateName: require('templates/main/service/services/yarn'),
   serviceName: 'YARN',
 
-  nodeHeap: function () {
-    var memUsed = this.get('service').get('jvmMemoryHeapUsed');
-    var memMax = this.get('service').get('jvmMemoryHeapMax');
-    var percent = memMax > 0 ? ((100 * memUsed) / memMax) : 0;
-    return this.t('dashboard.services.hdfs.nodes.heapUsed').format(
-      numberUtils.bytesToSize(memUsed, 1, 'parseFloat'),
-      numberUtils.bytesToSize(memMax, 1, 'parseFloat'),
-      percent.toFixed(1));
-  }.property('service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
-
-  summaryHeader: function () {
-    var text = this.t("dashboard.services.yarn.summary");
-    var totalCount = this.get('service.nodeManagersTotal');
-    var liveCount = this.get('service.nodeManagersStarted');
-    return text.format(liveCount, totalCount);
-  }.property('service.nodeManagersStarted', 'service.nodeManagersTotal'),
+  nodeHeap: App.MainDashboardServiceView.formattedHeap('dashboard.services.yarn.summary', 'service.jvmMemoryHeapUsed', 'service.jvmMemoryHeapMax'),
   
-  nodeManagerComponent: function () {
-    return Em.Object.create({
-      componentName: 'NODEMANAGER'
-    });
-    //return this.get('service.nodeManagerNodes').objectAt(0);
-  }.property(),
+  nodeManagerComponent: Em.Object.create({
+    componentName: 'NODEMANAGER'
+  }),
   
-  yarnClientComponent: function () {
-    return Em.Object.create({
-      componentName: 'YARN_CLIENT'
-    });
-    //return this.get('service.hostComponents').findProperty('componentName', 'YARN_CLIENT');
-  }.property(),
+  yarnClientComponent: Em.Object.create({
+    componentName: 'YARN_CLIENT'
+  }),
 
   hasManyYarnClients: Em.computed.gt('service.installedClients', 1),
 
@@ -69,58 +48,27 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
     return this.t('services.service.summary.notRunning');
   }.property("service.resourceManagerStartTime"),
 
-  nodeManagerText: function () {
-    if (this.get("service.nodeManagersTotal") === 0) {
-      return '';
-    } else if (this.get("service.nodeManagersTotal") > 1) {
-      return Em.I18n.t('services.service.summary.viewHosts');
-    } else {
-      return Em.I18n.t('services.service.summary.viewHost');
-    }
-  }.property("service.nodeManagersTotal"),
+  nodeManagerText: Em.computed.countBasedMessage('service.nodeManagersTotal', '', Em.I18n.t('services.service.summary.viewHost'), Em.I18n.t('services.service.summary.viewHosts')),
 
-  nodeManagersStatus: function () {
-    var nmActive = this.get('service.nodeManagersCountActive');
-    var nmLost = this.get('service.nodeManagersCountLost');
-    var nmUnhealthy = this.get('service.nodeManagersCountUnhealthy');
-    var nmRebooted = this.get('service.nodeManagersCountRebooted');
-    var nmDecom = this.get('service.nodeManagersCountDecommissioned');
-    return this.t('dashboard.services.yarn.nodeManagers.status.msg').format(
-      this.formatUnavailable(nmActive),
-      this.formatUnavailable(nmLost),
-      this.formatUnavailable(nmUnhealthy),
-      this.formatUnavailable(nmRebooted),
-      this.formatUnavailable(nmDecom)
-    );
-  }.property('service.nodeManagersCountActive', 'service.nodeManagersCountLost', 
-      'service.nodeManagersCountUnhealthy', 'service.nodeManagersCountRebooted', 'service.nodeManagersCountDecommissioned'),
+  _nmActive: Em.computed.formatUnavailable('service.nodeManagersCountActive'),
+  _nmLost: Em.computed.formatUnavailable('service.nodeManagersCountLost'),
+  _nmUnhealthy: Em.computed.formatUnavailable('service.nodeManagersCountUnhealthy'),
+  _nmRebooted: Em.computed.formatUnavailable('service.nodeManagersCountRebooted'),
+  _nmDecom: Em.computed.formatUnavailable('service.nodeManagersCountDecommissioned'),
+  nodeManagersStatus: Em.computed.i18nFormat('dashboard.services.yarn.nodeManagers.status.msg', '_nmActive', '_nmLost', '_nmUnhealthy', '_nmRebooted', '_nmDecom'),
 
-  containers: function () {
-    var allocated = this.get('service.containersAllocated');
-    var pending = this.get('service.containersPending');
-    var reserved = this.get('service.containersReserved');
-    return this.t('dashboard.services.yarn.containers.msg').format(
-      this.formatUnavailable(allocated),
-      this.formatUnavailable(pending),
-      this.formatUnavailable(reserved)
-    );
-  }.property('service.containersAllocated', 'service.containersPending', 'service.containersReserved'),
+  _allocated: Em.computed.formatUnavailable('service.containersAllocated'),
+  _pending: Em.computed.formatUnavailable('service.containersPending'),
+  _reserved: Em.computed.formatUnavailable('service.containersReserved'),
+  containers: Em.computed.i18nFormat('dashboard.services.yarn.containers.msg', '_allocated', '_pending', '_reserved'),
 
-  apps: function () {
-    var appsSubmitted = this.get('service.appsSubmitted');
-    var appsRunning = this.get('service.appsRunning');
-    var appsPending = this.get('service.appsPending');
-    var appsCompleted = this.get('service.appsCompleted');
-    var appsKilled = this.get('service.appsKilled');
-    var appsFailed = this.get('service.appsFailed');
-    return this.t('dashboard.services.yarn.apps.msg').format(
-      this.formatUnavailable(appsSubmitted),
-      this.formatUnavailable(appsRunning),
-      this.formatUnavailable(appsPending),
-      this.formatUnavailable(appsCompleted),
-      this.formatUnavailable(appsKilled),
-      this.formatUnavailable(appsFailed));
-  }.property('service.appsSubmitted', 'service.appsRunning', 'service.appsPending', 'service.appsCompleted', 'service.appsKilled', 'service.appsFailed'),
+  _appsSubmitted: Em.computed.formatUnavailable('service.appsSubmitted'),
+  _appsRunning: Em.computed.formatUnavailable('service.appsRunning'),
+  _appsPending: Em.computed.formatUnavailable('service.appsPending'),
+  _appsCompleted: Em.computed.formatUnavailable('service.appsCompleted'),
+  _appsKilled: Em.computed.formatUnavailable('service.appsKilled'),
+  _appsFailed: Em.computed.formatUnavailable('service.appsFailed'),
+  apps: Em.computed.i18nFormat('dashboard.services.yarn.apps.msg', '_appsSubmitted', '_appsRunning', '_appsPending', '_appsCompleted', '_appsKilled', '_appsFailed'),
 
   memory: function () {
     return Em.I18n.t('dashboard.services.yarn.memory.msg').format(
@@ -129,9 +77,8 @@ App.MainDashboardServiceYARNView = App.MainDashboardServiceView.extend({
         numberUtils.bytesToSize(this.get('service.availableMemory'), 1, 'parseFloat', 1024 * 1024));
   }.property('service.allocatedMemory', 'service.reservedMemory', 'service.availableMemory'),
 
-  queues: function() {
-    return Em.I18n.t('dashboard.services.yarn.queues.msg').format(this.formatUnavailable(this.get('service.queuesCount')));
-  }.property('service.queuesCount'),
+  _queuesCountFormatted: Em.computed.formatUnavailable('service.queuesCount'),
+  queues: Em.computed.i18nFormat('dashboard.services.yarn.queues.msg', '_queuesCountFormatted'),
 
   didInsertElement: function(){
     App.tooltip($("[rel='queue-tooltip']"), {html: true, placement: "right"});

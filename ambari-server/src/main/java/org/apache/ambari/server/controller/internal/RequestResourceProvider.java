@@ -17,21 +17,13 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
@@ -44,17 +36,38 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-
-import com.google.inject.Inject;
 import org.apache.ambari.server.topology.TopologyManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_HOST_NAME_PROPERTY_ID;
+import static org.apache.ambari.server.controller.internal.HostComponentResourceProvider.HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID;
 
 /**
  * Resource provider for request resources.
@@ -99,13 +112,16 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   protected static final String COMMAND_ID = "command";
   protected static final String SERVICE_ID = "service_name";
   protected static final String COMPONENT_ID = "component_name";
-  protected static final String HOSTS_ID = "hosts";                           // This is actually a list of hosts
+  protected static final String HOSTS_ID = "hosts"; // This is actually a list of hosts
+  protected static final String HOSTS_PREDICATE = "hosts_predicate";
   protected static final String ACTION_ID = "action";
   protected static final String INPUTS_ID = "parameters";
   protected static final String EXLUSIVE_ID = "exclusive";
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
-          REQUEST_ID_PROPERTY_ID}));
+        REQUEST_ID_PROPERTY_ID}));
+
+  private PredicateCompiler predicateCompiler = new PredicateCompiler();
 
   static Set<String> PROPERTY_IDS = new HashSet<String>();
 
@@ -159,9 +175,39 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     final ExecuteActionRequest actionRequest = getActionRequest(request);
     final Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
+
     return getRequestStatus(createResources(new Command<RequestStatusResponse>() {
       @Override
-      public RequestStatusResponse invoke() throws AmbariException {
+      public RequestStatusResponse invoke() throws AmbariException, AuthorizationException {
+
+        String clusterName = actionRequest.getClusterName();
+
+        if(clusterName == null) {
+          // This must be an administrative action?
+          // TODO: Perform authorization check for this?
+        }
+        else if(actionRequest.isCommand()) {
+          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER,
+              getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_CUSTOM_COMMAND)) {
+            throw new AuthorizationException("The authenticated user is not authorized to execute custom service commands.");
+          }
+        }
+        else {
+          String actionName = actionRequest.getActionName();
+
+          // actionName is expected to not be null since the action request is not a command
+          if(actionName.contains("SERVICE_CHECK")) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_RUN_SERVICE_CHECK)) {
+              throw new AuthorizationException("The authenticated user is not authorized to execute service checks.");
+            }
+          }
+          else if(actionName.equals("DECOMMISSION")) {
+            if(!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, getClusterResourceId(clusterName), RoleAuthorization.SERVICE_DECOMMISSION_RECOMMISSION)) {
+              throw new AuthorizationException("The authenticated user is not authorized to decommission services.");
+            }
+          }
+        }
+
         return getManagementController().createAction(actionRequest, requestInfoProperties);
       }
     }));
@@ -301,7 +347,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   // Get request to execute an action/command
   @SuppressWarnings("unchecked")
   private ExecuteActionRequest getActionRequest(Request request)
-          throws UnsupportedOperationException {
+      throws UnsupportedOperationException, SystemException {
     Map<String, String> requestInfoProperties = request.getRequestInfoProperties();
     Map<String, Object> propertyMap = request.getProperties().iterator().next();
 
@@ -329,23 +375,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       resourceFilterList = new ArrayList<RequestResourceFilter>();
 
       for (Map<String, Object> resourceMap : resourceFilters) {
-        Object serviceName = resourceMap.get(SERVICE_ID);
-        Object componentName = resourceMap.get(COMPONENT_ID);
-        Object hosts = resourceMap.get(HOSTS_ID);
-        List<String> hostList = null;
-        if (hosts != null) {
-          hostList = new ArrayList<String>();
-          for (String hostName : ((String) hosts).split(",")) {
-            hostList.add(hostName.trim());
-          }
-        }
-
-        resourceFilterList.add(new RequestResourceFilter(
-          serviceName != null ? (String) serviceName : null,
-          componentName != null ? (String) componentName : null,
-          hostList
-        ));
+        resourceFilterList.addAll(parseRequestResourceFilter(resourceMap,
+          (String) propertyMap.get(REQUEST_CLUSTER_NAME_PROPERTY_ID)));
       }
+      LOG.debug("RequestResourceFilters : " + resourceFilters);
     }
     // Extract operation level property
     RequestOperationLevel operationLevel = null;
@@ -373,6 +406,141 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
       resourceFilterList,
       operationLevel,
       params, exclusive);
+  }
+
+  /**
+   *  Allow host component resource predicate to decide hosts to operate on.
+   * @param resourceMap Properties
+   * @param clusterName clusterName
+   * @return Populated resource filter
+   * @throws SystemException
+   */
+  private List<RequestResourceFilter> parseRequestResourceFilter(Map<String, Object> resourceMap,
+                                                           String clusterName) throws SystemException {
+
+    List<RequestResourceFilter> resourceFilterList = new ArrayList<>();
+
+    String serviceName = (String) resourceMap.get(SERVICE_ID);
+    String componentName = (String) resourceMap.get(COMPONENT_ID);
+    String hostsPredicate = (String) resourceMap.get(HOSTS_PREDICATE);
+    Object hostListStr = resourceMap.get(HOSTS_ID);
+    List<String> hostList = Collections.<String>emptyList();
+    if (hostListStr != null) {
+      hostList = new ArrayList<String>();
+      for (String hostName : ((String) hostListStr).split(",")) {
+        hostList.add(hostName.trim());
+      }
+      resourceFilterList.add(new RequestResourceFilter(serviceName, componentName, hostList));
+    } else if (hostsPredicate != null) {
+        // Parse the predicate as key=value and apply to the ResourceProvider predicate
+      Predicate filterPredicate;
+      try {
+        filterPredicate = predicateCompiler.compile(hostsPredicate);
+      } catch (InvalidQueryException e) {
+        String msg = "Invalid predicate expression provided: " + hostsPredicate;
+        LOG.warn(msg, e);
+        throw new SystemException(msg, e);
+      }
+
+      ResourceProvider resourceProvider = getResourceProvider(Resource.Type.HostComponent);
+
+      Set<String> propertyIds = new HashSet<String>();
+      propertyIds.add(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID);
+      propertyIds.add(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
+      propertyIds.add(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+
+      Request request = PropertyHelper.getReadRequest(propertyIds);
+
+      Predicate finalPredicate = new PredicateBuilder(filterPredicate)
+        .property(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals(clusterName).and()
+        .property(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID).equals(serviceName).and()
+        .property(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals(componentName)
+        .toPredicate();
+
+      try {
+        Set<Resource> resources = resourceProvider.getResources(request, finalPredicate);
+
+        if (resources != null && !resources.isEmpty()) {
+          // Allow request to span services / components using just the predicate
+          Map<ServiceComponentTuple, List<String>> dupleListMap = new HashMap<>();
+          for (Resource resource : resources) {
+            String hostnameStr = (String) resource.getPropertyValue(HOST_COMPONENT_HOST_NAME_PROPERTY_ID);
+            if (hostnameStr != null) {
+              String computedServiceName = (String) resource.getPropertyValue(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID);
+              String computedComponentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
+              ServiceComponentTuple duple =
+                new ServiceComponentTuple(computedServiceName, computedComponentName);
+
+              if (!dupleListMap.containsKey(duple)) {
+                hostList = new ArrayList<>();
+                hostList.add(hostnameStr);
+                dupleListMap.put(duple, hostList);
+              } else {
+                dupleListMap.get(duple).add(hostnameStr);
+              }
+            }
+          }
+          if (!dupleListMap.isEmpty()) {
+            for (Map.Entry<ServiceComponentTuple, List<String>> entry : dupleListMap.entrySet()) {
+              resourceFilterList.add(new RequestResourceFilter(
+                entry.getKey().getServiceName(),
+                entry.getKey().getComponentName(),
+                entry.getValue()
+              ));
+            }
+          }
+        }
+      } catch (Exception e) {
+        LOG.warn("Exception finding requested resources with serviceName = " + serviceName +
+          ", componentName = " + componentName +
+          ", hostPredicate" + " = " + hostsPredicate, e);
+      }
+    } else {
+      resourceFilterList.add(new RequestResourceFilter(serviceName, componentName, hostList));
+    }
+
+    return resourceFilterList;
+  }
+
+  /**
+   * Represent a map key as a ServiceComponent
+   */
+  class ServiceComponentTuple {
+    final String serviceName;
+    final String componentName;
+
+    ServiceComponentTuple(String serviceName, String componentName) {
+      this.serviceName = serviceName;
+      this.componentName = componentName;
+    }
+
+    public String getServiceName() {
+      return serviceName;
+    }
+
+    public String getComponentName() {
+      return componentName;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+
+      ServiceComponentTuple that = (ServiceComponentTuple) o;
+
+      if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null)
+        return false;
+      return !(componentName != null ? !componentName.equals(that.componentName) : that.componentName != null);
+
+    }
+
+    @Override
+    public int hashCode() {
+      int result = serviceName != null ? serviceName.hashCode() : 0;
+      result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
+      return result;
+    }
   }
 
   // Get all of the request resources for the given properties

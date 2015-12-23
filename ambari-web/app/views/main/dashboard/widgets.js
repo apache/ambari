@@ -473,9 +473,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
    * Key-name to store data in Local Storage and Persist
    * @type {string}
    */
-  persistKey: function () {
-    return 'user-pref-' + App.router.get('loginName') + '-dashboard';
-  }.property(),
+  persistKey: Em.computed.format('user-pref-{0}-dashboard', 'App.router.loginName'),
 
   getUserPrefSuccessCallback: function (response, request, data) {
     if (response) {

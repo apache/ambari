@@ -109,10 +109,11 @@ class Resource(object):
   
   def __new__(cls, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
-      while len(name) != 1:
-        cls(name.pop(0), env, provider, **kwargs)
+      names_list = name[:]
+      while len(names_list) != 1:
+        cls(names_list.pop(0), env, provider, **kwargs)
         
-      name = name[0]
+      name = names_list[0]
     
     env = env or Environment.get_instance()
     provider = provider or getattr(cls, 'provider', None)
@@ -128,7 +129,7 @@ class Resource(object):
 
   def __init__(self, name, env=None, provider=None, **kwargs):
     if isinstance(name, list):
-      name = name.pop(0)
+      name = name[-1]
     
     if hasattr(self, 'name'):
       return
@@ -160,12 +161,7 @@ class Resource(object):
     return unicode(self)
 
   def __unicode__(self):
-    if isinstance(self.name, basestring) and not isinstance(self.name, PasswordString):
-      name = "'" + self.name + "'" # print string cutely not with repr
-    else:
-      name = repr(self.name)
-    
-    return u"%s[%s]" % (self.__class__.__name__, name)
+    return u"%s[%s]" % (self.__class__.__name__, Logger._get_resource_name_repr(self.name))
 
   def __getstate__(self):
     return dict(

@@ -596,147 +596,39 @@
           ]
         },
         {
-          "config": "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled",
+          "config": "ranger-ugsync-site/ranger.usersync.ldap.user.nameattribute",
           "subsection-name": "subsection-ranger-user-row2-col1",
           "subsection-tab-name": "ldap-user-configs"
         },
         {
-          "config": "ranger-ugsync-site/ranger.usersync.ldap.user.nameattribute",
-          "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
-        },
-        {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.user.objectclass",
           "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-tab-name": "ldap-user-configs"
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.user.searchbase",
           "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-tab-name": "ldap-user-configs"
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.user.searchfilter",
           "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-tab-name": "ldap-user-configs"
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.user.searchscope",
           "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-tab-name": "ldap-user-configs"
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.ldap.user.groupnameattribute",
           "subsection-name": "subsection-ranger-user-row2-col1",
-          "subsection-tab-name": "ldap-user-configs",
-          "depends-on": [
-            {
-              "configs":[
-                "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled"
-              ],
-              "if": "${ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled}",
-              "then": {
-                "property_value_attributes": {
-                  "visible": true
-                }
-              },
-              "else": {
-                "property_value_attributes": {
-                  "visible": false
-                }
-              }
-            }
-          ]
+          "subsection-tab-name": "ldap-user-configs"
+        },
+        {
+          "config": "ranger-ugsync-site/ranger.usersync.group.usermapsyncenabled",
+          "subsection-name": "subsection-ranger-user-row2-col1",
+          "subsection-tab-name": "ldap-user-configs"
         },
         {
           "config": "ranger-ugsync-site/ranger.usersync.group.searchenabled",

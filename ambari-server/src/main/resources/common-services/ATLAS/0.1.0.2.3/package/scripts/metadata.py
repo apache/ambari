@@ -30,7 +30,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.conf_dir,
@@ -38,7 +38,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.log_dir,
@@ -46,7 +46,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.data_dir,
@@ -54,7 +54,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     Directory(params.expanded_war_dir,
@@ -62,7 +62,7 @@ def metadata():
               cd_access='a',
               owner=params.metadata_user,
               group=params.user_group,
-              recursive=True
+              create_parents = True
     )
 
     File(format("{expanded_war_dir}/atlas.war"),

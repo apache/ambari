@@ -19,6 +19,7 @@
 package org.apache.ambari.view.tez.rest;
 
 import com.google.inject.Inject;
+import org.apache.ambari.view.tez.exceptions.ProxyException;
 import org.apache.ambari.view.tez.utils.ProxyHelper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -27,7 +28,11 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 import java.util.HashMap;
 
 /**
@@ -50,6 +55,11 @@ public abstract class BaseProxyResource {
     String response = proxyHelper.getResponse(url, new HashMap<String, String>());
 
     JSONObject jsonObject = (JSONObject) JSONValue.parse(response);
+
+    if (jsonObject == null) {
+      throw new ProxyException("Failed to parse JSON from URL : " + url + ".Internal Error.",
+        Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response);
+    }
     return Response.ok(jsonObject).type(MediaType.APPLICATION_JSON).build();
   }
 

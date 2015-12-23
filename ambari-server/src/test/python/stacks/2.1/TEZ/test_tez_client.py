@@ -43,7 +43,7 @@ class TestTezClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/tez/conf',
       owner = 'tez',
       group = 'hadoop',
-      recursive = True
+      create_parents = True
     )
 
     self.assertResourceCalled('XmlConfig', 'tez-site.xml',
@@ -108,7 +108,7 @@ class TestTezClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None, ''), (0, None, ''), (0, None, '')],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'hadoop-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

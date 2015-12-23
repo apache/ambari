@@ -268,6 +268,12 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           }),
           Em.Object.create({
             name: 'yarn.resourcemanager.webapp.https.address.rm2'
+          }),
+          Em.Object.create({
+            name: 'yarn.resourcemanager.ha'
+          }),
+          Em.Object.create({
+            name: 'yarn.resourcemanager.scheduler.ha'
           })
         ]
       };
@@ -314,6 +320,11 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('value')).to.equal('h2:2222,h3:2222');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('recommendedValue')).to.equal('h2:2222,h3:2222');
+    });
+
+    it('Setting new HAWQ RM properties values', function () {
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.ha').get('value')).to.equal('h0:8032,h1:8032');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.scheduler.ha').get('recommendedValue')).to.equal('h0:8030,h1:8030');
     });
 
   });

@@ -29,10 +29,57 @@ describe('#Cluster', function () {
       ctrl = $controller('StackVersionsListCtrl', {$scope: scope});
     }));
 
-    it('saves list of stacks', function() {
-      scope.fetchRepos().then(function() {
-        expect(Array.isArray(scope.repos)).toBe(true);
+    describe('fetchRepos()', function () {
+
+      it('saves list of stacks', function() {
+        scope.fetchRepos().then(function() {
+          expect(Array.isArray(scope.repos)).toBe(true);
+        });
       });
+
     });
+
+    describe('fillClusters()', function () {
+
+      var clusters = [
+          {
+            Clusters: {
+              cluster_name: 'c0'
+            }
+          }
+        ],
+        cases = [
+          {
+            prev: null,
+            current: {
+              label: 'All',
+              value: ''
+            },
+            title: 'no cluster selected before'
+          },
+          {
+            prev: {
+              label: 'c0',
+              value: 'c0'
+            },
+            current: {
+              label: 'c0',
+              value: 'c0'
+            },
+            title: 'cluster was selected before'
+          }
+        ];
+
+      angular.forEach(cases, function (item) {
+        it(item.title, function() {
+          scope.filter.cluster.current = item.prev;
+          scope.fillClusters(clusters);
+          expect(scope.dropDownClusters).toEqual(clusters);
+          expect(scope.filter.cluster.current).toEqual(item.current);
+        });
+      });
+
+    });
+
   });
 });

@@ -275,8 +275,19 @@ def server_process_main(options, scmStatus=None):
   if not os.path.exists(configDefaults.PID_DIR):
     os.makedirs(configDefaults.PID_DIR, 0755)
 
+  # The launched shell process and sub-processes should have a group id that
+  # is different from the parent.
+  def make_process_independent():
+    processId = os.getpid()
+    if processId > 0:
+      try:
+        os.setpgid(processId, processId)
+      except OSError, e:
+        print_warning_msg('setpgid({0}, {0}) failed - {1}'.format(pidJava, str(e)))
+        pass
+
   print_info_msg("Running server: " + str(param_list))
-  procJava = subprocess.Popen(param_list, env=environ)
+  procJava = subprocess.Popen(param_list, env=environ, preexec_fn=make_process_independent)
 
   pidJava = procJava.pid
   if pidJava <= 0:
@@ -290,13 +301,6 @@ def server_process_main(options, scmStatus=None):
 
     raise FatalException(-1, AMBARI_SERVER_DIE_MSG.format(exitcode, configDefaults.SERVER_OUT_FILE))
   else:
-    # Change the group id to the process id of the parent so that the launched
-    # process and sub-processes have a group id that is different from the parent.
-    try:
-      os.setpgid(pidJava, 0)
-    except OSError, e:
-      print_warning_msg('setpgid({0}, 0) failed - {1}'.format(pidJava, str(e)))
-      pass
     pidfile = os.path.join(configDefaults.PID_DIR, PID_NAME)
     save_pid(pidJava, pidfile)
     print "Server PID at: "+pidfile

@@ -119,7 +119,7 @@
       .checkbox {
         margin-left: 3px;
         margin-right: 8px;
-        margin-top: 0px;
+        margin-top: 0;
       }
       .icon-question-sign {
         color: @blue;
@@ -139,7 +139,7 @@
     border: 1px solid #d2d9dd;
     height: 168px;
     margin: 15px 15px 0 0;
-    padding: 5px 0px;
+    padding: 5px 0;
     a.not-active:hover {
       text-decoration: none;
     }
@@ -192,8 +192,8 @@
       font-weight: 500;
       font-size: 20px;
       line-height: 20px;
-      padding: 5px 5px 0px 5px;
-      margin-bottom: 0px;
+      padding: 5px 5px 0 5px;
+      margin-bottom: 0;
       span {
         margin-left: 20px;
       }
@@ -207,7 +207,7 @@
       text-align: center;
       color: #888;
       font-size: 12px;
-      margin: 0px 0px -18px 1px;
+      margin: 0 0px -18px 1px;
       padding: 1px;
     }
     .hosts-section {
@@ -252,6 +252,7 @@
     textarea {
       width: 100%;
       min-height: 100px;
+      box-sizing: border-box;
     }
   }
   .task-list {
@@ -392,6 +393,18 @@
     text-align: center;
     padding-top: 10px;
     font-size: 13px;
+    &.checking {
+      padding-top: 5px;
+      line-height: @spinner-small-height;
+      .spinner {
+        display: inline-block;
+        width: auto;
+        height: @spinner-small-height;
+        padding-left: @spinner-small-width + 4px;
+        background-repeat: no-repeat;
+        background-size: contain;
+      }
+    }
   }
   .method-precheck-message.GREEN {
     .icon-ok {
@@ -414,7 +427,7 @@
   .tolerance-text .tolerance-option {
     margin: 5px 15px;
     .ember-checkbox {
-      margin-top: 0px;
+      margin-top: 0;
     }
   }
   .text {
@@ -530,7 +543,7 @@
     .checkbox {
       margin-left: 3px;
       margin-right: 8px;
-      margin-top: 0px;
+      margin-top: 0;
     }
     .icon-question-sign {
       color: @blue;

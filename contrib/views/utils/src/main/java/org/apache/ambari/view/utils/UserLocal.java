@@ -21,6 +21,7 @@ package org.apache.ambari.view.utils;
 import org.apache.ambari.view.ViewContext;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -124,6 +125,23 @@ public class UserLocal<T> {
    * Method should not normally be called from production code.
    */
   public static void dropAllConnections() {
-    viewSingletonObjects.clear();
+      viewSingletonObjects.clear();
+  }
+
+  /**
+   *
+   * Drops all objects for give instance name.
+   *
+   * @param instanceName
+   */
+  public static void dropInstanceConnection(String instanceName){
+    for(Map<String,Object> cache : viewSingletonObjects.values()){
+      for(Iterator<Map.Entry<String, Object>> it = cache.entrySet().iterator();it.hasNext();){
+        Map.Entry<String, Object> entry = it.next();
+        if(entry.getKey().startsWith(instanceName+":")){
+          it.remove();
+        }
+      }
+    }
   }
 }

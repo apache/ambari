@@ -26,21 +26,23 @@ var user,
   userNameField,
   userData = {
     id: 'user'
-  },
-  objectData = Em.Object.create({
-    userName: 'name',
-    isLdap: true
-  });
+  };
+
+function getUser() {
+  return App.User.createRecord(userData);
+}
 
 describe('App.User', function () {
 
   beforeEach(function () {
-    user = App.User.createRecord(userData);
+    user = getUser();
   });
 
   afterEach(function () {
     modelSetup.deleteRecord(user);
   });
+
+  App.TestAliases.testAsComputedAlias(getUser(), 'id', 'userName', 'string');
 
   describe('#id', function () {
     it('should take value from userName', function () {
@@ -61,128 +63,17 @@ describe('App.User', function () {
   });
 });
 
-describe('App.EditUserForm', function () {
-
-  beforeEach(function () {
-    form = App.EditUserForm.create();
-  });
-
-  describe('#object', function () {
-
-    before(function () {
-      sinon.stub(App.router, 'get', function (k) {
-        if (k === 'mainAdminUserEditController.content') return userData;
-        return Em.get(App.router, k);
-      });
-    });
-
-    after(function () {
-      App.router.get.restore();
-    });
-
-    it('should take data from controller', function () {
-      expect(form.get('object')).to.eql(userData);
-    });
-
-  });
-
-  describe('#disableUsername', function () {
-    it('should update userName field', function () {
-      form.set('object', userData);
-      expect(form.get('field.userName.disabled')).to.equal('disabled');
-    });
-  });
-
-  describe('#disableAdminCheckbox', function () {
-
-    before(function () {
-      sinon.stub(App, 'get', function(k) {
-        switch (k) {
-          case 'router':
-            return {
-              getLoginName: Em.K
-            };
-          default:
-            return Em.get(App, k);
-        }
-      });
-      sinon.stub(App.router, 'get', function (k) {
-        if (k === 'mainAdminUserEditController.content') return objectData;
-        return Em.get(App.router, k);
-      });
-    });
-
-    after(function () {
-      App.get.restore();
-      App.router.get.restore();
-    });
-
-    it('should not disable', function () {
-      expect(form.get('field.admin.disabled')).to.be.false;
-    });
-
-    it('should disable', function () {
-      form.set('object', objectData);
-      expect(form.get('field.admin.disabled')).to.be.false;
-    });
-  });
-
-  describe('#isValid', function () {
-    it('should be true as default', function () {
-      expect(form.isValid()).to.be.true;
-    });
-    it('should be false', function () {
-      form.set('field.new_password.isRequired', true);
-      expect(form.isValid()).to.be.false;
-    });
-  });
-
-  describe('#save', function () {
-
-    before(function () {
-      sinon.stub(App.router, 'get', function (k) {
-        if (k === 'mainAdminUserEditController.content') return objectData;
-        return Em.get(App.router, k);
-      });
-    });
-
-    after(function () {
-      App.router.get.restore();
-    });
-
-    it('should record form values to object', function () {
-      form.set('field.userName.value', 'name');
-      form.save();
-      expect(form.get('object.userName')).to.equal('name');
-    });
-  });
-
-});
+function getForm() {
+  return App.CreateUserForm.create();
+}
 
 describe('App.CreateUserForm', function () {
 
   beforeEach(function () {
-    form = App.CreateUserForm.create();
+    form = getForm();
   });
 
-  describe('#object', function () {
-
-    before(function () {
-      sinon.stub(App.router, 'get', function (k) {
-        if (k === 'mainAdminUserCreateController.content') return userData;
-        return Em.get(App, k);
-      });
-    });
-
-    after(function () {
-      App.router.get.restore();
-    });
-
-    it('should take data from controller', function () {
-      expect(form.get('object')).to.eql(userData);
-    });
-
-  });
+  App.TestAliases.testAsComputedAlias(getForm(), 'object', 'App.router.mainAdminUserCreateController.content', 'object');
 
   describe('#field.userName.toLowerCase', function () {
     it('should convert userName into lower case', function () {

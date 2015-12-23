@@ -28,16 +28,25 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     setDBProperty: Em.K
   });
 
+  before(function () {
+    sinon.stub(App.router, 'get').withArgs('clusterController.isLoaded').returns(false);
+  });
+
+  after(function () {
+    App.router.get.restore();
+    controller.destroy();
+  });
+
   describe("#realRepoUrl", function() {
     before(function () {
       this.mock = sinon.stub(App, 'get');
+      this.mock.withArgs('apiPrefix').returns('apiPrefix')
+        .withArgs('stackVersionURL').returns('stackVersionURL');
     });
     after(function () {
       this.mock.restore();
     });
-    it("", function() {
-      this.mock.withArgs('apiPrefix').returns('apiPrefix');
-      this.mock.withArgs('stackVersionURL').returns('stackVersionURL');
+    it("should be valid", function() {
       controller.propertyDidChange('realRepoUrl');
       expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/compatible_repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
     });
@@ -46,13 +55,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#realStackUrl", function() {
     before(function () {
       this.mock = sinon.stub(App, 'get');
+      this.mock.withArgs('apiPrefix').returns('apiPrefix')
+        .withArgs('clusterName').returns('clusterName');
     });
     after(function () {
       this.mock.restore();
     });
-    it("", function() {
-      this.mock.withArgs('apiPrefix').returns('apiPrefix');
-      this.mock.withArgs('clusterName').returns('clusterName');
+    it("should be valid", function() {
       controller.propertyDidChange('realStackUrl');
       expect(controller.get('realStackUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=*,repository_versions/*,repository_versions/operating_systems/repositories/*');
     });
@@ -61,43 +70,41 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#realUpdateUrl", function() {
     before(function () {
       this.mock = sinon.stub(App, 'get');
+      this.mock.withArgs('apiPrefix').returns('apiPrefix')
+        .withArgs('clusterName').returns('clusterName');
     });
     after(function () {
       this.mock.restore();
     });
-    it("", function() {
-      this.mock.withArgs('apiPrefix').returns('apiPrefix');
-      this.mock.withArgs('clusterName').returns('clusterName');
+    it("realUpdateUrl is valid", function() {
       controller.propertyDidChange('realUpdateUrl');
       expect(controller.get('realUpdateUrl')).to.equal('apiPrefix/clusters/clusterName/stack_versions?fields=ClusterStackVersions/*');
     });
   });
 
   describe("#requestStatus", function() {
-    it("isSuspended false", function() {
-      controller.set('isSuspended', false);
-      controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
-      controller.propertyDidChange('requestStatus');
-      expect(controller.get('requestStatus')).to.equal('ABORTED');
-    });
-    it("isSuspended true", function() {
-      controller.set('isSuspended', true);
+    it("state ABORTED", function() {
       controller.set('upgradeData', { Upgrade: {request_status: 'ABORTED'}});
       controller.propertyDidChange('requestStatus');
       expect(controller.get('requestStatus')).to.equal('SUSPENDED');
     });
+    it("state not ABORTED", function() {
+      controller.set('upgradeData', { Upgrade: {request_status: 'INIT'}});
+      controller.propertyDidChange('requestStatus');
+      expect(controller.get('requestStatus')).to.equal('INIT');
+    });
   });
 
   describe("#load()", function() {
-    before(function(){
+    beforeEach(function(){
       sinon.stub(controller, 'loadUpgradeData').returns({
-        done: function(callback) {callback();}
+        done: Em.clb
       });
       sinon.stub(controller, 'loadStackVersionsToModel').returns({
-        done: function(callback) {callback();}
+        done: Em.clb
       });
       sinon.stub(controller, 'loadRepoVersionsToModel').returns({
-        done: function(callback) {callback();}
+        done: Em.clb
       });
       sinon.stub(App.StackVersion, 'find').returns([Em.Object.create({
         state: 'CURRENT',
@@ -106,18 +113,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           displayName: 'HDP-2.2'
         }
       })]);
+      controller.load();
     });
-    after(function(){
+    afterEach(function(){
       controller.loadUpgradeData.restore();
       controller.loadStackVersionsToModel.restore();
       controller.loadRepoVersionsToModel.restore();
       App.StackVersion.find.restore();
     });
-    it("", function() {
-      controller.load();
+    it("loadUpgradeData called with valid arguments", function() {
       expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
+    });
+    it('loadStackVersionsToModel called with valid arguments', function () {
       expect(controller.loadStackVersionsToModel.calledWith(true)).to.be.true;
+    });
+    it('loadRepoVersionsToModel called once', function () {
       expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+    });
+    it('currentVersion is corrent', function () {
       expect(controller.get('currentVersion')).to.eql({
         "repository_version": "2.2",
         "repository_name": "HDP-2.2"
@@ -526,11 +539,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         value: '2.2',
         label: 'HDP-2.2'
       });
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({"value": '2.2', "label": 'HDP-2.2'});
-      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.upgrade.start');
-      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
-      expect(App.ajax.send.getCall(0).args[0].success).to.eql('upgradeSuccessCallback');
-      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
+      var callArgs = App.ajax.send.getCall(0).args[0];
+      expect(callArgs.data).to.eql({"value": '2.2', "label": 'HDP-2.2'});
+      expect(callArgs.name).to.eql('admin.upgrade.start');
+      expect(callArgs.sender).to.eql(controller);
+      expect(callArgs.success).to.eql('upgradeSuccessCallback');
+      expect(callArgs.callback).to.be.called;
       expect(controller.setDBProperty.calledWith('currentVersion', {
         repository_version: '2.2'
       })).to.be.true;
@@ -582,105 +596,112 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.updateUpgradeData({});
       expect(controller.initUpgradeData.calledWith({})).to.be.true;
     });
-    it("update loaded data", function() {
-      var oldData = Em.Object.create({
-        upgradeGroups: [
-          Em.Object.create({
-            group_id: 1,
-            upgradeItems: [
-              Em.Object.create({
-                stage_id: 1
-              })
-            ]
-          }),
-          Em.Object.create({
-            group_id: 2,
-            upgradeItems: [
-              Em.Object.create({
-                stage_id: 2
-              }),
-              Em.Object.create({
-                stage_id: 3
-              })
-            ]
-          })
-        ]
-      });
-      var newData = {
-        Upgrade: {
-          request_id: 1
-        },
-        upgrade_groups: [
-          {
-            UpgradeGroup: {
+
+    describe('upgradeData exists', function () {
+
+      var groups;
+
+      beforeEach(function() {
+        var oldData = Em.Object.create({
+          upgradeGroups: [
+            Em.Object.create({
               group_id: 1,
-              status: 'COMPLETED',
-              progress_percent: 100,
-              completed_task_count: 3
-            },
-            upgrade_items: [
-              {
-                UpgradeItem: {
-                  stage_id: 1,
-                  status: 'COMPLETED',
-                  progress_percent: 100
-                }
-              }
-            ]
-          },
-          {
-            UpgradeGroup: {
+              upgradeItems: [
+                Em.Object.create({
+                  stage_id: 1
+                })
+              ]
+            }),
+            Em.Object.create({
               group_id: 2,
-              status: 'ABORTED',
-              progress_percent: 50,
-              completed_task_count: 1
-            },
-            upgrade_items: [
-              {
-                UpgradeItem: {
-                  stage_id: 2,
-                  status: 'ABORTED',
-                  progress_percent: 99
-                }
+              upgradeItems: [
+                Em.Object.create({
+                  stage_id: 2
+                }),
+                Em.Object.create({
+                  stage_id: 3
+                })
+              ]
+            })
+          ]
+        });
+        var newData = {
+          Upgrade: {
+            request_id: 1
+          },
+          upgrade_groups: [
+            {
+              UpgradeGroup: {
+                group_id: 1,
+                status: 'COMPLETED',
+                progress_percent: 100,
+                completed_task_count: 3
               },
-              {
-                UpgradeItem: {
-                  stage_id: 3,
-                  status: 'PENDING',
-                  progress_percent: 0
+              upgrade_items: [
+                {
+                  UpgradeItem: {
+                    stage_id: 1,
+                    status: 'COMPLETED',
+                    progress_percent: 100
+                  }
                 }
-              }
-            ]
-          }
-        ]
-      };
-      controller.set('upgradeData', oldData);
-      controller.updateUpgradeData(newData);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('status')).to.equal('COMPLETED');
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('progress_percent')).to.equal(100);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('completed_task_count')).to.equal(3);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('hasExpandableItems')).to.be.true;
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('status')).to.equal('ABORTED');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('progress_percent')).to.equal(50);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('completed_task_count')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('status')).to.equal('ABORTED');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('status')).to.equal('PENDING');
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[0].get('progress_percent')).to.equal(99);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('upgradeItems')[1].get('progress_percent')).to.equal(0);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('hasExpandableItems')).to.be.false;
+              ]
+            },
+            {
+              UpgradeGroup: {
+                group_id: 2,
+                status: 'ABORTED',
+                progress_percent: 50,
+                completed_task_count: 1
+              },
+              upgrade_items: [
+                {
+                  UpgradeItem: {
+                    stage_id: 2,
+                    status: 'ABORTED',
+                    progress_percent: 99
+                  }
+                },
+                {
+                  UpgradeItem: {
+                    stage_id: 3,
+                    status: 'PENDING',
+                    progress_percent: 0
+                  }
+                }
+              ]
+            }
+          ]
+        };
+        controller.set('upgradeData', oldData);
+        controller.updateUpgradeData(newData);
+        groups = controller.get('upgradeData.upgradeGroups');
+      });
+
+      it("checking 1st group", function() {
+        expect(groups[0].get('status')).to.equal('COMPLETED');
+        expect(groups[0].get('progress_percent')).to.equal(100);
+        expect(groups[0].get('completed_task_count')).to.equal(3);
+        expect(groups[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
+        expect(groups[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
+        expect(groups[0].get('hasExpandableItems')).to.be.true;
+      });
+
+      it('checking 2nd group', function () {
+        expect(groups[1].get('status')).to.equal('ABORTED');
+        expect(groups[1].get('progress_percent')).to.equal(50);
+        expect(groups[1].get('completed_task_count')).to.equal(1);
+        expect(groups[1].get('upgradeItems').mapProperty('status')).to.eql(['ABORTED', 'PENDING']);
+        expect(groups[1].get('upgradeItems').mapProperty('progress_percent')).to.eql([99, 0]);
+        expect(groups[1].get('hasExpandableItems')).to.be.false;
+      });
+
     });
   });
 
   describe("#initUpgradeData()", function() {
     beforeEach(function () {
       sinon.stub(controller, 'setDBProperty');
-    });
-    afterEach(function () {
-      controller.setDBProperty.restore();
-    });
-    it("", function() {
       var newData = {
         Upgrade: {
           request_id: 1,
@@ -733,17 +754,24 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         ]
       };
       controller.initUpgradeData(newData);
+    });
+    afterEach(function () {
+      controller.setDBProperty.restore();
+    });
+    it("setDBProperty called with valid arguments", function() {
       expect(controller.setDBProperty.calledWith('downgradeAllowed', false)).to.be.true;
+    });
+    it('downgradeAllowed is false', function () {
       expect(controller.get('downgradeAllowed')).to.be.false;
+    });
+    it('upgradeData.Upgrade.request_id is 1', function () {
       expect(controller.get('upgradeData.Upgrade.request_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('group_id')).to.equal(3);
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('group_id')).to.equal(2);
-      expect(controller.get('upgradeData.upgradeGroups')[2].get('group_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[2].get('upgradeItems')[0].get('stage_id')).to.equal(2);
-      expect(controller.get('upgradeData.upgradeGroups')[2].get('upgradeItems')[1].get('stage_id')).to.equal(1);
-      expect(controller.get('upgradeData.upgradeGroups')[0].get('hasExpandableItems')).to.be.false;
-      expect(controller.get('upgradeData.upgradeGroups')[1].get('hasExpandableItems')).to.be.false;
-      expect(controller.get('upgradeData.upgradeGroups')[2].get('hasExpandableItems')).to.be.true;
+    });
+    it('upgradeData.upgradeGroups contain valid data', function () {
+      var groups = controller.get('upgradeData.upgradeGroups');
+      expect(groups.mapProperty('group_id')).to.eql([3,2,1]);
+      expect(groups[2].get('upgradeItems').mapProperty('stage_id')).to.eql([2,1]);
+      expect(groups.mapProperty('hasExpandableItems')).to.eql([false, false, true]);
     });
   });
 
@@ -801,38 +829,55 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.spy(App, 'ModalPopup');
       sinon.spy(App, 'showConfirmationFeedBackPopup');
-      this.mock = sinon.stub(controller, 'getSupportedUpgradeTypes');
+      sinon.stub(controller, 'getSupportedUpgradeTypes').returns({
+        done: function (callback) {
+          callback([1]);
+          return {
+            always: function (alwaysCallback) {
+              alwaysCallback();
+              return {};
+            }
+          };
+        }
+      });
       sinon.stub(controller, 'runPreUpgradeCheck', Em.K);
+      sinon.stub(App.RepositoryVersion, 'find').returns([
+        Em.Object.create({
+          status: 'CURRENT'
+        })
+      ]);
+    });
+    beforeEach(function () {
+      controller.get('runningCheckRequests').clear();
     });
     after(function () {
       App.ModalPopup.restore();
       App.showConfirmationFeedBackPopup.restore();
       controller.runPreUpgradeCheck.restore();
-      this.mock.restore();
+      controller.getSupportedUpgradeTypes.restore();
       controller.get('upgradeMethods').setEach('selected', false);
+      App.RepositoryVersion.find.restore();
     });
     it("show confirmation popup", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
-      this.mock.returns({
-        done: function(callback) {callback([1]);}
-      });
-      controller.get('upgradeMethods')[0].set('selected', true);
       controller.set('isDowngrade', false);
       var popup = controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.true;
+      expect(controller.get('upgradeMethods').everyProperty('isCheckRequestInProgress')).to.be.true;
+      expect(controller.get('upgradeMethods').someProperty('selected')).to.be.false;
+      controller.get('upgradeMethods')[0].set('selected', true);
       var confirmPopup = popup.onPrimary();
       expect(App.showConfirmationFeedBackPopup.calledOnce).to.be.true;
       confirmPopup.onPrimary();
       expect(controller.runPreUpgradeCheck.calledWith(version)).to.be.true;
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
     });
     it("NOT show confirmation popup on Downgrade", function() {
       var version = Em.Object.create({displayName: 'HDP-2.2'});
-      this.mock.returns({
-        done: function(callback) {callback([1]);}
-      });
       controller.set('isDowngrade', true);
-      var popup = controller.upgradeOptions(false, version);
+      controller.upgradeOptions(false, version);
       expect(App.ModalPopup.calledOnce).to.be.false;
+      expect( controller.get('runningCheckRequests')).to.have.length(1);
     });
   });
 
@@ -881,10 +926,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         isDowngrade: true,
         upgradeType: "NON_ROLLING"
       });
-      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.downgrade.start');
-      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
-      expect(App.ajax.send.getCall(0).args[0].success).to.eql('upgradeSuccessCallback');
-      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
+      var callArgs = App.ajax.send.getCall(0).args[0];
+      expect(callArgs.name).to.eql('admin.downgrade.start');
+      expect(callArgs.sender).to.eql(controller);
+      expect(callArgs.success).to.eql('upgradeSuccessCallback');
+      expect(callArgs.callback).to.be.called;
     });
   });
 
@@ -928,21 +974,26 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       defaultStatus: 'INIT',
       stackVersion: {}
     });
-    before(function () {
+    beforeEach(function () {
       sinon.spy(mock, 'set');
       sinon.stub(App.db, 'set', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
       sinon.stub(App.RepositoryVersion, 'find').returns(mock);
+      controller.installRepoVersionSuccess({Requests: {id: 1}}, {}, {id: 1});
     });
-    after(function () {
+    afterEach(function () {
       App.db.set.restore();
       App.clusterStatus.setClusterStatus.restore();
       App.RepositoryVersion.find.restore();
+      mock.set.restore();
     });
-    it("", function() {
-      controller.installRepoVersionSuccess({Requests: {id: 1}}, {}, {id: 1});
+    it("data sdtored to the local db", function() {
       expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
+    });
+    it('clusterStatus is updated', function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
+    });
+    it('App.RepositoryVersion models have valid states', function () {
       expect(App.RepositoryVersion.find.calledWith(1)).to.be.true;
       expect(App.RepositoryVersion.find(1).get('defaultStatus')).to.equal('INSTALLING');
       expect(App.RepositoryVersion.find(1).get('stackVersion.state')).to.equal('INSTALLING');
@@ -953,26 +1004,25 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     before(function () {
       sinon.stub(App.ajax, 'send', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
     });
     after(function () {
       App.ajax.send.restore();
     });
-    it("", function () {
+    it("valid request is sent", function () {
       var item = Em.Object.create({
         request_id: 1,
         stage_id: 1,
         group_id: 1
       });
       controller.setUpgradeItemStatus(item, 'PENDING');
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
-      expect(App.ajax.send.getCall(0).args[0].name).to.eql('admin.upgrade.upgradeItem.setState');
-      expect(App.ajax.send.getCall(0).args[0].sender).to.eql(controller);
-      expect(App.ajax.send.getCall(0).args[0].callback).to.be.called;
+      var callArgs = App.ajax.send.getCall(0).args[0];
+      expect(callArgs.data).to.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
+      expect(callArgs.name).to.eql('admin.upgrade.upgradeItem.setState');
+      expect(callArgs.sender).to.eql(controller);
+      expect(callArgs.callback).to.be.called;
       expect(item.get('status')).to.equal('PENDING');
     });
   });
@@ -983,7 +1033,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         operatingSystems: [
           Em.Object.create({
             osType: "redhat6",
-            isDisabled: Ember.computed.not('isSelected'),
+            isDisabled: Em.computed.not('isSelected'),
             repositories: [Em.Object.create({
                 "baseUrl": "111121",
                 "repoId": "HDP-2.2",
@@ -1078,7 +1128,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
       expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
       expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
-      expect(App.ajax.send.calledOnce).to.be.true;
     });
   });
 
@@ -1110,24 +1159,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
   });
 
-  describe("#showProgressPopup()", function () {
-    var mock = {
-      initPopup: Em.K
-    };
-    before(function () {
-      sinon.stub(App.router, 'get').withArgs('highAvailabilityProgressPopupController').returns(mock);
-      sinon.spy(mock, 'initPopup');
-    });
-    after(function () {
-      App.router.get.restore();
-      mock.initPopup.restore();
-    });
-    it("", function () {
-      controller.showProgressPopup(Em.Object.create());
-      expect(mock.initPopup.calledOnce).to.be.true;
-    });
-  });
-
   describe("#getUrl()", function() {
     beforeEach(function(){
       controller.reopen({
@@ -1154,7 +1185,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     after(function () {
       App.HttpClient.get.restore();
     });
-    it("", function () {
+    it("HttpClient did get-request", function () {
       controller.loadStackVersionsToModel();
       expect(App.HttpClient.get.calledOnce).to.be.true;
     });
@@ -1167,7 +1198,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     after(function () {
       App.HttpClient.get.restore();
     });
-    it("", function () {
+    it("HttpClient did get-request", function () {
       controller.loadRepoVersionsToModel();
       expect(App.HttpClient.get.calledOnce).to.be.true;
     });
@@ -1319,25 +1350,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#suspendUpgrade()", function() {
     beforeEach(function () {
       sinon.stub(controller, 'abortUpgrade').returns({
-        done: function (callback) {
-          callback();
-        }
+        done: Em.clb
       });
       sinon.stub(controller, 'setDBProperty', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+      controller.suspendUpgrade();
     });
     afterEach(function () {
       controller.abortUpgrade.restore();
       controller.setDBProperty.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
-    it("", function() {
-      controller.suspendUpgrade();
+    it("upgrade aborted", function() {
       expect(controller.abortUpgrade.calledOnce).to.be.true;
+    });
+    it('App.upgradeState is ABORTED', function () {
       expect(App.get('upgradeState')).to.equal('ABORTED');
-      expect(controller.get('isSuspended')).to.be.true;
+    });
+    it('new upgradeState is saved to the localDB', function () {
       expect(controller.setDBProperty.calledWith('upgradeState', 'ABORTED')).to.be.true;
-      expect(controller.setDBProperty.calledWith('isSuspended', true)).to.be.true;
+    });
+    it('clusterStatus is updated', function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
@@ -1345,25 +1378,27 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   describe("#resumeUpgrade()", function() {
     beforeEach(function () {
       sinon.stub(controller, 'retryUpgrade').returns({
-        done: function (callback) {
-          callback();
-        }
+        done: Em.clb
       });
       sinon.stub(controller, 'setDBProperty', Em.K);
       sinon.stub(App.clusterStatus, 'setClusterStatus', Em.K);
+      controller.resumeUpgrade();
     });
     afterEach(function () {
       controller.retryUpgrade.restore();
       controller.setDBProperty.restore();
       App.clusterStatus.setClusterStatus.restore();
     });
-    it("", function() {
-      controller.resumeUpgrade();
+    it("Upgrade is retrying", function() {
       expect(controller.retryUpgrade.calledOnce).to.be.true;
+    });
+    it('App.upgradeState is PENDING', function () {
       expect(App.get('upgradeState')).to.equal('PENDING');
-      expect(controller.get('isSuspended')).to.be.false;
+    });
+    it('new upgradeState is saved to the localDB', function () {
       expect(controller.setDBProperty.calledWith('upgradeState', 'PENDING')).to.be.true;
-      expect(controller.setDBProperty.calledWith('isSuspended', false)).to.be.true;
+    });
+    it('clusterStatus is updated', function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
@@ -1396,6 +1431,20 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#restoreLastUpgrade()", function () {
+
+    var data = {
+      Upgrade: {
+        request_id: 1,
+        direction: 'UPGRADE',
+        request_status: 'PENDING',
+        upgrade_type: 'ROLLING',
+        downgrade_allowed: true,
+        skip_failures: true,
+        skip_service_check_failures: true,
+        to_version: '1'
+      }
+    };
+
     beforeEach(function () {
       sinon.stub(App.RepositoryVersion, 'find').returns([Em.Object.create({
         repositoryVersion: '1',
@@ -1412,6 +1461,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(controller, 'setDBProperty');
       sinon.stub(controller, 'initDBProperties');
       sinon.stub(controller, 'loadUpgradeData');
+      controller.restoreLastUpgrade(data);
     });
     afterEach(function () {
       App.RepositoryVersion.find.restore();
@@ -1421,20 +1471,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.initDBProperties.restore();
       controller.loadUpgradeData.restore();
     });
-    it("", function () {
-      var data = {
-        Upgrade: {
-          request_id: 1,
-          direction: 'UPGRADE',
-          request_status: 'PENDING',
-          upgrade_type: 'ROLLING',
-          downgrade_allowed: true,
-          skip_failures: true,
-          skip_service_check_failures: true,
-          to_version: '1'
-        }
-      };
-      controller.restoreLastUpgrade(data);
+    it('proper data is saved to the localDB', function () {
       expect(controller.setDBProperties.getCall(0).args[0]).to.eql({
         upgradeId: 1,
         isDowngrade: false,
@@ -1447,9 +1484,17 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           skipSCFailures: true
         })
       });
+    });
+    it('models are saved', function () {
       expect(controller.loadRepoVersionsToModel.calledOnce).to.be.true;
+    });
+    it('correct upgradeVersion is saved to the DB', function () {
       expect(controller.setDBProperty.calledWith('upgradeVersion', 'HDP-1')).to.be.true;
+    });
+    it('initDBProperties is called', function () {
       expect(controller.initDBProperties.calledOnce).to.be.true;
+    });
+    it('loadUpgradeData called with valid arguments', function () {
       expect(controller.loadUpgradeData.calledWith(true)).to.be.true;
     });
   });
@@ -1642,6 +1687,235 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         expect(controller.get('slaveComponentStructuredInfo')).eql(test.expected.slaveComponentStructuredInfo);
       });
     });
+  });
+
+  describe('#getConfigsWarnings', function () {
+
+    var cases = [
+      {
+        configs: [],
+        title: 'no warning'
+      },
+      {
+        configsMergeWarning: {},
+        configs: [],
+        title: 'empty data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {}
+        },
+        configs: [],
+        title: 'incomplete data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            failed_detail: {}
+          }
+        },
+        configs: [],
+        title: 'invalid data'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            failed_detail: []
+          }
+        },
+        configs: [],
+        title: 'empty configs array'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            status: 'FAIL',
+            failed_detail: [
+              {
+                type: 't0',
+                property: 'p0',
+                current: 'c0',
+                new_stack_value: 'n0',
+                result_value: 'r0'
+              },
+              {
+                type: 't1',
+                property: 'p1',
+                current: 'c1',
+                new_stack_value: 'n1'
+              },
+              {
+                type: 't2',
+                property: 'p2',
+                current: 'c2',
+                result_value: 'r2'
+              }
+            ]
+          }
+        },
+        configs: [],
+        title: 'not a warning'
+      },
+      {
+        configsMergeWarning: {
+          UpgradeChecks: {
+            status: 'WARNING',
+            failed_detail: [
+              {
+                type: 't0',
+                property: 'p0',
+                current: 'c0',
+                new_stack_value: 'n0',
+                result_value: 'r0'
+              },
+              {
+                type: 't1',
+                property: 'p1',
+                current: 'c1',
+                new_stack_value: 'n1'
+              },
+              {
+                type: 't2',
+                property: 'p2',
+                current: 'c2',
+                result_value: 'r2'
+              }
+            ]
+          }
+        },
+        configs: [
+          {
+            type: 't0',
+            name: 'p0',
+            currentValue: 'c0',
+            recommendedValue: 'n0',
+            isDeprecated: false,
+            resultingValue: 'r0',
+            willBeRemoved: false
+          },
+          {
+            type: 't1',
+            name: 'p1',
+            currentValue: 'c1',
+            recommendedValue: 'n1',
+            isDeprecated: false,
+            resultingValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.willBeRemoved'),
+            willBeRemoved: true
+          },
+          {
+            type: 't2',
+            name: 'p2',
+            currentValue: 'c2',
+            recommendedValue: Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.deprecated'),
+            isDeprecated: true,
+            resultingValue: 'r2',
+            willBeRemoved: false
+          }
+        ],
+        title: 'normal case'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(controller.getConfigsWarnings(item.configsMergeWarning)).to.eql(item.configs);
+      });
+    });
+
+  });
+
+  describe('#runPreUpgradeCheckOnly', function () {
+
+    var appGetMock,
+      upgradeMethods = controller.get('upgradeMethods'),
+      cases = [
+      {
+        supportsPreUpgradeCheck: false,
+        ru: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        eu: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        ajaxCallCount: 0,
+        runningCheckRequestsLength: 0,
+        title: 'pre-upgrade checks not supported'
+      },
+      {
+        supportsPreUpgradeCheck: true,
+        ru: {
+          isCheckComplete: false,
+          isCheckRequestInProgress: true,
+          action: ''
+        },
+        eu: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        ajaxCallCount: 1,
+        type: 'ROLLING',
+        runningCheckRequestsLength: 1,
+        title: 'rolling upgrade'
+      },
+      {
+        supportsPreUpgradeCheck: true,
+        ru: {
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        },
+        eu: {
+          isCheckComplete: false,
+          isCheckRequestInProgress: true,
+          action: ''
+        },
+        ajaxCallCount: 1,
+        type: 'NON_ROLLING',
+        runningCheckRequestsLength: 1,
+        title: 'express upgrade'
+      }
+    ];
+
+    beforeEach(function () {
+      appGetMock = sinon.stub(App, 'get');
+      controller.get('runningCheckRequests').clear();
+      upgradeMethods.forEach(function (method) {
+        method.setProperties({
+          isCheckComplete: true,
+          isCheckRequestInProgress: false,
+          action: 'a'
+        });
+      });
+      sinon.stub(App.ajax, 'send').returns({});
+    });
+
+    afterEach(function () {
+      appGetMock.restore();
+      App.ajax.send.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        var runningCheckRequests = controller.get('runningCheckRequests');
+        appGetMock.returns(item.supportsPreUpgradeCheck);
+        controller.runPreUpgradeCheckOnly({
+          type: item.type
+        });
+        expect(upgradeMethods.findProperty('type', 'ROLLING').getProperties('isCheckComplete', 'isCheckRequestInProgress', 'action')).to.eql(item.ru);
+        expect(upgradeMethods.findProperty('type', 'NON_ROLLING').getProperties('isCheckComplete', 'isCheckRequestInProgress', 'action')).to.eql(item.eu);
+        expect(App.ajax.send.callCount).to.equal(item.ajaxCallCount);
+        expect(runningCheckRequests).to.have.length(item.runningCheckRequestsLength);
+        if (item.runningCheckRequestsLength) {
+          expect(runningCheckRequests[0].type).to.equal(item.type);
+        }
+      });
+    });
+
   });
 
 

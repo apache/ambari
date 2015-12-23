@@ -131,15 +131,19 @@ public class AuthorizationHelperTest {
     administratorRoleAuthorizationEntity.setAuthorizationId(RoleAuthorization.AMBARI_MANAGE_USERS.getId());
 
     ResourceTypeEntity clusterResourceTypeEntity = new ResourceTypeEntity();
-    clusterResourceTypeEntity.setId(ResourceType.CLUSTER.getId());
+    clusterResourceTypeEntity.setId(1);
     clusterResourceTypeEntity.setName(ResourceType.CLUSTER.name());
+
+    ResourceTypeEntity cluster2ResourceTypeEntity = new ResourceTypeEntity();
+    cluster2ResourceTypeEntity.setId(2);
+    cluster2ResourceTypeEntity.setName(ResourceType.CLUSTER.name());
 
     ResourceEntity clusterResourceEntity = new ResourceEntity();
     clusterResourceEntity.setResourceType(clusterResourceTypeEntity);
     clusterResourceEntity.setId(1L);
 
     ResourceEntity cluster2ResourceEntity = new ResourceEntity();
-    cluster2ResourceEntity.setResourceType(clusterResourceTypeEntity);
+    cluster2ResourceEntity.setResourceType(cluster2ResourceTypeEntity);
     cluster2ResourceEntity.setId(2L);
 
     PermissionEntity readOnlyPermissionEntity = new PermissionEntity();

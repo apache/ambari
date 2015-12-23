@@ -46,6 +46,8 @@ CONNECTION_TIMEOUT_DEFAULT = 5.0
 LOGGER_EXCEPTION_MESSAGE = "[Alert] NodeManager Health Summary on {0} fails:"
 logger = logging.getLogger('ambari_alerts')
 
+QRY = "Hadoop:service=ResourceManager,name=RMNMInfo"
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -116,7 +118,7 @@ def execute(configurations={}, parameters={}, host_name=None):
       uri = https_uri
 
   uri = str(host_name) + ":" + uri.split(":")[1]
-  live_nodemanagers_qry = "{0}://{1}/jmx?qry=Hadoop:service=ResourceManager,name=RMNMInfo".format(scheme, uri)
+  live_nodemanagers_qry = "{0}://{1}/jmx?qry={2}".format(scheme, uri, QRY)
   convert_to_json_failed = False
   response_code = None
   try:
@@ -132,7 +134,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
       try:
         url_response_json = json.loads(url_response)
-        live_nodemanagers = json.loads(url_response_json["beans"][0]["LiveNodeManagers"])
+        live_nodemanagers = json.loads(find_value_in_jmx(url_response_json, "LiveNodeManagers", live_nodemanagers_qry))
       except ValueError, error:
         convert_to_json_failed = True
         logger.exception("[Alert][{0}] Convert response to json failed or json doesn't contain needed data: {1}".
@@ -188,10 +190,24 @@ def get_value_from_jmx(query, jmx_property, connection_timeout):
 
     data = response.read()
     data_dict = json.loads(data)
-    return data_dict["beans"][0][jmx_property]
+    return find_value_in_jmx(data_dict, jmx_property, query)
   finally:
     if response is not None:
       try:
         response.close()
       except:
         pass
+
+
+def find_value_in_jmx(data_dict, jmx_property, query):
+  json_data = data_dict["beans"][0]
+
+  if jmx_property not in json_data:
+    beans = data_dict['beans']
+    for jmx_prop_list_item in beans:
+      if "name" in jmx_prop_list_item and jmx_prop_list_item["name"] == QRY:
+        if jmx_property not in jmx_prop_list_item:
+          raise Exception("Unable to find {0} in JSON from {1} ".format(jmx_property, query))
+        json_data = jmx_prop_list_item
+
+  return json_data[jmx_property]

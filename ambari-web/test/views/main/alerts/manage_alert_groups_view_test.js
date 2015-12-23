@@ -20,14 +20,16 @@ var App = require('app');
 
 var view;
 
+function getView() {
+  return App.MainAlertsManageAlertGroupView.create({
+    controller: Em.Object.create()
+  });
+}
+
 describe('App.MainAlertsManageAlertGroupView', function () {
 
   beforeEach(function () {
-
-    view = App.MainAlertsManageAlertGroupView.create({
-      controller: Em.Object.create()
-    });
-
+    view = getView();
   });
 
   it('#buttonObserver', function () {
@@ -88,5 +90,7 @@ describe('App.MainAlertsManageAlertGroupView', function () {
       });
 
   });
+
+  App.TestAliases.testAsComputedIfThenElse(getView(), 'removeButtonTooltip', 'controller.isRemoveButtonDisabled', Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButtonDisabled'), Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton'))
 
 });

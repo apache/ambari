@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
@@ -68,6 +70,7 @@ import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 /**
  * AmbariContext unit tests
@@ -425,6 +428,110 @@ public class AmbariContextTest {
     // verify that wait returns successfully with non-empty list
     // with all configuration types tagged as "TOPOLOGY_RESOLVED"
     context.waitForConfigurationResolution(CLUSTER_NAME, testUpdatedConfigTypes);
+  }
+
+  @Test
+  public void testIsTopologyResolved_True() throws Exception {
+
+    // Given
+    DesiredConfig testHdfsDesiredConfig1 = new DesiredConfig();
+    testHdfsDesiredConfig1.setTag(TopologyManager.INITIAL_CONFIG_TAG);
+    testHdfsDesiredConfig1.setVersion(1L);
+
+    DesiredConfig testHdfsDesiredConfig2 = new DesiredConfig();
+    testHdfsDesiredConfig2.setTag(TopologyManager.TOPOLOGY_RESOLVED_TAG);
+    testHdfsDesiredConfig2.setVersion(2L);
+
+    DesiredConfig testHdfsDesiredConfig3 = new DesiredConfig();
+    testHdfsDesiredConfig3.setTag("ver123");
+    testHdfsDesiredConfig3.setVersion(3L);
+
+    DesiredConfig testCoreSiteDesiredConfig = new DesiredConfig();
+    testCoreSiteDesiredConfig.setTag("ver123");
+    testCoreSiteDesiredConfig.setVersion(1L);
+
+
+    Map<String, Set<DesiredConfig>> testDesiredConfigs = ImmutableMap.<String, Set<DesiredConfig>>builder()
+      .put("hdfs-site", ImmutableSet.of(testHdfsDesiredConfig2, testHdfsDesiredConfig3, testHdfsDesiredConfig1))
+      .put("core-site", ImmutableSet.of(testCoreSiteDesiredConfig))
+      .build();
+
+    expect(cluster.getAllDesiredConfigVersions()).andReturn(testDesiredConfigs).atLeastOnce();
+
+    replayAll();
+
+    // When
+    boolean topologyResolved = context.isTopologyResolved(CLUSTER_ID);
+
+    // Then
+    assertTrue(topologyResolved);
+  }
+
+  @Test
+  public void testIsTopologyResolved_WrongOrder_False() throws Exception {
+
+    // Given
+    DesiredConfig testHdfsDesiredConfig1 = new DesiredConfig();
+    testHdfsDesiredConfig1.setTag(TopologyManager.INITIAL_CONFIG_TAG);
+    testHdfsDesiredConfig1.setVersion(2L);
+
+    DesiredConfig testHdfsDesiredConfig2 = new DesiredConfig();
+    testHdfsDesiredConfig2.setTag(TopologyManager.TOPOLOGY_RESOLVED_TAG);
+    testHdfsDesiredConfig2.setVersion(1L);
+
+    DesiredConfig testHdfsDesiredConfig3 = new DesiredConfig();
+    testHdfsDesiredConfig3.setTag("ver123");
+    testHdfsDesiredConfig3.setVersion(3L);
+
+    DesiredConfig testCoreSiteDesiredConfig = new DesiredConfig();
+    testCoreSiteDesiredConfig.setTag("ver123");
+    testCoreSiteDesiredConfig.setVersion(1L);
+
+
+    Map<String, Set<DesiredConfig>> testDesiredConfigs = ImmutableMap.<String, Set<DesiredConfig>>builder()
+      .put("hdfs-site", ImmutableSet.of(testHdfsDesiredConfig2, testHdfsDesiredConfig3, testHdfsDesiredConfig1))
+      .put("core-site", ImmutableSet.of(testCoreSiteDesiredConfig))
+      .build();
+
+    expect(cluster.getAllDesiredConfigVersions()).andReturn(testDesiredConfigs).atLeastOnce();
+
+    replayAll();
+
+    // When
+    boolean topologyResolved = context.isTopologyResolved(CLUSTER_ID);
+
+    // Then due to INITIAL -> TOPOLOGY_RESOLVED not honored
+    assertFalse(topologyResolved);
+  }
+
+  @Test
+  public void testIsTopologyResolved_False() throws Exception {
+
+    // Given
+    DesiredConfig testHdfsDesiredConfig1 = new DesiredConfig();
+    testHdfsDesiredConfig1.setTag("ver1222");
+    testHdfsDesiredConfig1.setVersion(1L);
+
+
+    DesiredConfig testCoreSiteDesiredConfig = new DesiredConfig();
+    testCoreSiteDesiredConfig.setTag("ver123");
+    testCoreSiteDesiredConfig.setVersion(1L);
+
+
+    Map<String, Set<DesiredConfig>> testDesiredConfigs = ImmutableMap.<String, Set<DesiredConfig>>builder()
+      .put("hdfs-site", ImmutableSet.of(testHdfsDesiredConfig1))
+      .put("core-site", ImmutableSet.of(testCoreSiteDesiredConfig))
+      .build();
+
+    expect(cluster.getAllDesiredConfigVersions()).andReturn(testDesiredConfigs).atLeastOnce();
+
+    replayAll();
+
+    // When
+    boolean topologyResolved = context.isTopologyResolved(CLUSTER_ID);
+
+    // Then
+    assertFalse(topologyResolved);
   }
 
 

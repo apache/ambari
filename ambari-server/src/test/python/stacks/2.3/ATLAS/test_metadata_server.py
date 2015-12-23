@@ -34,35 +34,35 @@ class TestMetadataServer(RMFTestCase):
       self.assertResourceCalled('Directory', '/var/run/atlas',
                                 owner='atlas',
                                 group='hadoop',
-                                recursive=True,
+                                create_parents = True,
                                 cd_access='a',
                                 mode=0755
       )
       self.assertResourceCalled('Directory', '/etc/atlas/conf',
                                 owner='atlas',
                                 group='hadoop',
-                                recursive=True,
+                                create_parents = True,
                                 cd_access='a',
                                 mode=0755
       )
       self.assertResourceCalled('Directory', '/var/log/atlas',
                                 owner='atlas',
                                 group='hadoop',
-                                recursive=True,
+                                create_parents = True,
                                 cd_access='a',
                                 mode=0755
       )
       self.assertResourceCalled('Directory', '/var/lib/atlas/data',
                                 owner='atlas',
                                 group='hadoop',
-                                recursive=True,
+                                create_parents = True,
                                 cd_access='a',
                                 mode=0644
       )
       self.assertResourceCalled('Directory', '/var/lib/atlas/server/webapp',
                                 owner='atlas',
                                 group='hadoop',
-                                recursive=True,
+                                create_parents = True,
                                 cd_access='a',
                                 mode=0644
       )

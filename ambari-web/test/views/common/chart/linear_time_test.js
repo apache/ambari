@@ -381,7 +381,8 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
   });
 
   describe("#groupRequests()", function () {
-    it("", function () {
+    var result;
+    beforeEach(function () {
       var requests = [
         {
           name: 'r1',
@@ -399,11 +400,18 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
           fields: ['f3', 'f4']
         }
       ];
-      var result = aggregator.groupRequests(requests);
-
+      result = aggregator.groupRequests(requests);
+    });
+    it("result['r1'].subRequests.length", function () {
       expect(result['r1'].subRequests.length).to.equal(1);
+    });
+    it("result['r1'].fields.length", function () {
       expect(result['r1'].fields.length).to.equal(1);
+    });
+    it("result['r2'].subRequests.length", function () {
       expect(result['r2'].subRequests.length).to.equal(2);
+    });
+    it("result['r2'].fields.length", function () {
       expect(result['r2'].fields.length).to.equal(3);
     });
   });
@@ -428,7 +436,7 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       App.ajax.send.restore();
       aggregator.formatRequestData.restore();
     });
-    it("", function () {
+    it("valid request is sent", function () {
       var context = Em.Object.create({content: {hostName: 'host1'}});
       var requests = {
         'r1': {
@@ -458,7 +466,7 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       App.dateTime.restore();
 
     });
-    it("", function () {
+    it("data is formed", function () {
       var context = Em.Object.create({timeUnitSeconds: 3600});
       var request = {
         name: 'r1',

@@ -41,7 +41,7 @@
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hadoop-version}</version>
+            <version>${hadoop.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>tomcat</groupId>
@@ -92,7 +92,6 @@
     </dependencies>
 
     <properties>
-      <hadoop-version>2.6.0</hadoop-version>
       <ambari.dir>${project.parent.parent.parent.basedir}</ambari.dir>
       <ui.directory>${basedir}/src/main/resources/ui</ui.directory>
     </properties>
@@ -145,7 +144,7 @@
             </goals>
             <phase>generate-resources</phase>
             <configuration>
-              <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+              <arguments>install --unsafe-perm</arguments>
             </configuration>
           </execution>
         </executions>

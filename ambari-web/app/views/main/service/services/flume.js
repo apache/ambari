@@ -60,12 +60,9 @@ App.MainDashboardServiceFlumeView = App.TableView.extend(App.MainDashboardServic
     return this.t("dashboard.services.flume.summary.title").format(hostCount, (hostCount > 1 ? "s" : ""), agentCount,  (agentCount > 1 ? "s" : ""));
   }.property('service.agents', 'service.hostComponents.length'),
 
-  flumeHandlerComponent: function () {
-    return Em.Object.create({
-      componentName: 'FLUME_HANDLER'
-    });
-    //return App.HostComponent.find().findProperty('componentName', 'FLUME_HANDLER');
-  }.property(),
+  flumeHandlerComponent: Em.Object.create({
+    componentName: 'FLUME_HANDLER'
+  }),
 
   agentView: Em.View.extend({
     content: null,

@@ -19,14 +19,19 @@
 var App = require('app');
 require('views/wizard/step3/hostLogPopupBody_view');
 var view;
+
+function getView() {
+  return App.WizardStep3HostLogPopupBody.create({
+    parentView: Em.Object.create({
+      host: Em.Object.create()
+    })
+  });
+}
+
 describe('App.WizardStep3HostLogPopupBody', function() {
 
   beforeEach(function() {
-    view = App.WizardStep3HostLogPopupBody.create({
-      parentView: Em.Object.create({
-        host: Em.Object.create()
-      })
-    });
+    view = getView();
   });
 
   describe('#textArea', function() {
@@ -47,12 +52,7 @@ describe('App.WizardStep3HostLogPopupBody', function() {
 
   });
 
-  describe('#bootLog', function() {
-    it('should be equal to parentView.host.bootLog', function() {
-      var log = 'i wanna play a game';
-      view.set('parentView.host.bootLog', log);
-      expect(view.get('bootLog')).to.equal(log);
-    });
-  });
+  App.TestAliases.testAsComputedAlias(getView(), 'bootLog', 'parentView.host.bootLog', 'string');
+
 
 });

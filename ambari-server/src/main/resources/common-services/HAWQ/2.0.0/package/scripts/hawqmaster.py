@@ -21,7 +21,7 @@ from resource_management.libraries.functions.check_process_status import check_p
 
 import master_helper
 import common
-import constants
+import hawq_constants
 
 class HawqMaster(Script):
   """
@@ -36,7 +36,7 @@ class HawqMaster(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    env.set_params(constants)
+    env.set_params(hawq_constants)
     master_helper.configure_master()
 
   def start(self, env):
@@ -45,11 +45,14 @@ class HawqMaster(Script):
     master_helper.start_master()
 
   def stop(self, env):
-    master_helper.stop_master()
+    master_helper.stop()
 
   def status(self, env):
     from hawqstatus import get_pid_file
     check_process_status(get_pid_file())
+
+  def immediate_stop_cluster(self, env):
+    master_helper.stop(hawq_constants.IMMEDIATE, hawq_constants.CLUSTER)
 
 if __name__ == "__main__":
   HawqMaster().execute()

@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,15 +18,27 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.metrics.MetricReportingAdapter;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +109,136 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
   // ----- helper methods ----------------------------------------------------
 
   /**
+   * Retrieves passed-in Resource's Type
+   *
+   * @param resources Set of Resources.
+   * @return Type of resource from the Set.
+   */
+  protected String getResourceTypeFromResources(Set<Resource> resources) {
+    String resType = null;
+    if (resources != null) {
+      Iterator<Resource> itr = resources.iterator();
+      if (itr.hasNext()) {
+        // Pick the 1st resource, as the passed in resources will have same Type,
+        // in a given call.
+        Resource res = itr.next();
+        if (res != null) {
+          resType = res.getType().toString();
+        }
+      }
+    }
+    return resType;
+  }
+
+  /**
+   * Retrieves all the cluster names to which the passed-in Resource's belong.
+   *
+   * @param resources Set of Resources.
+   * @return Cluster's Name
+   */
+  protected Set<String> getClustersNameFromResources(Set<Resource> resources, String clusterNamePropertyId) {
+    Set<String> clusNames = new HashSet<String>();
+    if (resources != null) {
+      Iterator<Resource> itr = resources.iterator();
+      while (itr.hasNext()) {
+        Resource res = itr.next();
+        if (res != null) {
+          clusNames.add((String) res.getPropertyValue(clusterNamePropertyId));
+        }
+      }
+    }
+    return clusNames;
+  }
+
+  /**
+   * Retrieves all the 'Cluster's Resource Ids' from the passed-in Resources.
+   *
+   * @param resources Set of Resources.
+   * @param clusterNamePropertyId ClusterName PropertyId.
+   * @return cluster Id.
+   */
+  protected Set<Long> getClustersResourceId(Set<Resource> resources, String clusterNamePropertyId) {
+    Set<Long> clusterResId = new HashSet<Long>();
+    if (clusterNamePropertyId != null) {
+      try {
+        AmbariManagementController amc = AmbariServer.getController();
+        Set<String> clusterNames = getClustersNameFromResources(resources, clusterNamePropertyId);
+        Iterator<String> clusNameItr = clusterNames.iterator();
+        while (clusNameItr.hasNext()) {
+          clusterResId.add(amc.getClusters().getCluster(clusNameItr.next()).getResourceId());
+        }
+      } catch (AmbariException e) {
+        LOG.error("Cluster Id couldn't be retrieved.");
+      } catch (Exception e) {
+        LOG.error("Cluster Id couldn't be retrieved");
+      }
+    }
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("Retrieved Cluster Ids = " + clusterResId.toString());
+    }
+    return clusterResId;
+  }
+
+
+  /**
+   * Check the User's authorization for retrieving the Metrics.
+   *
+   * @param resources Set of Resources.
+   * @param clusterNamePropertyId ClusterName PropertyId.
+   * @return boolean
+   * @throws AuthorizationException
+   */
+  protected boolean checkAuthorizationForMetrics(Set<Resource> resources, String clusterNamePropertyId) throws AuthorizationException {
+    String resType = null;
+
+    // Get the Type
+    resType = getResourceTypeFromResources(resources);
+    if (resType == null) {
+      return false;
+    }
+
+    // Get the cluster Id.
+    Set<Long> clusterResIds = getClustersResourceId(resources, clusterNamePropertyId);
+    if (clusterResIds.size() == 0) {
+      return false;
+    }
+
+    if(LOG.isDebugEnabled()) {
+      LOG.debug("Retrieved cluster's Resource Id = " + clusterResIds + ", Resource Type = " + resType);
+    }
+    Iterator<Long> clusResIdsItr = clusterResIds.iterator();
+    while (clusResIdsItr.hasNext()) {
+      Long clusResId = clusResIdsItr.next();
+      Resource.InternalType resTypeVal = Resource.InternalType.valueOf(resType);
+      switch (resTypeVal) {
+        case Cluster:
+          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusResId, EnumSet.of(RoleAuthorization.CLUSTER_VIEW_METRICS))) {
+            throw new AuthorizationException("The authenticated user does not have authorization to view cluster metrics");
+          }
+          break;
+        case Host:
+          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusResId, EnumSet.of(RoleAuthorization.HOST_VIEW_METRICS))) {
+            throw new AuthorizationException("The authenticated user does not have authorization to view Host metrics");
+          }
+          break;
+        case Component :
+          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusResId, EnumSet.of(RoleAuthorization.SERVICE_VIEW_METRICS))) {
+            throw new AuthorizationException("The authenticated user does not have authorization to view Service metrics");
+          }
+          break;
+        case HostComponent:
+          if (!AuthorizationHelper.isAuthorized(ResourceType.CLUSTER, clusResId, EnumSet.of(RoleAuthorization.SERVICE_VIEW_METRICS))) {
+            throw new AuthorizationException("The authenticated user does not have authorization to view Service metrics");
+          }
+          break;
+        default:
+          LOG.error("Unsuported Resource Type for Metrics");
+          return false;
+      }
+    }
+    return true;
+  }
+  /**
    * Get a map of metric / property info based on the given component name and property id.
    * Note that the property id may map to multiple metrics if the property id is a category.
    *
@@ -139,7 +281,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       }
     }
 
-    if (!propertyId.endsWith("/")){
+    if (!propertyId.endsWith("/")) {
       propertyId += "/";
     }
 
@@ -198,13 +340,13 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
         matcher = FIND_ARGUMENT_METHOD_REGEX.matcher(argName);
         while (matcher.find()) {
           // find the end of the method
-          int openParenIndex  = argName.indexOf('(', matcher.start());
+          int openParenIndex = argName.indexOf('(', matcher.start());
           int closeParenIndex = indexOfClosingParenthesis(argName, openParenIndex);
 
           String methodName = argName.substring(matcher.start() + 1, openParenIndex);
-          String args       = argName.substring(openParenIndex + 1, closeParenIndex);
+          String args = argName.substring(openParenIndex + 1, closeParenIndex);
 
-          List<Object>   argList    = new LinkedList<Object>();
+          List<Object> argList = new LinkedList<Object>();
           List<Class<?>> paramTypes = new LinkedList<Class<?>>();
 
           // for each argument of the method ...
@@ -217,7 +359,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
             value = invokeArgumentMethod(value, methodName, argList, paramTypes);
           } catch (Exception e) {
             throw new IllegalArgumentException("Can't apply method " + methodName + " for argument " +
-                argName + " in " + propertyId, e);
+              argName + " in " + propertyId, e);
           }
         }
         if (value.equals(val)) {
@@ -234,7 +376,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    * Find the index of the closing parenthesis in the given string.
    */
   private static int indexOfClosingParenthesis(String s, int index) {
-    int depth  = 0;
+    int depth = 0;
     int length = s.length();
 
     while (index < length) {
@@ -242,8 +384,8 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       if (c == '(') {
         ++depth;
       } else if (c == ')') {
-        if (--depth ==0 ){
-         return index;
+        if (--depth == 0) {
+          return index;
         }
       }
     }
@@ -258,7 +400,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
 
     // only supports strings and integers
     if (arg.contains("\"")) {
-      argList.add(arg.substring(1, arg.length() -1));
+      argList.add(arg.substring(1, arg.length() - 1));
       paramTypes.add(String.class);
     } else {
       Integer number = Integer.parseInt(arg);
@@ -272,7 +414,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
    */
   private static String invokeArgumentMethod(String argValue, String methodName, List<Object> argList,
                                              List<Class<?>> paramTypes)
-      throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     // invoke the method through reflection
     Method method = String.class.getMethod(methodName, paramTypes.toArray(new Class<?>[paramTypes.size()]));
 
@@ -296,7 +438,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
     }
 
     if (!componentMetricMap.containsKey(propertyId) && regexKey != null
-        && !regexKey.equals(propertyId)) {
+      && !regexKey.equals(propertyId)) {
 
       PropertyInfo propertyInfo = componentMetricMap.get(regexKey);
       if (propertyInfo != null) {
@@ -320,7 +462,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
   protected PropertyInfo updatePropertyInfo(String propertyKey, String id, PropertyInfo propertyInfo) {
     List<String> regexGroups = getRegexGroups(propertyKey, id);
     String propertyId = propertyInfo.getPropertyId();
-    if(propertyId != null) {
+    if (propertyId != null) {
       for (String regexGroup : regexGroups) {
         regexGroup = regexGroup.replace("/", ".");
         propertyId = propertyId.replaceFirst(FIND_REGEX_IN_METRIC_REGEX, regexGroup);
@@ -354,7 +496,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
 
     String category = PropertyHelper.getPropertyCategory(propertyId);
     while (category != null) {
-      if(categoryIds.contains(category)) {
+      if (categoryIds.contains(category)) {
         return true;
       }
       category = PropertyHelper.getPropertyCategory(category);

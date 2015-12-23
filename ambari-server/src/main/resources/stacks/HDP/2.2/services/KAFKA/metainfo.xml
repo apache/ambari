@@ -23,10 +23,10 @@
       <extends>common-services/KAFKA/0.8.1.2.2</extends>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>kafka_2_2_*</name>
+              <name>kafka_${stack_version}</name>
             </package>
           </packages>
         </osSpecific>
@@ -34,7 +34,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>kafka-2-2-.*</name>
+              <name>kafka-${stack_version}</name>
             </package>
           </packages>
         </osSpecific>

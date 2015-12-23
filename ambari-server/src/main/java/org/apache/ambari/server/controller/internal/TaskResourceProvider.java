@@ -17,7 +17,9 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -39,6 +41,8 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.utils.StageUtils;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import com.google.inject.Inject;
@@ -88,6 +92,9 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   @Inject
   private static HostRoleCommandFactory s_hostRoleCommandFactory;
 
+  @Inject
+  protected static TopologyManager s_topologyManager;
+
   /**
    * Thread-safe Jackson JSON mapper.
    */
@@ -126,7 +133,6 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
 
     List<HostRoleCommandEntity> entities = s_dao.findAll(request, predicate);
-    LOG.debug("Retrieved {} commands for request {}", entities.size(), request);
 
     // !!! getting the cluster name out of the request property maps is a little
     // hacky since there could be a different request per cluster name; however
@@ -135,12 +141,31 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
     // tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT) which would unnecessarily
     // make the same call to the API over and over
     String clusterName = null;
+    Long requestId = null;
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
       clusterName = (String) propertyMap.get(TASK_CLUSTER_NAME_PROPERTY_ID);
+      String requestIdStr = (String) propertyMap.get(TASK_REQUEST_ID_PROPERTY_ID);
+      requestId = Long.parseLong(requestIdStr);
     }
 
+    Collection<HostRoleCommand> commands = new ArrayList<>(100);
+
+    if (!entities.isEmpty()) {
+      for (HostRoleCommandEntity entity : entities) {
+        commands.add(s_hostRoleCommandFactory.createExisting(entity));
+      }
+    } else {
+      // if query has no results, look up in TopologyManager as the request might be a TopologyLogicalRequest
+      // which is not directly linked to tasks
+      if (requestId != null) {
+        commands.addAll(s_topologyManager.getTasks(requestId));
+      }
+    }
+
+    LOG.debug("Retrieved {} commands for request {}", commands.size(), request);
+
     // convert each entity into a response
-    for (HostRoleCommandEntity entity : entities) {
+    for (HostRoleCommand hostRoleCommand : commands) {
       Resource resource = new ResourceImpl(Resource.Type.Task);
 
       // !!! shocked this isn't broken.  the key can be null for non-cluster tasks
@@ -148,12 +173,10 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
         setResourceProperty(resource, TASK_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedIds);
       }
 
-      HostRoleCommand hostRoleCommand = s_hostRoleCommandFactory.createExisting(entity);
-
       setResourceProperty(resource, TASK_REQUEST_ID_PROPERTY_ID, hostRoleCommand.getRequestId(), requestedIds);
       setResourceProperty(resource, TASK_ID_PROPERTY_ID, hostRoleCommand.getTaskId(), requestedIds);
       setResourceProperty(resource, TASK_STAGE_ID_PROPERTY_ID, hostRoleCommand.getStageId(), requestedIds);
-      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, hostRoleCommand.getHostName(), requestedIds);
+      setResourceProperty(resource, TASK_HOST_NAME_PROPERTY_ID, ensureHostname(hostRoleCommand.getHostName()), requestedIds);
       setResourceProperty(resource, TASK_ROLE_PROPERTY_ID, hostRoleCommand.getRole().toString(), requestedIds);
       setResourceProperty(resource, TASK_COMMAND_PROPERTY_ID, hostRoleCommand.getRoleCommand(), requestedIds);
       setResourceProperty(resource, TASK_STATUS_PROPERTY_ID, hostRoleCommand.getStatus(), requestedIds);
@@ -227,4 +250,16 @@ public class TaskResourceProvider extends AbstractControllerResourceProvider {
   protected Set<String> getPKPropertyIds() {
     return pkPropertyIds;
   }
+
+  /**
+   * Ensures that a hostname is returned. If null (indicating the host is the Ambari server), the
+   * hostname of the Ambari server is returned.
+   *
+   * @param hostName a hostname
+   * @return the specified hostname or the hostname of the Ambari Server
+   */
+  protected String ensureHostname(String hostName) {
+    return (hostName == null) ? StageUtils.getHostName() : hostName;
+  }
+
 }

@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.security.credential.Credential;
 import org.apache.ambari.server.security.credential.PrincipalKeyCredential;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
@@ -42,6 +43,7 @@ import org.apache.ambari.server.security.encryption.CredentialStoreType;
 import org.apache.commons.lang.StringUtils;
 
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -99,10 +101,19 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
   @AssistedInject
   public CredentialResourceProvider(@Assisted AmbariManagementController managementController) {
     super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
+
+    EnumSet<RoleAuthorization> authorizations = EnumSet.of(
+        RoleAuthorization.CLUSTER_MANAGE_CREDENTIALS,
+        RoleAuthorization.CLUSTER_TOGGLE_KERBEROS);
+
+    setRequiredCreateAuthorizations(authorizations);
+    setRequiredGetAuthorizations(authorizations);
+    setRequiredUpdateAuthorizations(authorizations);
+    setRequiredDeleteAuthorizations(authorizations);
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
+  protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException, UnsupportedPropertyException, ResourceAlreadyExistsException, NoSuchParentResourceException {
 
     for (final Map<String, Object> properties : request.getProperties()) {
@@ -114,7 +125,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
@@ -167,7 +178,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
   }
 
   @Override
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     for (Map<String, Object> requestPropMap : request.getProperties()) {
@@ -183,7 +194,7 @@ public class CredentialResourceProvider extends AbstractControllerResourceProvid
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
 
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);

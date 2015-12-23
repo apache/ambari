@@ -624,6 +624,26 @@ var urls = {
       }
     }
   },
+  'service.item.immediateStopHawqCluster': {
+    'real': '/clusters/{clusterName}/requests',
+    'mock': '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          RequestInfo: {
+            'context': data.context,
+            'command': data.command
+          },
+          "Requests/resource_filters": [{
+            "service_name": data.serviceName,
+            "component_name": data.componentName,
+            'hosts': data.hosts
+          }]
+        })
+      }
+    }
+  },
   /*************************CONFIG THEME****************************************/
 
   'configs.theme': {
@@ -634,6 +654,18 @@ var urls = {
   'configs.theme.services': {
     'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&themes/ThemeInfo/default=true&fields=themes/*',
     'mock': '/data/configurations/theme_services.json'
+  },
+
+  /*************************CONFIG QUICKLINKS****************************************/
+
+  'configs.quicklinksconfig': {
+    'real': '{stackVersionUrl}/services/{serviceName}/quicklinks?QuickLinkInfo/default=true&fields=*',
+    'mock': '/data/configurations/quicklinks.json'
+  },
+
+  'configs.quicklinksconfig.services': {
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&quicklinks/QuickLinkInfo/default=true&fields=quicklinks/*',
+    'mock': '/data/configurations/quicklinks_services.json'
   },
 
   /*************************CONFIG GROUPS***************************************/
@@ -2056,7 +2088,11 @@ var urls = {
     mock: '/data/users/privileges.json'
   },
   'router.user.privileges': {
-    real: '/privileges?PrivilegeInfo/principal_name={userName}&fields=*',
+    real: '/users/{userName}/privileges?fields=*',
+    mock: '/data/users/privileges_{userName}.json'
+  },
+  'router.user.authorizations': {
+    real: '/users/{userName}/authorizations?fields=*',
     mock: '/data/users/privileges_{userName}.json'
   },
   'router.login.clusters': {
@@ -2085,15 +2121,7 @@ var urls = {
     'format': function (data) {
       return {
         type: 'POST',
-        data: JSON.stringify([{
-          "ConfigGroup": {
-            "group_name": data.group_name,
-            "tag": data.service_id,
-            "description": data.description,
-            "desired_configs": data.desired_configs,
-            "hosts": data.hosts
-          }
-        }])
+        data: JSON.stringify(data.data)
       }
     }
   },
@@ -2838,7 +2866,7 @@ var ajax = Em.Object.extend({
 
     var opt = {};
     if (!urls[config.name]) {
-      console.warn('Invalid name provided!');
+      console.warn('Invalid name provided `' + config.name + '`!');
       return null;
     }
     opt = formatRequest.call(urls[config.name], params);

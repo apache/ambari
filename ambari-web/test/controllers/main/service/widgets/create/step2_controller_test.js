@@ -26,18 +26,7 @@ describe('App.WidgetWizardStep2Controller', function () {
     content: Em.Object.create()
   });
 
-  describe("#isEditWidget", function () {
-    it("empty name", function () {
-      controller.set('content.controllerName', '');
-      controller.propertyDidChange('isEditWidget');
-      expect(controller.get('isEditWidget')).to.be.false;
-    });
-    it("correct name", function () {
-      controller.set('content.controllerName', 'widgetEditController');
-      controller.propertyDidChange('isEditWidget');
-      expect(controller.get('isEditWidget')).to.be.true;
-    });
-  });
+  App.TestAliases.testAsComputedEqual(controller, 'isEditWidget', 'content.controllerName', 'widgetEditController');
 
   describe("#filteredMetrics", function () {
     var testCases = [
@@ -232,20 +221,28 @@ describe('App.WidgetWizardStep2Controller', function () {
   });
 
   describe("#addDataSet()", function () {
-    it("", function () {
+
+    beforeEach(function () {
       controller.get('dataSets').clear();
       controller.addDataSet(null, true);
-      expect(controller.get('dataSets').objectAt(0).get('id')).to.equal(1);
-      expect(controller.get('dataSets').objectAt(0).get('isRemovable')).to.equal(false);
       controller.addDataSet(null);
-      expect(controller.get('dataSets').objectAt(1).get('id')).to.equal(2);
-      expect(controller.get('dataSets').objectAt(1).get('isRemovable')).to.equal(true);
+    });
+
+    afterEach(function() {
       controller.get('dataSets').clear();
+    });
+
+    it('check id', function () {
+      expect(controller.get('dataSets').mapProperty('id')).to.eql([1, 2]);
+    });
+
+    it('check isRemovable', function () {
+      expect(controller.get('dataSets').mapProperty('isRemovable')).to.eql([false, true]);
     });
   });
 
   describe("#removeDataSet()", function () {
-    it("", function () {
+    it('should remove selected dataSet', function () {
       var dataSet = Em.Object.create();
       controller.get('dataSets').pushObject(dataSet);
       controller.removeDataSet({context: dataSet});
@@ -254,20 +251,29 @@ describe('App.WidgetWizardStep2Controller', function () {
   });
 
   describe("#addExpression()", function () {
-    it("", function () {
+
+    beforeEach(function () {
       controller.get('expressions').clear();
       controller.addExpression(null, true);
-      expect(controller.get('expressions').objectAt(0).get('id')).to.equal(1);
-      expect(controller.get('expressions').objectAt(0).get('isRemovable')).to.equal(false);
       controller.addExpression(null);
-      expect(controller.get('expressions').objectAt(1).get('id')).to.equal(2);
-      expect(controller.get('expressions').objectAt(1).get('isRemovable')).to.equal(true);
+    });
+
+    afterEach(function () {
       controller.get('expressions').clear();
     });
+
+    it('check id', function () {
+      expect(controller.get('expressions').mapProperty('id')).to.eql([1, 2]);;
+    });
+
+    it('check isRemovable', function () {
+      expect(controller.get('expressions').mapProperty('isRemovable')).to.eql([false, true]);
+    });
+
   });
 
   describe("#removeExpression()", function () {
-    it("", function () {
+    it("should remove selected expression", function () {
       var expression = Em.Object.create();
       controller.get('expressions').pushObject(expression);
       controller.removeExpression({context: expression});
@@ -593,7 +599,7 @@ describe('App.WidgetWizardStep2Controller', function () {
     afterEach(function () {
       App.router.send.restore();
     });
-    it("", function () {
+    it("user is moved to the next step", function () {
       controller.next();
       expect(App.router.send.calledWith('next'));
     });

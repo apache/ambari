@@ -16,17 +16,27 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 2.1.2 is a maintenance release for Ambari 2.1.
+  * The latest release of Ambari is Ambari 2.2.0
 
- * Ambari 2.1.2 added the following features:
+  * Ambari 2.2.0 added the following features:
 
-   * Ubuntu 12 support
+    * Express Upgrade
 
-   * Ubuntu 14 support
+    * Rolling Upgrade resiliency
 
-   * Debian 7 support
+    * Guided Configs for Apache Ranger
 
-   * Performance and stability improvements
+    * Ability to retain KDC Admin credentials
+
+    * Blueprint support for Kerberos
+
+    * Blueprint support for Apache Ranger service (including HA)
+
+    * Blueprint integration with stack advisor
+
+    * Encryption of password properties of stack components exposed via Ambari API
+
+    * Ability to set/change timezone for the graphs on the UI
 
 Getting Ambari Source
 
@@ -41,7 +51,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.1.2} how to install a Hadoop cluster using Ambari 2.1.2}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.2.0} how to install a Hadoop cluster using Ambari 2.2.0}}.
 
 Stay Tuned
 

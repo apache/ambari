@@ -107,7 +107,7 @@ public class Connection {
       transport.open();
       client = new TCLIService.Client(new TBinaryProtocol(transport));
     } catch (TTransportException e) {
-      throw new HiveClientException("H020 Could not establish connecton to "
+      throw new HiveClientException("H020 Could not establish connection to "
           + host + ":" + port + ": " + e.toString(), e);
     } catch (SQLException e) {
       throw new HiveClientException(e.getMessage(), e);
@@ -530,6 +530,11 @@ public class Connection {
     sessHandles.remove(tag);
   }
 
+  public void invalidateSessionBySessionHandle(TSessionHandle sessionHandle) throws HiveClientException{
+    sessHandles.values().remove(sessionHandle);
+    closeSession(sessionHandle);
+  }
+
   private synchronized void closeSession(TSessionHandle sessHandle) throws HiveClientException {
     if (sessHandle == null) return;
     TCloseSessionReq closeReq = new TCloseSessionReq(sessHandle);
@@ -582,7 +587,7 @@ public class Connection {
       final String oneCmd = commands[i];
       final boolean lastCommand = i == commands.length-1;
 
-      TExecuteStatementResp execResp = new HiveCall<TExecuteStatementResp>(this) {
+      TExecuteStatementResp execResp = new HiveCall<TExecuteStatementResp>(this,session) {
         @Override
         public TExecuteStatementResp body() throws HiveClientException {
 

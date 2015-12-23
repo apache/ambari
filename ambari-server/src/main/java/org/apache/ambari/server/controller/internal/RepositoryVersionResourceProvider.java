@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -51,6 +52,10 @@ import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -73,7 +78,7 @@ import com.google.inject.persist.Transactional;
 /**
  * Resource provider for repository versions resources.
  */
-public class RepositoryVersionResourceProvider extends AbstractResourceProvider {
+public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
@@ -144,10 +149,19 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
    */
   public RepositoryVersionResourceProvider() {
     super(propertyIds, keyPropertyIds);
+    setRequiredCreateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredDeleteAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS));
+    setRequiredUpdateAuthorizations(EnumSet.of(RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS, RoleAuthorization.AMBARI_EDIT_STACK_REPOS));
+
+    setRequiredGetAuthorizations(EnumSet.of(
+        RoleAuthorization.AMBARI_MANAGE_STACK_VERSIONS,
+        RoleAuthorization.AMBARI_EDIT_STACK_REPOS,
+        RoleAuthorization.CLUSTER_VIEW_STACK_DETAILS,
+        RoleAuthorization.CLUSTER_UPGRADE_DOWNGRADE_STACK));
   }
 
   @Override
-  public RequestStatus createResources(final Request request)
+  protected RequestStatus createResourcesAuthorized(final Request request)
       throws SystemException,
       UnsupportedPropertyException,
       ResourceAlreadyExistsException,
@@ -190,7 +204,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   }
 
   @Override
-  public Set<Resource> getResources(Request request, Predicate predicate)
+  protected Set<Resource> getResourcesAuthorized(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Resource> resources = new HashSet<Resource>();
     final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
@@ -250,13 +264,13 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
 
   @Override
   @Transactional
-  public RequestStatus updateResources(Request request, Predicate predicate)
+  protected RequestStatus updateResourcesAuthorized(Request request, Predicate predicate)
     throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = request.getProperties();
 
     modifyResources(new Command<Void>() {
       @Override
-      public Void invoke() throws AmbariException {
+      public Void invoke() throws AmbariException, AuthorizationException {
         for (Map<String, Object> propertyMap : propertyMaps) {
           final Long id;
           try {
@@ -270,23 +284,13 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
             throw new ObjectNotFoundException("There is no repository version with id " + id);
           }
 
-          // Prevent changing repo version if there's already a cluster version that has performed some meaningful action on it.
-          StackEntity stackEntity = entity.getStack();
-          String stackName = stackEntity.getStackName();
-          String stackVersion = stackEntity.getStackVersion();
-
-          final List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByStackAndVersion(
-              stackName, stackVersion, entity.getVersion());
-
-          if (!clusterVersionEntities.isEmpty()) {
-            final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
-            throw new AmbariException("Upgrade pack can't be changed for repository version which has a state of " +
-              firstClusterVersion.getState().name() + " on cluster " + firstClusterVersion.getClusterEntity().getClusterName());
-          }
-
           List<OperatingSystemEntity> operatingSystemEntities = null;
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID)))) {
+            if (!AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_EDIT_STACK_REPOS)) {
+              throw new AuthorizationException("The authenticated user does not have authorization to modify stack repositories");
+            }
+
             final Object operatingSystems = propertyMap.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
             final String operatingSystemsJson = gson.toJson(operatingSystems);
             try {
@@ -326,7 +330,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   }
 
   @Override
-  public RequestStatus deleteResources(Predicate predicate)
+  protected RequestStatus deleteResourcesAuthorized(Predicate predicate)
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
 
@@ -423,7 +427,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
         String baseUrl = repositoryEntity.getBaseUrl();
         if (existingRepoUrls.contains(baseUrl)) {
           throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
-                  "Setting up base urls that contain the same versions of components will cause rolling upgrade to fail.");
+                  "Setting up base urls that contain the same versions of components will cause stack upgrade to fail.");
         }
       }
     }
@@ -531,4 +535,9 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     return null;
   }
 
+  @Override
+  protected ResourceType getResourceType(Request request, Predicate predicate) {
+    // This information is not associated with any particular resource
+    return null;
+  }
 }

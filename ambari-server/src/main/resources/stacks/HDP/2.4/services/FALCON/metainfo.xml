@@ -21,24 +21,6 @@
     <service>
       <name>FALCON</name>
       <version>0.6.1.2.4</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>falcon_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>falcon-2-4-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
     </service>
   </services>
 </metainfo>

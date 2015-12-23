@@ -55,13 +55,13 @@ class TestSparkClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
@@ -91,13 +91,13 @@ class TestSparkClient(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/run/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('Directory', '/var/log/spark',
         owner = 'spark',
         group = 'hadoop',
-        recursive = True,
+        create_parents = True,
         mode = 0775
     )
     self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/spark-client/conf/spark-defaults.conf',
@@ -140,7 +140,7 @@ class TestSparkClient(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
-    self.assertResourceCalled('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-client', version), sudo=True)
+    self.assertResourceCalledIgnoreEarlier('Execute', ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'spark-client', version), sudo=True)
     self.assertNoMoreResources()
 
     self.assertEquals(1, mocks_dict['call'].call_count)

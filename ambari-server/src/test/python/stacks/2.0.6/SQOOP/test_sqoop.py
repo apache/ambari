@@ -36,7 +36,7 @@ class TestSqoop(RMFTestCase):
     self.assertResourceCalled('Link', '/usr/lib/sqoop/lib/mysql-connector-java.jar',
                               to = '/usr/share/java/mysql-connector-java.jar',)
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
-                              recursive = True,
+                              create_parents = True,
                               owner = 'sqoop',
                               group = 'hadoop',)
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
@@ -87,7 +87,7 @@ class TestSqoop(RMFTestCase):
     self.assertResourceCalled('Directory', '/usr/lib/sqoop/conf',
                               owner = 'sqoop',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/usr/lib/sqoop/conf/sqoop-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['sqoop-env']['content']),
@@ -129,6 +129,7 @@ class TestSqoop(RMFTestCase):
                        call_mocks = [(0, None, ''), (0, None)],
                        mocks_dict = mocks_dict)
 
+    self.assertResourceCalled('Link', ('/etc/sqoop/conf'), to='/usr/hdp/current/sqoop-client/conf')
     self.assertResourceCalled("Execute", ('ambari-python-wrap', '/usr/bin/hdp-select', 'set', 'sqoop-client', version), sudo=True)
 
     self.assertEquals(1, mocks_dict['call'].call_count)

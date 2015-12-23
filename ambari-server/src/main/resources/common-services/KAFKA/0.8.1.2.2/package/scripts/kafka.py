@@ -17,58 +17,74 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
-from resource_management.libraries.resources.properties_file import PropertiesFile
-from resource_management.libraries.resources.template_config import TemplateConfig
+import collections
 import os
 
-def kafka():
-    import params
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.resources.properties_file import PropertiesFile
+from resource_management.libraries.resources.template_config import TemplateConfig
+from resource_management.core.resources.system import Directory, Execute, File, Link
+from resource_management.core.source import StaticFile, Template, InlineTemplate
+from resource_management.libraries.functions import format
 
-    Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
-              mode=0755,
-              cd_access='a',
-              owner=params.kafka_user,
-              group=params.user_group,
-              recursive=True
-          )
+
+from resource_management.core.logger import Logger
+
+
+def kafka(upgrade_type=None):
+    import params
+    ensure_base_directories()
 
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
-    # This still has an issue of out of alphabetical order of hostnames can get out of order broker.id assigned to them for HDP-2.2.
-    # Since from HDP-2.3 kafka is handling the generation of broker.id ambari doesn't need to generate one.
-    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2.0.0') >= 0 and compare_versions(params.hdp_stack_version, '2.3.0.0') < 0 :
+    # This still has an issue of hostnames being alphabetically out-of-order for broker.id in HDP-2.2.
+    # Starting in HDP 2.3, Kafka handles the generation of broker.id so Ambari doesn't have to.
+
+    effective_version = params.hdp_stack_version if upgrade_type is None else format_hdp_stack_version(params.version)
+    Logger.info(format("Effective stack version: {effective_version}"))
+
+    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.2.0.0') >= 0 and compare_versions(effective_version, '2.3.0.0') < 0:
+      if len(params.kafka_hosts) > 0 and params.hostname in params.kafka_hosts:
         brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
         kafka_server_config['broker.id'] = brokerid
+        Logger.info(format("Calculating broker.id as {brokerid}"))
 
-    #listeners and advertised.listeners are only added in 2.3.0.0 onwards.
-    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3.0.0') >= 0:
-        if params.security_enabled and params.kafka_kerberos_enabled:
-            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
-            if "SASL" not in listeners:
-                listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
-            kafka_server_config['listeners'] = listeners
-            kafka_server_config['advertised.listeners'] = listeners
-        else:
-            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
-            kafka_server_config['listeners'] = listeners
-            if 'advertised.listeners' in kafka_server_config:
-                advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
-                kafka_server_config['advertised.listeners'] = advertised_listeners
+    # listeners and advertised.listeners are only added in 2.3.0.0 onwards.
+    if effective_version is not None and effective_version != "" and compare_versions(effective_version, '2.3.0.0') >= 0:
+      listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
+      Logger.info(format("Kafka listeners: {listeners}"))
+
+      if params.security_enabled and params.kafka_kerberos_enabled:
+        Logger.info("Kafka kerberos security is enabled.")
+        if "SASL" not in listeners:
+          listeners = listeners.replace("PLAINTEXT", "PLAINTEXTSASL")
+
+        kafka_server_config['listeners'] = listeners
+        kafka_server_config['advertised.listeners'] = listeners
+        Logger.info(format("Kafka advertised listeners: {listeners}"))
+      else:
+        kafka_server_config['listeners'] = listeners
+
+        if 'advertised.listeners' in kafka_server_config:
+          advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
+          kafka_server_config['advertised.listeners'] = advertised_listeners
+          Logger.info(format("Kafka advertised listeners: {advertised_listeners}"))
     else:
-        kafka_server_config['host.name'] = params.hostname
+      kafka_server_config['host.name'] = params.hostname
 
-    if(params.has_metric_collector):
-            kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
-            kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
+    if params.has_metric_collector:
+      kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
+      kafka_server_config['kafka.timeline.metrics.port'] = params.metric_collector_port
 
     kafka_data_dir = kafka_server_config['log.dirs']
-    Directory(filter(None,kafka_data_dir.split(",")),
+    kafka_data_dirs = filter(None, kafka_data_dir.split(","))
+    Directory(kafka_data_dirs,
               mode=0755,
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
+              create_parents = True,
+              recursive_ownership = True,
+    )
 
     PropertiesFile("server.properties",
                       dir=params.conf_dir,
@@ -99,7 +115,7 @@ def kafka():
 
     # On some OS this folder could be not exists, so we will create it before pushing there files
     Directory(params.limits_conf_dir,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root'
     )
@@ -121,6 +137,7 @@ def mutable_config_dict(kafka_broker_config):
         kafka_server_config[key] = value
     return kafka_server_config
 
+
 # Used to workaround the hardcoded pid/log dir used on the kafka bash process launcher
 def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
   import params
@@ -134,7 +151,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
 
       Directory(kafka_managed_dir,
                 action="delete",
-                recursive=True)
+                create_parents = True)
 
     elif os.path.islink(kafka_managed_dir) and os.path.realpath(kafka_managed_dir) != kafka_ambari_managed_dir:
       Link(kafka_managed_dir,
@@ -153,7 +170,9 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True)
+              create_parents = True,
+              recursive_ownership = True,
+    )
 
   if backup_folder_path:
     # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
@@ -165,7 +184,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
     # Clean up backed up folder
     Directory(backup_folder_path,
               action="delete",
-              recursive=True)
+              create_parents = True)
 
 
 # Uses agent temp dir to store backup files
@@ -177,7 +196,8 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
             cd_access='a',
             owner=params.kafka_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True,
+            recursive_ownership = True,
   )
   # Safely copy top-level contents to backup folder
   for file in os.listdir(dir_path):
@@ -186,3 +206,14 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
          content = StaticFile(os.path.join(dir_path,file)))
 
   return backup_destination_path
+
+def ensure_base_directories():
+  import params
+  Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
+            mode=0755,
+            cd_access='a',
+            owner=params.kafka_user,
+            group=params.user_group,
+            create_parents = True,
+            recursive_ownership = True,
+            )

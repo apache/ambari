@@ -302,6 +302,8 @@ describe('App.StackServiceComponent', function() {
     modelSetup.setupStackServiceComponent();
   });
 
+  App.TestAliases.testAsComputedAnd(App.StackServiceComponent.createRecord(), 'isMasterAddableInstallerWizard', ['isMaster', 'isMultipleAllowed', '!isMasterAddableOnlyOnHA', '!isNotAddableOnlyInInstall']);
+
   describe('component properties validation', function() {
     componentPropertiesValidationTests.forEach(function(test) {
       describe('properties validation for ' + test.componentName + ' component', function() {

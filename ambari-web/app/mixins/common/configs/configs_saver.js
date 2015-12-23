@@ -632,7 +632,6 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
     var self = this;
     if (flag) {
-      this.set('forceTransition', flag);
       self.loadStep();
     }
     return App.ModalPopup.show({
@@ -812,7 +811,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @return {App.ModalPopup}
    * @method showSavePopup
    */
-  showSavePopup: function (path, callback) {
+  showSavePopup: function (transitionCallback, callback) {
     var self = this;
     var passwordWasChanged = this.get('passwordConfigsAreChanged');
     return App.ModalPopup.show({
@@ -850,9 +849,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       },
       onDiscard: function () {
         self.set('preSelectedConfigVersion', null);
-        if (path) {
-          self.set('forceTransition', true);
-          App.router.route(path);
+        if (transitionCallback) {
+          transitionCallback();
         } else if (callback) {
           self.doCancel();
           // Prevent multiple popups

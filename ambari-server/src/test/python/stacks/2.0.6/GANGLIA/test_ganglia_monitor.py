@@ -107,12 +107,12 @@ class TestGangliaMonitor(RMFTestCase):
     self.assertResourceCalled('Directory', '/etc/ganglia/hdp',
                               owner = 'root',
                               group = 'hadoop',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('Directory', '/usr/libexec/hdp/ganglia',
                               owner = 'root',
                               group = 'root',
-                              recursive = True,
+                              create_parents = True,
                               )
     self.assertResourceCalled('File', '/etc/init.d/hdp-gmetad',
                               content = StaticFile('gmetad.init'),

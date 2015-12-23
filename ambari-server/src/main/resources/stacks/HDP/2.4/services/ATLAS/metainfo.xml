@@ -20,25 +20,7 @@
   <services>
     <service>
       <name>ATLAS</name>
-      <version>0.6.0.2.4</version>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>atlas-metadata_2_4_*</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>atlas-metadata-2-4-.*</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
+      <version>0.5.0.2.4</version>
     </service>
   </services>
 </metainfo>

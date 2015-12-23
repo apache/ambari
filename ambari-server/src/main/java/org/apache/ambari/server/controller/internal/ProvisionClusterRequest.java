@@ -94,6 +94,17 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   public static final String CONFIG_RECOMMENDATION_STRATEGY = "config_recommendation_strategy";
 
   /**
+   * Support for controlling whether Install and Start tasks are created on
+   * blueprint deploy by default.
+   */
+  public static final String PROVISION_ACTION_PROPERTY = "provision_action";
+
+  public enum ProvisionAction {
+    INSTALL_ONLY,     // Skip Start
+    INSTALL_AND_START // Default action
+  }
+
+  /**
    * configuration factory
    */
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
@@ -114,6 +125,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * configuration recommendation strategy
    */
   private final ConfigRecommendationStrategy configRecommendationStrategy;
+
+  private final ProvisionAction provisionAction;
 
   private final static Logger LOG = LoggerFactory.getLogger(ProvisionClusterRequest.class);
 
@@ -152,6 +165,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     this.credentialsMap = parseCredentials(properties);
 
     this.configRecommendationStrategy = parseConfigRecommendationStrategy(properties);
+
+    this.provisionAction = parseProvisionAction(properties);
   }
 
   private Map<String, Credential> parseCredentials(Map<String, Object> properties) throws
@@ -377,7 +392,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
         Enums.getIfPresent(ConfigRecommendationStrategy.class, configRecommendationStrategy);
       if (!configRecommendationStrategyOpt.isPresent()) {
         throw new InvalidTopologyTemplateException(String.format(
-          "Config recommendation stratagy is not supported: %s", configRecommendationStrategy));
+          "Config recommendation strategy is not supported: %s", configRecommendationStrategy));
       }
       return configRecommendationStrategyOpt.get();
     } else {
@@ -385,4 +400,31 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       return ConfigRecommendationStrategy.NEVER_APPLY;
     }
   }
+
+  /**
+   * Parse Provision Action specified in RequestInfo properties.
+   */
+  private ProvisionAction parseProvisionAction(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+    if (properties.containsKey(PROVISION_ACTION_PROPERTY)) {
+      String provisionActionStr = String.valueOf(properties.get(PROVISION_ACTION_PROPERTY));
+      Optional<ProvisionAction> provisionActionOptional =
+        Enums.getIfPresent(ProvisionAction.class, provisionActionStr);
+
+      if (!provisionActionOptional.isPresent()) {
+        throw new InvalidTopologyTemplateException(String.format(
+          "Invalid provision_action specified in the template: %s", provisionActionStr));
+      }
+      return provisionActionOptional.get();
+    } else {
+      return ProvisionAction.INSTALL_AND_START;
+    }
+  }
+
+  /**
+   * Get requested @ProvisionClusterRequest.ProvisionAction
+   */
+  public ProvisionAction getProvisionAction() {
+    return provisionAction;
+  }
+
 }

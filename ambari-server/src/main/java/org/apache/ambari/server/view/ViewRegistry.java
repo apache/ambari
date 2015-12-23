@@ -63,7 +63,9 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
-import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.security.authorization.AuthorizationHelper;
+import org.apache.ambari.server.security.authorization.ResourceType;
+import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
@@ -91,7 +93,6 @@ import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.core.GrantedAuthority;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -565,6 +566,18 @@ public class ViewRegistry {
       instanceDAO.merge(instanceEntity);
 
       syncViewInstance(instanceEntity);
+    }
+  }
+
+  /**
+   * Calls onUpdate hook on View class
+   *
+   * @param instanceEntity
+   */
+  public void updateView(ViewInstanceEntity instanceEntity){
+    ViewEntity viewEntity = getDefinition(instanceEntity.getViewName());
+    if(null != viewEntity && null != viewEntity.getView()){
+      viewEntity.getView().onUpdate(instanceEntity);
     }
   }
 
@@ -1382,29 +1395,11 @@ public class ViewRegistry {
 
   // check that the current user is authorized to access the given view instance resource
   private boolean checkAuthorization(ResourceEntity resourceEntity) {
-    for (GrantedAuthority grantedAuthority : securityHelper.getCurrentAuthorities()) {
-      if (grantedAuthority instanceof AmbariGrantedAuthority) {
+    Long resourceId = (resourceEntity == null) ? null : resourceEntity.getId();
 
-        AmbariGrantedAuthority authority       = (AmbariGrantedAuthority) grantedAuthority;
-        PrivilegeEntity        privilegeEntity = authority.getPrivilegeEntity();
-        Integer                permissionId    = privilegeEntity.getPermission().getId();
-
-        // admin has full access
-        if (permissionId.equals(PermissionEntity.AMBARI_ADMINISTRATOR_PERMISSION)) {
-          return true;
-        }
-        if (resourceEntity != null) {
-          // VIEW.USER for the given view instance resource.
-          if (privilegeEntity.getResource().equals(resourceEntity)) {
-            if (permissionId.equals(PermissionEntity.VIEW_USER_PERMISSION)) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    // TODO : should we log this?
-    return false;
+    return (resourceId == null)
+        ? AuthorizationHelper.isAuthorized(ResourceType.AMBARI, null, RoleAuthorization.AMBARI_MANAGE_VIEWS)
+        : AuthorizationHelper.isAuthorized(ResourceType.VIEW, resourceId, RoleAuthorization.VIEW_USE);
   }
 
   // fire the onDeploy event.

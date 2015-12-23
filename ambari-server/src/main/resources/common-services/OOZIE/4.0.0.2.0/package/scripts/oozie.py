@@ -57,7 +57,7 @@ def oozie(is_server=False):
 
   Directory(params.oozie_tmp_dir,
             owner=params.oozie_user,
-            recursive = True,
+            create_parents = True,
   )
 
   if is_server:
@@ -96,7 +96,7 @@ def oozie(is_server=False):
     )
     params.HdfsResource(None, action="execute")
   Directory(params.conf_dir,
-             recursive = True,
+             create_parents = True,
              owner = params.oozie_user,
              group = params.user_group
   )
@@ -193,12 +193,12 @@ def oozie_server_specific():
     owner = params.oozie_user,
     group = params.user_group,
     mode = 0755,
-    recursive = True,
+    create_parents = True,
     cd_access="a",
   )
   
   Directory(params.oozie_libext_dir,
-            recursive=True,
+            create_parents = True,
   )
   
   hashcode_file = format("{oozie_home}/.hashcode")
@@ -215,11 +215,17 @@ def oozie_server_specific():
   configure_cmds = []
   configure_cmds.append(('cp', params.ext_js_path, params.oozie_libext_dir))
   configure_cmds.append(('chown', format('{oozie_user}:{user_group}'), format('{oozie_libext_dir}/{ext_js_file}')))
-  configure_cmds.append(('chown', '-RL', format('{oozie_user}:{user_group}'), params.oozie_webapps_conf_dir))
   
   Execute( configure_cmds,
     not_if  = no_op_test,
     sudo = True,
+  )
+  
+  Directory(params.oozie_webapps_conf_dir,
+            owner = params.oozie_user,
+            group = params.user_group,
+            recursive_ownership = True,
+            recursion_follow_links = True,
   )
 
   # download the database JAR
@@ -259,7 +265,7 @@ def oozie_server_specific():
   if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
     # Create hive-site and tez-site configs for oozie
     Directory(params.hive_conf_dir,
-        recursive = True,
+        create_parents = True,
         owner = params.oozie_user,
         group = params.user_group
     )
@@ -281,8 +287,10 @@ def oozie_server_specific():
         group = params.user_group,
         mode = 0664
     )
-  Execute(('chown', '-R', format("{oozie_user}:{user_group}"), params.oozie_server_dir), 
-          sudo=True
+  Directory(params.oozie_server_dir,
+    owner = params.oozie_user,
+    group = params.user_group,
+    recursive_ownership = True,  
   )
 
 def download_database_library_if_needed(target_directory = None):
@@ -323,7 +331,7 @@ def download_database_library_if_needed(target_directory = None):
       Execute(format("yes | {sudo} cp {jars_path_in_archive} {oozie_libext_dir}"))
 
       Directory(params.jdbc_libs_dir,
-                recursive=True)
+                create_parents = True)
 
       Execute(format("yes | {sudo} cp {libs_path_in_archive} {jdbc_libs_dir}"))
 

@@ -144,6 +144,7 @@ public interface Resource {
     WidgetLayout,
     ActiveWidgetLayout,
     Theme,
+    QuickLink,
     HostKerberosIdentity,
     Credential,
     KerberosDescriptor,
@@ -250,6 +251,7 @@ public interface Resource {
     public static final Type StackArtifact = InternalType.StackArtifact.getType();
     public static final Type Artifact = InternalType.Artifact.getType();
     public static final Type Theme = InternalType.Theme.getType();
+    public static final Type QuickLink = InternalType.QuickLink.getType();
     public static final Type Widget = InternalType.Widget.getType();
     public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
     public static final Type ActiveWidgetLayout = InternalType.ActiveWidgetLayout.getType();

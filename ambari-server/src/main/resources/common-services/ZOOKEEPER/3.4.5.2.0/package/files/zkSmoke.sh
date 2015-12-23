@@ -28,8 +28,8 @@ security_enabled=$5
 kinit_path_local=$6
 smoke_user_keytab=$7
 smokeuser_principal=$8
+test_output_file=$9
 export ZOOKEEPER_EXIT_CODE=0
-test_output_file=/tmp/zkSmoke.out
 errors_expr="ERROR|Exception"
 acceptable_expr="SecurityException"
 zkhosts=` grep "^\s*server\.[[:digit:]]"  $conf_dir/zoo.cfg  | cut -f 2 -d '=' | cut -f 1 -d ':' | tr '\n' ' ' `

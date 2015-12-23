@@ -36,7 +36,7 @@ class MapReduce2ServiceCheck(Script):
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
 
     log_dir = format("{mapred_log_dir_prefix}/{smokeuser}")
-    Directory(log_dir, owner=params.smokeuser, recursive=True)
+    Directory(log_dir, owner=params.smokeuser, create_parents = True)
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser};")

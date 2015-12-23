@@ -65,12 +65,12 @@ def falcon(type, action = None):
       params.HdfsDirectory(None, action="create")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
-                recursive=True
+                create_parents = True
       )
       if params.falcon_embeddedmq_enabled == True:
         Directory(params.falcon_embeddedmq_data,
                   owner=params.falcon_user,
-                  recursive=True
+                  create_parents = True
         )
 
     if action == 'start':

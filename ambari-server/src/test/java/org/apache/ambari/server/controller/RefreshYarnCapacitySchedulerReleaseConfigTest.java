@@ -27,11 +27,12 @@ import java.util.Set;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.ComponentResourceProviderTest;
 import org.apache.ambari.server.controller.internal.ServiceResourceProviderTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -49,12 +50,13 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @SuppressWarnings("serial")
 public class RefreshYarnCapacitySchedulerReleaseConfigTest {
 
   private Injector injector;
   private AmbariManagementController controller;
-  private AmbariMetaInfo ambariMetaInfo;
   private Clusters clusters;
   private ConfigHelper configHelper;
 
@@ -67,17 +69,24 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     configHelper = injector.getInstance(ConfigHelper.class);
-    ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+
+    // Set the authenticated user
+    // TODO: remove this or replace the authenticated user to test authorization rules
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator());
   }
+
   @After
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
+
+    // Clear the authenticated user
+    SecurityContextHolder.getContext().setAuthentication(null);
   }
 
 
   
   @Test
-  public void testRMRequiresRestart() throws AmbariException{
+  public void testRMRequiresRestart() throws AmbariException, AuthorizationException {
     createClusterFixture("HDP-2.0.7");
     
     
@@ -100,7 +109,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
   }
 
   @Test
-  public void testAllRequiresRestart() throws AmbariException{
+  public void testAllRequiresRestart() throws AmbariException, AuthorizationException {
     createClusterFixture("HDP-2.0.7");
     Cluster cluster = clusters.getCluster("c1");
     
@@ -145,7 +154,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     }
   }
 
-  private void createClusterFixture(String stackName) throws AmbariException {
+  private void createClusterFixture(String stackName) throws AmbariException, AuthorizationException {
     createCluster("c1", stackName);
     addHost("c6401","c1");
     addHost("c6402","c1");
@@ -182,13 +191,13 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     host.setHostAttributes(hostAttributes);
   }
 
-  private void createCluster(String clusterName, String stackName) throws AmbariException {
+  private void createCluster(String clusterName, String stackName) throws AmbariException, AuthorizationException {
     ClusterRequest r = new ClusterRequest(null, clusterName, State.INSTALLED.name(), SecurityType.NONE, stackName, null);
     controller.createCluster(r);
   }
   
   private void createService(String clusterName,
-      String serviceName, State desiredState) throws AmbariException {
+      String serviceName, State desiredState) throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -202,7 +211,7 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
 
   private void createServiceComponent(String clusterName,
       String serviceName, String componentName, State desiredState)
-          throws AmbariException {
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();
@@ -215,7 +224,8 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     ComponentResourceProviderTest.createComponents(controller, requests);
   }
 
-  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState) throws AmbariException {
+  private void createServiceComponentHost(String clusterName, String serviceName, String componentName, String hostname, State desiredState)
+      throws AmbariException, AuthorizationException {
     String dStateStr = null;
     if (desiredState != null) {
       dStateStr = desiredState.toString();

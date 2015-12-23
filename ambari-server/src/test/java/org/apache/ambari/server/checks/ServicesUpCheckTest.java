@@ -67,8 +67,6 @@ public class ServicesUpCheckTest {
     checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
     ServicesUpCheck suc = new ServicesUpCheck();
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     suc.config = config;
 
     Assert.assertTrue(suc.isApplicable(checkRequest));

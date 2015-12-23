@@ -27,6 +27,7 @@ import utils
 from resource_management.libraries.functions.jmx import get_value_from_jmx
 import namenode_ha_state
 from namenode_ha_state import NAMENODE_STATE, NamenodeHAState
+from utils import get_dfsadmin_base_command
 
 
 def post_upgrade_check():
@@ -81,7 +82,8 @@ def hdfs_roll_edits():
   import params
 
   # TODO, this will be to be doc'ed since existing HDP 2.2 clusters will needs HDFS_CLIENT on all JOURNALNODE hosts
-  command = 'hdfs dfsadmin -rollEdits'
+  dfsadmin_base_command = get_dfsadmin_base_command('hdfs')
+  command = dfsadmin_base_command + ' -rollEdits'
   Execute(command, user=params.hdfs_user, tries=1)
 
 

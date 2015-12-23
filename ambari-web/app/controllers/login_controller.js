@@ -37,7 +37,7 @@ App.LoginController = Em.Object.extend({
 
   postLogin: function (isConnected, isAuthenticated, responseText) {
     if (!isConnected) {
-      this.set('errorMessage', Em.I18n.t('login.error.bad.connection'));
+      this.set('errorMessage', responseText || Em.I18n.t('login.error.bad.connection'));
     } else if (!isAuthenticated) {
       var errorMessage = "";
       if( responseText === "User is disabled" ){

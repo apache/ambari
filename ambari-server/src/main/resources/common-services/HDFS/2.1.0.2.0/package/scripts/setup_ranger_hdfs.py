@@ -17,13 +17,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 from resource_management.core.logger import Logger
+from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions.constants import Direction
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import compare_versions
 
 def setup_ranger_hdfs(upgrade_type=None):
   import params
 
   if params.has_ranger_admin:
-    
+
     if params.xml_configurations_supported:
       from resource_management.libraries.functions.setup_ranger_plugin_xml import setup_ranger_plugin
     else:
@@ -54,6 +59,13 @@ def setup_ranger_hdfs(upgrade_type=None):
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         hdp_version_override = hdp_version, skip_if_rangeradmin_down= not params.retryAble)
+
+    if hdp_version and params.upgrade_direction == Direction.UPGRADE:
+      # when upgrading to 2.3+, this env file must be removed
+      if compare_versions(hdp_version, '2.3', format=True) > 0:
+        source_file = os.path.join(params.hadoop_conf_dir, 'set-hdfs-plugin-env.sh')
+        target_file = source_file + ".bak"
+        Execute(("mv", source_file, target_file), sudo=True, only_if=format("test -f {source_file}"))
   else:
     Logger.info('Ranger admin not installed')
 

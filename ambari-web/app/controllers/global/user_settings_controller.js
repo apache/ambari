@@ -183,7 +183,7 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
   showSettingsPopup: function() {
     var self = this;
     // Settings only for admins
-    if (!App.isAccessible('upgrade_ADMIN')) {
+    if (!App.isAuthorized('CLUSTER.UPGRADE_DOWNGRADE_STACK')) {
       return;
     }
 
@@ -244,6 +244,9 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
     privileges.clusters = clusters;
     privileges.views = views;
     this.set('privileges', data.items.length ? privileges : null);
+    this.set('noClusterPriv', $.isEmptyObject(privileges.clusters));
+    this.set('noViewPriv', $.isEmptyObject(privileges.views));
+    this.set('hidePrivileges', this.get('noClusterPriv') && this.get('noViewPriv'));
   },
 
   /**
@@ -280,7 +283,13 @@ App.UserSettingsController = Em.Controller.extend(App.UserPref, {
 
         privileges: self.get('privileges'),
 
-        isAdmin: App.get('isAmbariAdmin')
+        isAdmin: App.get('isAdmin'),
+
+        noClusterPriv: self.get('noClusterPriv'),
+
+        noViewPriv: self.get('noViewPriv'),
+
+        hidePrivileges: self.get('hidePrivileges') || App.get('isAdmin')
       }),
 
       /**

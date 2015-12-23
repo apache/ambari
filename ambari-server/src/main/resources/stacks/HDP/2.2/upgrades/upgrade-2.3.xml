@@ -86,13 +86,17 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Pre Upgrade Oozie Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
       <execute-stage service="RANGER" component="RANGER_ADMIN" title="Pre Upgrade Ranger Backup">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database</message>
+          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database.
+                If audit database size is too large( > 3GB ) then follow the below instructions:
+                1. Backup the audit table from audit database.
+                2. Truncate audit table.
+                3. Follow upgrade process and once completed then restore audit data to audit table.</message>
         </task>
       </execute-stage>
     </group>
@@ -440,9 +444,15 @@
             
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site"/>
 
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source"/>
+
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home"/>
+
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit"/>
+
+          <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit"/>
         </pre-upgrade>
       
         <upgrade>
@@ -656,18 +666,13 @@
           </task>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
-          
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_policy"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_security"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_audit"/>
-
           <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_deprecated_ranger_properties"/>
+          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
         </pre-upgrade>
 
         <pre-downgrade>
@@ -850,10 +855,6 @@
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
           
           <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
-          
-          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_cluster_logs_content"/>
-          
-          <task xsi:type="configure" id="hdp_2_3_0_0_add_storm_worker_logs_content"/>
 
           <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
 

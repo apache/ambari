@@ -1017,7 +1017,44 @@ describe('App.config', function () {
       {
         input: {
           isSecureConfig: true,
-          isKerberosEnabled: true
+          isKerberosEnabled: true,
+          isReconfigurable: false,
+          isOverridable: false
+        },
+        expected: {
+          isReconfigurable: false,
+          isOverridable: false
+        }
+      },
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: true,
+          isReconfigurable: true,
+          isOverridable: true
+        },
+        expected: {
+          isReconfigurable: false,
+          isOverridable: false
+        }
+      },
+      {
+        input: {
+          isSecureConfig: true,
+          isKerberosEnabled: false,
+          isReconfigurable: true,
+          isOverridable: true
+        },
+        expected: {
+          isReconfigurable: true,
+          isOverridable: true
+        }
+      },
+      {
+        input: {
+          isSecureConfig: false,
+          isReconfigurable: false,
+          isOverridable: false
         },
         expected: {
           isReconfigurable: false,
@@ -1027,27 +1064,8 @@ describe('App.config', function () {
       {
         input: {
           isSecureConfig: false,
-          isKerberosEnabled: true
-        },
-        expected: {
           isReconfigurable: true,
           isOverridable: true
-        }
-      },
-      {
-        input: {
-          isSecureConfig: true,
-          isKerberosEnabled: false
-        },
-        expected: {
-          isReconfigurable: true,
-          isOverridable: true
-        }
-      },
-      {
-        input: {
-          isSecureConfig: false,
-          isKerberosEnabled: false
         },
         expected: {
           isReconfigurable: true,
@@ -1059,13 +1077,30 @@ describe('App.config', function () {
     testCases.forEach(function(test) {
       it("isSecureConfig = " + test.input.isSecureConfig + "; isKerberosEnabled = " + test.input.isKerberosEnabled, function() {
         var config = {
-          isSecureConfig: test.input.isSecureConfig
+          isSecureConfig: test.input.isSecureConfig,
+          isReconfigurable: test.input.isReconfigurable,
+          isOverridable: test.input.isOverridable
         };
-        App.set('isKerberosEnabled', test.input.isKerberosEnabled);
+        App.set('isKerberosEnabled', !!test.input.isKerberosEnabled);
         App.config.restrictSecureProperties(config);
         expect(config.isReconfigurable).to.equal(test.expected.isReconfigurable);
         expect(config.isOverridable).to.equal(test.expected.isOverridable);
       });
+    });
+  });
+
+  describe("#truncateGroupName()", function() {
+
+    it("name is empty", function() {
+      expect(App.config.truncateGroupName('')).to.be.empty;
+    });
+
+    it("name has less than max chars", function() {
+      expect(App.config.truncateGroupName('group1')).to.equal('group1');
+    });
+
+    it("name has more than max chars", function() {
+      expect(App.config.truncateGroupName('group_has_more_than_max_characters')).to.equal('group_has...haracters');
     });
   });
 });

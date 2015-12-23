@@ -35,7 +35,7 @@ describe('App.AddAlertDefinitionController', function () {
       App.ajax.send.restore();
     });
 
-    it("", function () {
+    it("valid request is sent", function () {
       controller.createNewAlertDefinition('data');
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'alerts.create_alert_definition',
@@ -55,7 +55,7 @@ describe('App.AddAlertDefinitionController', function () {
       controller.clear.restore();
     });
 
-    it("", function () {
+    it("clear is called", function () {
       controller.finish();
       expect(controller.clear.calledOnce).to.be.true;
     });

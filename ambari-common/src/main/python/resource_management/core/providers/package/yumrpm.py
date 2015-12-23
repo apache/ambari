@@ -37,8 +37,8 @@ REMOVE_CMD = {
 }
 
 class YumProvider(PackageProvider):
-  def install_package(self, name, use_repos=[], skip_repos=[]):
-    if use_repos or not self._check_existence(name):
+  def install_package(self, name, use_repos=[], skip_repos=[], is_upgrade=False):
+    if is_upgrade or use_repos or not self._check_existence(name):
       cmd = INSTALL_CMD[self.get_logoutput()]
       if use_repos:
         enable_repo_option = '--enablerepo=' + ",".join(use_repos)
@@ -50,8 +50,8 @@ class YumProvider(PackageProvider):
     else:
       Logger.info("Skipping installation of existing package %s" % (name))
 
-  def upgrade_package(self, name, use_repos=[], skip_repos=[]):
-    return self.install_package(name, use_repos, skip_repos)
+  def upgrade_package(self, name, use_repos=[], skip_repos=[], is_upgrade=True):
+    return self.install_package(name, use_repos, skip_repos, is_upgrade)
 
   def remove_package(self, name):
     if self._check_existence(name):

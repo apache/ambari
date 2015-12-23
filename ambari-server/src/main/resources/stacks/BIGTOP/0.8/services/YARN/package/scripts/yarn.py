@@ -63,24 +63,24 @@ def yarn(name = None):
   if name == "nodemanager":
     Directory(params.nm_local_dirs.split(',') + params.nm_log_dirs.split(','),
               owner=params.yarn_user,
-              recursive=True,
+              create_parents = True,
               ignore_failures=True,
               )
 
   Directory([params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
 
   Directory([params.mapred_pid_dir, params.mapred_log_dir],
             owner=params.mapred_user,
             group=params.user_group,
-            recursive=True
+            create_parents = True
   )
   Directory([params.yarn_log_dir_prefix],
             owner=params.yarn_user,
-            recursive=True,
+            create_parents = True,
             ignore_failures=True,
   )
 
@@ -129,7 +129,7 @@ def yarn(name = None):
     Directory(params.ats_leveldb_dir,
        owner=params.yarn_user,
        group=params.user_group,
-       recursive=True
+       create_parents = True
     )
 
   File(params.rm_nodes_exclude_path,

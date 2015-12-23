@@ -68,8 +68,6 @@ public class SecondaryNamenodeDeletedCheckTest {
 
     secondaryNamenodeDeletedCheck.hostComponentStateDao = hostComponentStateDAO;
     Configuration config = Mockito.mock(Configuration.class);
-    Mockito.when(config.getRollingUpgradeMinStack()).thenReturn("HDP-2.2");
-    Mockito.when(config.getRollingUpgradeMaxStack()).thenReturn("");
     secondaryNamenodeDeletedCheck.config = config;
   }
 

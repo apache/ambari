@@ -53,13 +53,13 @@ def hbase(name=None):
   Directory( params.hbase_conf_dir,
       owner = params.hbase_user,
       group = params.user_group,
-      recursive = True
+      create_parents = True
   )
    
   Directory(params.java_io_tmpdir,
       owner = params.hbase_user,
       group = params.user_group,
-      recursive = True,
+      create_parents = True,
       mode=0777
   )
   parent_dir = os.path.dirname(params.tmp_dir)
@@ -68,7 +68,7 @@ def hbase(name=None):
     parent_dir = os.path.dirname(parent_dir)
   if parent_dir != os.path.abspath(os.sep) :
     Directory (parent_dir,
-          recursive = True,
+          create_parents = True,
           cd_access="a",
     )
     Execute(("chmod", "1777", parent_dir), sudo=True)
@@ -129,7 +129,7 @@ def hbase(name=None):
   
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
-            recursive=True,
+            create_parents = True,
             owner='root',
             group='root'
             )
@@ -153,14 +153,14 @@ def hbase(name=None):
   if name != "client":
     Directory( params.pid_dir,
       owner = params.hbase_user,
-      recursive = True,
+      create_parents = True,
       cd_access = "a",
       mode = 0755,
     )
   
     Directory (params.log_dir,
       owner = params.hbase_user,
-      recursive = True,
+      create_parents = True,
       cd_access = "a",
       mode = 0755,
     )

@@ -34,6 +34,7 @@ require('utils/ajax/ajax_queue');
 
 var files = [
   'test/init_test',
+  'test/init_computed_aliases',
   'test/init_model_test',
   'test/app_test',
   'test/data/HDP2/site_properties_test',
@@ -45,6 +46,7 @@ var files = [
   'test/controllers/global/update_controller_test',
   'test/controllers/global/configuration_controller_test',
   'test/controllers/global/wizard_watcher_controller_test',
+  'test/controllers/global/user_settings_controller_test',
   'test/controllers/main/alert_definitions_controller_test',
   'test/controllers/main/alerts/alert_definitions_actions_controller_test',
   'test/controllers/main/alerts/definitions_configs_controller_test',
@@ -105,7 +107,6 @@ var files = [
   'test/controllers/login_controller_test',
   'test/controllers/experimental_test',
   'test/controllers/wizard_test',
-  'test/controllers/wizard/slave_component_groups_controller',
   'test/controllers/wizard/step0_test',
   'test/controllers/wizard/step2_test',
   'test/controllers/wizard/step3_test',
@@ -149,6 +150,7 @@ var files = [
   'test/mixins/common/widget_mixin_test',
   'test/mixins/main/host/details/host_components/decommissionable_test',
   'test/mixins/main/service/configs/widget_popover_support_test',
+  'test/mixins/main/service/configs/config_overridable_test',
   'test/mixins/routers/redirections_test',
   'test/mixins/wizard/addSeccurityConfigs_test',
   'test/mixins/wizard/wizard_menu_view_test',
@@ -303,6 +305,7 @@ var files = [
   'test/models/service/yarn_test',
   'test/models/alerts/alert_config_test',
   'test/models/alerts/alert_definition_test',
+  'test/models/alerts/alert_group_test',
   'test/models/alerts/alert_instance_test',
   'test/models/authentication_test',
   'test/models/cluster_states_test',
@@ -321,9 +324,13 @@ var files = [
   'test/models/configs/sub_section_test',
   'test/models/configs/section_test',
   'test/models/configs/service_config_version_test',
+  'test/models/configs/config_group_test',
+  'test/models/configs/stack_config_property_test',
   'test/models/configs/objects/service_config_test',
   'test/models/configs/objects/service_config_category_test',
   'test/models/configs/objects/service_config_property_test',
+  'test/models/configs/theme/tab_test',
+  'test/models/stack_version/repository_version_test',
   'test/routes/views_test',
   //contains test with fake timers that affect Date
   'test/utils/lazy_loading_test'
@@ -332,12 +339,10 @@ var files = [
 App.initialize();
 describe('Ambari Web Unit tests', function() {
 
-  for (var i = 0; i < files.length; i++) {
-
-    describe(files[i], function() {
-      require(files[i]);
+  files.forEach(function (file) {
+    describe(file, function() {
+      require(file);
     });
-
-  }
+  });
 
 });

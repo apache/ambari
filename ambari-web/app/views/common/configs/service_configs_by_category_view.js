@@ -514,9 +514,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           },
           bodyClass: Em.View.extend({
             fileName: siteFileName,
-            notMisc: function () {
-              return serviceName !== 'MISC';
-            }.property(),
+            notMisc: serviceName !== 'MISC',
             templateName: require('templates/common/configs/addPropertyWindow'),
             controllerBinding: 'App.router.mainServiceInfoConfigsController',
             serviceConfigObj: serviceConfigObj,

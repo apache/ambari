@@ -34,6 +34,8 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.SecurePasswordHelper;
+import org.apache.ambari.server.security.TestAuthenticationFactory;
+import org.apache.ambari.server.security.authorization.AuthorizationException;
 import org.apache.ambari.server.security.encryption.CredentialStoreService;
 import org.apache.ambari.server.security.encryption.CredentialStoreServiceImpl;
 import org.apache.ambari.server.security.encryption.CredentialStoreType;
@@ -44,6 +46,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.io.File;
 import java.util.Collections;
@@ -95,8 +99,27 @@ public class CredentialResourceProviderTest {
     tmpFolder.delete();
   }
 
+  @After
+  public void clearAuthentication() {
+    SecurityContextHolder.getContext().setAuthentication(null);
+  }
+
   @Test
-  public void testCreateResources() throws Exception {
+  public void testCreateResourcesAsAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testCreateResourcesAsClusterAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testCreateResourcesAsServiceAdministrator() throws Exception {
+    testCreateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testCreateResources(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -114,6 +137,8 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AbstractControllerResourceProvider.init(factory);
 
@@ -158,6 +183,8 @@ public class CredentialResourceProviderTest {
     replay(request, factory, managementController);
     // end expectations
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
+
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -195,6 +222,8 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
+
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
 
     AbstractControllerResourceProvider.init(factory);
 
@@ -251,6 +280,8 @@ public class CredentialResourceProviderTest {
     replay(request, factory, managementController);
     // end expectations
 
+    SecurityContextHolder.getContext().setAuthentication(TestAuthenticationFactory.createAdministrator("admin"));
+
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -278,7 +309,21 @@ public class CredentialResourceProviderTest {
 
 
   @Test
-  public void testGetResources() throws Exception {
+  public void testGetResourcesAsAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testGetResourcesAsClusterAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResourcesAsServiceAdministrator() throws Exception {
+    testGetResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResources(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -301,6 +346,8 @@ public class CredentialResourceProviderTest {
     replay(request, factory, managementController);
     // end expectations
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -339,7 +386,21 @@ public class CredentialResourceProviderTest {
   }
 
   @Test
-  public void testGetResources_WithPredicate() throws Exception {
+  public void testGetResourcesWithPredicateAsAdministrator() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testGetResourcesWithPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResourcesWithPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesWithPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResourcesWithPredicate(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -361,6 +422,8 @@ public class CredentialResourceProviderTest {
     replay(request, factory, managementController);
     // end expectations
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -400,7 +463,21 @@ public class CredentialResourceProviderTest {
   }
 
   @Test
-  public void testGetResources_WithPredicateNoResults() throws Exception {
+  public void testGetResourcesWithPredicateNoResultsAsAdministrator() throws Exception {
+    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testGetResourcesWithPredicateNoResultsAsClusterAdministrator() throws Exception {
+    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResourcesWithPredicateNoResultsAsServiceAdministrator() throws Exception {
+    testGetResourcesWithPredicateNoResults(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResourcesWithPredicateNoResults(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -421,6 +498,8 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AbstractControllerResourceProvider.init(factory);
 
@@ -451,8 +530,23 @@ public class CredentialResourceProviderTest {
 
     verify(request, factory, managementController);
   }
+
   @Test
-  public void testGetResources_WithOutPredicateNoResults() throws Exception {
+  public void testGetResourcesWithoutPredicateAsAdministrator() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testGetResourcesWithoutPredicateAsClusterAdministrator() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testGetResourcesWithoutPredicateAsServiceAdministrator() throws Exception {
+    testGetResourcesWithoutPredicate(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testGetResourcesWithoutPredicate(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -469,6 +563,8 @@ public class CredentialResourceProviderTest {
     replay(request, factory, managementController);
     // end expectations
 
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -485,7 +581,21 @@ public class CredentialResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources() throws Exception {
+  public void testUpdateResourcesAsAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testUpdateResourcesAsClusterAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesAsServiceAdministrator() throws Exception {
+    testUpdateResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testUpdateResources(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -510,7 +620,9 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
-
+    
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    
     AbstractControllerResourceProvider.init(factory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
@@ -563,7 +675,21 @@ public class CredentialResourceProviderTest {
   }
 
   @Test
-  public void testUpdateResources_ResourceNotFound() throws Exception {
+  public void testUpdateResourcesResourceNotFoundAsAdministrator() throws Exception {
+    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testUpdateResourcesResourceNotFoundAsClusterAdministrator() throws Exception {
+    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testUpdateResourcesResourceNotFoundAsServiceAdministrator() throws Exception {
+    testUpdateResourcesResourceNotFound(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testUpdateResourcesResourceNotFound(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -588,6 +714,8 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AbstractControllerResourceProvider.init(factory);
 
@@ -618,7 +746,21 @@ public class CredentialResourceProviderTest {
   }
 
   @Test
-  public void testDeleteResources() throws Exception {
+  public void testDeleteResourcesAsAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createAdministrator("admin"));
+  }
+
+  @Test
+  public void testDeleteResourcesAsClusterAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+  }
+
+  @Test(expected = AuthorizationException.class)
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  }
+
+  private void testDeleteResources(Authentication authentication) throws Exception {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
@@ -641,6 +783,8 @@ public class CredentialResourceProviderTest {
 
     replay(request, factory, managementController);
     // end expectations
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
 
     AbstractControllerResourceProvider.init(factory);
 

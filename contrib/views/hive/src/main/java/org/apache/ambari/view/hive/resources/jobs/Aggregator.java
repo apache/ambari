@@ -82,14 +82,7 @@ public class Aggregator {
     List<Job> allJobs = new LinkedList<Job>();
     for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
 
-      TezDagId atsTezDag;
-      if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0) {
-        String dagName = atsHiveQuery.dagNames.get(0);
-
-        atsTezDag = ats.getTezDAGByName(dagName);
-      } else {
-        atsTezDag = new TezDagId();
-      }
+      TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
 
       JobImpl atsJob;
       if (hasOperationId(atsHiveQuery)) {
@@ -135,17 +128,24 @@ public class Aggregator {
     String hexGuid = Hex.encodeHexString(operationHandle.getOperationId().getGuid());
     HiveQueryId atsHiveQuery = ats.getHiveQueryIdByOperationId(hexStringToUrlSafeBase64(hexGuid));
 
+    TezDagId atsTezDag = getTezDagFromHiveQueryId(atsHiveQuery);
+
+    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
+    return mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
+  }
+
+  private TezDagId getTezDagFromHiveQueryId(HiveQueryId atsHiveQuery) {
     TezDagId atsTezDag;
-    if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0) {
+    if (atsHiveQuery.version >= HiveQueryId.ATS_15_RESPONSE_VERSION) {
+      atsTezDag = ats.getTezDAGByEntity(atsHiveQuery.entity);
+    } else if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0) {
       String dagName = atsHiveQuery.dagNames.get(0);
 
       atsTezDag = ats.getTezDAGByName(dagName);
     } else {
       atsTezDag = new TezDagId();
     }
-
-    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
-    return mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
+    return atsTezDag;
   }
 
   protected boolean hasOperationId(HiveQueryId atsHiveQuery) {

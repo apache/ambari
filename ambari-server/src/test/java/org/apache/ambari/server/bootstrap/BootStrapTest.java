@@ -18,15 +18,8 @@
 
 package org.apache.ambari.server.bootstrap;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
-
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.ambari.server.configuration.Configuration;
@@ -38,6 +31,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Test BootStrap Implementation.
@@ -97,11 +95,13 @@ public class BootStrapTest extends TestCase {
     BootStrapStatus status = impl.getStatus(response.getRequestId());
     LOG.info("Status " + status.getStatus());
     int num = 0;
-    while ((status.getStatus() == BSStat.RUNNING) && (num < 500)) {
+    while ((status.getStatus() == BSStat.RUNNING) && (num < 50)) {
       status = impl.getStatus(response.getRequestId());
-      Thread.sleep(100);
+      Thread.sleep(1000);
       num++;
     }
+    // to give a time for bootstrap thread to finish
+    Thread.sleep(5000);
     LOG.info("Status: log " + status.getLog() + " status=" + status.getStatus()
     );
     /* Note its an echo command so it should echo host1,host2 */

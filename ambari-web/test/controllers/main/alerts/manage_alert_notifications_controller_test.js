@@ -20,10 +20,16 @@ var App = require('app');
 var controller;
 var helpers = require('test/helpers');
 
+
+function getController() {
+  return App.ManageAlertNotificationsController.create({});
+}
+var createEditPopupView = getController().showCreateEditPopup();
+
 describe('App.ManageAlertNotificationsController', function () {
 
   beforeEach(function () {
-    controller = App.ManageAlertNotificationsController.create({});
+    controller = getController();
     sinon.stub($, 'ajax', Em.K);
   });
 
@@ -503,13 +509,11 @@ describe('App.ManageAlertNotificationsController', function () {
 
     });
 
+    App.TestAliases.testAsComputedOr(getController().showCreateEditPopup(), 'disablePrimary', ['isSaving', 'hasErrors']);
+
     describe('#bodyClass', function () {
-
-      var view;
-
-      beforeEach(function () {
-
-        view = controller.showCreateEditPopup().get('bodyClass').create({
+      function getBodyClass() {
+        return createEditPopupView.get('bodyClass').create({
           controller: Em.Object.create({
             inputFields: {
               name: {},
@@ -528,8 +532,15 @@ describe('App.ManageAlertNotificationsController', function () {
             hasErrors: false
           })
         });
+      }
 
+      var view;
+
+      beforeEach(function () {
+        view = getBodyClass();
       });
+
+      App.TestAliases.testAsComputedOr(getBodyClass(), 'someErrorExists', ['nameError', 'emailToError', 'emailFromError', 'smtpPortError', 'hostError', 'portError', 'passwordError']);
 
       describe('#selectAllGroups', function () {
 

@@ -23,12 +23,13 @@
     <service name="RANGER">
       <component name="RANGER_ADMIN">
         <changes>
-          <definition id="hdp_2_3_0_0_update_ranger_env">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env">
             <type>ranger-env</type>
             <set key="xml_configurations_supported" value="true" />
+            <set key="xasecure.audit.destination.solr" value="false" />
           </definition>
 
-          <definition id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin" summary="Updating Ranger Admin">
             <type>ranger-admin-site</type>
             <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_CLIENT_AUTH" to-key="ranger.service.https.attrib.clientAuth" default-value="" />
             <transfer operation="copy" from-type="ranger-site" from-key="HTTPS_KEYSTORE_FILE" to-key="ranger.https.attrib.keystore.file" default-value="" />
@@ -55,6 +56,7 @@
             <transfer operation="copy" from-type="admin-properties" from-key="audit_db_password" to-key="ranger.jpa.audit.jdbc.password" default-value="" mask="true" />
 
             <set key="ranger.externalurl" value="{{ranger_external_url}}" />
+            <set key="ranger.audit.source.type" value="db" />
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site">
@@ -72,6 +74,23 @@
             <type>ranger-env</type>
             <transfer operation="delete" delete-key="oracle_home" />
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.hdfs" value="false">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.hdfs</key>
+              <value>false</value>
+            </condition>
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit">
+            <condition type="ranger-env" key="xasecure.audit.destination.db" value="true">
+              <type>ranger-env</type>
+              <key>xasecure.audit.destination.db</key>
+              <value>true</value>
+            </condition>
+          </definition>
+
         </changes>
       </component>
 
@@ -107,6 +126,20 @@
             <set key="ranger.usersync.group.searchscope" value="" />
             <set key="ranger.usersync.group.usermapsyncenabled" value="" />
             <set key="ranger.usersync.sleeptimeinmillisbetweensynccycle" value="60000" />
+          </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source">
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="unix">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.unixusersync.process.UnixUserGroupBuilder</value>
+            </condition>
+
+            <condition type="usersync-properties" key="SYNC_SOURCE" value="ldap">
+              <type>ranger-ugsync-site</type>
+              <key>ranger.usersync.source.impl.class</key>
+              <value>org.apache.ranger.ldapusersync.process.LdapUserGroupBuilder</value>
+            </condition>
           </definition>
 
           <definition xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties">
@@ -627,6 +660,11 @@
               <value>10001</value>
             </condition>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname">
+            <type>hive-site</type>
+            <transfer operation="delete" delete-key="datanucleus.rdbms.datastoreAdapterClassName"/>
+          </definition>
         </changes>
       </component>
 
@@ -704,7 +742,7 @@
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="true"/>
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/knox/audit/hdfs/spool"/>
             <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
-            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
             <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
             <set key="xasecure.audit.destination.solr" value="false"/>
             <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
@@ -754,164 +792,7 @@
             <type>storm-env</type>
             <set key="storm_logs_supported" value="true" />
           </definition>
-          <definition id="hdp_2_3_0_0_add_storm_cluster_logs_content">
-            <type>storm-cluster-log4j</type>
-            <set key="content" value="&lt;!--
- Licensed to the Apache Software Foundation (ASF) under one or more
- contributor license agreements.  See the NOTICE file distributed with
- this work for additional information regarding copyright ownership.
- The ASF licenses this file to You under the Apache License, Version 2.0
- (the &quot;License&quot;); you may not use this file except in compliance with
- the License.  You may obtain a copy of the License at
 
-     http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
---&gt;
-
-&lt;configuration monitorInterval=&quot;60&quot;&gt;
-&lt;properties&gt;
-    &lt;property name=&quot;pattern&quot;&gt;%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} [%p] %msg%n&lt;/property&gt;
-    &lt;property name=&quot;patternMetris&quot;&gt;%d %-8r %m%n&lt;/property&gt;
-&lt;/properties&gt;
-&lt;appenders&gt;
-    &lt;RollingFile name=&quot;A1&quot;
-                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${pattern}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;100 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;9&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;RollingFile name=&quot;ACCESS&quot;
-                 fileName=&quot;${sys:storm.log.dir}/access.log&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/access.log.%i&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${pattern}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;100 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;9&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;RollingFile name=&quot;METRICS&quot;
-                 fileName=&quot;${sys:storm.log.dir}/metrics.log&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/metrics.log.%i&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${patternMetris}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;2 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;9&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;Syslog name=&quot;syslog&quot; format=&quot;RFC5424&quot; host=&quot;localhost&quot; port=&quot;514&quot;
-            protocol=&quot;UDP&quot; appName=&quot;[${sys:daemon.name}]&quot; mdcId=&quot;mdc&quot; includeMDC=&quot;true&quot;
-            facility=&quot;LOCAL5&quot; enterpriseNumber=&quot;18060&quot; newLine=&quot;true&quot; exceptionPattern=&quot;%rEx{full}&quot;
-            messageId=&quot;[${sys:user.name}:S0]&quot; id=&quot;storm&quot;/&gt;
-&lt;/appenders&gt;
-&lt;loggers&gt;
-
-    &lt;Logger name=&quot;backtype.storm.security.auth.authorizer&quot; level=&quot;info&quot;&gt;
-        &lt;AppenderRef ref=&quot;ACCESS&quot;/&gt;
-    &lt;/Logger&gt;
-    &lt;Logger name=&quot;backtype.storm.metric.LoggingMetricsConsumer&quot; level=&quot;info&quot;&gt;
-        &lt;AppenderRef ref=&quot;METRICS&quot;/&gt;
-    &lt;/Logger&gt;
-    &lt;root level=&quot;info&quot;&gt; &lt;!-- We log everything --&gt;
-        &lt;appender-ref ref=&quot;A1&quot;/&gt;
-        &lt;appender-ref ref=&quot;syslog&quot;/&gt;
-    &lt;/root&gt;
-&lt;/loggers&gt;
-&lt;/configuration&gt;"/>
-          </definition>
-          <definition id="hdp_2_3_0_0_add_storm_worker_logs_content">
-            <type>storm-worker-log4j</type>
-            <set key="content" value="&lt;!--
-Licensed to the Apache Software Foundation (ASF) under one or more
-contributor license agreements.  See the NOTICE file distributed with
-this work for additional information regarding copyright ownership.
-The ASF licenses this file to You under the Apache License, Version 2.0
-(the &quot;License&quot;); you may not use this file except in compliance with
-the License.  You may obtain a copy of the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
---&gt;
-
-&lt;configuration monitorInterval=&quot;60&quot;&gt;
-&lt;properties&gt;
-    &lt;property name=&quot;pattern&quot;&gt;%d{yyyy-MM-dd HH:mm:ss.SSS} %c{1.} [%p] %msg%n&lt;/property&gt;
-    &lt;property name=&quot;patternNoTime&quot;&gt;%msg%n&lt;/property&gt;
-&lt;/properties&gt;
-&lt;appenders&gt;
-    &lt;RollingFile name=&quot;A1&quot;
-                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.%i.gz&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${pattern}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;100 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;9&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;RollingFile name=&quot;STDOUT&quot;
-                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}.out&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.out.%i.gz&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;100 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;4&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;RollingFile name=&quot;STDERR&quot;
-                 fileName=&quot;${sys:storm.log.dir}/${sys:logfile.name}.err&quot;
-                 filePattern=&quot;${sys:storm.log.dir}/${sys:logfile.name}.err.%i.gz&quot;&gt;
-        &lt;PatternLayout&gt;
-            &lt;pattern&gt;${patternNoTime}&lt;/pattern&gt;
-        &lt;/PatternLayout&gt;
-        &lt;Policies&gt;
-            &lt;SizeBasedTriggeringPolicy size=&quot;100 MB&quot;/&gt; &lt;!-- Or every 100 MB --&gt;
-        &lt;/Policies&gt;
-        &lt;DefaultRolloverStrategy max=&quot;4&quot;/&gt;
-    &lt;/RollingFile&gt;
-    &lt;Syslog name=&quot;syslog&quot; format=&quot;RFC5424&quot; host=&quot;localhost&quot; port=&quot;514&quot;
-        protocol=&quot;UDP&quot; appName=&quot;[${sys:storm.id}:${sys:worker.port}]&quot; mdcId=&quot;mdc&quot; includeMDC=&quot;true&quot;
-        facility=&quot;LOCAL5&quot; enterpriseNumber=&quot;18060&quot; newLine=&quot;true&quot; exceptionPattern=&quot;%rEx{full}&quot;
-        messageId=&quot;[${sys:user.name}:${sys:logging.sensitivity}]&quot; id=&quot;storm&quot;/&gt;
-&lt;/appenders&gt;
-&lt;loggers&gt;
-    &lt;root level=&quot;info&quot;&gt; &lt;!-- We log everything --&gt;
-        &lt;appender-ref ref=&quot;A1&quot;/&gt;
-        &lt;appender-ref ref=&quot;syslog&quot;/&gt;
-    &lt;/root&gt;
-    &lt;Logger name=&quot;STDERR&quot; level=&quot;INFO&quot;&gt;
-        &lt;appender-ref ref=&quot;STDERR&quot;/&gt;
-        &lt;appender-ref ref=&quot;syslog&quot;/&gt;
-    &lt;/Logger&gt;
-    &lt;Logger name=&quot;STDOUT&quot; level=&quot;INFO&quot;&gt;
-        &lt;appender-ref ref=&quot;STDOUT&quot;/&gt;
-        &lt;appender-ref ref=&quot;syslog&quot;/&gt;
-    &lt;/Logger&gt;
-&lt;/loggers&gt;
-&lt;/configuration&gt;"/>
-          </definition>
-          
           <definition xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment">
             <condition type="storm-site" key="nimbus.monitor.freq.secs" value="10">
               <type>storm-site</type>
@@ -948,7 +829,7 @@ http://www.apache.org/licenses/LICENSE-2.0
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="true" />
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/storm/audit/hdfs/spool" />
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
-            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.password" default-value="" mask="true"/>
             <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
             <set key="xasecure.audit.destination.solr" value="false"/>
             <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>

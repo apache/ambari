@@ -37,7 +37,7 @@ def setup_hadoop():
   #directories
   if params.has_namenode or params.dfs_type == 'HCFS':
     Directory(params.hdfs_log_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group=params.user_group,
               mode=0775,
@@ -45,13 +45,13 @@ def setup_hadoop():
     )
     if params.has_namenode:
       Directory(params.hadoop_pid_dir_prefix,
-              recursive=True,
+              create_parents = True,
               owner='root',
               group='root',
               cd_access='a',
       )
     Directory(params.hadoop_tmp_dir,
-              recursive=True,
+              create_parents = True,
               owner=params.hdfs_user,
               cd_access='a',
               )
@@ -101,7 +101,7 @@ def setup_hadoop():
            content=Template("hadoop-metrics2.properties.j2")
       )
 
-    if params.dfs_type == 'HCFS' and params.has_core_site:
+    if params.dfs_type == 'HCFS' and params.has_core_site and 'ECS_CLIENT' in params.component_list:
        create_dirs()
 
 
@@ -146,7 +146,7 @@ def generate_include_file():
 def create_javahome_symlink():
   if os.path.exists("/usr/jdk/jdk1.6.0_31") and not os.path.exists("/usr/jdk64/jdk1.6.0_31"):
     Directory("/usr/jdk64/",
-         recursive=True,
+         create_parents = True,
     )
     Link("/usr/jdk/jdk1.6.0_31",
          to="/usr/jdk64/jdk1.6.0_31",

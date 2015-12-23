@@ -51,7 +51,6 @@ class TestRegistration(TestCase):
     register = Register(config)
     reference_version = '2.1.0'
     data = register.build(reference_version, 1)
-    #print ("Register: " + pprint.pformat(data))
     self.assertEquals(len(data['hardwareProfile']) > 0, True, "hardwareProfile should contain content")
     self.assertEquals(data['hostname'] != "", True, "hostname should not be empty")
     self.assertEquals(data['publicHostname'] != "", True, "publicHostname should not be empty")

@@ -54,7 +54,7 @@ def setup_users():
     Directory (params.hbase_tmp_dir,
                owner = params.hbase_user,
                mode=0775,
-               recursive = True,
+               create_parents = True,
                cd_access="a",
     )
     if not params.host_sys_prepped and params.override_uid == "true":
@@ -144,7 +144,7 @@ def setup_hadoop_env():
 
     # HDP < 2.2 used a conf -> conf.empty symlink for /etc/hadoop/
     if Script.is_hdp_stack_less_than("2.2"):
-      Directory(params.hadoop_conf_empty_dir, recursive=True, owner="root",
+      Directory(params.hadoop_conf_empty_dir, create_parents = True, owner="root",
         group=params.user_group )
 
       Link(params.hadoop_conf_dir, to=params.hadoop_conf_empty_dir,
@@ -182,7 +182,7 @@ def setup_java():
       return
 
     Directory(params.artifact_dir,
-              recursive = True,
+              create_parents = True,
               )
 
     File(jdk_curl_target,
@@ -211,10 +211,6 @@ def setup_java():
          mode=0755,
          cd_access="a",
          )
-
-    Execute(("chgrp","-R", params.user_group, params.java_home),
-            sudo = True,
-            )
-    Execute(("chown","-R", getpass.getuser(), params.java_home),
-            sudo = True,
-            )
+    Execute(('chmod', '-R', '755', params.java_home),
+      sudo = True,
+    )
