@@ -370,4 +370,117 @@ describe('App.ManageConfigGroupsController', function() {
       });
     });
   });
+
+  describe('#_onLoadPropertiesSuccess', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'resortConfigGroup', Em.K);
+    });
+
+    afterEach(function () {
+      c.resortConfigGroup.restore();
+    });
+
+    it('should set properties to config groups', function () {
+
+      c.set('configGroups', [
+        Em.Object.create({
+          name: 'group1',
+          properties: []
+        }),
+        Em.Object.create({
+          name: 'group2',
+          properties: []
+        }),
+        Em.Object.create({
+          name: 'group3',
+          properties: []
+        }),
+        Em.Object.create({
+          name: 'group4',
+          properties: []
+        })
+      ]);
+
+      var data = {
+        items: [
+          {
+            type: 'type1',
+            tag: 'tag1',
+            properties: {
+              prop1: 'val1',
+              prop2: 'val2'
+            }
+          },
+          {
+            type: 'type1',
+            tag: 'tag2',
+            properties: {
+              prop3: 'val3'
+            }
+          },
+          {
+            type: 'type2',
+            tag: 'tag1',
+            properties: {
+              prop4: 'val4'
+            }
+          }
+        ]
+      };
+
+      var params = {
+        typeTagToGroupMap: {
+          'type1///tag1': 'group1',
+          'type1///tag2': 'group2',
+          'type2///tag1': 'group3'
+        }
+      };
+
+      c._onLoadPropertiesSuccess(data, null, params);
+
+      expect(JSON.stringify(c.get('configGroups'))).to.equal(JSON.stringify([
+        Em.Object.create({
+          properties: [
+            {
+              name: 'prop1',
+              value: 'val1',
+              type: 'type1'
+            },
+            {
+              name: 'prop2',
+              value: 'val2',
+              type: 'type1'
+            }
+          ],
+          name: 'group1'
+        }),
+        Em.Object.create({
+          properties: [
+            {
+              name: 'prop3',
+              value: 'val3',
+              type: 'type1'
+            }
+          ],
+          name: 'group2'
+        }),
+        Em.Object.create({
+          properties: [
+            {
+              name: 'prop4',
+              value: 'val4',
+              type: 'type2'
+            }
+          ],
+          name: 'group3'
+        }),
+        Em.Object.create({
+          properties: [],
+          name: 'group4'
+        })
+      ]));
+    });
+
+  });
 });

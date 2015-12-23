@@ -225,9 +225,12 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method postNewConfigurationGroup
    */
   postNewConfigurationGroup: function (newConfigGroupData, callback) {
-    var properties = {};
+    var typeToPropertiesMap = {};
     newConfigGroupData.properties.forEach(function (property) {
-      properties[property.get('name')] = property.get('value');
+      if (!typeToPropertiesMap[property.get('type')]) {
+        typeToPropertiesMap[property.get('type')] = {};
+      }
+      typeToPropertiesMap[property.get('type')][property.get('name')] = property.get('value');
     });
     var newGroupData = {
       "ConfigGroup": {
@@ -235,10 +238,11 @@ App.ConfigOverridable = Em.Mixin.create({
         "tag": newConfigGroupData.service_id,
         "description": newConfigGroupData.description,
         "desired_configs": newConfigGroupData.desired_configs.map(function (cst) {
+          var type = Em.get(cst, 'site') || Em.get(cst, 'type');
           return {
-            type: Em.get(cst, 'site') || Em.get(cst, 'type'),
+            type: type,
             tag: 'version' + (new Date).getTime(),
-            properties: properties
+            properties: typeToPropertiesMap[type]
           };
         }),
         "hosts": newConfigGroupData.hosts.map(function (h) {

@@ -462,17 +462,23 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @method _onLoadPropertiesSuccess
    */
   _onLoadPropertiesSuccess: function (data, opt, params) {
+    var groupToPropertiesMap = {};
     data.items.forEach(function (configs) {
-      var typeTagConfigs = [];
       var group = params.typeTagToGroupMap[configs.type + "///" + configs.tag];
+      if (!groupToPropertiesMap[group]) {
+        groupToPropertiesMap[group] = [];
+      }
       for (var config in configs.properties) {
-        typeTagConfigs.push({
+        groupToPropertiesMap[group].push({
           name: config,
-          value: configs.properties[config]
+          value: configs.properties[config],
+          type: configs.type
         });
       }
-      this.get('configGroups').findProperty('name', group).set('properties', typeTagConfigs);
     }, this);
+    for (var g in groupToPropertiesMap) {
+      this.get('configGroups').findProperty('name', g).set('properties', groupToPropertiesMap[g]);
+    }
   },
 
   /**
@@ -480,9 +486,9 @@ App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
    * @method showProperties
    */
   showProperties: function () {
-    var properies = this.get('selectedConfigGroup.propertiesList').htmlSafe();
-    if (properies) {
-      App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
+    var properties = this.get('selectedConfigGroup.propertiesList').htmlSafe();
+    if (properties) {
+      App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properties);
     }
   },
 
