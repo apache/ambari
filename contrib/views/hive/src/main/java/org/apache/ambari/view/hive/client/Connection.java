@@ -107,7 +107,7 @@ public class Connection {
       transport.open();
       client = new TCLIService.Client(new TBinaryProtocol(transport));
     } catch (TTransportException e) {
-      throw new HiveClientException("H020 Could not establish connecton to "
+      throw new HiveClientException("H020 Could not establish connection to "
           + host + ":" + port + ": " + e.toString(), e);
     } catch (SQLException e) {
       throw new HiveClientException(e.getMessage(), e);

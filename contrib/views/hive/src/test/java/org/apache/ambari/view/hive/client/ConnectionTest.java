@@ -41,6 +41,16 @@ public class ConnectionTest {
   }
 
   @Test
+  public void testOpenConnectionMessage() throws Exception {
+    HashMap<String, String> auth = new HashMap<String, String>();
+    auth.put("auth", "NONE");
+
+    thrown.expect(HiveClientException.class);
+    thrown.expectMessage("H020 Could not establish connection to");
+    new Connection("127.0.0.1", 42420, auth, "ambari-qa", null);
+  }
+
+  @Test
   public void testAskPasswordWithoutPassword() throws Exception {
     HashMap<String, String> auth = new HashMap<String, String>();
     auth.put("auth", "NONE");
