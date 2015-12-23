@@ -78,21 +78,31 @@ describe('App.ServiceConfigGroup', function () {
       expect(model.get('availableHosts')).to.be.empty;
     });
 
-    it("cluster hosts not used", function() {
+    describe("cluster hosts not used", function() {
       var host = Em.Object.create({
         id: 'g1',
         hostComponents: [{componentName: 'c1'}]
       });
 
-      model.reopen({
-        isDefault: false,
-        clusterHosts: [host]
+      beforeEach(function () {
+        model.reopen({
+          isDefault: false,
+          clusterHosts: [host]
+        });
+        model.set('parentConfigGroup.hosts', ['g1']);
       });
-      model.set('parentConfigGroup.hosts', ['g1']);
-      expect(model.get('availableHosts')).to.not.be.empty;
-      expect(model.get('availableHosts')[0].get('selected')).to.be.false;
-      expect(model.get('availableHosts')[0].get('hostComponentNames')).to.eql(['c1']);
-      expect(model.get('availableHosts')[0].get('host')).to.eql(host);
+      it('availableHosts is not empty', function () {
+        expect(model.get('availableHosts')).to.be.not.empty;
+      });
+      it('1st host is selected', function () {
+        expect(model.get('availableHosts')[0].get('selected')).to.be.false;
+      });
+      it('1st host components are correct', function () {
+        expect(model.get('availableHosts')[0].get('hostComponentNames')).to.eql(['c1']);
+      });
+      it('1st host `host` is correct', function () {
+        expect(model.get('availableHosts')[0].get('host')).to.eql(host);
+      });
     });
   });
 

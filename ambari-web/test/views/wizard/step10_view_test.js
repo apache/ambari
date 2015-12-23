@@ -28,11 +28,18 @@ describe('App.WizardStep10View', function() {
     });
   });
   describe('#didInsertElement()', function() {
-    it('should call loadStep', function() {
+
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
+    });
+
+    afterEach(function () {
+      view.get('controller').loadStep.restore();
+    });
+
+    it('should call loadStep', function() {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
-      view.get('controller').loadStep.restore();
     });
   });
 

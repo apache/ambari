@@ -264,10 +264,23 @@ describe('App.ServiceConfigRadioButtons', function () {
           title: 'Ranger, HDP 2.3, external database'
         }
       ];
+    var rangerVersion = '';
 
     before(function () {
       sinon.stub(Em.run, 'next', function (arg) {
         arg();
+      });
+    });
+
+    beforeEach(function () {
+      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
+      this.stub = sinon.stub(App, 'get');
+      this.stub.withArgs('currentStackName').returns('HDP');
+      sinon.stub(App.StackService, 'find', function() {
+        return [Em.Object.create({
+          serviceName: 'RANGER',
+          serviceVersion: rangerVersion || ''
+        })];
       });
     });
 
@@ -283,26 +296,24 @@ describe('App.ServiceConfigRadioButtons', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersion').returns(item.currentStackVersion);
-        sinon.stub(App.StackService, 'find', function() {
-          return [Em.Object.create({
-            serviceName: 'RANGER',
-            serviceVersion: item.rangerVersion || ''
-          })];
-        });
+        this.stub.withArgs('currentStackVersion').returns(item.currentStackVersion);
+        rangerVersion = item.rangerVersion;
         view.reopen({controller: item.controller});
-        sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
         view.setProperties({
           categoryConfigsAll: item.controller.get('selectedService.configs'),
           serviceConfig: item.serviceConfig
         });
+
         var additionalView1 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo1).get('additionalView'),
           additionalView2 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo2).get('additionalView');
+
         expect(Em.isNone(additionalView1)).to.equal(item.isAdditionalView1Null);
         expect(Em.isNone(additionalView2)).to.equal(item.isAdditionalView2Null);
+
         if (!item.isAdditionalView2Null) {
           expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.driver));
         }
+
       });
     });
 
@@ -654,15 +665,35 @@ describe('App.CheckDBConnectionView', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('logsPopup', item.logsPopupBefore);
-        view.setResponseStatus(item.isSuccess);
-        expect(view.get('isRequestResolved')).to.be.true;
-        expect(view.setConnectingStatus.calledOnce).to.be.true;
-        expect(view.setConnectingStatus.calledWith(false)).to.be.true;
-        expect(view.get('responseCaption')).to.equal(item.responseCaption);
-        expect(view.get('isConnectionSuccess')).to.equal(item.isConnectionSuccess);
-        expect(view.get('logsPopup')).to.eql(item.logsPopup);
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          view.set('logsPopup', item.logsPopupBefore);
+          view.setResponseStatus(item.isSuccess);
+        });
+
+        it('isRequestResolved is true', function () {
+          expect(view.get('isRequestResolved')).to.be.true;
+        });
+
+        it('setConnectingStatus is called with valid arguments', function () {
+          expect(view.setConnectingStatus.calledOnce).to.be.true;
+          expect(view.setConnectingStatus.calledWith(false)).to.be.true;
+        });
+
+        it('responseCaption is valid', function () {
+          expect(view.get('responseCaption')).to.equal(item.responseCaption);
+        });
+
+        it('isConnectionSuccess is valid', function () {
+          expect(view.get('isConnectionSuccess')).to.equal(item.isConnectionSuccess);
+        });
+
+        it('logsPopup is valid', function () {
+          expect(view.get('logsPopup')).to.eql(item.logsPopup);
+        });
+
       });
     });
 
@@ -670,36 +701,7 @@ describe('App.CheckDBConnectionView', function () {
 
   describe('#showLogsPopup', function () {
 
-    var view,
-      cases = [
-        {
-          isConnectionSuccess: true,
-          showAlertPopupCallCount: 0,
-          title: 'successful connection'
-        },
-        {
-          isConnectionSuccess: false,
-          isRequestResolved: true,
-          showAlertPopupCallCount: 1,
-          responseFromServer: 'fail',
-          header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.error')),
-          popupMethodExecuted: 'onClose',
-          title: 'failed connection without output data, popup dismissed with Close button'
-        },
-        {
-          isConnectionSuccess: false,
-          isRequestResolved: false,
-          showAlertPopupCallCount: 1,
-          responseFromServer: {
-            stderr: 'stderr',
-            stdout: 'stdout',
-            structuredOut: 'structuredOut'
-          },
-          header: Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.testing')),
-          popupMethodExecuted: 'onPrimary',
-          title: 'check in progress with output data, popup dismissed with OK button'
-        }
-      ];
+    var view;
 
     beforeEach(function () {
       view = App.CheckDBConnectionView.create({
@@ -712,25 +714,61 @@ describe('App.CheckDBConnectionView', function () {
       App.showAlertPopup.restore();
     });
 
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        view.setProperties({
-          isConnectionSuccess: item.isConnectionSuccess,
-          isRequestResolved: item.isRequestResolved,
-          responseFromServer: item.responseFromServer
-        });
+    it('successful connection', function () {
+      view.set('isConnectionSuccess', true);
+      view.showLogsPopup();
+      expect(App.showAlertPopup.callCount).to.equal(0);
+    });
+
+    describe('failed connection without output data, popup dismissed with Close button', function () {
+
+      beforeEach(function () {
+        view.set('isConnectionSuccess', false);
+        view.set('isRequestResolved', true);
+        view.set('responseFromServer', 'fail');
         view.showLogsPopup();
-        expect(App.showAlertPopup.callCount).to.equal(item.showAlertPopupCallCount);
-        if (!item.isConnectionSuccess) {
-          expect(view.get('logsPopup.header')).to.equal(item.header);
-          if (typeof item.responseFromServer == 'object') {
-            expect(view.get('logsPopup.bodyClass').create().get('openedTask')).to.eql(item.responseFromServer);
-          } else {
-            expect(view.get('logsPopup.body')).to.equal(item.responseFromServer);
-          }
-          view.get('logsPopup')[item.popupMethodExecuted]();
-          expect(view.get('logsPopup')).to.be.null;
-        }
+      });
+
+      it('showAlertPopup is called once', function () {
+        expect(App.showAlertPopup.callCount).to.equal(1);
+      });
+      it('logsPopup.header is valid', function () {
+        expect(view.get('logsPopup.header')).to.equal(Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.error')));
+      });
+      it('logsPopup.body is valid', function () {
+        expect(view.get('logsPopup.body')).to.equal('fail');
+      });
+      it('logsPopup is null after close', function () {
+        view.get('logsPopup').onClose();
+        expect(view.get('logsPopup')).to.be.null;
+      });
+    });
+
+    describe('check in progress with output data, popup dismissed with OK button', function () {
+      var response = {
+        stderr: 'stderr',
+        stdout: 'stdout',
+        structuredOut: 'structuredOut'
+      };
+      beforeEach(function () {
+        view.set('isConnectionSuccess', false);
+        view.set('isRequestResolved', false);
+        view.set('responseFromServer', response);
+        view.showLogsPopup();
+      });
+
+      it('showAlertPopup is called once', function () {
+        expect(App.showAlertPopup.callCount).to.equal(1);
+      });
+      it('logsPopup.header is valid', function () {
+        expect(view.get('logsPopup.header')).to.equal(Em.I18n.t('services.service.config.connection.logsPopup.header').format('MySQL', Em.I18n.t('common.testing')));
+      });
+      it('logsPopup.bodyClass is valid', function () {
+        expect(view.get('logsPopup.bodyClass').create().get('openedTask')).to.eql(response);
+      });
+      it('logsPopup is null after primary click', function () {
+        view.get('logsPopup').onPrimary();
+        expect(view.get('logsPopup')).to.be.null;
       });
     });
 

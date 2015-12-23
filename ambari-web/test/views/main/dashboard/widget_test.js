@@ -147,25 +147,38 @@ describe('App.DashboardWidgetView', function () {
       thresh1: '1',
       thresh2: '2'
     });
-    before(function () {
+    beforeEach(function () {
       sinon.spy(obj, 'observeThresh1Value');
       sinon.spy(obj, 'observeThresh2Value');
       sinon.stub(dashboardWidgetView.get('parentView'), 'getUserPref').returns({
         complete: Em.K
       });
+      var popup = dashboardWidgetView.showEditDialog(obj);
+      popup.onPrimary();
     });
-    after(function () {
+    afterEach(function () {
       obj.observeThresh1Value.restore();
       obj.observeThresh2Value.restore();
       dashboardWidgetView.get('parentView').getUserPref.restore();
     });
-    it("open popup", function () {
-      var popup = dashboardWidgetView.showEditDialog(obj);
-      popup.onPrimary();
+
+    it("observeThresh1Value is called once", function () {
       expect(obj.observeThresh1Value.calledOnce).to.be.true;
+    });
+
+    it("observeThresh2Value is called once", function () {
       expect(obj.observeThresh2Value.calledOnce).to.be.true;
+    });
+
+    it("thresh1 = 1", function () {
       expect(dashboardWidgetView.get('thresh1')).to.equal(1);
+    });
+
+    it("thresh2 = 2", function () {
       expect(dashboardWidgetView.get('thresh2')).to.equal(2);
+    });
+
+    it("getUserPref is called once", function () {
       expect(dashboardWidgetView.get('parentView').getUserPref.calledOnce).to.be.true;
     });
   });

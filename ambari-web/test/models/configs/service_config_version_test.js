@@ -59,7 +59,7 @@ describe('App.ServiceConfigVersion', function () {
 
   describe("#configGroupName", function() {
 
-    it("default group", function() {
+    it("not default group", function() {
       model.reopen({
         groupName: 'g1',
         isDefault: false

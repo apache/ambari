@@ -231,16 +231,20 @@ describe('App.WizardStep9View', function () {
   });
 
   describe('#content', function () {
-    it('should be equal to controller.hosts', function () {
+
+    var hosts = [{}, {}, {}];
+
+    beforeEach(function () {
       sinon.stub(v, 'hostStatusObserver', Em.K);
-      var hosts = [
-        {},
-        {},
-        {}
-      ];
       v.set('controller.hosts', hosts);
-      expect(v.get('content')).to.eql(hosts);
+    });
+
+    afterEach(function () {
       v.hostStatusObserver.restore();
+    });
+
+    it('should be equal to controller.hosts', function () {
+      expect(v.get('content')).to.eql(hosts);
     });
   });
 
@@ -552,11 +556,18 @@ describe('App.HostStatusView', function () {
   });
 
   describe('#didInsertElement', function () {
-    it('should call onStatus', function () {
+
+    beforeEach(function () {
       sinon.stub(hv, 'onStatus', Em.K);
+    });
+
+    afterEach(function () {
+      hv.onStatus.restore();
+    });
+
+    it('should call onStatus', function () {
       hv.didInsertElement();
       expect(hv.onStatus.calledOnce).to.equal(true);
-      hv.onStatus.restore();
     });
   });
 
@@ -680,21 +691,30 @@ describe('App.HostStatusView', function () {
   });
 
   describe('#hostLogPopup', function() {
+
     describe('#onClose', function() {
+
       beforeEach(function() {
         hv.set('controller', {currentOpenTaskId: 123});
         hv.set('obj', Em.Object.create());
+        this.p = hv.hostLogPopup();
+        sinon.spy(this.p, 'hide');
       });
+
+      afterEach(function () {
+        this.p.hide.restore();
+      });
+
       it('popup should clear currentOpenTaskId', function() {
-        hv.hostLogPopup().onClose();
+        this.p.onClose();
         expect(hv.get('controller.currentOpenTaskId')).to.equal(0);
       });
+
       it('onClose popup should hide popup', function() {
-        var p = hv.hostLogPopup();
-        sinon.spy(p, 'hide');
-        p.onClose();
-        expect(p.hide.calledOnce).to.equal(true);
+        this.p.onClose();
+        expect(this.p.hide.calledOnce).to.equal(true);
       });
+
     });
   });
 

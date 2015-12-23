@@ -347,23 +347,34 @@ describe('App.ConfigInitializer', function () {
       });
     });
 
-    cases['hive_database'].forEach(function (item) {
-      var title = 'hive_database value should be set to {0}';
-      it(title.format(item.value), function () {
-        sinon.stub(App, 'get')
-          .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
-          .withArgs('router.currentState.name').returns(item.currentStateName)
-          .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
-        serviceConfigProperty.setProperties({
-          name: 'hive_database',
-          value: item.receivedValue,
-          options: item.options
-        });
-        App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
-        expect(serviceConfigProperty.get('value')).to.equal(item.value);
-        expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+    describe('hive_database', function () {
+
+      beforeEach(function () {
+        this.stub = sinon.stub(App, 'get');
+      });
+
+      afterEach(function () {
         App.get.restore();
       });
+
+      cases['hive_database'].forEach(function (item) {
+        var title = 'hive_database value should be set to {0}';
+        it(title.format(item.value), function () {
+          this.stub
+            .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
+            .withArgs('router.currentState.name').returns(item.currentStateName)
+            .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
+          serviceConfigProperty.setProperties({
+            name: 'hive_database',
+            value: item.receivedValue,
+            options: item.options
+          });
+          App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
+          expect(serviceConfigProperty.get('value')).to.equal(item.value);
+          expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+        });
+      });
+
     });
 
     cases['hbase.zookeeper.quorum'].forEach(function (item) {

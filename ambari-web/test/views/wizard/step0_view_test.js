@@ -75,14 +75,22 @@ describe('App.WizardStep0ViewClusterNameInput', function () {
   });
 
   describe('#keyPress', function() {
+
+    beforeEach(function () {
+      sinon.spy(view.get('parentView.controller'), 'submit');
+    });
+
+    afterEach(function () {
+      view.get('parentView.controller').submit.restore();
+    });
+
     it('should return true if pressed not Enter', function() {
       expect(view.keyPress({keyCode: 1})).to.equal(true);
+      expect(view.get('parentView.controller').submit.called).to.equal(false);
     });
     it('should submit form if Enter pressed', function() {
-      sinon.spy(view.get('parentView.controller'), 'submit');
       expect(view.keyPress({keyCode: 13})).to.equal(false);
       expect(view.get('parentView.controller').submit.calledOnce).to.equal(true);
-      view.get('parentView.controller').submit.restore();
     });
   });
 

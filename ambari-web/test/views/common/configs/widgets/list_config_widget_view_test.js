@@ -175,19 +175,30 @@ describe('App.ListConfigWidgetView', function () {
   describe('#toggleOption', function () {
 
     beforeEach(function() {
-      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K)
+      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
+      view.toggleOption({context: view.get('options')[2]});
     });
     afterEach(function() {
       view.sendRequestRorDependentConfigs.restore();
     });
 
-    it('should doesn\'t do nothing if maximum number of options is selected', function () {
-      view.toggleOption({context: view.get('options')[2]});
-      expect(view.get('options')[2].get('isSelected')).to.be.true;
-      expect(view.get('options')[3].get('isDisabled')).to.be.true;
-      expect(view.get('options')[3].get('isSelected')).to.be.false;
-      expect(view.get('options')[4].get('isDisabled')).to.be.true;
-      expect(view.get('options')[4].get('isSelected')).to.be.false;
+    describe('should doesn\'t do nothing if maximum number of options is selected', function () {
+
+      it('isSelected', function () {
+        expect(view.get('options')[2].get('isSelected')).to.be.true;
+        expect(view.get('options')[3].get('isSelected')).to.be.false;
+        expect(view.get('options')[4].get('isSelected')).to.be.false;
+      });
+
+      it('isDisabled', function () {
+        expect(view.get('options')[3].get('isDisabled')).to.be.true;
+        expect(view.get('options')[4].get('isDisabled')).to.be.true;
+      });
+
+    });
+
+    it('should doesn\'t do nothing if maximum number of options is selected (2)', function () {
+
       view.toggleOption({context: view.get('options')[3]});
       expect(view.get('options')[3].get('isDisabled')).to.be.true;
       expect(view.get('options')[3].get('isSelected')).to.be.false;

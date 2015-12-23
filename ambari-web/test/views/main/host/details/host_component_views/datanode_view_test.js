@@ -27,14 +27,17 @@ describe('App.DataNodeComponentView', function () {
   });
 
   describe("#getDNDecommissionStatus()", function () {
+
     beforeEach(function () {
       this.stub = sinon.stub(App.HDFSService, 'find');
       sinon.stub(App.ajax, 'send');
     });
+
     afterEach(function () {
       App.ajax.send.restore();
       this.stub.restore();
     });
+
     it("snameNode absent and no activeNameNode", function () {
       this.stub.returns([
         Em.Object.create({
@@ -49,6 +52,7 @@ describe('App.DataNodeComponentView', function () {
         "componentName": "NAMENODE"
       });
     });
+
     it("snameNode present and no activeNameNode", function () {
       this.stub.returns([
         Em.Object.create({
@@ -63,6 +67,7 @@ describe('App.DataNodeComponentView', function () {
         "componentName": "NAMENODE"
       });
     });
+
     it("snameNode absent and activeNameNode valid", function () {
       this.stub.returns([
         Em.Object.create({
@@ -77,6 +82,7 @@ describe('App.DataNodeComponentView', function () {
         "componentName": "NAMENODE"
       });
     });
+
   });
 
   describe("#getDNDecommissionStatusSuccessCallback()", function () {

@@ -72,6 +72,7 @@ describe('App.clusterStatus', function () {
   describe('#setClusterStatus', function () {
 
     beforeEach(function() {
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
       sinon.stub(status, 'postUserPref', function() {
         return $.ajax();
       });
@@ -82,19 +83,7 @@ describe('App.clusterStatus', function () {
       App.get.restore();
     });
 
-    it('should return false in test mode', function () {
-      sinon.stub(App, 'get', function(k) {
-        if (k === 'testMode') return true;
-        return Em.get(App, k);
-      });
-      expect(status.setClusterStatus()).to.be.false;
-    });
-
     it('should set cluster status in non-test mode', function () {
-      sinon.stub(App, 'get', function(k) {
-        if (k === 'testMode') return false;
-        return Em.get(App, k);
-      });
       var clusterStatus = status.setClusterStatus(newValue);
       expect(clusterStatus).to.eql(newValue);
     });

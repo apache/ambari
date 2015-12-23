@@ -24,10 +24,16 @@ require('models/service/hdfs');
 var setups = require('test/init_model_test');
 var modelSetup = setups.configs;
 
+function dummyCopy(val) {
+  return JSON.parse(JSON.stringify(val));
+}
+
 describe('App.config', function () {
 
   describe('#fileConfigsIntoTextarea', function () {
+
     var filename = 'capacity-scheduler.xml';
+
     var configs = [
       {
         name: 'config1',
@@ -42,69 +48,110 @@ describe('App.config', function () {
         filename: 'capacity-scheduler.xml'
       }
     ];
-    it('two configs into textarea', function () {
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
-    });
-    it('three config into textarea', function () {
-      configs.push({
-        name: 'config3',
-        value: 'value3',
-        recommendedValue: 'value3',
-        filename: 'capacity-scheduler.xml'
+
+    var c3 = {
+      name: 'config3',
+      value: 'value3',
+      recommendedValue: 'value3',
+      filename: 'capacity-scheduler.xml'
+    };
+
+    describe('two configs into textarea', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
       });
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
-      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('value is valid', function () {
+        expect(result[0].value).to.equal('config1=value1\nconfig2=value2\n');
+      });
+      it('recommendedValue is valid', function () {
+        expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
+      });
     });
-    it('one of three configs has different filename', function () {
-      configs[1].filename = 'another filename';
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      //result contains two configs: one with different filename and one textarea config
-      expect(result.length).to.equal(2);
-      expect(result[1].value).to.equal('config1=value1\nconfig3=value3\n');
-      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig3=value3\n');
+
+    describe('three config into textarea', function () {
+      var newConfigs = dummyCopy(configs);
+      newConfigs.push(dummyCopy(c3));
+      var result;
+      beforeEach(function () {
+        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, filename);
+      });
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('valid is valid', function () {
+        expect(result[0].value).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
+      });
+      it('recommendedValue is valid', function () {
+        expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
+      });
     });
-    it('none configs into empty textarea', function () {
-      filename = 'capacity-scheduler.xml';
-      configs.clear();
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('');
-      expect(Em.isNone(result[0].recommendedValue)).to.be.true;
-      expect(Em.isNone(result[0].savedValue)).to.be.true;
+
+    describe('one of three configs has different filename', function () {
+      var newConfigs = dummyCopy(configs);
+      newConfigs.push(dummyCopy(c3));
+      newConfigs[1].filename = 'another filename';
+      var result;
+
+      beforeEach(function () {
+        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, filename);
+      });
+
+      it('Two configs are returned', function () {
+        //result contains two configs: one with different filename and one textarea config
+        expect(result.length).to.equal(2);
+      });
+      it('Value is valid', function () {
+        expect(result[1].value).to.equal('config1=value1\nconfig3=value3\n');
+      });
+      it('RecommendedValue is valid', function () {
+        expect(result[1].recommendedValue).to.equal('config1=value1\nconfig3=value3\n');
+      });
     });
-    it("filename has configs that shouldn't be included in textarea", function () {
-      var configs = [
-        {
-          name: 'config1',
-          value: 'value1',
-          recommendedValue: 'value1',
-          filename: filename
-        },
-        {
-          name: 'config2',
-          value: 'value2',
-          recommendedValue: 'value2',
-          filename: filename
-        }
-      ];
-      var cfg = {
-        name: 'config3',
-        value: 'value3',
-        recommendedValue: 'value3',
-        filename: filename
-      };
-      configs.push(cfg);
-      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename, [cfg]);
-      expect(result.length).to.equal(2);
-      expect(result[1].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
-      expect(configs.findProperty('name', 'config3')).to.eql(cfg);
+
+    describe('none configs into empty textarea', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.fileConfigsIntoTextarea.call(App.config, [], 'capacity-scheduler.xml');
+      });
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('value is empty', function () {
+        expect(result[0].value).to.equal('');
+      });
+      it('recommendedValue is none', function () {
+        expect(Em.isNone(result[0].recommendedValue)).to.be.true;
+      });
+      it('savedValue is none', function () {
+        expect(Em.isNone(result[0].savedValue)).to.be.true;
+      });
     });
+
+    describe("filename has configs that shouldn't be included in textarea", function () {
+      var newConfigs = dummyCopy(configs);
+      newConfigs.push(dummyCopy(c3));
+      var result;
+      beforeEach(function () {
+        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, 'capacity-scheduler.xml', [c3]);
+      });
+      it('Two configs are returned', function () {
+        expect(result.length).to.equal(2);
+      });
+      it('value is correct', function () {
+        expect(result[1].value).to.equal('config1=value1\nconfig2=value2\n');
+      });
+      it('recommendedValue is correct', function () {
+        expect(result[1].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
+      });
+      it('skipped config is correct', function () {
+        expect(newConfigs.findProperty('name', 'config3')).to.eql(c3);
+      });
+    });
+
   });
 
   describe('#textareaIntoFileConfigs', function () {
@@ -144,35 +191,85 @@ describe('App.config', function () {
       }
     ];
 
-    it('config1=value1 to one config', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[0].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('value1');
-      expect(result[0].name).to.equal('config1');
-      expect(result[0].isRequiredByAgent).to.be.true;
+    describe('config1=value1 to one config', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.textareaIntoFileConfigs.call(App.config, testData[0].configs, filename);
+      });
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('value is correct', function () {
+        expect(result[0].value).to.equal('value1');
+      });
+      it('name is correct', function () {
+        expect(result[0].name).to.equal('config1');
+      });
+      it('isRequiredByAgent is true', function () {
+        expect(result[0].isRequiredByAgent).to.be.true;
+      });
     });
-    it('config1=value1\\nconfig2=value2\\n to two configs', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[1].configs, filename);
-      expect(result.length).to.equal(2);
-      expect(result[0].value).to.equal('value1');
-      expect(result[0].name).to.equal('config1');
-      expect(result[1].value).to.equal('value2');
-      expect(result[1].name).to.equal('config2');
-      expect(result[0].isRequiredByAgent).to.be.false;
-      expect(result[1].isRequiredByAgent).to.be.false;
+
+    describe('config1=value1\\nconfig2=value2\\n to two configs', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.textareaIntoFileConfigs.call(App.config, testData[1].configs, filename);
+      });
+      it('Two configs are returned', function (){
+        expect(result.length).to.equal(2);
+      });
+      it('1st value is valid', function (){
+        expect(result[0].value).to.equal('value1');
+      });
+      it('1st name is valid', function (){
+        expect(result[0].name).to.equal('config1');
+      });
+      it('2nd value is valid', function (){
+        expect(result[1].value).to.equal('value2');
+      });
+      it('2nd name is valid', function (){
+        expect(result[1].name).to.equal('config2');
+      });
+      it('1st isRequiredByAgent is false', function (){
+        expect(result[0].isRequiredByAgent).to.be.false;
+      });
+      it('2nd isRequiredByAgent is false', function (){
+        expect(result[1].isRequiredByAgent).to.be.false;
+      });
     });
-    it('config1=value1,value2\n to one config', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[2].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].value).to.equal('value1,value2');
-      expect(result[0].name).to.equal('config1');
-      expect(result[0].isRequiredByAgent).to.be.true;
+
+    describe('config1=value1,value2\n to one config', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.textareaIntoFileConfigs.call(App.config, testData[2].configs, filename);
+      });
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('value is correct', function () {
+        expect(result[0].value).to.equal('value1,value2');
+      });
+      it('name is correct', function () {
+        expect(result[0].name).to.equal('config1');
+      });
+      it('isRequiredByAgent is true', function () {
+        expect(result[0].isRequiredByAgent).to.be.true;
+      });
     });
-    it('config1=value1 config2=value2 to two configs', function () {
-      var result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
-      expect(result.length).to.equal(1);
-      expect(result[0].isRequiredByAgent).to.be.false;
+
+    describe('config1=value1 config2=value2 to two configs', function () {
+      var result;
+      beforeEach(function () {
+        result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
+      });
+      it('One config is returned', function () {
+        expect(result.length).to.equal(1);
+      });
+      it('isRequiredByAgent is false', function () {
+        expect(result[0].isRequiredByAgent).to.be.false;
+      });
     });
+
   });
 
   describe('#trimProperty',function() {
@@ -584,12 +681,23 @@ describe('App.config', function () {
       }
     });
 
-    it('overrides some values that should be different for override', function() {
-      var override = App.config.createOverride(configProperty, {}, group);
-      expect(override.get('isOriginalSCP')).to.be.false;
-      expect(override.get('overrides')).to.be.null;
-      expect(override.get('group')).to.eql(group);
-      expect(override.get('parentSCP')).to.eql(configProperty);
+    describe('overrides some values that should be different for override', function() {
+      var override;
+      beforeEach(function () {
+        override = App.config.createOverride(configProperty, {}, group);
+      });
+      it('isOriginalSCP is false', function () {
+        expect(override.get('isOriginalSCP')).to.be.false;
+      });
+      it('overrides is null', function () {
+        expect(override.get('overrides')).to.be.null;
+      });
+      it('group is valid', function () {
+        expect(override.get('group')).to.eql(group);
+      });
+      it('parentSCP is valid', function () {
+        expect(override.get('parentSCP')).to.eql(configProperty);
+      });
     });
 
     it('overrides some specific values', function() {
@@ -868,10 +976,16 @@ describe('App.config', function () {
     it('create default config object', function () {
       expect(App.config.createDefaultConfig('pName', 'pServiceName', 'pFileName', true)).to.eql(res);
     });
-    it('runs proper methods', function() {
+    it('getDefaultDisplayType is called', function() {
       expect(App.config.getDefaultDisplayType.called).to.be.true;
+    });
+    it('getDefaultCategory is called with correct arguments', function() {
       expect(App.config.getDefaultCategory.calledWith(true, 'pFileName')).to.be.true;
+    });
+    it('getIsSecure is called with correct arguments', function() {
       expect(App.config.getIsSecure.calledWith('pName')).to.be.true;
+    });
+    it('shouldSupportFinal is called with correct arguments', function() {
       expect(App.config.shouldSupportFinal.calledWith('pServiceName', 'pFileName')).to.be.true;
     });
   });
@@ -1103,4 +1217,5 @@ describe('App.config', function () {
       expect(App.config.truncateGroupName('group_has_more_than_max_characters')).to.equal('group_has...haracters');
     });
   });
+
 });

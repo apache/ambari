@@ -39,10 +39,17 @@ describe('App.ModalPopup', function() {
 
   describe('#didInsertElement', function () {
 
+    beforeEach(function () {
+      this.spy = sinon.spy(popup, "focusElement");
+    });
+
+    afterEach(function () {
+      this.spy.restore();
+    });
+
     it('should focus on the first input element', function () {
-      var spy = sinon.spy(popup, "focusElement");
       popup.didInsertElement();
-      expect(spy.called).to.be.true;
+      expect(this.spy.called).to.be.true;
     });
   });
 

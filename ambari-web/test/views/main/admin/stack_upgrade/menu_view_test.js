@@ -27,6 +27,10 @@ describe('App.MainAdminStackMenuView', function () {
 
   describe('#content', function () {
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
     afterEach(function () {
       App.get.restore();
     });
@@ -44,8 +48,7 @@ describe('App.MainAdminStackMenuView', function () {
         }
       ]).forEach(function (test) {
         it(test.m, function () {
-          var stub = sinon.stub(App, 'get');
-          stub.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
+          this.stub.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
           view.propertyDidChange('content');
           expect(view.get('content').findProperty('name', 'versions').get('hidden')).to.equal(test.e);
         });

@@ -26,14 +26,20 @@ describe('App.FilterComboCleanableView', function() {
 
   describe('#didInsertElement', function() {
 
-    it('should clean filter when created', function() {
+    beforeEach(function () {
       sinon.stub(App, 'popover', Em.K);
+    });
+
+    afterEach(function () {
+      App.popover.restore();
+    });
+
+    it('should clean filter when created', function() {
       view.setProperties({
         filter: 'some value',
         popoverDescription: ['', '']
       });
       view.didInsertElement();
-      App.popover.restore();
       expect(view.get('filter')).to.be.empty;
     });
 

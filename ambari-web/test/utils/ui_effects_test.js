@@ -24,6 +24,12 @@ describe('utils/ui_effects', function(){
     beforeEach(function(){
       $('body').append('<div id="pulsate-test-dom"></div>');
       this.clock = sinon.useFakeTimers();
+      this.clb = Em.K;
+      sinon.spy(this, 'clb');
+    });
+
+    afterEach(function () {
+      this.clb.restore();
     });
 
     it('opacity should be 0.2 on 5-th iteration', function() {
@@ -34,10 +40,9 @@ describe('utils/ui_effects', function(){
     });
     it('should call callback at the end', function() {
       var domEl = $('#pulsate-test-dom');
-      var stub = sinon.stub();
-      ui_utils.pulsate(domEl, 1000, stub);
+      ui_utils.pulsate(domEl, 1000, this.clb);
       this.clock.tick(2000);
-      expect(stub.calledOnce).to.be.ok;
+      expect(this.clb.calledOnce).to.be.ok;
     });
 
     afterEach(function(){

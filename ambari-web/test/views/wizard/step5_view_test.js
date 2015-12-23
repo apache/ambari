@@ -89,11 +89,18 @@ describe('App.WizardStep5View', function() {
   });
 
   describe('#didInsertElement', function() {
-    it('should call controller.loadStep', function() {
+
+    beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadStep', Em.K);
+    });
+
+    afterEach(function () {
+      view.get('controller').loadStep.restore();
+    });
+
+    it('should call controller.loadStep', function() {
       view.didInsertElement();
       expect(view.get('controller').loadStep.calledOnce).to.equal(true);
-      view.get('controller').loadStep.restore();
     });
   });
 
@@ -361,15 +368,21 @@ describe('App.InputHostView', function() {
       }
     ]);
 
+    beforeEach(function () {
+      sinon.stub(view, 'initContent', Em.K);
+    });
+
+    afterEach(function () {
+      view.initContent.restore();
+    });
+
     tests.forEach(function(test) {
       it(test.m, function() {
         view.set('content', test.content);
         view.set('component', {component_name: test.componentName});
         view.set('controller.componentToRebalance', test.componentToRebalance);
-        sinon.stub(view, 'initContent', Em.K);
         view.rebalanceComponentHostsOnce();
         expect(view.initContent.calledOnce).to.equal(test.e.initContent);
-        view.initContent.restore();
       });
     });
   });

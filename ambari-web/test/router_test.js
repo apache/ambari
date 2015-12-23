@@ -83,6 +83,7 @@ describe('App.Router', function () {
     ];
 
     beforeEach(function () {
+      this.getUser = sinon.stub(App.db, 'getUser');
       App.setProperties({
         isAdmin: false,
         isOperator: false,
@@ -91,12 +92,12 @@ describe('App.Router', function () {
     });
 
     afterEach(function () {
-      App.db.getUser.restore();
+      this.getUser.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        sinon.stub(App.db, 'getUser').returns(item.user);
+        this.getUser.returns(item.user);
         router.initAdmin();
         expect(App.get('isAdmin')).to.equal(item.isAdmin);
         expect(App.get('isOperator')).to.equal(item.isOperator);
@@ -258,6 +259,7 @@ describe('App.Router', function () {
       expect(App.get('isPermissionDataLoaded')).to.be.true;
       expect(mock.dataLoading.calledOnce).to.be.true;
     });
+
     it("cluster exists, READ privileges", function () {
       var clusterData = {
         items: [{
@@ -448,6 +450,20 @@ describe('App.Router', function () {
   });
 
   describe("#getAuthenticated", function() {
+    var router;
+    beforeEach(function () {
+      router = App.Router.create();
+      this.mockGetCurrentLocationUrl = sinon.stub(router, 'getCurrentLocationUrl');
+      sinon.stub(router, 'redirectByURL', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+      router.getCurrentLocationUrl.restore();
+      router.redirectByURL.restore();
+      this.mockGetCurrentLocationUrl.restore();
+    });
+
     [
       {
         lastSetURL: '/login/local',
@@ -481,7 +497,6 @@ describe('App.Router', function () {
       }
     ].forEach(function(test) {
       it(test.m, function() {
-        var router = App.Router.create();
         var mockCurrentUrl = 'http://localhost:3333/#/some/hash';
         router.set('location.lastSetURL', test.lastSetURL);
         sinon.stub(App.ajax, 'send', function() {
@@ -492,16 +507,12 @@ describe('App.Router', function () {
             complete: function() {}
           };
         });
-        sinon.stub(router, 'getCurrentLocationUrl').returns(mockCurrentUrl);
-        sinon.stub(router, 'redirectByURL', Em.K);
+        this.mockGetCurrentLocationUrl.returns(mockCurrentUrl);
         router.getAuthenticated();
         expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
         if (test.redirectCalled) {
           expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
         }
-        App.ajax.send.restore();
-        router.getCurrentLocationUrl.restore();
-        router.redirectByURL.restore();
       });
     });
 
