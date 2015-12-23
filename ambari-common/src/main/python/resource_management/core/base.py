@@ -161,12 +161,7 @@ class Resource(object):
     return unicode(self)
 
   def __unicode__(self):
-    if isinstance(self.name, basestring) and not isinstance(self.name, PasswordString):
-      name = "'" + self.name + "'" # print string cutely not with repr
-    else:
-      name = repr(self.name)
-    
-    return u"%s[%s]" % (self.__class__.__name__, name)
+    return u"%s[%s]" % (self.__class__.__name__, Logger._get_resource_name_repr(self.name))
 
   def __getstate__(self):
     return dict(

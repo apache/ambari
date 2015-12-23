@@ -38,7 +38,7 @@ from resource_management.core.logger import Logger
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
 # use quiet=True calls from this folder (logs get too messy duplicating the resources with its commands)
-RMF_FOLDER = 'resource_management/'
+NOT_LOGGED_FOLDER = 'resource_management/core'
 EXPORT_PLACEHOLDER = "[RMF_EXPORT_PLACEHOLDER]"
 ENV_PLACEHOLDER = "[RMF_ENV_PLACEHOLDER]"
 
@@ -52,11 +52,11 @@ def log_function_call(function):
     caller_filename = sys._getframe(1).f_code.co_filename
     # quiet = can be False/True or None -- which means undefined yet
     quiet = kwargs['quiet'] if 'quiet' in kwargs else None
-    is_internal_call = RMF_FOLDER in caller_filename
+    is_internal_call = NOT_LOGGED_FOLDER in caller_filename
     
     if quiet == False or (quiet == None and not is_internal_call):
-      command_alias = string_cmd_from_args_list(command) if isinstance(command, (list, tuple)) else command
-      log_msg = Logger.get_function_repr("{0}['{1}']".format(function.__name__, command_alias), kwargs)
+      command_repr = Logger._get_resource_name_repr(command)
+      log_msg = Logger.get_function_repr("{0}[{1}]".format(function.__name__, command_repr), kwargs)
       Logger.info(log_msg)
       
     # logoutput=False - never log
@@ -171,7 +171,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
     {int fd} - redirect to file with descriptor.
     {string filename} - redirects to a file with name.
   """
-  command_alias = string_cmd_from_args_list(command) if isinstance(command, (list, tuple)) else command
+  command_alias = Logger.format_command_for_output(command)
+  command_alias = string_cmd_from_args_list(command_alias) if isinstance(command_alias, (list, tuple)) else command_alias
   
   # Append current PATH to env['PATH']
   env = _add_current_path_to_env(env)
@@ -266,7 +267,8 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
             _print(line)    
   
     # Wait for process to terminate
-    proc.wait()
+    if not timeout or not timeout_event.is_set():
+      proc.wait()
 
   finally:
     for fp in files_to_close:
@@ -281,7 +283,7 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       t.cancel()
     # timeout occurred
     else:
-      err_msg = ("Execution of '%s' was killed due timeout after %d seconds") % (command, timeout)
+      err_msg = Logger.filter_text(("Execution of '%s' was killed due timeout after %d seconds") % (command_alias, timeout))
       raise ExecuteTimeoutException(err_msg)
    
   code = proc.returncode

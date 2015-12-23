@@ -106,6 +106,35 @@ class Logger:
     return Logger.get_function_repr(repr(resource), resource.arguments, resource)
   
   @staticmethod
+  def _get_resource_name_repr(name):
+    if isinstance(name, basestring) and not isinstance(name, PasswordString):
+      name = "'" + name + "'" # print string cutely not with repr
+    else:
+      name = repr(name)
+      
+    return name
+  
+  @staticmethod
+  def format_command_for_output(command):
+    """
+    Format command to be output by replacing the PasswordStrings.
+    """
+    if isinstance(command, (list, tuple)):
+      result = []
+      for x in command:
+        if isinstance(x, PasswordString):
+          result.append(repr(x).strip("'")) # string ''
+        else:
+          result.append(x)
+    else:
+      if isinstance(command, PasswordString):
+        result = repr(command).strip("'") # string ''
+      else:
+        result = command
+    
+    return result
+  
+  @staticmethod
   def get_function_repr(name, arguments, resource=None):
     logger_level = logging._levelNames[Logger.logger.level]
 
