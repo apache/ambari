@@ -197,7 +197,7 @@ class NameNodeDefault(NameNode):
 
       # Wait up to 30 mins
       Execute(is_namenode_safe_mode_off,
-              tries=180,
+              tries=65,
               try_sleep=10,
               user=params.hdfs_user,
               logoutput=True

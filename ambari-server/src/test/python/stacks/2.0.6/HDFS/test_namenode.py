@@ -89,7 +89,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6405.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -202,7 +202,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -331,7 +331,7 @@ class TestNamenode(RMFTestCase):
                               user='hdfs',
                               )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -427,7 +427,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -524,7 +524,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -627,7 +627,7 @@ class TestNamenode(RMFTestCase):
         user = 'hdfs',
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -730,7 +730,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -832,7 +832,7 @@ class TestNamenode(RMFTestCase):
         not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
     )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-        tries=180,
+        tries=65,
         try_sleep=10,
         user="hdfs",
         logoutput=True
@@ -942,7 +942,7 @@ class TestNamenode(RMFTestCase):
                               not_if = "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E test -f /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid && ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E pgrep -F /var/run/hadoop/hdfs/hadoop-hdfs-namenode.pid",
                               )
     self.assertResourceCalled('Execute', "hdfs dfsadmin -fs hdfs://c6402.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
-                              tries=180,
+                              tries=65,
                               try_sleep=10,
                               user="hdfs",
                               logoutput=True
