@@ -18,8 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsListCtrl',['$scope', 'View', '$modal', 'Alert', 'ConfirmationModal', '$location', function($scope, View, $modal, Alert, ConfirmationModal, $location) {
-  var deferredList = [];
+.controller('ViewsListCtrl',['$scope', 'View', '$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
+  var deferredList = [],
+    $t = $translate.instant;
   $scope.$on('$locationChangeStart', function() {
     deferredList.forEach(function(def) {
       def.reject();
@@ -59,7 +60,7 @@ angular.module('ambariAdminConsole')
         });
       })
     }).catch(function(data) {
-      Alert.error('Cannot load views', data.data.message);
+      Alert.error($t('views.alerts.cannotLoadViews'), data.data.message);
     });
   }
 

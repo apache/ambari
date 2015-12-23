@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', function($scope, $routeParams, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog) {
+.controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', '$translate', function($scope, $routeParams, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog, $translate) {
+  var $t = $translate.instant;
   $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
   $scope.isSettingsEmpty = true;
@@ -47,7 +48,7 @@ angular.module('ambariAdminConsole')
       }
     })
     .catch(function(data) {
-      Alert.error('Cannot load instance info', data.data.message);
+      Alert.error($t('views.alerts.cannotLoadInstanceInfo'), data.data.message);
     });
   }
 
@@ -57,7 +58,7 @@ angular.module('ambariAdminConsole')
       $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
     }else{
       $scope.isLocalCluster = false;
-      $scope.cluster = $scope.clusters.length > 0 ? $scope.clusters[0] : "No Clusters";
+      $scope.cluster = $scope.clusters.length > 0 ? $scope.clusters[0] : $t('common.noClusters');
     }
     $scope.originalLocalCluster = $scope.isLocalCluster;
     $scope.isConfigurationEmpty = !$scope.numberOfClusterConfigs;
@@ -104,7 +105,7 @@ angular.module('ambariAdminConsole')
   View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
     $scope.configurationMeta = data.data.ViewVersionInfo.parameters;
     $scope.clusterConfigurable = data.data.ViewVersionInfo.cluster_configurable;
-    $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : "This view cannot use this option";
+    $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : $t('views.alerts.cannotUseOption');
     angular.forEach($scope.configurationMeta, function (item) {
       item.displayName = item.name.replace(/\./g, '\.\u200B');
       item.clusterConfig = !!item.clusterConfig;
@@ -129,7 +130,7 @@ angular.module('ambariAdminConsole')
       $scope.isPermissionsEmpty = angular.equals({}, $scope.permissions);
     })
     .catch(function(data) {
-      Alert.error('Cannot load permissions', data.data.message);
+      Alert.error($t('views.alerts.cannotLoadPermissions'), data.data.message);
     });
   }
 
@@ -191,7 +192,7 @@ angular.module('ambariAdminConsole')
       });
       $scope.noClusterAvailible = false;
     }else{
-      $scope.clusters.push("No Clusters");
+      $scope.clusters.push($t('common.noClusters'));
     }
     $scope.cluster = $scope.clusters[0];
   });
@@ -220,7 +221,7 @@ angular.module('ambariAdminConsole')
         }
       })
       .catch(function(data) {
-        Alert.error('Cannot save settings', data.data.message);
+        Alert.error($t('views.alerts.cannotSaveSettings'), data.data.message);
       });
     }
   };
@@ -252,7 +253,7 @@ angular.module('ambariAdminConsole')
         }
       })
       .catch(function(data) {
-        Alert.error('Cannot save settings', data.data.message);
+        Alert.error($t('views.alerts.cannotSaveSettings'), data.data.message);
       });
     }
   };
@@ -313,10 +314,10 @@ angular.module('ambariAdminConsole')
               }
             });
           } catch (e) {
-            console.error('Unable to parse error message:', data.message);
+            console.error($t('views.alerts.unableToParseError', {message: data.message}));
           }
         }
-        Alert.error('Cannot save properties', errorMessage);
+        Alert.error($t('views.alerts.cannotSaveProperties'), errorMessage);
       });
     }
   };
@@ -347,7 +348,7 @@ angular.module('ambariAdminConsole')
     .then(reloadViewPrivileges)
     .catch(function(data) {
       reloadViewPrivileges();
-      Alert.error('Cannot save permissions', data.data.message);
+      Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
     });
   };
 
@@ -360,13 +361,21 @@ angular.module('ambariAdminConsole')
   }, true);
 
   $scope.deleteInstance = function(instance) {
-    ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {
+    ConfirmationModal.show(
+      $t('common.delete', {
+        term: $t('views.viewInstance')
+      }),
+      $t('common.deleteConfirmation', {
+        instanceType: $t('views.viewInstance'),
+        instanceName: instance.ViewInstanceInfo.label
+      })
+    ).then(function() {
       View.deleteInstance(instance.ViewInstanceInfo.view_name, instance.ViewInstanceInfo.version, instance.ViewInstanceInfo.instance_name)
       .then(function() {
         $location.path('/views');
       })
       .catch(function(data) {
-        Alert.error('Cannot delete instance', data.data.message);
+        Alert.error($t('views.alerts.cannotDeleteInstance'), data.data.message);
       });
     });
   };

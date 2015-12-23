@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', function($scope, Group, $modal, ConfirmationModal, $rootScope) {
+.controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate) {
+  var $t = $translate.instant;
   $scope.groups = [];
 
   $scope.groupsPerPage = 10;
@@ -50,14 +51,14 @@ angular.module('ambariAdminConsole')
       $scope.groups = groups;
     })
     .catch(function(data) {
-      console.error('Get groups list error');
+      console.error($t('groups.alerts.getGroupsListError'));
     });
   }
 
   $scope.typeFilterOptions = [
-    {label:'All', value:'*'},
-    {label:'Local', value: false},
-    {label:'LDAP', value:true}
+    {label: $t('common.all'), value:'*'},
+    {label: $t('common.local'), value: false},
+    {label: $t('common.ldap'), value:true}
   ];
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
   

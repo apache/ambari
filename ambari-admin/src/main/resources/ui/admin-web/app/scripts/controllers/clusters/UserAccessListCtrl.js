@@ -18,8 +18,9 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UserAccessListCtrl',['$scope', '$location', 'Cluster', '$modal', '$rootScope', '$routeParams', 'PermissionSaver', 'Alert',
-function($scope, $location, Cluster, $modal, $rootScope, $routeParams, PermissionSaver, Alert) {
+.controller('UserAccessListCtrl',['$scope', '$location', 'Cluster', '$modal', '$rootScope', '$routeParams', 'PermissionSaver', 'Alert', '$translate',
+function($scope, $location, Cluster, $modal, $rootScope, $routeParams, PermissionSaver, Alert, $translate) {
+  var $t = $translate.instant;
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
@@ -88,7 +89,7 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
           $scope.loadUsers();
         })
         .catch(function(data) {
-          Alert.error('Cannot save permissions', data.data.message);
+          Alert.error($t('common.alerts.cannotSavePermissions'), data.data.message);
           $scope.loadUsers();
         });
       }
@@ -102,20 +103,20 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   };
 
   $scope.roleFilterOptions = [
-    {label: 'All', value: ''},
-    {label: 'Cluster User', value: 'CLUSTER.USER'},
-    {label:'Cluster Administrator', value: 'CLUSTER.ADMINISTRATOR'},
-    {label:'Cluster Operator', value: 'CLUSTER.OPERATOR'},
-    {label:'Service Administrator', value: 'SERVICE.ADMINISTRATOR'},
-    {label:'Service Operator', value: 'SERVICE.OPERATOR'}
+    {label: $t('common.all'), value: ''},
+    {label: $t('users.roles.clusterUser'), value: 'CLUSTER.USER'},
+    {label: $t('users.roles.clusterAdministrator'), value: 'CLUSTER.ADMINISTRATOR'},
+    {label: $t('users.roles.clusterOperator'), value: 'CLUSTER.OPERATOR'},
+    {label: $t('users.roles.serviceAdministrator'), value: 'SERVICE.ADMINISTRATOR'},
+    {label: $t('users.roles.serviceOperator'), value: 'SERVICE.OPERATOR'}
   ];
   $scope.currentRoleFilter = $scope.roleFilterOptions[0];
 
 
   $scope.typeFilterOptions = [
-    {label:'All', value:''},
-    {label:'Group', value:'GROUP'},
-    {label:'User', value:'USER'}
+    {label: $t('common.all'), value: ''},
+    {label:$t('common.group'), value: 'GROUP'},
+    {label: $t('common.user'), value: 'USER'}
   ];
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
 

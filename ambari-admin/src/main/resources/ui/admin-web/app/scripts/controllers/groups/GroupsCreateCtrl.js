@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'Alert', 'UnsavedDialog', function($scope, Group, $location, Alert, UnsavedDialog) {
+.controller('GroupsCreateCtrl',['$scope', 'Group', '$location', 'Alert', 'UnsavedDialog', '$translate', function($scope, Group, $location, Alert, UnsavedDialog, $translate) {
+  var $t = $translate.instant;
   $scope.group = new Group();
   var targetUrl = '/groups';
 
@@ -26,12 +27,12 @@ angular.module('ambariAdminConsole')
     $scope.form.submitted = true;
     if ($scope.form.$valid){
       $scope.group.save().then(function() {
-        Alert.success('Created group <a href="#/groups/' + $scope.group.group_name + '/edit">' + $scope.group.group_name + '</a>');
+        Alert.success($t('groups.alerts.groupCreated', {groupName: $scope.group.group_name}));
         $scope.form.$setPristine();
         $location.path(targetUrl);
       })
       .catch(function(data) {
-        Alert.error('Group creation error', data.data.message);
+        Alert.error($t('groups.alerts.groupCreationError'), data.data.message);
       });
     }
   };

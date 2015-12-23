@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-  .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', function($scope, User, $modal, $rootScope, UserConstants) {
+  .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', function($scope, User, $modal, $rootScope, UserConstants, $translate) {
+  var $t = $translate.instant;
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;
@@ -53,16 +54,16 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.actvieFilterOptions = [
-    {label: 'All', value: '*'}, 
-    {label: 'Active', value: true}, 
-    {label:'Inactive', value:false}
+    {label: $t('common.all'), value: '*'},
+    {label: $t('users.active'), value: true},
+    {label: $t('users.inactive'), value:false}
   ];
   $scope.currentActiveFilter = $scope.actvieFilterOptions[0];
 
-  $scope.typeFilterOptions = [{ label: 'All', value: '*'}]
+  $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
     .concat(Object.keys(UserConstants.TYPES).map(function(key) {
       return {
-        label: UserConstants.TYPES[key].NAME,
+        label: $t(UserConstants.TYPES[key].LABEL_KEY),
         value: UserConstants.TYPES[key].VALUE
       };
     }));

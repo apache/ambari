@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'Alert', 'UnsavedDialog', function($scope, $routeParams, User, $location, Alert, UnsavedDialog) {
+.controller('UsersCreateCtrl',['$scope', '$routeParams', 'User', '$location', 'Alert', 'UnsavedDialog', '$translate', function($scope, $routeParams, User, $location, Alert, UnsavedDialog, $translate) {
+  var $t = $translate.instant;
   $scope.user = {
     active: true
   };
@@ -33,11 +34,14 @@ angular.module('ambariAdminConsole')
         'Users/active': !!$scope.user.active,
         'Users/admin': !!$scope.user.admin
       }).then(function() {
-        Alert.success('Created user <a href="#/users/' + encodeURIComponent($scope.user.user_name) + '">' + $scope.user.user_name + "</a>");
+        Alert.success($t('users.alerts.userCreated', {
+          userName: $scope.user.user_name,
+          encUserName: encodeURIComponent($scope.user.user_name)
+        }));
         $scope.form.$setPristine();
         $location.path(targetUrl);
       }).catch(function(data) {
-        Alert.error('User creation error', data.data.message);
+        Alert.error($t('users.alerts.userCreationError'), data.data.message);
       });
     }
   };

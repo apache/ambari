@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View) {
+.controller('MainCtrl',['$scope','$rootScope','$window','Auth', 'Alert', '$modal', 'Cluster', 'View', '$translate', function($scope, $rootScope, $window, Auth, Alert, $modal, Cluster, View, $translate) {
+  var $t = $translate.instant;
   $scope.signOut = function() {
     Auth.signout().finally(function() {
       $window.location.pathname = '';
@@ -59,7 +60,7 @@ angular.module('ambariAdminConsole')
         setTimeout(loadClusterData, 1000);
       }
     }).catch(function(data) {
-      Alert.error('Cannot load cluster status', data.statusText);
+      Alert.error($t('common.alerts.cannotLoadClusterStatus'), data.statusText);
     });
   }
   loadClusterData();
@@ -111,9 +112,9 @@ angular.module('ambariAdminConsole')
           backdrop: false,
           controller: ['$scope', 'Auth', function($scope, Auth) {
             $scope.remainTime = 60;
-            $scope.title = 'Automatic Logout';
-            $scope.primaryText = 'Remain Logged In';
-            $scope.secondaryText = 'Log Out Now';
+            $scope.title = $t('main.autoLogOut');
+            $scope.primaryText = $t('main.controls.remainLoggedIn');
+            $scope.secondaryText = $t('main.controls.logOut');
             $scope.remain = function() {
               $rootScope.timeoutModal.close();
               delete $rootScope.timeoutModal;
