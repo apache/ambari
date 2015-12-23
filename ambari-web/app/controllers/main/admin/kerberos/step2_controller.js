@@ -74,14 +74,22 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend(App.KDCCred
    * On load function
    * @method loadStep
    */
+
   loadStep: function () {
     if (!App.StackService.find().someProperty('serviceName', 'KERBEROS') || !this.get('isConfigsLoaded')) {
       return;
     }
     this.clearStep();
-    //STEP 3: Merge pre-defined configs with loaded on-site configs
-    this.set('configs', App.configsCollection.getAll());
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
+    var stored = this.get('content.serviceConfigProperties');
+    var kerberosConfigTypes = Em.keys(App.config.get('preDefinedServiceConfigs').findProperty('serviceName', 'KERBEROS').get('configTypes'));
+
+    this.set('configs', stored || App.configsCollection.getAll().filter(function(configProperty) {
+      var fileName = Em.getWithDefault(configProperty, 'fileName', false);
+      var isService = ['KERBEROS'].contains(Em.get(configProperty, 'serviceName'));
+      var isFileName = fileName && kerberosConfigTypes.contains(App.config.getConfigTagFromFileName(fileName));
+      return isService || isFileName;
+    }));
 
     this.filterConfigs(this.get('configs'));
     if (App.get('supports.storeKDCCredentials') && !this.get('wizardController.skipClientInstall')) {
