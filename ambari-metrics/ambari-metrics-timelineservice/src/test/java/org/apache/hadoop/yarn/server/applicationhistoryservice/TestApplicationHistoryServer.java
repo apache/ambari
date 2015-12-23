@@ -157,7 +157,7 @@ public class TestApplicationHistoryServer {
     Connection connection = createNiceMock(Connection.class);
     Statement stmt = createNiceMock(Statement.class);
     mockStatic(DriverManager.class);
-    expect(DriverManager.getConnection("jdbc:phoenix:localhost:2181:/hbase"))
+    expect(DriverManager.getConnection("jdbc:phoenix:localhost:2181:/ams-hbase-unsecure"))
       .andReturn(connection).anyTimes();
     expect(connection.createStatement()).andReturn(stmt).anyTimes();
     suppress(method(Statement.class, "executeUpdate", String.class));

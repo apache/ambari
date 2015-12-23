@@ -844,7 +844,7 @@ public class UpgradeCatalog220Test {
     String result = (String) updateAmsEnvContent.invoke(upgradeCatalog220, oldContent);
     Assert.assertEquals(expectedContent, result);
   }
-  
+
   public void testUpdateKafkaConfigs() throws Exception {
     EasyMockSupport easyMockSupport = new EasyMockSupport();
     final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);

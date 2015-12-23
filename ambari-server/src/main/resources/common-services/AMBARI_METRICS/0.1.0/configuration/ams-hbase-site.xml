@@ -386,5 +386,9 @@
       </property>
     </depends-on>
   </property>
+  <property>
+    <name>zookeeper.znode.parent</name>
+    <value>/ams-hbase-unsecure</value>
+  </property>
 
 </configuration>

@@ -139,31 +139,6 @@
             "value": "{0} * 100"
           }
         }
-      },
-      {
-        "name": "ams_metrics_collector_zookeeper_server_process",
-        "label": "Metrics Collector - ZooKeeper Server Process",
-        "description": "This host-level alert is triggered if the Metrics Collector's ZooKeeper server process cannot be determined to be up and listening on the network.",
-        "interval": 1,
-        "scope": "ANY",
-        "source": {
-          "type": "PORT",
-          "uri": "{{ams-hbase-site/hbase.zookeeper.property.clientPort}}",
-          "default_port": 61181,
-          "reporting": {
-            "ok": {
-              "text": "TCP OK - {0:.3f}s response on port {1}"
-            },
-            "warning": {
-              "text": "TCP OK - {0:.3f}s response on port {1}",
-              "value": 1.5
-            },
-            "critical": {
-              "text": "Connection failed: {0} to {1}:{2}",
-              "value": 5.0
-            }
-          }
-        }
       }
     ],
     "METRICS_MONITOR": [
