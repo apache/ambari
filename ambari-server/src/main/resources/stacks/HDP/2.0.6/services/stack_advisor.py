@@ -459,6 +459,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
 
+    defaultFs = 'file:///'
+    if "core-site" in services["configurations"] and \
+      "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:
+      defaultFs = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
+
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
     hbaseClusterDistributed = False
@@ -482,7 +487,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         if host["Hosts"]["host_name"] == collectorHostName:
           mountpoints = self.getPreferredMountPoints(host["Hosts"])
           break
-    isLocalRootDir = rootDir.startswith("file://")
+    isLocalRootDir = rootDir.startswith("file://") or (defaultFs.startswith("file://") and rootDir.startswith("/"))
     if isLocalRootDir:
       rootDir = re.sub("^file:///|/", "", rootDir, count=1)
       rootDir = "file://" + os.path.join(mountpoints[0], rootDir)
@@ -542,7 +547,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
-    if rootDir.startswith("hdfs://"):
+    if rootDir.startswith("hdfs://") or (defaultFs.startswith("hdfs://") and rootDir.startswith("/")):
       dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
       if set(amsCollectorHosts).intersection(dn_hosts):
         collector_cohosted_with_dn = "true"
@@ -837,6 +842,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     ams_site = getSiteProperties(configurations, "ams-site")
+    core_site = getSiteProperties(configurations, "core-site")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
     recommendedDiskSpace = 10485760
@@ -855,10 +861,14 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     rootdir_item = None
     op_mode = ams_site.get("timeline.metrics.service.operation.mode")
+    default_fs = core_site.get("fs.defaultFS") if core_site else "file:///"
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
-    if op_mode == "distributed" and hbase_rootdir.startswith("file://"):
+    is_local_root_dir = hbase_rootdir.startswith("file://") or (default_fs.startswith("file://") and hbase_rootdir.startswith("/"))
+    if op_mode == "distributed" and is_local_root_dir:
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
+    elif op_mode == "embedded" and hbase_rootdir.startswith('/'):
+      rootdir_item = self.getWarnItem("In embedded mode schemaless values are not supported for hbase.rootdir")
       pass
 
     distributed_item = None
@@ -885,13 +895,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for collectorHostName in amsCollectorHosts:
       for host in hosts["items"]:
         if host["Hosts"]["host_name"] == collectorHostName:
-          if op_mode == 'embedded':
+          if op_mode == 'embedded' or is_local_root_dir:
             validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorEnoughDiskSpace(properties, 'hbase.rootdir', host["Hosts"], recommendedDiskSpace)}])
             validationItems.extend([{"config-name": 'hbase.rootdir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.rootdir', host["Hosts"])}])
             validationItems.extend([{"config-name": 'hbase.tmp.dir', "item": self.validatorNotRootFs(properties, recommendedDefaults, 'hbase.tmp.dir', host["Hosts"])}])
 
           dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
-          if not hbase_rootdir.startswith("hdfs"):
+          if is_local_root_dir:
             mountPoints = []
             for mountPoint in host["Hosts"]["disk_info"]:
               mountPoints.append(mountPoint["mountpoint"])
