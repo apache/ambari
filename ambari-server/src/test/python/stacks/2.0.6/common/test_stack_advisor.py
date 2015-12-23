@@ -1227,6 +1227,11 @@ class TestHDP206StackAdvisor(TestCase):
           'dfs.datanode.data.dir': "/hadoop/data"
         }
       },
+      "core-site": {
+        "properties": {
+          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
+        }
+      },
       "ams-site": {
         "properties": {
           "timeline.metrics.service.operation.mode": "embedded"
