@@ -40,3 +40,7 @@ java_home = config["hostLevelParams"]["java_home"] if "java_home" in config["hos
 
 # Timeouts
 default_exec_timeout = 600
+
+# security related
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+realm_name = config['configurations']['kerberos-env']['realm']
