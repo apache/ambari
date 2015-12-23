@@ -45,6 +45,7 @@ PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
+AGENT_TMP_DIR=/var/lib/ambari-agent/tmp
 AMBARI_AGENT_PY_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/AmbariAgent.py
 OK=1
 NOTOK=0
@@ -58,6 +59,9 @@ if [ "$EUID" -ne 0 ] ; then
     exit 0
   fi
 fi
+
+# set reliable cwd for this and child processes.
+cd $AGENT_TMP_DIR
 
 keysdir=$(awk -F "=" '/keysdir/ {print $2}' /etc/ambari-agent/conf/ambari-agent.ini)
 # trim spaces
