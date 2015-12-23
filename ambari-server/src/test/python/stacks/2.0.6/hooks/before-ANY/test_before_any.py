@@ -186,11 +186,8 @@ class TestHookBeforeInstall(RMFTestCase):
                               mode = 0755,
                               cd_access = "a",
                               )
-    self.assertResourceCalled('Execute', ('chgrp', '-R', u'hadoop', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
-    self.assertResourceCalled('Execute', ('chown', '-R', 'some_user', u'/usr/jdk64/jdk1.7.0_45'),
-                              sudo = True,
-                              )
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/usr/jdk64/jdk1.7.0_45'),
+      sudo = True,
+    )
 
     self.assertNoMoreResources()

@@ -211,9 +211,6 @@ def setup_java():
          cd_access="a",
          )
 
-    Execute(("chgrp","-R", params.user_group, params.java_home),
-            sudo = True,
-            )
-    Execute(("chown","-R", getpass.getuser(), params.java_home),
-            sudo = True,
-            )
+    Execute(('chmod', '-R', '755', params.java_home),
+      sudo = True,
+    )
