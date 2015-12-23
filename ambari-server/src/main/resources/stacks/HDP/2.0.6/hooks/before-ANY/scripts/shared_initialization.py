@@ -211,8 +211,6 @@ def setup_java():
          mode=0755,
          cd_access="a",
          )
-    Directory(params.java_home,
-              owner = getpass.getuser(),
-              group = params.user_group,
-              recursive_ownership = True,
+    Execute(('chmod', '-R', '755', params.java_home),
+      sudo = True,
     )

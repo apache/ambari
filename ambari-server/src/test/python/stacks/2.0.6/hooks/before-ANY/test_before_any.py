@@ -189,10 +189,8 @@ class TestHookBeforeInstall(RMFTestCase):
                               mode = 0755,
                               cd_access = "a",
                               )
-    self.assertResourceCalled('Directory', '/usr/jdk64/jdk1.7.0_45',
-        owner = 'some_user',
-        group = 'hadoop',
-        recursive_ownership = True,
+    self.assertResourceCalled('Execute', ('chmod', '-R', '755', u'/usr/jdk64/jdk1.7.0_45'),
+      sudo = True,
     )
 
     self.assertNoMoreResources()
