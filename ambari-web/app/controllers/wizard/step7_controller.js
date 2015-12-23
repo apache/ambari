@@ -485,7 +485,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           if (!Em.get(serviceConfig, 'overrides')) Em.set(serviceConfig, 'overrides', []);
           serviceConfig.overrides.pushObject({value: hostOverrideValue, group: group, isFinal: hostOverrideIsFinal});
         } else {
-          params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, config, group));
+          params.serviceConfigs.push(App.config.createCustomGroupConfig(prop, fileName, config.properties[prop], group));
         }
       }
     });
@@ -707,27 +707,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
     this.loadServerSideConfigsRecommendations().always(function() {
-      self.updateConfigsRecommendations();
+      if (self.get('wizardController.name') == 'addServiceController') {
+        // for Add Service just remove or add dependent properties and ignore config values changes
+        // for installed services only
+        self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
+      }
       self.completeConfigLoading();
     });
-  },
-
-  /**
-   * update dependent configs based on recommendations from
-   * stack adviser
-   *
-   * @method updateConfigsRecommendations
-   */
-  updateConfigsRecommendations: function() {
-    if (this.get('wizardController.name') == 'addServiceController') {
-      // for Add Service just remove or add dependent properties and ignore config values changes
-      // for installed services only
-      this.clearDependenciesForInstalledServices(this.get('installedServiceNames'), this.get('stepConfigs'));
-    }
-    // * add dependencies based on recommendations
-    // * update config values with recommended
-    // * remove properties received from recommendations
-    this.updateDependentConfigs();
   },
 
   completeConfigLoading: function() {

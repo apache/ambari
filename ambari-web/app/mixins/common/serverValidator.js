@@ -174,10 +174,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @param data
    */
   loadRecommendationsSuccess: function(data) {
-    this._saveRecommendedValues(data);
-    var configObject = data.resources[0].recommendations.blueprint.configurations;
-    if (configObject) this.updateInitialValue(configObject);
+    this._saveRecommendedValues(data, false, null, false, true);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
+    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   loadRecommendationsError: function(jqXHR, ajaxOptions, error, opt) {
@@ -186,7 +185,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   serverSideValidation: function () {
     var deferred = $.Deferred();
-    var self = this;
     this.set('configValidationFailed', false);
     this.set('configValidationGlobalMessage', []);
     if (this.get('configValidationFailed')) {

@@ -57,11 +57,16 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
     }),
     onPrimary: function () {
       this._super();
+      var propertiesToUpdate = this.get('configs').filter(function(c) {
+        return Em.get(c, 'saveRecommendedDefault') != Em.get(c, 'saveRecommended');
+      }),
+        propertiesToUndo = propertiesToUpdate.filterProperty('saveRecommended', false),
+        propertiesToRedo = propertiesToUpdate.filterProperty('saveRecommended', true);
       this.get('configs').forEach(function (c) {
         Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
       });
       if (primary) {
-        primary();
+        primary(propertiesToUndo, propertiesToRedo);
       }
     },
     onSecondary: function() {

@@ -114,8 +114,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
   restoreDependentConfigs: function(parentConfig) {
     var controller = this.get('controller');
     var dependentConfigs = controller.get('_dependentConfigValues');
-    if (controller.updateDependentConfigs) {
-      controller.updateDependentConfigs();
+    try {
       controller.set('_dependentConfigValues', dependentConfigs.reject(function(item) {
         if (item.parentConfigs.contains(parentConfig.get('name'))) {
           if (item.parentConfigs.length > 1) {
@@ -131,6 +130,8 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
         }
         return false;
       }));
+    } catch(e) {
+      console.warn('Dependent properties popup was not cleared');
     }
   }
 
