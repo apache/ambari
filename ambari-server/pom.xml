@@ -1231,6 +1231,8 @@
         <version>3.0.3</version>
         <configuration>
           <failOnError>false</failOnError>
+          <threshold>Low</threshold>
+          <findbugsXmlOutputDirectory>${project.basedir}/target/findbugs</findbugsXmlOutputDirectory>
         </configuration>
         <executions>
           <execution>
@@ -1240,6 +1242,41 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>xml-maven-plugin</artifactId>
+        <version>1.0</version>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>transform</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <transformationSets>
+            <transformationSet>
+              <dir>${project.basedir}/target/findbugs</dir>
+              <outputDir>${project.basedir}/target/findbugs</outputDir>
+              <stylesheet>fancy-hist.xsl</stylesheet>
+              <fileMappers>
+                <fileMapper
+                        implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                  <targetExtension>.html</targetExtension>
+                </fileMapper>
+              </fileMappers>
+            </transformationSet>
+          </transformationSets>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs</artifactId>
+            <version>2.0.0</version>
+          </dependency>
+        </dependencies>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
