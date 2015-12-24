@@ -70,6 +70,7 @@ namenode_host= __get_namenode_host()
 # YARN
 # Note: YARN is not mandatory for HAWQ. It is required only when the users set HAWQ to use YARN as resource manager
 rm_host = __get_component_host('rm_host')
+yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
 
 # Config files
 gpcheck_content = config['configurations']['gpcheck-env']['content']
@@ -79,6 +80,7 @@ hawq_limits = config['configurations']['hawq-limits-env']
 hawq_sysctl = config['configurations']['hawq-sysctl-env']
 
 hawq_site = config['configurations']['hawq-site']
+yarn_client = config['configurations']['yarn-client']
 hawq_master_dir = hawq_site.get('hawq_master_directory')
 hawq_segment_dir = hawq_site.get('hawq_segment_directory')
 hawq_master_temp_dir = hawq_site.get('hawq_master_temp_directory')
@@ -88,5 +90,3 @@ hawq_segment_temp_dir = hawq_site.get('hawq_segment_temp_directory')
 hawq_hdfs_data_dir = "/{0}".format(hawq_site.get('hawq_dfs_url').split('/', 1)[1])
 hawq_master_address_port = hawq_site.get('hawq_master_address_port')
 hawq_segment_address_port = hawq_site.get('hawq_segment_address_port')
-
-
