@@ -2012,6 +2012,12 @@ describe('App.InstallerStep7Controller', function () {
         configToUpdate: 'instance.volumes',
         oldValue: 'hdfs://localhost:8020/apps/accumulo/data',
         expectedNewValue: 'hdfs://' + dfsNameservices + '/apps/accumulo/data'
+      },
+      {
+        serviceName: 'HAWQ',
+        configToUpdate: 'hawq_dfs_url',
+        oldValue: 'localhost:8020/hawq_data',
+        expectedNewValue: dfsNameservices + '/hawq_data'
       }
     ]).forEach(function (test) {
       it(test.serviceName + ' ' + test.configToUpdate, function () {

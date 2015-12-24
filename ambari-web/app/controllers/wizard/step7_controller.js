@@ -965,12 +965,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       {
         serviceName: 'ACCUMULO',
         configToUpdate: 'instance.volumes'
+      },
+      {
+        serviceName: 'HAWQ',
+        configToUpdate: 'hawq_dfs_url',
+        regexPattern: /(^.*:[0-9]+)(?=\/)/,
       }
     ]).forEach(function (c) {
       if (selectedServiceNames.contains(c.serviceName) && nameServiceId) {
-        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate),
-          newValue = cfg.get('value').replace(/\/\/.*:[0-9]+/i, '//' + nameServiceId.get('value'));
-
+        var cfg = serviceConfigs.findProperty('serviceName', c.serviceName).configs.findProperty('name', c.configToUpdate);
+        var regexPattern = /\/\/.*:[0-9]+/i;
+        var replacementValue = '//' + nameServiceId.get('value');
+        if (typeof(c.regexPattern) !== "undefined") {
+          regexPattern = c.regexPattern;
+          replacementValue = nameServiceId.get('value');
+        }
+        var newValue = cfg.get('value').replace(regexPattern, replacementValue);
         cfg.setProperties({
           value: newValue,
           recommendedValue: newValue
