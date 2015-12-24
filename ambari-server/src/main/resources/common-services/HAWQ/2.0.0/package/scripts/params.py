@@ -52,6 +52,7 @@ hostname = config['hostname']
 # Users and Groups
 hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
+hawq_password = config['configurations']['hawq-env']['hawq_password']
 
 # HAWQ Hostnames
 hawqmaster_host = __get_component_host('hawqmaster_hosts')

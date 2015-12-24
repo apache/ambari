@@ -29,7 +29,6 @@ YARN = "yarn"
 root_user = "root"
 hawq_user = "gpadmin"
 hawq_group = hawq_user
-hawq_password = hawq_user
 
 # Directories
 hawq_home_dir = "/usr/local/hawq/"

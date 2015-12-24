@@ -20,6 +20,7 @@ from resource_management.core.resources.system import File, Execute
 from resource_management.core.source import Template
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.format import format
 
 import utils
 import common
@@ -45,7 +46,8 @@ def __setup_passwordless_ssh():
   """
   Exchanges ssh keys to setup passwordless ssh for the hawq_user between the HAWQ Master and the HAWQ Segment nodes
   """
-  utils.exec_hawq_operation("ssh-exkeys", "-f {0} -p {1}".format(constants.hawq_hosts_file, constants.hawq_password))
+  import params
+  utils.exec_hawq_operation("ssh-exkeys", format('-f {hawq_hosts_file} -p {hawq_password!p}', hawq_hosts_file=constants.hawq_hosts_file, hawq_password=params.hawq_password))
 
   File(constants.hawq_hosts_file, action='delete')
 
