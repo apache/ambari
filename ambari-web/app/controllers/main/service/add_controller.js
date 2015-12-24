@@ -70,7 +70,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     controllerName: 'addServiceController',
     configGroups: [],
     clients: [],
-    additionalClients: []
+    additionalClients: [],
+    installedHosts: {}
   }),
 
   loadMap: {
@@ -337,6 +338,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         });
       });
     }
+
+    this.set('content.installedHosts', this.getDBProperty('hosts') || this.get('content.hosts'));
     this.set("content.slaveComponentHosts", slaveComponentHosts);
   },
 
