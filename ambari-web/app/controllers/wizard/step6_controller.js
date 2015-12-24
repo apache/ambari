@@ -411,9 +411,8 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
    * @method renderSlaves
    */
   renderSlaves: function (hostsObj) {
-    var headers = this.get('headers');
-    var clientHeaders = headers.findProperty('name', 'CLIENT');
     var slaveComponents = this.get('content.slaveComponentHosts');
+
     if (!slaveComponents) { // we are at this page for the first time
       var recommendations = this.get('content.recommendations');
       // Get all host-component pairs from recommendations
