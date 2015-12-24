@@ -413,67 +413,106 @@ App.WizardStep6Controller = Em.Controller.extend(App.BlueprintMixin, {
   renderSlaves: function (hostsObj) {
     var slaveComponents = this.get('content.slaveComponentHosts');
 
-    if (!slaveComponents) { // we are at this page for the first time
-      var recommendations = this.get('content.recommendations');
-      // Get all host-component pairs from recommendations
-      var componentHostPairs = recommendations.blueprint.host_groups.map(function (group) {
-        return group.components.map(function (component) {
-          return recommendations.blueprint_cluster_binding.host_groups.findProperty('name', group.name).hosts.map(function (host) {
-            return { component: component.name, host: host.fqdn};
-          });
-        });
-      });
-
-      // Flatten results twice because of two map() call before
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-      componentHostPairs = [].concat.apply([], componentHostPairs);
-
-      var clientComponents = App.get('components.clients');
-
-      hostsObj.forEach(function (host) {
-        var checkboxes = host.checkboxes;
-        checkboxes.forEach(function (checkbox) {
-          var recommended = componentHostPairs.some(function (pair) {
-            var componentMatch = pair.component === checkbox.component;
-            if (checkbox.component === 'CLIENT' && !componentMatch) {
-              componentMatch = clientComponents.contains(pair.component);
-            }
-            return pair.host === host.hostName && componentMatch;
-          });
-          checkbox.checked = recommended;
-        });
-      });
+    if (Em.isNone(slaveComponents)) { // we are at this page for the first time
+      this.selectRecommendedComponents(hostsObj);
+      this.setInstalledComponents(hostsObj);
     } else {
-
-      var slaveComponentsMap = {};
-      slaveComponents.forEach(function(slave) {
-        slaveComponentsMap[Em.get(slave, 'componentName')] = slave;
-      });
-      var hostsObjMap = {};
-      hostsObj.forEach(function(host) {
-        hostsObjMap[Em.get(host, 'hostName')] = host;
-      });
-
-      this.get('headers').forEach(function (header) {
-        var nodes = slaveComponentsMap[header.get('name')];
-        if (nodes) {
-          nodes.hosts.forEach(function (_node) {
-            var node = hostsObjMap[_node.hostName];
-            if (node) {
-              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'checked', true);
-              Em.set(node.checkboxes.findProperty('title', header.get('label')), 'isInstalled', _node.isInstalled);
-            }
-          });
-        }
-      });
+      this.restoreComponentsSelection(hostsObj, slaveComponents);
     }
     this.selectClientHost(hostsObj);
     return hostsObj;
   },
 
+  /**
+   * set installed flag of host-components
+   * @param {Array} hostsObj
+   * @returns {boolean}
+   */
+  setInstalledComponents: function(hostsObj) {
+    if (Em.isNone(this.get('content.installedHosts'))) return false;
+    var hosts = this.get('content.installedHosts');
+
+    hostsObj.forEach(function(host) {
+      var installedHost = hosts[host.hostName];
+      var installedComponents = (installedHost) ?
+        installedHost.hostComponents.mapProperty('HostRoles.component_name') : [];
+
+      host.checkboxes.forEach(function(checkbox) {
+        checkbox.isInstalled = installedComponents.contains(checkbox.component);
+      });
+    });
+  },
 
   /**
-   *
+   * restore previous component selection
+   * @param {Array} hostsObj
+   * @param {Array} slaveComponents
+   */
+  restoreComponentsSelection: function(hostsObj, slaveComponents) {
+    var slaveComponentsMap = {};
+    var hostsObjMap = {};
+
+    slaveComponents.forEach(function(c) {
+      slaveComponentsMap[c.componentName] = c;
+    });
+    hostsObj.forEach(function(h) {
+      hostsObjMap[h.hostName] = h;
+    });
+
+    this.get('headers').forEach(function (header) {
+      var slaveComponent = slaveComponentsMap[header.get('name')];
+      if (slaveComponent) {
+        slaveComponent.hosts.forEach(function (_node) {
+          var node = hostsObjMap[_node.hostName];
+          if (node) {
+            Em.set(node.checkboxes.findProperty('title', header.get('label')), 'checked', true);
+            Em.set(node.checkboxes.findProperty('title', header.get('label')), 'isInstalled', _node.isInstalled);
+          }
+        });
+      }
+    });
+  },
+
+  /**
+   * select component which should be checked according to recommendations
+   * @param hostsObj
+   */
+  selectRecommendedComponents: function(hostsObj) {
+    var recommendations = this.get('content.recommendations'),
+      recommendedMap = {},
+      clientComponentsMap = {};
+
+    App.get('components.clients').forEach(function(componentName) {
+      clientComponentsMap[componentName] = true;
+    });
+
+    recommendations.blueprint.host_groups.forEach(function(hostGroup) {
+      var group = recommendations.blueprint_cluster_binding.host_groups.findProperty('name', hostGroup.name);
+      var hosts = group.hosts || [];
+
+      hosts.forEach(function (host) {
+        recommendedMap[host.fqdn] = hostGroup.components.mapProperty('name');
+      });
+    });
+
+    hostsObj.forEach(function (host) {
+      var checkboxes = host.checkboxes;
+      var hostComponents = recommendedMap[host.hostName] || [];
+      checkboxes.forEach(function (checkbox) {
+        var checked = hostComponents.contains(checkbox.component);
+
+        if (checkbox.component === 'CLIENT' && !checked) {
+          checked = hostComponents.some(function(componentName) {
+            return clientComponentsMap[componentName];
+          });
+        }
+        checkbox.checked = checked;
+      });
+    });
+  },
+
+  /**
+   * For clients - select first non-master host, if all has masters then last host
    * @param hostsObj
    */
   selectClientHost: function (hostsObj) {

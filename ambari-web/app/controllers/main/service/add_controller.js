@@ -66,6 +66,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     configGroups: [],
     clients: [],
     additionalClients: [],
+    installedHosts: {},
     smokeuser: "ambari-qa",
     group: "hadoop"
   }),
@@ -336,6 +337,8 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
         });
       });
     }
+
+    this.set('content.installedHosts', this.getDBProperty('hosts') || this.get('content.hosts'));
     this.set("content.slaveComponentHosts", slaveComponentHosts);
     console.log("AddServiceController.loadSlaveComponentHosts: loaded hosts ", slaveComponentHosts);
   },
