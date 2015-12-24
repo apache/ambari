@@ -84,9 +84,6 @@ class HawqSegment(Script):
     utils.create_dir_as_hawq_user(params.hawq_segment_dir)
     utils.create_dir_as_hawq_user(params.hawq_segment_temp_dir.split(','))
 
-    Execute("chown {0}:{1} {2}".format(constants.hawq_user, constants.hawq_group, os.path.dirname(params.hawq_segment_dir)),
-            user=constants.root_user, timeout=constants.default_exec_timeout)
-
     # Initialize hawq segment
     utils.exec_hawq_operation(constants.INIT, "{0} -a -v".format(constants.SEGMENT))
 
