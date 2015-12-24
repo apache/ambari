@@ -108,8 +108,20 @@ def setup_ranger_admin(upgrade_type=None):
 
   if os.path.isfile(params.ranger_admin_default_file):
     File(params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group)
+  else:
+    Logger.warning('Required file {0} does not exist, copying the file to {1} path'.format(params.ranger_admin_default_file, ranger_conf))
+    src_file = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/ranger-admin-default-site.xml')
+    dst_file = format('{ranger_home}/conf/ranger-admin-default-site.xml')
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
+    File(params.ranger_admin_default_file, owner=params.unix_user, group=params.unix_group)
 
   if os.path.isfile(params.security_app_context_file):
+    File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
+  else:
+    Logger.warning('Required file {0} does not exist, copying the file to {1} path'.format(params.security_app_context_file, ranger_conf))
+    src_file = format('{ranger_home}/ews/webapp/WEB-INF/classes/conf.dist/security-applicationContext.xml')
+    dst_file = format('{ranger_home}/conf/security-applicationContext.xml')
+    Execute(('cp', '-f', src_file, dst_file), sudo=True)
     File(params.security_app_context_file, owner=params.unix_user, group=params.unix_group)
 
   Execute(('ln','-sf', format('{ranger_home}/ews/ranger-admin-services.sh'),'/usr/bin/ranger-admin'),
