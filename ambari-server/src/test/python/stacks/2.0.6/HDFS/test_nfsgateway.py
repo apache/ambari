@@ -209,6 +209,10 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
+    self.assertResourceCalled('Directory', '/tmp/.hdfs-nfs',
+        owner = 'hdfs',
+        group = 'hadoop',
+    )
 
 
   def assert_configure_secured(self):
@@ -254,6 +258,10 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
+    self.assertResourceCalled('Directory', '/tmp/.hdfs-nfs',
+        owner = 'hdfs',
+        group = 'hadoop',
+    )
 
 
 
