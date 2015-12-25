@@ -293,21 +293,30 @@ describe('App.WizardStep5Controller', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.m, function () {
-        sinon.stub(App.StackServiceComponent, 'find', function () {
-          return test.serviceComponents;
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.StackServiceComponent, 'find', function () {
+            return test.serviceComponents;
+          });
+          c.reopen({
+            content: Em.Object.create({
+              controllerName: test.controllerName
+            }),
+            selectedServicesMasters: test.selectedServicesMasters,
+            hosts: test.hosts
+          });
+          c.updateComponent(test.componentName);
         });
-        c.reopen({
-          content: Em.Object.create({
-            controllerName: test.controllerName
-          }),
-          selectedServicesMasters: test.selectedServicesMasters,
-          hosts: test.hosts
+
+        afterEach(function () {
+          App.StackServiceComponent.find.restore();
         });
-        c.updateComponent(test.componentName);
-        App.StackServiceComponent.find.restore();
+
         Em.keys(test.e).forEach(function (k) {
-          expect(c.last(test.componentName).get(k)).to.equal(test.e[k]);
+          it(k, function () {
+            expect(c.last(test.componentName).get(k)).to.equal(test.e[k]);
+          });
         });
 
       });
@@ -372,32 +381,52 @@ describe('App.WizardStep5Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      beforeEach(function () {
-        App.reopen({isHaEnabled: test.isHaEnabled});
-      });
-      it(test.m, function () {
-        modelSetup.setupStackServiceComponent();
-        sinon.stub(App.StackService, 'find', function () {
-          return test.services;
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          sinon.stub(App, 'get').withArgs('isHaEnabled').returns(test.isHaEnabled);
+          sinon.stub(App.StackService, 'find', function () {
+            return test.services;
+          });
+          modelSetup.setupStackServiceComponent();
+          c.reopen({
+            content: Em.Object.create({
+              services: test.services,
+              controllerName: test.controllerName,
+              reassign: {component_name: test.component_name}
+            })
+          });
+          c.renderComponents(test.masterComponents);
         });
-        App.set('isHaEnabled', test.isHaEnabled);
-        c.reopen({
-          content: Em.Object.create({
-            services: test.services,
-            controllerName: test.controllerName,
-            reassign: {component_name: test.component_name}
-          })
+
+        afterEach(function () {
+          App.get.restore();
+          App.StackService.find.restore();
+          modelSetup.cleanStackServiceComponent();
         });
-        c.renderComponents(test.masterComponents);
-        App.StackService.find.restore();
-        modelSetup.cleanStackServiceComponent();
-        expect(c.get('selectedServicesMasters').mapProperty('component_name')).to.eql(test.e.selectedServicesMasters);
-        expect(c.get('servicesMasters').mapProperty('component_name')).to.eql(test.e.servicesMasters);
-        expect(c.get('selectedServicesMasters').mapProperty('showRemoveControl')).to.eql(test.e.showRemoveControl);
-        expect(c.get('selectedServicesMasters').mapProperty('serviceComponentId')).to.eql(test.e.serviceComponentId);
-        if (c.get('isReasignController')) {
-          expect(c.get('servicesMasters').mapProperty('isInstalled')).to.eql(test.e.isInstalled);
-        }
+
+        it('all selectedServicesMasters.component_name are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('component_name')).to.eql(test.e.selectedServicesMasters);
+        });
+
+        it('all servicesMasters.component_name are valid', function () {
+          expect(c.get('servicesMasters').mapProperty('component_name')).to.eql(test.e.servicesMasters);
+        });
+
+        it('all showRemoveControl are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('showRemoveControl')).to.eql(test.e.showRemoveControl);
+        });
+
+        it('all serviceComponentId are valid', function () {
+          expect(c.get('selectedServicesMasters').mapProperty('serviceComponentId')).to.eql(test.e.serviceComponentId);
+        });
+
+        it('servicesMasters.@each.isInstalled is valid', function () {
+          if (c.get('isReasignController')) {
+            expect(c.get('servicesMasters').mapProperty('isInstalled')).to.eql(test.e.isInstalled);
+          }
+        });
+
       });
     });
   });
@@ -528,15 +557,34 @@ describe('App.WizardStep5Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      it(test.m, function () {
-        c.set('selectedServicesMasters', test.selectedServicesMasters);
-        c.set('hosts', test.hosts);
-        expect(c.removeComponent(test.componentName, test.serviceComponentId)).to.equal(test.e);
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          c.set('selectedServicesMasters', JSON.parse(JSON.stringify(test.selectedServicesMasters)));
+          c.set('hosts', test.hosts);
+          this.result = c.removeComponent(test.componentName, test.serviceComponentId);
+        });
+
+        it('removeComponent returns ' + test.e, function () {
+          expect(this.result).to.equal(test.e);
+        });
+
         if (test.e) {
-          expect(c.get('selectedServicesMasters.lastObject.showRemoveControl')).to.equal(test.showRemoveControl);
-          expect(c.get('selectedServicesMasters.lastObject.showAddControl')).to.equal(test.showAddControl);
-          expect(c.get('componentToRebalance')).to.equal(test.componentName);
-          expect(c.get('lastChangedComponent')).to.equal(test.componentName);
+          it('showRemoveControl is correct', function () {
+            expect(c.get('selectedServicesMasters.lastObject.showRemoveControl')).to.equal(test.showRemoveControl);
+          });
+
+          it('showAddControl is correct', function () {
+            expect(c.get('selectedServicesMasters.lastObject.showAddControl')).to.equal(test.showAddControl);
+          });
+
+          it('componentToRebalance is correct', function () {
+            expect(c.get('componentToRebalance')).to.equal(test.componentName);
+          });
+
+          it('lastChangedComponent is correct', function () {
+            expect(c.get('lastChangedComponent')).to.equal(test.componentName);
+          });
         }
       })
     });
@@ -641,17 +689,26 @@ describe('App.WizardStep5Controller', function () {
           ]
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          c.reopen({
-            selectedServicesMasters: test.selectedServicesMasters,
-            hosts: test.hosts
+        describe(test.m, function () {
+          var result;
+          beforeEach(function () {
+            c.reopen({
+              selectedServicesMasters: test.selectedServicesMasters,
+              hosts: test.hosts
+            });
+            result = c.get('masterHostMapping');
           });
-          var result = c.get('masterHostMapping');
-          expect(result.length).to.equal(test.e.length);
-          result.forEach(function (r, i) {
-            expect(r.get('host_name')).to.equal(test.e[i].host_name);
-            expect(r.get('masterServices.length')).to.equal(test.e[i].masterServices.length);
-            expect(r.get('hostInfo')).to.be.an.object;
+
+          it('all needed hosts are mapped', function () {
+            expect(result.length).to.equal(test.e.length);
+          });
+
+          it('all needed hosts have valid data', function () {
+            result.forEach(function (r, i) {
+              expect(r.get('host_name')).to.equal(test.e[i].host_name);
+              expect(r.get('masterServices.length')).to.equal(test.e[i].masterServices.length);
+              expect(r.get('hostInfo')).to.be.an.object;
+            });
           });
         });
       });
@@ -959,13 +1016,20 @@ describe('App.WizardStep5Controller', function () {
           }
         }
       ]).forEach(function (test, i) {
-        it('test #' + i, function () {
-          sinon.stub(App.StackServiceComponent, 'find', function () {
-            return test.stackServiceComponents;
+        describe('test #' + i, function () {
+
+          beforeEach(function () {
+            sinon.stub(App.StackServiceComponent, 'find', function () {
+              return test.stackServiceComponents;
+            });
+            c.set('mastersToMove', test.mastersToMove);
+            c.set('content', {controllerName: test.controllerName});
           });
-          c.set('mastersToMove', test.mastersToMove);
-          c.set('content', {controllerName: test.controllerName});
-          expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
+
+          it('component-object is valid', function () {
+            expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
+          });
+
         });
       });
 
@@ -1122,7 +1186,7 @@ describe('App.WizardStep5Controller', function () {
       App.HostComponent.find.restore();
     });
 
-    it('should map messages to generalErrorMessages, generalWarningMessages', function() {
+    describe('should map messages to generalErrorMessages, generalWarningMessages', function() {
 
       var data = [
           {
@@ -1159,14 +1223,31 @@ describe('App.WizardStep5Controller', function () {
           Em.Object.create({selectedHost: 'h2', component_name: 'c2'})
         ];
 
-      c.set('servicesMasters', servicesMasters);
-      c.updateValidationsSuccessCallback({resources: [{items: data}]});
+      beforeEach(function () {
+        c.set('servicesMasters', servicesMasters);
+        c.updateValidationsSuccessCallback({resources: [{items: data}]});
+      });
 
-      expect(c.get('submitDisabled')).to.equal(false);
-      expect(c.get('servicesMasters').findProperty('component_name', 'c1').get('errorMessage')).to.equal('m1');
-      expect(c.get('servicesMasters').findProperty('component_name', 'c2').get('warnMessage')).to.equal('m2');
-      expect(c.get('generalErrorMessages')).to.be.empty;
-      expect(c.get('generalWarningMessages')).to.be.empty;
+      it('submitDisabled is false', function () {
+        expect(c.get('submitDisabled')).to.equal(false);
+      });
+
+      it('errorMessage for c1 is `m1`', function () {
+        expect(c.get('servicesMasters').findProperty('component_name', 'c1').get('errorMessage')).to.equal('m1');
+      });
+
+      it('errorMessage for c2 is `m2`', function () {
+        expect(c.get('servicesMasters').findProperty('component_name', 'c2').get('warnMessage')).to.equal('m2');
+      });
+
+      it('no general errors', function () {
+        expect(c.get('generalErrorMessages')).to.be.empty;
+      });
+
+      it('no general warnings', function () {
+        expect(c.get('generalWarningMessages')).to.be.empty;
+      });
+
     });
 
   });

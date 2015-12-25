@@ -43,16 +43,12 @@ describe('hdp2SiteProperties', function () {
      * showLabel
      * unit
      */
-    it('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Stack driven attributes should be undefined ', function () {
-      expect(siteProperty.isVisible).to.equal(undefined);
-      expect(siteProperty.value).to.equal(undefined);
-      expect(siteProperty.recommendedValue).to.equal(undefined);
-      expect(siteProperty.description).to.equal(undefined);
-      expect(siteProperty.isReconfigurable).to.equal(undefined);
-      expect(siteProperty.isRequired).to.equal(undefined);
-      expect(siteProperty.displayName).to.equal(undefined);
-      expect(siteProperty.showLabel).to.equal(undefined);
-      expect(siteProperty.unit).to.equal(undefined);
+    describe('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Stack driven attributes should be undefined ', function () {
+      ['isVisible', 'value', 'recommendedValue', 'description', 'isReconfigurable', 'isRequired', 'displayName', 'showLabel', 'unit'].forEach(function (p) {
+        it(p, function () {
+          expect(siteProperty[p]).to.not.exist;
+        });
+      });
     });
 
     /**
@@ -68,9 +64,13 @@ describe('hdp2SiteProperties', function () {
      * name
      * filename
      */
-    it('Check primary attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Attributes that uniquely represent a property should be defined ', function () {
-      expect(siteProperty.name).to.not.equal(undefined);
-      expect(siteProperty.filename).to.not.equal(undefined);
+    describe('Check primary attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Attributes that uniquely represent a property should be defined ', function () {
+      it('name', function () {
+        expect(siteProperty.name).to.not.equal(undefined);
+      });
+      it('filename', function () {
+        expect(siteProperty.filename).to.not.equal(undefined);
+      });
     });
   });
 

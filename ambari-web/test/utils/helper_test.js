@@ -239,10 +239,7 @@ describe('utils/helper', function() {
         expect(App.isEmptyObject({ a: 1 })).to.eql(false);
       });
     });
-    describe('#parseJSON()', function(){
-      var testable = '{"hello": "world"}';
-      expect(App.parseJSON(testable).hello).to.eql('world');
-    });
+
     describe('#tooltip()', function() {
       beforeEach(appendDiv);
       afterEach(removeDiv);

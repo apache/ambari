@@ -397,14 +397,12 @@ describe('App.InstallerStep9Controller', function () {
       var loaded_hosts = c.get('hosts');
       expect(loaded_hosts.length).to.equal(2);
     });
+
     it('All hosts have progress 0', function () {
       var loaded_hosts = c.get('hosts');
       expect(loaded_hosts.everyProperty('progress', 0)).to.equal(true);
     });
-    it('All hosts have progress 0', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('progress', 0)).to.equal(true);
-    });
+
     it('All host don\'t have logTasks', function () {
       var loaded_hosts = c.get('hosts');
       expect(loaded_hosts.everyProperty('logTasks.length', 0)).to.equal(true);
@@ -1026,12 +1024,22 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#clearStep', function () {
-    it('All to default values', function () {
+
+    beforeEach(function () {
       c.reopen({hosts: [{},{},{}]});
       c.clearStep();
+    });
+
+    it('hosts are empty', function () {
       expect(c.get('hosts.length')).to.equal(0);
+    });
+    it('status is `info`', function () {
       expect(c.get('status')).to.equal('info');
+    });
+    it('progress is 0', function () {
       expect(c.get('progress')).to.equal('0');
+    });
+    it('numPolls is 1', function () {
       expect(c.get('numPolls')).to.equal(1);
     });
   });
@@ -1287,11 +1295,18 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#submit', function () {
-    it('should call App.router.send', function () {
+
+    beforeEach(function () {
       sinon.stub(App.router, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.send.restore();
+    });
+
+    it('should call App.router.send', function () {
       c.submit();
       expect(App.router.send.calledWith('next')).to.equal(true);
-      App.router.send.restore();
     });
   });
 
@@ -1336,9 +1351,11 @@ describe('App.InstallerStep9Controller', function () {
   describe('#startPolling', function () {
     beforeEach(function () {
       sinon.stub(c, 'reloadErrorCallback', Em.K);
+      sinon.stub(c, 'doPolling', Em.K);
     });
     afterEach(function () {
       c.reloadErrorCallback.restore();
+      c.doPolling.restore();
     });
     it('should set isSubmitDisabled to true', function () {
       c.set('isSubmitDisabled', false);
@@ -1346,10 +1363,8 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.get('isSubmitDisabled')).to.equal(true);
     });
     it('should call doPolling', function () {
-      sinon.stub(c, 'doPolling', Em.K);
       c.startPolling();
       expect(c.doPolling.calledOnce).to.equal(true);
-      c.doPolling.restore();
     });
   });
 
@@ -1375,13 +1390,6 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.getLogsByRequest.calledWith(true, 3)).to.equal(true);
     });
 
-    it('should set POLL_INTERVAL to 1 if testMode enabled', function () {
-      sinon.stub(App, 'get', function(k) { if ('testMode' === k) return true; return Em.get(App, k);});
-      c.loadLogData();
-      expect(c.get('POLL_INTERVAL')).to.equal(1);
-      App.get.restore();
-    });
-
   });
 
   describe('#loadCurrentTaskLog', function () {
@@ -1390,23 +1398,25 @@ describe('App.InstallerStep9Controller', function () {
       c.set('wizardController', Em.Object.create({
         getDBProperty: Em.K
       }));
+      sinon.stub(c, 'togglePreviousSteps', Em.K);
     });
     afterEach(function () {
       c.loadLogData.restore();
+      c.togglePreviousSteps.restore();
     });
+
     it('shouldn\'t call App.ajax.send if no currentOpenTaskId', function () {
       c.set('currentOpenTaskId', null);
       c.loadCurrentTaskLog();
       expect(App.ajax.send.called).to.equal(false);
     });
+
     it('should call App.ajax.send with provided data', function () {
-      sinon.stub(c, 'togglePreviousSteps', Em.K);
       c.set('currentOpenTaskId', 1);
       c.set('currentOpenTaskRequestId', 2);
       c.set('content', {cluster: {name: 3}});
       c.loadCurrentTaskLog();
       expect(App.ajax.send.args[0][0].data).to.eql({taskId: 1, requestId: 2, clusterName: 3});
-      c.togglePreviousSteps.restore();
     });
   });
 
@@ -1535,12 +1545,15 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#navigateStep', function () {
+
     beforeEach(function () {
       sinon.stub(c, 'togglePreviousSteps', Em.K);
       sinon.stub(c, 'loadStep', Em.K);
       sinon.stub(c, 'loadLogData', Em.K);
       sinon.stub(c, 'startPolling', Em.K);
+      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
     });
+
     afterEach(function () {
       c.togglePreviousSteps.restore();
       c.loadStep.restore();
@@ -1548,16 +1561,8 @@ describe('App.InstallerStep9Controller', function () {
       c.startPolling.restore();
       App.get.restore();
     });
-    it('should set custom data in testMode', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return true; return Em.get(App, k);});
-      c.reopen({content: {cluster: {status: 'st', isCompleted: true, requestId: 0}}});
-      c.navigateStep();
-      expect(c.get('content.cluster.status')).to.equal('PENDING');
-      expect(c.get('content.cluster.isCompleted')).to.equal(false);
-      expect(c.get('content.cluster.requestId')).to.equal(1);
-    });
+
     it('isCompleted = true, requestId = 1', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {isCompleted: true, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
@@ -1565,21 +1570,18 @@ describe('App.InstallerStep9Controller', function () {
       expect(c.get('progress')).to.equal('100');
     });
     it('isCompleted = false, requestId = 1, status = INSTALL FAILED', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'INSTALL FAILED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
       expect(c.loadLogData.calledWith(false)).to.equal(true);
     });
     it('isCompleted = false, requestId = 1, status = START FAILED', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'START FAILED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
       expect(c.loadLogData.calledWith(false)).to.equal(true);
     });
     it('isCompleted = false, requestId = 1, status = OTHER', function () {
-      sinon.stub(App, 'get', function(k) {if('testMode' === k) return false; return Em.get(App, k);});
       c.reopen({content: {cluster: {status: 'STARTED', isCompleted: false, requestId: 1}}});
       c.navigateStep();
       expect(c.loadStep.calledOnce).to.equal(true);
@@ -1633,15 +1635,30 @@ describe('App.InstallerStep9Controller', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          c.launchStartServicesSuccessCallback(test.jsonData);
-          expect(c.hostHasClientsOnly.calledWith(test.e.hostHasClientsOnly)).to.equal(true);
-          expect(c.saveClusterStatus.calledWith(test.e.clusterStatus)).to.equal(true);
+        describe(test.m, function () {
+
+          beforeEach(function () {
+            c.launchStartServicesSuccessCallback(test.jsonData);
+          });
+
+          it('hostHasClientsOnly is called with valid arguments', function () {
+            expect(c.hostHasClientsOnly.calledWith(test.e.hostHasClientsOnly)).to.equal(true);
+          });
+
+          it('saveClusterStatus is called with valid arguments', function () {
+            expect(c.saveClusterStatus.calledWith(test.e.clusterStatus)).to.equal(true);
+          });
+
+
           if (test.e.status) {
-            expect(c.get('status')).to.equal(test.e.status);
+            it('status is valid', function () {
+              expect(c.get('status')).to.equal(test.e.status);
+            });
           }
           if (test.e.progress) {
-            expect(c.get('progress')).to.equal(test.e.progress);
+            it('progress is valid', function () {
+              expect(c.get('progress')).to.equal(test.e.progress);
+            });
           }
         });
       });

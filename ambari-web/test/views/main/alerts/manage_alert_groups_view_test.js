@@ -32,65 +32,6 @@ describe('App.MainAlertsManageAlertGroupView', function () {
     view = getView();
   });
 
-  it('#buttonObserver', function () {
-
-    Em.A([
-      {
-        p: {
-          isRemoveButtonDisabled: false,
-          isRenameButtonDisabled: false,
-          isDuplicateButtonDisabled: true
-        },
-        selectedAlertGroup: {default: true},
-        m: 'selected alert group is default',
-        e: {
-          isRemoveButtonDisabled: true,
-          isRenameButtonDisabled: true,
-          isDuplicateButtonDisabled: false
-        }
-      },
-      {
-        p: {
-          isRemoveButtonDisabled: true,
-          isRenameButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        },
-        selectedAlertGroup: {default: false},
-        m: 'selected alert group is not default',
-        e: {
-          isRemoveButtonDisabled: false,
-          isRenameButtonDisabled: false,
-          isDuplicateButtonDisabled: false
-        }
-      },
-      {
-        p: {
-          isRemoveButtonDisabled: true,
-          isRenameButtonDisabled: true,
-          isDuplicateButtonDisabled: true
-        },
-        selectedAlertGroup: null,
-        m: 'not one alert group is selected',
-        e: {
-          isRemoveButtonDisabled: false,
-          isRenameButtonDisabled: false,
-          isDuplicateButtonDisabled: false
-        }
-      }
-    ]).forEach(function (test) {
-        it(test.m, function () {
-          Em.keys(test.p).forEach(function (k) {
-            view.set(k, test.p[k]);
-          });
-          view.set('controller.selectedAlertGroup', test.selectedAlertGroup);
-          Em.keys(test.e).forEach(function (k) {
-            expect(view.get(k)).to.equal(test.e[k]);
-          });
-        });
-      });
-
-  });
-
   App.TestAliases.testAsComputedIfThenElse(getView(), 'removeButtonTooltip', 'controller.isRemoveButtonDisabled', Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButtonDisabled'), Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeButton'))
 
 });

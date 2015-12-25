@@ -261,29 +261,41 @@ describe('App.stackMapper', function () {
       App.resetDsStoreTypeMap(App.OperatingSystem);
       App.resetDsStoreTypeMap(App.Stack);
       sinon.stub(App.store, 'commit', Em.K);
+      App.stackMapper.map(test_data);
     });
     afterEach(function(){
       App.store.commit.restore();
     });
 
-		
     it ('should map active Stack data', function() {
-      App.stackMapper.map(test_data);
       expect(App.Stack.find().get('length')).to.equal(2);
+    });
+
+    it ('all stacks are active', function() {
       expect(App.Stack.find().everyProperty('active')).to.equal(true);
+    });
+
+    it ('no one stack is selected', function() {
       expect(App.Stack.find().everyProperty('isSelected')).to.equal(false);
+    });
+
+    it ('stack ids are valid', function() {
       expect(App.Stack.find().mapProperty('id')).to.eql(['HDP-2.1','HDP-1.3']);
     });
 
-    it ('should map Operating System data', function() {
-      App.stackMapper.map(test_data);
+    it ('4 OSes are mapped', function() {
       expect(App.OperatingSystem.find().get('length')).to.equal(4);
+    });
+
+    it ('OSes have valid ids', function() {
       expect(App.OperatingSystem.find().mapProperty('id')).to.eql(['HDP-2.1-redhat5', 'HDP-2.1-redhat6', 'HDP-1.3-redhat5', 'HDP-1.3-redhat6']);
     });
     
-    it ('should map Repository data', function() {
-      App.stackMapper.map(test_data);
+    it ('8 repositories are mapped', function() {
       expect(App.Repository.find().get('length')).to.equal(8);
+    });
+
+    it ('Repositories ids are valid', function() {
       expect(App.Repository.find().mapProperty('id')).to.eql(["HDP-2.1-redhat5-HDP-2.1", "HDP-2.1-redhat5-HDP-UTILS-1.1.0.17", "HDP-2.1-redhat6-HDP-2.1", "HDP-2.1-redhat6-HDP-UTILS-1.1.0.17", "HDP-1.3-redhat5-HDP-1.3", "HDP-1.3-redhat5-HDP-UTILS-1.1.0.16", "HDP-1.3-redhat6-HDP-1.3", "HDP-1.3-redhat6-HDP-UTILS-1.1.0.16"]);
     });
   });

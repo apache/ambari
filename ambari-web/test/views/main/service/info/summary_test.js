@@ -185,14 +185,15 @@ describe('App.MainServiceInfoSummaryView', function() {
         serviceName: 'HDFS'
       }));
       expect(view.get('hasAlertDefinitions')).to.be.true;
+    });
 
-      it('should return false if there is no alert definition for this service', function () {
-        view.set('controller.content', Em.Object.create({
-          serviceName: 'ZOOKEEPER'
-        }));
-        expect(view.get('hasAlertDefinitions')).to.be.false;
-      });
-    })
+    it('should return false if there is no alert definition for this service', function () {
+      view.set('controller.content', Em.Object.create({
+        serviceName: 'ZOOKEEPER'
+      }));
+      expect(view.get('hasAlertDefinitions')).to.be.false;
+    });
+
   });
 
   describe('#didInsertElement', function () {

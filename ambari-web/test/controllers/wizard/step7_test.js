@@ -674,6 +674,7 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#_setOverrides', function () {
+
     it('shouldn\'t update config if no selectedConfigGroup', function () {
       installerStep7Controller.reopen({
         selectedConfigGroup: null
@@ -682,6 +683,7 @@ describe('App.InstallerStep7Controller', function () {
       var updatedConfig = installerStep7Controller._setOverrides(config, []);
       expect(updatedConfig.get('overrides')).to.be.null;
     });
+
     it('no overrideToAdd', function () {
       var isDefault = true,
         name = 'n1',
@@ -702,6 +704,7 @@ describe('App.InstallerStep7Controller', function () {
       expect(updatedConfig.get('overrides').everyProperty('isEditable', !isDefault)).to.equal(true);
       expect(updatedConfig.get('overrides').everyProperty('parentSCP.flag', 'flag')).to.equal(true);
     });
+
     it('overrideToAdd exists', function () {
       var isDefault = true,
         name = 'n1',
@@ -727,6 +730,7 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#switchConfigGroupConfigs', function () {
+
     it('if selectedConfigGroup is null, serviceConfigs shouldn\'t be changed', function () {
       installerStep7Controller.reopen({
         selectedConfigGroup: null,
@@ -739,7 +743,9 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.switchConfigGroupConfigs();
       expect(installerStep7Controller.get('serviceConfigs.configs').everyProperty('overrides.length', 0)).to.equal(true);
     });
-    it('should set configs for serviceConfigs', function () {
+
+    describe('should set configs for serviceConfigs', function () {
+
       var configGroups = [
         Em.Object.create({
           properties: [
@@ -748,27 +754,44 @@ describe('App.InstallerStep7Controller', function () {
           ]
         })
       ];
-      sinon.stub(installerStep7Controller, '_getDisplayedConfigGroups', function () {
-        return configGroups;
+
+      beforeEach(function () {
+        sinon.stub(installerStep7Controller, '_getDisplayedConfigGroups', function () {
+          return configGroups;
+        });
+        sinon.stub(installerStep7Controller, '_setEditableValue', function (config) {
+          config.set('isEditable', true);
+          return config;
+        });
+        installerStep7Controller.reopen({
+          selectedConfigGroup: Em.Object.create({isDefault: true, name: 'g1'}),
+          content: {services: []},
+          selectedService: {configs: Em.A([Em.Object.create({name: 'g1', overrides: [], properties: []}), Em.Object.create({name: 'g2', overrides: []})])},
+          serviceConfigs: {configs: [Em.Object.create({name: 'g1'})]}
+        });
+        installerStep7Controller.switchConfigGroupConfigs();
+        this.configs = installerStep7Controller.get('selectedService.configs');
       });
-      sinon.stub(installerStep7Controller, '_setEditableValue', function (config) {
-        config.set('isEditable', true);
-        return config;
+
+      afterEach(function () {
+        installerStep7Controller._getDisplayedConfigGroups.restore();
+        installerStep7Controller._setEditableValue.restore();
       });
-      installerStep7Controller.reopen({
-        selectedConfigGroup: Em.Object.create({isDefault: true, name: 'g1'}),
-        content: {services: []},
-        selectedService: {configs: Em.A([Em.Object.create({name: 'g1', overrides: [], properties: []}), Em.Object.create({name: 'g2', overrides: []})])},
-        serviceConfigs: {configs: [Em.Object.create({name: 'g1'})]}
+
+      it('g1 has 1 override', function () {
+        expect(this.configs.findProperty('name', 'g1').get('overrides').length).to.equal(1);
       });
-      installerStep7Controller.switchConfigGroupConfigs();
-      var configs = installerStep7Controller.get('selectedService.configs');
-      expect(configs.findProperty('name', 'g1').get('overrides').length).to.equal(1);
-      expect(configs.findProperty('name', 'g2').get('overrides').length).to.equal(1);
-      expect(configs.everyProperty('isEditable', true)).to.equal(true);
-      installerStep7Controller._getDisplayedConfigGroups.restore();
-      installerStep7Controller._setEditableValue.restore();
+
+      it('g2 has 1 override', function () {
+        expect(this.configs.findProperty('name', 'g2').get('overrides').length).to.equal(1);
+      });
+
+      it('all configs are editable', function () {
+        expect(this.configs.everyProperty('isEditable', true)).to.equal(true);
+      });
+
     });
+
   });
 
   describe('#selectProperService', function () {
@@ -792,23 +815,32 @@ describe('App.InstallerStep7Controller', function () {
           e: 'n3'
         }
       ]).forEach(function (test) {
-        it(test.name, function () {
-          sinon.stub(installerStep7Controller, 'selectedServiceObserver', Em.K);
-          installerStep7Controller.reopen({
-            wizardController: Em.Object.create({
-              name: test.name
-            }),
-            stepConfigs: test.stepConfigs
+        describe(test.name, function () {
+
+          beforeEach(function () {
+            sinon.stub(installerStep7Controller, 'selectedServiceObserver', Em.K);
+            installerStep7Controller.reopen({
+              wizardController: Em.Object.create({
+                name: test.name
+              }),
+              stepConfigs: test.stepConfigs
+            });
+            installerStep7Controller.selectProperService();
           });
-          installerStep7Controller.selectProperService();
-          expect(installerStep7Controller.get('selectedService.name')).to.equal(test.e);
-          installerStep7Controller.selectedServiceObserver.restore();
+
+          afterEach(function () {
+            installerStep7Controller.selectedServiceObserver.restore();
+          });
+
+          it('selected service name is valid', function () {
+            expect(installerStep7Controller.get('selectedService.name')).to.equal(test.e);
+          });
         });
       });
   });
 
   describe.skip('#setStepConfigs', function () {
-
+    var serviceConfigs;
     beforeEach(function () {
       installerStep7Controller.reopen({
         content: {services: []},
@@ -818,45 +850,39 @@ describe('App.InstallerStep7Controller', function () {
           }
         })
       });
+      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
+        return serviceConfigs;
+      });
+      this.stub = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
       installerStep7Controller.renderConfigs.restore();
+      App.get.restore();
     });
 
     it('if wizard isn\'t addService, should set output of installerStep7Controller.renderConfigs', function () {
-      var serviceConfigs = Em.A([
+      serviceConfigs = Em.A([
         {serviceName:'HDFS', configs: []},
         {}
       ]);
-      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
-        return serviceConfigs;
-      });
       installerStep7Controller.set('wizardController.name', 'installerController');
       installerStep7Controller.setStepConfigs([], []);
       expect(installerStep7Controller.get('stepConfigs')).to.eql(serviceConfigs);
     });
 
     it('addServiceWizard used', function () {
-      var serviceConfigs = Em.A([Em.Object.create({serviceName: 'HDFS', configs: []}), Em.Object.create({serviceName: 's2'})]);
+      serviceConfigs = Em.A([Em.Object.create({serviceName: 'HDFS', configs: []}), Em.Object.create({serviceName: 's2'})]);
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.reopen({selectedServiceNames: ['s2']});
-      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
-        return serviceConfigs;
-      });
       installerStep7Controller.setStepConfigs([], []);
       expect(installerStep7Controller.get('stepConfigs').everyProperty('showConfig', true)).to.equal(true);
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 's2').get('selected')).to.equal(true);
     });
 
     it('addServiceWizard used, HA enabled', function () {
-      sinon.stub(App, 'get', function (k) {
-        if (k === 'isHaEnabled') {
-          return true;
-        }
-        return Em.get(App, k);
-      });
-      var serviceConfigs = Em.A([
+      this.stub.withArgs('isHaEnabled').returns(true);
+      serviceConfigs = Em.A([
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
@@ -871,23 +897,18 @@ describe('App.InstallerStep7Controller', function () {
       );
       installerStep7Controller.set('wizardController.name', 'addServiceController');
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
-      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
-        return serviceConfigs;
-      });
       installerStep7Controller.setStepConfigs([], []);
       expect(installerStep7Controller.get('stepConfigs').everyProperty('showConfig', true)).to.equal(true);
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('selected')).to.equal(true);
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(5);
-      App.get.restore();
     });
 
     it('not windows stack', function () {
 
-      var s = sinon.stub(App, 'get');
-      s.withArgs('isHadoopWindowsStack').returns(false);
-      s.withArgs('isHaEnabled').returns(false);
+      this.stub.withArgs('isHadoopWindowsStack').returns(false);
+      this.stub.withArgs('isHaEnabled').returns(false);
 
-      var serviceConfigs = Em.A([
+      serviceConfigs = Em.A([
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
@@ -897,26 +918,17 @@ describe('App.InstallerStep7Controller', function () {
         }),
         Em.Object.create({serviceName: 's2'})]
       );
-
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
-      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
-        return serviceConfigs;
-      });
       installerStep7Controller.setStepConfigs([], []);
-
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
-
-      s.restore();
-
     });
 
     it('windows stack', function () {
 
-      var s = sinon.stub(App, 'get');
-      s.withArgs('isHadoopWindowsStack').returns(true);
-      s.withArgs('isHaEnabled').returns(false);
+      this.stub.withArgs('isHadoopWindowsStack').returns(true);
+      this.stub.withArgs('isHaEnabled').returns(false);
 
-      var serviceConfigs = Em.A([
+      serviceConfigs = Em.A([
         Em.Object.create({
           serviceName: 'HDFS',
           configs: [
@@ -929,14 +941,9 @@ describe('App.InstallerStep7Controller', function () {
 
       installerStep7Controller.reopen({selectedServiceNames: ['HDFS', 's2']});
       installerStep7Controller.set('installedServiceNames',['HDFS', 's2', 's3']);
-      sinon.stub(installerStep7Controller, 'renderConfigs', function () {
-        return serviceConfigs;
-      });
       installerStep7Controller.setStepConfigs([], []);
 
       expect(installerStep7Controller.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs').length).to.equal(2);
-
-      s.restore();
 
     });
 
@@ -946,6 +953,10 @@ describe('App.InstallerStep7Controller', function () {
     beforeEach(function () {
       sinon.stub(installerStep7Controller, 'loadConfigGroups', Em.K);
       sinon.stub(installerStep7Controller, 'loadInstalledServicesConfigGroups', Em.K);
+      sinon.stub(App, 'get', function (k) {
+        if (k === 'supports.hostOverridesInstaller') return false;
+        return Em.get(App, k);
+      });
     });
     afterEach(function () {
       installerStep7Controller.loadConfigGroups.restore();
@@ -980,29 +991,37 @@ describe('App.InstallerStep7Controller', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          sinon.stub(App, 'get', function (k) {
-            if (k === 'supports.hostOverridesInstaller') return test.hostOverridesInstaller;
-            return Em.get(App, k);
+        describe(test.m, function () {
+
+          beforeEach(function () {
+            installerStep7Controller.reopen({
+              installedServiceNames: test.installedServiceNames,
+              wizardController: {
+                areInstalledConfigGroupsLoaded: test.areInstalledConfigGroupsLoaded
+              }
+            });
+            installerStep7Controller.checkHostOverrideInstaller();
           });
-          installerStep7Controller.reopen({
-            installedServiceNames: test.installedServiceNames,
-            wizardController: {
-              areInstalledConfigGroupsLoaded: test.areInstalledConfigGroupsLoaded
-            }
-          });
-          installerStep7Controller.checkHostOverrideInstaller();
+
           if (test.e.loadConfigGroups) {
-            expect(installerStep7Controller.loadConfigGroups.calledOnce).to.equal(true);
+            it('loadConfigGroups is called once', function () {
+              expect(installerStep7Controller.loadConfigGroups.calledOnce).to.equal(true);
+            });
           }
           else {
-            expect(installerStep7Controller.loadConfigGroups.called).to.equal(false);
+            it('loadConfigGroups is not called', function () {
+              expect(installerStep7Controller.loadConfigGroups.called).to.equal(false);
+            });
           }
           if (test.e.loadInstalledServicesConfigGroups) {
-            expect(installerStep7Controller.loadInstalledServicesConfigGroups.calledOnce).to.equal(true);
+            it('loadInstalledServicesConfigGroups is called once', function () {
+              expect(installerStep7Controller.loadInstalledServicesConfigGroups.calledOnce).to.equal(true);
+            });
           }
           else {
-            expect(installerStep7Controller.loadInstalledServicesConfigGroups.called).to.equal(false);
+            it('loadInstalledServicesConfigGroups is not called', function () {
+              expect(installerStep7Controller.loadInstalledServicesConfigGroups.called).to.equal(false);
+            });
           }
         });
       });
@@ -1081,7 +1100,9 @@ describe('App.InstallerStep7Controller', function () {
           }
         }
       });
+      installerStep7Controller.applyServicesConfigs([{name: 'configs'}]);
     });
+
     afterEach(function () {
       App.config.fileConfigsIntoTextarea.restore();
       installerStep7Controller.loadServerSideConfigsRecommendations.restore();
@@ -1091,11 +1112,16 @@ describe('App.InstallerStep7Controller', function () {
       App.StackService.find.restore();
     });
 
-    it('should run some methods' , function () {
-     installerStep7Controller.applyServicesConfigs([{name: 'configs'}]);
+    it('loadServerSideConfigsRecommendations is called once' , function () {
      expect(installerStep7Controller.loadServerSideConfigsRecommendations.calledOnce).to.equal(true);
+    });
+    it('isRecommendedLoaded is true' , function () {
      expect(installerStep7Controller.get('isRecommendedLoaded')).to.equal(true);
+    });
+    it('checkHostOverrideInstalleris called once' , function () {
      expect(installerStep7Controller.checkHostOverrideInstaller.calledOnce).to.equal(true);
+    });
+    it('selectProperServiceis called once' , function () {
      expect(installerStep7Controller.selectProperService.calledOnce).to.equal(true);
     });
 
@@ -1176,44 +1202,77 @@ describe('App.InstallerStep7Controller', function () {
       expect(serviceConfigProperty.get('overrides')).to.eql(Em.A([]));
     });
 
-    it('host overrides not supported', function () {
+    describe('host overrides not supported', function () {
       var serviceConfigProperty = Em.Object.create({
         overrides: [
           {value: 'new value'}
         ]
-      }), component = Em.Object.create({selectedConfigGroup: {isDefault: false}});
-      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
-      expect(serviceConfigProperty.get('overrides').length).to.equal(1);
-      expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
-      expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
-      expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
+      });
+      var component = Em.Object.create({selectedConfigGroup: {isDefault: false}});
+
+      beforeEach(function () {
+        installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
+      });
+      it('there is 1 override', function () {
+        expect(serviceConfigProperty.get('overrides').length).to.equal(1);
+      });
+      it('override value is valid', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
+      });
+      it('override is not original SCP', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
+      });
+      it('override is linked to parent', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
+      });
     });
 
-    it('host overrides supported', function () {
-      sinon.stub(App, 'get', function (k) {
-        if (k === 'supports.hostOverrides') return true;
-        return Em.get(App, k);
-      });
-      var serviceConfigProperty = Em.Object.create({
+    describe('host overrides supported', function () {
+      var serviceConfigProperty;
+      var component;
+      beforeEach(function () {
+        sinon.stub(App, 'get', function (k) {
+          if (k === 'supports.hostOverrides') return true;
+          return Em.get(App, k);
+        });
+        serviceConfigProperty = Em.Object.create({
           overrides: [
             {value: 'new value', group: Em.Object.create({name: 'n1'})}
           ]
-        }),
+        });
         component = Em.Object.create({
           selectedConfigGroup: {isDefault: true},
           configGroups: Em.A([
             Em.Object.create({name: 'n1', properties: []})
           ])
         });
-      installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
-      App.get.restore();
-      expect(serviceConfigProperty.get('overrides').length).to.equal(1);
-      expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
-      expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
-      expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
-      expect(component.get('configGroups.firstObject.properties').length).to.equal(1);
-      expect(component.get('configGroups.firstObject.properties.firstObject.isEditable')).to.equal(false);
-      expect(component.get('configGroups.firstObject.properties.firstObject.group')).to.be.object;
+        installerStep7Controller._updateOverridesForConfig(serviceConfigProperty, component);
+      });
+
+      afterEach(function () {
+        App.get.restore();
+      });
+      it('there is 1 override', function () {
+        expect(serviceConfigProperty.get('overrides').length).to.equal(1);
+      });
+      it('override.value is valid', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.value')).to.equal('new value');
+      });
+      it('override is not original SCP', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.isOriginalSCP')).to.equal(false);
+      });
+      it('override.parentSCP is valid', function () {
+        expect(serviceConfigProperty.get('overrides.firstObject.parentSCP')).to.eql(serviceConfigProperty);
+      });
+      it('there is 1 property in the config group', function () {
+        expect(component.get('configGroups.firstObject.properties').length).to.equal(1);
+      });
+      it('property in the config group is not editable', function () {
+        expect(component.get('configGroups.firstObject.properties.firstObject.isEditable')).to.equal(false);
+      });
+      it('property in the config group is linked to it', function () {
+        expect(component.get('configGroups.firstObject.properties.firstObject.group')).to.be.object;
+      });
     });
 
   });
@@ -1259,14 +1318,27 @@ describe('App.InstallerStep7Controller', function () {
       ],
       installedServiceNames = ['HBASE', 'AMBARI_METRICS'];
 
-    it('should handle properties with the same name', function () {
-      controller.setInstalledServiceConfigs(configs, configsByTags, installedServiceNames);
-      var properties = configs.filterProperty('name', 'hbase.client.scanner.caching');
-      expect(properties).to.have.length(2);
-      expect(properties.findProperty('filename', 'hbase-site.xml').value).to.equal('1500');
-      expect(properties.findProperty('filename', 'hbase-site.xml').savedValue).to.equal('1500');
-      expect(properties.findProperty('filename', 'ams-hbase-site.xml').value).to.equal('2500');
-      expect(properties.findProperty('filename', 'ams-hbase-site.xml').savedValue).to.equal('2500');
+    describe('should handle properties with the same name', function () {
+      var properties;
+      beforeEach(function () {
+        controller.setInstalledServiceConfigs(configs, configsByTags, installedServiceNames);
+        properties = configs.filterProperty('name', 'hbase.client.scanner.caching');
+      });
+      it('there are 2 properties', function () {
+        expect(properties).to.have.length(2);
+      });
+      it('hbase-site/ value is valid', function () {
+        expect(properties.findProperty('filename', 'hbase-site.xml').value).to.equal('1500');
+      });
+      it('hbase-site/ savedValue is valid', function () {
+        expect(properties.findProperty('filename', 'hbase-site.xml').savedValue).to.equal('1500');
+      });
+      it('ams-hbase-site/ value is valid', function () {
+        expect(properties.findProperty('filename', 'ams-hbase-site.xml').value).to.equal('2500');
+      });
+      it('ams-hbase-site/ savedValue is valid', function () {
+        expect(properties.findProperty('filename', 'ams-hbase-site.xml').savedValue).to.equal('2500');
+      });
     });
 
   });
@@ -1370,13 +1442,22 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        var popup = installerStep7Controller.showDatabaseConnectionWarningPopup(serviceNames, dfd);
-        expect(popup.get('body')).to.equal(Em.I18n.t('installer.step7.popup.database.connection.body').format(bodyMessage));
-        popup[item.method]();
-        expect(testObject.isResolved).to.equal(item.isResolved);
-        expect(testObject.isRejected).to.equal(item.isRejected);
-        expect(installerStep7Controller.get('submitButtonClicked')).to.equal(item.submitButtonClicked);
+      describe(item.title, function () {
+        var popup;
+        beforeEach(function () {
+          popup = installerStep7Controller.showDatabaseConnectionWarningPopup(serviceNames, dfd);
+        });
+
+        it('popup body is valid', function () {
+          expect(popup.get('body')).to.equal(Em.I18n.t('installer.step7.popup.database.connection.body').format(bodyMessage));
+        });
+
+        it('after ' + item.method + ' execution', function () {
+          popup[item.method]();
+          expect(testObject.isResolved).to.equal(item.isResolved);
+          expect(testObject.isRejected).to.equal(item.isRejected);
+          expect(installerStep7Controller.get('submitButtonClicked')).to.equal(item.submitButtonClicked);
+        });
       });
     });
 
@@ -1600,10 +1681,12 @@ describe('App.InstallerStep7Controller', function () {
 
   describe('#showOozieDerbyWarning', function() {
     var controller;
+
     beforeEach(function() {
       controller = App.WizardStep7Controller.create({});
       sinon.stub(App.ModalPopup, 'show', Em.K);
     });
+
     afterEach(function() {
       App.ModalPopup.show.restore();
     });
@@ -1628,15 +1711,23 @@ describe('App.InstallerStep7Controller', function () {
         m: 'Oozie selected, mysql database used, warning popup should be sk'
       }
     ]).forEach(function(test) {
-      it(test.m, function() {
-        var callback = sinon.spy();
-        sinon.stub(controller, 'findConfigProperty').returns(Em.Object.create({ value: test.databaseType}));
-        controller.reopen({
-          selectedServiceNames: test.selectedServiceNames
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          sinon.stub(controller, 'findConfigProperty').returns(Em.Object.create({ value: test.databaseType}));
+          controller.reopen({
+            selectedServiceNames: test.selectedServiceNames
+          });
+          controller.showOozieDerbyWarningPopup(Em.K);
         });
-        controller.showOozieDerbyWarningPopup(callback);
-        controller.findConfigProperty.restore();
-        expect(App.ModalPopup.show.calledOnce).to.equal(test.e);
+
+        afterEach(function () {
+          controller.findConfigProperty.restore();
+        });
+
+        it('modal popup is shown needed number of times', function () {
+          expect(App.ModalPopup.show.calledOnce).to.equal(test.e);
+        });
       });
     });
   });

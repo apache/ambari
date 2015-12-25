@@ -671,7 +671,7 @@ describe('App.WizardStep6Controller', function () {
   });
 
   describe('#clearError', function () {
-    it('true if is one of checkboxes checked false', function () {
+    it('both checkboxes are checked', function () {
       var hosts = Em.A([
         Em.Object.create({
           checkboxes: Em.A([
@@ -696,6 +696,7 @@ describe('App.WizardStep6Controller', function () {
       controller.clearError();
       expect(controller.get('errorMessage')).to.equal('');
     });
+
     it('true if is one of checkboxes checked false', function () {
       var hosts = Em.A([
         Em.Object.create({
@@ -1553,20 +1554,36 @@ describe('App.WizardStep6Controller', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.controllerName, function () {
-        controller.set('hosts', item.hosts);
-        controller.set('content.controllerName', item.controllerName);
-        controller.callServerSideValidation();
-        expect(controller.get('content.recommendationsHostGroups.blueprint.host_groups.length')).to.equal(expectedHostGroups.length);
-        expect(controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups.length')).to.equal(expectedHostGroups.length);
-        controller.get('content.recommendationsHostGroups.blueprint.host_groups').forEach(function (group, index) {
-          expect(group.components.mapProperty('name').sort()).to.eql(item.expected[index]);
+      describe(item.controllerName, function () {
+
+        beforeEach(function () {
+          controller.set('hosts', item.hosts);
+          controller.set('content.controllerName', item.controllerName);
+          controller.callServerSideValidation();
         });
+
+        it('blueprint.host_groups count is correct', function () {
+          expect(controller.get('content.recommendationsHostGroups.blueprint.host_groups.length')).to.equal(expectedHostGroups.length);
+        });
+
+        it('blueprint_cluster_binding.host_groups count is correct', function () {
+          expect(controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups.length')).to.equal(expectedHostGroups.length);
+        });
+
+        it('components are valid for each group', function () {
+          controller.get('content.recommendationsHostGroups.blueprint.host_groups').forEach(function (group, index) {
+            expect(group.components.mapProperty('name').sort()).to.eql(item.expected[index]);
+          });
+        });
+
         expectedHostGroups.forEach(function (group) {
-          var bpGroup = controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups').findProperty('name', group.name);
-          expect(bpGroup.hosts).to.have.length(1);
-          expect(bpGroup.hosts[0].fqdn).to.equal(group.fqdn);
+          it(group.name, function () {
+            var bpGroup = controller.get('content.recommendationsHostGroups.blueprint_cluster_binding.host_groups').findProperty('name', group.name);
+            expect(bpGroup.hosts).to.have.length(1);
+            expect(bpGroup.hosts[0].fqdn).to.equal(group.fqdn);
+          });
         });
+
       });
     });
 

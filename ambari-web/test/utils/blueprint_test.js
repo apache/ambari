@@ -441,12 +441,10 @@ describe('utils/blueprint', function() {
       expect(blueprintUtils._generateHostMap({}, [],'c1')).to.eql({});
     });
 
-    it('skip throws error when data is wrong', function() {
-      it('should assert error if no data returned from server', function () {
-        expect(function () {
-          blueprintUtils._generateHostMap();
-        }).to.throw(Error);
-      });
+    it('skip throws error when data is wrong (should assert error if no data returned from server)', function() {
+      expect(function () {
+        blueprintUtils._generateHostMap();
+      }).to.throw(Error);
     });
   });
 });

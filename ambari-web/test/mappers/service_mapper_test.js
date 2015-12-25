@@ -255,16 +255,19 @@ describe('App.serviceMetricsMapper', function () {
       }
     ];
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+    });
+
     tests.forEach(function(test) {
       it(test.message, function() {
-        sinon.stub(App, 'get', function(key) {
-          if (key == 'currentStackVersionNumber') {
-            return test.stackVersionNumber;
-          }
-        });
+        this.stub.withArgs('currentStackVersionNumber').returns(test.stackVersionNumber);
         var result = App.serviceMetricsMapper.stormMapper(test);
         expect(result).to.include(test.expectedValues);
-        App.get.restore();
       });
     });
 

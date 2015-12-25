@@ -155,23 +155,15 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#isWarningsBoxVisible', function () {
 
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
+    });
+
     afterEach(function () {
       App.get.restore();
     });
 
-    it('for testMode should be always true', function () {
-      sinon.stub(App, 'get', function (k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      expect(c.get('isWarningsBoxVisible')).to.equal(true);
-    });
-
     it('for "real" mode should be based on isRegistrationInProgress', function () {
-      sinon.stub(App, 'get', function (k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
       c.set('isRegistrationInProgress', false);
       expect(c.get('isWarningsBoxVisible')).to.equal(true);
       c.set('isRegistrationInProgress', true);
@@ -218,11 +210,6 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('isSubmitDisabled')).to.equal(true);
     });
 
-    it('should set isSubmitDisabled to true', function () {
-      c.set('isRetryDisabled', false);
-      c.clearStep();
-      expect(c.get('isRetryDisabled')).to.equal(true);
-    });
   });
 
   describe('#loadStep', function () {
@@ -306,7 +293,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('hosts').everyProperty('bootStatus', 'PENDING')).to.equal(true);
     });
 
-    it('should set bootStatus PENDING on "real" mode and when installOptions.manualInstall is not selected', function () {
+    it('should set bootStatus PENDING on "real" mode and when installOptions.manualInstall is not selected (2)', function () {
       App.set('testMode', true);
       c.set('content', {hosts: {c: {name: 'name'}, d: {name: 'name1'}}});
       c.loadHosts();
@@ -527,29 +514,39 @@ describe('App.WizardStep3Controller', function () {
     });
 
     agentUserCases.forEach(function (item) {
-      it(item.title, function () {
-        var controller = App.WizardStep3Controller.create({
-          content: {
-            installOptions: {
-              sshKey: 'key',
-              sshUser: 'root',
-              sshPort: '123',
-              agentUser: 'user'
-            },
-            hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } }
-          }
+      describe(item.title, function () {
+        var controller;
+        beforeEach(function () {
+          controller = App.WizardStep3Controller.create({
+            content: {
+              installOptions: {
+                sshKey: 'key',
+                sshUser: 'root',
+                sshPort: '123',
+                agentUser: 'user'
+              },
+              hosts: { "host0": { "name": "host0" }, "host1": { "name": "host1" } }
+            }
+          });
+          sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
+          controller.setupBootStrap();
         });
-        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(item.customizeAgentUserAccount);
-        controller.setupBootStrap();
-        App.get.restore();
-        expect(installer.launchBootstrap.firstCall.args[0]).to.equal(JSON.stringify({
-          verbose: true,
-          sshKey: 'key',
-          hosts: ['host0', 'host1'],
-          user: 'root',
-          sshPort: '123',
-          userRunAs: item.userRunAs
-        }));
+
+        afterEach(function () {
+          App.get.restore();
+        });
+
+        it('launchBootstrap is called with correct arguments', function () {
+          expect(installer.launchBootstrap.firstCall.args[0]).to.equal(JSON.stringify({
+            verbose: true,
+            sshKey: 'key',
+            hosts: ['host0', 'host1'],
+            user: 'root',
+            sshPort: '123',
+            userRunAs: item.userRunAs
+          }));
+        });
+
       });
     });
   });
@@ -631,7 +628,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('registrationStartedAt')).to.be.null;
     });
 
-    it('should drop numPolls and registrationStartedAt', function () {
+    it('should drop numPolls and registrationStartedAt (2)', function () {
       c.set('hosts', Em.A([
         {name: 'c1'},
         {name: 'c2'}
@@ -770,7 +767,7 @@ describe('App.WizardStep3Controller', function () {
       expect(c.get('registrationStartedAt')).to.equal(1234);
     });
 
-    it('shouldn\'t do nothing if registrationStartedAt isn\'t null', function () {
+    it('shouldn\'t do nothing if registrationStartedAt isn\'t null (2)', function () {
       c.set('registrationStartedAt', null);
       c.startRegistration();
       expect(c.isHostsRegistered.calledOnce).to.equal(true);
@@ -2276,62 +2273,50 @@ describe('App.WizardStep3Controller', function () {
         });
       });
 
-    it('should set test data if testMode is true', function () {
-      c.reopen({
-        isLoaded: true,
-        hosts: [
-          {},
-          {},
-          {}
-        ],
-        content: {
-          installedHosts: [],
-          installOptions: {
-            manualInstall: true
-          }
-        },
-        setRegistrationInProgress: Em.K
-      });
-      sinon.stub(App, 'get', function (k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      c.navigateStep();
-      App.get.restore();
-      expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
-      expect(c.get('bootHosts').everyProperty('cpu', '2')).to.equal(true);
-      expect(c.get('bootHosts').everyProperty('memory', '2000000')).to.equal(true);
-      expect(c.get('isSubmitDisabled')).to.equal(false);
-    });
+    describe('should start registration', function () {
 
-    it('should start registration', function () {
-      c.reopen({
-        isLoaded: true,
-        hosts: [
-          {},
-          {},
-          {}
-        ],
-        content: {
-          installedHosts: [],
-          installOptions: {
-            manualInstall: true
-          }
-        },
-        setRegistrationInProgress: Em.K,
-        startRegistration: Em.K
+      beforeEach(function () {
+        c.reopen({
+          isLoaded: true,
+          hosts: [
+            {},
+            {},
+            {}
+          ],
+          content: {
+            installedHosts: [],
+            installOptions: {
+              manualInstall: true
+            }
+          },
+          setRegistrationInProgress: Em.K,
+          startRegistration: Em.K
+        });
+        sinon.stub(App, 'get', function (k) {
+          if ('testMode' === k) return false;
+          return Em.get(App, k);
+        });
+        sinon.spy(c, 'startRegistration');
+        c.navigateStep();
       });
-      sinon.stub(App, 'get', function (k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
+
+
+      afterEach(function () {
+        App.get.restore();
+        c.startRegistration.restore();
       });
-      sinon.spy(c, 'startRegistration');
-      c.navigateStep();
-      App.get.restore();
-      expect(c.startRegistration.calledOnce).to.equal(true);
-      c.startRegistration.restore();
-      expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
-      expect(c.get('registrationStartedAt')).to.be.null;
+
+      it('startRegistration is called once', function () {
+        expect(c.startRegistration.calledOnce).to.equal(true);
+      });
+
+      it('all hosts are bootHosts', function () {
+        expect(c.get('bootHosts.length')).to.equal(c.get('hosts.length'));
+      });
+
+      it('registrationStartedAt is null', function () {
+        expect(c.get('registrationStartedAt')).to.be.null;
+      });
     });
 
   });
@@ -2506,12 +2491,29 @@ describe('App.WizardStep3Controller', function () {
 
   describe('#getHostInfoSuccessCallback', function () {
 
+    var jsonData = {items: [
+      {Hosts: {host_name: 'h1'}}
+    ]};
+
+    var skipBootstrap = false;
+
     beforeEach(function () {
       sinon.stub(c, 'parseWarnings', Em.K);
       sinon.stub(c, 'stopRegistration', Em.K);
       sinon.stub(c, 'checkHostDiskSpace', Em.K);
       sinon.stub(c, '_setHostDataFromLoadedHostInfo', Em.K);
       sinon.spy(c, '_setHostDataWithSkipBootstrap');
+      sinon.stub(App, 'get', function (k) {
+        if ('skipBootstrap' === k) return skipBootstrap;
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
+      c.reopen({
+        bootHosts: [Em.Object.create({name: 'h1'})]
+      });
+      sinon.stub(c, 'checkHostOSType', function () {
+        return 'not_null_value';
+      });
     });
 
     afterEach(function () {
@@ -2520,73 +2522,28 @@ describe('App.WizardStep3Controller', function () {
       c.checkHostDiskSpace.restore();
       c._setHostDataFromLoadedHostInfo.restore();
       c._setHostDataWithSkipBootstrap.restore();
+      App.get.restore();
+      c.checkHostOSType.restore();
     });
 
     it('should call _setHostDataWithSkipBootstrap if skipBootstrap is true', function () {
-      sinon.stub(App, 'get', function (k) {
-        if ('skipBootstrap' === k) return true;
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-      c.reopen({
-        bootHosts: [Em.Object.create({name: 'h1'})]
-      });
-      var jsonData = {items: [
-        {Hosts: {host_name: 'h1'}}
-      ]};
-      c.getHostInfoSuccessCallback(jsonData);
-      expect(c._setHostDataWithSkipBootstrap.calledOnce).to.equal(true);
-      App.get.restore();
+        skipBootstrap = true;
+        c.getHostInfoSuccessCallback(jsonData);
+        expect(c._setHostDataWithSkipBootstrap.calledOnce).to.equal(true);
     });
 
     it('should add repo warnings', function () {
-
-      var jsonData = {items: [
-        {Hosts: {host_name: 'h1'}}
-      ]};
-
-      sinon.stub(c, 'checkHostOSType', function () {
-        return 'not_null_value';
-      });
-      sinon.stub(App, 'get', function (k) {
-        if ('skipBootstrap' === k) return false;
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-
-      c.reopen({
-        bootHosts: [Em.Object.create({name: 'h1'})]
-      });
-
+      skipBootstrap = false;
       c.getHostInfoSuccessCallback(jsonData);
       expect(c.get('repoCategoryWarnings.length')).to.equal(1);
       expect(c.get('repoCategoryWarnings.firstObject.hostsNames').contains('h1')).to.equal(true);
-
-      c.checkHostOSType.restore();
-      App.get.restore();
     });
 
     it('should add disk warnings', function () {
-
-      var jsonData = {items: [
-        {Hosts: {host_name: 'h1'}}
-      ]};
-
-      sinon.stub(App, 'get', function (k) {
-        if ('skipBootstrap' === k) return false;
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
-
-      c.reopen({
-        bootHosts: [Em.Object.create({name: 'h1'})]
-      });
-
+      skipBootstrap = false;
       c.getHostInfoSuccessCallback(jsonData);
       expect(c.get('diskCategoryWarnings.length')).to.equal(1);
       expect(c.get('diskCategoryWarnings.firstObject.hostsNames').contains('h1')).to.equal(true);
-
-      App.get.restore();
     });
 
   });
@@ -2604,32 +2561,47 @@ describe('App.WizardStep3Controller', function () {
   });
 
   describe('#_setHostDataFromLoadedHostInfo', function () {
-
-    it('should set data from hostInfo', function () {
-      var host = Em.Object.create(),
-        hostInfo = {
-          Hosts: {
-            cpu_count: 2,
-            total_mem: 12345,
-            os_type: 't1',
-            os_arch: 'os1',
-            os_family: 'osf1',
-            ip: '0.0.0.0',
-            disk_info: [
-              {mountpoint: '/boot'},
-              {mountpoint: '/usr'},
-              {mountpoint: '/no-boot'},
-              {mountpoint: '/boot'}
-            ]
-          }
-        };
+    var host;
+    beforeEach(function () {
+      host = Em.Object.create();
+      var hostInfo = {
+        Hosts: {
+          cpu_count: 2,
+          total_mem: 12345,
+          os_type: 't1',
+          os_arch: 'os1',
+          os_family: 'osf1',
+          ip: '0.0.0.0',
+          disk_info: [
+            {mountpoint: '/boot'},
+            {mountpoint: '/usr'},
+            {mountpoint: '/no-boot'},
+            {mountpoint: '/boot'}
+          ]
+        }
+      };
       c._setHostDataFromLoadedHostInfo(host, hostInfo);
+    });
+
+    it('cpu', function () {
       expect(host.get('cpu')).to.equal(2);
+    });
+    it('os_type', function () {
       expect(host.get('os_type')).to.equal('t1');
+    });
+    it('os_arch', function () {
       expect(host.get('os_arch')).to.equal('os1');
+    });
+    it('os_family', function () {
       expect(host.get('os_family')).to.equal('osf1');
+    });
+    it('ip', function () {
       expect(host.get('ip')).to.equal('0.0.0.0');
+    });
+    it('memory', function () {
       expect(host.get('memory')).to.equal('12345.00');
+    });
+    it('disk_info.length', function () {
       expect(host.get('disk_info.length')).to.equal(2);
     });
 

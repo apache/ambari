@@ -56,21 +56,21 @@ describe('App.WizardController', function () {
   // isStep0 ... isStep10 tests
   App.WizardController1 = App.WizardController.extend({currentStep:''});
   var tests = [];
-  for(var i = 0; i < totalSteps; i++) {
+  for (var i = 0; i < totalSteps; i++) {
     var n = ruller.slice(0);
-    n.splice(i,1);
-    tests.push({i:i,n:n});
+    n.splice(i, 1);
+    tests.push({i: i, n: n});
   }
-  tests.forEach(function(test) {
-    describe('isStep'+test.i, function() {
+  tests.forEach(function (test) {
+    describe('isStep' + test.i, function () {
       var w = App.WizardController1.create();
       w.set('currentStep', test.i);
-      it('Current Step is ' + test.i + ', so isStep' + test.i + ' is TRUE', function() {
-        expect(w.get('isStep'+ test.i)).to.equal(true);
+      it('Current Step is ' + test.i + ', so isStep' + test.i + ' is TRUE', function () {
+        expect(w.get('isStep' + test.i)).to.equal(true);
       });
-      test.n.forEach(function(indx) {
-        it('Current Step is ' + test.i + ', so isStep' + indx + ' is FALSE', function() {
-          expect(w.get('isStep'+ indx)).to.equal(false);
+      test.n.forEach(function (indx) {
+        it('Current Step is ' + test.i + ', so isStep' + indx + ' is FALSE', function () {
+          expect(w.get('isStep' + indx)).to.equal(false);
         });
       });
     });
@@ -93,13 +93,19 @@ describe('App.WizardController', function () {
   });
 
   describe('#launchBootstrapSuccessCallback', function() {
+    var params = {popup: {finishLoading: function(){}}};
+    beforeEach(function () {
+      sinon.spy(params.popup, "finishLoading");
+    });
+
+    afterEach(function () {
+      params.popup.finishLoading.restore();
+    });
+
     it('Save bootstrapRequestId', function() {
       var data = {requestId: 123, status: 'SUCCESS', log: 'ok'};
-      var params = {popup: {finishLoading: function(){}}};
-      sinon.spy(params.popup, "finishLoading");
       wizardController.launchBootstrapSuccessCallback(data, {}, params);
       expect(params.popup.finishLoading.calledWith(123, null, 'SUCCESS', 'ok')).to.be.true;
-      params.popup.finishLoading.restore();
     });
   });
 
@@ -125,6 +131,7 @@ describe('App.WizardController', function () {
       sinon.stub(wizardController, 'get')
         .withArgs('installOptionsTemplate').returns({useSsh: true})
         .withArgs('installWindowsOptionsTemplate').returns({useSsh: false});
+      this.stub = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
@@ -134,7 +141,7 @@ describe('App.WizardController', function () {
 
     cases.forEach(function (item) {
       it(title.format(item.expected), function () {
-        sinon.stub(App, 'get').withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
+        this.stub.withArgs('isHadoopWindowsStack').returns(item.isHadoopWindowsStack);
         expect(wizardController.getInstallOptions()).to.eql(item.expected);
       });
     });
@@ -156,12 +163,23 @@ describe('App.WizardController', function () {
       App.get.restore();
     });
 
-    it('should clear install options', function () {
-      wizardController.clearInstallOptions();
-      expect(wizardController.get('content.installOptions')).to.eql(wizardController.get('installOptionsTemplate'));
-      expect(wizardController.get('content.hosts')).to.eql({});
-      expect(wizardController.getDBProperty('installOptions')).to.eql(wizardController.get('installOptionsTemplate'));
-      expect(wizardController.getDBProperty('hosts')).to.eql({});
+    describe('should clear install options', function () {
+
+      beforeEach(function () {
+        wizardController.clearInstallOptions();
+      });
+      it('content.installOptions', function () {
+        expect(wizardController.get('content.installOptions')).to.eql(wizardController.get('installOptionsTemplate'));
+      });
+      it('content.hosts', function () {
+        expect(wizardController.get('content.hosts')).to.eql({});
+      });
+      it('installOptions', function () {
+        expect(wizardController.getDBProperty('installOptions')).to.eql(wizardController.get('installOptionsTemplate'));
+      });
+      it('hosts', function () {
+        expect(wizardController.getDBProperty('hosts')).to.eql({});
+      });
     });
   });
 
@@ -250,13 +268,21 @@ describe('App.WizardController', function () {
     afterEach(function(){
       App.ModalPopup.show.restore();
     });
-    it('should set error', function () {
-      sinon.stub(App.ModalPopup,'show', function (data) {
-        data.finishLoading.call(c);
+
+    describe('errors', function () {
+
+      beforeEach(function () {
+        sinon.stub(App.ModalPopup,'show', function (data) {
+          data.finishLoading.call(c);
+        });
       });
-      c.showLaunchBootstrapPopup(Em.K);
-      expect(c.get('isError')).to.be.true;
+
+      it('should set error', function () {
+        c.showLaunchBootstrapPopup(Em.K);
+        expect(c.get('isError')).to.be.true;
+      });
     });
+
     describe('#finishLoading', function () {
       var callback = sinon.spy(),
         stepController = App.get('router.wizardStep3Controller'),
@@ -346,18 +372,36 @@ describe('App.WizardController', function () {
         c.callback.restore();
       });
       cases.forEach(function (item) {
-        it(item.title, function () {
+        describe(item.title, function () {
           var wizardControllerProperties = Em.keys(item.wizardControllerProperties),
             stepControllerProperties = Em.keys(item.stepControllerProperties);
-          sinon.stub(App.ModalPopup,'show', function (data) {
-            data.finishLoading.call(c, item.requestId, item.serverError, item.status, item.log);
+
+          beforeEach(function () {
+            sinon.stub(App.ModalPopup,'show', function (data) {
+              data.finishLoading.call(c, item.requestId, item.serverError, item.status, item.log);
+            });
+            c.showLaunchBootstrapPopup(c.callback);
           });
-          c.showLaunchBootstrapPopup(c.callback);
-          expect(c.getProperties.apply(c, wizardControllerProperties)).to.eql(item.wizardControllerProperties);
-          expect(stepController.getProperties.apply(stepController, stepControllerProperties)).to.eql(item.stepControllerProperties);
-          expect(stepController.get('hosts').mapProperty('bootStatus').uniq()).to.eql([item.bootStatus]);
-          expect(c.callback.callCount).to.equal(item.callbackCallCount);
-          expect(c.hide.callCount).to.equal(item.hideCallCount);
+
+          it('wizardControllerProperties are valid', function () {
+            expect(c.getProperties.apply(c, wizardControllerProperties)).to.eql(item.wizardControllerProperties);
+          });
+
+          it('stepControllerProperties are valid', function () {
+            expect(stepController.getProperties.apply(stepController, stepControllerProperties)).to.eql(item.stepControllerProperties);
+          });
+
+          it('bootStatus is valid', function () {
+            expect(stepController.get('hosts').mapProperty('bootStatus').uniq()).to.eql([item.bootStatus]);
+          });
+
+          it('callback is called needed number of times', function () {
+            expect(c.callback.callCount).to.equal(item.callbackCallCount);
+          });
+
+          it('hide is called needed number of times', function () {
+            expect(c.hide.callCount).to.equal(item.hideCallCount);
+          });
         });
       });
     });
@@ -584,15 +628,21 @@ describe('App.WizardController', function () {
   });
 
   describe('#save', function () {
-    it('should save data', function () {
-      var res;
+    var res;
+    beforeEach(function () {
       sinon.stub(wizardController,'setDBProperty', function(data){
         res = data;
       });
       sinon.stub(wizardController,'toJSInstance').returns('val');
-      wizardController.save('name');
+    });
+
+    afterEach(function () {
       wizardController.setDBProperty.restore();
       wizardController.toJSInstance.restore();
+    });
+
+    it('should save data', function () {
+      wizardController.save('name');
       expect(res).to.be.equal('name');
     });
   });
@@ -1459,6 +1509,7 @@ describe('App.WizardController', function () {
           serviceName: 's1'
         })
       ]));
+      this.stub = sinon.stub(App, 'get');
     });
     afterEach(function () {
       App.get.restore();
@@ -1468,13 +1519,13 @@ describe('App.WizardController', function () {
       wizardController.loadConfigThemeForServices.restore();
     });
     it('Should load config themes', function() { 
-      sinon.stub(App, 'get').returns(true);
+      this.stub.returns(true);
       wizardController.loadConfigThemes().then(function(data) {
         expect().to.be.undefined;
       });
     });
-    it('Should load config themes', function() {
-      sinon.stub(App, 'get').returns(false); 
+    it('Should load config themes (2)', function() {
+      this.stub.returns(false);
       wizardController.loadConfigThemes().then(function(data) {
         expect().to.be.undefined;
       });
