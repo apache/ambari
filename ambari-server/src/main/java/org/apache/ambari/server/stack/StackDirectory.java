@@ -483,8 +483,10 @@ public class StackDirectory extends StackDefinitionDirectory {
         result = mapper.readValue(file, rcoElementTypeReference);
         LOG.info("Role command order info was loaded from file: {}", file.getAbsolutePath());
       } else {
-        LOG.info("Stack '{}' doesn't contain role command order file", getPath());
-        result = new HashMap<String, Object>();
+        InputStream rcoInputStream = ClassLoader.getSystemResourceAsStream(ROLE_COMMAND_ORDER_FILE);
+        result = mapper.readValue(rcoInputStream, rcoElementTypeReference);
+        LOG.info("Role command order info was loaded from classpath: " +
+            ClassLoader.getSystemResource(ROLE_COMMAND_ORDER_FILE));
       }
       roleCommandOrder = new StackRoleCommandOrder(result);
       parseRoleCommandOrdersForServices();

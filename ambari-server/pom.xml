@@ -530,6 +530,9 @@
                 <source>
                   <location>${project.build.directory}/DBConnectionVerification.jar</location>
                 </source>
+                <source>
+                  <location>src/main/resources/role_command_order.json</location>
+                </source>
               </sources>
             </mapping>
             <mapping>
@@ -995,6 +998,14 @@
             </data>
             <data>
               <src>${project.build.directory}/DBConnectionVerification.jar</src>
+              <type>file</type>
+              <mapper>
+                <type>perm</type>
+                <prefix>/var/lib/ambari-server/resources</prefix>
+              </mapper>
+            </data>
+            <data>
+              <src>src/main/resources/role_command_order.json</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>
