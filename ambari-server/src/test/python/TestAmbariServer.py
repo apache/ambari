@@ -1904,21 +1904,21 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.setupHttps.get_validated_filepath_input")
   @patch("ambari_server.setupHttps.get_validated_string_input")
   @patch("ambari_server.setupHttps.run_os_command")
-  @patch("ambari_server.setupHttps.get_truststore_type")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_type")
   @patch("__builtin__.open")
   @patch("ambari_server.setupHttps.find_properties_file")
   @patch("ambari_server.setupHttps.run_component_https_cmd")
   @patch("ambari_server.setupHttps.get_delete_cert_command")
-  @patch("ambari_server.setupHttps.get_truststore_password")
-  @patch("ambari_server.setupHttps.get_truststore_path")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_password")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_path")
   @patch("ambari_server.setupHttps.get_YN_input")
   @patch("ambari_server.setupHttps.get_ambari_properties")
   @patch("ambari_server.setupHttps.find_jdk")
   def test_setup_truststore(self, find_jdk_mock, get_ambari_properties_mock, get_YN_input_mock,
-                                 get_truststore_path_mock, get_truststore_password_mock,
+                                 get_and_persist_truststore_path_mock, get_and_persist_truststore_password_mock,
                                  get_delete_cert_command_mock, run_component_https_cmd_mock,
                                  find_properties_file_mock, open_mock,
-                                 get_truststore_type_mock, run_os_command_mock,
+                                 get_and_persist_truststore_type_mock, run_os_command_mock,
                                  get_validated_string_input_mock,
                                  get_validated_filepath_input_mock):
     out = StringIO.StringIO()
@@ -1956,13 +1956,13 @@ class TestAmbariServer(TestCase):
     find_jdk_mock.return_value = "/jdk_path"
     p.get_property.side_effect = ["true"]
     get_YN_input_mock.side_effect = [True,True]
-    get_truststore_path_mock.return_value = "/truststore_path"
-    get_truststore_password_mock.return_value = "/truststore_password"
+    get_and_persist_truststore_path_mock.return_value = "/truststore_path"
+    get_and_persist_truststore_password_mock.return_value = "/truststore_password"
     get_delete_cert_command_mock.return_value = "rm -f"
     setup_truststore(True)
 
-    self.assertTrue(get_truststore_path_mock.called)
-    self.assertTrue(get_truststore_password_mock.called)
+    self.assertTrue(get_and_persist_truststore_path_mock.called)
+    self.assertTrue(get_and_persist_truststore_password_mock.called)
     self.assertTrue(get_delete_cert_command_mock.called)
     self.assertTrue(find_properties_file_mock.called)
     self.assertTrue(open_mock.called)
@@ -1970,8 +1970,8 @@ class TestAmbariServer(TestCase):
     self.assertTrue(run_component_https_cmd_mock.called)
 
     p.process_pair.reset_mock()
-    get_truststore_path_mock.reset_mock()
-    get_truststore_password_mock.reset_mock()
+    get_and_persist_truststore_path_mock.reset_mock()
+    get_and_persist_truststore_password_mock.reset_mock()
     get_delete_cert_command_mock.reset_mock()
     find_properties_file_mock.reset_mock()
     open_mock.reset_mock()
@@ -1981,9 +1981,9 @@ class TestAmbariServer(TestCase):
     get_YN_input_mock.side_effect = [True,True]
     setup_truststore(True)
 
-    self.assertTrue(get_truststore_type_mock.called)
-    self.assertTrue(get_truststore_path_mock.called)
-    self.assertTrue(get_truststore_password_mock.called)
+    self.assertTrue(get_and_persist_truststore_type_mock.called)
+    self.assertTrue(get_and_persist_truststore_path_mock.called)
+    self.assertTrue(get_and_persist_truststore_password_mock.called)
     self.assertTrue(get_delete_cert_command_mock.called)
     self.assertTrue(find_properties_file_mock.called)
     self.assertTrue(open_mock.called)
@@ -1993,15 +1993,84 @@ class TestAmbariServer(TestCase):
     self.assertTrue(get_validated_filepath_input_mock.called)
 
     p.process_pair.reset_mock()
-    get_truststore_type_mock.reset_mock()
-    get_truststore_path_mock.reset_mock()
-    get_truststore_password_mock.reset_mock()
+    get_and_persist_truststore_type_mock.reset_mock()
+    get_and_persist_truststore_path_mock.reset_mock()
+    get_and_persist_truststore_password_mock.reset_mock()
     get_delete_cert_command_mock.reset_mock()
     find_properties_file_mock.reset_mock()
     open_mock.reset_mock()
     p.store.reset_mock()
     run_os_command_mock.reset_mock()
     get_validated_filepath_input_mock.reset_mock()
+    pass
+  
+  @patch("__builtin__.open")
+  @patch("ambari_commons.logging_utils.get_silent")
+  @patch("ambari_server.setupHttps.find_jdk")
+  @patch("ambari_server.setupHttps.get_ambari_properties")
+  @patch("ambari_server.setupHttps.get_YN_input")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_type")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_path")
+  @patch("ambari_server.setupHttps.get_and_persist_truststore_password")
+  @patch("ambari_server.setupHttps.find_properties_file")
+  @patch("ambari_server.setupHttps.get_validated_string_input")
+  @patch("ambari_server.setupHttps.run_os_command")
+  @patch("ambari_server.setupHttps.get_validated_filepath_input")
+  @patch("ambari_server.setupHttps.get_import_cert_command")
+  @patch("ambari_server.setupHttps.run_component_https_cmd")
+  def test_reconfigure_truststore(self, run_component_https_cmd_mock, 
+            get_import_cert_command_mock,
+            get_validated_filepath_input_mock, run_os_command_mock,
+            get_validated_string_input_mock, find_properties_file_mock, 
+            get_and_persist_truststore_password_mock, get_and_persist_truststore_path_mock,
+            get_and_persist_truststore_type_mock, get_YN_input_mock,
+            get_ambari_properties_mock, find_jdk_mock, get_silent_mock,
+            open_mock):
+    
+    def reset_mocks():
+      open_mock.reset_mock()
+      find_jdk_mock.reset_mock()
+      get_ambari_properties_mock.reset_mock()
+      get_YN_input_mock.reset_mock()
+      get_and_persist_truststore_type_mock.reset_mock()
+      get_and_persist_truststore_path_mock.reset_mock()
+      get_and_persist_truststore_password_mock.reset_mock() 
+      find_properties_file_mock.reset_mock()
+      get_validated_string_input_mock.reset_mock()
+      run_os_command_mock.reset_mock()
+      get_validated_filepath_input_mock.reset_mock() 
+      get_import_cert_command_mock.reset_mock()
+      run_component_https_cmd_mock.reset_mock()
+            
+    #Test preconditions
+    get_silent_mock.return_value = False
+    find_jdk_mock.return_value = "/path"
+
+    #Reconfiguration allowed by the user
+    reset_mocks()
+    get_YN_input_mock.side_effect = [True, True, True]
+    setup_truststore()
+    self.assertTrue(get_and_persist_truststore_type_mock.called)
+    self.assertTrue(get_and_persist_truststore_path_mock.called)
+    self.assertTrue(get_and_persist_truststore_password_mock.called)
+    
+    #Reconfiguration disallowed by the user
+    reset_mocks()
+    get_YN_input_mock.side_effect = [True, False]
+    setup_truststore()
+    self.assertTrue(get_and_persist_truststore_type_mock.called)
+    self.assertTrue(get_and_persist_truststore_path_mock.called)
+    self.assertTrue(get_and_persist_truststore_password_mock.called)
+    
+    #Reconfiguration should be disabled when 'import_cert' flag is 'True'
+    reset_mocks()
+    get_YN_input_mock.side_effect = [True, True]
+    setup_truststore(True)
+    self.assertTrue(get_and_persist_truststore_type_mock.called)
+    self.assertTrue(get_and_persist_truststore_path_mock.called)
+    self.assertTrue(get_and_persist_truststore_password_mock.called)
+    self.assertTrue(get_import_cert_command_mock.called)
+    
     pass
 
   @patch("ambari_server.setupHttps.adjust_directory_permissions")
