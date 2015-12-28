@@ -82,8 +82,6 @@ App.upgradeEntity = Em.Object.extend({
     return this.get('type') === 'GROUP' && (this.get('isActive') || this.get('hasExpandableItems'));
   }.property('isActive', 'hasExpandableItems'),
 
-  upgradeItemStatus: Em.computed.firstNotBlank('display_status', 'status'),
-
   upgradeGroupStatus: function () {
     if (this.get('status') === 'ABORTED') {
       return 'SUSPENDED';
