@@ -30,7 +30,7 @@ from resource_management.core.resources.accounts import Group, User
 import xml.etree.ElementTree as ET
 
 import utils
-import constants
+import hawq_constants
 
 
 def update_bashrc(source_file, target_file):
@@ -41,7 +41,7 @@ def update_bashrc(source_file, target_file):
   """
   append_src_cmd = "echo 'source {0}' >> {1}".format(source_file, target_file)
   src_cmd_exists = "grep 'source {0}' {1}".format(source_file, target_file)
-  Execute(append_src_cmd, user=constants.hawq_user, timeout=constants.default_exec_timeout, not_if=src_cmd_exists)
+  Execute(append_src_cmd, user=hawq_constants.hawq_user, timeout=hawq_constants.default_exec_timeout, not_if=src_cmd_exists)
 
 
 def setup_user():
@@ -57,12 +57,12 @@ def __create_hawq_user():
   Creates HAWQ user with password and default group.
   """
   import params
-  Group(constants.hawq_group, ignore_failures=True)
+  Group(hawq_constants.hawq_group, ignore_failures=True)
 
-  User(constants.hawq_user,
-       gid=constants.hawq_group,
+  User(hawq_constants.hawq_user,
+       gid=hawq_constants.hawq_group,
        password=crypt.crypt(params.hawq_password, "salt"),
-       groups=[constants.hawq_group, params.user_group],
+       groups=[hawq_constants.hawq_group, params.user_group],
        ignore_failures=True)
 
 
@@ -70,8 +70,8 @@ def __set_home_dir_ownership():
   """
   Updates the HAWQ user home directory to be owned by gpadmin:gpadmin.
   """
-  command = "chown -R {0}:{1} {2}".format(constants.hawq_user, constants.hawq_group, constants.hawq_home_dir)
-  Execute(command, timeout=constants.default_exec_timeout)
+  command = "chown -R {0}:{1} {2}".format(hawq_constants.hawq_user, hawq_constants.hawq_group, hawq_constants.hawq_home_dir)
+  Execute(command, timeout=hawq_constants.default_exec_timeout)
 
 
 def setup_common_configurations():
@@ -108,11 +108,11 @@ def __update_hdfs_client():
       hdfs_client_dict[key] = params.hdfs_site[key]
 
   XmlConfig("hdfs-client.xml",
-            conf_dir=constants.hawq_config_dir,
+            conf_dir=hawq_constants.hawq_config_dir,
             configurations=ConfigDictionary(hdfs_client_dict),
             configuration_attributes=params.config['configuration_attributes']['hdfs-client'],
-            owner=constants.hawq_user,
-            group=constants.hawq_group,
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
             mode=0644)
 
 
@@ -160,11 +160,11 @@ def __update_yarn_client():
     yarn_client_dict['yarn.resourcemanager.scheduler.ha'] = "{0},{1}".format(rm_scheduler_address_host1, rm_scheduler_address_host2)
 
   XmlConfig("yarn-client.xml",
-            conf_dir=constants.hawq_config_dir,
+            conf_dir=hawq_constants.hawq_config_dir,
             configurations=ConfigDictionary(yarn_client_dict),
             configuration_attributes=params.config['configuration_attributes']['yarn-client'],
-            owner=constants.hawq_user,
-            group=constants.hawq_group,
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
             mode=0644)
 
 
@@ -175,11 +175,11 @@ def __update_hawq_site():
   import params
 
   XmlConfig("hawq-site.xml",
-            conf_dir=constants.hawq_config_dir,
+            conf_dir=hawq_constants.hawq_config_dir,
             configurations=params.hawq_site,
             configuration_attributes=params.config['configuration_attributes']['hawq-site'],
-            owner=constants.hawq_user,
-            group=constants.hawq_group,
+            owner=hawq_constants.hawq_user,
+            group=hawq_constants.hawq_group,
             mode=0644)
 
 
@@ -188,7 +188,7 @@ def __set_osparams():
   Updates parameters in sysctl.conf and limits.conf required by HAWQ.
   """
   # Create a temp scratchpad directory
-  utils.create_dir_as_hawq_user(constants.hawq_tmp_dir)
+  utils.create_dir_as_hawq_user(hawq_constants.hawq_tmp_dir)
 
   # Suse doesn't supports loading values from files in /etc/sysctl.d
   # So we will have to directly edit the sysctl file
@@ -208,7 +208,7 @@ def __update_limits_file():
   """
   import params
   # Ensure limits directory exists
-  Directory(constants.limits_conf_dir, recursive=True, owner=constants.root_user, group=constants.root_user)
+  Directory(hawq_constants.limits_conf_dir, recursive=True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
 
   # Generate limits for hawq user
   limits_file_content = "#### HAWQ Limits Parameters  ###########\n"
@@ -221,9 +221,9 @@ def __update_limits_file():
     gpadmin hard nofile 290000
     key used in the configuration is of the format soft_nofile, thus strip '_' and replace with 'space'
     """
-    limits_file_content += "{0} {1} {2}\n".format(constants.hawq_user, re.sub("_", " ", key), value.strip())
-  File('{0}/{1}.conf'.format(constants.limits_conf_dir, constants.hawq_user), content=limits_file_content,
-       owner=constants.hawq_user, group=constants.hawq_group)
+    limits_file_content += "{0} {1} {2}\n".format(hawq_constants.hawq_user, re.sub("_", " ", key), value.strip())
+  File('{0}/{1}.conf'.format(hawq_constants.limits_conf_dir, hawq_constants.hawq_user), content=limits_file_content,
+       owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group)
 
 
 def __valid_input(value):
@@ -251,26 +251,26 @@ def __update_sysctl_file():
   Updates /etc/sysctl.d/hawq_sysctl.conf file with the HAWQ parameters on CentOS/RHEL.
   """
   # Ensure sys ctl sub-directory exists
-  Directory(constants.sysctl_conf_dir, recursive=True, owner=constants.root_user, group=constants.root_user)
+  Directory(hawq_constants.sysctl_conf_dir, recursive=True, owner=hawq_constants.root_user, group=hawq_constants.root_user)
 
   # Generate temporary file with kernel parameters needed by hawq
-  File(constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=constants.hawq_user,
-       group=constants.hawq_group)
+  File(hawq_constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=hawq_constants.hawq_user,
+       group=hawq_constants.hawq_group)
 
   is_changed = True
-  if os.path.exists(constants.hawq_sysctl_tmp_file) and os.path.exists(constants.hawq_sysctl_file):
-    is_changed = not filecmp.cmp(constants.hawq_sysctl_file, constants.hawq_sysctl_tmp_file)
+  if os.path.exists(hawq_constants.hawq_sysctl_tmp_file) and os.path.exists(hawq_constants.hawq_sysctl_file):
+    is_changed = not filecmp.cmp(hawq_constants.hawq_sysctl_file, hawq_constants.hawq_sysctl_tmp_file)
 
   if is_changed:
     # Generate file with kernel parameters needed by hawq, only if something
     # has been changed by user
-    Execute("cp -p {0} {1}".format(constants.hawq_sysctl_tmp_file, constants.hawq_sysctl_file))
+    Execute("cp -p {0} {1}".format(hawq_constants.hawq_sysctl_tmp_file, hawq_constants.hawq_sysctl_file))
 
     # Reload kernel sysctl parameters from hawq file.
-    Execute("sysctl -e -p {0}".format(constants.hawq_sysctl_file), timeout=constants.default_exec_timeout)
+    Execute("sysctl -e -p {0}".format(hawq_constants.hawq_sysctl_file), timeout=hawq_constants.default_exec_timeout)
 
   # Wipe out temp file
-  File(constants.hawq_sysctl_tmp_file, action='delete')
+  File(hawq_constants.hawq_sysctl_tmp_file, action='delete')
 
 
 def __update_sysctl_file_suse():
@@ -278,33 +278,33 @@ def __update_sysctl_file_suse():
   Updates /etc/sysctl.conf file with the HAWQ parameters on SUSE.
   """
   # Backup file
-  backup_file_name = constants.sysctl_backup_file.format(str(int(time.time())))
+  backup_file_name = hawq_constants.sysctl_backup_file.format(str(int(time.time())))
   try:
     # Generate file with kernel parameters needed by hawq to temp file
-    File(constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=constants.hawq_user,
-        group=constants.hawq_group)
+    File(hawq_constants.hawq_sysctl_tmp_file, content=__convert_sysctl_dict_to_text(), owner=hawq_constants.hawq_user,
+        group=hawq_constants.hawq_group)
 
-    sysctl_file_dict = utils.read_file_to_dict(constants.sysctl_suse_file)
+    sysctl_file_dict = utils.read_file_to_dict(hawq_constants.sysctl_suse_file)
     sysctl_file_dict_original = sysctl_file_dict.copy()
-    hawq_sysctl_dict = utils.read_file_to_dict(constants.hawq_sysctl_tmp_file)
+    hawq_sysctl_dict = utils.read_file_to_dict(hawq_constants.hawq_sysctl_tmp_file)
 
     # Merge common system file with hawq specific file
     sysctl_file_dict.update(hawq_sysctl_dict)
 
     if sysctl_file_dict_original != sysctl_file_dict:
       # Backup file
-      Execute("cp {0} {1}".format(constants.sysctl_suse_file, backup_file_name), timeout=constants.default_exec_timeout)
+      Execute("cp {0} {1}".format(hawq_constants.sysctl_suse_file, backup_file_name), timeout=hawq_constants.default_exec_timeout)
       # Write merged properties to file
-      utils.write_dict_to_file(sysctl_file_dict, constants.sysctl_suse_file)
+      utils.write_dict_to_file(sysctl_file_dict, hawq_constants.sysctl_suse_file)
       # Reload kernel sysctl parameters from /etc/sysctl.conf
-      Execute("sysctl -e -p", timeout=constants.default_exec_timeout)
+      Execute("sysctl -e -p", timeout=hawq_constants.default_exec_timeout)
 
   except Exception as e:
     Logger.error("Error occurred while updating sysctl.conf file, reverting the contents" + str(e))
-    Execute("cp {0} {1}".format(constants.sysctl_suse_file, constants.hawq_sysctl_tmp_file))
-    Execute("mv {0} {1}".format(backup_file_name, constants.sysctl_suse_file), timeout=constants.default_exec_timeout)
+    Execute("cp {0} {1}".format(hawq_constants.sysctl_suse_file, hawq_constants.hawq_sysctl_tmp_file))
+    Execute("mv {0} {1}".format(backup_file_name, hawq_constants.sysctl_suse_file), timeout=hawq_constants.default_exec_timeout)
     Logger.error("Please execute `sysctl -e -p` on the command line manually to reload the contents of file {0}".format(
-      constants.hawq_sysctl_tmp_file))
+      hawq_constants.hawq_sysctl_tmp_file))
     raise Fail("Failed to update sysctl.conf file ")
 
 
@@ -314,7 +314,7 @@ def get_local_hawq_site_property(property_name):
   """
   hawq_site_path = None
   try:
-    hawq_site_path = os.path.join(constants.hawq_config_dir, "hawq-site.xml")
+    hawq_site_path = os.path.join(hawq_constants.hawq_config_dir, "hawq-site.xml")
     hawq_site_root = ET.parse(hawq_site_path).getroot()
     for property in hawq_site_root.findall("property"):
       for item in property:

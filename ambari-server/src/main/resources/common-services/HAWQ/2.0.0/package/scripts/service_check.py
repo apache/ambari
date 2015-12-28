@@ -16,7 +16,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import common
-import constants
+import hawq_constants
 from utils import exec_psql_cmd, exec_ssh_cmd
 from resource_management.libraries.script import Script
 from resource_management.core.exceptions import Fail
@@ -54,33 +54,33 @@ class HAWQServiceCheck(Script):
 
 
   def drop_table(self):
-    Logger.info("Dropping {0} table if exists".format(constants.smoke_check_table_name))
-    sql_cmd = "drop table if exists {0}".format(constants.smoke_check_table_name)
+    Logger.info("Dropping {0} table if exists".format(hawq_constants.smoke_check_table_name))
+    sql_cmd = "drop table if exists {0}".format(hawq_constants.smoke_check_table_name)
     exec_psql_cmd(sql_cmd, self.active_master_host)
 
 
   def create_table(self):
-    Logger.info("Creating table {0}".format(constants.smoke_check_table_name))
-    sql_cmd = "create table {0} (col1 int) distributed randomly".format(constants.smoke_check_table_name)
+    Logger.info("Creating table {0}".format(hawq_constants.smoke_check_table_name))
+    sql_cmd = "create table {0} (col1 int) distributed randomly".format(hawq_constants.smoke_check_table_name)
     exec_psql_cmd(sql_cmd, self.active_master_host)
 
 
   def insert_data(self):
-    Logger.info("Inserting data to table {0}".format(constants.smoke_check_table_name))
-    sql_cmd = "insert into {0} select * from generate_series(1,10)".format(constants.smoke_check_table_name)
+    Logger.info("Inserting data to table {0}".format(hawq_constants.smoke_check_table_name))
+    sql_cmd = "insert into {0} select * from generate_series(1,10)".format(hawq_constants.smoke_check_table_name)
     exec_psql_cmd(sql_cmd, self.active_master_host)
 
 
   def query_data(self):
-    Logger.info("Querying data from table {0}".format(constants.smoke_check_table_name))
-    sql_cmd = "select * from {0}".format(constants.smoke_check_table_name)
+    Logger.info("Querying data from table {0}".format(hawq_constants.smoke_check_table_name))
+    sql_cmd = "select * from {0}".format(hawq_constants.smoke_check_table_name)
     exec_psql_cmd(sql_cmd, self.active_master_host)
 
 
   def check_data_correctness(self):
     expected_data = "55"
     Logger.info("Validating data inserted, finding sum of all the inserted entries. Expected output: {0}".format(expected_data))
-    sql_cmd = "select sum(col1) from {0}".format(constants.smoke_check_table_name)
+    sql_cmd = "select sum(col1) from {0}".format(hawq_constants.smoke_check_table_name)
     _, stdout, _ = exec_psql_cmd(sql_cmd, self.active_master_host, tuples_only=False)
     if expected_data != stdout.strip():
       Logger.error("Incorrect data returned. Expected Data: {0} Actual Data: {1}".format(expected_data, stdout))
@@ -89,7 +89,7 @@ class HAWQServiceCheck(Script):
 
   def check_state(self):
     import params
-    command = "source {0} && hawq state -d {1}".format(constants.hawq_greenplum_path_file, params.hawq_master_dir)
+    command = "source {0} && hawq state -d {1}".format(hawq_constants.hawq_greenplum_path_file, params.hawq_master_dir)
     Logger.info("Executing hawq status check..")
     (retcode, out, err) = exec_ssh_cmd(self.active_master_host, command)
     if retcode:

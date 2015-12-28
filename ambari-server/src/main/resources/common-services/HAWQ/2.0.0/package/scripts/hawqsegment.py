@@ -23,7 +23,7 @@ from resource_management.libraries.functions.check_process_status import check_p
 
 import utils
 import common
-import constants
+import hawq_constants
 
 class HawqSegment(Script):
   """
@@ -39,17 +39,17 @@ class HawqSegment(Script):
     import params
 
     env.set_params(params)
-    env.set_params(constants)
+    env.set_params(hawq_constants)
     common.setup_user()
     common.setup_common_configurations()
-    common.update_bashrc(constants.hawq_greenplum_path_file, constants.hawq_user_bashrc_file)
+    common.update_bashrc(hawq_constants.hawq_greenplum_path_file, hawq_constants.hawq_user_bashrc_file)
 
 
   def __start_segment(self):
     import params
     return utils.exec_hawq_operation(
-          constants.START, 
-          "{0} -a".format(constants.SEGMENT), 
+          hawq_constants.START, 
+          "{0} -a".format(hawq_constants.SEGMENT), 
           not_if=utils.chk_hawq_process_status_cmd(params.hawq_segment_address_port))
 
   def start(self, env):
@@ -67,7 +67,7 @@ class HawqSegment(Script):
   def stop(self, env):
     import params
 
-    utils.exec_hawq_operation(constants.STOP, "{0} -a".format(constants.SEGMENT), only_if=utils.chk_hawq_process_status_cmd(
+    utils.exec_hawq_operation(hawq_constants.STOP, "{0} -a".format(hawq_constants.SEGMENT), only_if=utils.chk_hawq_process_status_cmd(
                                 params.hawq_segment_address_port))
 
 
@@ -85,14 +85,14 @@ class HawqSegment(Script):
     utils.create_dir_as_hawq_user(params.hawq_segment_temp_dir.split(','))
 
     # Initialize hawq segment
-    utils.exec_hawq_operation(constants.INIT, "{0} -a -v".format(constants.SEGMENT))
+    utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.SEGMENT))
 
   def __is_segment_initialized(self):
     """
     Check whether the HAWQ Segment is initialized
     """
     import params
-    return os.path.exists(os.path.join(params.hawq_segment_dir, constants.postmaster_opts_filename))
+    return os.path.exists(os.path.join(params.hawq_segment_dir, hawq_constants.postmaster_opts_filename))
 
 
 if __name__ == "__main__":
