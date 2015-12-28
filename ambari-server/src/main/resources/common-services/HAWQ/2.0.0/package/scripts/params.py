@@ -34,19 +34,6 @@ def __get_component_host(component):
   return component_host
 
 
-def __get_namenode_host():
-  """
-  Gets the namenode host; active namenode in case of HA
-  """
-  namenode_host = __get_component_host('namenode_host')
-  
-  # hostname of the active HDFS HA Namenode (only used when HA is enabled)
-  dfs_ha_namenode_active = default('/configurations/hadoop-env/dfs_ha_initial_namenode_active', None)
-  if dfs_ha_namenode_active is not None:
-    namenode_host = dfs_ha_namenode_active
-  return namenode_host
-
-
 hostname = config['hostname']
 
 # Users and Groups
@@ -54,24 +41,29 @@ hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
 hawq_password = config['configurations']['hawq-env']['hawq_password']
 
+
 # HAWQ Hostnames
 hawqmaster_host = __get_component_host('hawqmaster_hosts')
 hawqstandby_host = __get_component_host('hawqstandby_hosts')
 hawqsegment_hosts = default('/clusterHostInfo/hawqsegment_hosts', [])
+
 
 # HDFS
 hdfs_site = config['configurations']['hdfs-site']
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 
 # HDFSResource partial function
-HdfsResource = functools.partial(HdfsResource, user=hdfs_superuser, hdfs_site=hdfs_site, default_fs=default_fs)
+HdfsResource = functools.partial(HdfsResource,
+                                 user=hdfs_superuser,
+                                 hdfs_site=hdfs_site,
+                                 default_fs=default_fs)
 
-namenode_host= __get_namenode_host()
 
 # YARN
 # Note: YARN is not mandatory for HAWQ. It is required only when the users set HAWQ to use YARN as resource manager
 rm_host = __get_component_host('rm_host')
 yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
+
 
 # Config files
 gpcheck_content = config['configurations']['gpcheck-env']['content']
@@ -79,9 +71,15 @@ gpcheck_content = config['configurations']['gpcheck-env']['content']
 hawq_limits = config['configurations']['hawq-limits-env']
 # sysctl parameters
 hawq_sysctl = config['configurations']['hawq-sysctl-env']
-
+# hawq config
 hawq_site = config['configurations']['hawq-site']
+# hdfs-client for enabling HAWQ to work with HDFS namenode HA
+hdfs_client = config['configurations']['hdfs-client']
+# yarn-client for enabling HAWQ to work with YARN resource manager HA
 yarn_client = config['configurations']['yarn-client']
+
+
+# Directories and ports
 hawq_master_dir = hawq_site.get('hawq_master_directory')
 hawq_segment_dir = hawq_site.get('hawq_segment_directory')
 hawq_master_temp_dir = hawq_site.get('hawq_master_temp_directory')
