@@ -116,7 +116,7 @@ public class ClusterConfigurationRequest {
 
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, clusterConfiguration.getFullProperties(),
-        new HashSet<String>(blueprint.getServices()));
+        new HashSet<String>(blueprint.getServices()), false);
      for (String configType : updatedConfigs.keySet()) {
        Map<String, String> propertyMap = updatedConfigs.get(configType);
        for (String property : propertyMap.keySet()) {
