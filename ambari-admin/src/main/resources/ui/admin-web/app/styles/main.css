@@ -204,6 +204,9 @@
  .instances-table{
   table-layout: fixed;
  }
+ .instance-link{
+  word-wrap:break-word;
+ }
  .description-column{
   text-overflow: ellipsis;
   overflow: hidden;
