@@ -1461,6 +1461,8 @@ Em.I18n.translations = {
   'admin.stackVersions.filter.upgrading': "Upgrade/Downgrade In Process ({0})",
   'admin.stackVersions.filter.upgraded': "Ready to Finalize ({0})",
   'admin.stackVersions.upgrade.start.fail.title':'Upgrade could not be started',
+  'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
+  'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
