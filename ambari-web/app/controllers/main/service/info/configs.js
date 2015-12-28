@@ -264,7 +264,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.get('requestsInProgress').clear();
     this.clearLoadInfo();
     this.clearSaveInfo();
-    this.clearDependentConfigs();
+    this.clearAllRecommendations();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -536,6 +536,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
   },
 
   /**
+   * Allow update property if recommendations
+   * is based on changing property
+   *
+   * @param parentProperties
+   * @returns {boolean}
+   * @override
+   */
+  allowUpdateProperty: function(parentProperties) {
+    return !!(parentProperties && parentProperties.length);
+  },
+
+  /**
    * trigger App.config.createOverride
    * @param {Object[]} stepConfig
    * @private
@@ -576,7 +588,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
-    this.clearDependentConfigs();
+    this.clearAllRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 

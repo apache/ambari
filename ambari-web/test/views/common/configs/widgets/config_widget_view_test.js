@@ -209,22 +209,22 @@ describe('App.ConfigWidgetView', function () {
 
     tests.forEach(function(test) {
       it(test.m, function() {
-        view.set('controller._dependentConfigValues', test.dependentConfigs);
+        view.set('controller.recommendations', test.dependentConfigs);
         view.restoreDependentConfigs(view.get('config'));
-        expect(view.get('controller._dependentConfigValues').mapProperty('name')).to.be.eql(test.e);
+        expect(view.get('controller.recommendations').mapProperty('name')).to.be.eql(test.e);
       });
     });
 
     it('when dependent configs has multiple parents appropriate parent config should be removed', function() {
-      view.set('controller._dependentConfigValues', [
+      view.set('controller.recommendations', [
         {name: 'dependent1', parentConfigs: ['config1', 'config2']},
         {name: 'dependent2', parentConfigs: ['config2', 'config1']},
         {name: 'dependent3', parentConfigs: ['config1']}
       ]);
       view.restoreDependentConfigs(view.get('config'));
-      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
-      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
-      expect(view.get('controller._dependentConfigValues.length')).to.be.eql(2);
+      expect(view.get('controller.recommendations').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
+      expect(view.get('controller.recommendations').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
+      expect(view.get('controller.recommendations.length')).to.be.eql(2);
     });
 
     it('dependent config value should be set with inital or saved when it has one parent', function() {
@@ -237,7 +237,7 @@ describe('App.ConfigWidgetView', function () {
           ])
         })
       ]);
-      view.set('controller._dependentConfigValues', [
+      view.set('controller.recommendations', [
         {propertyName: 'dependent1', parentConfigs: ['config1', 'config2'], fileName: 'some-file' },
         {propertyName: 'dependent2', parentConfigs: ['config2', 'config1'], fileName: 'some-file'},
         {propertyName: 'dependent3', parentConfigs: ['config1'], fileName: 'some-file' }

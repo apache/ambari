@@ -506,6 +506,20 @@ App.ServiceConfigProperty = Em.Object.extend({
   }.property('displayType', 'name', 'App.isHadoop22Stack'),
 
   /**
+   * Get override for selected group
+   *
+   * @param {String} groupName
+   * @returns {App.ServiceConfigProperty|null}
+   */
+  getOverride: function(groupName) {
+    Em.assert('Group name should be defined string', (typeof groupName === 'string') && groupName);
+    if (this.get('overrides.length')) {
+      return this.get('overrides').findProperty('group.name', groupName);
+    }
+    return null;
+  },
+
+  /**
    * Update description for `password`-config
    * Add extra-message about their comparison
    *

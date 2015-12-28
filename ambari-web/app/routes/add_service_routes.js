@@ -199,7 +199,7 @@ module.exports = App.WizardRoute.extend({
             recommendationsConfigs: null
           });
           router.get('wizardStep7Controller').set('recommendationsConfigs', null);
-          router.get('wizardStep7Controller').clearDependentConfigs();
+          router.get('wizardStep7Controller').clearAllRecommendations();
           router.transitionTo('step4');
         });
       });

@@ -376,9 +376,9 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     it("should clear dependent configs", function() {
       mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
-      mainServiceInfoConfigsController.set('_dependentConfigValues', Em.A([{name: 'prop_1'}]));
+      mainServiceInfoConfigsController.set('recommendations', Em.A([{name: 'prop_1'}]));
       mainServiceInfoConfigsController.doCancel();
-      expect(App.isEmptyObject(mainServiceInfoConfigsController.get('_dependentConfigValues'))).to.be.true;
+      expect(App.isEmptyObject(mainServiceInfoConfigsController.get('recommendations'))).to.be.true;
     });
   });
 

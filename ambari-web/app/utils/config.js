@@ -19,6 +19,7 @@
 var App = require('app');
 require('utils/configs_collection');
 var stringUtils = require('utils/string_utils');
+var validator = require('utils/validator');
 
 var configTagFromFileNameMap = {};
 
@@ -212,7 +213,7 @@ App.config = Em.Object.create({
    */
   getServiceByConfigType: function(configType) {
     return App.StackService.find().find(function(s) {
-      return Object.keys(s.get('configTypes')).contains(configType);
+      return s.get('configTypeList').contains(configType);
     });
   },
 
@@ -492,6 +493,29 @@ App.config = Em.Object.create({
       value = " ";
     }
     return value;
+  },
+
+  /**
+   * Format float value
+   *
+   * @param {*} value
+   * @returns {string|*}
+   */
+  formatValue: function(value) {
+    return validator.isValidFloat(value) ? parseFloat(value).toString() : value;
+  },
+
+  /**
+   * Get step config by file name
+   *
+   * @param stepConfigs
+   * @param fileName
+   * @returns {Object|null}
+   */
+  getStepConfigForProperty: function (stepConfigs, fileName) {
+    return stepConfigs.find(function (s) {
+      return s.get('configTypes').contains(App.config.getConfigTagFromFileName(fileName));
+    });
   },
 
   /**

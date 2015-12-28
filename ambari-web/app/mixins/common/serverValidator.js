@@ -174,7 +174,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @param data
    */
   loadRecommendationsSuccess: function(data) {
-    this._saveRecommendedValues(data, false, null, false, true);
+    this._saveRecommendedValues(data, null, false);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
     this.set('recommendationTimeStamp', (new Date).getTime());
   },

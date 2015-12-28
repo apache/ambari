@@ -113,9 +113,9 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    */
   restoreDependentConfigs: function(parentConfig) {
     var controller = this.get('controller');
-    var dependentConfigs = controller.get('_dependentConfigValues');
+    var dependentConfigs = controller.get('recommendations');
     try {
-      controller.set('_dependentConfigValues', dependentConfigs.reject(function(item) {
+      controller.set('recommendations', dependentConfigs.reject(function(item) {
         if (item.parentConfigs.contains(parentConfig.get('name'))) {
           if (item.parentConfigs.length > 1) {
             item.parentConfigs.removeObject(parentConfig.get('name'));

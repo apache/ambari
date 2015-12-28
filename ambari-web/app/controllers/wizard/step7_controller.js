@@ -706,24 +706,28 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
-    this.loadServerSideConfigsRecommendations().always(function() {
-      if (self.get('wizardController.name') == 'addServiceController') {
-        // for Add Service just remove or add dependent properties and ignore config values changes
-        // for installed services only
-        self.clearDependenciesForInstalledServices(self.get('installedServiceNames'), self.get('stepConfigs'));
-      }
-      self.completeConfigLoading();
-    });
+    this.loadServerSideConfigsRecommendations().always(this.completeConfigLoading.bind(this));
   },
 
   completeConfigLoading: function() {
-    this.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+    this.clearRecommendationsByServiceName(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
     console.timeEnd('wizard loadStep: ');
     this.set('isRecommendedLoaded', true);
     if (this.get('content.skipConfigStep')) {
       App.router.send('next');
     }
     this.set('hash', this.getHash());
+  },
+
+  /**
+   * Update initialValues only while loading recommendations first time
+   *
+   * @param serviceName
+   * @returns {boolean}
+   * @override
+   */
+  updateInitialOnRecommendations: function(serviceName) {
+    return this._super(serviceName) && !this.get('isRecommendedLoaded');
   },
 
   /**
@@ -1223,6 +1227,70 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return config;
   },
 
+  /**
+   * @param serviceName
+   * @returns {boolean}
+   * @override
+   */
+  useInitialValue: function(serviceName) {
+    return !App.Service.find(serviceName).get('serviceName', serviceName);
+  },
+
+  /**
+   *
+   * @param parentProperties
+   * @param name
+   * @param fileName
+   * @returns {*}
+   * @override
+   */
+  allowUpdateProperty: function(parentProperties, name, fileName) {
+    if (['installerController'].contains(this.get('wizardController.name')) || !!(parentProperties && parentProperties.length)) {
+      return true;
+    } else if (['addServiceController'].contains(this.get('wizardController.name'))) {
+      var stackProperty = App.configsCollection.getConfigByName(name, fileName);
+      if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
+        return true;
+      } else if (stackProperty.propertyDependsOn.length) {
+        return stackProperty.propertyDependsOn.filter(function (p) {
+          var service = App.config.getServiceByConfigType(p.type);
+          return service && !this.get('installedServices')[service.get('serviceName')];
+        }, this).length;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  },
+
+  /**
+   * remove config based on recommendations
+   * @param config
+   * @param configsCollection
+   * @param parentProperties
+   * @protected
+   * @override
+   */
+  _removeConfigByRecommendation: function (config, configsCollection, parentProperties) {
+    this._super(config, configsCollection, parentProperties);
+    /**
+     * need to update wizard info when removing configs for installed services;
+     */
+    var installedServices = this.get('installedServices'), wizardController = this.get('wizardController'),
+      fileNamesToUpdate = wizardController ? wizardController.getDBProperty('fileNamesToUpdate') || [] : [],
+      fileName = Em.get(config, 'filename'), serviceName = Em.get(config, 'serviceName');
+    var modifiedFileNames = this.get('modifiedFileNames');
+    if (modifiedFileNames && !modifiedFileNames.contains(fileName)) {
+      modifiedFileNames.push(fileName);
+    } else if (wizardController && installedServices[serviceName]) {
+      if (!fileNamesToUpdate.contains(fileName)) {
+        fileNamesToUpdate.push(fileName);
+      }
+    }
+    if (wizardController) {
+      wizardController.setDBProperty('fileNamesToUpdate', fileNamesToUpdate.uniq());
+    }
+  },
   /**
    * @method manageConfigurationGroup
    */
