@@ -1259,13 +1259,13 @@ accordion .panel-group .panel{
   width: 30%
 }
 
-#stack-versions .table-bar {
+.table-bar {
   padding-top: 4px;
   border: 1px solid #E4E4E4;
   color: #7B7B7B;
 }
 
-#stack-versions .table-bar .filtered-info {
+.table-bar .filtered-info {
   margin-top: 8px;
 }
 

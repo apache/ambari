@@ -90,8 +90,8 @@
   </div>
   <div class="col-sm-12 table-bar">
     <div class="pull-left filtered-info">
-      <span>{{tableInfo.showed}} of {{tableInfo.total}} versions showing - </span>
-      <a href ng-click="clearFilters()">clear filters</a>
+      <span>{{tableInfo.showed}} of {{tableInfo.total}} versions showing</span>
+      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">clear filters</a></span>
     </div>
     <div class="pull-right left-margin">
       <pagination class="paginator"

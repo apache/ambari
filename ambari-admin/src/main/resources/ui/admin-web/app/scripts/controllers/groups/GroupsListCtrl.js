@@ -27,6 +27,11 @@ angular.module('ambariAdminConsole')
   $scope.totalGroups = 1;
   $scope.currentNameFilter = '';
   $scope.maxVisiblePages=20;
+  $scope.tableInfo = {
+    total: 0,
+    showed: 0
+  };
+  $scope.isNotEmptyFilter = true;
 
   $scope.pageChanged = function() {
     loadGroups();
@@ -49,6 +54,8 @@ angular.module('ambariAdminConsole')
     }).then(function(groups) {
       $scope.totalGroups = groups.itemTotal;
       $scope.groups = groups;
+      $scope.tableInfo.total = groups.itemTotal;
+      $scope.tableInfo.showed = groups.length;
     })
     .catch(function(data) {
       console.error($t('groups.alerts.getGroupsListError'));
@@ -61,8 +68,23 @@ angular.module('ambariAdminConsole')
     {label: $t('common.ldap'), value:true}
   ];
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+
+  $scope.clearFilters = function () {
+    $scope.currentNameFilter = '';
+    $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+    $scope.resetPagination();
+  };
   
   loadGroups();
+
+  $scope.$watch(
+    function (scope) {
+      return Boolean(scope.currentNameFilter || (scope.currentTypeFilter && scope.currentTypeFilter.value !== '*'));
+    },
+    function (newValue, oldValue, scope) {
+      scope.isNotEmptyFilter = newValue;
+    }
+  );
 
   $rootScope.$watch(function(scope) {
     return scope.LDAPSynced;

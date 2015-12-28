@@ -28,6 +28,7 @@ angular.module('ambariAdminConsole')
       current: null
     }
   };
+  $scope.isNotEmptyFilter = true;
 
   $scope.pagination = {
     totalRepos: 10,
@@ -125,4 +126,8 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.loadAllData();
+
+  $scope.$watch('filter', function (filter) {
+    $scope.isNotEmptyFilter = Boolean(filter.version || (filter.cluster.current && filter.cluster.current.value));
+  }, true);
 }]);

@@ -29,6 +29,12 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   $scope.maxVisiblePages = 20;
   $scope.roles = [];
   $scope.clusterId = $routeParams.id;
+  $scope.tableInfo = {
+    total: 0,
+    showed: 0,
+    filtered: 0
+  };
+  $scope.isNotEmptyFilter = true;
 
   $scope.pageChanged = function() {
     $scope.loadUsers();
@@ -54,6 +60,8 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
         user.PrivilegeInfo.url = type == 'user'? (type + 's/' + name) : (type + 's/' + name + '/edit');
         return user.PrivilegeInfo;
       });
+      $scope.tableInfo.total = data.itemTotal;
+      $scope.tableInfo.showed = data.items.length;
       $scope.loadRoles();
     });
   };
@@ -120,8 +128,24 @@ function($scope, $location, Cluster, $modal, $rootScope, $routeParams, Permissio
   ];
   $scope.currentTypeFilter = $scope.typeFilterOptions[0];
 
+  $scope.clearFilters = function () {
+    $scope.currentNameFilter = '';
+    $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+    $scope.currentRoleFilter = $scope.roleFilterOptions[0];
+    $scope.resetPagination();
+  };
 
   $scope.loadUsers();
+
+  $scope.$watch(
+    function (scope) {
+      return Boolean(scope.currentNameFilter || (scope.currentTypeFilter && scope.currentTypeFilter.value)
+        || (scope.currentRoleFilter && scope.currentRoleFilter.value));
+    },
+    function (newValue, oldValue, scope) {
+      scope.isNotEmptyFilter = newValue;
+    }
+  );
 
   $rootScope.$watch(function(scope) {
     return scope.LDAPSynced;

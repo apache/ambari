@@ -26,6 +26,11 @@ angular.module('ambariAdminConsole')
   $scope.totalUsers = 1;
   $scope.currentNameFilter = '';
   $scope.maxVisiblePages=20;
+  $scope.tableInfo = {
+    total: 0,
+    showed: 0
+  };
+  $scope.isNotEmptyFilter = true;
 
   $scope.pageChanged = function() {
     $scope.loadUsers();
@@ -45,6 +50,8 @@ angular.module('ambariAdminConsole')
     }).then(function(data) {
       $scope.totalUsers = data.data.itemTotal;
       $scope.users = data.data.items.map(User.makeUser);
+      $scope.tableInfo.showed = data.data.items.length;
+      $scope.tableInfo.total = data.data.itemTotal;
     });
   };
 
@@ -53,12 +60,12 @@ angular.module('ambariAdminConsole')
     $scope.loadUsers();
   };
 
-  $scope.actvieFilterOptions = [
+  $scope.activeFilterOptions = [
     {label: $t('common.all'), value: '*'},
     {label: $t('users.active'), value: true},
     {label: $t('users.inactive'), value:false}
   ];
-  $scope.currentActiveFilter = $scope.actvieFilterOptions[0];
+  $scope.currentActiveFilter = $scope.activeFilterOptions[0];
 
   $scope.typeFilterOptions = [{ label: $t('common.all'), value: '*'}]
     .concat(Object.keys(UserConstants.TYPES).map(function(key) {
@@ -77,8 +84,24 @@ angular.module('ambariAdminConsole')
     $scope.loadUsers();
   };
 
+  $scope.clearFilters = function () {
+    $scope.currentNameFilter = '';
+    $scope.currentTypeFilter = $scope.typeFilterOptions[0];
+    $scope.currentActiveFilter = $scope.activeFilterOptions[0];
+    $scope.resetPagination();
+  };
 
   $scope.loadUsers();
+
+  $scope.$watch(
+    function (scope) {
+      return Boolean(scope.currentNameFilter || (scope.currentActiveFilter && scope.currentActiveFilter.value !== '*')
+        || (scope.currentTypeFilter && scope.currentTypeFilter.value !== '*'));
+    },
+    function (newValue, oldValue, scope) {
+      scope.isNotEmptyFilter = newValue;
+    }
+  );
 
   $rootScope.$watch(function(scope) {
     return scope.LDAPSynced;

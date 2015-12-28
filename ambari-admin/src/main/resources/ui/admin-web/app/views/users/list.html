@@ -56,7 +56,7 @@
           <label for="">Status</label>
           <select class="form-control statusfilter" 
             ng-model="currentActiveFilter"
-            ng-options="item.label for item in actvieFilterOptions"
+            ng-options="item.label for item in activeFilterOptions"
             ng-change="resetPagination()">
           </select>
         </th>
@@ -78,7 +78,11 @@
   <div class="alert alert-info col-sm-12" ng-show="!users.length">
     No users to display.
   </div>
-  <div class="col-sm-12">
+  <div class="col-sm-12 table-bar">
+    <div class="pull-left filtered-info">
+      <span>{{tableInfo.showed}} of {{tableInfo.total}} users showing</span>
+      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">clear filters</a></span>
+    </div>
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
     </div>
