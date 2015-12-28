@@ -45,6 +45,8 @@ mahout_home = "/usr/hdp/current/mahout-client"
 mahout_conf_dir = "/usr/hdp/current/mahout-client/conf"
 mahout_user = config['configurations']['mahout-env']['mahout_user']
 
+yarn_log_dir_prefix = config['configurations']['yarn-env']['yarn_log_dir_prefix']
+
 #hadoop params
 hadoop_bin_dir = hdp_select.get_hadoop_dir("bin")
 hadoop_home = hdp_select.get_hadoop_dir("home")
