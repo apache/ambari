@@ -31,6 +31,7 @@ FAST = "fast"
 # Users
 root_user = "root"
 hawq_user = "gpadmin"
+hawq_user_secured = "postgres"
 hawq_group = hawq_user
 
 # Directories
@@ -55,6 +56,7 @@ hawq_sysctl_tmp_file = os.path.join(hawq_tmp_dir, hawq_sysctl_filename)
 hawq_sysctl_file = os.path.join(sysctl_conf_dir, hawq_sysctl_filename)
 postmaster_opts_filename = "postmaster.opts"
 postmaster_pid_filename = "postmaster.pid"
+hawq_keytab_file = "/etc/security/keytabs/hawq.service.keytab"
 
 # Smoke check table
 smoke_check_table_name = "ambari_hawq_smoke_test"

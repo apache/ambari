@@ -89,7 +89,15 @@ def __create_hdfs_dirs():
   Creates the required HDFS directories for HAWQ
   """
   import params
-  params.HdfsResource(params.hawq_hdfs_data_dir, type="directory", action="create_on_execute", owner=hawq_constants.hawq_user, group=hawq_constants.hawq_group, mode=0755)
+
+  data_dir_owner = hawq_constants.hawq_user_secured if params.security_enabled else hawq_constants.hawq_user
+
+  params.HdfsResource(params.hawq_hdfs_data_dir,
+                        type="directory",
+                        action="create_on_execute",
+                        owner=data_dir_owner,
+                        group=hawq_constants.hawq_group,
+                        mode=0755)
   params.HdfsResource(None, action="execute")
 
 

@@ -1,0 +1,60 @@
+{
+    "services": [
+        {
+            "components": [
+                {
+                    "identities": [
+                        {
+                            "keytab": {
+                                "file": "${keytab_dir}/hawq.service.keytab", 
+                                "group": {
+                                    "access": "", 
+                                    "name": "${cluster-env/user_group}"
+                                }, 
+                                "owner": {
+                                    "access": "r", 
+                                    "name": "gpadmin"
+                                }
+                            }, 
+                            "name": "hawq_master_hawq", 
+                            "principal": {
+                                "type": "service", 
+                                "value": "postgres@${realm}"
+                            }
+                        }
+                    ], 
+                    "name": "HAWQMASTER"
+                }, 
+                {
+                    "identities": [
+                        {
+                            "keytab": {
+                                "file": "${keytab_dir}/hawq.service.keytab", 
+                                "group": {
+                                    "access": "", 
+                                    "name": "${cluster-env/user_group}"
+                                }, 
+                                "owner": {
+                                    "access": "r", 
+                                    "name": "gpadmin"
+                                }
+                            }, 
+                            "name": "hawq_standby_hawq", 
+                            "principal": {
+                                "type": "service", 
+                                "value": "postgres@${realm}"
+                            }
+                        }
+                    ], 
+                    "name": "HAWQSTANDBY"
+                }
+            ], 
+            "identities": [
+                {
+                    "name": "/hdfs"
+                }
+            ], 
+            "name": "HAWQ"
+        }
+    ]
+}
