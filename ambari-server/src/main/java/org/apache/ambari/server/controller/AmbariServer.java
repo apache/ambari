@@ -809,6 +809,7 @@ public class AmbariServer {
       setupProxyAuth();
 
       injector.getInstance(GuiceJpaInitializer.class);
+      DatabaseChecker.checkDBVersion();
       server = injector.getInstance(AmbariServer.class);
       CertificateManager certMan = injector.getInstance(CertificateManager.class);
       certMan.initRootCert();

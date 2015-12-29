@@ -18,8 +18,11 @@
 
 package org.apache.ambari.server.controller.utilities;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -149,23 +152,31 @@ public class DatabaseChecker {
   public static void checkDBVersion() throws AmbariException {
 
     LOG.info("Checking DB store version");
-    if (ambariMetaInfo == null) {
-      ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    }
     if (metainfoDAO == null) {
       metainfoDAO = injector.getInstance(MetainfoDAO.class);
     }
 
     MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
     String schemaVersion = null;
-    String serverVersion = null;
 
     if (schemaVersionEntity != null) {
       schemaVersion = schemaVersionEntity.getMetainfoValue();
-      serverVersion = ambariMetaInfo.getServerVersion();
     }
 
-    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {
+    Configuration conf = injector.getInstance(Configuration.class);
+    File versionFile = new File(conf.getServerVersionFilePath());
+    if (!versionFile.exists()) {
+      throw new AmbariException("Server version file does not exist.");
+    }
+    String serverVersion = null;
+    try (Scanner scanner = new Scanner(versionFile)) {
+      serverVersion = scanner.useDelimiter("\\Z").next();
+
+    } catch (IOException ioe) {
+      throw new AmbariException("Unable to read server version file.");
+    }
+
+    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 4) != 0) {
       String error = "Current database store version is not compatible with " +
         "current server version"
         + ", serverVersion=" + serverVersion
