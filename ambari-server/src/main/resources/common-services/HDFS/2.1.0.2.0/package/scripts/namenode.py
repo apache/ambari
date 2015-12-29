@@ -47,7 +47,7 @@ from ambari_commons import OSConst
 
 
 import namenode_upgrade
-from hdfs_namenode import namenode
+from hdfs_namenode import namenode, wait_for_safemode_off
 from hdfs import hdfs
 import hdfs_rebalance
 from utils import initiate_safe_zkfc_failover, get_hdfs_binary, get_dfsadmin_base_command
@@ -175,39 +175,7 @@ class NameNodeDefault(NameNode):
     namenode_upgrade.prepare_rolling_upgrade(hfds_binary)
 
   def wait_for_safemode_off(self, env):
-    """
-    During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
-    all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
-    If HA is present, then this command will run individually on each NameNode, which checks for its own address.
-    """
-    import params
-
-    Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
-
-    if params.security_enabled:
-      kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
-      Execute(kinit_command, user=params.hdfs_user, logoutput=True)
-
-    try:
-      hdfs_binary = self.get_hdfs_binary()
-      # Note, this fails if namenode_address isn't prefixed with "params."
-
-      dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
-      is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
-
-      # Wait up to 30 mins
-      Execute(is_namenode_safe_mode_off,
-              tries=65,
-              try_sleep=10,
-              user=params.hdfs_user,
-              logoutput=True
-      )
-
-      # Wait a bit more since YARN still depends on block reports coming in.
-      # Also saw intermittent errors with HBASE service check if it was done too soon.
-      time.sleep(30)
-    except Fail:
-      Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+    wait_for_safemode_off(self.get_hdfs_binary(), 30, True)
 
   def finalize_non_rolling_upgrade(self, env):
     hfds_binary = self.get_hdfs_binary()
