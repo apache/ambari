@@ -71,6 +71,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
             },
             'yarn-site': {
               'tag': 1
+            },
+            'yarn-env': {
+              'tag': 1
             }
           }
         }
@@ -78,7 +81,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         'serviceConfig': {}
       });
       var data = App.ajax.send.args[0][0].data;
-      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)');
+      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)|(type=yarn-env&tag=1)');
       expect(data.serviceConfig).to.eql({});
     });
 
@@ -221,6 +224,12 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           }
         },
         {
+          type: 'yarn-env',
+          properties: {
+            yarn_user: 'yarn'
+          }
+        },
+        {
           type: 'yarn-site',
           properties: {
             'yarn.resourcemanager.webapp.address': 'lclhst:1234',
@@ -274,6 +283,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           }),
           Em.Object.create({
             name: 'yarn.resourcemanager.scheduler.ha'
+          }),
+          Em.Object.create({
+            name: 'hadoop.proxyuser.yarn.hosts'
           })
         ]
       };
@@ -347,8 +359,16 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     it('yarn.resourcemanager.ha value', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.ha').get('value')).to.equal('h0:8032,h1:8032');
     });
-    it('yarn.resourcemanager.ha recommendedValud', function () {
+    it('yarn.resourcemanager.ha recommendedValue', function () {
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.scheduler.ha').get('recommendedValue')).to.equal('h0:8030,h1:8030');
+    });
+
+    it('hadoop.proxyuser.yarn.hosts value', function () {
+      expect(configs.configs.findProperty('name', 'hadoop.proxyuser.yarn.hosts').get('value')).to.equal('h0,h1');
+    });
+
+    it('hadoop.proxyuser.yarn.hosts recommendedValue', function () {
+      expect(configs.configs.findProperty('name', 'hadoop.proxyuser.yarn.hosts').get('recommendedValue')).to.equal('h0,h1');
     });
 
   });

@@ -79,7 +79,8 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   loadConfigTagsSuccessCallback: function (data, opt, params) {
     var urlParams = '(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')|' +
-      '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')';
+      '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')|' +
+      '(type=yarn-env&tag=' + data.Clusters.desired_configs['yarn-env'].tag + ')';
     App.ajax.send({
       name: 'reassign.load_configs',
       sender: this,
@@ -134,11 +135,20 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
    */
   setDynamicConfigValues: function (configs, data) {
     var topologyLocalDB = this.get('content').getProperties(['masterComponentHosts', 'slaveComponentHosts', 'hosts']);
+    var yarnUser = data.items.findProperty('type', 'yarn-env').properties.yarn_user;
+    App.RmHaConfigInitializer.setup({
+      yarnUser: yarnUser
+    });
     var dependencies = this._prepareDependencies(data);
+    /** add dynamic property 'hadoop.proxyuser.' + yarnUser + '.hosts' **/
+    var proxyUserConfig = App.ServiceConfigProperty.create(App.config.createDefaultConfig('hadoop.proxyuser.' + yarnUser + '.hosts',
+      'MISC', 'core-site', false,  {category : "HDFS", isUserProperty: false, isEditable: false, isOverridable: false}));
+    configs.configs.pushObject(proxyUserConfig);
 
     configs.configs.forEach(function (config) {
       App.RmHaConfigInitializer.initialValue(config, topologyLocalDB, dependencies);
     });
+    App.RmHaConfigInitializer.cleanup();
     return configs;
   },
 
