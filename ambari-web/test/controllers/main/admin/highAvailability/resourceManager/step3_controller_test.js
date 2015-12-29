@@ -67,6 +67,9 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
             },
             'yarn-site': {
               'tag': 1
+            },
+            'yarn-env': {
+              'tag': 1
             }
           }
         }
@@ -74,7 +77,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         'serviceConfig': {}
       });
       var data = App.ajax.send.args[0][0].data;
-      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)');
+      expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)|(type=yarn-env&tag=1)');
       expect(data.serviceConfig).to.eql({});
     });
 
@@ -92,6 +95,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           'port': '2181',
           'webAddressPort' : ':8088',
           'httpsWebAddressPort' : ':8090',
+          'yarnUser': null,
           'title': 'empty response'
         },
         {
@@ -109,6 +113,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           'port': '2181',
           'webAddressPort' : ':8088',
           'httpsWebAddressPort' : ':8090',
+          'yarnUser': null,
           'title': 'no zoo.cfg properties received'
         },
         {
@@ -132,7 +137,38 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           'port': '2181',
           'webAddressPort' : ':8088',
           'httpsWebAddressPort' : ':8090',
+          'yarnUser': null,
           'title': 'no clientPort property received'
+        },
+        {
+          'items': [
+            {
+              'type': 'zoo.cfg',
+              'properties': {
+                'n': 'v'
+              }
+            },
+            {
+              'type': 'yarn-site',
+              'properties': {
+                'n': 'v'
+              }
+            },
+            {
+              'type': 'yarn-env',
+              'properties': {
+                'yarn_user': 'yarn'
+              }
+            }
+          ],
+          'params': {
+            'serviceConfig': {}
+          },
+          'port': '2181',
+          'webAddressPort' : ':8088',
+          'httpsWebAddressPort' : ':8090',
+          'yarnUser': 'yarn',
+          'title': 'set yarn user'
         },
         {
           'items': [
@@ -156,6 +192,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
           'port': '2182',
           'webAddressPort' : ':7777',
           'httpsWebAddressPort' : ':8888',
+          'yarnUser': null,
           'title': 'clientPort property received'
         }
       ];
@@ -173,7 +210,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         controller.loadConfigsSuccessCallback({
           items: item.items
         }, {}, item.params);
-        expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, item.port, item.webAddressPort, item.httpsWebAddressPort]);
+        expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, item.port, item.webAddressPort, item.httpsWebAddressPort, item.yarnUser]);
         expect(controller.get('selectedService')).to.eql({});
         expect(controller.get('isLoaded')).to.be.true;
       });
@@ -198,7 +235,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
         serviceConfig: {}
       });
       console.error("test_alex!!!!!",controller.setDynamicConfigValues.args[0]);
-      expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, '2181', ':8088', ':8090']);
+      expect(controller.setDynamicConfigValues.args[0]).to.eql([{}, '2181', ':8088', ':8090', null]);
       expect(controller.get('selectedService')).to.eql({});
       expect(controller.get('isLoaded')).to.be.true;
     });

@@ -26,7 +26,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   clusterDeployState: 'RM_HIGH_AVAILABILITY_DEPLOY',
 
-  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'startAllServices'],
+  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHDFS', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.rm_highAvailability.wizard.step',
 
@@ -40,37 +40,45 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
   },
 
   reconfigureYARN: function () {
-    this.loadConfigsTags();
+    this.loadConfigsTags('yarn-site');
   },
 
-  loadConfigsTags: function () {
+  reconfigureHDFS: function () {
+    this.loadConfigsTags('core-site');
+  },
+
+  loadConfigsTags: function (type) {
     App.ajax.send({
       name: 'config.tags',
       sender: this,
+      data: {
+        type: type
+      },
       success: 'onLoadConfigsTags',
       error: 'onTaskError'
     });
   },
 
-  onLoadConfigsTags: function (data) {
+  onLoadConfigsTags: function (data, opt, params) {
     App.ajax.send({
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')'
+        urlParams: '(type=' + params.type +'&tag=' + data.Clusters.desired_configs[params.type].tag + ')',
+        type: params.type
       },
       success: 'onLoadConfigs',
       error: 'onTaskError'
     });
   },
 
-  onLoadConfigs: function (data) {
-    var propertiesToAdd = this.get('content.configs');
+  onLoadConfigs: function (data, opt, params) {
+    var propertiesToAdd = this.get('content.configs').filterProperty('filename', params.type);
     propertiesToAdd.forEach(function (property) {
       data.items[0].properties[property.name] = property.value;
     });
 
-    var configData = this.reconfigureSites(['yarn-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
 
     App.ajax.send({
       name: 'common.service.configurations',
