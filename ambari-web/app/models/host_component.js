@@ -357,6 +357,14 @@ App.HostComponentActionMap = {
         hasSubmenu: ctx.get('controller.isSeveralClients'),
         submenuOptions: ctx.get('controller.clientComponents')
       },
+      IMMEDIATE_STOP_CLUSTER: {
+        action: 'immediateStopHawqCluster',
+        customCommand: 'IMMEDIATE_STOP_CLUSTER',
+        context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+        label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+        cssClass: 'icon-stop',
+        disabled: false,
+      },
       MASTER_CUSTOM_COMMAND: {
         action: 'executeCustomCommand',
         cssClass: 'icon-play-circle',

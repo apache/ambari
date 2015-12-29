@@ -501,6 +501,46 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   /**
+   * On click handler for hawq stop cluster command from items menu
+   */
+
+  immediateStopHawqCluster: function(context) {
+    var controller = this;
+    return App.showConfirmationPopup(function() {
+      App.ajax.send({
+        name: 'service.item.immediateStopHawqCluster',
+        sender: controller,
+        data: {
+          command: context.command,
+          context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
+          hosts: App.Service.find(context.service).get('hostComponents').findProperty('componentName', 'HAWQMASTER').get('hostName'),
+          serviceName: context.service,
+          componentName: context.component,
+        },
+        success : 'executeImmediateStopHawqClusterCmdSuccessCallback',
+        error : 'executeImmediateStopHawqClusterCmdErrorCallback'
+      });
+    });
+  },
+
+  executeImmediateStopHawqClusterCmdSuccessCallback  : function(data, ajaxOptions, params) {
+    if (data.Requests.id) {
+      App.router.get('backgroundOperationsController').showPopup();
+    }
+  },
+
+  executeImmediateStopHawqClusterCmdErrorCallback : function(data) {
+    var error = Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.error');
+    if(data && data.responseText){
+      try {
+        var json = $.parseJSON(data.responseText);
+        error += json.message;
+      } catch (err) {}
+    }
+    App.showAlertPopup(Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.error'), error);
+  },
+
+  /**
    * On click handler for rebalance Hdfs command from items menu
    */
   rebalanceHdfsNodes: function () {
