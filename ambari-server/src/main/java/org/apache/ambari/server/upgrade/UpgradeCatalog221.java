@@ -139,8 +139,12 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
               clusterID, "hive_server_process");
 
       List<AlertDefinitionEntity> hiveAlertDefinitions = new ArrayList();
-      hiveAlertDefinitions.add(hiveMetastoreProcessAlertDefinitionEntity);
-      hiveAlertDefinitions.add(hiveServerProcessAlertDefinitionEntity);
+      if(hiveMetastoreProcessAlertDefinitionEntity != null) {
+        hiveAlertDefinitions.add(hiveMetastoreProcessAlertDefinitionEntity);
+      }
+      if(hiveServerProcessAlertDefinitionEntity != null) {
+        hiveAlertDefinitions.add(hiveServerProcessAlertDefinitionEntity);
+      }
 
       for(AlertDefinitionEntity alertDefinition : hiveAlertDefinitions){
         String source = alertDefinition.getSource();
