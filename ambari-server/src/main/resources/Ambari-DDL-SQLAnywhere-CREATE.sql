@@ -638,6 +638,11 @@ CREATE TABLE topology_logical_task (
   PRIMARY KEY (id)
 );
 
+-- tasks indices --
+CREATE INDEX idx_stage_request_id ON stage (request_id);
+CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
+CREATE INDEX idx_rsc_request_id ON role_success_criteria (request_id);
+
 -- altering tables by creating unique constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
 ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);
