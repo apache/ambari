@@ -32,7 +32,7 @@ from ambari_server.serverConfiguration import configDefaults, find_jdk, get_amba
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
   get_is_active_instance, \
   PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
-  SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file
+  SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file, get_missing_properties
 from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
 from ambari_server.setupSecurity import generate_env, \
@@ -237,6 +237,13 @@ def server_process_main(options, scmStatus=None):
 
   properties = get_ambari_properties()
 
+  if not options.skip_properties_validation:
+    missing_properties = get_missing_properties(properties)
+    if missing_properties:
+      err = "Required properties are not found: " + str(missing_properties) + ". To skip properties validation " \
+            "use \"--skip-properties-validation\""
+      raise FatalException(1, err)
+
   # Preparations
   if is_root():
     print configDefaults.MESSAGE_SERVER_RUNNING_AS_ROOT
@@ -266,6 +273,10 @@ def server_process_main(options, scmStatus=None):
   debug_start = (debug_mode & 1) or SERVER_START_DEBUG
   suspend_start = (debug_mode & 2) or SUSPEND_START_MODE
   suspend_mode = 'y' if suspend_start else 'n'
+
+  if options.skip_database_validation:
+    global jvm_args
+    jvm_args += " -DskipDatabaseConsistencyValidation"
 
   param_list = generate_child_process_param_list(ambari_user, java_exe,
                                                  serverClassPath.get_full_ambari_classpath_escaped_for_shell(), debug_start,

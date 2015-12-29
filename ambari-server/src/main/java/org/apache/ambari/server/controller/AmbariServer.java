@@ -260,8 +260,11 @@ public class AmbariServer {
     server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
 
-    DatabaseChecker.checkDBVersion();
-    DatabaseChecker.checkDBConsistency();
+    if (System.getProperty("skipDatabaseConsistencyValidation") == null) {
+      DatabaseChecker.checkDBVersion();
+      DatabaseChecker.checkDBConsistency();
+      DatabaseChecker.checkDBConfigsConsistency();
+    }
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =

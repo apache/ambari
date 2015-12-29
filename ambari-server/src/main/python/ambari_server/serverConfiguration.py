@@ -177,6 +177,11 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 
 DEFAULT_DB_NAME = "ambari"
 
+COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
+WEBAPP_DIR_PROPERTY = 'webapp.dir'
+REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH, \
+                       WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY]
+
 class ServerDatabaseType(object):
   internal = 0
   remote = 1
@@ -1303,3 +1308,12 @@ def get_stack_location(properties):
   if stack_location is None:
     stack_location = configDefaults.STACK_LOCATION_DEFAULT
   return stack_location
+
+def get_missing_properties(properties):
+  missing_propertiers = []
+  for property in REQUIRED_PROPERTIES:
+    value = properties[property]
+    if not value:
+      missing_propertiers.append(property)
+
+  return missing_propertiers
