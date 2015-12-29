@@ -145,6 +145,10 @@ public class AmbariContext {
     return getController().getActionManager().getTaskById(id);
   }
 
+  public Collection<HostRoleCommand> getPhysicalTasks(Collection<Long> ids) {
+    return getController().getActionManager().getTasks(ids);
+  }
+
   public void createAmbariResources(ClusterTopology topology, String clusterName, SecurityType securityType) {
     Stack stack = topology.getBlueprint().getStack();
     createAmbariClusterResource(clusterName, stack.getName(), stack.getVersion(), securityType);

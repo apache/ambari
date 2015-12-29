@@ -109,7 +109,11 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
 
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
-    //To change body of implemented methods use File | Settings | File Templates.
+    // indices to improve request status calc performance
+    dbAccessor.createIndex("idx_stage_request_id", "stage", "request_id");
+    dbAccessor.createIndex("idx_hrc_request_id", "host_role_command", "request_id");
+    dbAccessor.createIndex("idx_rsc_request_id", "role_success_criteria", "request_id");
+
   }
 
   @Override

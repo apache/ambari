@@ -387,6 +387,10 @@ public class HostRequest implements Comparable<HostRequest> {
     return physicalTasks.get(logicalTaskId);
   }
 
+  public Map<Long, Long> getPhysicalTaskMapping() {
+    return new HashMap<>(physicalTasks);
+  }
+
   //todo: since this is used to determine equality, using hashCode() isn't safe as it can return the same
   //todo: value for 2 unequal requests
   @Override
