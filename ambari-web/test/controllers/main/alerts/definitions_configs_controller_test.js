@@ -474,8 +474,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#changeType()', function () {
 
-    it('should disable and enable appropriate configs', function () {
-
+    beforeEach(function () {
       controller.set('allServices', ['service1', 'service2']);
       controller.set('allScopes', ['scope1', 'scope2']);
 
@@ -484,25 +483,57 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         Em.Object.create({name: 'component', isDisabled: false}),
         Em.Object.create({name: 'scope', isDisabled: false})
       ]);
+    });
 
-      controller.changeType('Host Alert Definition');
+    describe('Host Alert Definition', function () {
 
-      expect(controller.get('configs').everyProperty('isDisabled', true)).to.be.true;
-      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['Ambari']);
-      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('Ambari');
-      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('Ambari Agent');
-      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['Host']);
-      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('Host');
+      beforeEach(function () {
+        controller.changeType('Host Alert Definition');
+      });
 
-      controller.changeType('alert_type_service');
+      it('all configs are disabled', function () {
+        expect(controller.get('configs').everyProperty('isDisabled', true)).to.be.true;
+      });
+      it('service.options = ["Ambari"]', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['Ambari']);
+      });
+      it('service.value = "Ambari"', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('Ambari');
+      });
+      it('component.value = "Ambari Agent"', function () {
+        expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('Ambari Agent');
+      });
+      it('scope.options = ["Host"]', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['Host']);
+      });
+      it('isDisabled.value = "Host"', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('Host');
+      });
+    });
 
-      expect(controller.get('configs').everyProperty('isDisabled', false)).to.be.true;
-      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['service1', 'service2']);
-      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('service1');
-      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('No component');
-      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['scope1', 'scope2']);
-      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('scope1');
+    describe('alert_type_service', function () {
 
+      beforeEach(function () {
+        controller.changeType('alert_type_service');
+      });
+      it('all configs are not disabled', function () {
+        expect(controller.get('configs').everyProperty('isDisabled', false)).to.be.true;
+      });
+      it('service.options = ["service1", "service2"]', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['service1', 'service2']);
+      });
+      it('service.value = "service1"', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('service1');
+      });
+      it('component.value = "No component"', function () {
+        expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('No component');
+      });
+      it('scope.options = ["scope1", "scope2"]', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['scope1', 'scope2']);
+      });
+      it('scope.value = "scope1"', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('scope1');
+      });
     });
 
   });

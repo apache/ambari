@@ -130,13 +130,21 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       App.router.get.restore();
     });
 
-    it('tests database connection', function() {
-      sinon.stub(controller, 'prepareDBCheckAction', Em.K);
+    describe('tests database connection', function() {
 
-      controller.testDBConnection();
-      expect(controller.prepareDBCheckAction.calledOnce).to.be.true;
+      beforeEach(function () {
+        sinon.stub(controller, 'prepareDBCheckAction', Em.K);
+      });
 
-      controller.prepareDBCheckAction.restore();
+      afterEach(function () {
+        controller.prepareDBCheckAction.restore();
+      });
+
+      it('prepareDBCheckAction is called once', function() {
+        controller.testDBConnection();
+        expect(controller.prepareDBCheckAction.calledOnce).to.be.true;
+      });
+
     });
 
     it('tests prepareDBCheckAction', function() {
@@ -770,36 +778,42 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   describe('#setSecureConfigs()', function () {
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
     afterEach(function () {
       Em.tryInvoke(App.get, 'restore');
     });
 
     it('undefined component and security disabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
+      this.stub.withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
+
     it('component exist and security disabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
+      this.stub.withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', [{
         componentName: 'COMP1'
       }]);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
+
     it('undefined component and security enabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
+      this.stub.withArgs('isKerberosEnabled').returns(true);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
     it('component exist and security enabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
+      this.stub.withArgs('isKerberosEnabled').returns(true);
       var configs = {'s1': {
         'k1': 'kValue',
         'p1': 'pValue'

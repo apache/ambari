@@ -53,11 +53,11 @@ describe('MainChartsHeatmapController', function () {
       controller.set("inputMaximum", 'qwerty');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(100);
     });
-    it('should not set maximumValue if inputMaximum consists not only of digits', function () {
+    it('should not set maximumValue if inputMaximum consists not only of digits (2)', function () {
       controller.set("inputMaximum", '100%');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(100);
     });
-    it('should set maximumValue if inputMaximum consists only of digits', function () {
+    it('should set maximumValue if inputMaximum consists only of digits (2)', function () {
       controller.set("inputMaximum", 1000);
       expect(controller.get('selectedMetric.maximumValue')).to.equal(1000);
     })
@@ -361,16 +361,14 @@ describe('MainChartsHeatmapController', function () {
   });
 
   describe("#toList()", function() {
-    it("", function() {
-      var rackMap = {'r1': {
-        name: 'r1',
-        rackId: 'r1',
-        hosts: [{rack: 'r1'}, {rack: 'r1'}]
-      }};
-      expect(controller.toList(rackMap)).to.eql([Em.Object.create({
-        name: 'r1',
-        rackId: 'r1',
-        hosts: [{rack: 'r1'}, {rack: 'r1'}],
+    var rackMap = {'r1': {
+      name: 'r1',
+      rackId: 'r1',
+      hosts: [{rack: 'r1'}, {rack: 'r1'}]
+    }};
+
+    it('toList result is valid', function() {
+      expect(controller.toList(rackMap)).to.eql([Em.Object.create(rackMap.r1, {
         isLoaded: false,
         index: 0
       })]);

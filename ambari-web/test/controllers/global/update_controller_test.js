@@ -34,18 +34,19 @@ describe('App.UpdateController', function () {
 
   describe('#getUrl()', function () {
 
-    it('testMode = true', function () {
-      App.set('testMode', true);
-      expect(controller.getUrl('test', '/real')).to.equal('test');
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
+    });
+
+    afterEach(function () {
+      App.get.restore();
     });
 
     it('testMode = false', function () {
-      App.set('testMode', false);
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters//real');
     });
 
-    it('testMode = false', function () {
-      App.set('testMode', false);
+    it('testMode = false (2)', function () {
       controller.set('clusterName', 'mycluster');
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters/mycluster/real');
     });

@@ -124,18 +124,28 @@ describe('App.MainServiceController', function () {
         e: null
       }
     ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(App.router, 'get', function(k) {
-            if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
-            return Em.get(App.router, k);
+        describe(test.m, function() {
+
+          beforeEach(function () {
+            sinon.stub(App.router, 'get', function(k) {
+              if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
+              return Em.get(App.router, k);
+            });
+            sinon.stub(App.Cluster, 'find', function() {
+              return [test.e];
+            });
           });
-          sinon.stub(App.Cluster, 'find', function() {
-            return [test.e];
+
+          afterEach(function () {
+            App.router.get.restore();
+            App.Cluster.find.restore();
           });
-          var c = mainServiceController.get('cluster');
-          App.router.get.restore();
-          App.Cluster.find.restore();
-          expect(c).to.eql(test.e);
+
+          it('cluster is valid', function () {
+            var c = mainServiceController.get('cluster');
+            expect(c).to.eql(test.e);
+          });
+
         });
       });
 
@@ -220,28 +230,38 @@ describe('App.MainServiceController', function () {
       expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
     });
 
-    it ("should check last checkpoint for NN before confirming stop", function() {
-      var mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
-        return true;
+    describe("should check last checkpoint for NN before confirming stop", function() {
+      var mainServiceItemController;
+      beforeEach(function() {
+        mainServiceItemController = App.MainServiceItemController.create({});
+        sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+          return true;
+        });
+        sinon.stub(App.router, 'get', function(k) {
+          if ('mainServiceItemController' === k) {
+            return mainServiceItemController;
+          }
+          return Em.get(App.router, k);
+        });
+        sinon.stub(App.Service, 'find', function() {
+          return [{
+            serviceName: "HDFS",
+            workStatus: "STARTED"
+          }];
+        });
       });
-      sinon.stub(App.router, 'get', function(k) {
-        if ('mainServiceItemController' === k) {
-          return mainServiceItemController;
-        }
-        return Em.get(App.router, k);
+
+      afterEach(function () {
+        mainServiceItemController.checkNnLastCheckpointTime.restore();
+        App.router.get.restore();
+        App.Service.find.restore();
       });
-      sinon.stub(App.Service, 'find', function() {
-        return [{
-          serviceName: "HDFS",
-          workStatus: "STARTED"
-        }];
+
+      it('checkNnLastCheckpointTime is called once', function () {
+        mainServiceController.startStopAllService(event, "INSTALLED");
+        expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
       });
-      mainServiceController.startStopAllService(event, "INSTALLED");
-      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
-      mainServiceItemController.checkNnLastCheckpointTime.restore();
-      App.router.get.restore();
-      App.Service.find.restore();
+
     });
 
     it ("should confirm start if state is not INSTALLED", function() {

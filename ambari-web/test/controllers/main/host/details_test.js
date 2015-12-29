@@ -50,32 +50,51 @@ describe('App.MainHostDetailsController', function () {
   App.TestAliases.testAsComputedFilterBy(getController(), 'serviceNonClientActiveComponents', 'serviceActiveComponents', 'isClient', false);
 
   describe('#routeHome()', function () {
-    it('transiotion to dashboard', function () {
+
+    beforeEach(function () {
       sinon.stub(App.router, 'transitionTo', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.transitionTo.restore();
+    });
+
+    it('transition to dashboard', function () {
       controller.routeHome();
       expect(App.router.transitionTo.calledWith('main.dashboard.index')).to.be.true;
-      App.router.transitionTo.restore();
     });
   });
 
   describe('#startComponent()', function () {
-    it('call sendComponentCommand', function () {
-      var event = {
-        context: Em.Object.create({
-          displayName: 'comp'
-        })
-      };
+
+    var event = {
+      context: Em.Object.create({
+        displayName: 'comp'
+      })
+    };
+
+    beforeEach(function () {
       sinon.stub(App, 'showConfirmationPopup', function (callback) {
         callback();
       });
       sinon.stub(controller, 'sendComponentCommand');
       controller.startComponent(event);
+    });
+
+    afterEach(function () {
+      App.showConfirmationPopup.restore();
+      controller.sendComponentCommand.restore();
+    });
+
+    it('configmation popup is shown', function () {
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+
+    it('call sendComponentCommand', function () {
       expect(controller.sendComponentCommand.calledWith(Em.Object.create({
         displayName: 'comp'
       })), Em.I18n.t('requestInfo.startHostComponent') + " comp", App.HostComponentStatus.started).to.be.true;
-      App.showConfirmationPopup.restore();
-      controller.sendComponentCommand.restore();
+
     });
   });
 
@@ -181,65 +200,45 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#sendComponentCommandSuccessCallback()', function () {
+
+    var params = {
+      component: Em.Object.create({}),
+      HostRoles: {
+        state: App.HostComponentStatus.stopped
+      }
+    };
+
     beforeEach(function () {
       sinon.stub(controller, 'mimicWorkStatusChange', Em.K);
       sinon.stub(controller, 'showBackgroundOperationsPopup', Em.K);
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
+      controller.sendComponentCommandSuccessCallback({}, {}, params);
     });
+
     afterEach(function () {
       controller.showBackgroundOperationsPopup.restore();
       controller.mimicWorkStatusChange.restore();
+      App.get.restore();
     });
-    it('testMode, starting component', function () {
-      var params = {
-        component: Em.Object.create({}),
-        HostRoles: {
-          state: App.HostComponentStatus.started
-        }
-      };
 
-      App.set('testMode', true);
-      controller.sendComponentCommandSuccessCallback({}, {}, params);
-      expect(controller.mimicWorkStatusChange.calledWith(Em.Object.create({
-        workStatus: App.HostComponentStatus.starting
-      }), App.HostComponentStatus.starting, App.HostComponentStatus.started)).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-    it('testMode, stopping component', function () {
-      var params = {
-        component: Em.Object.create({}),
-        HostRoles: {
-          state: App.HostComponentStatus.stopped
-        }
-      };
-
-      App.set('testMode', true);
-      controller.sendComponentCommandSuccessCallback({}, {}, params);
-      expect(controller.mimicWorkStatusChange.calledWith(Em.Object.create({
-        workStatus: App.HostComponentStatus.stopping
-      }), App.HostComponentStatus.stopping, App.HostComponentStatus.stopped)).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
-    it('testMode, stopping component', function () {
-      var params = {
-        component: Em.Object.create({}),
-        HostRoles: {
-          state: App.HostComponentStatus.stopped
-        }
-      };
-
-      App.set('testMode', false);
-      controller.sendComponentCommandSuccessCallback({}, {}, params);
+    it('mimicWorkStatusChange is not called', function () {
       expect(controller.mimicWorkStatusChange.called).to.be.false;
+    });
+    it('showBackgroundOperationsPopup is called once', function () {
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
     });
   });
 
   describe('#ajaxErrorCallback()', function () {
-    it('call mainServiceItemController.ajaxErrorCallback', function () {
+    beforeEach(function () {
       sinon.stub(controller, 'ajaxErrorCallback', Em.K);
+    });
+    afterEach(function () {
+      controller.ajaxErrorCallback.restore();
+    });
+    it('call mainServiceItemController.ajaxErrorCallback', function () {
       controller.ajaxErrorCallback('request', 'ajaxOptions', 'error', 'opt', 'params');
       expect(controller.ajaxErrorCallback.calledWith('request', 'ajaxOptions', 'error', 'opt', 'params')).to.be.true;
-      controller.ajaxErrorCallback.restore();
     });
   });
 
@@ -252,6 +251,7 @@ describe('App.MainHostDetailsController', function () {
     var bgController = {
       showPopup: Em.K
     };
+
     beforeEach(function () {
       var stub = sinon.stub(App.router, 'get');
       stub.withArgs('userSettingsController').returns({
@@ -262,25 +262,28 @@ describe('App.MainHostDetailsController', function () {
       stub.withArgs('backgroundOperationsController').returns(bgController);
       sinon.spy(bgController, 'showPopup');
       sinon.spy(mock, 'done');
+      this.callback = sinon.stub();
     });
+
     afterEach(function () {
       bgController.showPopup.restore();
       mock.done.restore();
       App.router.get.restore();
     });
+
     it('initValue is true, callback is undefined', function () {
       mock.initValue = true;
       controller.showBackgroundOperationsPopup();
       expect(mock.done.calledOnce).to.be.true;
       expect(bgController.showPopup.calledOnce).to.be.true;
     });
+
     it('initValue is false, callback is defined', function () {
       mock.initValue = false;
-      var callback = sinon.stub();
-      controller.showBackgroundOperationsPopup(callback);
+      controller.showBackgroundOperationsPopup(this.callback);
       expect(mock.done.calledOnce).to.be.true;
       expect(bgController.showPopup.calledOnce).to.be.false;
-      expect(callback.calledOnce).to.be.true;
+      expect(this.callback.calledOnce).to.be.true;
     });
   });
 
@@ -901,6 +904,7 @@ describe('App.MainHostDetailsController', function () {
       App.Service.find().clear();
       expect(controller.constructConfigUrlParams(data)).to.eql([]);
     });
+
     it('isHaEnabled = true', function () {
       App.store.load(App.Service, {
         id: 'HDFS',
@@ -916,6 +920,7 @@ describe('App.MainHostDetailsController', function () {
       });
       App.set('currentStackVersion', 'HDP-2.0.1');
     });
+
     it('HBASE is installed', function () {
       App.store.load(App.Service, {
         id: 'HBASE',
@@ -926,6 +931,7 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=hbase-site&tag=1)']);
       App.Service.find().clear();
     });
+
     it('HIVE is installed', function () {
       App.store.load(App.Service, {
         id: 'HIVE',
@@ -935,6 +941,7 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=webhcat-site&tag=1)', '(type=hive-site&tag=1)']);
       App.Service.find().clear();
     });
+
     it('STORM is installed', function () {
       App.store.load(App.Service, {
         id: 'STORM',
@@ -944,6 +951,7 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.constructConfigUrlParams(data)).to.eql(['(type=storm-site&tag=1)']);
       App.Service.find().clear();
     });
+
     it('YARN for 2.2 stack is installed', function () {
       App.set('currentStackVersion', 'HDP-2.2.0');
       App.store.load(App.Service, {
@@ -955,11 +963,20 @@ describe('App.MainHostDetailsController', function () {
       App.set('currentStackVersion', 'HDP-2.0.1');
       App.Service.find().clear();
     });
-    it('isRMHaEnabled true', function () {
-      sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
-      var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}, 'zoo.cfg': {tag: 1}}}};
-      expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
-      App.get.restore();
+
+    describe('isRMHaEnabled true', function () {
+      beforeEach(function () {
+        sinon.stub(App, 'get').withArgs('isRMHaEnabled').returns(true);
+      });
+      afterEach(function () {
+        App.get.restore();
+      });
+
+      it('params are valid', function () {
+        var data = {Clusters: {desired_configs: {'yarn-site': {tag: 1}, 'zoo.cfg': {tag: 1}}}};
+        expect(controller.constructConfigUrlParams(data)).to.eql(['(type=yarn-site&tag=1)', '(type=zoo.cfg&tag=1)']);
+      });
+
     });
   });
 
@@ -1056,20 +1073,33 @@ describe('App.MainHostDetailsController', function () {
     });
 
     yarnCases.forEach(function (item) {
-      it(item.title, function () {
+      describe(item.title, function () {
         var servicesMock = item.isYARNInstalled ? [
           {
             serviceName: 'YARN'
           }
         ] : [];
-        sinon.stub(App, 'get').withArgs('isHadoop22Stack').returns(item.isHadoop22Stack).
-          withArgs('isRMHaEnabled').returns(item.isRMHaEnabled);
-        sinon.stub(App.Service, 'find').returns(servicesMock);
-        controller.saveZkConfigs(yarnData);
-        expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
-        expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties_attributes.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
-        App.get.restore();
-        App.Service.find.restore();
+
+        beforeEach(function () {
+          sinon.stub(App, 'get').withArgs('isHadoop22Stack').returns(item.isHadoop22Stack).
+            withArgs('isRMHaEnabled').returns(item.isRMHaEnabled);
+          sinon.stub(App.Service, 'find').returns(servicesMock);
+          controller.saveZkConfigs(yarnData);
+        });
+
+        afterEach(function () {
+          App.get.restore();
+          App.Service.find.restore();
+        });
+
+        it('some properties.yarn-site = true (' + item.shouldYarnSiteBeModified + ')', function () {
+          expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
+        });
+
+        it('some properties_attributes.yarn-site = true (' + item.shouldYarnSiteBeModified + ')', function () {
+          expect(controller.saveConfigsBatch.firstCall.args[0].someProperty('properties_attributes.yarn-site')).to.equal(item.shouldYarnSiteBeModified);
+        });
+
       });
     });
 
@@ -1346,24 +1376,38 @@ describe('App.MainHostDetailsController', function () {
     ];
 
     tests.forEach(function(test) {
-      it(test.m, function() {
-        if (test.appGetterStubs) {
-          Em.keys(test.appGetterStubs).forEach(function(key) {
-            sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
-          });
-        }
-        if (test.ctrlStubs) {
-          var stub = sinon.stub(controller, 'get');
-          Em.keys(test.ctrlStubs).forEach(function(key) {
-            stub.withArgs(key).returns(test.ctrlStubs[key]);
-          });
-        }
-        sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
-        controller.updateZkConfigs(test.configs);
-        expect(test.configs).to.be.eql(test.e.configs);
-        if (test.ctrlStubs) controller.get.restore();
-        if (test.appGetterStubs) App.get.restore();
-        App.HostComponent.find.restore();
+      describe(test.m, function() {
+
+        beforeEach(function() {
+          if (test.appGetterStubs) {
+            Em.keys(test.appGetterStubs).forEach(function(key) {
+              sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
+            });
+          }
+          if (test.ctrlStubs) {
+            var stub = sinon.stub(controller, 'get');
+            Em.keys(test.ctrlStubs).forEach(function(key) {
+              stub.withArgs(key).returns(test.ctrlStubs[key]);
+            });
+          }
+          sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
+          controller.updateZkConfigs(test.configs);
+        });
+
+        afterEach(function () {
+          if (test.ctrlStubs) {
+            controller.get.restore();
+          }
+          if (test.appGetterStubs) {
+            App.get.restore();
+          }
+          App.HostComponent.find.restore();
+        });
+
+        it('configs are mapped correctly', function () {
+          expect(test.configs).to.be.eql(test.e.configs);
+        });
+
       });
     });
   });
@@ -1445,12 +1489,23 @@ describe('App.MainHostDetailsController', function () {
       controller.runDecommission('host1', 'YARN');
       expect(controller.doDecommission.calledWith('host1', 'YARN', "RESOURCEMANAGER", "NODEMANAGER")).to.be.true;
     });
-    it('HBASE service', function () {
-      sinon.stub(controller, 'warnBeforeDecommission', Em.K);
-      controller.runDecommission('host1', 'HBASE');
-      expect(controller.warnBeforeDecommission.calledWith('host1')).to.be.true;
-      controller.warnBeforeDecommission.restore();
+
+    describe('HBASE service', function () {
+
+      beforeEach(function () {
+        sinon.stub(controller, 'warnBeforeDecommission', Em.K);
+      });
+
+      afterEach(function () {
+        controller.warnBeforeDecommission.restore();
+      });
+      it('warnBeforeDecommission is called with valid arguments', function () {
+        controller.runDecommission('host1', 'HBASE');
+        expect(controller.warnBeforeDecommission.calledWith('host1')).to.be.true;
+      });
+
     });
+
   });
 
   describe('#runRecommission()', function () {
@@ -1934,14 +1989,27 @@ describe('App.MainHostDetailsController', function () {
       toDecommissionComponents: []
     };
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App.HostComponent, 'find').returns([{
+        id: 'TASKTRACKER_host1',
+        componentName: 'TASKTRACKER'
+      }]);;
+    });
+
+    afterEach(function () {
+      this.stub.restore();
+    });
+
     it('content.hostComponents is null', function () {
       controller.set('content', {hostComponents: null});
       expect(controller.getHostComponentsInfo()).to.eql(result);
     });
+
     it('content.hostComponents is empty', function () {
       controller.set('content', {hostComponents: []});
       expect(controller.getHostComponentsInfo()).to.eql(result);
     });
+
     it('content.hostComponents has ZOOKEEPER_SERVER', function () {
       App.HostComponent.find().clear();
       controller.set('content', {
@@ -1953,15 +2021,8 @@ describe('App.MainHostDetailsController', function () {
       });
       expect(controller.getHostComponentsInfo().zkServerInstalled).to.be.true;
     });
+
     it('content.hostComponents has last component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'TASKTRACKER',
@@ -1971,17 +2032,9 @@ describe('App.MainHostDetailsController', function () {
         })]
       });
       expect(controller.getHostComponentsInfo().lastComponents).to.eql(['TaskTracker']);
-      App.HostComponent.find.restore();
     });
+
     it('content.hostComponents has master non-deletable component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'TASKTRACKER',
@@ -1993,17 +2046,9 @@ describe('App.MainHostDetailsController', function () {
       });
       expect(controller.getHostComponentsInfo().masterComponents).to.eql(['ZK1']);
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
-      App.HostComponent.find.restore();
     });
+
     it('content.hostComponents has running component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'TASKTRACKER',
@@ -2013,17 +2058,9 @@ describe('App.MainHostDetailsController', function () {
         })]
       });
       expect(controller.getHostComponentsInfo().runningComponents).to.eql(['ZK1']);
-      App.HostComponent.find.restore();
     });
+
     it('content.hostComponents has non-deletable component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'TASKTRACKER',
@@ -2033,17 +2070,9 @@ describe('App.MainHostDetailsController', function () {
         })]
       });
       expect(controller.getHostComponentsInfo().nonDeletableComponents).to.eql(['ZK1']);
-      App.HostComponent.find.restore();
     });
+
     it('content.hostComponents has component with UNKNOWN state', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [
-          {
-            id: 'TASKTRACKER_host1',
-            componentName: 'TASKTRACKER'
-          }
-        ];
-      });
       controller.set('content', {
         hostComponents: [Em.Object.create({
           componentName: 'TASKTRACKER',
@@ -2053,8 +2082,8 @@ describe('App.MainHostDetailsController', function () {
         })]
       });
       expect(controller.getHostComponentsInfo().unknownComponents).to.eql(['ZK1']);
-      App.HostComponent.find.restore();
     });
+
   });
 
   describe('#validateAndDeleteHost()', function () {
@@ -2171,16 +2200,22 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#confirmDeleteHost()', function () {
-    it('Popup should be displayed', function () {
+
+    beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
       sinon.stub(controller, 'doDeleteHost');
+    });
 
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+      controller.doDeleteHost.restore();
+    });
+
+    it('Popup should be displayed', function () {
       var popup = controller.confirmDeleteHost({toDecommissionComponents:[]});
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
       expect(controller.doDeleteHost.calledOnce).to.be.true;
-      App.ModalPopup.show.restore();
-      controller.doDeleteHost.restore();
     });
   });
 
@@ -2550,11 +2585,18 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#refreshComponentConfigsSuccessCallback()', function () {
-    it('call showBackgroundOperationsPopup', function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'showBackgroundOperationsPopup', Em.K);
+    });
+
+    afterEach(function () {
+      controller.showBackgroundOperationsPopup.restore();
+    });
+
+    it('call showBackgroundOperationsPopup', function () {
       controller.refreshComponentConfigsSuccessCallback();
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-      controller.showBackgroundOperationsPopup.restore();
     });
   });
 
@@ -2562,24 +2604,25 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'removeObserver');
       sinon.stub(controller, 'loadConfigs');
-      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
-        callback();
-      });
+      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
+      this.stub = sinon.stub(App.router, 'get');
     });
     afterEach(function () {
       controller.loadConfigs.restore();
       controller.removeObserver.restore();
       controller.isServiceMetricsLoaded.restore();
-      App.router.get.restore();
+      this.stub.restore();
     });
+
     it('No operations of ZOOKEEPER_SERVER', function () {
-      sinon.stub(App.router, 'get').withArgs('backgroundOperationsController.services').returns([]);
+      this.stub.withArgs('backgroundOperationsController.services').returns([]);
       controller.checkZkConfigs();
       expect(controller.removeObserver.called).to.be.false;
       expect(controller.loadConfigs.called).to.be.false;
     });
+
     it('Operation of ZOOKEEPER_SERVER running', function () {
-      sinon.stub(App.router, 'get').withArgs('backgroundOperationsController.services').returns([Em.Object.create({
+      this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
         id: 1,
         isRunning: true
       })]);
@@ -2588,17 +2631,28 @@ describe('App.MainHostDetailsController', function () {
       expect(controller.removeObserver.called).to.be.false;
       expect(controller.loadConfigs.called).to.be.false;
     });
-    it('Operation of ZOOKEEPER_SERVER finished', function () {
-      sinon.stub(App.router, 'get').withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-        id: 1
-      })]);
-      var clock = sinon.useFakeTimers();
-      controller.set('zkRequestId', 1);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.calledWith('App.router.backgroundOperationsController.serviceTimestamp', controller, controller.checkZkConfigs)).to.be.true;
-      clock.tick(App.get('componentsUpdateInterval'));
-      expect(controller.loadConfigs.calledOnce).to.be.true;
-      clock.restore();
+
+    describe('Operation of ZOOKEEPER_SERVER finished', function () {
+
+      beforeEach(function () {
+        this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
+          id: 1
+        })]);
+        this.clock = sinon.useFakeTimers();
+        controller.set('zkRequestId', 1);
+        controller.checkZkConfigs();
+      });
+
+      afterEach(function () {
+        this.clock.restore();
+      });
+
+      it('loadConfigs is called after `componentsUpdateInterval`', function () {
+        expect(controller.removeObserver.calledWith('App.router.backgroundOperationsController.serviceTimestamp', controller, controller.checkZkConfigs)).to.be.true;
+        this.clock.tick(App.get('componentsUpdateInterval'));
+        expect(controller.loadConfigs.calledOnce).to.be.true;
+      });
+
     });
   });
 
@@ -2613,21 +2667,15 @@ describe('App.MainHostDetailsController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'showBackgroundOperationsPopup', Em.K);
       sinon.stub(controller, 'mimicWorkStatusChange', Em.K);
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
     });
     afterEach(function () {
       controller.mimicWorkStatusChange.restore();
       controller.showBackgroundOperationsPopup.restore();
+      App.get.restore();
     });
-    it('testMode is true', function () {
-      App.set('testMode', true);
 
-      controller.installComponentSuccessCallback({}, {}, {component: "COMP"});
-      expect(controller.mimicWorkStatusChange.calledWith("COMP", App.HostComponentStatus.installing, App.HostComponentStatus.stopped)).to.be.true;
-      expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
-    });
     it('testMode is false', function () {
-      App.set('testMode', false);
-
       controller.installComponentSuccessCallback({}, {}, {component: "COMP"});
       expect(controller.mimicWorkStatusChange.called).to.be.false;
       expect(controller.showBackgroundOperationsPopup.calledOnce).to.be.true;
@@ -2635,21 +2683,35 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#showHbaseActiveWarning()', function () {
-    it('popup should be displayed', function () {
+
+    beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
-      var popup = controller.showHbaseActiveWarning(Em.Object.create({service: {}}));
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+
+    afterEach(function () {
       App.ModalPopup.show.restore();
+    });
+
+    it('popup should be displayed', function () {
+      controller.showHbaseActiveWarning(Em.Object.create({service: {}}));
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
   });
 
   describe('#updateHost()', function () {
-    it('popup should be displayed', function () {
+
+    beforeEach(function () {
       sinon.stub(batchUtils, "infoPassiveState", Em.K);
+    });
+
+    afterEach(function () {
+      batchUtils.infoPassiveState.restore();
+    });
+
+    it('popup should be displayed', function () {
       controller.updateHost({}, {}, {passive_state: 'state'});
       expect(controller.get('content.passiveState')).to.equal('state');
       expect(batchUtils.infoPassiveState.calledWith('state')).to.be.true;
-      batchUtils.infoPassiveState.restore();
     });
   });
 
@@ -2671,16 +2733,24 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#updateHostComponent()', function () {
-    it('popup should be displayed', function () {
+
+    var params = {
+      component: Em.Object.create(),
+      passive_state: 'state'
+    };
+
+    beforeEach(function () {
       sinon.stub(batchUtils, "infoPassiveState", Em.K);
-      var params = {
-        component: Em.Object.create(),
-        passive_state: 'state'
-      };
+    });
+
+    afterEach(function () {
+      batchUtils.infoPassiveState.restore();
+    });
+
+    it('popup should be displayed', function () {
       controller.updateHostComponent({}, {}, params);
       expect(params.component.get('passiveState')).to.equal('state');
       expect(batchUtils.infoPassiveState.calledWith('state')).to.be.true;
-      batchUtils.infoPassiveState.restore();
     });
   });
 
@@ -2833,40 +2903,69 @@ describe('App.MainHostDetailsController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(controller, 'checkComponentDependencies', function (componentName, params) {
-          return item.dependencies[componentName];
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(controller, 'checkComponentDependencies', function (componentName, params) {
+            return item.dependencies[componentName];
+          });
+          controller.installClients({
+            context: item.context
+          });
         });
-        controller.installClients({
-          context: item.context
+
+        it('getSecurityType is ' + (item.getKDCSessionStateCalled ? '' : 'not') + ' called', function() {
+          expect(App.get('router.mainAdminKerberosController').getSecurityType.calledOnce).to.equal(item.getKDCSessionStateCalled);
         });
-        expect(App.get('router.mainAdminKerberosController').getSecurityType.calledOnce).to.equal(item.getKDCSessionStateCalled);
-        expect(App.get('router.mainAdminKerberosController').getKDCSessionState.calledOnce).to.equal(item.getKDCSessionStateCalled);
-        expect(controller.sendComponentCommand.calledOnce).to.equal(item.sendComponentCommandCalled);
-        expect(App.showAlertPopup.calledOnce).to.equal(item.showAlertPopupCalled);
+
+        it('getKDCSessionState is ' + (item.getKDCSessionStateCalled ? '' : 'not') + ' called', function() {
+          expect(App.get('router.mainAdminKerberosController').getKDCSessionState.calledOnce).to.equal(item.getKDCSessionStateCalled);
+        });
+
+        it('sendComponentCommand is ' + (item.sendComponentCommandCalled ? '' : 'not') + ' called', function() {
+          expect(controller.sendComponentCommand.calledOnce).to.equal(item.sendComponentCommandCalled);
+        });
+
+        it('showAlertPopup is ' + (item.showAlertPopupCalled ? '' : 'not') + ' called', function() {
+          expect(App.showAlertPopup.calledOnce).to.equal(item.showAlertPopupCalled);
+        });
+
       });
     });
   });
 
   describe("#executeCustomCommandSuccessCallback()", function () {
-    it("BO popup should be shown", function () {
-      var mock = {
-        showPopup: Em.K
-      };
-      sinon.stub(App.router, 'get').returns(mock);
-      sinon.spy(mock, 'showPopup');
-      var data = {
+
+    var data;
+    var mock;
+
+    beforeEach(function () {
+      data = {
         Requests: {
           id: 1
         }
       };
+      mock = {
+        showPopup: Em.K
+      };
+      sinon.stub(App.router, 'get').returns(mock);
+      sinon.spy(mock, 'showPopup');
       controller.executeCustomCommandSuccessCallback(data, {}, {});
+    });
 
-      expect(App.router.get.calledWith('backgroundOperationsController')).to.be.true;
-      expect(mock.showPopup.calledOnce).to.be.true;
+    afterEach(function () {
       App.router.get.restore();
       mock.showPopup.restore();
     });
+
+    it('App.router.get is called with `backgroundOperationsController`', function () {
+      expect(App.router.get.calledWith('backgroundOperationsController')).to.be.true;
+    });
+
+    it('showPopup is called once', function () {
+      expect(mock.showPopup.calledOnce).to.be.true;
+    });
+
   });
 
   describe("#executeCustomCommandErrorCallback()", function () {
@@ -2893,7 +2992,7 @@ describe('App.MainHostDetailsController', function () {
       expect(App.showAlertPopup.calledWith(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), Em.I18n.t('services.service.actions.run.executeCustomCommand.error'))).to.be.true;
       expect($.parseJSON.called).to.be.false;
     });
-    it("data empty", function () {
+    it("data empty (2)", function () {
       var data = {
         responseText: "test"
       };
@@ -2936,8 +3035,9 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe("#deleteHostSuccessCallback", function () {
-    it("call updateHost", function () {
-      var mock = {
+    var mock;
+    beforeEach(function () {
+      mock = {
         updateHost: function (callback) {
           callback();
         },
@@ -2948,18 +3048,11 @@ describe('App.MainHostDetailsController', function () {
       sinon.spy(mock, 'getAllHostNames');
       sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.router, 'transitionTo', Em.K);
-      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
-        callback();
-      });
-
+      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
       controller.deleteHostSuccessCallback();
-      expect(App.router.get.calledWith('updateController')).to.be.true;
-      expect(mock.updateHost.calledOnce).to.be.true;
-      expect(controller.loadConfigs.called).to.be.false;
-      expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
-      expect(App.router.get.calledWith('clusterController')).to.be.true;
-      expect(mock.getAllHostNames.calledOnce).to.be.true;
+    });
 
+    afterEach(function () {
       App.router.get.restore();
       mock.updateHost.restore();
       mock.getAllHostNames.restore();
@@ -2967,24 +3060,50 @@ describe('App.MainHostDetailsController', function () {
       controller.isServiceMetricsLoaded.restore();
       App.router.transitionTo.restore();
     });
+
+    it('updateController is used', function () {
+      expect(App.router.get.calledWith('updateController')).to.be.true;
+    });
+    it('updateHost is called once', function () {
+      expect(mock.updateHost.calledOnce).to.be.true;
+    });
+    it('loadConfigs is not called', function () {
+      expect(controller.loadConfigs.called).to.be.false;
+    });
+    it('user is moved to the hosts', function () {
+      expect(App.router.transitionTo.calledWith('hosts.index')).to.be.true;
+    });
+    it('clusterController is used', function () {
+      expect(App.router.get.calledWith('clusterController')).to.be.true;
+    });
+    it('getAllHostNames is called once', function () {
+      expect(mock.getAllHostNames.calledOnce).to.be.true;
+    });
   });
 
   describe("#deleteHostErrorCallback", function () {
-    it("call defaultErrorHandler", function () {
+
+    beforeEach(function () {
       sinon.stub(controller, 'loadConfigs', Em.K);
       sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
-      sinon.stub(controller, 'isServiceMetricsLoaded', function (callback) {
-        callback();
-      });
+      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
       controller.deleteHostErrorCallback({
         status: 'status',
         statusText: "statusText"
       }, 'textStatus', 'errorThrown', {url: 'url'});
-      expect(controller.loadConfigs.calledOnce).to.be.true;
-      expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
+    });
+
+    afterEach(function () {
       App.ajax.defaultErrorHandler.restore();
       controller.loadConfigs.restore();
       controller.isServiceMetricsLoaded.restore();
+    });
+
+    it('loadConfigs is called once', function () {
+      expect(controller.loadConfigs.calledOnce).to.be.true;
+    });
+    it('defaultErrorHandler is called once', function () {
+      expect(App.ajax.defaultErrorHandler.calledOnce).to.be.true;
     });
   });
 
@@ -3157,19 +3276,33 @@ describe('App.MainHostDetailsController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        Em.keys(item.input).forEach(function (key) {
-          controller.set(key, item.input[key]);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          Em.keys(item.input).forEach(function (key) {
+            controller.set(key, item.input[key]);
+          });
+          this.hostsMap = controller.getHiveHosts().toArray();
+          this.expectedHosts = this.hostsMap.filter(function(hostInfo) {
+            return ['WEBHCAT_SERVER', 'HIVE_METASTORE'].contains(hostInfo.component) && hostInfo.isInstalled === true;
+          }).mapProperty('hostName').uniq();
         });
-        var hostsMap = controller.getHiveHosts().toArray();
-        var expectedHosts = hostsMap.filter(function(hostInfo) {
-          return ['WEBHCAT_SERVER', 'HIVE_METASTORE'].contains(hostInfo.component) && hostInfo.isInstalled === true;
-        }).mapProperty('hostName').uniq();
-        expect(expectedHosts).to.include.same.members(item.hiveHosts);
-        expect(controller.get('hiveMetastoreHost')).to.be.empty;
-        expect(controller.get('webhcatServerHost')).to.be.empty;
-        expect(controller.get('fromDeleteHost')).to.be.false;
-        expect(controller.get('deleteHiveMetaStore')).to.be.false;
+
+        it(JSON.stringify(item.hiveHosts) + ' are in the list', function () {
+          expect(this.expectedHosts).to.include.same.members(item.hiveHosts);
+        });
+        it('hiveMetastoreHost is empty', function () {
+          expect(controller.get('hiveMetastoreHost')).to.be.empty;
+        });
+        it('webhcatServerHost is empty', function () {
+          expect(controller.get('webhcatServerHost')).to.be.empty;
+        });
+        it('fromDeleteHost is false', function () {
+          expect(controller.get('fromDeleteHost')).to.be.false;
+        });
+        it('deleteHiveMetaStore is false', function () {
+          expect(controller.get('deleteHiveMetaStore')).to.be.false;
+        });
       });
     });
 
@@ -3225,9 +3358,8 @@ describe('App.MainHostDetailsController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        controller.set('rangerKMSServerHost', item.hostToInstall);
-        sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
+      describe(item.title, function () {
+
         var data = {
           items: [
             {
@@ -3244,8 +3376,16 @@ describe('App.MainHostDetailsController', function () {
             }
           ]
         };
-        controller.onLoadRangerConfigs(data);
-        expect(controller.saveConfigsBatch.calledWith(item.result, 'RANGER_KMS_SERVER', item.hostToInstall)).to.be.true;
+
+        beforeEach(function () {
+          controller.set('rangerKMSServerHost', item.hostToInstall);
+          sinon.stub(controller, 'getRangerKMSServerHosts').returns(item.kmsHosts);
+          controller.onLoadRangerConfigs(data);
+        });
+
+        it('saveConfigsBatch is called with valid arguments', function () {
+          expect(controller.saveConfigsBatch.calledWith(item.result, 'RANGER_KMS_SERVER', item.hostToInstall)).to.be.true;
+        });
       });
     });
 
@@ -3757,26 +3897,40 @@ describe('App.MainHostDetailsController', function () {
     ];
 
     tests.forEach(function(test) {
-      it(test.m.format(inlineComponentHostInfo(test.hostComponentModel), test.ctrlStubs ? JSON.stringify(test.ctrlStubs) : 'None'), function() {
-        if (test.appGetterStubs) {
-          Em.keys(test.appGetterStubs).forEach(function(key) {
-            sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
-          });
-        }
-        if (test.ctrlStubs) {
-          var stub = sinon.stub(controller, 'get');
-          Em.keys(test.ctrlStubs).forEach(function(key) {
-            stub.withArgs(key).returns(test.ctrlStubs[key]);
-          });
-        }
-        sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
-        controller.onLoadHiveConfigs(test.configs);
-        var configs = controller.saveConfigsBatch.args[0];
-        var properties = configs[0];
-        expect(properties).to.be.eql(test.e.configs);
-        if (test.ctrlStubs) controller.get.restore();
-        if (test.appGetterStubs) App.get.restore();
-        App.HostComponent.find.restore();
+      describe(test.m.format(inlineComponentHostInfo(test.hostComponentModel), test.ctrlStubs ? JSON.stringify(test.ctrlStubs) : 'None'), function() {
+
+        beforeEach(function () {
+          if (test.appGetterStubs) {
+            Em.keys(test.appGetterStubs).forEach(function(key) {
+              sinon.stub(App, 'get').withArgs(key).returns(test.appGetterStubs[key]);
+            });
+          }
+          if (test.ctrlStubs) {
+            var stub = sinon.stub(controller, 'get');
+            Em.keys(test.ctrlStubs).forEach(function(key) {
+              stub.withArgs(key).returns(test.ctrlStubs[key]);
+            });
+          }
+          sinon.stub(App.HostComponent, 'find').returns(test.hostComponentModel);
+        });
+
+        afterEach(function () {
+          if (test.ctrlStubs) {
+            controller.get.restore();
+          }
+          if (test.appGetterStubs) {
+            App.get.restore();
+          }
+          App.HostComponent.find.restore();
+        });
+
+        it('saveConfigsBatch is called with correct configs', function () {
+          controller.onLoadHiveConfigs(test.configs);
+          var configs = controller.saveConfigsBatch.args[0];
+          var properties = configs[0];
+          expect(properties).to.be.eql(test.e.configs);
+        });
+
       });
     });
   });

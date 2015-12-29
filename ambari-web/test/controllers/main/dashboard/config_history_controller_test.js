@@ -113,30 +113,20 @@ describe('MainConfigHistoryController', function () {
           }
         }
       });
+      sinon.stub(App, 'get', function(k) {
+        if ('testMode' === k) return false;
+        return Em.get(App, k);
+      });
     });
     afterEach(function () {
       App.router.get.restore();
       App.get.restore();
     });
-    it('testMode is true', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      expect(controller.getUrl()).to.equal('/data/configurations/service_versions.json');
-    });
     it('query params is empty', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
+
       expect(controller.getUrl()).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true');
     });
     it('query params is correct', function () {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
       expect(controller.getUrl({})).to.equal('/api/v1/clusters/mycluster/configurations/service_config_versions?params&fields=service_config_version,user,group_id,group_name,is_current,createtime,service_name,hosts,service_config_version_note,is_cluster_compatible,stack_id&minimal_response=true');
     });
   });

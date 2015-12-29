@@ -134,6 +134,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         return "hash"
       });
     });
+
     afterEach(function () {
       mainServiceInfoConfigsController.get.restore();
       mainServiceInfoConfigsController.restartServicePopup.restore();
@@ -142,24 +143,45 @@ describe("App.MainServiceInfoConfigsController", function () {
 
     tests.forEach(function (t) {
       t.results.forEach(function (r) {
-        it(t.m + " " + r.method + " " + r.field, function () {
-          if (t.callback) {
-            t.callback = sinon.stub();
-          }
-          if (t.transitionCallback) {
-            t.transitionCallback = sinon.stub();
-          }
-          mainServiceInfoConfigsController.showSavePopup(t.transitionCallback, t.callback)[t.action]();
+        describe(t.m + " " + r.method + " " + r.field, function () {
+
+          beforeEach(function () {
+            if (t.callback) {
+              t.callback = sinon.stub();
+            }
+            if (t.transitionCallback) {
+              t.transitionCallback = sinon.stub();
+            }
+            mainServiceInfoConfigsController.showSavePopup(t.transitionCallback, t.callback)[t.action]();
+          });
+
+
           if (r.method) {
             if (r.method === 'callback') {
-              expect(t.callback.calledOnce).to.equal(r.called);
-            } else if (r.method === 'transitionCallback') {
-              expect(t.transitionCallback.calledOnce).to.equal(r.called);
-            } else {
-              expect(mainServiceInfoConfigsController[r.method].calledOnce).to.equal(r.called);
+              it('callback is ' + (r.called ? '' : 'not') + ' called once', function () {
+                expect(t.callback.calledOnce).to.equal(r.called);
+              });
             }
-          } else if (r.field) {
-            expect(mainServiceInfoConfigsController.get(r.field)).to.equal(r.value);
+            else {
+              if (r.method === 'transitionCallback') {
+                it('transitionCallback is ' + (r.called ? '' : 'not') + ' called once', function () {
+                  expect(t.transitionCallback.calledOnce).to.equal(r.called);
+                });
+              }
+              else {
+                it(r.method + ' is ' + (r.called ? '' : 'not') + ' called once', function () {
+                  expect(mainServiceInfoConfigsController[r.method].calledOnce).to.equal(r.called);
+                });
+              }
+            }
+          }
+          else {
+            if (r.field) {
+              it(r.field + ' is equal to ' + r.value, function () {
+                expect(mainServiceInfoConfigsController.get(r.field)).to.equal(r.value);
+              });
+
+            }
           }
         }, this);
       });
@@ -324,17 +346,21 @@ describe("App.MainServiceInfoConfigsController", function () {
   });
 
   describe("#restartAllStaleConfigComponents", function () {
+
     beforeEach(function () {
       sinon.stub(batchUtils, "restartAllServiceHostComponents", Em.K);
     });
+
     afterEach(function () {
       batchUtils.restartAllServiceHostComponents.restore();
     });
+
     it("trigger restartAllServiceHostComponents", function () {
       mainServiceInfoConfigsController.restartAllStaleConfigComponents().onPrimary();
       expect(batchUtils.restartAllServiceHostComponents.calledOnce).to.equal(true);
     });
-    it("trigger check last check point warning before triggering restartAllServiceHostComponents", function () {
+
+    describe("trigger check last check point warning before triggering restartAllServiceHostComponents", function () {
       var mainConfigsControllerHdfsStarted = App.MainServiceInfoConfigsController.create({
         content: {
           serviceName: "HDFS",
@@ -349,20 +375,30 @@ describe("App.MainServiceInfoConfigsController", function () {
         }
       });
       var mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
-        return true;
-      });
-      sinon.stub(App.router, 'get', function(k) {
-        if ('mainServiceItemController' === k) {
-          return mainServiceItemController;
-        }
-        return Em.get(App.router, k);
+
+      beforeEach(function () {
+        sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+          return true;
+        });
+        sinon.stub(App.router, 'get', function(k) {
+          if ('mainServiceItemController' === k) {
+            return mainServiceItemController;
+          }
+          return Em.get(App.router, k);
+        });
+        mainConfigsControllerHdfsStarted.restartAllStaleConfigComponents();
       });
 
-      mainConfigsControllerHdfsStarted.restartAllStaleConfigComponents();
-      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
-      mainServiceItemController.checkNnLastCheckpointTime.restore();
-      App.router.get.restore();
+      afterEach(function () {
+        mainServiceItemController.checkNnLastCheckpointTime.restore();
+        App.router.get.restore();
+      });
+
+      it('checkNnLastCheckpointTime is called once', function () {
+        expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
+      });
+
+
     });
   });
 
@@ -713,10 +749,10 @@ describe("App.MainServiceInfoConfigsController", function () {
     it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isUserProperty: true}, {})).to.eql({compareConfigs: ["compConfig"], isUserProperty: true, isComparison: true, hasCompareDiffs: true});
     });
-    it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function() {
+    it("expect that serviceConfig.compareConfigs will be getComparisonConfig (2)", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isComparison: true, hasCompareDiffs: true});
     });
-    it("expect that serviceConfig.compareConfigs will be getComparisonConfig", function() {
+    it("expect that serviceConfig.compareConfigs will be getComparisonConfig (3)", function() {
       expect(mainServiceInfoConfigsController.setCompareDefaultGroupConfig({isReconfigurable: true, isMock: true}, {})).to.eql({compareConfigs: ["compConfig"], isReconfigurable: true, isMock: true, isComparison: true, hasCompareDiffs: true});
     });
     it("property was created during upgrade and have no comparison, compare with 'Undefined' value should be created", function() {

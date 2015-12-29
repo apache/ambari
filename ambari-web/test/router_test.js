@@ -496,22 +496,32 @@ describe('App.Router', function () {
         m: 'jwtProviderUrl is present, current location is local login url, no redirect'
       }
     ].forEach(function(test) {
-      it(test.m, function() {
-        var mockCurrentUrl = 'http://localhost:3333/#/some/hash';
-        router.set('location.lastSetURL', test.lastSetURL);
-        sinon.stub(App.ajax, 'send', function() {
-          if (!test.isResolved) {
-            router.onAuthenticationError(test.responseData);
-          }
-          return {
-            complete: function() {}
-          };
+      describe(test.m, function() {
+        var mockCurrentUrl;
+        beforeEach(function () {
+          mockCurrentUrl = 'http://localhost:3333/#/some/hash';
+          router.set('location.lastSetURL', test.lastSetURL);
+          sinon.stub(App.ajax, 'send', function() {
+            if (!test.isResolved) {
+              router.onAuthenticationError(test.responseData);
+            }
+            return {
+              complete: function() {}
+            };
+          });
+          this.mockGetCurrentLocationUrl.returns(mockCurrentUrl);
+          router.getAuthenticated();
         });
-        this.mockGetCurrentLocationUrl.returns(mockCurrentUrl);
-        router.getAuthenticated();
-        expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
+
+        it('redirectByURL is ' + (test.redirectCalled ? '' : 'not') + ' called', function () {
+          expect(router.redirectByURL.calledOnce).to.be.eql(test.redirectCalled);
+        });
+
+
         if (test.redirectCalled) {
-          expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
+          it('redirectByURL is correct', function () {
+            expect(router.redirectByURL.args[0][0]).to.be.eql(JSON.parse(test.responseData.responseText).jwtProviderUrl + encodeURIComponent(mockCurrentUrl));
+          });
         }
       });
     });

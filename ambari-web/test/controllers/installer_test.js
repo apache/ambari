@@ -462,17 +462,25 @@ describe('App.InstallerController', function () {
   });
 
   describe('#loadMap', function() {
-    it ('Should load cluster', function() {
+
+    describe('Should load cluster', function() {
       var loadCluster = false;
       var checker = {
         load: function() {
           loadCluster = true;
         }
       };
-      installerController.loadMap['0'][0].callback.call(checker);
-      expect(loadCluster).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['0'][0].callback.call(checker);
+      });
+
+      it('cluster info is loaded', function () {
+        expect(loadCluster).to.be.true;
+      });
     });
-    it ('Should load stacks', function() {
+
+    describe('Should load stacks', function() {
       var loadStacks = false;
       var checker = {
         loadStacks: function() {
@@ -483,52 +491,84 @@ describe('App.InstallerController', function () {
           };
         }
       };
-      installerController.loadMap['1'][0].callback.call(checker);
-      expect(loadStacks).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['1'][0].callback.call(checker);
+      });
+
+      it('stack info is loaded', function () {
+        expect(loadStacks).to.be.true;
+      });
     });
-    it ('Should load stacks async', function() {
+
+    describe ('Should load stacks async', function() {
       var loadStacksVersions = false;
       var checker = {
         loadStacksVersions: function() {
           loadStacksVersions = true;
         }
       };
-      installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
-        expect(data).to.be.true;
+
+      it('stack versions are loaded', function () {
+        installerController.loadMap['1'][1].callback.call(checker, true).then(function(data){
+          expect(data).to.be.true;
+        });
+        expect(loadStacksVersions).to.be.false;
       });
-      expect(loadStacksVersions).to.be.false;
     });
-    it ('Should load installOptions', function() {
-      var loadStacks = false;
+
+    describe('Should load installOptions', function() {
+      var installOptions = false;
       var checker = {
         load: function() {
-          loadStacks = true;
+          installOptions = true;
         }
       };
-      installerController.loadMap['2'][0].callback.call(checker);
-      expect(loadStacks).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['2'][0].callback.call(checker);
+      });
+
+      it('install option are loaded', function () {
+        expect(installOptions).to.be.true;
+      });
     });
-    it ('Should load loadConfirmedHosts', function() {
+
+    describe('Should load loadConfirmedHosts', function() {
       var loadConfirmedHosts = false;
       var checker = {
         loadConfirmedHosts: function() {
           loadConfirmedHosts = true;
         }
       };
-      installerController.loadMap['3'][0].callback.call(checker);
-      expect(loadConfirmedHosts).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['3'][0].callback.call(checker);
+      });
+
+      it('confirmed hosts are loaded', function () {
+        expect(loadConfirmedHosts).to.be.true;
+      });
     });
-    it ('Should load loadServices', function() {
+
+    describe('Should load loadServices', function() {
       var loadServices = false;
       var checker = {
         loadServices: function() {
           loadServices = true;
         }
       };
-      installerController.loadMap['4'][0].callback.call(checker);
-      expect(loadServices).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['4'][0].callback.call(checker);
+      });
+
+      it('services are loaded', function () {
+        expect(loadServices).to.be.true;
+      });
     });
-    it ('Should load loadServices', function() {
+
+    describe('Should load loadServices (2)', function() {
       var setSkipSlavesStep = false;
       var loadMasterComponentHosts = false;
       var loadConfirmedHosts = false;
@@ -548,14 +588,30 @@ describe('App.InstallerController', function () {
           loadRecommendations = true;
         }
       };
-      installerController.loadMap['5'][0].callback.call(checker);
-      expect(loadConfirmedHosts).to.be.true;
-      expect(setSkipSlavesStep).to.be.true;
-      expect(loadMasterComponentHosts).to.be.true;
-      expect(loadRecommendations).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['5'][0].callback.call(checker);
+      });
+
+      it('confirmed hosts are loaded', function() {
+        expect(loadConfirmedHosts).to.be.true;
+      });
+
+      it('`skipSlavesStep` is loaded', function() {
+        expect(setSkipSlavesStep).to.be.true;
+      });
+
+      it('master components hosts are loaded', function() {
+        expect(loadMasterComponentHosts).to.be.true;
+      });
+
+      it('recommendations are loaded', function() {
+        expect(loadRecommendations).to.be.true;
+      });
 
     });
-    it ('Should load serviceConfigGroups', function() {
+
+    describe ('Should load serviceConfigGroups', function() {
       var loadServiceConfigGroups = false;
       var loadServiceConfigProperties = false;
       var loadCurrentHostGroups = false;
@@ -579,14 +635,34 @@ describe('App.InstallerController', function () {
           loadConfigThemes = true;
         }
       };
-      installerController.loadMap['7'][0].callback.call(checker);
-      expect(loadServiceConfigGroups).to.be.true;
-      expect(loadServiceConfigProperties).to.be.true;
-      expect(loadCurrentHostGroups).to.be.true;
-      expect(loadRecommendationsConfigs).to.be.true;
-      expect(loadConfigThemes).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['7'][0].callback.call(checker);
+      });
+
+      it('config groups are loaded', function () {
+        expect(loadServiceConfigGroups).to.be.true;
+      });
+
+      it('config properties are loaded', function () {
+        expect(loadServiceConfigProperties).to.be.true;
+      });
+
+      it('current host groups are loaded', function () {
+        expect(loadCurrentHostGroups).to.be.true;
+      });
+
+      it('recommendations are loaded', function () {
+        expect(loadRecommendationsConfigs).to.be.true;
+      });
+
+      it('config themes are loaded', function () {
+        expect(loadConfigThemes).to.be.true;
+      });
+
     });
-    it ('Should load clients', function() {
+
+    describe('Should load clients', function() {
       var loadSlaveComponentHosts = false;
       var loadClients = false;
       var loadRecommendations = false;
@@ -602,11 +678,25 @@ describe('App.InstallerController', function () {
           loadRecommendations = true;
         }
       };
-      installerController.loadMap['6'][0].callback.call(checker);
-      expect(loadSlaveComponentHosts).to.be.true;
-      expect(loadClients).to.be.true;
-      expect(loadRecommendations).to.be.true;
+
+      beforeEach(function () {
+        installerController.loadMap['6'][0].callback.call(checker);
+      });
+
+      it('slave components hosts are loaded', function () {
+        expect(loadSlaveComponentHosts).to.be.true;
+      });
+
+      it('clients are loaded', function () {
+        expect(loadClients).to.be.true;
+      });
+
+      it('recommendations are loaded', function () {
+        expect(loadRecommendations).to.be.true;
+      });
+
     });
+
   });
 
   describe('#removeHosts', function() {
@@ -1121,18 +1211,34 @@ describe('App.InstallerController', function () {
     ];
 
     tests.forEach(function(test) {
-      it(test.m, function() {
-        sinon.stub(App.Stack, 'find').returns(test.stacks);
-        sinon.stub(App.router, 'get').withArgs('clusterController.isCustomJDK').returns(test.isCustomJDK)
-          .withArgs('clusterController.ambariProperties').returns(test.ambariProperties);
-        sinon.stub(App, 'showConfirmationPopup', Em.K);
-        var successCallback = sinon.spy();
-        installerController.validateJDKVersion(successCallback);
-        expect(successCallback.called).to.be.eql(test.successCallbackCalled);
-        expect(App.showConfirmationPopup.called).to.be.eql(test.popupCalled);
-        App.router.get.restore();
-        App.Stack.find.restore();
-        App.showConfirmationPopup.restore();
+
+      describe(test.m, function() {
+
+        var successCallback;
+
+        beforeEach(function ()  {
+          sinon.stub(App.Stack, 'find').returns(test.stacks);
+          sinon.stub(App.router, 'get').withArgs('clusterController.isCustomJDK').returns(test.isCustomJDK)
+            .withArgs('clusterController.ambariProperties').returns(test.ambariProperties);
+          sinon.stub(App, 'showConfirmationPopup', Em.K);
+          successCallback = sinon.spy();
+          installerController.validateJDKVersion(successCallback);
+        });
+
+        afterEach(function () {
+          App.router.get.restore();
+          App.Stack.find.restore();
+          App.showConfirmationPopup.restore();
+        });
+
+        it('successCallback is ' + (test.successCallbackCalled ? '' : 'not') + ' called', function () {
+          expect(successCallback.called).to.be.equal(test.successCallbackCalled);
+        });
+
+        it('App.showConfirmationPopup. is ' + (test.popupCalled ? '' : 'not') + ' called', function () {
+          expect(App.showConfirmationPopup.called).to.be.equal(test.popupCalled);
+        });
+
       });
     });
   });

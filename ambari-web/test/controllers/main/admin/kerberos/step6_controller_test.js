@@ -37,13 +37,21 @@ describe('App.KerberosWizardStep6Controller', function() {
     ];
 
     tests.forEach(function(test) {
-      it('YARN installed: {0}, ATS supported: {1} list of commands should be {2}'.format(test.yarnInstalled, test.doesATSSupportKerberos, test.commands.toString()), function () {
-        var controller = App.KerberosWizardStep6Controller.create({ commands: ['stopServices'] });
-        sinon.stub(App, 'get').withArgs('doesATSSupportKerberos').returns(test.doesATSSupportKerberos);
-        sinon.stub(App.Service, 'find').returns(test.yarnInstalled ? [Em.Object.create({serviceName: 'YARN'})] : []);
-        sinon.stub(App.HostComponent, 'find').returns(test.ATSInstalled ? [Em.Object.create({componentName: 'APP_TIMELINE_SERVER'})] : []);
-        controller.checkComponentsRemoval();
-        expect(controller.get('commands').toArray()).to.eql(test.commands);
+      var message = 'YARN installed: {0}, ATS supported: {1} list of commands should be {2}'.format(test.yarnInstalled, test.doesATSSupportKerberos, test.commands.toString());
+      describe(message, function () {
+        var controller;
+        beforeEach(function () {
+          controller = App.KerberosWizardStep6Controller.create({ commands: ['stopServices'] });
+          sinon.stub(App, 'get').withArgs('doesATSSupportKerberos').returns(test.doesATSSupportKerberos);
+          sinon.stub(App.Service, 'find').returns(test.yarnInstalled ? [Em.Object.create({serviceName: 'YARN'})] : []);
+          sinon.stub(App.HostComponent, 'find').returns(test.ATSInstalled ? [Em.Object.create({componentName: 'APP_TIMELINE_SERVER'})] : []);
+          controller.checkComponentsRemoval();
+        });
+
+        it('commands are valid', function () {
+          expect(controller.get('commands').toArray()).to.eql(test.commands);
+        });
+
       });
     });
   });

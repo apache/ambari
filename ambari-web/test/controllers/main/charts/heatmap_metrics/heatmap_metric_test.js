@@ -77,38 +77,70 @@ describe('MainChartHeatmapMetric', function () {
   });
 
   describe('#generateSlot()', function () {
+
     beforeEach(function () {
       sinon.stub(mainChartHeatmapMetric, 'formatLegendNumber').returns('val');
       sinon.stub(date, 'timingFormat').returns('time');
     });
+
     afterEach(function () {
       mainChartHeatmapMetric.formatLegendNumber.restore();
       date.timingFormat.restore();
     });
-    it('label suffix is empty', function () {
-      expect(mainChartHeatmapMetric.generateSlot(0, 1, '', {r: 0, g: 0, b: 0})).to.eql(Em.Object.create({
-        "from": "val",
-        "to": "val",
-        "label": "val - val",
-        "cssStyle": "background-color:rgb(0,0,0)"
-      }));
 
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
-    });
-    it('label suffix is "ms"', function () {
-      expect(mainChartHeatmapMetric.generateSlot(0, 1, 'ms', {r: 0, g: 0, b: 0})).to.eql(Em.Object.create({
-        "from": "val",
-        "to": "val",
-        "label": "time - time",
-        "cssStyle": "background-color:rgb(0,0,0)"
-      }));
+    describe('label suffix is empty', function () {
 
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
-      expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
-      expect(date.timingFormat.getCall(0).args).to.eql(['val', 'zeroValid']);
-      expect(date.timingFormat.getCall(1).args).to.eql(['val', 'zeroValid']);
+      beforeEach(function () {
+        this.result = mainChartHeatmapMetric.generateSlot(0, 1, '', {r: 0, g: 0, b: 0});
+      });
+
+      it('generateSlot result is valid', function () {
+        expect(this.result).to.eql(Em.Object.create({
+          "from": "val",
+          "to": "val",
+          "label": "val - val",
+          "cssStyle": "background-color:rgb(0,0,0)"
+        }));
+      });
+
+      it('formatLegendNumber 1st call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
+      });
+
+      it('formatLegendNumber 2nd call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
+      });
     });
+
+    describe('label suffix is "ms"', function () {
+
+      beforeEach(function () {
+        this.result = mainChartHeatmapMetric.generateSlot(0, 1, 'ms', {r: 0, g: 0, b: 0});
+      });
+
+      it('generateSlot result is valid', function () {
+        expect(this.result).to.eql(Em.Object.create({
+          "from": "val",
+          "to": "val",
+          "label": "time - time",
+          "cssStyle": "background-color:rgb(0,0,0)"
+        }));
+      });
+      it('formatLegendNumber 1st call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(0).args).to.eql([0]);
+      });
+      it('formatLegendNumber 2nd call with valid arguments', function () {
+        expect(mainChartHeatmapMetric.formatLegendNumber.getCall(1).args).to.eql([1]);
+      });
+      it('timingFormat 1st call with valid arguments', function () {
+        expect(date.timingFormat.getCall(0).args).to.eql(['val', 'zeroValid']);
+      });
+      it('timingFormat 2nd call with valid arguments', function () {
+        expect(date.timingFormat.getCall(1).args).to.eql(['val', 'zeroValid']);
+      });
+
+    });
+
   });
 
   describe('#getHatchStyle()', function () {
@@ -159,6 +191,15 @@ describe('MainChartHeatmapMetric', function () {
   });
 
   describe('#hostToSlotMap', function () {
+
+    beforeEach(function () {
+      this.stub = sinon.stub(mainChartHeatmapMetric, 'calculateSlot');
+    });
+
+    afterEach(function () {
+      this.stub.restore();
+    });
+
     it('hostToValueMap is null', function () {
       mainChartHeatmapMetric.set('hostToValueMap', null);
       mainChartHeatmapMetric.set('hostNames', []);
@@ -174,20 +215,18 @@ describe('MainChartHeatmapMetric', function () {
     it('slot greater than -1', function () {
       mainChartHeatmapMetric.set('hostToValueMap', {});
       mainChartHeatmapMetric.set('hostNames', ['host1']);
-      sinon.stub(mainChartHeatmapMetric, 'calculateSlot').returns(0);
+      this.stub.returns(0);
       mainChartHeatmapMetric.propertyDidChange('hostToSlotMap');
       expect(mainChartHeatmapMetric.get('hostToSlotMap')).to.eql({'host1': 0});
       expect(mainChartHeatmapMetric.calculateSlot.calledWith({}, 'host1')).to.be.true;
-      mainChartHeatmapMetric.calculateSlot.restore();
     });
     it('slot equal to -1', function () {
       mainChartHeatmapMetric.set('hostToValueMap', {});
       mainChartHeatmapMetric.set('hostNames', ['host1']);
-      sinon.stub(mainChartHeatmapMetric, 'calculateSlot').returns('-1');
+      this.stub.returns('-1');
       mainChartHeatmapMetric.propertyDidChange('hostToSlotMap');
       expect(mainChartHeatmapMetric.get('hostToSlotMap')).to.be.empty;
       expect(mainChartHeatmapMetric.calculateSlot.calledWith({}, 'host1')).to.be.true;
-      mainChartHeatmapMetric.calculateSlot.restore();
     });
   });
 
@@ -272,10 +311,20 @@ describe('MainChartHeatmapMetric', function () {
     ];
 
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        sinon.stub(mainChartHeatmapMetric, 'get').withArgs('slotDefinitions').returns(test.data.slotDefinitions);
-        expect(mainChartHeatmapMetric.calculateSlot(test.data.hostToValueMap, test.data.hostName)).to.equal(test.result);
-        mainChartHeatmapMetric.get.restore();
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(mainChartHeatmapMetric, 'get').withArgs('slotDefinitions').returns(test.data.slotDefinitions);
+        });
+
+        afterEach(function () {
+          mainChartHeatmapMetric.get.restore();
+        });
+
+        it('calculateSlot result is valid', function () {
+          expect(mainChartHeatmapMetric.calculateSlot(test.data.hostToValueMap, test.data.hostName)).to.equal(test.result);
+        });
+
       });
     });
   });

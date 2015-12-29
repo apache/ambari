@@ -213,6 +213,7 @@ describe('App.ManageConfigGroupsController', function() {
       });
 
       describe("#onPrimaryWizard()", function () {
+
         var ctrl = Em.Object.create({
           selectedService: Em.Object.create({
             selected: false
@@ -220,6 +221,7 @@ describe('App.ManageConfigGroupsController', function() {
           selectedServiceObserver: Em.K,
           setGroupsToDelete: Em.K
         });
+
         beforeEach(function () {
           sinon.spy(ctrl, 'selectedServiceObserver');
           sinon.spy(ctrl, 'setGroupsToDelete');
@@ -227,6 +229,7 @@ describe('App.ManageConfigGroupsController', function() {
           sinon.stub(popup, 'updateConfigGroupOnServicePage', Em.K);
           sinon.stub(popup, 'hide', Em.K);
         });
+
         afterEach(function () {
           ctrl.setGroupsToDelete.restore();
           ctrl.selectedServiceObserver.restore();
@@ -234,44 +237,110 @@ describe('App.ManageConfigGroupsController', function() {
           popup.updateConfigGroupOnServicePage.restore();
           popup.hide.restore();
         });
-        it("groups deleted on 7th step", function () {
-          ctrl.set('name', 'wizardStep7Controller');
-          popup.onPrimaryWizard(ctrl, {toDelete: [1]});
-          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
-          expect(ctrl.setGroupsToDelete.calledWith([1])).to.be.true;
-          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
-          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
-          expect(popup.hide.calledOnce).to.be.true;
+
+        describe("groups deleted on 7th step", function () {
+
+          beforeEach(function () {
+            ctrl.set('name', 'wizardStep7Controller');
+            popup.onPrimaryWizard(ctrl, {toDelete: [1]});
+          });
+
+          it('selectedServiceObserver is called once', function () {
+            expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          });
+          it('setGroupsToDelete is called with [1]', function () {
+            expect(ctrl.setGroupsToDelete.calledWith([1])).to.be.true;
+          });
+          it('persistConfigGroups is called once', function () {
+            expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          });
+          it('updateConfigGroupOnServicePage is called once', function () {
+            expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          });
+          it('hide is called once', function () {
+            expect(popup.hide.calledOnce).to.be.true;
+          });
         });
-        it("wizard not on 7th step", function () {
-          ctrl.set('name', '');
-          popup.onPrimaryWizard(ctrl, {});
-          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
-          expect(ctrl.setGroupsToDelete.called).to.be.false;
-          expect(manageConfigGroupsController.persistConfigGroups.called).to.be.false;
-          expect(popup.updateConfigGroupOnServicePage.called).to.be.false;
-          expect(popup.hide.calledOnce).to.be.true;
+
+        describe("wizard not on 7th step", function () {
+
+          beforeEach(function () {
+            ctrl.set('name', '');
+            popup.onPrimaryWizard(ctrl, {});
+          });
+
+          it('selectedServiceObserver is called once', function () {
+            expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          });
+
+          it('setGroupsToDelete is not called', function () {
+            expect(ctrl.setGroupsToDelete.called).to.be.false;
+          });
+
+          it('persistConfigGroups is not called', function () {
+            expect(manageConfigGroupsController.persistConfigGroups.called).to.be.false;
+          });
+
+          it('updateConfigGroupOnServicePage is not called', function () {
+            expect(popup.updateConfigGroupOnServicePage.called).to.be.false;
+          });
+
+          it('hide is called once', function () {
+            expect(popup.hide.calledOnce).to.be.true;
+          });
         });
-        it("wizard on 7th step, service selected", function () {
-          ctrl.set('name', 'wizardStep7Controller');
-          ctrl.set('selectedService.selected', true);
-          popup.onPrimaryWizard(ctrl, {toDelete: [1]});
-          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
-          expect(ctrl.setGroupsToDelete.called).to.be.false;
-          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
-          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
-          expect(popup.hide.calledOnce).to.be.true;
+
+        describe("wizard on 7th step, service selected", function () {
+
+          beforeEach(function () {
+            ctrl.set('name', 'wizardStep7Controller');
+            ctrl.set('selectedService.selected', true);
+            popup.onPrimaryWizard(ctrl, {toDelete: [1]});
+          });
+
+          it('selectedServiceObserver is called once', function () {
+            expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          });
+          it('setGroupsToDelete is not called', function () {
+            expect(ctrl.setGroupsToDelete.called).to.be.false;
+          });
+          it('persistConfigGroups is called once', function () {
+            expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          });
+          it('updateConfigGroupOnServicePage is called once', function () {
+            expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          });
+          it('hide is called once', function () {
+            expect(popup.hide.calledOnce).to.be.true;
+          });
         });
-        it("wizard on 7th step, no groups to delete", function () {
-          ctrl.set('name', 'wizardStep7Controller');
-          ctrl.set('selectedService.selected', false);
-          popup.onPrimaryWizard(ctrl, {toDelete: []});
-          expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
-          expect(ctrl.setGroupsToDelete.called).to.be.false;
-          expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
-          expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
-          expect(popup.hide.calledOnce).to.be.true;
+
+        describe("wizard on 7th step, no groups to delete", function () {
+
+          beforeEach(function () {
+            ctrl.set('name', 'wizardStep7Controller');
+            ctrl.set('selectedService.selected', false);
+            popup.onPrimaryWizard(ctrl, {toDelete: []});
+          });
+
+          it('selectedServiceObserver is called once', function () {
+            expect(ctrl.selectedServiceObserver.calledOnce).to.be.true;
+          });
+          it('setGroupsToDelete is not called', function () {
+            expect(ctrl.setGroupsToDelete.called).to.be.false;
+          });
+          it('persistConfigGroups is called once', function () {
+            expect(manageConfigGroupsController.persistConfigGroups.calledOnce).to.be.true;
+          });
+          it('updateConfigGroupOnServicePage is called once', function () {
+            expect(popup.updateConfigGroupOnServicePage.calledOnce).to.be.true;
+          });
+          it('hide is called once', function () {
+            expect(popup.hide.calledOnce).to.be.true;
+          });
+
         });
+
       });
     });
 

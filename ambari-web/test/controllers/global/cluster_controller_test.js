@@ -202,6 +202,7 @@ describe('App.clusterController', function () {
   });
 
   describe("#createKerberosAdminSession()", function() {
+
     beforeEach(function () {
       sinon.stub(App.ajax, 'send', function() {
         return {success: Em.K}
@@ -209,21 +210,24 @@ describe('App.clusterController', function () {
       sinon.stub(credentialUtils, 'createOrUpdateCredentials', function() {
         return $.Deferred().resolve().promise();
       });
+      this.stub = sinon.stub(App, 'get');
+      this.stub.withArgs('clusterName').returns('test');
     });
+
     afterEach(function () {
       App.ajax.send.restore();
       credentialUtils.createOrUpdateCredentials.restore();
+      App.get.restore();
     });
+
     it("KDC Store supports disabled, credentials updated via kdc session call", function() {
-      sinon.stub(App, 'get')
-        .withArgs('supports.storeKDCCredentials').returns(false)
-        .withArgs('clusterName').returns('test');
+      this.stub.withArgs('supports.storeKDCCredentials').returns(false);
       controller.createKerberosAdminSession({
         principal: 'admin',
         key: 'pass',
         type: 'persistent'
       }, {});
-      App.get.restore();
+
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
         name: 'common.cluster.update',
         sender: controller,
@@ -238,15 +242,12 @@ describe('App.clusterController', function () {
       });
     });
     it("KDC Store supports enabled, credentials updated via credentials storage call", function() {
-      sinon.stub(App, 'get')
-        .withArgs('supports.storeKDCCredentials').returns(true)
-        .withArgs('clusterName').returns('test');
+      this.stub.withArgs('supports.storeKDCCredentials').returns(true);
       controller.createKerberosAdminSession({
         principal: 'admin',
         key: 'pass',
         type: 'persistent'
       }, {});
-      App.get.restore();
       expect(App.ajax.send.called).to.be.eql(false);
       expect(credentialUtils.createOrUpdateCredentials.getCall(0).args).to.eql([
         'test', 'kdc.admin.credential', {
@@ -292,20 +293,36 @@ describe('App.clusterController', function () {
       App.get.restore();
     });
 
-    it('should check detailed repo version for HDP 2.2', function () {
-      sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersionNumber').returns('2.2');
-      controller.checkDetailedRepoVersion();
-      expect(App.ajax.send.calledOnce).to.be.true;
+    describe('should check detailed repo version for HDP 2.2', function () {
+
+      beforeEach(function () {
+        sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP').withArgs('currentStackVersionNumber').returns('2.2');
+      });
+
+      it('request is sent', function () {
+        controller.checkDetailedRepoVersion();
+        expect(App.ajax.send.calledOnce).to.be.true;
+      });
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(App, 'get', function (key) {
-          return item[key] || Em.get(App, key);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App, 'get', function (key) {
+            return item[key] || Em.get(App, key);
+          });
+          controller.checkDetailedRepoVersion();
         });
-        controller.checkDetailedRepoVersion();
-        expect(App.ajax.send.called).to.be.false;
-        expect(App.get('isStormMetricsSupported')).to.equal(item.isStormMetricsSupported);
+
+        it('request is not sent', function () {
+          expect(App.ajax.send.called).to.be.false;
+        });
+
+        it('App.isStormMetricsSupported is ' + item.isStormMetricsSupported, function () {
+          expect(App.get('isStormMetricsSupported')).to.equal(item.isStormMetricsSupported);
+        });
+
       });
     });
 
@@ -438,14 +455,18 @@ describe('App.clusterController', function () {
 
   describe("#restoreUpgradeState()", function() {
     var data = {upgradeData: {}};
-    var mock = {done: function(callback) {
-      callback(data.upgradeData);
-    }};
+    var mock = {
+      done: function (callback) {
+        callback(data.upgradeData);
+      }
+    };
     var upgradeController = Em.Object.create({
       restoreLastUpgrade: Em.K,
       initDBProperties: Em.K,
       loadUpgradeData: Em.K,
-      loadStackVersionsToModel: function(){return {done: Em.K};}
+      loadStackVersionsToModel: function () {
+        return {done: Em.K};
+      }
     });
 
     beforeEach(function () {
@@ -458,6 +479,7 @@ describe('App.clusterController', function () {
       sinon.spy(upgradeController, 'loadUpgradeData');
       sinon.spy(upgradeController, 'loadStackVersionsToModel');
     });
+
     afterEach(function () {
       mock.done.restore();
       controller.getAllUpgrades.restore();
@@ -468,31 +490,77 @@ describe('App.clusterController', function () {
       upgradeController.loadUpgradeData.restore();
       upgradeController.loadStackVersionsToModel.restore();
     });
-    it("has upgrade request", function() {
-      data.upgradeData = {items: [
-        {
-          Upgrade: {
-            request_id: 1
+
+    describe("has upgrade request", function() {
+
+      beforeEach(function () {
+        data.upgradeData = {items: [
+          {
+            Upgrade: {
+              request_id: 1
+            }
           }
-        }
-      ]};
-      controller.restoreUpgradeState();
-      expect(controller.getAllUpgrades.calledOnce).to.be.true;
-      expect(App.get('upgradeState')).to.equal('PENDING');
-      expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
-      expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
-      expect(upgradeController.initDBProperties.called).to.be.false;
-      expect(upgradeController.loadUpgradeData.called).to.be.false;
+        ]};
+        controller.restoreUpgradeState();
+      });
+
+      it('getAllUpgrades is called once', function () {
+        expect(controller.getAllUpgrades.calledOnce).to.be.true;
+      });
+
+      it('upgradeState is PENDING', function () {
+        expect(App.get('upgradeState')).to.equal('PENDING');
+      });
+
+      it('restoreLastUpgrade is called with valid arguments', function () {
+        expect(upgradeController.restoreLastUpgrade.calledWith(data.upgradeData.items[0])).to.be.true;
+      });
+
+      it('loadStackVersionsToModel is called with valid arguments', function () {
+        expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      });
+
+      it('initDBProperties is not called', function () {
+        expect(upgradeController.initDBProperties.called).to.be.false;
+      });
+
+      it('loadUpgradeData is not called', function () {
+        expect(upgradeController.loadUpgradeData.called).to.be.false;
+      });
+
     });
-    it("does not have upgrade request", function() {
-      data.upgradeData = {items: []};
-      controller.restoreUpgradeState();
-      expect(controller.getAllUpgrades.calledOnce).to.be.true;
-      expect(App.get('upgradeState')).to.equal('PENDING');
-      expect(upgradeController.restoreLastUpgrade.called).to.be.false;
-      expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
-      expect(upgradeController.initDBProperties.calledOnce).to.be.true;
-      expect(upgradeController.loadUpgradeData.calledWith(true)).to.be.true;
+
+    describe("does not have upgrade request", function() {
+
+      beforeEach(function () {
+        data.upgradeData = {items: []};
+        controller.restoreUpgradeState();
+      });
+
+      it('getAllUpgrades is called once', function () {
+        expect(controller.getAllUpgrades.calledOnce).to.be.true;
+      });
+
+      it('upgradeState is PENDING', function () {
+        expect(App.get('upgradeState')).to.equal('PENDING');
+      });
+
+      it('restoreLastUpgrade is not called', function () {
+        expect(upgradeController.restoreLastUpgrade.called).to.be.false;
+      });
+
+      it('loadStackVersionsToModel is called with valid arguments', function () {
+        expect(upgradeController.loadStackVersionsToModel.calledWith(true)).to.be.true;
+      });
+
+      it('initDBProperties is called once', function () {
+        expect(upgradeController.initDBProperties.calledOnce).to.be.true;
+      });
+
+      it('loadUpgradeData is called with valid arguments', function () {
+        expect(upgradeController.loadUpgradeData.calledWith(true)).to.be.true;
+      });
+
     });
   });
 });

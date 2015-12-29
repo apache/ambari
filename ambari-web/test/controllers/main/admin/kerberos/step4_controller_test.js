@@ -319,12 +319,23 @@ describe('App.KerberosWizardStep4Controller', function() {
       ];
 
       tests.forEach(function(test) {
-        it('Security {0} configure identities step should be {1}'.format(!!test.securityEnabled ? 'enabled' : 'disabled', !!test.stepSkipped ? 'skipped' : 'not skipped'), function() {
-          sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(test.securityEnabled);
-          this.wizardController.checkSecurityStatus();
-          App.get.restore();
-          controller.loadStep();
-          expect(App.router.send.calledWith('next')).to.be.eql(test.stepSkipped);
+        var message = 'Security {0} configure identities step should be {1}'.format(!!test.securityEnabled ? 'enabled' : 'disabled', !!test.stepSkipped ? 'skipped' : 'not skipped');
+        describe(message, function() {
+
+          beforeEach(function () {
+            sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(test.securityEnabled);
+            this.wizardController.checkSecurityStatus();
+            controller.loadStep();
+          });
+
+          afterEach(function () {
+            App.get.restore();
+          });
+
+          it('`send` is ' + (test.stepSkipped ? '' : 'not') + ' called with `next`', function () {
+            expect(App.router.send.calledWith('next')).to.be.eql(test.stepSkipped);
+          });
+
         });
       }, this);
 
