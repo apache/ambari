@@ -36,6 +36,16 @@
             <scriptType>PYTHON</scriptType>
             <timeout>1200</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>IMMEDIATE_STOP_CLUSTER</name>
+              <commandScript>
+                <script>scripts/hawqmaster.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
           <dependencies>
             <dependency>
               <name>HDFS/NAMENODE</name>
@@ -85,6 +95,16 @@
             <scriptType>PYTHON</scriptType>
             <timeout>600</timeout>
           </commandScript>
+          <customCommands>
+            <customCommand>
+              <name>IMMEDIATE_STOP</name>
+              <commandScript>
+                <script>scripts/hawqsegment.py</script>
+                <scriptType>PYTHON</scriptType>
+                <timeout>1200</timeout>
+              </commandScript>
+            </customCommand>
+          </customCommands>
         </component>
       </components> 
       <requiredServices>
