@@ -1042,6 +1042,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    parentValidationProblems = super(HDP22StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
     hdfs_site = properties
@@ -1179,7 +1180,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "item": self.getWarnItem(
                                     "Invalid property value: {0}. Valid values are {1}.".format(
                                       data_transfer_protection_value, VALID_TRANSFER_PROTECTION_VALUES))})
-    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
   def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     hive_server2 = properties

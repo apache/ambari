@@ -278,6 +278,12 @@
       <type>int</type>
       <unit>bytes</unit>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hdfs-site</type>
+        <name>dfs.datanode.data.dir</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

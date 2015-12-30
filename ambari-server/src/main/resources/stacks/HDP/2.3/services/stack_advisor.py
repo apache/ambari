@@ -603,7 +603,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     return parentValidators
 
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    parentValidationProblems = super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
 
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -618,7 +618,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
         validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
                                     "item": self.getWarnItem(
                                       "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})
-    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems = self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+    validationProblems.extend(parentValidationProblems)
+    return validationProblems
 
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

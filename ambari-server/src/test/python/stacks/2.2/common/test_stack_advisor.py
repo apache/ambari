@@ -206,7 +206,9 @@ class TestHDP22StackAdvisor(TestCase):
 
 
   def test_validateHDFSConfigurations(self):
-    recommendedDefaults = None
+    recommendedDefaults = {
+      'dfs.datanode.du.reserved': '1024'
+    }
 
     unsecure_cluster_core_site = {
       'hadoop.security.authentication': 'simple',
@@ -220,6 +222,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Unsecured cluster, secure ports
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
     }
@@ -247,6 +250,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Unsecured cluster, unsecure ports
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:55555',
                     'dfs.datanode.http.address': '0.0.0.0:55555',
                     }
@@ -276,6 +280,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, invalid dfs.http.policy value
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'WRONG_VALUE',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -310,6 +315,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address not defined
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     }
@@ -339,6 +345,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -369,6 +376,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, https address defined and non secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -399,6 +407,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https property not defined
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                  }
@@ -450,6 +459,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, non secure dfs port, https defined and secure
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:1022',
@@ -499,6 +509,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, valid non-root configuration
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -523,6 +534,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, insecure port
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:50475',
@@ -564,6 +576,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, valid configuration
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -587,6 +600,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, absent dfs.http.policy (typical situation)
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
                     }
@@ -609,6 +623,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTP_ONLY, misusage of dfs.data.transfer.protection warning
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTP_ONLY',
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -638,6 +653,7 @@ class TestHDP22StackAdvisor(TestCase):
 
     # TEST CASE: Secure cluster, dfs.http.policy=HTTPS_ONLY, wrong dfs.data.transfer.protection value
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.http.policy': 'HTTPS_ONLY',
                     'dfs.datanode.address': '0.0.0.0:50010',
                     'dfs.datanode.https.address': '0.0.0.0:50475',
@@ -667,6 +683,7 @@ class TestHDP22StackAdvisor(TestCase):
     # TEST CASE: Hadoop wire encryption enabled
 
     properties = {  # hdfs-site
+                    'dfs.datanode.du.reserved': '1024',
                     'dfs.encrypt.data.transfer': 'true',  # Wire encryption
                     'dfs.datanode.address': '0.0.0.0:1019',
                     'dfs.datanode.http.address': '0.0.0.0:1022',
@@ -2753,6 +2770,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hdfs-site': {
         'properties': {
+          'dfs.datanode.du.reserved': '1024',
           'dfs.datanode.max.transfer.threads': '16384',
           'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
@@ -2879,7 +2897,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : "host1",
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         },
         {
@@ -2892,7 +2914,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : "host2",
             "rack_info" : "/default-rack",
-            "total_mem" : 10485760
+            "total_mem" : 10485760,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         },
       ]
@@ -2916,7 +2942,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )
@@ -2939,7 +2969,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )
@@ -2964,7 +2998,11 @@ class TestHDP22StackAdvisor(TestCase):
             "ph_cpu_count" : 1,
             "public_host_name" : hostname,
             "rack_info" : "/default-rack",
-            "total_mem" : 2097152
+            "total_mem" : 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }
       )

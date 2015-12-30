@@ -284,13 +284,34 @@ class TestHDP23StackAdvisor(TestCase):
 
 
   def test_recommendHDFSConfigurations(self):
-    configurations = {}
+    configurations = {
+      "hdfs-site": {
+        "properties": {
+          "dfs.namenode.inode.attributes.provider.class": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
+        }
+      },
+      "ranger-hdfs-plugin-properties": {
+        "properties": {
+          "ranger-hdfs-plugin-enabled": "No"
+        }
+      }
+    }
     clusterData = {
       "totalAvailableRam": 2048,
       "hBaseInstalled": True,
       "hbaseRam": 112,
       "reservedRam": 128
     }
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        }]}
     services = {
       "services":
         [
@@ -298,35 +319,26 @@ class TestHDP23StackAdvisor(TestCase):
             "StackServices": {
               "service_name" : "HDFS",
               "service_version" : "2.6.0.2.2"
-            }
+            },
+            "components": [
+            ]
           }
         ],
       "Versions": {
         "stack_version": "2.3"
       },
-      "configurations": {
-        "hdfs-site": {
-          "properties": {
-            "dfs.namenode.inode.attributes.provider.class": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer"
-          }
-        },
-        "ranger-hdfs-plugin-properties": {
-          "properties": {
-            "ranger-hdfs-plugin-enabled": "No"
-          }
-        }
-      }
+      "configurations": configurations
     }
 
     # Test with Ranger HDFS plugin disabled
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hdfs-site']['property_attributes']['dfs.namenode.inode.attributes.provider.class'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
 
     # Test with Ranger HDFS plugin is enabled
     configurations['hdfs-site']['properties'] = {}
     configurations['hdfs-site']['property_attributes'] = {}
     services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'] = 'Yes'
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
 
   def test_recommendYARNConfigurations(self):

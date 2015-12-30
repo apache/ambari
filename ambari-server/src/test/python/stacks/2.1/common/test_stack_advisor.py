@@ -251,7 +251,16 @@ class TestHDP21StackAdvisor(TestCase):
         }
       }
     }
-
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        }]}
     services = {
       "services": [
         {
@@ -282,11 +291,13 @@ class TestHDP21StackAdvisor(TestCase):
       },
       "hdfs-site": {
         "properties": {
+          'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+          'dfs.datanode.du.reserved': '1024'
         }
       }
     }
 
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, '')
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
   def test_validateHDFSConfigurationsEnv(self):
