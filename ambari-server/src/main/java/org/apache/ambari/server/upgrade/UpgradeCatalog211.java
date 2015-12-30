@@ -201,87 +201,89 @@ public class UpgradeCatalog211 extends AbstractUpgradeCatalog {
    * @throws SQLException
    */
   private void executeHostComponentStateDDLUpdates() throws AmbariException, SQLException {
-    // add the new column, nullable for now until we insert unique IDs
-    dbAccessor.addColumn(HOST_COMPONENT_STATE_TABLE,
-        new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, true));
+    if (!dbAccessor.tableHasPrimaryKey(HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN)) {
+      // add the new column, nullable for now until we insert unique IDs
+      dbAccessor.addColumn(HOST_COMPONENT_STATE_TABLE,
+          new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, true));
 
-    Statement statement = null;
-    ResultSet resultSet = null;
-    try {
-      statement = dbAccessor.getConnection().createStatement();
-      if (statement != null) {
-        String selectSQL = MessageFormat.format(
-            "SELECT cluster_id, service_name, component_name, host_id FROM {0}",
+      Statement statement = null;
+      ResultSet resultSet = null;
+      try {
+        statement = dbAccessor.getConnection().createStatement();
+        if (statement != null) {
+          String selectSQL = MessageFormat.format(
+              "SELECT cluster_id, service_name, component_name, host_id FROM {0}",
+              HOST_COMPONENT_STATE_TABLE);
+
+          resultSet = statement.executeQuery(selectSQL);
+          while (resultSet.next()) {
+            final Long clusterId = resultSet.getLong("cluster_id");
+            final String serviceName = resultSet.getString("service_name");
+            final String componentName = resultSet.getString("component_name");
+            final Long hostId = resultSet.getLong("host_id");
+
+            String updateSQL = MessageFormat.format(
+                "UPDATE {0} SET {1} = {2,number,#} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6,number,#}",
+                HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, m_hcsId.getAndIncrement(),
+                clusterId, serviceName, componentName, hostId);
+
+            dbAccessor.executeQuery(updateSQL);
+          }
+        }
+      } finally {
+        JdbcUtils.closeResultSet(resultSet);
+        JdbcUtils.closeStatement(statement);
+      }
+
+      // make the column NON NULL now
+      dbAccessor.alterColumn(HOST_COMPONENT_STATE_TABLE,
+          new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, false));
+
+      // Add sequence for hostcomponentstate id
+      addSequence("hostcomponentstate_id_seq", m_hcsId.get(), false);
+
+      // drop the current PK
+      String primaryKeyConstraintName = null;
+      Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+      switch (databaseType) {
+        case POSTGRES: {
+          primaryKeyConstraintName = "hostcomponentstate_pkey";
+          break;
+        }
+        case ORACLE:
+        case SQL_SERVER: {
+          // Oracle and SQL Server require us to lookup the PK name
+          primaryKeyConstraintName = dbAccessor.getPrimaryKeyConstraintName(
+              HOST_COMPONENT_STATE_TABLE);
+
+          break;
+        }
+        default:
+          break;
+      }
+
+      if (databaseType == DatabaseType.MYSQL) {
+        String mysqlDropQuery = MessageFormat.format("ALTER TABLE {0} DROP PRIMARY KEY",
             HOST_COMPONENT_STATE_TABLE);
 
-        resultSet = statement.executeQuery(selectSQL);
-        while (resultSet.next()) {
-          final Long clusterId = resultSet.getLong("cluster_id");
-          final String serviceName = resultSet.getString("service_name");
-          final String componentName = resultSet.getString("component_name");
-          final Long hostId = resultSet.getLong("host_id");
-
-          String updateSQL = MessageFormat.format(
-              "UPDATE {0} SET {1} = {2,number,#} WHERE cluster_id = {3} AND service_name = ''{4}'' AND component_name = ''{5}'' and host_id = {6,number,#}",
-              HOST_COMPONENT_STATE_TABLE, HOST_COMPONENT_STATE_ID_COLUMN, m_hcsId.getAndIncrement(),
-              clusterId, serviceName, componentName, hostId);
-
-          dbAccessor.executeQuery(updateSQL);
+        dbAccessor.executeQuery(mysqlDropQuery, true);
+      } else {
+        // warn if we can't find it
+        if (null == primaryKeyConstraintName) {
+          LOG.warn("Unable to determine the primary key constraint name for {}",
+              HOST_COMPONENT_STATE_TABLE);
+        } else {
+          dbAccessor.dropPKConstraint(HOST_COMPONENT_STATE_TABLE, primaryKeyConstraintName, true);
         }
       }
-    } finally {
-      JdbcUtils.closeResultSet(resultSet);
-      JdbcUtils.closeStatement(statement);
+
+      // create a new PK, matching the name of the constraint found in the SQL
+      // files
+      dbAccessor.addPKConstraint(HOST_COMPONENT_STATE_TABLE, "pk_hostcomponentstate", "id");
+
+      // create index, ensuring column order matches that of the SQL files
+      dbAccessor.createIndex(HOST_COMPONENT_STATE_INDEX, HOST_COMPONENT_STATE_TABLE, "host_id",
+          "component_name", "service_name", "cluster_id");
     }
-
-    // make the column NON NULL now
-    dbAccessor.alterColumn(HOST_COMPONENT_STATE_TABLE,
-        new DBColumnInfo(HOST_COMPONENT_STATE_ID_COLUMN, Long.class, null, null, false));
-
-    // Add sequence for hostcomponentstate id
-    addSequence("hostcomponentstate_id_seq", m_hcsId.get(), false);
-
-    // drop the current PK
-    String primaryKeyConstraintName = null;
-    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
-    switch (databaseType) {
-      case POSTGRES: {
-        primaryKeyConstraintName = "hostcomponentstate_pkey";
-        break;
-      }
-      case ORACLE:
-      case SQL_SERVER: {
-        // Oracle and SQL Server require us to lookup the PK name
-        primaryKeyConstraintName = dbAccessor.getPrimaryKeyConstraintName(
-            HOST_COMPONENT_STATE_TABLE);
-
-        break;
-      }
-      default:
-        break;
-    }
-
-    if (databaseType == DatabaseType.MYSQL) {
-      String mysqlDropQuery = MessageFormat.format("ALTER TABLE {0} DROP PRIMARY KEY",
-          HOST_COMPONENT_STATE_TABLE);
-
-      dbAccessor.executeQuery(mysqlDropQuery, true);
-    } else {
-      // warn if we can't find it
-      if (null == primaryKeyConstraintName) {
-        LOG.warn("Unable to determine the primary key constraint name for {}",
-            HOST_COMPONENT_STATE_TABLE);
-      } else {
-        dbAccessor.dropPKConstraint(HOST_COMPONENT_STATE_TABLE, primaryKeyConstraintName, true);
-      }
-    }
-
-    // create a new PK, matching the name of the constraint found in the SQL
-    // files
-    dbAccessor.addPKConstraint(HOST_COMPONENT_STATE_TABLE, "pk_hostcomponentstate", "id");
-
-    // create index, ensuring column order matches that of the SQL files
-    dbAccessor.createIndex(HOST_COMPONENT_STATE_INDEX, HOST_COMPONENT_STATE_TABLE, "host_id",
-        "component_name", "service_name", "cluster_id");
   }
 }
