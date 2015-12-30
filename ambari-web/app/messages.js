@@ -1312,7 +1312,8 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step4.task1.title': 'Install Additional ResourceManager',
   'admin.rm_highAvailability.wizard.step4.task2.title': 'Reconfigure YARN',
   'admin.rm_highAvailability.wizard.step4.task3.title': 'Reconfigure HDFS',
-  'admin.rm_highAvailability.wizard.step4.task4.title': 'Start All Services',
+  'admin.rm_highAvailability.wizard.step4.task4.title': 'Reconfigure HAWQ',
+  'admin.rm_highAvailability.wizard.step4.task5.title': 'Start All Services',
   'admin.rm_highAvailability.wizard.step4.notice.inProgress':'Please wait while ResourceManager HA is being deployed.',
   'admin.rm_highAvailability.wizard.step4.notice.completed':'ResourceManager HA has been enabled successfully.',
 

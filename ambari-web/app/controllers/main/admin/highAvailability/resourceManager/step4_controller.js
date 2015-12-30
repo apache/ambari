@@ -24,11 +24,17 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   name: "rMHighAvailabilityWizardStep4Controller",
 
+  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHDFS', 'reconfigureHAWQ', 'startAllServices'],
   clusterDeployState: 'RM_HIGH_AVAILABILITY_DEPLOY',
 
-  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHDFS', 'startAllServices'],
-
   tasksMessagesPrefix: 'admin.rm_highAvailability.wizard.step',
+
+  initializeTasks: function () {
+    this._super();
+    if (!App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHAWQ').get('id'), 1);
+    }
+  },
 
   stopRequiredServices: function () {
     this.stopServices(['HDFS']);
@@ -43,6 +49,10 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.loadConfigsTags('yarn-site');
   },
 
+  reconfigureHAWQ: function () {
+    this.loadConfigsTags("yarn-client");
+  },
+  
   reconfigureHDFS: function () {
     this.loadConfigsTags('core-site');
   },
@@ -90,7 +100,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       error: 'onTaskError'
     });
   },
-
+  
   onSaveConfigs: function () {
     this.onTaskCompleted();
   },

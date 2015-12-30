@@ -153,6 +153,20 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
     configProperties.pushObject(proxyUserConfig);
 
     proxyUserConfig.setProperties({'value': rmHosts, 'recommendedValue': rmHosts});
+
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      var yarnHAPort = 8032;
+      var yarnHAHosts = currentRMHost + ':' + yarnHAPort.toString() + ',' + additionalRMHost + ':' + yarnHAPort.toString();
+      configProperties.findProperty('name', 'yarn.resourcemanager.ha')
+        .set('value', yarnHAHosts)
+        .set('recommendedValue', yarnHAHosts);
+
+      var yarnHASchPort = 8030;
+      var yarnHASchHosts = currentRMHost + ':' + yarnHASchPort.toString() + ',' + additionalRMHost + ':' + yarnHASchPort.toString();
+      configProperties.findProperty('name', 'yarn.resourcemanager.scheduler.ha')
+        .set('value', yarnHASchHosts)
+        .set('recommendedValue', yarnHASchHosts);
+    }
   },
 
   /**
