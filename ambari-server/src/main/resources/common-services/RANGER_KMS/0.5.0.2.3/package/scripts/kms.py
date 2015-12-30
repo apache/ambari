@@ -202,7 +202,7 @@ def kms():
     )
 
     Directory(format('{kms_home}/'),
-              user = params.kms_user,
+              owner = params.kms_user,
               group = params.kms_group,
               recursive_ownership = True,
     )

@@ -96,7 +96,7 @@ def setup_ranger_admin(upgrade_type=None):
     Execute(('cp', '-f', src_file, dst_file), sudo=True)
 
   Directory(format('{ranger_home}/'),
-            user = params.unix_user,
+            owner = params.unix_user,
             group = params.unix_group,
             recursive_ownership = True,
   )
