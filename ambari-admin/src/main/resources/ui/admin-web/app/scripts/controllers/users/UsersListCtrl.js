@@ -20,6 +20,10 @@
 angular.module('ambariAdminConsole')
   .controller('UsersListCtrl',['$scope', 'User', '$modal', '$rootScope', 'UserConstants', '$translate', function($scope, User, $modal, $rootScope, UserConstants, $translate) {
   var $t = $translate.instant;
+  $scope.constants = {
+    admin: $t('users.ambariAdmin'),
+    users: $t('common.users').toLowerCase()
+  };
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;

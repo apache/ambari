@@ -21,6 +21,9 @@ angular.module('ambariAdminConsole')
 .controller('UserAccessListCtrl',['$scope', '$location', 'Cluster', '$modal', '$rootScope', '$routeParams', 'PermissionSaver', 'Alert', '$translate',
 function($scope, $location, Cluster, $modal, $rootScope, $routeParams, PermissionSaver, Alert, $translate) {
   var $t = $translate.instant;
+  $scope.constants = {
+    users: $t('common.users').toLowerCase()
+  };
   $scope.users = [];
   $scope.usersPerPage = 10;
   $scope.currentPage = 1;

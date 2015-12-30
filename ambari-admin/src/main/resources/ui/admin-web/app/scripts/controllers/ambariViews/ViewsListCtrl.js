@@ -21,6 +21,10 @@ angular.module('ambariAdminConsole')
 .controller('ViewsListCtrl',['$scope', 'View', '$modal', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, View, $modal, Alert, ConfirmationModal, $location, $translate) {
   var deferredList = [],
     $t = $translate.instant;
+  $scope.constants = {
+    unable: $t('views.alerts.unableToCreate'),
+    views: $t('common.views').toLowerCase()
+  };
   $scope.$on('$locationChangeStart', function() {
     deferredList.forEach(function(def) {
       def.reject();

@@ -19,12 +19,12 @@
 <div class="views-list-table">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">Views</li>
+      <li class="active">{{'common.views' | translate}}</li>
     </ol>
     <div class="pull-right col-sm-4">
       <div class="input-group search-container">
-        <input type="text" class="form-control search-input" placeholder="Search" ng-model="viewsFilter" ng-change="getFilteredViews()">
-        <button type="button" class="close clear-search" ng-show="viewsFilter" ng-click="viewsFilter=''; getFilteredViews()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <input type="text" class="form-control search-input" placeholder="{{'common.search' | translate}}" ng-model="viewsFilter" ng-change="getFilteredViews()">
+        <button type="button" class="close clear-search" ng-show="viewsFilter" ng-click="viewsFilter=''; getFilteredViews()"><span aria-hidden="true">&times;</span><span class="sr-only">{{"common.controls.close" | translate}}</span></button>
         <span class="input-group-addon">
           <span class="glyphicon glyphicon-search"></span>
         </span>
@@ -33,8 +33,8 @@
   </div>
   <hr>
   <div class="row">
-    <div class="col-sm-3 padding-left-30"><h4>View Name</h4></div>
-    <div class="col-sm-3"><h4>Instances</h4></div>
+    <div class="col-sm-3 padding-left-30"><h4>{{'views.viewName' | translate}}</h4></div>
+    <div class="col-sm-3"><h4>{{'views.instances' | translate}}</h4></div>
     <div class="col-sm-6"><h4></h4></div>
   </div>
   <accordion close-others="false">
@@ -49,14 +49,14 @@
             <span ng-repeat="(version, vData) in view.versions">
               {{version}}
                 <span ng-switch="vData.status">
-                  <span ng-switch-when="PENDING" class="viewstatus pending" ng-switch-when="true" tooltip="Pending..."></span>
-                  <div class="viewstatus deploying" ng-switch-when="DEPLOYING" tooltip="Deploying...">
+                  <span ng-switch-when="PENDING" class="viewstatus pending" ng-switch-when="true" tooltip="{{'views.pending' | translate}}"></span>
+                  <div class="viewstatus deploying" ng-switch-when="DEPLOYING" tooltip="{{'views.deploying' | translate}}">
                     <div class="rect1"></div>
                     <div class="rect2"></div>
                     <div class="rect3"></div>
                   </div>
                   <span ng-switch-when="DEPLOYED">({{vData.count}})</span>
-                  <span ng-switch-when="ERROR" tooltip="Error deploying. Check Ambari Server log."><i class="fa fa-exclamation-triangle"></i></span>
+                  <span ng-switch-when="ERROR" tooltip="{{'views.alerts.deployError' | translate}}"><i class="fa fa-exclamation-triangle"></i></span>
                 </span>
               {{$last ? '' : ', '}}
             </span>
@@ -80,7 +80,7 @@
           <tr>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
-              <a tooltip="{{view.canCreateInstance ? '' : 'Unable to create view instances'}}" class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href ng-click="gotoCreate(view.view_name, view.canCreateInstance);"><span class="glyphicon glyphicon-plus"></span> Create Instance</a>
+              <a tooltip="{{view.canCreateInstance ? '' : constants.unable}}" class="btn btn-default createisntance-btn {{view.canCreateInstance ? '' : 'disabled'}}" href ng-click="gotoCreate(view.view_name, view.canCreateInstance);"><span class="glyphicon glyphicon-plus"></span> {{'views.create' | translate}}</a>
             </td>
             <td class="col-sm-3"></td>
             <td class="col-sm-3">
@@ -90,7 +90,7 @@
       </table>
     </accordion-group>
     <div class="alert alert-info" ng-show="views && !filteredViews.length">
-      No views to display.
+      {{'common.alerts.nothingToDisplay' | translate: '{term: constants.views}'}}
     </div>
 
   </accordion>

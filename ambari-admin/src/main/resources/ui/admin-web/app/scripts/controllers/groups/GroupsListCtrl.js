@@ -20,6 +20,9 @@
 angular.module('ambariAdminConsole')
 .controller('GroupsListCtrl',['$scope', 'Group', '$modal', 'ConfirmationModal', '$rootScope', '$translate', function($scope, Group, $modal, ConfirmationModal, $rootScope, $translate) {
   var $t = $translate.instant;
+  $scope.constants = {
+    groups: $t('common.groups').toLowerCase()
+  };
   $scope.groups = [];
 
   $scope.groupsPerPage = 10;

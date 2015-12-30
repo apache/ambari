@@ -23,6 +23,11 @@ angular.module('ambariAdminConsole')
   $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
   $scope.isSettingsEmpty = true;
+  $scope.constants = {
+    instance: $t('views.instance'),
+    props: $t('views.properties'),
+    perms: $t('views.permissions').toLowerCase()
+  };
 
   function reloadViewInfo(section){
     // Load instance data, after View permissions meta loaded

@@ -21,6 +21,9 @@ angular.module('ambariAdminConsole')
 .controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate) {
   var $t = $translate.instant;
   $scope.form = {};
+  $scope.constants = {
+    props: $t('views.properties')
+  };
   var targetUrl = '';
 
   function loadMeta(){

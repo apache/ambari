@@ -22,6 +22,15 @@ angular.module('ambariAdminConsole')
 
   var $t = $translate.instant;
 
+  $scope.constants = {
+    user: $t('common.user'),
+    status: $t('users.status'),
+    admin: $t('users.admin'),
+    password: $t('users.password'),
+    view: $t('common.view').toLowerCase(),
+    cluster: $t('common.cluster').toLowerCase()
+  };
+
   function loadUserInfo(){
     User.get($routeParams.id).then(function(data) {
       $scope.user = User.makeUser(data).Users;

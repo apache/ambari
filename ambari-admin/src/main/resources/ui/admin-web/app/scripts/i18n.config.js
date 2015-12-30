@@ -39,6 +39,7 @@ angular.module('ambariAdminConsole')
       'details': 'Details',
       'goToDashboard': 'Go to Dashboard',
       'noClusters': 'No Clusters',
+      'noViews': 'No Views',
       'view': 'View',
       'displayLabel': 'Display label',
       'search': 'Search',
@@ -70,6 +71,7 @@ angular.module('ambariAdminConsole')
       'ldap': 'LDAP',
       'jwt': 'JWT',
       'warning': 'Warning',
+      'filterInfo': '{{showed}} of {{total}} {{term}} showing',
 
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
@@ -89,8 +91,7 @@ angular.module('ambariAdminConsole')
       'alerts': {
         'fieldRequired': 'Field required!',
         'fieldIsRequired': 'This field is required.',
-        'noSpecialChars': 'Must no contain special characters!',
-        'instanceExists': 'Instance with this name already exists.',
+        'noSpecialChars': 'Must not contain special characters!',
         'nothingToDisplay': 'No {{term}} to display.',
         'noPrivileges': 'No {{term}} privileges',
         'noPrivilegesDescription': 'This {{term}} does not have any privileges.',
@@ -140,6 +141,7 @@ angular.module('ambariAdminConsole')
     },
 
     'views': {
+      'instance': 'Instance',
       'viewInstance': 'View Instance',
       'create': 'Create Instance',
       'createViewInstance': 'Create View Instance',
@@ -168,17 +170,17 @@ angular.module('ambariAdminConsole')
       'goToInstance': 'Go to instance',
       'pending': 'Pending...',
       'deploying': 'Deploying...',
+      'properties': 'properties',
 
       'alerts': {
         'noSpecialChars': 'Must not contain any special characters.',
         'noSpecialCharsOrSpaces': 'Must not contain any special characters or spaces.',
-        'noProperties': 'There are no properties defined for this view.',
-        'noPermissions': 'There are no permissions defined for this view.',
+        'instanceExists': 'Instance with this name already exists.',
+        'notDefined': 'There are no {{term}} defined for this view.',
         'cannotEditInstance': 'Cannot Edit Static Instances',
         'cannotDeleteStaticInstance': 'Cannot Delete Static Instances',
         'deployError': 'Error deploying. Check Ambari Server log.',
         'unableToCreate': 'Unable to create view instances',
-        'onlySimpleChars': 'Must contain only simple characters.',
         'cannotUseOption': 'This view cannot use this option',
         'unableToResetErrorMessage': 'Unable to reset error message for prop: {{key}}',
         'instanceCreated': 'Created View Instance {{instanceName}}',
@@ -197,6 +199,7 @@ angular.module('ambariAdminConsole')
       'switchToList': 'Switch&nbsp;to&nbsp;list&nbsp;view',
       'switchToBlock': 'Switch&nbsp;to&nbsp;block&nbsp;view',
       'role': 'Role',
+      'assignRoles': 'Assign roles to these {{term}}',
 
       'alerts': {
         'cannotLoadClusterData': 'Cannot load cluster data'
@@ -207,8 +210,10 @@ angular.module('ambariAdminConsole')
       'createLocal': 'Create Local Group',
       'name': 'Group name',
       'members': 'Members',
+      'membersPlural': '{{n}} member{{n == 1 ? "" : "s"}}',
 
       'alerts': {
+        'onlySimpleChars': 'Must contain only simple characters.',
         'groupCreated': 'Created group <a href="#/groups/{{groupName}}/edit">{{groupName}}</a>',
         'groupCreationError': 'Group creation error',
         'cannotUpdateGroupMembers': 'Cannot update group members',
@@ -219,6 +224,7 @@ angular.module('ambariAdminConsole')
     'users': {
       'username': 'Username',
       'userName': 'User name',
+      'admin': 'Admin',
       'ambariAdmin': 'Ambari Admin',
       'changePassword': 'Change Password',
       'changePasswordFor': 'Change Password for {{userName}}',
@@ -232,6 +238,9 @@ angular.module('ambariAdminConsole')
       'password': 'Password',
       'passwordConfirmation': 'Password сonfirmation',
       'userIsAdmin': 'This user is an Ambari Admin and has all privileges.',
+      'showAll': 'Show all users',
+      'showAdmin': 'Show only admin users',
+      'groupMembership': 'Group Membership',
 
       'changeStatusConfirmation': {
         'title': 'Change Status',
@@ -255,7 +264,7 @@ angular.module('ambariAdminConsole')
         'passwordRequired': 'Password required!',
         'wrongPassword': 'Password must match!',
         'cannotChange': 'Cannot Change {{term}}',
-        'userCreated': 'Created user <a href="#/users/{{encUserName}}/edit">{{userName}}</a>',
+        'userCreated': 'Created user <a href="#/users/{{encUserName}}">{{userName}}</a>',
         'userCreationError': 'User creation error',
         'removeUserError': 'Removing from group error',
         'cannotAddUser': 'Cannot add user to group',

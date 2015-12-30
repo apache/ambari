@@ -20,6 +20,11 @@
 angular.module('ambariAdminConsole')
 .controller('GroupsEditCtrl',['$scope', 'Group', '$routeParams', 'Alert', 'ConfirmationModal', '$location', '$translate', function($scope, Group, $routeParams, Alert, ConfirmationModal, $location, $translate) {
   var $t = $translate.instant;
+  $scope.constants = {
+    group: $t('common.group'),
+    view: $t('common.view').toLowerCase(),
+    cluster: $t('common.cluster').toLowerCase()
+  };
   $scope.editMode = false;
   $scope.group = new Group($routeParams.id);
   $scope.group.editingUsers = [];

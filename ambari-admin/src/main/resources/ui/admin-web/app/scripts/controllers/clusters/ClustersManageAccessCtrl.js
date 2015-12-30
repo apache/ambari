@@ -20,6 +20,9 @@
 angular.module('ambariAdminConsole')
 .controller('ClustersManageAccessCtrl', ['$scope', '$location', 'Cluster', '$routeParams', 'Alert', 'PermissionLoader', 'PermissionSaver', '$translate', function($scope, $location, Cluster, $routeParams, Alert, PermissionLoader, PermissionSaver, $translate) {
   var $t = $translate.instant;
+  $scope.getConstant = function (key) {
+    return $t('common.' + key).toLowerCase();
+  };
   $scope.identity = angular.identity;
   function reloadClusterData(){
     PermissionLoader.getClusterPermissions({
