@@ -363,7 +363,13 @@ App.HostComponentActionMap = {
         context: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
         label: Em.I18n.t('services.service.actions.run.immediateStopHawqCluster.context'),
         cssClass: 'icon-stop',
-        disabled: false,
+        disabled: false
+      },
+      IMMEDIATE_STOP: {
+        customCommand: 'IMMEDIATE_STOP',
+        context: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.context'),
+        label: Em.I18n.t('services.service.actions.run.immediateStopHawqSegment.label'),
+        cssClass: 'icon-stop'
       },
       MASTER_CUSTOM_COMMAND: {
         action: 'executeCustomCommand',

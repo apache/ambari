@@ -437,8 +437,20 @@ describe('App.HostComponentView', function() {
         return Em.Object.create({
           componentName: 'SLAVE_COMPONENT',
           isSlave: true,
-          customCommands: ['CUSTOM']
+          customCommands: ['SLAVE_CUSTOM_COMMAND']
         });
+      });
+      sinon.stub(App.HostComponentActionMap, 'getMap', function () {
+        return {
+          SLAVE_CUSTOM_COMMAND: {
+            customCommand: 'SLAVE_CUSTOM_COMMAND',
+            cssClass: 'icon-play-circle',
+            label: 'Custom Command',
+            context: 'Custom Command',
+            isHidden: false,
+            disabled: false
+          }
+        }
       });
     });
 
@@ -449,6 +461,7 @@ describe('App.HostComponentView', function() {
 
     after(function() {
       App.StackServiceComponent.find.restore();
+      App.HostComponentActionMap.getMap.restore();
     });
   });
 
@@ -600,40 +613,25 @@ describe('App.HostComponentView', function() {
 
     var tests = Em.A([
       {
-        msg: 'Non-slave component not present in `App.HostComponentActionMap.getMap()` should have a default valid label',
-        isSlave: false,
+        msg: 'Component not present in `App.HostComponentActionMap.getMap()` should have a default valid label',
         command: 'CUSTOM',
         e: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('CUSTOM')
       },
       {
-        msg: 'Non-slave component present in `App.HostComponentActionMap.getMap()` with no label should have a default valid label',
-        isSlave: false,
+        msg: 'Component present in `App.HostComponentActionMap.getMap()` with no label should have a default valid label',
         command: 'MASTER_CUSTOM_COMMAND',
         e: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('MASTER_CUSTOM_COMMAND')
       },
       {
-        msg: 'Non-slave component present in `App.HostComponentActionMap.getMap()` with label should have a custom valid label',
-        isSlave: false,
+        msg: 'Component present in `App.HostComponentActionMap.getMap()` with label should have a custom valid label',
         command: 'REFRESHQUEUES',
         e: Em.I18n.t('services.service.actions.run.yarnRefreshQueues.menu')
-      },
-      {
-        msg: 'Slave component not present in `App.HostComponentActionMap.getMap()` should have a default valid label',
-        isSlave: true,
-        command: 'CUSTOM',
-        e: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('CUSTOM')
-      },
-      {
-        msg: 'Slave component present in `App.HostComponentActionMap.getMap()` should have a default valid label',
-        isSlave: true,
-        command: 'REFRESHQUEUES',
-        e: Em.I18n.t('services.service.actions.run.executeCustomCommand.menu').format('REFRESHQUEUES')
       }
     ]);
 
     tests.forEach(function(test) {
       it(test.msg, function() {
-        expect(hostComponentView.getCustomCommandLabel(test.command, test.isSlave)).to.equal(test.e);
+        expect(hostComponentView.getCustomCommandLabel(test.command)).to.equal(test.e);
       })
     });
   });
