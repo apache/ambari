@@ -25,14 +25,22 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def createComponentLayoutRecommendations(self, services, hosts):
     parentComponentLayoutRecommendations = super(HDP23StackAdvisor, self).createComponentLayoutRecommendations(services, hosts)
 
-    # remove HAWQSTANDBY on a single node
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    if len(hostsList) == 1:
-      servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
-      if "HAWQ" in servicesList:
-        components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
-        components = [ component for component in components if component["name"] != 'HAWQSTANDBY' ]
-        parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+
+    # remove HAWQSTANDBY on a single node
+    if len(hostsList) == 1 and "HAWQ" in servicesList:
+      components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
+      components = [ component for component in components if component["name"] != 'HAWQSTANDBY' ]
+      parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
+
+    # co-locate PXF with NAMENODE and DATANODE
+    if "PXF" in servicesList:
+      host_groups = parentComponentLayoutRecommendations["blueprint"]["host_groups"]
+      for host_group in host_groups:
+        if ({"name": "NAMENODE"} in host_group["components"] or {"name": "DATANODE"} in host_group["components"]) \
+            and {"name": "PXF"} not in host_group["components"]:
+          host_group["components"].append({"name": "PXF"})
 
     return parentComponentLayoutRecommendations
 
