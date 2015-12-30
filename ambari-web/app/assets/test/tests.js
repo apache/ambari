@@ -333,7 +333,8 @@ var files = [
   'test/models/stack_version/repository_version_test',
   'test/routes/views_test',
   //contains test with fake timers that affect Date
-  'test/utils/lazy_loading_test'
+  'test/utils/lazy_loading_test',
+  'test/views/main/service/menu_test'
 ];
 
 App.initialize();
