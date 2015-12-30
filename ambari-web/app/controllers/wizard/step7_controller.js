@@ -688,6 +688,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
+    // if HA is enabled and HAWQ is selected to be installed -> Add HAWQ related configs
+    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled') && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      this.addHawqConfigsOnNnHa(configs);
+    }
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
     }
@@ -791,6 +795,44 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }, this);
     return stepConfigs;
+  },
+
+  /**
+   * For Namenode HA, HAWQ service requires additional config parameters in hdfs-client.xml
+   * This method ensures that these additional parameters are added to hdfs-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml
+   * @private
+   */
+  addHawqConfigsOnNnHa: function(configs) {
+    var nameService = configs.findProperty('id', 'dfs.nameservices__hdfs-site').value;
+    var propertyNames = [
+      'dfs.nameservices',
+      'dfs.ha.namenodes.' + nameService,
+      'dfs.namenode.rpc-address.'+ nameService +'.nn1',
+      'dfs.namenode.rpc-address.'+ nameService +'.nn2',
+      'dfs.namenode.http-address.'+ nameService +'.nn1',
+      'dfs.namenode.http-address.'+ nameService +'.nn2'
+    ];
+
+    propertyNames.forEach(function(propertyName, propertyIndex) {
+      var propertyFromHdfs = configs.findProperty('id', propertyName + '__hdfs-site');
+      var newProperty = App.config.createDefaultConfig(propertyName, 'HAWQ', 'hdfs-client.xml', true);
+      Em.setProperties(newProperty, {
+        description: propertyFromHdfs.description,
+        displayName: propertyFromHdfs.displayName,
+        displayType: 'string',
+        index: propertyIndex,
+        isOverridable: false,
+        isReconfigurable: false,
+        name: propertyFromHdfs.name,
+        value: propertyFromHdfs.value,
+        recommendedValue: propertyFromHdfs.recommendedValue
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
   },
 
   /**

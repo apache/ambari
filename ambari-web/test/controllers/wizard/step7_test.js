@@ -1608,6 +1608,77 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#addHawqConfigsOnNnHa', function () {
+    var configs = [
+      {
+        id: 'dfs.nameservices__hdfs-site',
+        description: 'dfs.nameservices__hdfs-site',
+        displayName: 'dfs.nameservices',
+        displayType: 'string',
+        name: 'dfs.nameservices',
+        value: 'haservice',
+        recommendedValue: 'haservice'
+      },
+      {
+        id: 'dfs.ha.namenodes.haservice__hdfs-site',
+        description: 'dfs.ha.namenodes.haservice__hdfs-site',
+        displayName: 'dfs.ha.namenodes.haservice',
+        displayType: 'string',
+        name: 'dfs.ha.namenodes.haservice',
+        value: 'nn1,nn2',
+        recommendedValue: 'nn1,nn2'
+      },
+      {
+        id: 'dfs.namenode.rpc-address.haservice.nn1__hdfs-site',
+        description: 'dfs.namenode.rpc-address.haservice.nn1__hdfs-site',
+        displayName: 'dfs.namenode.rpc-address.haservice.nn1',
+        displayType: 'string',
+        name: 'dfs.namenode.rpc-address.haservice.nn1',
+        value: 'c6401.ambari.apache.org:8020',
+        recommendedValue: 'c6401.ambari.apache.org:8020'
+      },
+      {
+        id: 'dfs.namenode.rpc-address.haservice.nn2__hdfs-site',
+        description: 'dfs.namenode.rpc-address.haservice.nn2__hdfs-site',
+        displayName: 'dfs.namenode.rpc-address.haservice.nn2',
+        displayType: 'string',
+        name: 'dfs.namenode.rpc-address.haservice.nn2',
+        value: 'c6402.ambari.apache.org:8020',
+        recommendedValue: 'c6402.ambari.apache.org:8020'
+      },
+      {
+        id: 'dfs.namenode.http-address.haservice.nn1__hdfs-site',
+        description: 'dfs.namenode.http-address.haservice.nn1__hdfs-site',
+        displayName: 'dfs.namenode.http-address.haservice.nn1',
+        displayType: 'string',
+        name: 'dfs.namenode.http-address.haservice.nn1',
+        value: 'c6401.ambari.apache.org:50070',
+        recommendedValue: 'c6401.ambari.apache.org:50070'
+      },
+      {
+        id: 'dfs.namenode.http-address.haservice.nn2__hdfs-site',
+        description: 'dfs.namenode.http-address.haservice.nn2__hdfs-site',
+        displayName: 'dfs.namenode.http-address.haservice.nn2',
+        displayType: 'string',
+        name: 'dfs.namenode.http-address.haservice.nn2',
+        value: 'c6402.ambari.apache.org:50070',
+        recommendedValue: 'c6402.ambari.apache.org:50070'
+      }
+    ];
+
+    it('should copy properties from hdfs-site to hdfs-client for HAWQ', function() {
+      var oldConfigs = configs.slice();
+      installerStep7Controller.addHawqConfigsOnNnHa(configs);
+      oldConfigs.forEach(function(property){
+        // find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property's attribute value in hdfs-site
+        expect(configs.findProperty('id', property.name + '__hdfs-client').description).to.be.eql(property.description);
+        expect(configs.findProperty('id', property.name + '__hdfs-client').displayName).to.be.eql(property.displayName);
+        expect(configs.findProperty('id', property.name + '__hdfs-client').value).to.be.eql(property.value);
+        expect(configs.findProperty('id', property.name + '__hdfs-client').recommendedValue).to.be.eql(property.recommendedValue);
+      });
+    });
+  });
+
   describe('#errorsCount', function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {
