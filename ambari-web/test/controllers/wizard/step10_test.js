@@ -158,12 +158,19 @@ describe('App.WizardStep10Controller', function () {
       }
     ]);
     tests.forEach(function(test) {
-      it(test.m, function() {
-        controller.set('content.hosts', test.hosts);
-        controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
-        controller.loadInstalledHosts();
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          controller.set('content.hosts', test.hosts);
+          controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
+          controller.loadInstalledHosts();
+        });
+
         test.e.forEach(function(ex) {
-          expect(controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', ex.id).get('displayStatement').contains(ex.l)).to.equal(true);
+          it(JSON.stringify(test.e), function () {
+            var displayStatement = controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', ex.id).get('displayStatement');
+            expect(displayStatement.contains(ex.l)).to.equal(true);
+          });
         });
       })
     });
@@ -314,12 +321,19 @@ describe('App.WizardStep10Controller', function () {
       }
     ]);
     testsForFailedTasks.forEach(function(test) {
-      it(test.m, function() {
-        controller.set('content.hosts', test.hosts);
-        controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
-        controller.loadInstalledHosts();
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          controller.set('content.hosts', test.hosts);
+          controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
+          controller.loadInstalledHosts();
+        });
+
         test.e.forEach(function(ex) {
-          expect(controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').mapProperty('status', ex.st).length).to.equal(ex.l);
+          it(JSON.stringify(test.e), function () {
+            var tasksWithNeededStatements = controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').filterProperty('status', ex.st);
+            expect(tasksWithNeededStatements.length).to.equal(ex.l);
+          });
         });
       })
     });

@@ -1104,17 +1104,24 @@ describe('App.WizardStep5Controller', function () {
       expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3']);
     });
 
-    it('some saved components exist', function() {
-      c.set('content.controllerName', 'addServiceController');
-      c.get('multipleComponents').push('c4');
-      c.set('content.masterComponentHosts', [
-        {hostName: 'h3', component: 'c4'}
-      ]);
-      c.get('content.recommendations.blueprint.host_groups')[2].components.push({name: 'c4'});
-      var r = c.createComponentInstallationObjects();
-      expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1', 'c4']);
-      expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1', 's2']);
-      expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3', 'h3']);
+    describe('some saved components exist', function() {
+
+      beforeEach(function () {
+        c.set('content.controllerName', 'addServiceController');
+        c.get('multipleComponents').push('c4');
+        c.set('content.masterComponentHosts', [
+          {hostName: 'h3', component: 'c4'}
+        ]);
+        c.get('content.recommendations.blueprint.host_groups')[2].components.push({name: 'c4'});
+      });
+
+      it('data contains save components', function () {
+        var r = c.createComponentInstallationObjects();
+        expect(r.mapProperty('component_name')).to.eql(['c1', 'c2', 'c1', 'c2', 'c1', 'c4']);
+        expect(r.mapProperty('serviceId')).to.eql(['s1', 's2', 's1', 's2', 's1', 's2']);
+        expect(r.mapProperty('selectedHost')).to.eql(['h1', 'h1', 'h2', 'h2', 'h3', 'h3']);
+      });
+
     });
 
   });

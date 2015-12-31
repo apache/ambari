@@ -206,20 +206,32 @@ describe('MainChartsHeatmapController', function () {
       expect(categories[0].get('heatmaps')).to.eql(allHeatmaps);
     });
 
-    it("two categories", function() {
-      var allHeatmaps = [
-        {
-          metrics: JSON.stringify([{service_name: 'S1'}])
-        },
-        {
-          metrics: JSON.stringify([{service_name: 'S1'}])
-        }
-      ];
-      var categories = controller.categorizeByServiceName(allHeatmaps);
-      expect(categories[0].get('serviceName')).to.equal('S1');
-      expect(categories[0].get('displayName')).to.equal('S1');
-      expect(categories[0].get('heatmaps')[0]).to.eql(allHeatmaps[0]);
-      expect(categories[0].get('heatmaps')[1]).to.eql(allHeatmaps[1]);
+    describe("two categories", function() {
+      var allHeatmaps;
+      beforeEach(function () {
+        allHeatmaps = [
+          {
+            metrics: JSON.stringify([{service_name: 'S1'}])
+          },
+          {
+            metrics: JSON.stringify([{service_name: 'S1'}])
+          }
+        ];
+        this.categories = controller.categorizeByServiceName(allHeatmaps);
+      });
+
+      it('serviceName is S1', function () {
+        expect(this.categories[0].get('serviceName')).to.equal('S1');
+      });
+      it('displayName is S1', function () {
+        expect(this.categories[0].get('displayName')).to.equal('S1');
+      });
+      it('heatmaps.0 is valid', function () {
+        expect(this.categories[0].get('heatmaps')[0]).to.eql(allHeatmaps[0]);
+      });
+      it('heatmaps.1 is valid', function () {
+        expect(this.categories[0].get('heatmaps')[1]).to.eql(allHeatmaps[1]);
+      });
     });
   });
 

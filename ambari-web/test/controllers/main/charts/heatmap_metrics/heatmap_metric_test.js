@@ -47,32 +47,54 @@ describe('MainChartHeatmapMetric', function () {
   describe('#slotDefinitions', function () {
     beforeEach(function () {
       sinon.stub(mainChartHeatmapMetric, 'generateSlot', Em.K);
+      mainChartHeatmapMetric.set('maximumValue', 100);
+      mainChartHeatmapMetric.set('minimumValue', 0);
     });
     afterEach(function () {
       mainChartHeatmapMetric.generateSlot.restore();
     });
-    it('one slot', function () {
-      mainChartHeatmapMetric.set('numberOfSlots', 1);
-      mainChartHeatmapMetric.set('maximumValue', 100);
-      mainChartHeatmapMetric.set('minimumValue', 0);
 
-      mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+    describe('one slot', function () {
 
-      expect(mainChartHeatmapMetric.get('slotDefinitions').length).to.equal(3);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', {r: 0, g: 204, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(1);
+      beforeEach(function () {
+        mainChartHeatmapMetric.set('numberOfSlots', 1);
+        mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+        this.slotDefinitions = mainChartHeatmapMetric.get('slotDefinitions');
+      });
+
+      it('3 slotDefinitions', function () {
+        expect(this.slotDefinitions.length).to.equal(3);
+      });
+      it('generateSlot is called 1 time', function () {
+        expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(1);
+      });
+      it('generateSlot is called with correct arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 100, '', {r: 0, g: 204, b: 0}]);
+      });
+
     });
-    it('two slots', function () {
-      mainChartHeatmapMetric.set('numberOfSlots', 2);
-      mainChartHeatmapMetric.set('maximumValue', 100);
-      mainChartHeatmapMetric.set('minimumValue', 0);
 
-      mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+    describe('two slots', function () {
 
-      expect(mainChartHeatmapMetric.get('slotDefinitions').length).to.equal(4);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', {r: 0, g: 204, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', {r: 159, g: 238, b: 0}]);
-      expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(2);
+      beforeEach(function () {
+        mainChartHeatmapMetric.set('numberOfSlots', 2);
+        mainChartHeatmapMetric.propertyDidChange('slotDefinitions');
+        this.slotDefinitions = mainChartHeatmapMetric.get('slotDefinitions');
+      });
+
+      it('4 slotDefinitions', function () {
+        expect(this.slotDefinitions.length).to.equal(4);
+      });
+      it('generateSlot is called 2 times', function () {
+        expect(mainChartHeatmapMetric.generateSlot.callCount).to.be.equal(2);
+      });
+      it('generateSlot 1st call has valid arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(0).args).to.eql([0, 50, '', {r: 0, g: 204, b: 0}]);
+      });
+      it('generateSlot 2nd call has valid arguments', function () {
+        expect(mainChartHeatmapMetric.generateSlot.getCall(1).args).to.eql([50, 100, '', {r: 159, g: 238, b: 0}]);
+      });
+
     });
   });
 

@@ -544,28 +544,35 @@ describe('App.SliderConfigWidgetView', function () {
     ];
 
     tests.forEach(function(test) {
-      it('should generate ticks: {0} - tick labels: {1}'.format(test.e.ticks, test.e.ticksLabels), function() {
+      describe('should generate ticks: {0} - tick labels: {1}'.format(test.e.ticks, test.e.ticksLabels), function() {
         var ticks, ticksLabels;
-        this.view.reopen(test.viewSetup);
-        this.view.set('controller', {
-          isCompareMode: test.viewSetup.isCompareMode
-        });
-        var sliderCopy = window.Slider.prototype;
-        window.Slider = function(a, b) {
-          ticks = b.ticks;
-          ticksLabels = b.ticks_labels;
-          return {
-            on: function() {
-              return this;
-            }
+        beforeEach(function () {
+          this.view.reopen(test.viewSetup);
+          this.view.set('controller', {
+            isCompareMode: test.viewSetup.isCompareMode
+          });
+          var sliderCopy = window.Slider.prototype;
+          window.Slider = function(a, b) {
+            ticks = b.ticks;
+            ticksLabels = b.ticks_labels;
+            return {
+              on: function() {
+                return this;
+              }
+            };
           };
-        };
+          this.view.willInsertElement();
+          this.view.initSlider();
+          window.Slider.prototype = sliderCopy;
+        });
 
-        this.view.willInsertElement();
-        this.view.initSlider();
-        window.Slider.prototype = sliderCopy;
-        expect(ticks.toArray()).to.be.eql(test.e.ticks);
-        expect(ticksLabels.toArray()).to.be.eql(test.e.ticksLabels);
+        it('ticks are ' + test.e.ticks, function () {
+          expect(ticks.toArray()).to.be.eql(test.e.ticks);
+        });
+
+        it('ticksLabels are ' + test.e.ticksLabels, function () {
+          expect(ticksLabels.toArray()).to.be.eql(test.e.ticksLabels);
+        });
       });
     });
   });

@@ -359,19 +359,29 @@ describe('App.ConfigInitializer', function () {
 
       cases['hive_database'].forEach(function (item) {
         var title = 'hive_database value should be set to {0}';
-        it(title.format(item.value), function () {
-          this.stub
-            .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
-            .withArgs('router.currentState.name').returns(item.currentStateName)
-            .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
-          serviceConfigProperty.setProperties({
-            name: 'hive_database',
-            value: item.receivedValue,
-            options: item.options
+        describe(title.format(item.value), function () {
+
+          beforeEach(function () {
+            this.stub
+              .withArgs('supports.alwaysEnableManagedMySQLForHive').returns(item.alwaysEnableManagedMySQLForHive)
+              .withArgs('router.currentState.name').returns(item.currentStateName)
+              .withArgs('isManagedMySQLForHiveEnabled').returns(item.isManagedMySQLForHiveEnabled);
+            serviceConfigProperty.setProperties({
+              name: 'hive_database',
+              value: item.receivedValue,
+              options: item.options
+            });
+            App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
           });
-          App.ConfigInitializer.initialValue(serviceConfigProperty, {}, []);
-          expect(serviceConfigProperty.get('value')).to.equal(item.value);
-          expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+
+          it('value is ' + item.value, function () {
+            expect(serviceConfigProperty.get('value')).to.equal(item.value);
+          });
+
+          it('`New MySQL Database` is ' + (item.hidden ? '' : 'not') + ' hidden', function () {
+            expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
+          });
+
         });
       });
 
@@ -808,19 +818,30 @@ describe('App.ConfigInitializer', function () {
         expectedValue: 'thrift://h1:9083,thrift://h2:9083'
       }
     ]).forEach(function (test) {
-      it(test.m || test.config, function () {
-        serviceConfigProperty.setProperties({
-          name: test.config,
-          recommendedValue: test.rValue,
-          filename: test.filename
+      describe(test.m || test.config, function () {
+
+        beforeEach(function () {
+          serviceConfigProperty.setProperties({
+            name: test.config,
+            recommendedValue: test.rValue,
+            filename: test.filename
+          });
+          App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
         });
-        App.ConfigInitializer.initialValue(serviceConfigProperty, test.localDB, test.dependencies);
-        expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
+
+        it('value is ' + test.expectedValue, function () {
+          expect(serviceConfigProperty.get('value')).to.eql(test.expectedValue);
+        });
+
         if (Em.isNone(test.expectedRValue)) {
-          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
+          it('recommendedValue is ' + test.expectedValue, function () {
+            expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedValue);
+          });
         }
         else {
-          expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedRValue);
+          it('recommendedValue is ' + test.expectedRValue, function () {
+            expect(serviceConfigProperty.get('recommendedValue')).to.eql(test.expectedRValue);
+          });
         }
 
       });

@@ -458,61 +458,74 @@ describe('App.InstallerStep9Controller', function () {
   });
 
   describe('#setIsServicesInstalled', function () {
-    it('Should return 100% completed', function () {
-      var polledData = Em.A([
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        }),
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        })
-      ]);
-      c.setProperties({
-        status: 'failed',
-        isPolling: true,
-        hosts: Em.A([
+
+    Em.A([
+      {
+        m: 'Should return 100% completed',
+        c: {
+          status: 'failed',
+          isPolling: true,
+          hosts: Em.A([
+            Em.Object.create({
+              progress: 0
+            })
+          ])
+        },
+        polledData: Em.A([
           Em.Object.create({
-            progress: 0
-          })
-        ])
-      });
-      c.setIsServicesInstalled(polledData);
-      expect(c.get('progress')).to.equal('100');
-      expect(c.get('isPolling')).to.be.false;
-    });
-    it('Should return 34% completed', function () {
-      var polledData = Em.A([
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        }),
-        Em.Object.create({
-          Tasks: Em.Object.create({
-            status: 'NONE'
-          })
-        })
-      ]);
-      c.setProperties({
-        status: '',
-        isPolling: true,
-        hosts: Em.A([
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          }),
           Em.Object.create({
-            progress: 0
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
           })
         ]),
-        content: Em.Object.create({
-          controllerName: 'installerController'
-        })
+        e: {
+          progress: '100',
+          isPolling: false
+        }
+      },
+      {
+        m: 'Should return 34% completed',
+        c: {
+          status: '',
+          isPolling: true,
+          hosts: Em.A([
+            Em.Object.create({
+              progress: 0
+            })
+          ]),
+          content: Em.Object.create({
+            controllerName: 'installerController'
+          })
+        },
+        polledData: Em.A([
+          Em.Object.create({
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          }),
+          Em.Object.create({
+            Tasks: Em.Object.create({
+              status: 'NONE'
+            })
+          })
+        ]),
+        e: {
+          progress: '34',
+          isPolling: true
+        }
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        c.setProperties(test.c);
+        c.setIsServicesInstalled(test.polledData);
       });
-      c.setIsServicesInstalled(polledData);
-      expect(c.get('progress')).to.equal('34');
-      expect(c.get('isPolling')).to.be.true;
     });
+
   });
 
   describe('#launchStartServices', function () {
@@ -1005,20 +1018,29 @@ describe('App.InstallerStep9Controller', function () {
       }
     ]);
     tests.forEach(function (test) {
-      it(test.m, function () {
-        var actions = [];
-        for (var prop in test.actions) {
-          if (test.actions.hasOwnProperty(prop) && test.actions[prop]) {
-            for (var i = 0; i < test.actions[prop]; i++) {
-              actions.push({Tasks: {status: prop}});
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          var actions = [];
+          for (var prop in test.actions) {
+            if (test.actions.hasOwnProperty(prop) && test.actions[prop]) {
+              for (var i = 0; i < test.actions[prop]; i++) {
+                actions.push({Tasks: {status: prop}});
+              }
             }
           }
-        }
-        c.reopen({content: {cluster: {status: test.cluster.status}}});
-        App.set('supports.skipComponentStartAfterInstall', test.s);
-        var progress = c.progressPerHost(actions, test.host);
-        expect(progress).to.equal(test.e.progress);
-        expect(test.host.progress).to.equal(test.e.progress.toString());
+          c.reopen({content: {cluster: {status: test.cluster.status}}});
+          App.set('supports.skipComponentStartAfterInstall', test.s);
+          this.progress = c.progressPerHost(actions, test.host);
+        });
+
+        it('progress is ' + test.e.progress, function () {
+          expect(this.progress).to.equal(test.e.progress);
+        });
+
+        it('host progress is ' + test.e.progress.toString(), function () {
+          expect(test.host.progress).to.equal(test.e.progress.toString());
+        });
       });
     });
   });
@@ -1243,8 +1265,9 @@ describe('App.InstallerStep9Controller', function () {
       it(test.m, function () {
         c.reopen({hosts: [Em.Object.create({logTasks: test.tasks})]});
         c.setLogTasksStatePerHost(test.tasksPerHost, c.get('hosts')[0]);
-        expect(c.get('hosts')[0].get('logTasks').everyProperty('Tasks.status', test.e.m)).to.equal(true);
-        expect(c.get('hosts')[0].get('logTasks.length')).to.equal(test.e.l);
+        var host = c.get('hosts')[0];
+        expect(host.get('logTasks').everyProperty('Tasks.status', test.e.m)).to.equal(true);
+        expect(host.get('logTasks.length')).to.equal(test.e.l);
       });
     });
   });

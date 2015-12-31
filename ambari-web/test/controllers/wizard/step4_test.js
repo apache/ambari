@@ -160,19 +160,25 @@ describe('App.WizardStep4Controller', function () {
     ];
 
     testCases.forEach(function(testCase){
-      it(testCase.title, function () {
-        controller.clear();
-        for(var id in testCase.condition) {
-          controller.pushObject(Ember.Object.create({
-            'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
-            coSelectedServices: function() {
-              return App.StackService.coSelected[this.get('serviceName')] || [];
-            }.property('serviceName')
-          }));
-        }
-        controller.setGroupedServices();
+      describe(testCase.title, function () {
+
+        beforeEach(function () {
+          controller.clear();
+          for(var id in testCase.condition) {
+            controller.pushObject(Ember.Object.create({
+              'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
+              coSelectedServices: function() {
+                return App.StackService.coSelected[this.get('serviceName')] || [];
+              }.property('serviceName')
+            }));
+          }
+          controller.setGroupedServices();
+        });
+
         for(var service in testCase.result) {
-          expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
+          it(service, function () {
+            expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
+          });
         }
       });
     }, this);
@@ -431,26 +437,31 @@ describe('App.WizardStep4Controller', function () {
         });
 
         if (test.errorsExpected) {
-          it('if errors detected than it should be shown', function () {
+          describe('if errors detected than it should be shown', function () {
+            var currentErrorObject;
+            beforeEach(function () {
+              currentErrorObject = c.get('errorStack').findProperty('isShown', false);
+            });
             test.errorsExpected.forEach(function(error, index, errors) {
-              // validate current error
-              var currentErrorObject = c.get('errorStack').findProperty('isShown', false);
-              if (currentErrorObject) {
-                expect(test.errorsExpected).to.contain(currentErrorObject.id);
-                // show current error
-                var popup = c.showError(currentErrorObject);
-                // submit popup
-                popup.onPrimary();
-                // onPrimaryPopupCallback should be called
-                expect(c.onPrimaryPopupCallback.called).to.equal(true);
-                // submit called
-                expect(c.submit.called).to.equal(true);
-                if (c.get('errorStack').length) {
-                  // current error isShown flag changed to true
-                  expect(currentErrorObject.isShown).to.equal(true);
+              it(error, function () {
+                // validate current error
+                if (currentErrorObject) {
+                  expect(test.errorsExpected).to.contain(currentErrorObject.id);
+                  // show current error
+                  var popup = c.showError(currentErrorObject);
+                  // submit popup
+                  popup.onPrimary();
+                  // onPrimaryPopupCallback should be called
+                  expect(c.onPrimaryPopupCallback.called).to.equal(true);
+                  // submit called
+                  expect(c.submit.called).to.equal(true);
+                  if (c.get('errorStack').length) {
+                    // current error isShown flag changed to true
+                    expect(currentErrorObject.isShown).to.equal(true);
+                  }
+                  runValidations();
                 }
-                runValidations();
-              }
+              });
             });
           });
         }
@@ -795,21 +806,26 @@ describe('App.WizardStep4Controller', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        this.stub.withArgs('currentStackName').returns(item.currentStackName).
-          withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
-        controller.set('content', generateSelectedServicesContent(item.services));
-        var spark = controller.findProperty('serviceName', 'SPARK');
-        if (item.services.contains('SPARK')) {
-          spark.setProperties({
-            isSelected: item.isSparkSelected,
-            isInstalled: item.isSparkInstalled
-          });
-        } else {
-          controller.removeObject(spark);
-        }
-        controller.sparkValidation();
-        expect(controller.get('errorStack').mapProperty('id').contains('sparkWarning')).to.equal(item.isSparkWarning);
+      describe(item.title, function () {
+        beforeEach(function () {
+          this.stub.withArgs('currentStackName').returns(item.currentStackName).
+            withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+          controller.set('content', generateSelectedServicesContent(item.services));
+          var spark = controller.findProperty('serviceName', 'SPARK');
+          if (item.services.contains('SPARK')) {
+            spark.setProperties({
+              isSelected: item.isSparkSelected,
+              isInstalled: item.isSparkInstalled
+            });
+          } else {
+            controller.removeObject(spark);
+          }
+          controller.sparkValidation();
+        });
+
+        it('sparkWarning is ' + item.sparkWarning, function () {
+          expect(controller.get('errorStack').mapProperty('id').contains('sparkWarning')).to.equal(item.isSparkWarning);
+        });
       });
     });
 

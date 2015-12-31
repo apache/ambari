@@ -93,8 +93,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderPortConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -119,15 +118,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         uri: 'alertDefinitionUri',
         defaultPort: '777'
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderPortConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderPortConfigs();
-
+      var result = controller.renderPortConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -135,8 +136,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderMetricConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -174,15 +174,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
           value: null
         }
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderMetricConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderMetricConfigs();
-
+      var result = controller.renderMetricConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -190,8 +192,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderWebConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -221,15 +222,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
           "default_port": 0.0
         }
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderWebConfigs();
-
+      var result = controller.renderWebConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -237,8 +240,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderScriptConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -262,15 +264,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         ],
         location: 'path to script'
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderScriptConfigs();
-
       expect(result.length).to.equal(8);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderScriptConfigs();
-
+      var result = controller.renderScriptConfigs();
       expect(result.length).to.equal(2);
     });
 
@@ -309,20 +313,23 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#editConfigs()', function () {
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
+    beforeEach(function () {
       controller.set('configs', [
         Em.Object.create({value: 'value1', previousValue: '', isDisabled: true}),
         Em.Object.create({value: 'value2', previousValue: '', isDisabled: true}),
         Em.Object.create({value: 'value3', previousValue: '', isDisabled: true})
       ]);
-
       controller.set('canEdit', false);
-
       controller.editConfigs();
+    });
 
+    it('should set previousValue', function () {
       expect(controller.get('configs').mapProperty('previousValue')).to.eql(['value1', 'value2', 'value3']);
+    });
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', true)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.true;
     });
 
@@ -330,20 +337,23 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#cancelEditConfigs()', function () {
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
+    beforeEach(function () {
       controller.set('configs', [
         Em.Object.create({value: '', previousValue: 'value1', isDisabled: false}),
         Em.Object.create({value: '', previousValue: 'value2', isDisabled: false}),
         Em.Object.create({value: '', previousValue: 'value3', isDisabled: false})
       ]);
-
       controller.set('canEdit', true);
-
       controller.cancelEditConfigs();
+    });
 
+    it('should set previousValue', function () {
       expect(controller.get('configs').mapProperty('value')).to.eql(['value1', 'value2', 'value3']);
+    });
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.false;
     });
 
@@ -353,26 +363,26 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
     beforeEach(function () {
       sinon.spy(App.ajax, 'send');
+      controller.set('configs', [
+        Em.Object.create({isDisabled: true}),
+        Em.Object.create({isDisabled: true}),
+        Em.Object.create({isDisabled: true})
+      ]);
+      controller.set('canEdit', true);
+      controller.saveConfigs();
     });
 
     afterEach(function () {
       App.ajax.send.restore();
     });
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
-      controller.set('configs', [
-        Em.Object.create({isDisabled: true}),
-        Em.Object.create({isDisabled: true}),
-        Em.Object.create({isDisabled: true})
-      ]);
-
-      controller.set('canEdit', true);
-
-      controller.saveConfigs();
-
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.false;
+    });
+    it('should sent 1 request', function () {
       expect(App.ajax.send.calledOnce).to.be.true;
     });
 

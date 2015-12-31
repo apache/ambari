@@ -228,15 +228,25 @@ describe('App.SelectDefinitionsPopupBodyView', function () {
       }
     ];
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        view.set('parentView.availableDefs', test.data.defs);
-        view.set('showOnlySelectedDefs', test.data.showOnlySelectedDefs);
-        view.set('filterComponent', test.data.filterComponent);
-        view.set('filterService', test.data.filterService);
+      describe(test.title, function () {
 
-        view.filterDefs();
-        expect(view.get('parentView.availableDefs').mapProperty('filtered')).to.eql(test.result);
-        expect(view.get('startIndex')).to.equal(1);
+        beforeEach(function () {
+          view.set('parentView.availableDefs', test.data.defs);
+          view.set('showOnlySelectedDefs', test.data.showOnlySelectedDefs);
+          view.set('filterComponent', test.data.filterComponent);
+          view.set('filterService', test.data.filterService);
+
+          view.filterDefs();
+        });
+
+        it('availableDefs.@each.filtered is ' + test.result, function () {
+          expect(view.get('parentView.availableDefs').mapProperty('filtered')).to.eql(test.result);
+        });
+
+        it('startIndex is 1', function () {
+          expect(view.get('startIndex')).to.equal(1);
+        });
+
       });
     });
   });

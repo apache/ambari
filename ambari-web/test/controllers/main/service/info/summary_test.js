@@ -207,14 +207,23 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        controller.set('isPreviousRangerConfigsCallFailed', item.isPreviousRangerConfigsCallFailed);
-        controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').tag = item.hdfsTag;
-        controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
-        controller.getRangerPluginsStatus(data);
-        expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          controller.set('isPreviousRangerConfigsCallFailed', item.isPreviousRangerConfigsCallFailed);
+          controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').tag = item.hdfsTag;
+          controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
+          controller.getRangerPluginsStatus(data);
+        });
+
+        it('1 request is ' + item.ajaxRequestSent + ' sent', function () {
+          expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
+        });
+
         if (item.ajaxRequestSent) {
-          expect(App.ajax.send.getCall(0).args[0].data.urlParams.contains('ranger-yarn-plugin-properties')).to.be.false;
+          it('request does not contains `ranger-yarn-plugin-properties`', function () {
+            expect(App.ajax.send.getCall(0).args[0].data.urlParams.contains('ranger-yarn-plugin-properties')).to.be.false;
+          });
         }
       });
     });
@@ -222,7 +231,8 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
   });
 
   describe('#getRangerPluginsStatusSuccess', function () {
-    it('relevant plugin statuses are set', function () {
+
+    beforeEach(function () {
       controller.getRangerPluginsStatusSuccess({
         'items': [
           {
@@ -245,9 +255,18 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
           }
         ]
       });
+    });
+
+    it('isPreviousRangerConfigsCallFailed is false', function () {
       expect(controller.get('isPreviousRangerConfigsCallFailed')).to.be.false;
+    });
+    it('rangerPlugins.HDFS status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HDFS').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
+    });
+    it('rangerPlugins.HIVE status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HIVE').status).to.equal(Em.I18n.t('alerts.table.state.enabled'));
+    });
+    it('rangerPlugins.HBASE status is valid', function () {
       expect(controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').status).to.equal(Em.I18n.t('common.unknown'));
     });
   });

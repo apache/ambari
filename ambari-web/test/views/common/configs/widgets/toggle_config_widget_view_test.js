@@ -89,8 +89,8 @@ describe('App.ToggleConfigWidgetView', function () {
         isValid: true
       });
       expect(this.view.isValueCompatibleWithWidget()).to.be.false;
-      expect(this.view.get('warnMessage')).to.have.property('length').that.is.least(1);
-      expect(this.view.get('issueMessage')).to.have.property('length').that.is.least(1);
+      expect(this.view.get('warnMessage')).to.be.not.empty;
+      expect(this.view.get('issueMessage')).to.be.not.empty;
     });
 
   });

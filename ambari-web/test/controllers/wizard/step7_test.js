@@ -287,7 +287,8 @@ describe('App.InstallerStep7Controller', function () {
   });
 
   describe('#checkDatabaseConnectionTest', function () {
-    it('should return promise in process', function () {
+
+    beforeEach(function () {
       installerStep7Controller.set('content', {
         services: Em.A([
           Em.Object.create({isSelected: true, isInstalled: false, serviceName: 'OOZIE', ignored: []}),
@@ -302,10 +303,13 @@ describe('App.InstallerStep7Controller', function () {
       });
       var obj = Em.Object.create({name:'oozie_database',value:"aa"});
       installerStep7Controller.set('stepConfigs',Em.A([Em.Object.create({serviceName: 'OOZIE', configs: Em.A([obj]) })]));
-      var deffer = installerStep7Controller.checkDatabaseConnectionTest();
-      expect(deffer.isResolved()).to.equal(false);
-      deffer.resolve(true);
-      deffer.done(function(data) {
+      this.deffer = installerStep7Controller.checkDatabaseConnectionTest();
+    });
+
+    it('should return promise in process', function () {
+      expect(this.deffer.isResolved()).to.equal(false);
+      this.deffer.resolve(true);
+      this.deffer.done(function(data) {
         expect(data).to.equal(true);
       });
     });
@@ -684,48 +688,67 @@ describe('App.InstallerStep7Controller', function () {
       expect(updatedConfig.get('overrides')).to.be.null;
     });
 
-    it('no overrideToAdd', function () {
-      var isDefault = true,
-        name = 'n1',
-        config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
-        overrides = Em.A([
-          Em.Object.create({name: name, value: 'v1'}),
-          Em.Object.create({name: name, value: 'v2'}),
-          Em.Object.create({name: 'n2', value: 'v3'})
-        ]);
-      installerStep7Controller.reopen({
-        overrideToAdd: null,
-        selectedConfigGroup: Em.Object.create({
-          isDefault: isDefault
-        })
+    describe('no overrideToAdd', function () {
+      var isDefault;
+      beforeEach(function () {
+        isDefault = true;
+        var name = 'n1',
+          config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
+          overrides = Em.A([
+            Em.Object.create({name: name, value: 'v1'}),
+            Em.Object.create({name: name, value: 'v2'}),
+            Em.Object.create({name: 'n2', value: 'v3'})
+          ]);
+        installerStep7Controller.reopen({
+          overrideToAdd: null,
+          selectedConfigGroup: Em.Object.create({
+            isDefault: isDefault
+          })
+        });
+        this.updatedConfig = installerStep7Controller._setOverrides(config, overrides);
       });
-      var updatedConfig = installerStep7Controller._setOverrides(config, overrides);
-      expect(updatedConfig.get('overrides.length')).to.equal(2);
-      expect(updatedConfig.get('overrides').everyProperty('isEditable', !isDefault)).to.equal(true);
-      expect(updatedConfig.get('overrides').everyProperty('parentSCP.flag', 'flag')).to.equal(true);
+
+      it('2 overrides', function () {
+        expect(this.updatedConfig.get('overrides.length')).to.equal(2);
+      });
+      it('each isEditable is ' + !isDefault, function () {
+        expect(this.updatedConfig.get('overrides').everyProperty('isEditable', !isDefault)).to.equal(true);
+      });
+      it('each parentSCP.flag is `flag`', function () {
+        expect(this.updatedConfig.get('overrides').everyProperty('parentSCP.flag', 'flag')).to.equal(true);
+      });
     });
 
-    it('overrideToAdd exists', function () {
-      var isDefault = true,
-        name = 'n1',
-        config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
-        overrides = Em.A([
-          Em.Object.create({name: name, value: 'v1'}),
-          Em.Object.create({name: name, value: 'v2'}),
-          Em.Object.create({name: 'n2', value: 'v3'})
-        ]);
-      installerStep7Controller.reopen({
-        overrideToAdd: Em.Object.create({name: name}),
-        selectedService: {configGroups: [Em.Object.create({name: 'n', properties: []})]},
-        selectedConfigGroup: Em.Object.create({
-          isDefault: isDefault,
-          name: 'n'
-        })
+    describe('overrideToAdd exists', function () {
+      var isDefault = true;
+      beforeEach(function () {
+        var name = 'n1',
+          config = Em.Object.create({overrides: null, name: name, flag: 'flag'}),
+          overrides = Em.A([
+            Em.Object.create({name: name, value: 'v1'}),
+            Em.Object.create({name: name, value: 'v2'}),
+            Em.Object.create({name: 'n2', value: 'v3'})
+          ]);
+        installerStep7Controller.reopen({
+          overrideToAdd: Em.Object.create({name: name}),
+          selectedService: {configGroups: [Em.Object.create({name: 'n', properties: []})]},
+          selectedConfigGroup: Em.Object.create({
+            isDefault: isDefault,
+            name: 'n'
+          })
+        });
+        this.updatedConfig = installerStep7Controller._setOverrides(config, overrides);
       });
-      var updatedConfig = installerStep7Controller._setOverrides(config, overrides);
-      expect(updatedConfig.get('overrides.length')).to.equal(3);
-      expect(updatedConfig.get('overrides').everyProperty('isEditable', !isDefault)).to.equal(true);
-      expect(updatedConfig.get('overrides').everyProperty('parentSCP.flag', 'flag')).to.equal(true);
+
+      it('3 overrides', function () {
+        expect(this.updatedConfig.get('overrides.length')).to.equal(3);
+      });
+      it('each isEditable is ' + !isDefault, function () {
+        expect(this.updatedConfig.get('overrides').everyProperty('isEditable', !isDefault)).to.equal(true);
+      });
+      it('each parentSCP.flag is `flag`', function () {
+        expect(this.updatedConfig.get('overrides').everyProperty('parentSCP.flag', 'flag')).to.equal(true);
+      });
     });
   });
 
@@ -1721,25 +1744,27 @@ describe('App.InstallerStep7Controller', function () {
         expectedNewValue: dfsNameservices + '/hawq_data'
       }
     ]).forEach(function (test) {
-      it(test.serviceName + ' ' + test.configToUpdate, function () {
-        var serviceConfigs = [App.ServiceConfig.create({
-          serviceName: test.serviceName,
+
+      var serviceConfigs = [App.ServiceConfig.create({
+        serviceName: test.serviceName,
+        configs: [
+          Em.Object.create({
+            name: test.configToUpdate,
+            value: test.oldValue
+          })
+        ]
+      }),
+        App.ServiceConfig.create({
+          serviceName: 'HDFS',
           configs: [
             Em.Object.create({
-              name: test.configToUpdate,
-              value: test.oldValue
+              name: 'dfs.nameservices',
+              value: dfsNameservices
             })
           ]
-        }),
-          App.ServiceConfig.create({
-            serviceName: 'HDFS',
-            configs: [
-              Em.Object.create({
-                name: 'dfs.nameservices',
-                value: dfsNameservices
-              })
-            ]
-          })];
+        })];
+
+      it(test.serviceName + ' ' + test.configToUpdate, function () {
         installerStep7Controller.reopen({
           selectedServiceNames: [test.serviceName, 'HDFS']
         });

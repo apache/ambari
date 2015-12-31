@@ -94,38 +94,38 @@ describe('App.InstallerController', function () {
   });
 
   describe('#checkRepoURL', function() {
-
+    var stacks = Em.A([
+      Em.Object.create({
+        isSelected: false
+      }),
+      Em.Object.create({
+        isSelected: true,
+        reload: false,
+        id: 'nn-cc',
+        repositories: Em.A([
+          Em.Object.create({
+            isSelected: true
+          })
+        ]),
+        operatingSystems: Em.A([
+          Em.Object.create({
+            isSelected: true,
+            repositories: Em.A([
+              Em.Object.create({
+                errorTitle: '1',
+                errorContent: '1',
+                validation: ''
+              })
+            ])
+          })
+        ])
+      })
+    ]);
+    var wizard = Em.Object.create({
+      skipValidationChecked: true
+    });
     it ('Should reload installed stacks', function() {
-      var stacks = Em.A([
-        Em.Object.create({
-          isSelected: false
-        }),
-        Em.Object.create({
-          isSelected: true,
-          reload: false,
-          id: 'nn-cc',
-          repositories: Em.A([
-            Em.Object.create({
-              isSelected: true
-            })
-          ]),
-          operatingSystems: Em.A([
-            Em.Object.create({
-              isSelected: true,
-              repositories: Em.A([
-                Em.Object.create({
-                  errorTitle: '1',
-                  errorContent: '1',
-                  validation: ''
-                })
-              ])
-            })
-          ])
-        })
-      ]);
-      var wizard = Em.Object.create({
-        skipValidationChecked: true
-      });
+
       installerController.set('content.stacks', stacks);
       installerController.checkRepoURL(wizard);
 
@@ -164,47 +164,48 @@ describe('App.InstallerController', function () {
   });
 
   describe('#checkRepoURLSuccessCallback', function() {
-    it ('Should check stacks for sucess', function() {
-      var stacks = Em.A([
-        Em.Object.create({
-          isSelected: false
-        }),
-        Em.Object.create({
-          isSelected: true,
-          reload: false,
-          id: 'nn-cc',
-          repositories: Em.A([
-            Em.Object.create({
-              repoId: 11,
-              isSelected: true
-            })
-          ]),
-          operatingSystems: Em.A([
-            Em.Object.create({
-              isSelected: true,
-              id: 1,
-              repositories: Em.A([
-                Em.Object.create({
-                  repoId: 11,
-                  errorTitle: '1',
-                  errorContent: '1',
-                  validation: ''
-                })
-              ])
-            })
-          ])
-        })
-      ]);
-      var resolve = false;
-      var data = {
-        osId: 1,
-        repoId: 11,
-        dfd: {
-          resolve: function() {
-            resolve = true;
-          }
+    var stacks = Em.A([
+      Em.Object.create({
+        isSelected: false
+      }),
+      Em.Object.create({
+        isSelected: true,
+        reload: false,
+        id: 'nn-cc',
+        repositories: Em.A([
+          Em.Object.create({
+            repoId: 11,
+            isSelected: true
+          })
+        ]),
+        operatingSystems: Em.A([
+          Em.Object.create({
+            isSelected: true,
+            id: 1,
+            repositories: Em.A([
+              Em.Object.create({
+                repoId: 11,
+                errorTitle: '1',
+                errorContent: '1',
+                validation: ''
+              })
+            ])
+          })
+        ])
+      })
+    ]);
+    var data = {
+      osId: 1,
+      repoId: 11,
+      dfd: {
+        resolve: function() {
+          resolve = true;
         }
-      };
+      }
+    };
+    var resolve = false;
+    it ('Should check stacks for sucess', function() {
+
       installerController.set('content.stacks', stacks);
       installerController.checkRepoURLSuccessCallback(null,null,data);
 
@@ -246,47 +247,48 @@ describe('App.InstallerController', function () {
   });
 
   describe('#checkRepoURLErrorCallback', function() {
-    it ('Should check stacks for error', function() {
-      var stacks = Em.A([
-        Em.Object.create({
-          isSelected: false
-        }),
-        Em.Object.create({
-          isSelected: true,
-          reload: false,
-          id: 'nn-cc',
-          repositories: Em.A([
-            Em.Object.create({
-              repoId: 11,
-              isSelected: true
-            })
-          ]),
-          operatingSystems: Em.A([
-            Em.Object.create({
-              isSelected: true,
-              id: 1,
-              repositories: Em.A([
-                Em.Object.create({
-                  repoId: 11,
-                  errorTitle: '1',
-                  errorContent: '1',
-                  validation: ''
-                })
-              ])
-            })
-          ])
-        })
-      ]);
-      var resolve = false;
-      var data = {
-        osId: 1,
-        repoId: 11,
-        dfd: {
-          reject: function() {
-            resolve = true;
-          }
+    var stacks = Em.A([
+      Em.Object.create({
+        isSelected: false
+      }),
+      Em.Object.create({
+        isSelected: true,
+        reload: false,
+        id: 'nn-cc',
+        repositories: Em.A([
+          Em.Object.create({
+            repoId: 11,
+            isSelected: true
+          })
+        ]),
+        operatingSystems: Em.A([
+          Em.Object.create({
+            isSelected: true,
+            id: 1,
+            repositories: Em.A([
+              Em.Object.create({
+                repoId: 11,
+                errorTitle: '1',
+                errorContent: '1',
+                validation: ''
+              })
+            ])
+          })
+        ])
+      })
+    ]);
+    var data = {
+      osId: 1,
+      repoId: 11,
+      dfd: {
+        reject: function() {
+          resolve = true;
         }
-      };
+      }
+    };
+    var resolve = false;
+    it ('Should check stacks for error', function() {
+
       var req = {
         status: 500,
         statusText: 'error'
@@ -351,7 +353,8 @@ describe('App.InstallerController', function () {
   });
 
   describe('#setLowerStepsDisable', function() {
-    it ('Should disable lower steps', function() {
+
+    beforeEach(function () {
       var steps = Em.A([
         Em.Object.create({
           step: 0,
@@ -376,6 +379,9 @@ describe('App.InstallerController', function () {
       ]);
       installerController.set('isStepDisabled', steps);
       installerController.setLowerStepsDisable(3);
+    });
+
+    it ('Should disable lower steps', function() {
       var expected = [
         {
           "step": 0,
@@ -398,15 +404,14 @@ describe('App.InstallerController', function () {
           "value": false
         }
       ];
-
       var res = JSON.parse(JSON.stringify(installerController.get('isStepDisabled')));
-
       expect(res).to.eql(expected);
     });
   });
 
   describe('#setStepsEnable', function() {
-    it ('Should enable next steps', function() {
+
+    beforeEach(function () {
       var steps = Em.A([
         Em.Object.create({
           step: 0,
@@ -432,6 +437,9 @@ describe('App.InstallerController', function () {
       installerController.set('isStepDisabled', steps);
       installerController.totalSteps = steps.length - 1;
       installerController.set('currentStep',2);
+    });
+
+    it ('Should enable next steps', function() {
       var expected = [
         {
           "step": 0,
@@ -454,9 +462,7 @@ describe('App.InstallerController', function () {
           "value": true
         }
       ];
-
       var res = JSON.parse(JSON.stringify(installerController.get('isStepDisabled')));
-
       expect(res).to.eql(expected);
     });
   });
@@ -827,8 +833,10 @@ describe('App.InstallerController', function () {
   });
 
   describe('#saveClients', function() {
-    it ('Should return correct clients names', function() {
-      var stepController = Em.Object.create({
+    var stepController;
+
+    beforeEach(function () {
+      stepController = Em.Object.create({
         content: Em.A([
           Em.Object.create({
             isInstalled: true,
@@ -864,6 +872,8 @@ describe('App.InstallerController', function () {
           })
         ])
       });
+    });
+    it ('Should return correct clients names', function() {
       installerController.saveClients(stepController);
       var res = JSON.parse(JSON.stringify(installerController.get('content.clients')));
       expect(res).to.eql([

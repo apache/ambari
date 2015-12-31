@@ -355,17 +355,28 @@ describe('App.WizardStep3Controller', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.m, function () {
-        c.set('bootHosts', test.bootHosts);
-        var r = c.parseHostInfo(test.hostsStatusFromServer);
-        expect(r).to.equal(test.e.r);
+      describe(test.m, function () {
+        var r;
+        beforeEach(function () {
+          c.set('bootHosts', test.bootHosts);
+          r = c.parseHostInfo(test.hostsStatusFromServer);
+        });
+
+        it('parsed hosts info is valid', function () {
+          expect(r).to.equal(test.e.r);
+        });
+
         if (test.e.c) {
           test.hostsStatusFromServer.forEach(function (h) {
-            var r = c.get('bootHosts').findProperty('name', h.hostName);
-            if (!['REGISTERED', 'REGISTERING'].contains(r.get('bootStatus'))) {
-              expect(r.get('bootStatus')).to.equal(h.status);
-              expect(r.get('bootLog')).to.equal(h.log);
-            }
+
+            it('bootStatus and bootLog are valid', function () {
+              var bootHosts = c.get('bootHosts').findProperty('name', h.hostName);
+              if (!['REGISTERED', 'REGISTERING'].contains(bootHosts.get('bootStatus'))) {
+                expect(bootHosts.get('bootStatus')).to.equal(h.status);
+                expect(bootHosts.get('bootLog')).to.equal(h.log);
+              }
+            });
+
           });
         }
       });
@@ -1617,15 +1628,24 @@ describe('App.WizardStep3Controller', function () {
           ])
         }
       ]).forEach(function (category) {
-        describe(category.m, function () {
-          category.tests.forEach(function (test) {
-            it(test.m, function () {
+      describe(category.m, function () {
+        category.tests.forEach(function (test) {
+
+          describe(test.m, function () {
+
+            beforeEach(function () {
               c.parseHostCheckWarnings({tasks: test.tasks});
+            });
+
+            it('warnings', function () {
               c.get('warnings').forEach(function (w, i) {
                 Em.keys(test.e.warnings[i]).forEach(function (k) {
                   expect(w[k]).to.eql(test.e.warnings[i][k]);
                 });
               });
+            });
+
+            it('warningsByHost', function () {
               for (var i in test.e.warningsByHost) {
                 if (test.e.warningsByHost.hasOwnProperty(i)) {
                   expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
@@ -1634,6 +1654,7 @@ describe('App.WizardStep3Controller', function () {
             });
           });
         });
+      });
       });
 
     it('should parse umask warnings', function () {
@@ -2081,18 +2102,26 @@ describe('App.WizardStep3Controller', function () {
       ]).forEach(function (category) {
         describe(category.m, function () {
           category.tests.forEach(function (test) {
-            it(test.m, function () {
-              c.parseWarnings({items: test.items});
-              c.get('warnings').forEach(function (w, i) {
-                Em.keys(test.e.warnings[i]).forEach(function (k) {
-                  expect(w[k]).to.eql(test.e.warnings[i][k]);
+            describe(test.m, function () {
+
+              beforeEach(function () {
+                c.parseWarnings({items: test.items});
+              });
+              it('warnings', function () {
+                c.get('warnings').forEach(function (w, i) {
+                  Em.keys(test.e.warnings[i]).forEach(function (k) {
+                    expect(w[k]).to.eql(test.e.warnings[i][k]);
+                  });
                 });
               });
-              for (var i in test.e.warningsByHost) {
-                if (test.e.warningsByHost.hasOwnProperty(i)) {
-                  expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
+
+              it('warningsByHost', function () {
+                for (var i in test.e.warningsByHost) {
+                  if (test.e.warningsByHost.hasOwnProperty(i)) {
+                    expect(c.get('warningsByHost')[i].warnings.length).to.equal(test.e.warningsByHost[i]);
+                  }
                 }
-              }
+              });
             });
           });
         });

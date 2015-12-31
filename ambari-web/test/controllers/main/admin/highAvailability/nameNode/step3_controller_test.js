@@ -329,15 +329,27 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
         value: nameServiceId + '/hawq_default'
       }
     ]).forEach(function (test) {
-      it(test.config.name, function () {
-        test.config.displayName = test.config.name;
-        var configs = [test.config];
-        configs = controller.tweakServiceConfigs(configs);
-        expect(configs[0].value).to.equal(test.value);
-        expect(configs[0].recommendedValue).to.equal(test.value);
+      describe(test.config.name, function () {
+        var configs;
+        beforeEach(function () {
+          test.config.displayName = test.config.name;
+          configs = controller.tweakServiceConfigs([test.config]);
+        });
+
+        it('value is ' + test.value, function () {
+          expect(configs[0].value).to.equal(test.value);
+        });
+        it('recommendedValue is ' + test.value, function () {
+          expect(configs[0].recommendedValue).to.equal(test.value);
+        });
+
         if(test.name) {
-          expect(configs[0].name).to.equal(test.name);
-          expect(configs[0].displayName).to.equal(test.name);
+          it('name is ' + test.name, function () {
+            expect(configs[0].name).to.equal(test.name);
+          });
+          it('displayNamr is' + test.name, function () {
+            expect(configs[0].displayName).to.equal(test.name);
+          });
         }
       });
     });

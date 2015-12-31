@@ -2088,20 +2088,12 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       focus: function () {}
     };
 
-    before(function(){
+    beforeEach(function(){
       sinon.stub(window, 'open', function () {
         return mock;
       });
       sinon.spy(mock.document, 'write');
       sinon.spy(mock, 'focus');
-    });
-
-    after(function(){
-      window.open.restore();
-    });
-
-    it("should open window and write table to it", function () {
-
       controller.openConfigsInNewWindow({
         context: [
           {
@@ -2120,29 +2112,43 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           }
         ]
       });
+    });
 
+    afterEach(function(){
+      window.open.restore();
+      mock.document.write.restore();
+      mock.focus.restore();
+    });
+
+    it('new window is open', function () {
       expect(window.open.calledOnce).to.be.true;
+    });
+
+    it('new window content is valid', function () {
       expect(mock.document.write.calledWith('<table style="text-align: left;"><thead><tr>' +
-          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
-          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
-          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
-          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
-          '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
-          '</tr></thead><tbody>' +
-          '<tr>' +
-          '<td>' + 'type1' + '</td>' +
-          '<td>' + 'name1' + '</td>' +
-          '<td>' + 'currentValue1' + '</td>' +
-          '<td>' + 'recommendedValue1' + '</td>' +
-          '<td>' + 'resultingValue1' + '</td>' +
-          '</tr>' +
-          '<tr>' +
-          '<td>' + 'type2' + '</td>' +
-          '<td>' + 'name2' + '</td>' +
-          '<td>' + 'currentValue2' + '</td>' +
-          '<td>' + 'recommendedValue2' + '</td>' +
-          '<td>' + 'resultingValue2' + '</td>' +
-          '</tr></tbody></table>')).to.be.true;
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.currentValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.recommendedValue') + '</th>' +
+        '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.resultingValue') + '</th>' +
+        '</tr></thead><tbody>' +
+        '<tr>' +
+        '<td>' + 'type1' + '</td>' +
+        '<td>' + 'name1' + '</td>' +
+        '<td>' + 'currentValue1' + '</td>' +
+        '<td>' + 'recommendedValue1' + '</td>' +
+        '<td>' + 'resultingValue1' + '</td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td>' + 'type2' + '</td>' +
+        '<td>' + 'name2' + '</td>' +
+        '<td>' + 'currentValue2' + '</td>' +
+        '<td>' + 'recommendedValue2' + '</td>' +
+        '<td>' + 'resultingValue2' + '</td>' +
+        '</tr></tbody></table>')).to.be.true;
+    });
+
+    it('document.focus is called once', function () {
       expect(mock.focus.calledOnce).to.be.true;
     });
   });

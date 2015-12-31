@@ -63,13 +63,23 @@ describe('App.AddServiceController', function() {
       App.get.restore();
     });
 
-    it('send request to install client', function () {
-      addServiceController.set("content.additionalClients", [t.additionalClients]);
-      addServiceController.installAdditionalClients();
-      expect($.ajax.calledOnce).to.equal(true);
+    describe('send request to install client', function () {
 
-      expect(JSON.parse($.ajax.args[0][0].data).Body).to.deep.eql(t.Body);
-      expect(JSON.parse($.ajax.args[0][0].data).RequestInfo).to.eql(t.RequestInfo);
+      beforeEach(function () {
+        addServiceController.set("content.additionalClients", [t.additionalClients]);
+        addServiceController.installAdditionalClients();
+      });
+
+      it('1 request is sent', function () {
+        expect($.ajax.calledOnce).to.equal(true);
+      });
+      it('data.Body is valid', function () {
+        expect(JSON.parse($.ajax.args[0][0].data).Body).to.deep.eql(t.Body);
+      });
+      it('data.RequestInfo is valid', function () {
+        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo).to.eql(t.RequestInfo);
+      });
+
     });
 
     it('should not send request to install client', function () {

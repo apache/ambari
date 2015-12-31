@@ -418,6 +418,7 @@ describe('App.AddHostController', function () {
       stack: [],
       model: []
     };
+
     beforeEach(function () {
       sinon.stub(controller, 'getDBProperty', function () {
         return services.db;
@@ -430,111 +431,164 @@ describe('App.AddHostController', function () {
       });
       sinon.stub(controller, 'setDBProperty', Em.K);
     });
+
     afterEach(function () {
       controller.getDBProperty.restore();
       App.StackService.find.restore();
       App.Service.find.restore();
       controller.setDBProperty.restore();
     });
-    it("No services in db, no installed services", function () {
-      services.stack = [Em.Object.create({
-        serviceName: 'S1'
-      })];
-      controller.loadServices();
-      expect(controller.setDBProperty.getCall(0).args).to.eql(['services',
-        {
-          selectedServices: [],
-          installedServices: []
+
+    Em.A([
+      {
+        m: 'No services in db, no installed services',
+        service: {
+          db: null,
+          stack: [Em.Object.create({
+            serviceName: 'S1'
+          })],
+          model: []
+        },
+        e: {
+
+          db: ['services',
+            {
+              selectedServices: [],
+              installedServices: []
+            }
+          ],
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: false,
+              isSelected: false
+            })
+          ]
         }
-      ]);
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: false,
-          isSelected: false
-        })
-      ])
-    });
-    it("No services in db, installed service present", function () {
-      services.stack = [
-        Em.Object.create({
-          serviceName: 'S1'
-        }),
-        Em.Object.create({
-          serviceName: 'S2'
-        })
-      ];
-      services.model = [
-        Em.Object.create({
-          serviceName: 'S1'
-        })
-      ];
-      controller.loadServices();
-      expect(controller.setDBProperty.getCall(0).args).to.eql(['services',
-        {
-          selectedServices: ['S1'],
-          installedServices: ['S1']
+      },
+      {
+        m: 'No services in db, installed service present',
+        service: {
+          db: null,
+          stack: [
+            Em.Object.create({
+              serviceName: 'S1'
+            }),
+            Em.Object.create({
+              serviceName: 'S2'
+            })
+          ],
+          model: [
+            Em.Object.create({
+              serviceName: 'S1'
+            })
+          ]
+        },
+        e: {
+          db: ['services',
+            {
+              selectedServices: ['S1'],
+              installedServices: ['S1']
+            }
+          ],
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: true,
+              isSelected: true
+            }),
+            Em.Object.create({
+              serviceName: 'S2',
+              isInstalled: false,
+              isSelected: false
+            })
+          ]
         }
-      ]);
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: true,
-          isSelected: true
-        }),
-        Em.Object.create({
-          serviceName: 'S2',
-          isInstalled: false,
-          isSelected: false
-        })
-      ]);
+      },
+      {
+        m: 'DB is empty',
+        service: {
+          db: {
+            selectedServices: [],
+            installedServices: []
+          },
+          stack: [Em.Object.create({
+            serviceName: 'S1'
+          })],
+          model: []
+        },
+        e: {
+          db: false,
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isSelected: false,
+              isInstalled: false
+            })
+          ]
+        }
+      },
+      {
+        m: 'DB has selected and installed services',
+        service: {
+          db: {
+            selectedServices: ['S1'],
+            installedServices: ['S2']
+          },
+          stack: [
+            Em.Object.create({
+              serviceName: 'S1'
+            }),
+            Em.Object.create({
+              serviceName: 'S2'
+            })
+          ],
+          model: []
+        },
+        e: {
+          db: false,
+          services: [
+            Em.Object.create({
+              serviceName: 'S1',
+              isInstalled: false,
+              isSelected: true
+            }),
+            Em.Object.create({
+              serviceName: 'S2',
+              isInstalled: true,
+              isSelected: false
+            })
+          ]
+        }
+      }
+    ]).forEach(function (test) {
+
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          services = test.service;
+          controller.loadServices();
+        });
+
+        it('services are valid', function () {
+          expect(controller.get('content.services')).to.be.eql(test.e.services);
+        });
+
+        if (test.e.db) {
+          it('setDBProperty is called with valid arguments', function () {
+            expect(controller.setDBProperty.getCall(0).args).to.eql(test.e.db);
+          });
+        }
+        else {
+          it('setDBProperty is not called', function () {
+            expect(controller.setDBProperty.called).to.be.false;
+          });
+        }
+
+      });
+
     });
-    it("DB is empty", function () {
-      services.stack = [Em.Object.create({
-        serviceName: 'S1'
-      })];
-      services.db = {
-        selectedServices: [],
-        installedServices: []
-      };
-      controller.loadServices();
-      expect(controller.setDBProperty.called).to.be.false;
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isSelected: false,
-          isInstalled: false
-        })
-      ]);
-    });
-    it("DB has selected and installed services", function () {
-      services.stack = [
-        Em.Object.create({
-          serviceName: 'S1'
-        }),
-        Em.Object.create({
-          serviceName: 'S2'
-        })
-      ];
-      services.db = {
-        selectedServices: ['S1'],
-        installedServices: ['S2']
-      };
-      controller.loadServices();
-      expect(controller.setDBProperty.called).to.be.false;
-      expect(controller.get('content.services')).to.eql([
-        Em.Object.create({
-          serviceName: 'S1',
-          isInstalled: false,
-          isSelected: true
-        }),
-        Em.Object.create({
-          serviceName: 'S2',
-          isInstalled: true,
-          isSelected: false
-        })
-      ]);
-    });
+
   });
 
   describe("#loadSlaveComponentHosts()", function () {

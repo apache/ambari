@@ -152,51 +152,71 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#sendComponentCommand()', function () {
-    it('single component', function () {
-      controller.set('content.hostName', 'host1');
-      var component = Em.Object.create({
-        service: {serviceName: 'S1'},
-        componentName: 'COMP1'
-      });
 
-      controller.sendComponentCommand(component, {}, 'state');
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_component.update');
-      expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
-        "hostName": "host1",
-        "context": {},
-        "component": component,
-        "HostRoles": {
-          "state": "state"
-        },
-        "componentName": "COMP1",
-        "serviceName": "S1"
-      });
-    });
-    it('multiple component', function () {
-      controller.set('content.hostName', 'host1');
-      var component = [
-        Em.Object.create({
+    describe('single component', function () {
+      var component;
+      beforeEach(function () {
+        controller.set('content.hostName', 'host1');
+        component = Em.Object.create({
           service: {serviceName: 'S1'},
           componentName: 'COMP1'
-        }),
-        Em.Object.create({
-          service: {serviceName: 'S1'},
-          componentName: 'COMP2'
-        })
-      ];
+        });
 
-      controller.sendComponentCommand(component, {}, 'state');
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_components.update');
-      expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
-        "hostName": "host1",
-        "context": {},
-        "component": component,
-        "HostRoles": {
-          "state": "state"
-        },
-        "query": "HostRoles/component_name.in(COMP1,COMP2)"
+        controller.sendComponentCommand(component, {}, 'state');
+      });
+
+      it('1st call endpoint is valid', function () {
+        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_component.update');
+      });
+
+      it('1st call data is valid', function () {
+        expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+          "hostName": "host1",
+          "context": {},
+          "component": component,
+          "HostRoles": {
+            "state": "state"
+          },
+          "componentName": "COMP1",
+          "serviceName": "S1"
+        });
       });
     });
+
+    describe('multiple component', function () {
+      var component;
+      beforeEach(function () {
+        controller.set('content.hostName', 'host1');
+        component = [
+          Em.Object.create({
+            service: {serviceName: 'S1'},
+            componentName: 'COMP1'
+          }),
+          Em.Object.create({
+            service: {serviceName: 'S1'},
+            componentName: 'COMP2'
+          })
+        ];
+        controller.sendComponentCommand(component, {}, 'state');
+      });
+
+      it('1st call endpoint is valid', function () {
+        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.host.host_components.update');
+      });
+
+      it('1st call data is valid', function () {
+        expect(App.ajax.send.getCall(0).args[0].data).to.be.eql({
+          "hostName": "host1",
+          "context": {},
+          "component": component,
+          "HostRoles": {
+            "state": "state"
+          },
+          "query": "HostRoles/component_name.in(COMP1,COMP2)"
+        });
+      });
+    });
+
   });
 
   describe('#sendComponentCommandSuccessCallback()', function () {
@@ -3013,24 +3033,49 @@ describe('App.MainHostDetailsController', function () {
     afterEach(function () {
       controller._doDeleteHostComponent.restore();
     });
-    it("Host has no components", function () {
-      controller.set('content.hostComponents', Em.A([]));
-      controller.doDeleteHost(Em.K);
-      expect(controller.get('fromDeleteHost')).to.be.true;
-      expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+
+    describe("Host has no components", function () {
+
+      beforeEach(function () {
+        controller.set('content.hostComponents', Em.A([]));
+        controller.doDeleteHost(Em.K);
+      });
+
+      it('fromDeleteHost is true', function () {
+        expect(controller.get('fromDeleteHost')).to.be.true;
+      });
+      it('1st request is to delete host', function () {
+        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+      });
+      it('1st request is done with valid hostName', function () {
+        expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
+      });
     });
-    it("Host has components", function () {
-      controller.set('content.hostComponents', Em.A([Em.Object.create({
-        componentName: 'COMP1'
-      })]));
-      controller.doDeleteHost(Em.K);
-      expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({
-        componentName: 'COMP1'
-      }))).to.be.true;
-      expect(controller.get('fromDeleteHost')).to.be.true;
-      expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
-      expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+
+    describe("Host has components", function () {
+
+      beforeEach(function () {
+        controller.set('content.hostComponents', Em.A([Em.Object.create({
+          componentName: 'COMP1'
+        })]));
+        controller.doDeleteHost(Em.K);
+      });
+
+      it('_doDeleteHostComponent is called with correct arguments', function () {
+        expect(controller._doDeleteHostComponent.calledWith(Em.Object.create({
+          componentName: 'COMP1'
+        }))).to.be.true;
+      });
+      it('fromDeleteHost is true', function () {
+        expect(controller.get('fromDeleteHost')).to.be.true;
+      });
+      it('1st request is to delete host', function () {
+        expect(App.ajax.send.getCall(0).args[0].name).to.be.equal('common.delete.host');
+      });
+      it('1st request is done with valid hostName', function () {
+        expect(App.ajax.send.getCall(0).args[0].data.hostName).to.be.equal('host1');
+      });
+
     });
   });
 

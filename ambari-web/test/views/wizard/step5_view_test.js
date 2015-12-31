@@ -105,14 +105,19 @@ describe('App.WizardStep5View', function() {
   });
 
   describe('#shouldUseInputs', function() {
-    it('should based on hosts count', function() {
-      view.set('controller.hosts', d3.range(0, 25).map(function() {return {};}));
-      expect(view.get('shouldUseInputs')).to.be.false;
-      view.set('controller.hosts', d3.range(0, 26).map(function() {return {};}));
-      expect(view.get('shouldUseInputs')).to.be.true;
-      view.set('controller.hosts', d3.range(0, 24).map(function() {return {};}));
-      expect(view.get('shouldUseInputs')).to.be.false;
+
+    Em.A([
+      {range: 25, e: false},
+      {range: 26, e: true},
+      {range: 24, e: false}
+    ]).forEach(function (test) {
+      it(test.e + ' for ' + test.range + ' hosts', function () {
+        view.set('controller.hosts', d3.range(0, test.range).map(function() {return {};}));
+        expect(view.get('shouldUseInputs')).to.be.equal(test.e);
+      });
+
     });
+
   });
 
 });

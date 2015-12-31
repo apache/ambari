@@ -304,25 +304,30 @@ describe('App.MainServiceItemController', function () {
 
     tests.forEach(function (test, index) {
 
-      function setupWithTestData() {
-        mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
-        mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
-      }
+      describe('case #' + (index + 1), function () {
 
-      it('request is sent with valid data ' + (index + 1), function () {
-        setupWithTestData();
-        expect($.ajax.calledOnce).to.equal(true);
-        expect(JSON.parse($.ajax.args[0][0].data).Body.ServiceInfo.state).to.equal(test.request.Body.ServiceInfo.state);
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.request.RequestInfo.context);
+        beforeEach(function () {
+          mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
+          mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
+          this.data = JSON.parse($.ajax.args[0][0].data);
+        });
+
+        it('request is sent with valid data ' + (index + 1), function () {
+          expect($.ajax.calledOnce).to.equal(true);
+          expect(this.data.Body.ServiceInfo.state).to.equal(test.request.Body.ServiceInfo.state);
+          expect(this.data.RequestInfo.context).to.equal(test.request.RequestInfo.context);
+        });
+
+        it('isStopDisabled is true ' + (index + 1), function () {
+          expect(mainServiceItemController.get('isStopDisabled')).to.equal(true);
+        });
+
+        it('isStartDisabled is true ' + (index + 1), function () {
+          expect(mainServiceItemController.get('isStartDisabled')).to.equal(true);
+        });
+
       });
-      it('isStopDisabled is true ' + (index + 1), function () {
-        setupWithTestData();
-        expect(mainServiceItemController.get('isStopDisabled')).to.equal(true);
-      });
-      it('isStartDisabled is true ' + (index + 1), function () {
-        setupWithTestData();
-        expect(mainServiceItemController.get('isStartDisabled')).to.equal(true);
-      });
+
     });
 
 
@@ -517,37 +522,53 @@ describe('App.MainServiceItemController', function () {
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.not.be.ok;
       });
       
-      it ("should display dependent list if other services depend on the one to be stopped", function() {
-        var mainServiceItemController = App.MainServiceItemController.create(
-          {content: {
-            serviceName: "HDFS",
-            passiveState:'OFF',
-            hostComponents: [{
-              componentName: 'NAMENODE',
-              workStatus: 'INSTALLED'
-            }]
-          }}
-        );
-        mainServiceItemController.startStopPopup(event, "INSTALLED");
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.turnOnMM')).to.be.ok;
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
-        
-        var dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HDFS", "HBase,YARN")
-        var msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HDFS");
-        var fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", msg, "HDFS");
-        expect(fullMsg).to.be.equal(msg + " " + dependencies);
+      describe ("should display dependent list if other services depend on the one to be stopped", function() {
+        var mainServiceItemController;
+        beforeEach(function () {
+          mainServiceItemController = App.MainServiceItemController.create(
+            {content: {
+              serviceName: "HDFS",
+              passiveState:'OFF',
+              hostComponents: [{
+                componentName: 'NAMENODE',
+                workStatus: 'INSTALLED'
+              }]
+            }}
+          );
+          mainServiceItemController.startStopPopup(event, "INSTALLED");
+          this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HDFS", "HBase,YARN");
+          this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HDFS");
+          this.fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HDFS");
+        });
+
+        it('turnOnMM message is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.turnOnMM')).to.be.ok;
+        });
+        it('message about dependent services is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
+        });
+        it('full message is valid', function () {
+          expect(this.fullMsg).to.be.equal(this.msg + " " + this.dependencies);
+        });
       });
 
-      it ("should display the dependent service if another service depends on the one to be stopped", function() {
-        var mainServiceItemController = App.MainServiceItemController.create(
+      describe("should display the dependent service if another service depends on the one to be stopped", function() {
+
+        beforeEach(function () {
+          var mainServiceItemController = App.MainServiceItemController.create(
             {content: {serviceName: "HIVE", passiveState:'OFF'}});
-        mainServiceItemController.startStopPopup(event, "INSTALLED");
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
-        
-        var dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HIVE", "Spark")
-        var msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HIVE");
-        var fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", msg, "HIVE");
-        expect(fullMsg).to.be.equal(msg + " " + dependencies);
+          mainServiceItemController.startStopPopup(event, "INSTALLED");
+          this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HIVE", "Spark");
+          this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HIVE");
+          this.fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HIVE");
+        });
+
+        it('message about dependent services is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
+        });
+        it('full message is valid', function () {
+          expect(this.fullMsg).to.be.equal(this.msg + " " + this.dependencies);
+        });
       });
       
       afterEach(function () {

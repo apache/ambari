@@ -136,11 +136,12 @@ describe('App.ListConfigWidgetView', function () {
       view.sendRequestRorDependentConfigs.restore();
     });
     it('value updates if some option', function () {
-      view.toggleOption({context: view.get('options')[2]});
+      var options = view.get('options');
+      view.toggleOption({context: options[2]});
       expect(view.get('config.value')).to.equal('2,1,3');
-      view.toggleOption({context: view.get('options')[1]});
+      view.toggleOption({context: options[1]});
       expect(view.get('config.value')).to.equal('1,3');
-      view.toggleOption({context: view.get('options')[1]});
+      view.toggleOption({context: options[1]});
       expect(view.get('config.value')).to.equal('1,3,2');
     });
 
@@ -161,13 +162,14 @@ describe('App.ListConfigWidgetView', function () {
       view.sendRequestRorDependentConfigs.restore();
     });
     it('should restore saved value', function () {
-      view.toggleOption({context: view.get('options')[0]});
-      view.toggleOption({context: view.get('options')[1]});
-      view.toggleOption({context: view.get('options')[2]});
+      var options = view.get('options');
+      view.toggleOption({context: options[0]});
+      view.toggleOption({context: options[1]});
+      view.toggleOption({context: options[2]});
       expect(view.get('config.value')).to.equal('3');
       view.restoreValue();
       expect(view.get('config.value')).to.equal('2,1');
-      expect(view.get('controller.removeCurrentFromDependentList')).to.be.called
+      expect(view.get('controller.removeCurrentFromDependentList')).to.be.called;
     });
 
   });

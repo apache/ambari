@@ -724,25 +724,36 @@ describe('App.config', function () {
       expect(App.config.createOverride.bind(App.config, null, {}, group)).to.throw(Error, 'serviceConfigProperty can\' be null');
     });
 
-    it('updates originalSCP object ', function() {
-      configProperty.set('overrides', null);
-      configProperty.set('overrideValues', []);
-      configProperty.set('overrideIsFinalValues', []);
+    describe('updates originalSCP object ', function() {
 
-      var overridenTemplate2 = {
-        value: "v12",
-        recommendedValue: "rv12",
-        savedValue: "sv12",
-        isFinal: true,
-        recommendedIsFinal: false,
-        savedIsFinal: false
-      };
+      var overridenTemplate2;
+      var override;
 
-      var override = App.config.createOverride(configProperty, overridenTemplate2, group);
+      beforeEach(function () {
+        configProperty.set('overrides', null);
+        configProperty.set('overrideValues', []);
+        configProperty.set('overrideIsFinalValues', []);
+        overridenTemplate2 = {
+          value: "v12",
+          recommendedValue: "rv12",
+          savedValue: "sv12",
+          isFinal: true,
+          recommendedIsFinal: false,
+          savedIsFinal: false
+        };
+        override = App.config.createOverride(configProperty, overridenTemplate2, group);
+      });
 
-      expect(configProperty.get('overrides')[0]).to.be.eql(override);
-      expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
-      expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
+      it('overrides.0 is valid', function () {
+        expect(configProperty.get('overrides')[0]).to.be.eql(override);
+      });
+      it('overrideValues is valid', function () {
+        expect(configProperty.get('overrideValues')).to.be.eql([overridenTemplate2.value]);
+      });
+      it('overrideIsFinalValues is valid', function () {
+        expect(configProperty.get('overrideIsFinalValues')).to.be.eql([overridenTemplate2.isFinal]);
+      });
+
     });
   });
 

@@ -273,6 +273,9 @@ describe('App.MainServiceController', function () {
 
   describe('#allServicesCall', function() {
 
+    var state = 'STARTED',
+      query = 'some query';
+
     beforeEach(function() {
       sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function(k) {
@@ -280,6 +283,9 @@ describe('App.MainServiceController', function () {
         if ('clusterName' === k) return 'tdk';
         return Em.get(App, k);
       });
+      mainServiceController.allServicesCall(state, query);
+      this.params = $.ajax.args[0][0];
+      this.data = JSON.parse(this.params.data);
     });
 
     afterEach(function() {
@@ -287,16 +293,17 @@ describe('App.MainServiceController', function () {
       App.get.restore();
     });
 
-    it('should do ajax-request', function() {
-      var state = 'STARTED',
-        query = 'some query';
-      mainServiceController.allServicesCall(state, query);
-      var params = $.ajax.args[0][0];
-      expect(params.type).to.equal('PUT');
-      expect(params.url.contains('/clusters/tdk/services?')).to.be.true;
-      var data = JSON.parse(params.data);
-      expect(data.Body.ServiceInfo.state).to.equal(state);
-      expect(data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
+    it('PUT request is sent', function() {
+      expect(this.params.type).to.equal('PUT');
+    });
+    it('request is sent to `/services`', function() {
+      expect(this.params.url.contains('/clusters/tdk/services?')).to.be.true;
+    });
+    it('Body.ServiceInfo.state is ' + state, function() {
+      expect(this.data.Body.ServiceInfo.state).to.equal(state);
+    });
+    it('RequestInfo.context is ' + query, function() {
+      expect(this.data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
     });
 
   });

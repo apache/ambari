@@ -295,23 +295,34 @@ describe('App.ServiceConfigRadioButtons', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        this.stub.withArgs('currentStackVersion').returns(item.currentStackVersion);
-        rangerVersion = item.rangerVersion;
-        view.reopen({controller: item.controller});
-        view.setProperties({
-          categoryConfigsAll: item.controller.get('selectedService.configs'),
-          serviceConfig: item.serviceConfig
+      describe(item.title, function () {
+
+        var additionalView1, additionalView2;
+        beforeEach(function () {
+          this.stub.withArgs('currentStackVersion').returns(item.currentStackVersion);
+          rangerVersion = item.rangerVersion;
+          view.reopen({controller: item.controller});
+          view.setProperties({
+            categoryConfigsAll: item.controller.get('selectedService.configs'),
+            serviceConfig: item.serviceConfig
+          });
+
+          additionalView1 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo1).get('additionalView');
+          additionalView2 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo2).get('additionalView');
         });
 
-        var additionalView1 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo1).get('additionalView'),
-          additionalView2 = view.get('categoryConfigsAll').findProperty('name', item.propertyAppendTo2).get('additionalView');
+        it('additionalView1 is ' + (item.isAdditionalView1Null ? '' : 'not') + ' null', function () {
+          expect(Em.isNone(additionalView1)).to.equal(item.isAdditionalView1Null);
+        });
 
-        expect(Em.isNone(additionalView1)).to.equal(item.isAdditionalView1Null);
-        expect(Em.isNone(additionalView2)).to.equal(item.isAdditionalView2Null);
+        it('additionalView2 is ' + (item.isAdditionalView2Null ? '' : 'not') + ' null', function () {
+          expect(Em.isNone(additionalView2)).to.equal(item.isAdditionalView2Null);
+        });
 
         if (!item.isAdditionalView2Null) {
-          expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.driver));
+          it('additionalView2.message is valid', function () {
+            expect(additionalView2.create().get('message')).to.equal(Em.I18n.t('services.service.config.database.msg.jdbcSetup').format(item.dbType, item.driver));
+          });
         }
 
       });

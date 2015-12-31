@@ -116,25 +116,27 @@ describe('App.WizardStep6Controller', function () {
   });
 
   describe('#selectAllNodes', function () {
+
+    var hostsObj = Em.A([Em.Object.create({
+      hasMaster: false,
+      isInstalled: false,
+      checkboxes: Em.A([
+        Em.Object.create({
+          title: 'l1',
+          component: 'name',
+          isInstalled: false,
+          checked: false
+        })
+      ])
+    })]);
+    var obj = Em.Object.create({
+      context: {
+        name: "name"
+      }
+    });
+    var clientComponents = Em.A([{component_name: "name1"}]);
+
     it('should make checkbox checked', function () {
-      var hostsObj = Em.A([Em.Object.create({
-        hasMaster: false,
-        isInstalled: false,
-        checkboxes: Em.A([
-          Em.Object.create({
-            title: 'l1',
-            component: 'name',
-            isInstalled: false,
-            checked: false
-          })
-        ])
-      })]);
-      var obj = Em.Object.create({
-        context: {
-          name: "name"
-        }
-      });
-      var clientComponents = Em.A([{component_name: "name1"}]);
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
       controller.selectAllNodes(obj);
@@ -154,25 +156,27 @@ describe('App.WizardStep6Controller', function () {
   });
 
   describe('#deselectAllNodes', function () {
+
+    var hostsObj = Em.A([Em.Object.create({
+      hasMaster: false,
+      isInstalled: false,
+      checkboxes: Em.A([
+        Em.Object.create({
+          title: 'l1',
+          component: 'name',
+          isInstalled: false,
+          checked: true
+        })
+      ])
+    })]);
+    var obj = Em.Object.create({
+      context: {
+        name: "name"
+      }
+    });
+    var clientComponents = Em.A([{component_name: "name1"}]);
+
     it('should uncheck checkbox', function () {
-      var hostsObj = Em.A([Em.Object.create({
-        hasMaster: false,
-        isInstalled: false,
-        checkboxes: Em.A([
-          Em.Object.create({
-            title: 'l1',
-            component: 'name',
-            isInstalled: false,
-            checked: true
-          })
-        ])
-      })]);
-      var obj = Em.Object.create({
-        context: {
-          name: "name"
-        }
-      });
-      var clientComponents = Em.A([{component_name: "name1"}]);
       controller.set('hosts', hostsObj);
       controller.set('content.clients', clientComponents);
       controller.deselectAllNodes(obj);
@@ -558,6 +562,31 @@ describe('App.WizardStep6Controller', function () {
   });
 
   describe('#updateValidationsSuccessCallback', function () {
+
+    var hosts = Em.A([Em.Object.create({
+      warnMessages: "warn",
+      errorMessages: "error",
+      anyMessage: true,
+      checkboxes: Em.A([Em.Object.create({
+        hasWarnMessage: true,
+        hasErrorMessage: true
+      })])
+    })]);
+
+    var validationData = Em.Object.create({
+      resources: Em.A([
+        Em.Object.create({
+          items: Em.A([
+            Em.Object.create({
+              "component-name": 'HDFS_CLIENT',
+              host: "1",
+              isMaster: true
+            })
+          ])
+        })
+      ])
+    });
+
     beforeEach(function () {
       sinon.stub(validationUtils, 'filterNotInstalledComponents', function () {
         return  Em.A([Em.Object.create({
@@ -626,51 +655,49 @@ describe('App.WizardStep6Controller', function () {
             })
           ];
         });
+      controller.set('hosts', hosts);
+      controller.updateValidationsSuccessCallback(validationData);
     });
+
     afterEach(function () {
       App.StackServiceComponent.find.restore();
       validationUtils.filterNotInstalledComponents.restore();
     });
-    it('should return modified hosts', function () {
-      var hosts = Em.A([Em.Object.create({
-        warnMessages: "warn",
-        errorMessages: "error",
-        anyMessage: true,
-        checkboxes: Em.A([Em.Object.create({
-          hasWarnMessage: true,
-          hasErrorMessage: true
-        })])
-      })]);
-      controller.set('hosts', hosts);
-      var validationData = Em.Object.create({
-          resources: Em.A([
-            Em.Object.create({
-              items: Em.A([
-                Em.Object.create({
-                  "component-name": 'HDFS_CLIENT',
-                  host: "1",
-                  isMaster: true
-                })
-              ])
-            })
-          ])
-      });
-      controller.updateValidationsSuccessCallback(validationData);
+
+    it('no generalErrorMessages', function () {
       expect(controller.get('generalErrorMessages').length).to.equal(0);
+    });
+
+    it('no generalWarningMessages', function () {
       expect(controller.get('generalWarningMessages').length).to.equal(0);
-      expect(JSON.parse(JSON.stringify(controller.get('hosts')))).to.eql(JSON.parse(JSON.stringify(Em.A([Em.Object.create({
+    });
+
+    it('hosts info is valid', function () {
+      var cHosts = JSON.parse(JSON.stringify(controller.get('hosts')));
+      var expected = [{
         warnMessages: [null],
         errorMessages: [null],
         anyMessage: true,
-        checkboxes: Em.A([Em.Object.create({
+        checkboxes: [{
           hasWarnMessage: true,
           hasErrorMessage: true
-        })])
-      })]))));
+        }]
+      }];
+      expect(cHosts).to.eql(expected);
     });
   });
 
   describe('#clearError', function () {
+
+    var headers = Em.A([
+      Em.Object.create({name: "c1", label: 't1'}),
+      Em.Object.create({name: "c2", label: 't2'})]);
+
+    beforeEach(function () {
+      controller.set('errorMessage', 'error');
+      controller.set('headers', headers);
+    });
+
     it('both checkboxes are checked', function () {
       var hosts = Em.A([
         Em.Object.create({
@@ -687,12 +714,8 @@ describe('App.WizardStep6Controller', function () {
             })])
         })
       ]);
-      var headers = Em.A([
-        Em.Object.create({name: "c1"}),
-        Em.Object.create({name: "c2"})]);
-      controller.set('errorMessage', 'error');
+
       controller.set('hosts', hosts);
-      controller.set('headers', headers);
       controller.clearError();
       expect(controller.get('errorMessage')).to.equal('');
     });
@@ -715,12 +738,8 @@ describe('App.WizardStep6Controller', function () {
             })])
         })
       ]);
-      var headers = Em.A([
-        Em.Object.create({name: "c1", label: 't1'}),
-        Em.Object.create({name: "c2", label: 't2'})]);
-      controller.set('errorMessage', 'error');
+
       controller.set('hosts', hosts);
-      controller.set('headers', headers);
       controller.set('isAddHostWizard', true);
       controller.clearError();
       expect(controller.get('errorMessage')).to.equal('error');
@@ -921,14 +940,23 @@ describe('App.WizardStep6Controller', function () {
           }
         }
       ]).forEach(function (test) {
-        it(test.m, function () {
-          controller.clearStep();
-          controller.set('headers', test.headers);
-          controller.set('hosts', test.hosts);
-          controller.checkCallback(test.component);
-          var header = controller.get('headers').findProperty('name', test.component);
-          expect(header.get('allChecked')).to.equal(test.e.allChecked);
-          expect(header.get('noChecked')).to.equal(test.e.noChecked);
+        describe(test.m, function () {
+
+          beforeEach(function () {
+            controller.clearStep();
+            controller.set('headers', test.headers);
+            controller.set('hosts', test.hosts);
+            controller.checkCallback(test.component);
+            this.header = controller.get('headers').findProperty('name', test.component);
+          });
+
+          it('allChecked is ' + test.e.allChecked, function () {
+            expect(this.header.get('allChecked')).to.equal(test.e.allChecked);
+          });
+
+          it('noChecked is ' + test.e.noChecked, function () {
+            expect(this.header.get('noChecked')).to.equal(test.e.noChecked);
+          });
         });
       });
   });

@@ -1208,8 +1208,7 @@ describe('App.WizardController', function () {
 
   describe('#enableStep', function () {
 
-    it('should update appropriate value in isStepDisabled', function () {
-
+    beforeEach(function () {
       c.set('isStepDisabled', [
         Em.Object.create({step: 1, value: true}),
         Em.Object.create({step: 2, value: true}),
@@ -1219,10 +1218,14 @@ describe('App.WizardController', function () {
         Em.Object.create({step: 6, value: true}),
         Em.Object.create({step: 7, value: true})
       ]);
+    });
 
+    it('should update 1st value in isStepDisabled', function () {
       c.enableStep(1);
       expect(c.get('isStepDisabled')[0].get('value')).to.be.false;
+    });
 
+    it('should update 6th value in isStepDisabled', function () {
       c.enableStep(7);
       expect(c.get('isStepDisabled')[6].get('value')).to.be.false;
     });
