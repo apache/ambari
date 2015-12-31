@@ -25,9 +25,10 @@ module.exports =
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
       App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'}),
       App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'}),
-      App.ServiceConfigCategory.create({ name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'})
+      App.ServiceConfigCategory.create({ name: 'AMBARI_METRICS', displayName: 'Ambari Metrics'}),
+      App.ServiceConfigCategory.create({ name: 'HAWQ', displayName: 'HAWQ'})
     ],
-    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site'],
+    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site', 'ams-hbase-site', 'hawq-site'],
     configs: [
     /**********************************************HDFS***************************************/
       {
@@ -249,6 +250,18 @@ module.exports =
         "category": "AMBARI_METRICS",
         "isVisible": false,
         "filename": "ams-hbase-site",
+        "serviceName": 'MISC'
+      },
+    /**********************************************HAWQ***************************************/
+      {
+        "name": "hawq_dfs_url",
+        "displayName": "hawq_dfs_url",
+        "description": "URL for Accessing HDFS",
+        "isReconfigurable": false,
+        "recommendedValue": "haCluster/hawq_default",
+        "value": "haCluster/hawq_default",
+        "category": "HAWQ",
+        "filename": "hawq-site",
         "serviceName": 'MISC'
       }
     ]

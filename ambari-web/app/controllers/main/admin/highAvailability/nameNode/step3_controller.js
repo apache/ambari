@@ -84,6 +84,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       urlParams.push('(type=ams-hbase-site&tag=' + amsHbaseSiteTag + ')');
       this.set("amsHbaseSiteTag", {name : "amsHbaseSiteTag", value : amsHbaseSiteTag});
     }
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      var hawqSiteTag = data.Clusters.desired_configs['hawq-site'].tag;
+      urlParams.push('(type=hawq-site&tag=' + hawqSiteTag + ')');
+      this.set("hawqSiteTag", {name : "hawqSiteTag", value : hawqSiteTag});
+    }
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -186,6 +191,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     if (App.get('isHadoopWindowsStack') && App.Service.find().someProperty('serviceName', 'HDFS')) {
      value = this.get('serverConfigData.items').findProperty('type', 'hdfs-site').properties['dfs.journalnode.edits.dir'];
      this.setConfigInitialValue(config, value);
+    }
+    if (App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      config = configs.filterProperty('filename', 'hawq-site').findProperty('name','hawq_dfs_url');
+      value = this.get('serverConfigData.items').findProperty('type', 'hawq-site').properties['hawq_dfs_url'].replace(/(^.*:[0-9]+)(?=\/)/, nameServiceId);
+      this.setConfigInitialValue(config,value);
     }
   },
 

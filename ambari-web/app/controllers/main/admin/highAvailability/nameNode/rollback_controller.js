@@ -34,6 +34,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     'stopAllServices',
     'restoreHBaseConfigs',
     'restoreAccumuloConfigs',
+    'restoreHawqConfigs',
     'stopFailoverControllers',
     'deleteFailoverControllers',
     'stopStandbyNameNode',
@@ -70,6 +71,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       'startAllServices',
       'reconfigureHBase',
       'reconfigureAccumulo',
+      'reconfigureHawq',
       'startZKFC',
       'installZKFC',
       'startSecondNameNode',
@@ -100,6 +102,10 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     var accumuloTask = this.get('tasks').findProperty('command', 'restoreAccumuloConfigs');
     if (!App.Service.find().someProperty('serviceName', 'ACCUMULO') && accumuloTask) {
       this.get('tasks').splice(accumuloTask.get('id'), 1);
+    }
+    var hawqTask = this.get('tasks').findProperty('command', 'restoreHawqConfigs');
+    if (!App.Service.find().someProperty('serviceName', 'HAWQ') && hawqTask) {
+      this.get('tasks').splice(hawqTask.get('id'), 1);
     }
   },
 
@@ -254,6 +260,19 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       error: 'onTaskError'
     });
   },
+  restoreHawqConfigs: function(){
+    this.loadConfigTag("hawqSiteTag");
+    var hawqSiteTag = this.get("content.hawqSiteTag");
+    App.ajax.send({
+      name: 'admin.high_availability.load_hawq_configs',
+      sender: this,
+      data: {
+        hawqSiteTag: hawqSiteTag
+      },
+      success: 'onLoadHawqConfigs',
+      error: 'onTaskError'
+    });
+  },
 
   stopFailoverControllers: function(){
     console.warn('func: stopFailoverControllers');
@@ -344,6 +363,19 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     });
   },
 
+  onLoadHawqConfigs: function (data) {
+    var hawqSiteProperties = data.items.findProperty('type', 'hawq-site').properties;
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'hawq-site',
+        properties: hawqSiteProperties
+      },
+      success: 'onTaskCompleted',
+      error: 'onTaskError'
+    });
+  },
   onDeletedHDFSClient: function () {
     console.warn('func: onDeletedHDFSClient');
     var deletedHdfsClients = this.get('deletedHdfsClients');

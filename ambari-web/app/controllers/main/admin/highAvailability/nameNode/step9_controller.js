@@ -22,10 +22,11 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'reconfigureAccumulo', 'deleteSNameNode', 'startAllServices'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'reconfigureAccumulo', 'reconfigureHawq', 'deleteSNameNode', 'startAllServices'],
 
   hbaseSiteTag: "",
   accumuloSiteTag: "",
+  hawqSiteTag: "",
 
   initializeTasks: function () {
     this._super();
@@ -36,6 +37,10 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
     }
     if (!App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
       this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureAccumulo').get('id') - numSpliced, 1);
+      numSpliced++ ;
+    }
+    if (!App.Service.find().someProperty('serviceName', 'HAWQ')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHawq').get('id') - numSpliced, 1);
     }
   },
 
@@ -71,6 +76,20 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   reconfigureAccumulo: function () {
     var data = this.get('content.serviceConfigProperties');
     var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+    App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'saveConfigTag',
+      error: 'onTaskError'
+    });
+  },
+
+  reconfigureHawq: function () {
+    var data = this.get('content.serviceConfigProperties');
+    var configData = this.reconfigureSites(['hawq-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
