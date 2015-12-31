@@ -253,6 +253,16 @@
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
     <value>61181</value>
+    <depends-on>
+      <property>
+        <type>zoo.cfg</type>
+        <name>clientPort</name>
+      </property>
+      <property>
+        <type>ams-hbase-site</type>
+        <name>hbase.cluster.distributed</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase.zookeeper.peerport</name>
