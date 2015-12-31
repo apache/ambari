@@ -18,8 +18,8 @@
 
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.3.*.*</target>
-  <target-stack>HDP-2.3</target-stack>
+  <target>2.4.*.*</target>
+  <target-stack>HDP-2.4</target-stack>
   <type>ROLLING</type>
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
@@ -37,9 +37,7 @@
 
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
-      <check-properties name="org.apache.ambari.server.checks.YarnTimelineServerStatePreservingCheck">
-        <property name="min-applicable-stack-version">HDP-2.2.4.2</property>
-      </check-properties>
+      <!--TODO: is it required? -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
       </check-properties>
@@ -576,7 +574,7 @@
     <service name="TEZ">
       <component name="TEZ_CLIENT">
         <pre-upgrade>
-          <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+          <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task" />
@@ -622,7 +620,7 @@
             <message>Please note that the HiveServer port will now change to 10010 if hive is using a binary transfer mode or 10011 if hive is using an http transport mode. You can use "netstat -anp | grep 1001[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_set_transport_mode"/>
+          <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_set_transport_mode"/>
         </pre-upgrade>
 
         <pre-downgrade>
@@ -631,7 +629,7 @@
             <message>Please note that the HiveServer port will now change to 10000 if hive is using a binary transfer mode or 10001 if hive is using an http transport mode. You can use "netstat -anp | grep 1000[01]" to determine if the port is available on each of following HiveServer host(s): {{hosts.all}}. If the port is not available, the process using it must be terminated.</message>
           </task>
 
-          <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_restore_transport_mode_on_downgrade" />
+          <task xsi:type="configure" id="hdp_2_4_0_0_hive_server_restore_transport_mode_on_downgrade" />
         </pre-downgrade>
 
         <upgrade>
@@ -724,15 +722,6 @@
 
     <service name="KAFKA">
       <component name="KAFKA_BROKER">
-        <!-- In HDP 2.3.4.0, Kafka had changes that required stopping all Kafka Brokers, running a migration script,
-        and then starting one at a time. This is needed during both upgrade and downgrade. -->
-        <pre-upgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Kafka Brokers">
-            <script>scripts/kafka_broker.py</script>
-            <function>stop</function>
-          </task>
-        </pre-upgrade>
-
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>

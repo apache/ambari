@@ -18,12 +18,13 @@
 
 
 <upgrade xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <target>2.3.*.*</target>
-  <target-stack>HDP-2.3</target-stack>
+  <target>2.4.*.*</target>
+  <target-stack>HDP-2.4</target-stack>
   <type>NON_ROLLING</type>
   <prerequisite-checks>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
+      <!--TODO: is it required? -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
       </check-properties>
@@ -66,12 +67,8 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
       <service-check>false</service-check>
-
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
-      </service>
+      <parallel-scheduler/>
 
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
@@ -83,7 +80,7 @@
         <component>ACCUMULO_TSERVER</component>
         <component>ACCUMULO_MONITOR</component>
         <component>ACCUMULO_MASTER</component>
-      </service>
+      </service>      
 
       <service name="STORM">
         <component>DRPC_SERVER</component>
@@ -148,7 +145,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -171,25 +168,18 @@
           <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
-
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service-check>false</service-check>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
 
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
-        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="HDFS">
@@ -198,16 +188,11 @@
         <component>SECONDARY_NAMENODE</component>
         <component>ZKFC</component>
         <component>JOURNALNODE</component>
-        <component>NFS_GATEWAY</component>
       </service>
 
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
-      </service>
-
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -236,7 +221,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /usr/hdp/$(old_version)/knox/data/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /var/lib/knox/data/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -245,13 +230,6 @@
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
-
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Restore Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please restore Ranger KMS database</message>
-        </task>
-      </execute-stage>
-
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
@@ -265,10 +243,22 @@
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
       <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
-        <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
+        <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
       </execute-stage>
+
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
+        <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
+      </execute-stage>
+
+      <!-- KAFKA  -->
+      <!--TODO: remove? Used for non-rolling upgrade only-->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
+        <task xsi:type="configure" id ="hdp_2_4_0_0_kafka_broker_listeners"/>
+      </execute-stage>
+
     </group>
 
     <!-- Now, restart all of the services. -->
@@ -278,7 +268,7 @@
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>true</service-check>
+        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -295,16 +285,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -315,7 +295,6 @@
         <component>ZKFC</component>
         <component>NAMENODE</component>
         <component>SECONDARY_NAMENODE</component>
-        <component>NFS_GATEWAY</component>
         <component>HDFS_CLIENT</component>
       </service>
     </group>
@@ -379,7 +358,6 @@
         <component>HBASE_MASTER</component>
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_CLIENT</component>
-        <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
@@ -389,10 +367,6 @@
       <parallel-scheduler/>
       <service name="TEZ">
         <component>TEZ_CLIENT</component>
-      </service>
-
-      <service name="MAHOUT">
-        <component>MAHOUT</component>
       </service>
 
       <service name="PIG">
@@ -436,7 +410,6 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
-        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
@@ -446,16 +419,6 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
-      </service>
-    </group>
-
-    <group xsi:type="restart" name="ATLAS" title="Atlas">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
       </service>
     </group>
 
@@ -575,7 +538,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -668,14 +631,6 @@
       </component>
     </service>
 
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -702,12 +657,6 @@
       </component>
 
       <component name="ZKFC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="NFS_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -776,14 +725,6 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="MAHOUT">
-      <component name="MAHOUT">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -910,65 +851,93 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+        
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DRPC_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
 
-    <service name="ACCUMULO">
-      <component name="ACCUMULO_MASTER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
-      </component>
 
-      <component name="ACCUMULO_TSERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_MONITOR">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_GC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_TRACER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+          </task>
+        </post-upgrade>
       </component>
     </service>
 
@@ -986,15 +955,6 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
-    </service>
-
-    <service name="ATLAS">
-      <component name="ATLAS_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
     </service>
   </processing>
 </upgrade>
