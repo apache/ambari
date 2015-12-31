@@ -92,6 +92,7 @@ angular.module('ambariAdminConsole')
     $scope.currentNameFilter = '';
     $scope.currentTypeFilter = $scope.typeFilterOptions[0];
     $scope.currentActiveFilter = $scope.activeFilterOptions[0];
+    $scope.adminFilter = false;
     $scope.resetPagination();
   };
 
@@ -100,7 +101,7 @@ angular.module('ambariAdminConsole')
   $scope.$watch(
     function (scope) {
       return Boolean(scope.currentNameFilter || (scope.currentActiveFilter && scope.currentActiveFilter.value !== '*')
-        || (scope.currentTypeFilter && scope.currentTypeFilter.value !== '*'));
+        || (scope.currentTypeFilter && scope.currentTypeFilter.value !== '*') || $scope.adminFilter);
     },
     function (newValue, oldValue, scope) {
       scope.isNotEmptyFilter = newValue;
