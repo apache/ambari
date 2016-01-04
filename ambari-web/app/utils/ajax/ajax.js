@@ -2178,6 +2178,28 @@ var urls = {
     }
   },
 
+  'restart.staleConfigs': {
+    'real': "/clusters/{clusterName}/requests",
+    'mock': "",
+    'format': function () {
+      return {
+        type: 'POST',
+        data: JSON.stringify({
+          "RequestInfo": {
+            "command": "RESTART",
+            "context": "Restart all required services",
+            "operation_level": "host_component"
+          },
+          "Requests/resource_filters": [
+            {
+              "hosts_predicate": "HostRoles/stale_configs=true"
+            }
+          ]
+        })
+      }
+    }
+  },
+
   'bulk_request.decommission': {
     'real': '/clusters/{clusterName}/requests',
     'mock': '',

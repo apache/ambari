@@ -300,20 +300,15 @@ App.MainServiceController = Em.ArrayController.extend({
    */
   restartAllRequired: function () {
     var self = this;
-    var servicesList = [];
-    var hostComponentsToRestart = [];
     if (!this.get('isRestartAllRequiredDisabled')) {
-      App.HostComponent.find().filterProperty('staleConfigs').forEach(function (hostComponent) {
-        hostComponentsToRestart.push({
-          component_name: hostComponent.get('componentName'),
-          service_name: hostComponent.get('service.serviceName'),
-          hosts: hostComponent.get('hostName')
-        });
-        servicesList.push(hostComponent.get('service.displayName'));
-      });
       return App.showConfirmationPopup(function () {
-        self.restartHostComponents(hostComponentsToRestart);
-      }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(servicesList.uniq().join(', ')), null, null, Em.I18n.t('services.service.restartAll.confirmButton'));
+            self.restartHostComponents();
+          }, Em.I18n.t('services.service.refreshAll.confirmMsg').format(
+              App.HostComponent.find().filterProperty('staleConfigs').mapProperty('service.displayName').uniq().join(', ')),
+          null,
+          null,
+          Em.I18n.t('services.service.restartAll.confirmButton')
+      );
     } else {
       return null;
     }
@@ -323,18 +318,10 @@ App.MainServiceController = Em.ArrayController.extend({
    * Send request restart host components from hostComponentsToRestart
    * @returns {$.ajax}
    */
-  restartHostComponents: function (hostComponentsToRestart) {
+  restartHostComponents: function () {
     App.ajax.send({
-      name: 'restart.hostComponents',
+      name: 'restart.staleConfigs',
       sender: this,
-      data: {
-        context: 'Restart all required services',
-        resource_filters: hostComponentsToRestart,
-        operation_level: {
-          level: "CLUSTER",
-          cluster_name: App.get('clusterName')
-        }
-      },
       success: 'restartAllRequiredSuccessCallback'
     });
   },

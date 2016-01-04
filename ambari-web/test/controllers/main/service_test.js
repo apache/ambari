@@ -396,18 +396,7 @@ describe('App.MainServiceController', function () {
       popup = mainServiceController.restartAllRequired();
       popup.onPrimary();
       expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
-      expect(mainServiceController.restartHostComponents.calledWith([
-        {
-          component_name: 'componentName1',
-          service_name: 'serviceName1',
-          hosts: 'hostName1'
-        },
-        {
-          component_name: 'componentName2',
-          service_name: 'serviceName2',
-          hosts: 'hostName2'
-        }
-      ])).to.be.true;
+      expect(mainServiceController.restartHostComponents.calledOnce).to.be.true;
     });
 
     it('should not open popup if isRestartAllRequiredDisabled is true', function(){
