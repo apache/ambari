@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert) {
+.controller('StackVersionsEditCtrl', ['$scope', '$location', 'Cluster', 'Stack', '$routeParams', 'ConfirmationModal', 'Alert', '$translate', function($scope, $location, Cluster, Stack, $routeParams, ConfirmationModal, Alert, $translate) {
+  var $t = $translate.instant;
   $scope.editController = true;
   $scope.osList = [];
   $scope.skipValidation = false;
@@ -104,7 +105,7 @@ angular.module('ambariAdminConsole')
       $scope.osList = osList;
     })
     .catch(function (data) {
-      Alert.error('getSupportedOSList error', data.message);
+      Alert.error($t('versions.alerts.osListError'), data.message);
     });
   };
 
@@ -129,7 +130,11 @@ angular.module('ambariAdminConsole')
       }
     });
     if (updateRepoUrl && !$scope.deleteEnabled) {
-      ConfirmationModal.show('Confirm Base URL Change', 'You are about to change repository Base URLs that are already in use. Please confirm that you intend to make this change and that the new Base URLs point to the same exact Stack version and build', "Confirm Change").then(function() {
+      ConfirmationModal.show(
+          $t('versions.changeBaseURLConfirmation.title'),
+          $t('versions.changeBaseURLConfirmationTip.message'),
+          $t('common.controls.confirmChange')
+      ).then(function() {
         $scope.updateRepoVersions();
       });
     } else {
@@ -145,10 +150,14 @@ angular.module('ambariAdminConsole')
     return Stack.validateBaseUrls($scope.skipValidation, $scope.osList, upgradeStack).then(function (invalidUrls) {
       if (invalidUrls.length === 0) {
         Stack.updateRepo($scope.stackName, $scope.stackVersion, $scope.id, $scope.updateObj).then(function () {
-          Alert.success('Edited version <a href="#/stackVersions/' + $scope.stackName + '/' + $scope.versionName + '/edit">' + $scope.displayName + '</a>');
+          Alert.success($t('versions.alerts.versionEdited', {
+            stackName: $scope.stackName,
+            versionName: $scope.versionName,
+            displayName: $scope.displayName
+          }));
           $location.path('/stackVersions');
         }).catch(function (data) {
-          Alert.error('Version update error', data.message);
+          Alert.error($t('versions.alerts.versionUpdateError'), data.message);
         });
       } else {
         Stack.highlightInvalidUrls(invalidUrls);
@@ -174,12 +183,17 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.delete = function () {
-    ConfirmationModal.show('Deregister Version', { "url": 'views/modals/BodyForDeregisterVersion.html',
-      "scope": {"displayName": $scope.displayName }}).then(function() {
+    ConfirmationModal.show(
+      $t('versions.deregister'),
+      {
+        "url": 'views/modals/BodyForDeregisterVersion.html',
+        "scope": {"displayName": $scope.displayName }
+      }
+    ).then(function() {
       Stack.deleteRepo($scope.stackName, $scope.stackVersion, $scope.id).then( function () {
         $location.path('/stackVersions');
       }).catch(function (data) {
-        Alert.error('Version delete error', data.message);
+        Alert.error($t('versions.alerts.versionDeleteError'), data.message);
       });
     });
   };

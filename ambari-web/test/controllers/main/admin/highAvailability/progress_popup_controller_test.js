@@ -44,13 +44,32 @@ describe('App.HighAvailabilityProgressPopupController', function () {
       App.updater.immediateRun.restore();
     });
 
-    it('should start task polling', function () {
-      controller.startTaskPolling(1, 2);
-      expect(controller.get('isTaskPolling')).to.be.true;
-      expect(controller.get('taskInfo.id'), 2);
-      expect(controller.get('taskInfo.requestId'), 1);
-      expect(App.updater.run.calledOnce).to.be.true;
-      expect(App.updater.immediateRun.calledOnce).to.be.true;
+    describe('should start task polling', function () {
+
+      beforeEach(function () {
+        controller.startTaskPolling(1, 2);
+      });
+
+      it('isTaskPolling = true', function () {
+        expect(controller.get('isTaskPolling')).to.be.true;
+      });
+
+      it('taskInfo.id = 2', function () {
+        expect(controller.get('taskInfo.id'), 2);
+      });
+
+      it('taskInfo.requestId = 1', function () {
+        expect(controller.get('taskInfo.requestId'), 1);
+      });
+
+      it('App.updater.run is called once', function () {
+        expect(App.updater.run.calledOnce).to.be.true;
+      });
+
+      it('App.updater.immediateRun is called once', function () {
+        expect(App.updater.immediateRun.calledOnce).to.be.true;
+      });
+
     });
 
   });
@@ -125,17 +144,36 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
     cases.forEach(function (item) {
       var message = title.format(item.isTaskPolling ? '' : 'not ', item.status);
-      it(message, function () {
-        controller.updateTaskSuccessCallback({
-          Tasks: $.extend(tasks, {
-            status: item.status
-          })
+      describe(message, function () {
+
+        beforeEach(function () {
+          controller.updateTaskSuccessCallback({
+            Tasks: $.extend(tasks, {
+              status: item.status
+            })
+          });
         });
-        expect(controller.get('taskInfo.stderr')).to.equal('error');
-        expect(controller.get('taskInfo.stdout')).to.equal('output');
-        expect(controller.get('taskInfo.outputLog')).to.equal('output-log.txt');
-        expect(controller.get('taskInfo.errorLog')).to.equal('error-log.txt');
-        expect(controller.get('isTaskPolling')).to.equal(item.isTaskPolling);
+
+        it('stderr is valid', function () {
+          expect(controller.get('taskInfo.stderr')).to.equal('error');
+        });
+
+        it('stdout is valid', function () {
+          expect(controller.get('taskInfo.stdout')).to.equal('output');
+        });
+
+        it('outputLog is valid', function () {
+          expect(controller.get('taskInfo.outputLog')).to.equal('output-log.txt');
+        });
+
+        it('errorLog is valid', function () {
+          expect(controller.get('taskInfo.errorLog')).to.equal('error-log.txt');
+        });
+
+        it('isTaskPolling is valid', function () {
+          expect(controller.get('isTaskPolling')).to.equal(item.isTaskPolling);
+        });
+
       });
     });
 
@@ -171,17 +209,36 @@ describe('App.HighAvailabilityProgressPopupController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        controller.setProperties({
-          requestIds: [1, 2],
-          stageId: item.stageId
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          controller.setProperties({
+            requestIds: [1, 2],
+            stageId: item.stageId
+          });
+          controller.getHosts();
         });
-        controller.getHosts();
-        expect(App.ajax.send.calledTwice).to.be.true;
-        expect(App.ajax.send.firstCall.args[0].name).to.equal(item.name);
-        expect(App.ajax.send.secondCall.args[0].name).to.equal(item.name);
-        expect(App.ajax.send.firstCall.args[0].data.stageId).to.eql(item.stageIdPassed);
-        expect(App.ajax.send.secondCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+
+        it('two requests are sent', function () {
+          expect(App.ajax.send.calledTwice).to.be.true;
+        });
+
+        it('1st call name is valid', function () {
+          expect(App.ajax.send.firstCall.args[0].name).to.equal(item.name);
+        });
+
+        it('2nd call name is valid', function () {
+          expect(App.ajax.send.secondCall.args[0].name).to.equal(item.name);
+        });
+
+        it('1st stageId is valid', function () {
+          expect(App.ajax.send.firstCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+        });
+
+        it('2nd stageId is valid', function () {
+          expect(App.ajax.send.secondCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+        });
+
       });
     });
 

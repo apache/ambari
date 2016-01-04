@@ -82,7 +82,7 @@ SRVR_ONE_WAY_SSL_PORT = "8440"
 GANGLIA_HTTPS = 'ganglia.https'
 
 
-def get_truststore_path(properties):
+def get_and_persist_truststore_path(properties):
   truststore_path = properties.get_property(SSL_TRUSTSTORE_PATH_PROPERTY)
   if not truststore_path:
     SSL_TRUSTSTORE_PATH_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_PATH_PROPERTY)
@@ -98,7 +98,7 @@ def get_truststore_path(properties):
 
   return truststore_path
 
-def get_truststore_type(properties):
+def get_and_persist_truststore_type(properties):
   truststore_type = properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)
   if not truststore_type:
     SSL_TRUSTSTORE_TYPE_DEFAULT = get_value_from_properties(properties, SSL_TRUSTSTORE_TYPE_PROPERTY, "jks")
@@ -113,7 +113,7 @@ def get_truststore_type(properties):
 
   return truststore_type
 
-def get_truststore_password(properties):
+def get_and_persist_truststore_password(properties):
   truststore_password = properties.get_property(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
   isSecure = get_is_secure(properties)
   if truststore_password:
@@ -462,9 +462,19 @@ def setup_truststore(import_cert=False):
     properties = get_ambari_properties()
 
     if get_YN_input("Do you want to configure a truststore [y/n] (y)? ", True):
-      truststore_type = get_truststore_type(properties)
-      truststore_path = get_truststore_path(properties)
-      truststore_password = get_truststore_password(properties)
+
+      #Re-configuration enabled only for option "Setup truststore"
+      if not import_cert and properties.get_property(SSL_TRUSTSTORE_TYPE_PROPERTY)\
+        and get_YN_input(
+            "The truststore is already configured. Do you want to re-configure "
+            "the truststore [y/n] (y)? ", True):
+        properties.removeProp(SSL_TRUSTSTORE_TYPE_PROPERTY)
+        properties.removeProp(SSL_TRUSTSTORE_PATH_PROPERTY)
+        properties.removeProp(SSL_TRUSTSTORE_PASSWORD_PROPERTY)
+
+      truststore_type = get_and_persist_truststore_type(properties)
+      truststore_path = get_and_persist_truststore_path(properties)
+      truststore_password = get_and_persist_truststore_password(properties)
 
       if import_cert:
 

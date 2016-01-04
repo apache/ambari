@@ -22,7 +22,7 @@ angular.module('ambariAdminConsole')
 
 	return function(){
 		var modalInstance = $modal.open({
-      template: '<div class="modal-header"><h3 class="modal-title">Warning</h3></div><div class="modal-body">You have unsaved changes. Save changes or discard?</div><div class="modal-footer"><div class="btn btn-default" ng-click="cancel()">Cancel</div><div class="btn btn-warning" ng-click="discard()">Discard</div><div class="btn btn-primary" ng-click="save()">Save</div></div>',
+      template: '<div class="modal-header"><h3 class="modal-title">{{"common.warning" | translate}}</h3></div><div class="modal-body">{{"common.alerts.unsavedChanges" | translate}}</div><div class="modal-footer"><div class="btn btn-default" ng-click="cancel()">{{"common.controls.cancel" | translate}}</div><div class="btn btn-warning" ng-click="discard()">{{"common.controls.discard" | translate}}</div><div class="btn btn-primary" ng-click="save()">{{"common.controls.save" | translate}}</div></div>',
       controller: ['$scope', '$modalInstance', function($scope, $modalInstance) {
         $scope.save = function() {
           $modalInstance.close('save');

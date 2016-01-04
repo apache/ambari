@@ -51,18 +51,24 @@ describe('App.DataNodeUpView', function() {
     }
   ];
 
-  tests.forEach(function(test) {
-    describe('', function() {
+  tests.forEach(function(test, index) {
+
+    describe('test#' + (index + 1), function () {
+
       var dataNodeUpView = App.DataNodeUpView.create({model_type:null, data: test.data, content: test.data.toString()});
+
       it('isRed', function() {
         expect(dataNodeUpView.get('isRed')).to.equal(test.e.isRed);
       });
+
       it('isOrange', function() {
         expect(dataNodeUpView.get('isOrange')).to.equal(test.e.isOrange);
       });
+
       it('isGreen', function() {
         expect(dataNodeUpView.get('isGreen')).to.equal(test.e.isGreen);
       });
+
     });
   });
 

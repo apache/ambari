@@ -124,18 +124,28 @@ describe('App.MainServiceController', function () {
         e: null
       }
     ]).forEach(function(test) {
-        it(test.m, function() {
-          sinon.stub(App.router, 'get', function(k) {
-            if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
-            return Em.get(App.router, k);
+        describe(test.m, function() {
+
+          beforeEach(function () {
+            sinon.stub(App.router, 'get', function(k) {
+              if ('clusterController.isClusterDataLoaded' === k) return test.isLoaded;
+              return Em.get(App.router, k);
+            });
+            sinon.stub(App.Cluster, 'find', function() {
+              return [test.e];
+            });
           });
-          sinon.stub(App.Cluster, 'find', function() {
-            return [test.e];
+
+          afterEach(function () {
+            App.router.get.restore();
+            App.Cluster.find.restore();
           });
-          var c = mainServiceController.get('cluster');
-          App.router.get.restore();
-          App.Cluster.find.restore();
-          expect(c).to.eql(test.e);
+
+          it('cluster is valid', function () {
+            var c = mainServiceController.get('cluster');
+            expect(c).to.eql(test.e);
+          });
+
         });
       });
 
@@ -220,28 +230,38 @@ describe('App.MainServiceController', function () {
       expect(Em.I18n.t.calledWith('services.service.stop.confirmButton')).to.be.ok;
     });
 
-    it ("should check last checkpoint for NN before confirming stop", function() {
-      var mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
-        return true;
+    describe("should check last checkpoint for NN before confirming stop", function() {
+      var mainServiceItemController;
+      beforeEach(function() {
+        mainServiceItemController = App.MainServiceItemController.create({});
+        sinon.stub(mainServiceItemController, 'checkNnLastCheckpointTime', function() {
+          return true;
+        });
+        sinon.stub(App.router, 'get', function(k) {
+          if ('mainServiceItemController' === k) {
+            return mainServiceItemController;
+          }
+          return Em.get(App.router, k);
+        });
+        sinon.stub(App.Service, 'find', function() {
+          return [{
+            serviceName: "HDFS",
+            workStatus: "STARTED"
+          }];
+        });
       });
-      sinon.stub(App.router, 'get', function(k) {
-        if ('mainServiceItemController' === k) {
-          return mainServiceItemController;
-        }
-        return Em.get(App.router, k);
+
+      afterEach(function () {
+        mainServiceItemController.checkNnLastCheckpointTime.restore();
+        App.router.get.restore();
+        App.Service.find.restore();
       });
-      sinon.stub(App.Service, 'find', function() {
-        return [{
-          serviceName: "HDFS",
-          workStatus: "STARTED"
-        }];
+
+      it('checkNnLastCheckpointTime is called once', function () {
+        mainServiceController.startStopAllService(event, "INSTALLED");
+        expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
       });
-      mainServiceController.startStopAllService(event, "INSTALLED");
-      expect(mainServiceItemController.checkNnLastCheckpointTime.calledOnce).to.equal(true);
-      mainServiceItemController.checkNnLastCheckpointTime.restore();
-      App.router.get.restore();
-      App.Service.find.restore();
+
     });
 
     it ("should confirm start if state is not INSTALLED", function() {
@@ -253,6 +273,9 @@ describe('App.MainServiceController', function () {
 
   describe('#allServicesCall', function() {
 
+    var state = 'STARTED',
+      query = 'some query';
+
     beforeEach(function() {
       sinon.stub($, 'ajax', Em.K);
       sinon.stub(App, 'get', function(k) {
@@ -260,6 +283,9 @@ describe('App.MainServiceController', function () {
         if ('clusterName' === k) return 'tdk';
         return Em.get(App, k);
       });
+      mainServiceController.allServicesCall(state, query);
+      this.params = $.ajax.args[0][0];
+      this.data = JSON.parse(this.params.data);
     });
 
     afterEach(function() {
@@ -267,16 +293,17 @@ describe('App.MainServiceController', function () {
       App.get.restore();
     });
 
-    it('should do ajax-request', function() {
-      var state = 'STARTED',
-        query = 'some query';
-      mainServiceController.allServicesCall(state, query);
-      var params = $.ajax.args[0][0];
-      expect(params.type).to.equal('PUT');
-      expect(params.url.contains('/clusters/tdk/services?')).to.be.true;
-      var data = JSON.parse(params.data);
-      expect(data.Body.ServiceInfo.state).to.equal(state);
-      expect(data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
+    it('PUT request is sent', function() {
+      expect(this.params.type).to.equal('PUT');
+    });
+    it('request is sent to `/services`', function() {
+      expect(this.params.url.contains('/clusters/tdk/services?')).to.be.true;
+    });
+    it('Body.ServiceInfo.state is ' + state, function() {
+      expect(this.data.Body.ServiceInfo.state).to.equal(state);
+    });
+    it('RequestInfo.context is ' + query, function() {
+      expect(this.data.RequestInfo.context).to.equal(App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES);
     });
 
   });
@@ -369,18 +396,7 @@ describe('App.MainServiceController', function () {
       popup = mainServiceController.restartAllRequired();
       popup.onPrimary();
       expect(App.showConfirmationPopup.args[0][1]).to.equal(Em.I18n.t('services.service.refreshAll.confirmMsg').format('displayName1, displayName2'));
-      expect(mainServiceController.restartHostComponents.calledWith([
-        {
-          component_name: 'componentName1',
-          service_name: 'serviceName1',
-          hosts: 'hostName1'
-        },
-        {
-          component_name: 'componentName2',
-          service_name: 'serviceName2',
-          hosts: 'hostName2'
-        }
-      ])).to.be.true;
+      expect(mainServiceController.restartHostComponents.calledOnce).to.be.true;
     });
 
     it('should not open popup if isRestartAllRequiredDisabled is true', function(){

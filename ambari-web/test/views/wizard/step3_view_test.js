@@ -352,14 +352,20 @@ describe('App.WizardStep3View', function () {
   });
 
   describe('#hostBootStatusObserver', function() {
-    it('should call "Em.run.once" three times', function() {
+
+    beforeEach(function () {
       sinon.spy(Em.run, 'once');
       view.hostBootStatusObserver();
-      expect(Em.run.once.calledThrice).to.equal(true);
+    });
+
+    afterEach(function () {
+      Em.run.once.restore();
+    });
+
+    it('should call "Em.run.once" three times', function() {
       expect(Em.run.once.firstCall.args[1]).to.equal('countCategoryHosts');
       expect(Em.run.once.secondCall.args[1]).to.equal('filter');
       expect(Em.run.once.thirdCall.args[1]).to.equal('monitorStatuses');
-      Em.run.once.restore();
     });
   });
 
@@ -397,12 +403,19 @@ describe('App.WizardStep3View', function () {
   });
 
   describe('#watchSelectionOnce', function() {
-    it('should call "Em.run.once" one time', function() {
+
+    beforeEach(function () {
       sinon.spy(Em.run, 'once');
       view.watchSelectionOnce();
+    });
+
+    afterEach(function () {
+      Em.run.once.restore();
+    });
+
+    it('should call "Em.run.once" one time', function() {
       expect(Em.run.once.calledOnce).to.equal(true);
       expect(Em.run.once.firstCall.args[1]).to.equal('watchSelection');
-      Em.run.once.restore();
     });
   });
 

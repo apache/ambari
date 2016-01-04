@@ -620,7 +620,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       App.QuickViewLinks.proto().loadTags();
     }
     this.showSaveConfigsPopup(header, flag, message, messageClass, value, status, urlParams);
-    this.clearDependentConfigs();
+    this.clearAllRecommendations();
   },
 
   /**

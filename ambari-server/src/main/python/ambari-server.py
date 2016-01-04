@@ -316,6 +316,8 @@ def init_parser_options(parser):
                     help="Database user password")
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
                     help="Specifies the path to the JDBC driver JAR file")
+  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
+  parser.add_option('--skip-database-validation', action="store_true", default=False, help="Skip database consistency validation", dest="skip_database_validation")
   # -b and -i the remaining available short options
   # -h reserved for help
 
@@ -380,6 +382,8 @@ def init_parser_options(parser):
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")
   parser.add_option('--version-display-name', default=None, help="Display name of desired repo version", dest="desired_repo_version")
+  parser.add_option('--skip-properties-validation', action="store_true", default=False, help="Skip properties file validation", dest="skip_properties_validation")
+  parser.add_option('--skip-database-validation', action="store_true", default=False, help="Skip database consistency validation", dest="skip_database_validation")
   parser.add_option('--force-version', action="store_true", default=False, help="Force version to current", dest="force_repo_version")
   parser.add_option('--version', dest="stack_versions", default=None, action="append", type="string",
                     help="Specify stack version that needs to be enabled. All other stacks versions will be disabled")

@@ -73,33 +73,24 @@ describe('App.ToggleConfigWidgetView', function () {
 
   describe('#isValueCompatibleWithWidget', function () {
 
-    Em.A([
-      {
-        m: 'valid',
-        v: 'active',
-        e: true
-      },
-      {
-        m: 'invalid',
-        v: 'invalid',
-        e: false
-      }
-    ]).forEach(function (test) {
-      it(test.m, function () {
-        this.view.get('config').setProperties({
-          value: test.v,
-          isValid: true
-        });
-        expect(this.view.isValueCompatibleWithWidget()).to.equal(test.e);
-        if (test.e) {
-          expect(this.view.get('warnMessage')).to.equal('');
-          expect(this.view.get('issueMessage')).to.equal('');
-        }
-        else {
-          expect(this.view.get('warnMessage')).to.have.property('length').that.is.least(1);
-          expect(this.view.get('issueMessage')).to.have.property('length').that.is.least(1);
-        }
+    it('valid', function () {
+      this.view.get('config').setProperties({
+        value: 'active',
+        isValid: true
       });
+      expect(this.view.isValueCompatibleWithWidget()).to.be.true;
+      expect(this.view.get('warnMessage')).to.equal('');
+      expect(this.view.get('issueMessage')).to.equal('');
+    });
+
+    it('invalid', function () {
+      this.view.get('config').setProperties({
+        value: 'invalid',
+        isValid: true
+      });
+      expect(this.view.isValueCompatibleWithWidget()).to.be.false;
+      expect(this.view.get('warnMessage')).to.be.not.empty;
+      expect(this.view.get('issueMessage')).to.be.not.empty;
     });
 
   });

@@ -114,6 +114,10 @@ App.UpgradeVersionBoxView = Em.View.extend({
       text: Em.I18n.t('admin.stackVersions.version.installNow'),
       action: 'installRepoVersionConfirmation'
     },
+    'LOADING': {
+      isSpinner: true,
+      class: 'spinner'
+    },
     'INSTALLING': {
       iconClass: 'icon-cog',
       isLink: true,
@@ -141,6 +145,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   stateElement: function () {
     var currentVersion = this.get('controller.currentVersion');
     var statePropertiesMap = this.get('statePropertiesMap');
+    var requestInProgressRepoId = this.get('controller.requestInProgressRepoId');
     var status = this.get('content.status');
     var element = Em.Object.create({
       status: status,
@@ -157,7 +162,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.setProperties(statePropertiesMap[status]);
     }
     else if (status === 'INIT') {
-      element.setProperties(statePropertiesMap[status]);
+      requestInProgressRepoId && requestInProgressRepoId == this.get('content.id') ? element.setProperties(statePropertiesMap['LOADING']) : element.setProperties(statePropertiesMap[status]);
       element.set('isDisabled', this.get('controller.requestInProgress') || isInstalling);
     }
     else if ((status === 'INSTALLED' && !this.get('isUpgrading')) ||
@@ -221,6 +226,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     'controller.isDowngrade',
     'isUpgrading',
     'controller.requestInProgress',
+    'controller.requestInProgressRepoId',
     'parentView.repoVersions.@each.status'
   ),
 

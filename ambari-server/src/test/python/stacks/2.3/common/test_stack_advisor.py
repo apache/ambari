@@ -152,6 +152,19 @@ class TestHDP23StackAdvisor(TestCase):
     self.assertFalse('HAWQSEGMENT' in recommendedComponents)
 
 
+  def test_createComponentLayoutRecommendations_pxf_co_locate_with_namenode_or_datanode(self):
+    """ Test that PXF gets recommended on same host group which has NAMENODE or DATANODE"""
+
+    services = self.load_json("services-pxf-hdfs.json")
+    hosts = self.load_json("hosts-3-hosts.json")
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+
+    for hostgroup in recommendations["blueprint"]["host_groups"]:
+      component_names = [component["name"] for component in hostgroup["components"]]
+      if "NAMENODE" in component_names or "DATANODE" in component_names:
+        self.assertTrue("PXF" in component_names)
+
+
   def fqdn_mock_result(value=None):
       return 'c6401.ambari.apache.org' if value is None else value
 
@@ -284,13 +297,34 @@ class TestHDP23StackAdvisor(TestCase):
 
 
   def test_recommendHDFSConfigurations(self):
-    configurations = {}
+    configurations = {
+      "hdfs-site": {
+        "properties": {
+          "dfs.namenode.inode.attributes.provider.class": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
+        }
+      },
+      "ranger-hdfs-plugin-properties": {
+        "properties": {
+          "ranger-hdfs-plugin-enabled": "No"
+        }
+      }
+    }
     clusterData = {
       "totalAvailableRam": 2048,
       "hBaseInstalled": True,
       "hbaseRam": 112,
       "reservedRam": 128
     }
+    hosts = {
+      "items": [
+        {
+          "Hosts": {
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
+          }
+        }]}
     services = {
       "services":
         [
@@ -298,35 +332,26 @@ class TestHDP23StackAdvisor(TestCase):
             "StackServices": {
               "service_name" : "HDFS",
               "service_version" : "2.6.0.2.2"
-            }
+            },
+            "components": [
+            ]
           }
         ],
       "Versions": {
         "stack_version": "2.3"
       },
-      "configurations": {
-        "hdfs-site": {
-          "properties": {
-            "dfs.namenode.inode.attributes.provider.class": "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer"
-          }
-        },
-        "ranger-hdfs-plugin-properties": {
-          "properties": {
-            "ranger-hdfs-plugin-enabled": "No"
-          }
-        }
-      }
+      "configurations": configurations
     }
 
     # Test with Ranger HDFS plugin disabled
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hdfs-site']['property_attributes']['dfs.namenode.inode.attributes.provider.class'], {'delete': 'true'}, "Test with Ranger HDFS plugin is disabled")
 
     # Test with Ranger HDFS plugin is enabled
     configurations['hdfs-site']['properties'] = {}
     configurations['hdfs-site']['property_attributes'] = {}
     services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled'] = 'Yes'
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, None)
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations['hdfs-site']['properties']['dfs.namenode.inode.attributes.provider.class'], 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer', "Test with Ranger HDFS plugin is enabled")
 
   def test_recommendYARNConfigurations(self):

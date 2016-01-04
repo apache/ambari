@@ -91,22 +91,7 @@ def __update_hdfs_client():
   import params
 
   hdfs_client_dict = params.hdfs_client.copy()
-  dfs_nameservice = params.hdfs_site.get('dfs.nameservices')
-
-  # Adds additional parameters required for HDFS HA, if HDFS HA is enabled
-  # Temporary logic, this logic will be moved to ambari-web to expose these parameters on UI once HDFS HA is enabled
-  if dfs_nameservice:
-    ha_namenodes = 'dfs.ha.namenodes.{0}'.format(dfs_nameservice)
-    ha_nn_list = [ha_nn.strip() for ha_nn in params.hdfs_site[ha_namenodes].split(',')]
-    required_keys = ('dfs.nameservices', ha_namenodes,
-                     'dfs.namenode.rpc-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[0]),
-                     'dfs.namenode.http-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[0]),
-                     'dfs.namenode.rpc-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[1]),
-                     'dfs.namenode.http-address.{0}.{1}'.format(dfs_nameservice, ha_nn_list[1]))
-
-    for key in required_keys:
-      hdfs_client_dict[key] = params.hdfs_site[key]
-
+  
   # security
   if params.security_enabled:
     hdfs_client_dict["hadoop.security.authentication"] = "kerberos"

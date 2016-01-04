@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.security.TestAuthenticationFactory;
@@ -87,6 +88,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * Tests for the component resource provider.
  */
 public class ComponentResourceProviderTest {
+
+  private static final long CLUSTER_ID = 100;
+  private static final String CLUSTER_NAME = "Cluster100";
+  private static final String SERVICE_NAME = "Service100";
 
   @Before
   public void clearAuthentication() {
@@ -426,20 +431,26 @@ public class ComponentResourceProviderTest {
 
   @Test
   public void testSuccessDeleteResourcesAsAdministrator() throws Exception {
-    testSuccessDeleteResources(TestAuthenticationFactory.createAdministrator());
+    testSuccessDeleteResources(TestAuthenticationFactory.createAdministrator(), State.INSTALLED);
   }
 
   @Test
   public void testSuccessDeleteResourcesAsClusterAdministrator() throws Exception {
-    testSuccessDeleteResources(TestAuthenticationFactory.createClusterAdministrator());
+    testSuccessDeleteResources(TestAuthenticationFactory.createClusterAdministrator(), State.INSTALLED);
   }
+
 
   @Test(expected = AuthorizationException.class)
-  public void testSuccessDeleteResourcesAsServiceAdministrator() throws Exception {
-    testSuccessDeleteResources(TestAuthenticationFactory.createServiceAdministrator());
+  public void testDeleteResourcesAsServiceAdministrator() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createServiceAdministrator(), State.INSTALLED);
   }
 
-  private void testSuccessDeleteResources(Authentication authentication) throws Exception {
+  @Test(expected = SystemException.class)
+  public void testDeleteResourcesWithStartedHostComponentState() throws Exception {
+    testSuccessDeleteResources(TestAuthenticationFactory.createAdministrator(), State.STARTED);
+  }
+
+  private void testSuccessDeleteResources(Authentication authentication, State hostComponentState) throws Exception {
     Resource.Type type = Resource.Type.Component;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
@@ -453,22 +464,22 @@ public class ComponentResourceProviderTest {
     ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
     StackId stackId = createNiceMock(StackId.class);
 
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
+    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<>();
     serviceComponentHosts.put("", serviceComponentHost);
 
     expect(managementController.getClusters()).andReturn(clusters);
     expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
 
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
-    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
+    expect(clusters.getCluster(CLUSTER_NAME)).andReturn(cluster);
+    expect(cluster.getService(SERVICE_NAME)).andReturn(service);
+    expect(cluster.getClusterId()).andReturn(CLUSTER_ID).anyTimes();
 
     expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
 
-    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
+    expect(serviceComponent.getDesiredState()).andReturn(State.STARTED);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts).anyTimes();
 
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
+    expect(serviceComponentHost.getDesiredState()).andReturn(hostComponentState);
 
 
     service.deleteServiceComponent("Component100");
@@ -579,178 +590,6 @@ public class ComponentResourceProviderTest {
     verify(managementController);
   }
 
-  @Test
-  public void testDeleteResourcesWithServiceComponentStartedAsAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentStarted(TestAuthenticationFactory.createAdministrator());
-  }
-
-  @Test
-  public void testDeleteResourcesWithServiceComponentStartedAsClusterAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentStarted(TestAuthenticationFactory.createClusterAdministrator());
-  }
-
-  @Test(expected = AuthorizationException.class)
-  public void testDeleteResourcesWithServiceComponentStartedAsServiceAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentStarted(TestAuthenticationFactory.createServiceAdministrator());
-  }
-
-  private void testDeleteResourcesWithServiceComponentStarted(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    StackId stackId = createNiceMock(StackId.class);
-
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
-    serviceComponentHosts.put("", serviceComponentHost);
-
-    expect(managementController.getClusters()).andReturn(clusters);
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
-
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
-    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-
-    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
-
-    expect(serviceComponent.getDesiredState()).andReturn(State.STARTED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
-
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.INSTALLED);
-
-
-    // replay
-    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
-           serviceComponent, serviceComponentHost, maintenanceStateHelper);
-
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-    ResourceProvider provider = new ComponentResourceProvider(
-                PropertyHelper.getPropertyIds(type),
-                PropertyHelper.getKeyPropertyIds(type),
-                managementController, maintenanceStateHelper);
-
-    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Predicate predicate = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-                .equals("Cluster100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
-                .equals("Service100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-                .equals("Component100").toPredicate();
-
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception.");
-    } catch(Exception e) {
-      if (e instanceof AuthorizationException) {
-        throw e;
-      }
-      //expected
-    }
-
-    // verify
-    verify(managementController);
-  }
-
-  @Test
-  public void testDeleteResourcesWithServiceComponentHostStartedAsAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentHostStarted(TestAuthenticationFactory.createAdministrator());
-  }
-
-  @Test
-  public void testDeleteResourcesWithServiceComponentHostStartedAsClusterAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentHostStarted(TestAuthenticationFactory.createClusterAdministrator());
-  }
-
-  @Test(expected = AuthorizationException.class)
-  public void testDeleteResourcesWithServiceComponentHostStartedAsServiceAdministrator() throws Exception {
-    testDeleteResourcesWithServiceComponentHostStarted(TestAuthenticationFactory.createServiceAdministrator());
-  }
-
-  private void testDeleteResourcesWithServiceComponentHostStarted(Authentication authentication) throws Exception {
-    Resource.Type type = Resource.Type.Component;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
-    StackId stackId = createNiceMock(StackId.class);
-
-    Map<String, ServiceComponentHost> serviceComponentHosts = new HashMap<String, ServiceComponentHost>();
-    serviceComponentHosts.put("", serviceComponentHost);
-
-    expect(managementController.getClusters()).andReturn(clusters);
-    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo);
-
-    expect(clusters.getCluster("Cluster100")).andReturn(cluster);
-    expect(cluster.getService("Service100")).andReturn(service);
-    expect(cluster.getClusterId()).andReturn(2L).anyTimes();
-
-    expect(service.getServiceComponent("Component100")).andReturn(serviceComponent);
-
-    expect(serviceComponent.getDesiredState()).andReturn(State.INSTALLED);
-    expect(serviceComponent.getServiceComponentHosts()).andReturn(serviceComponentHosts);
-
-    expect(serviceComponentHost.getDesiredState()).andReturn(State.STARTED);
-
-
-    // replay
-    replay(managementController, clusters, cluster, service, stackId, ambariMetaInfo,
-           serviceComponent, serviceComponentHost, maintenanceStateHelper);
-
-    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-    ResourceProvider provider = new ComponentResourceProvider(
-                PropertyHelper.getPropertyIds(type),
-                PropertyHelper.getKeyPropertyIds(type),
-                managementController,maintenanceStateHelper);
-
-    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
-
-    ((ObservableResourceProvider)provider).addObserver(observer);
-
-    Predicate predicate = new PredicateBuilder()
-                .property(ComponentResourceProvider.COMPONENT_CLUSTER_NAME_PROPERTY_ID)
-                .equals("Cluster100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_SERVICE_NAME_PROPERTY_ID)
-                .equals("Service100")
-                .and()
-                .property(ComponentResourceProvider.COMPONENT_COMPONENT_NAME_PROPERTY_ID)
-                .equals("Component100").toPredicate();
-
-    try {
-      provider.deleteResources(predicate);
-      Assert.fail("Expected exception.");
-    } catch(Exception e) {
-      if (e instanceof AuthorizationException) {
-        throw e;
-      }
-      //expected
-    }
-
-    // verify
-    verify(managementController);
-  }
-
 
   @Test
   public void testGetComponents() throws Exception {
@@ -810,7 +649,7 @@ public class ComponentResourceProviderTest {
    * case when an OR predicate is provided in the query.
    */
   @Test
-  public void testGetComponents___OR_Predicate_ServiceComponentNotFoundException() throws Exception {
+  public void testGetComponents_OR_Predicate_ServiceComponentNotFoundException() throws Exception {
     // member state mocks
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
@@ -908,7 +747,7 @@ public class ComponentResourceProviderTest {
    * Ensure that ServiceComponentNotFoundException is propagated in case where there is a single request.
    */
   @Test
-  public void testGetComponents___ServiceComponentNotFoundException() throws Exception {
+  public void testGetComponents_ServiceComponentNotFoundException() throws Exception {
     // member state mocks
     Injector injector = createStrictMock(Injector.class);
     Capture<AmbariManagementController> controllerCapture = EasyMock.newCapture();
@@ -953,7 +792,7 @@ public class ComponentResourceProviderTest {
     assertSame(controller, controllerCapture.getValue());
     verify(injector, clusters, cluster, service);
   }
-  
+
   public static void createComponents(AmbariManagementController controller, Set<ServiceComponentRequest> requests)
       throws AmbariException, AuthorizationException {
     ComponentResourceProvider provider = getComponentResourceProvider(controller);

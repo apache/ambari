@@ -79,17 +79,27 @@ describe('App.KerberosWizardStep2Controller', function() {
     ];
 
     tests.forEach(function(test) {
-      it('Should trim values for properties ' + Em.keys(test.e).join(','), function() {
-        sinon.stub(App.StackService, 'find').returns([Em.Object.create({serviceName: 'KERBEROS'})]);
-        controller.set('stepConfigs', [
-          App.ServiceConfig.create({
-            configs: test.stepConfigs.map(function(item) { return _createProperty(item[0], item[1], item[2]); })
-          })
-        ]);
-        var result = controller.createKerberosSiteObj('some-site', 'random-tag');
-        App.StackService.find.restore();
+      describe('Should trim values for properties ' + Em.keys(test.e).join(','), function() {
+        var result;
+
+        beforeEach(function () {
+          sinon.stub(App.StackService, 'find').returns([Em.Object.create({serviceName: 'KERBEROS'})]);
+          controller.set('stepConfigs', [
+            App.ServiceConfig.create({
+              configs: test.stepConfigs.map(function(item) { return _createProperty(item[0], item[1], item[2]); })
+            })
+          ]);
+          result = controller.createKerberosSiteObj('some-site', 'random-tag');
+        });
+
+        afterEach(function () {
+          App.StackService.find.restore();
+        });
+
         Em.keys(test.e).forEach(function(propertyName) {
-          expect(result.properties[propertyName]).to.be.eql(test.e[propertyName]);
+          it(propertyName, function () {
+            expect(result.properties[propertyName]).to.be.eql(test.e[propertyName]);
+          });
         });
       });
     });

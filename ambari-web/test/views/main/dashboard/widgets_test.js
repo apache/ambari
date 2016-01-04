@@ -115,14 +115,24 @@ describe('App.MainDashboardWidgetsView', function () {
       }
     ]);
     tests.forEach(function (test) {
-      it(test.m, function () {
-        view.set('host_metrics_model', test.models.host_metrics_model);
-        view.set('hdfs_model', test.models.hdfs_model);
-        view.set('hbase_model', test.models.hbase_model);
-        view.set('yarn_model', test.models.yarn_model);
-        view.setInitPrefObject();
-        expect(view.get('initPrefObject.visible.length')).to.equal(test.e.visibleL);
-        expect(view.get('initPrefObject.hidden.length')).to.equal(test.e.hiddenL);
+      describe(test.m, function () {
+
+        beforeEach(function () {
+          view.set('host_metrics_model', test.models.host_metrics_model);
+          view.set('hdfs_model', test.models.hdfs_model);
+          view.set('hbase_model', test.models.hbase_model);
+          view.set('yarn_model', test.models.yarn_model);
+          view.setInitPrefObject();
+        });
+
+        it('visible.length is ' + test.e.visibleL, function () {
+          expect(view.get('initPrefObject.visible.length')).to.equal(test.e.visibleL);
+        });
+
+        it('hidden.length is ' + test.e.hiddenL, function () {
+          expect(view.get('initPrefObject.hidden.length')).to.equal(test.e.hiddenL);
+        });
+
       });
     });
   });

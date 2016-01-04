@@ -19,12 +19,12 @@
 <div class="users-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">{{clusterId}} Roles</li>
+      <li class="active">{{clusterId}} {{'common.roles' | translate}}</li>
     </ol>
   </div>
   <hr>
   <div class="pull-right">
-    <i class="glyphicon glyphicon-th-large layout-switch-icon disabled" ng-click="switchToBlock()" tooltip="Switch&nbsp;to&nbsp;block&nbsp;view"></i>
+    <i class="glyphicon glyphicon-th-large layout-switch-icon disabled" ng-click="switchToBlock()" tooltip-html-unsafe="{{'clusters.switchToBlock' | translate}}"></i>
     <i class="glyphicon glyphicon-list layout-switch-icon"></i>
   </div>
   <table class="table table-striped table-hover">
@@ -32,15 +32,15 @@
     <tr>
       <th>
         <div class="search-container">
-          <label for="">Name</label>
-          <input type="text" class="form-control namefilter" placeholder="Any" ng-model="currentNameFilter" ng-change="resetPagination()">
+          <label for="">{{'common.name' | translate}}</label>
+          <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="currentNameFilter" ng-change="resetPagination()">
           <button type="button" class="close clearfilter" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()">
-            <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+            <span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span>
           </button>
         </div>
       </th>
       <th>
-        <label for="">Type</label>
+        <label for="">{{'common.type' | translate}}</label>
         <select class="form-control typefilter"
                 ng-model="currentTypeFilter"
                 ng-options="item.label for item in typeFilterOptions"
@@ -49,7 +49,7 @@
 
       </th>
       <th>
-        <label for="">Role</label>
+        <label for="">{{'clusters.role' | translate}}</label>
         <select class="form-control statusfilter"
                 ng-model="currentRoleFilter"
                 ng-options="item.label for item in roleFilterOptions"
@@ -73,9 +73,13 @@
     </tbody>
   </table>
   <div class="alert alert-info col-sm-12" ng-show="!users.length">
-    No users to display.
+    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.users}'}}
   </div>
-  <div class="col-sm-12">
+  <div class="col-sm-12 table-bar">
+    <div class="pull-left filtered-info">
+      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.users}'}}</span>
+      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
+    </div>
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalUsers" max-size="maxVisiblePages" items-per-page="usersPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
     </div>

@@ -18,7 +18,11 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', function ($scope, Cluster, Stack, $routeParams) {
+.controller('StackVersionsListCtrl', ['$scope', 'Cluster', 'Stack', '$routeParams', '$translate', function ($scope, Cluster, Stack, $routeParams, $translate) {
+  var $t = $translate.instant;
+  $scope.getConstant = function (key) {
+    return $t('common.' + key).toLowerCase();
+  }
   $scope.clusterName = $routeParams.clusterName;
   $scope.filter = {
     version: '',
@@ -27,6 +31,7 @@ angular.module('ambariAdminConsole')
       current: null
     }
   };
+  $scope.isNotEmptyFilter = true;
 
   $scope.pagination = {
     totalRepos: 10,
@@ -91,7 +96,7 @@ angular.module('ambariAdminConsole')
 
     $scope.fillClusters = function (clusters) {
       $scope.dropDownClusters = [].concat(clusters);
-      var options = [{label: "All", value: ''}];
+      var options = [{label: $t('common.all'), value: ''}];
       angular.forEach(clusters, function (cluster) {
         options.push({
           label: cluster.Clusters.cluster_name,
@@ -124,4 +129,8 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.loadAllData();
+
+  $scope.$watch('filter', function (filter) {
+    $scope.isNotEmptyFilter = Boolean(filter.version || (filter.cluster.current && filter.cluster.current.value));
+  }, true);
 }]);

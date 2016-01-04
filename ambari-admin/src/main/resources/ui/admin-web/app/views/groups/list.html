@@ -18,10 +18,10 @@
 <div class="groups-pane">
   <div class="clearfix">
     <ol class="breadcrumb pull-left">
-      <li class="active">Groups</li>
+      <li class="active">{{'common.groups' | translate}}</li>
     </ol>
     <div class="pull-right top-margin-4">
-      <link-to route="groups.create" class="btn btn-primary creategroup-btn"><span class="glyphicon glyphicon-plus"></span> Create Local Group</link-to>
+      <link-to route="groups.create" class="btn btn-primary creategroup-btn"><span class="glyphicon glyphicon-plus"></span> {{'groups.createLocal' | translate}}</link-to>
     </div>
   </div>
   <hr>
@@ -30,13 +30,13 @@
       <tr>
         <th class="col-sm-8">
           <div class="search-container">
-            <label for="">Group Name</label>
-            <input type="text" class="form-control namefilter" placeholder="Any" ng-model="currentNameFilter" ng-change="resetPagination()">
-            <button type="button" class="close" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <label for="">{{'groups.name' | translate}}</label>
+            <input type="text" class="form-control namefilter" placeholder="{{'common.any' | translate}}" ng-model="currentNameFilter" ng-change="resetPagination()">
+            <button type="button" class="close" ng-show="currentNameFilter" ng-click="currentNameFilter=''; resetPagination()"><span aria-hidden="true">&times;</span><span class="sr-only">{{'common.controls.close' | translate}}</span></button>
           </div>
         </th>
         <th class="col-sm-2">
-          <label for="">Type</label>
+          <label for="">{{'common.type' | translate}}</label>
           <select class="form-control typefilter"
             ng-model="currentTypeFilter"
             ng-options="item.label for item in typeFilterOptions"
@@ -44,7 +44,7 @@
           </select>
         </th>
         <th class="col-sm-2 vertical-top">
-          <label for="">Members</label>
+          <label for="">{{'groups.members' | translate}}</label>
         </th>
       </tr>
     </thead>
@@ -53,15 +53,19 @@
         <td class="col-sm-8">
           <link-to route="groups.edit" class="link-to-group" id="{{group.group_name}}">{{group.group_name}}</link-to>
         </td>
-        <td class="col-sm-2">{{group.ldap_group ? 'LDAP' : 'Local'}}</td>
-        <td class="col-sm-2">{{group.members ? group.members.length : 0}} {{group.members.length === 1 ? 'member' : 'members'}}</td>
+        <td class="col-sm-2">{{'common.' + (group.ldap_group ? 'ldap' : 'local') | translate}}</td>
+        <td class="col-sm-2">{{'groups.membersPlural' | translate: '{n: group.members && group.members.length || 0}'}}</td>
       </tr>
     </tbody>
   </table>
   <div class="alert alert-info col-sm-12" ng-show="!groups.length">
-    No groups to display.
+    {{'common.alerts.nothingToDisplay' | translate: '{term: constants.groups}'}}
   </div>
-  <div class="col-sm-12">
+  <div class="col-sm-12 table-bar">
+    <div class="pull-left filtered-info">
+      <span>{{'common.filterInfo' | translate: '{showed: tableInfo.showed, total: tableInfo.total, term: constants.groups}'}}</span>
+      <span ng-show="isNotEmptyFilter">- <a href ng-click="clearFilters()">{{'common.controls.clearFilters' | translate}}</a></span>
+    </div>
     <div class="pull-right left-margin">
       <pagination class="paginator" total-items="totalGroups" max-size="maxVisiblePages" items-per-page="groupsPerPage" ng-model="currentPage" ng-change="pageChanged()"></pagination>
     </div>

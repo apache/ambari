@@ -15,6 +15,8 @@
  * the License.
  */
 
+/*eslint-disable */
+
 var App = require('app');
 
 require('mappers/stack_service_mapper');

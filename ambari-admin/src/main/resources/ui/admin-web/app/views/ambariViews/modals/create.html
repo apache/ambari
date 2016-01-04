@@ -17,7 +17,7 @@
 -->
 <form class="form-horizontal" role="form" name="form.instanceCreateForm" novalidate>
 <div class="modal-header">
-  <h3 class="modal-title">Create View Instance</h3>
+  <h3 class="modal-title">{{'views.createViewInstance' | translate}}</h3>
 </div>
 <div class="modal-body createViewModal">
   <div class="view-header">
@@ -31,45 +31,45 @@
   
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Details</h3>
+        <h3 class="panel-title">{{'common.details' | translate}}</h3>
       </div>
       <div class="panel-body">
         <div class="form-group" 
         ng-class="{'has-error' : ( (form.instanceCreateForm.instanceNameInput.$error.required || form.instanceCreateForm.instanceNameInput.$error.pattern) && form.instanceCreateForm.submitted) || instanceExists }"
         >
-          <label for="" class="control-labe col-sm-2">Instance name</label>
+          <label for="" class="control-labe col-sm-2">{{'views.instanceName' | translate}}</label>
           <div class="col-sm-10">
             <input type="text" class="form-control" name="instanceNameInput" ng-pattern="nameValidationPattern" required ng-model="instance.instance_name">
 
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.instanceNameInput.$error.required && form.instanceCreateForm.submitted'>
-              Field requried!
+              {{'common.alerts.fieldRequired' | translate}}
             </div>
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.instanceNameInput.$error.pattern && form.instanceCreateForm.submitted'>
-              Must no contain special characters!
+              {{'common.alerts.noSpecialChars' | translate}}
             </div>
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='instanceExists'>
-              Instance with this name already exists.
+              {{'common.alerts.instanceExists' | translate}}
             </div>
           </div>
         </div>
         <div class="form-group"
         ng-class="{'has-error' : ( (form.instanceCreateForm.displayLabel.$error.required || form.instanceCreateForm.displayLabel.$error.pattern) && form.instanceCreateForm.submitted)}">
-          <label for="" class="control-labe col-sm-2">Display label</label>
+          <label for="" class="control-labe col-sm-2">{{'common.displayLabel' | translate}}</label>
           <div class="col-sm-10">
             <input type="text" class="form-control" name="displayLabel" ng-model="instance.label" required ng-pattern="nameValidationPattern">
 
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.displayLabel.$error.required && form.instanceCreateForm.submitted'>
-              Field requried!
+              {{'common.alerts.fieldRequired' | translate}}
             </div>
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm.displayLabel.$error.pattern && form.instanceCreateForm.submitted'>
-              Must no contain special characters!
+              {{'common.alerts.noSpecialChars' | translate}}
             </div>
           </div>
         </div>
       </div>
       <div class="form-group">
           <div class="col-sm-10 col-sm-offset-2">
-            <button class="btn btn-default" ng-click="isAdvancedClosed = !isAdvancedClosed">Advanced</button>
+            <button class="btn btn-default" ng-click="isAdvancedClosed = !isAdvancedClosed">{{'views.advanced' | translate}}</button>
           </div>
       </div>
       <div collapse="isAdvancedClosed">
@@ -77,14 +77,14 @@
           <div class="col-sm-10 col-sm-offset-2">
             <div class="checkbox">
               <label>
-                <input type="checkbox" ng-model='instance.visible'> Visible
+                <input type="checkbox" ng-model='instance.visible'> {{'views.visible' | translate}}
               </label>
             </div>
           </div>
         </div>
         <div class="form-group">
           <div class="col-sm-10 col-sm-offset-2">
-            <label for="" class="control-label col-sm-2">Icon</label>
+            <label for="" class="control-label col-sm-2">{{'views.icon' | translate}}</label>
             <div class="col-sm-10">
               <input type="text" class="form-control" name="iconUrl" ng-model="instance.icon_path">
             </div>
@@ -92,7 +92,7 @@
         </div>
         <div class="form-group">
           <div class="col-sm-10 col-sm-offset-2">
-            <label for="" class="control-label col-sm-2">Icon64</label>
+            <label for="" class="control-label col-sm-2">{{'views.icon64' | translate}}</label>
             <div class="col-sm-10">
               <input type="text" class="form-control" name="icon64Url" ng-model="instance.icon64_path">
             </div>
@@ -103,7 +103,7 @@
 
     <div class="panel panel-default">
       <div class="panel-heading">
-        <h3 class="panel-title">Configuration</h3>
+        <h3 class="panel-title">{{'views.configuration' | translate}}</h3>
       </div>
       <div class="panel-body">
       <div class="form-group" ng-repeat="parameter in instance.properties"
@@ -112,7 +112,7 @@
         <div class="col-sm-9">
           <input type="text" class="form-control"  name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value">
           <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted'>
-            Field requried!
+            {{'common.alerts.fieldRequired' | translate}}
           </div>
         </div>
       </div>
@@ -121,7 +121,7 @@
   
 </div>
 <div class="modal-footer">
-  <button class="btn btn-default" ng-click="cancel()">Cancel</button>
-  <button class="btn btn-primary" ng-click="save()" type="submit">Save</button>
+  <button class="btn btn-default" ng-click="cancel()">{{'common.controls.cancel' | translate}}</button>
+  <button class="btn btn-primary" ng-click="save()" type="submit">{{'common.controls.save' | translate}}</button>
 </div>
 </form>

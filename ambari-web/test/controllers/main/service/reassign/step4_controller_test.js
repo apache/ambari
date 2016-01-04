@@ -130,13 +130,21 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       App.router.get.restore();
     });
 
-    it('tests database connection', function() {
-      sinon.stub(controller, 'prepareDBCheckAction', Em.K);
+    describe('tests database connection', function() {
 
-      controller.testDBConnection();
-      expect(controller.prepareDBCheckAction.calledOnce).to.be.true;
+      beforeEach(function () {
+        sinon.stub(controller, 'prepareDBCheckAction', Em.K);
+      });
 
-      controller.prepareDBCheckAction.restore();
+      afterEach(function () {
+        controller.prepareDBCheckAction.restore();
+      });
+
+      it('prepareDBCheckAction is called once', function() {
+        controller.testDBConnection();
+        expect(controller.prepareDBCheckAction.calledOnce).to.be.true;
+      });
+
     });
 
     it('tests prepareDBCheckAction', function() {
@@ -770,36 +778,42 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   describe('#setSecureConfigs()', function () {
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
     afterEach(function () {
       Em.tryInvoke(App.get, 'restore');
     });
 
     it('undefined component and security disabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
+      this.stub.withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
+
     it('component exist and security disabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(false);
+      this.stub.withArgs('isKerberosEnabled').returns(false);
       controller.set('secureConfigsMap', [{
         componentName: 'COMP1'
       }]);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
+
     it('undefined component and security enabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
+      this.stub.withArgs('isKerberosEnabled').returns(true);
       controller.set('secureConfigsMap', []);
       expect(controller.setSecureConfigs(secureConfigs, {}, 'COMP1')).to.be.false;
       expect(secureConfigs).to.eql([]);
     });
     it('component exist and security enabled', function () {
       var secureConfigs = [];
-      sinon.stub(App, 'get').withArgs('isKerberosEnabled').returns(true);
+      this.stub.withArgs('isKerberosEnabled').returns(true);
       var configs = {'s1': {
         'k1': 'kValue',
         'p1': 'pValue'
@@ -920,28 +934,22 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   describe('#startNameNode()', function () {
     beforeEach(function () {
       sinon.stub(controller, 'updateComponent', Em.K);
+      controller.set('content.masterComponentHosts', [{
+        component: 'NAMENODE',
+        hostName: 'host1'
+      }]);
     });
     afterEach(function () {
       controller.updateComponent.restore();
     });
 
     it('reassign host does not match current', function () {
-      controller.set('content.masterComponentHosts', [{
-        component: 'NAMENODE',
-        hostName: 'host1'
-      }]);
       controller.set('content.reassignHosts.source', 'host2');
       controller.startNameNode();
-      expect(controller.updateComponent.getCall(0).args[1][0]).to.equal('host1');
-      expect(controller.updateComponent.getCall(0).args[0]).to.equal('NAMENODE');
-      expect(controller.updateComponent.getCall(0).args[2]).to.equal('HDFS');
-      expect(controller.updateComponent.getCall(0).args[3]).to.equal('Start');
+      expect(controller.updateComponent.calledWith('NAMENODE', ['host1'], 'HDFS', 'Start')).to.be.true;
     });
+
     it('reassign host matches current', function () {
-      controller.set('content.masterComponentHosts', [{
-        component: 'NAMENODE',
-        hostName: 'host1'
-      }]);
       controller.set('content.reassignHosts.source', 'host1');
       controller.startNameNode();
       expect(controller.updateComponent.calledWith('NAMENODE', [], 'HDFS', 'Start')).to.be.true;

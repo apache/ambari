@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.createMock;
@@ -38,15 +39,19 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.fail;
 
 public class DatabaseCheckerTest {
-  private Injector injector;
+  private static Injector injector;
 
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
 
-  @Before
-  public void setup() throws Exception {
+  @BeforeClass
+  public static void setupClass() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+  }
+
+  @Before
+  public void setup() throws Exception {
     injector.injectMembers(this);
   }
 
@@ -66,11 +71,15 @@ public class DatabaseCheckerTest {
     replay(metainfoDAO);
     DatabaseChecker.metainfoDAO = metainfoDAO;
     DatabaseChecker.ambariMetaInfo = ambariMetaInfo;
-    DatabaseChecker.checkDBVersion();
+    try {
+      DatabaseChecker.checkDBVersion();
+    } catch (AmbariException ae) {
+      fail("DB versions check failed.");
+    }
   }
 
-  @Test
-  public void testCheckDBVersion_Invalid() throws Exception {
+  @Test(expected = AmbariException.class)
+  public void testCheckDBVersionInvalid() throws Exception {
     MetainfoDAO metainfoDAO =  createMock(MetainfoDAO.class);
     MetainfoEntity metainfoEntity = new MetainfoEntity();
     metainfoEntity.setMetainfoName(Configuration.SERVER_VERSION_KEY);
@@ -81,11 +90,6 @@ public class DatabaseCheckerTest {
     DatabaseChecker.metainfoDAO = metainfoDAO;
     DatabaseChecker.ambariMetaInfo = ambariMetaInfo;
 
-    try {
-      DatabaseChecker.checkDBVersion();
-      fail();
-    } catch(AmbariException e) {
-      // Expected
-    }
+    DatabaseChecker.checkDBVersion();
   }
 }

@@ -53,11 +53,11 @@ describe('MainChartsHeatmapController', function () {
       controller.set("inputMaximum", 'qwerty');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(100);
     });
-    it('should not set maximumValue if inputMaximum consists not only of digits', function () {
+    it('should not set maximumValue if inputMaximum consists not only of digits (2)', function () {
       controller.set("inputMaximum", '100%');
       expect(controller.get('selectedMetric.maximumValue')).to.equal(100);
     });
-    it('should set maximumValue if inputMaximum consists only of digits', function () {
+    it('should set maximumValue if inputMaximum consists only of digits (2)', function () {
       controller.set("inputMaximum", 1000);
       expect(controller.get('selectedMetric.maximumValue')).to.equal(1000);
     })
@@ -206,20 +206,32 @@ describe('MainChartsHeatmapController', function () {
       expect(categories[0].get('heatmaps')).to.eql(allHeatmaps);
     });
 
-    it("two categories", function() {
-      var allHeatmaps = [
-        {
-          metrics: JSON.stringify([{service_name: 'S1'}])
-        },
-        {
-          metrics: JSON.stringify([{service_name: 'S1'}])
-        }
-      ];
-      var categories = controller.categorizeByServiceName(allHeatmaps);
-      expect(categories[0].get('serviceName')).to.equal('S1');
-      expect(categories[0].get('displayName')).to.equal('S1');
-      expect(categories[0].get('heatmaps')[0]).to.eql(allHeatmaps[0]);
-      expect(categories[0].get('heatmaps')[1]).to.eql(allHeatmaps[1]);
+    describe("two categories", function() {
+      var allHeatmaps;
+      beforeEach(function () {
+        allHeatmaps = [
+          {
+            metrics: JSON.stringify([{service_name: 'S1'}])
+          },
+          {
+            metrics: JSON.stringify([{service_name: 'S1'}])
+          }
+        ];
+        this.categories = controller.categorizeByServiceName(allHeatmaps);
+      });
+
+      it('serviceName is S1', function () {
+        expect(this.categories[0].get('serviceName')).to.equal('S1');
+      });
+      it('displayName is S1', function () {
+        expect(this.categories[0].get('displayName')).to.equal('S1');
+      });
+      it('heatmaps.0 is valid', function () {
+        expect(this.categories[0].get('heatmaps')[0]).to.eql(allHeatmaps[0]);
+      });
+      it('heatmaps.1 is valid', function () {
+        expect(this.categories[0].get('heatmaps')[1]).to.eql(allHeatmaps[1]);
+      });
     });
   });
 
@@ -361,16 +373,14 @@ describe('MainChartsHeatmapController', function () {
   });
 
   describe("#toList()", function() {
-    it("", function() {
-      var rackMap = {'r1': {
-        name: 'r1',
-        rackId: 'r1',
-        hosts: [{rack: 'r1'}, {rack: 'r1'}]
-      }};
-      expect(controller.toList(rackMap)).to.eql([Em.Object.create({
-        name: 'r1',
-        rackId: 'r1',
-        hosts: [{rack: 'r1'}, {rack: 'r1'}],
+    var rackMap = {'r1': {
+      name: 'r1',
+      rackId: 'r1',
+      hosts: [{rack: 'r1'}, {rack: 'r1'}]
+    }};
+
+    it('toList result is valid', function() {
+      expect(controller.toList(rackMap)).to.eql([Em.Object.create(rackMap.r1, {
         isLoaded: false,
         index: 0
       })]);

@@ -961,7 +961,11 @@ class TestHDP206StackAdvisor(TestCase):
             "ph_cpu_count": 1,
             "public_host_name": "c6401.ambari.apache.org",
             "rack_info": "/default-rack",
-            "total_mem": 2097152
+            "total_mem": 2097152,
+            "disk_info": [{
+              "size": '8',
+              "mountpoint": "/"
+            }]
           }
         }]}
 
@@ -1041,12 +1045,14 @@ class TestHDP206StackAdvisor(TestCase):
                 'falcon-env':
                   {'properties':
                      {'falcon_user': 'falcon'}},
+                'hdfs-site':
+                  {'properties': 
+                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.du.reserved': '1024'}},
                 'hive-env':
                   {'properties':
                      {'hive_user': 'hive',
                       'webhcat_user': 'webhcat'}},
-                'hdfs-site':
-                  {'properties': {}},
                 'hadoop-env':
                   {'properties':
                      {'hdfs_user': 'hdfs',
@@ -1094,7 +1100,9 @@ class TestHDP206StackAdvisor(TestCase):
                      {'hive_user': 'hive',
                       'webhcat_user': 'webhcat'}},
                 'hdfs-site':
-                  {'properties': {}},
+                  {'properties': 
+                     {'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+                      'dfs.datanode.du.reserved': '1024'}},
                 'hadoop-env':
                   {'properties':
                      {'hdfs_user': 'hdfs1',
@@ -1110,8 +1118,11 @@ class TestHDP206StackAdvisor(TestCase):
     configurations["hdfs-site"]["properties"]['dfs.nameservices'] = "mycluster"
     configurations["hdfs-site"]["properties"]['dfs.ha.namenodes.mycluster'] = "nn1,nn2"
     services['configurations'] = configurations
+
     expected["hdfs-site"] = {
       'properties': {
+        'dfs.datanode.data.dir': '/hadoop/hdfs/data',
+        'dfs.datanode.du.reserved': '1024',
         'dfs.nameservices': 'mycluster',
         'dfs.ha.namenodes.mycluster': 'nn1,nn2'
       },
@@ -1188,6 +1199,29 @@ class TestHDP206StackAdvisor(TestCase):
     expected = "zk.host1:2183,zk.host2:2183,zk.host3:2183"
     self.assertEquals(result, expected)
 
+  def test_validateHDFSConfigurations(self):
+    configurations = {}
+    services = ''
+    hosts = ''
+    #Default configuration
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '1024'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertFalse(res)
+    #Value is less then expected
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '512'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertTrue(res)
+    #Value is begger then expected
+    recommendedDefaults = {'dfs.datanode.du.reserved': '1024'}
+    properties = {'dfs.datanode.du.reserved': '2048'}
+    res = self.stackAdvisor.validateHDFSConfigurations(properties, 
+                    recommendedDefaults, configurations, services, hosts)
+    self.assertFalse(res)
+
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}
 
@@ -1225,6 +1259,11 @@ class TestHDP206StackAdvisor(TestCase):
       "hdfs-site": {
         "properties": {
           'dfs.datanode.data.dir': "/hadoop/data"
+        }
+      },
+      "core-site": {
+        "properties": {
+          "fs.defaultFS": "hdfs://c6401.ambari.apache.org:8020"
         }
       },
       "ams-site": {

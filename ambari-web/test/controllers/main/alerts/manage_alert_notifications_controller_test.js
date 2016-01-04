@@ -585,20 +585,20 @@ describe('App.ManageAlertNotificationsController', function () {
           expect(view.get('parentView.hasErrors')).to.be.true;
         });
 
-        it('should check inputFields.name.value', function () {
+        it('should check inputFields.name.value (2)', function () {
           view.set('controller.inputFields.name.errorMsg', 'error');
           view.set('controller.inputFields.name.value', 'test');
           expect(view.get('controller.inputFields.name.errorMsg')).to.equal('');
         });
 
-        it('should check inputFields.name.value', function () {
+        it('should check inputFields.name.value (3)', function () {
           view.set('isEdit', true);
           view.set('controller.inputFields.name.value', '');
           expect(view.get('controller.inputFields.name.errorMsg')).to.equal(Em.I18n.t('alerts.actions.manage_alert_notifications_popup.error.name.empty'));
           expect(view.get('parentView.hasErrors')).to.be.true;
         });
 
-        it('should check inputFields.name.value', function () {
+        it('should check inputFields.name.value (4)', function () {
           view.set('isEdit', true);
           view.set('controller.inputFields.name.errorMsg', 'error');
           view.set('controller.inputFields.name.value', 'test');
@@ -620,7 +620,7 @@ describe('App.ManageAlertNotificationsController', function () {
 
         });
 
-        it('should check inputFields.retypeSMTPPassword.value', function () {
+        it('should check inputFields.retypeSMTPPassword.value (2)', function () {
 
           view.set('parentView.hasErrors', true);
           view.set('controller.inputFields.retypeSMTPPassword.errorMsg', 'error');
@@ -883,24 +883,33 @@ describe('App.ManageAlertNotificationsController', function () {
   });
 
   describe('#deleteAlertNotificationSuccessCallback()', function () {
+    var mockSelectedAlertNotification;
 
-    it("should call loadAlertNotifications, selectedAlertNotification.deleteRecord and set null to selectedAlertNotification", function () {
-
-      var mockSelectedAlertNotification = {
+    beforeEach(function () {
+      mockSelectedAlertNotification = {
         deleteRecord: Em.K
       };
       controller.set('selectedAlertNotification', mockSelectedAlertNotification);
       sinon.stub(controller, 'loadAlertNotifications', Em.K);
       sinon.spy(mockSelectedAlertNotification, 'deleteRecord');
-
       controller.deleteAlertNotificationSuccessCallback();
+    });
 
-      expect(controller.loadAlertNotifications.calledOnce).to.be.true;
-      expect(mockSelectedAlertNotification.deleteRecord.calledOnce).to.be.true;
-      expect(controller.get('selectedAlertNotification')).to.equal(null);
-
+    afterEach(function () {
       controller.loadAlertNotifications.restore();
       mockSelectedAlertNotification.deleteRecord.restore();
+    });
+
+    it("should call loadAlertNotifications", function () {
+      expect(controller.loadAlertNotifications.calledOnce).to.be.true;
+    });
+
+    it("should call selectedAlertNotification.deleteRecord", function () {
+      expect(mockSelectedAlertNotification.deleteRecord.calledOnce).to.be.true;
+    });
+
+    it("should set null to selectedAlertNotification", function () {
+      expect(controller.get('selectedAlertNotification')).to.equal(null);
     });
 
   });

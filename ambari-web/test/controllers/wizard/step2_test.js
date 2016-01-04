@@ -270,13 +270,17 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#agentUserError', function () {
 
+    beforeEach(function () {
+      this.stub = sinon.stub(App, 'get');
+    });
+
     afterEach(function () {
       App.get.restore();
     });
 
     userErrorTests.forEach(function(test) {
       it('Ambari Agent user account customize enabled', function() {
-        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(true);
+        this.stub.withArgs('supports.customizeAgentUserAccount').returns(true);
         var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, agentUser: test.user}}});
         if(Em.isNone(test.e)) {
           expect(controller.get('agentUserError')).to.be.null;
@@ -289,7 +293,7 @@ describe('App.WizardStep2Controller', function () {
 
     userErrorTests.forEach(function(test) {
       it('Ambari Agent user account customize disabled', function() {
-        sinon.stub(App, 'get').withArgs('supports.customizeAgentUserAccount').returns(false);
+        this.stub.withArgs('supports.customizeAgentUserAccount').returns(false);
         var controller = App.WizardStep2Controller.create({content: {installOptions: {manualInstall: test.manualInstall, agentUser: test.user}}});
         expect(controller.get('agentUserError')).to.be.null;
       });
@@ -428,14 +432,24 @@ describe('App.WizardStep2Controller', function () {
 
   describe('#proceedNext()', function () {
 
+    beforeEach(function () {
+      sinon.stub(c, 'warningPopup', Em.K);
+      sinon.stub(c, 'manualInstallPopup', Em.K);
+      sinon.stub(App.router, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      c.warningPopup.restore();
+      c.manualInstallPopup.restore();
+      App.router.send.restore();
+    });
+
     it('should call warningPopup if not isAllHostNamesValid and no warningConfirmed', function() {
       c.reopen({
         isAllHostNamesValid: function() {
           return false;
-        },
-        warningPopup: Em.K
+        }
       });
-      sinon.spy(c, 'warningPopup');
       var r = c.proceedNext(false);
       expect(r).to.equal(false);
       expect(c.warningPopup.calledOnce).to.equal(true);
@@ -444,17 +458,14 @@ describe('App.WizardStep2Controller', function () {
     it('should call manualInstallPopup if manualInstall is true', function () {
       c.reopen({
         hostNames: '',
-        manualInstall: true,
-        manualInstallPopup: Em.K
+        manualInstall: true
       });
-      sinon.spy(c, 'manualInstallPopup');
       var r = c.proceedNext(true);
       expect(r).to.equal(false);
       expect(c.manualInstallPopup.calledOnce).to.equal(true);
     });
 
     it ('should save hosts and proceed next if manualInstall is false', function() {
-      sinon.stub(App.router, 'send', Em.K);
       c.reopen({
         hostNameArr: ['h1'],
         manualInstall: false,
@@ -468,7 +479,6 @@ describe('App.WizardStep2Controller', function () {
       expect(r).to.equal(true);
       expect(Em.keys(c.get('content.hosts'))).to.eql(['h1']);
       expect(App.router.send.calledWith('next')).to.equal(true);
-      App.router.send.restore();
     });
 
   });

@@ -679,16 +679,28 @@ describe('App.upgradeWizardView', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        view.set('controller.areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
-        view.reopen({
-          isFinalizeItem: item.isFinalizeItem
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          view.set('controller.areSkippedServiceChecksLoaded', item.areSkippedServiceChecksLoaded);
+          view.reopen({
+            isFinalizeItem: item.isFinalizeItem
+          });
+          view.propertyDidChange('isFinalizeItem');
         });
-        view.propertyDidChange('isFinalizeItem');
-        expect(App.ajax.send.callCount).to.equal(item.ajaxSendCallCount);
-        expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
+
+        it('request is sent ' + item.ajaxSendCallCount + ' times', function (){
+          expect(App.ajax.send.callCount).to.equal(item.ajaxSendCallCount);
+        });
+
+        it('areSkippedServiceChecksLoaded is ' + item.areSkippedServiceChecksLoaded, function () {
+          expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
+        });
+
         if (item.ajaxSendCallCount) {
-          expect(App.ajax.send.firstCall.args[0].data.upgradeId).to.equal(1);
+          it('upgradeId is 1', function () {
+            expect(App.ajax.send.firstCall.args[0].data.upgradeId).to.equal(1);
+          });
         }
       });
     });

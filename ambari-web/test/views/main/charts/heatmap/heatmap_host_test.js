@@ -157,91 +157,168 @@ describe('App.MainChartsHeatmapHostView', function () {
       this.mock.restore();
     });
 
-    it("set diskUsage", function () {
-      var childView = Em.Object.create({
-        details: {
-          diskUsage: ''
-        }
+    describe('set diskUsage', function () {
+      var childView;
+      beforeEach(function () {
+        childView = Em.Object.create({
+          details: {
+            diskUsage: ''
+          }
+        });
+        this.mock.returns(childView);
+        view.set('content', {
+          diskTotal: 100,
+          diskFree: 50
+        });
+        view.mouseEnter();
       });
-      this.mock.returns(childView);
-      view.set('content', {
-        diskTotal: 100,
-        diskFree: 50
+
+      it("details.diskUsage = usage", function () {
+        expect(childView.get('details.diskUsage')).to.equal('usage');
       });
-      view.mouseEnter();
-      expect(childView.get('details.diskUsage')).to.equal('usage');
-      expect(view.getUsage.calledWith(100, 50)).to.be.true;
-      expect(view.setMetric.calledOnce).to.be.true;
-      expect(view.openDetailsBlock.calledOnce).to.be.true;
+
+      it("getUsage is called with valid arguments", function () {
+        expect(view.getUsage.calledWith(100, 50)).to.be.true;
+      });
+
+      it("setMetric is called once", function () {
+        expect(view.setMetric.calledOnce).to.be.true;
+      });
+
+      it("openDetailsBlock is called once", function () {
+        expect(view.openDetailsBlock.calledOnce).to.be.true;
+      });
+
     });
 
-    it("set cpuUsage", function () {
-      var childView = Em.Object.create({
-        details: {
-          cpuUsage: ''
-        }
+    describe('set cpuUsage', function () {
+      var childView;
+      beforeEach(function () {
+        childView = Em.Object.create({
+          details: {
+            cpuUsage: ''
+          }
+        });
+        this.mock.returns(childView);
+        view.set('content', {
+          cpuSystem: 100,
+          cpuUser: 50
+        });
+        view.mouseEnter();
       });
-      this.mock.returns(childView);
-      view.set('content', {
-        cpuSystem: 100,
-        cpuUser: 50
+
+      it("details.cpuUsage = cpu_usage", function () {
+        expect(childView.get('details.cpuUsage')).to.equal('cpu_usage');
       });
-      view.mouseEnter();
-      expect(childView.get('details.cpuUsage')).to.equal('cpu_usage');
-      expect(view.getCpuUsage.calledWith(100, 50)).to.be.true;
-      expect(view.setMetric.calledOnce).to.be.true;
-      expect(view.openDetailsBlock.calledOnce).to.be.true;
+
+      it("getCpuUsage is called with valid arguments", function () {
+        expect(view.getCpuUsage.calledWith(100, 50)).to.be.true;
+      });
+
+      it("setMetric is called once", function () {
+        expect(view.setMetric.calledOnce).to.be.true;
+      });
+
+      it("openDetailsBlock is called once", function () {
+        expect(view.openDetailsBlock.calledOnce).to.be.true;
+      });
+
     });
 
-    it("set memoryUsage", function () {
-      var childView = Em.Object.create({
-        details: {
-          memoryUsage: ''
-        }
+    describe('set memoryUsage', function () {
+      var childView;
+      beforeEach(function () {
+        childView = Em.Object.create({
+          details: {
+            memoryUsage: ''
+          }
+        });
+        this.mock.returns(childView);
+        view.set('content', {
+          memTotal: 100,
+          memFree: 50
+        });
+        view.mouseEnter();
       });
-      this.mock.returns(childView);
-      view.set('content', {
-        memTotal: 100,
-        memFree: 50
+
+      it("details.memoryUsage = usage", function () {
+        expect(childView.get('details.memoryUsage')).to.equal('usage');
       });
-      view.mouseEnter();
-      expect(childView.get('details.memoryUsage')).to.equal('usage');
-      expect(view.getUsage.calledWith(100, 50)).to.be.true;
-      expect(view.setMetric.calledOnce).to.be.true;
-      expect(view.openDetailsBlock.calledOnce).to.be.true;
+
+      it("getUsage is called with valid arguments", function () {
+        expect(view.getUsage.calledWith(100, 50)).to.be.true;
+      });
+
+      it("setMetric is called once", function () {
+        expect(view.setMetric.calledOnce).to.be.true;
+      });
+
+      it("openDetailsBlock is called once", function () {
+        expect(view.openDetailsBlock.calledOnce).to.be.true;
+      });
+
     });
 
-    it("set hostComponents", function () {
-      var childView = Em.Object.create({
-        details: {
-          hostComponents: ''
-        }
+    describe('set hostComponents', function () {
+      var childView;
+      beforeEach(function () {
+        childView = Em.Object.create({
+          details: {
+            hostComponents: ''
+          }
+        });
+        this.mock.returns(childView);
+        view.set('content', {
+          hostComponents: ['host1']
+        });
+        view.mouseEnter();
       });
-      this.mock.returns(childView);
-      view.set('content', {
-        hostComponents: ['host1']
+
+      it("hostComponents = ['c1']", function () {
+        expect(childView.get('details.hostComponents')).to.eql(['c1']);
       });
-      view.mouseEnter();
-      expect(childView.get('details.hostComponents')).to.eql(['c1']);
-      expect(view.getHostComponents.calledWith(['host1'])).to.be.true;
-      expect(view.setMetric.calledOnce).to.be.true;
-      expect(view.openDetailsBlock.calledOnce).to.be.true;
+
+      it("getHostComponents is called with valid arguments", function () {
+        expect(view.getHostComponents.calledWith(['host1'])).to.be.true;
+      });
+
+      it("setMetric is called once", function () {
+        expect(view.setMetric.calledOnce).to.be.true;
+      });
+
+      it("openDetailsBlock is called once", function () {
+        expect(view.openDetailsBlock.calledOnce).to.be.true;
+      });
+
     });
 
-    it("set hostName", function () {
-      var childView = Em.Object.create({
-        details: {
-          hostName: ''
-        }
+    describe('set hostName', function () {
+      var childView;
+      beforeEach(function () {
+        childView = Em.Object.create({
+          details: {
+            hostName: ''
+          }
+        });
+        this.mock.returns(childView);
+        view.set('content', {
+          hostName: 'host1'
+        });
+        view.mouseEnter();
       });
-      this.mock.returns(childView);
-      view.set('content', {
-        hostName: 'host1'
+
+      it("hostName = host1", function () {
+        expect(childView.get('details.hostName')).to.equal('host1');
       });
-      view.mouseEnter();
-      expect(childView.get('details.hostName')).to.equal('host1');
-      expect(view.setMetric.calledOnce).to.be.true;
-      expect(view.openDetailsBlock.calledOnce).to.be.true;
+
+      it("setMetric is called once", function () {
+        expect(view.setMetric.calledOnce).to.be.true;
+      });
+
+      it("openDetailsBlock is called once", function () {
+        expect(view.openDetailsBlock.calledOnce).to.be.true;
+      });
+
     });
   });
 

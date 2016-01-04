@@ -42,6 +42,40 @@ from utils import service, safe_zkfc_op, is_previous_fs_image
 from setup_ranger_hdfs import setup_ranger_hdfs, create_ranger_audit_hdfs_directories
 
 
+def wait_for_safemode_off(hdfs_binary, afterwait_sleep=0, execute_kinit=False):
+  """
+  During NonRolling (aka Express Upgrade), after starting NameNode, which is still in safemode, and then starting
+  all of the DataNodes, we need for NameNode to receive all of the block reports and leave safemode.
+  If HA is present, then this command will run individually on each NameNode, which checks for its own address.
+  """
+  import params
+
+  Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
+
+  if params.security_enabled and execute_kinit:
+    kinit_command = format("{params.kinit_path_local} -kt {params.hdfs_user_keytab} {params.hdfs_principal_name}")
+    Execute(kinit_command, user=params.hdfs_user, logoutput=True)
+
+  try:
+    # Note, this fails if namenode_address isn't prefixed with "params."
+
+    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
+    is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
+
+    # Wait up to 30 mins
+    Execute(is_namenode_safe_mode_off,
+            tries=115,
+            try_sleep=10,
+            user=params.hdfs_user,
+            logoutput=True
+            )
+
+    # Wait a bit more since YARN still depends on block reports coming in.
+    # Also saw intermittent errors with HBASE service check if it was done too soon.
+    time.sleep(afterwait_sleep)
+  except Fail:
+    Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, env=None):
   if action is None:
@@ -115,8 +149,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if params.security_enabled:
       Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
               user = params.hdfs_user)
-    dfsadmin_base_command = get_dfsadmin_base_command(hdfs_binary, use_specific_namenode=True)
-    is_namenode_safe_mode_off = dfsadmin_base_command + " -safemode get | grep 'Safe mode is OFF'"
+
     if params.dfs_ha_enabled:
       is_active_namenode_cmd = as_user(format("{hdfs_binary} --config {hadoop_conf_dir} haadmin -getServiceState {namenode_id} | grep active"), params.hdfs_user, env={'PATH':params.hadoop_bin_dir})
     else:
@@ -164,17 +197,7 @@ def namenode(action=None, hdfs_binary=None, do_format=True, upgrade_type=None, e
     if check_for_safemode_off:
       Logger.info("Stay in safe mode: {0}".format(stay_in_safe_mode))
       if not stay_in_safe_mode:
-        Logger.info("Wait to leafe safemode since must transition from ON to OFF.")
-        try:
-          # Wait up to 30 mins
-          Execute(is_namenode_safe_mode_off,
-                  tries=65,
-                  try_sleep=10,
-                  user=params.hdfs_user,
-                  logoutput=True
-          )
-        except Fail:
-          Logger.error("NameNode is still in safemode, please be careful with commands that need safemode OFF.")
+        wait_for_safemode_off(hdfs_binary)
 
     # Always run this on non-HA, or active NameNode during HA.
     create_hdfs_directories(is_active_namenode_cmd)

@@ -18,8 +18,12 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog) {
+.controller('CreateViewInstanceCtrl',['$scope', 'View', 'Alert', 'Cluster', '$routeParams', '$location', 'UnsavedDialog', '$translate', function($scope, View, Alert, Cluster, $routeParams, $location, UnsavedDialog, $translate) {
+  var $t = $translate.instant;
   $scope.form = {};
+  $scope.constants = {
+    props: $t('views.properties')
+  };
   var targetUrl = '';
 
   function loadMeta(){
@@ -38,7 +42,7 @@ angular.module('ambariAdminConsole')
       });
 
       $scope.clusterConfigurable = viewVersion.ViewVersionInfo.cluster_configurable;
-      $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : "This view cannot use this option";
+      $scope.clusterConfigurableErrorMsg = $scope.clusterConfigurable ? "" : $t('views.alerts.cannotUseOption');
 
       $scope.instance = {
         view_name: viewVersion.ViewVersionInfo.view_name,
@@ -72,7 +76,7 @@ angular.module('ambariAdminConsole')
           $scope.form.instanceCreateForm[key].validationError = false;
           $scope.form.instanceCreateForm[key].validationMessage = '';
         } catch (e) {
-          console.log('Unable to reset error message for prop:', key);
+          console.log($t('views.alerts.unableToResetErrorMessage', {key: key}));
         }
       });
       $scope.errorKeys = [];
@@ -101,7 +105,7 @@ angular.module('ambariAdminConsole')
         $scope.noClusterAvailible = false;
         $scope.instance.isLocalCluster = $scope.clusterConfigurable;
       }else{
-        $scope.clusters.push("No Clusters");
+        $scope.clusters.push($t('common.noClusters'));
       }
       $scope.cluster = $scope.clusters[0];
     });
@@ -127,7 +131,7 @@ angular.module('ambariAdminConsole')
       $scope.instance.clusterName = $scope.cluster;
       View.createInstance($scope.instance)
         .then(function(data) {
-          Alert.success('Created View Instance ' + $scope.instance.instance_name);
+          Alert.success($t('views.alerts.instanceCreated', {instanceName: $scope.instance.instance_name}));
           $scope.form.instanceCreateForm.$setPristine();
           if( targetUrl ){
             $location.path(targetUrl);
@@ -158,10 +162,10 @@ angular.module('ambariAdminConsole')
                 $scope.form.instanceCreateForm.generalValidationError = errorMessage;
               }
             } catch (e) {
-              console.error('Unable to parse error message:', data.message);
+              console.error($t('views.alerts.unableToParseError', {message: data.message}));
             }
           }
-          Alert.error('Cannot create instance', errorMessage);
+          Alert.error($t('views.alerts.cannotCreateInstance'), errorMessage);
           $scope.form.instanceCreateForm.isSaving = false;
         });
       }

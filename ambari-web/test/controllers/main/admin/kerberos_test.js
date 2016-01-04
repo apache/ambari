@@ -61,20 +61,30 @@ describe('App.MainAdminKerberosController', function() {
       });
     });
 
-    it('should take displayType from predefinedSiteProperties', function () {
-      sinon.stub(App.configsCollection, 'getAll').returns([
-        {
-          name: 'hadoop.security.auth_to_local',
-          displayType: 'multiLine'
-        }
-      ]);
-      expect(controller.prepareConfigProperties([
-        Em.Object.create({
-          name: 'hadoop.security.auth_to_local',
-          serviceName: 'HDFS'
-        })
-      ])[0].get('displayType')).to.equal('multiLine');
-      App.configsCollection.getAll.restore();
+    describe('should take displayType from predefinedSiteProperties', function () {
+
+      beforeEach(function () {
+        sinon.stub(App.configsCollection, 'getAll').returns([
+          {
+            name: 'hadoop.security.auth_to_local',
+            displayType: 'multiLine'
+          }
+        ]);
+      });
+
+      afterEach(function () {
+        App.configsCollection.getAll.restore();
+      });
+
+      it('displayType is valid', function () {
+        expect(controller.prepareConfigProperties([
+          Em.Object.create({
+            name: 'hadoop.security.auth_to_local',
+            serviceName: 'HDFS'
+          })
+        ])[0].get('displayType')).to.equal('multiLine');
+      });
+
     });
   });
 
@@ -227,17 +237,31 @@ describe('App.MainAdminKerberosController', function() {
         result: true
       }
     ].forEach(function (test) {
-          it(test.m, function () {
-            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
-            controller.set('securityEnabled', test.securityEnabled);
-            controller.set('kdc_type', test.kdc_type);
-            controller.getKDCSessionState(mock.callback);
+          describe(test.m, function () {
+
+            beforeEach(function () {
+              sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+              controller.set('securityEnabled', test.securityEnabled);
+              controller.set('kdc_type', test.kdc_type);
+              controller.getKDCSessionState(mock.callback);
+            });
+
+
             if (test.result) {
-              expect(mock.callback.calledOnce).to.be.false;
-              expect(App.ajax.send.calledOnce).to.be.true;
-            } else {
-              expect(mock.callback.calledOnce).to.be.true;
-              expect(App.ajax.send.calledOnce).to.be.false;
+              it('callback is not called', function () {
+                expect(mock.callback.calledOnce).to.be.false;
+              });
+              it('1 request is sent', function () {
+                expect(App.ajax.send.calledOnce).to.be.true;
+              });
+            }
+            else {
+              it('callback is called once', function () {
+                expect(mock.callback.calledOnce).to.be.true;
+              });
+              it('no request is sent', function () {
+                expect(App.ajax.send.calledOnce).to.be.false;
+              });
             }
           });
         });
@@ -281,17 +305,29 @@ describe('App.MainAdminKerberosController', function() {
         result: true
       }
     ].forEach(function (test) {
-          it(test.m, function () {
-            sinon.stub(App, 'get').returns(test.isKerberosEnabled);
-            controller.set('securityEnabled', test.securityEnabled);
-            controller.set('kdc_type', test.kdc_type);
-            controller.getSecurityType(mock.callback);
+          describe(test.m, function () {
+
+            beforeEach(function () {
+              sinon.stub(App, 'get').returns(test.isKerberosEnabled);
+              controller.set('securityEnabled', test.securityEnabled);
+              controller.set('kdc_type', test.kdc_type);
+              controller.getSecurityType(mock.callback);
+            });
+
             if (test.result) {
-              expect(mock.callback.calledOnce).to.be.false;
-              expect(App.ajax.send.calledOnce).to.be.true;
+              it('callback os not called', function () {
+                expect(mock.callback.calledOnce).to.be.false;
+              });
+              it('1 request is sent', function () {
+                expect(App.ajax.send.calledOnce).to.be.true;
+              });
             } else {
-              expect(mock.callback.calledOnce).to.be.true;
-              expect(App.ajax.send.calledOnce).to.be.false;
+              it('callback is called once', function () {
+                expect(mock.callback.calledOnce).to.be.true;
+              });
+              it('no request is sent', function () {
+                expect(App.ajax.send.calledOnce).to.be.false;
+              });
             }
           });
         });

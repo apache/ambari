@@ -159,18 +159,33 @@ describe('App.ReloadPopupMixin', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        if (!Em.isNone(item.retryCount)) {
-          obj.set('retryCount', item.retryCount);
-        }
-        obj.reloadErrorCallback.apply(obj, item.args);
-        expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
-        expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
-        expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
-        expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);
-        if (!Em.isNone(item.retryCountResult)) {
-          obj.set('retryCount', item.retryCountResult);
-        }
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          if (!Em.isNone(item.retryCount)) {
+            obj.set('retryCount', item.retryCount);
+          }
+          obj.reloadErrorCallback.apply(obj, item.args);
+        });
+
+        afterEach(function () {
+          if (!Em.isNone(item.retryCountResult)) {
+            obj.set('retryCount', item.retryCountResult);
+          }
+        });
+
+        it('closeReloadPopup is called needed number of times', function () {
+          expect(obj.closeReloadPopup.callCount).to.equal(item.closeReloadPopupCallCount);
+        });
+        it('defaultErrorHandler is called needed number of times', function () {
+          expect(App.ajax.defaultErrorHandler.callCount).to.equal(item.defaultErrorHandlerCallCount);
+        });
+        it('showReloadPopup is called needed number of times', function () {
+          expect(obj.showReloadPopup.callCount).to.equal(item.showReloadPopupCallCount);
+        });
+        it('setTimeout is called needed number of times', function () {
+          expect(window.setTimeout.callCount).to.equal(item.setTimeoutCount);
+        });
       });
     });
 

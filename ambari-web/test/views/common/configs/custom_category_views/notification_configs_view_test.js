@@ -66,7 +66,7 @@ describe('App.NotificationsConfigsView', function () {
 
     });
 
-    it('should update category configs', function () {
+    describe('should update category configs', function () {
       var configs = [
         Em.Object.create({
           name: "create_notification",
@@ -82,12 +82,21 @@ describe('App.NotificationsConfigsView', function () {
         })
       ];
 
-      view.set('categoryConfigsAll', configs);
-      view.didInsertElement();
-      expect(view.get('createNotification')).to.equal('yes');
-      expect(view.get('tlsOrSsl')).to.equal('ssl');
-      expect(configs.findProperty('name', 'smtp_use_auth').get('value')).to.be.true;
-      expect(view.updateCategoryConfigs.called).to.be.true;
+      beforeEach(function () {
+        view.set('categoryConfigsAll', configs);
+        view.didInsertElement();
+      });
+
+      it('createNotification = yes', function () {
+        expect(view.get('createNotification')).to.equal('yes');
+      });
+      it('tlsOrSsl = ssl', function () {
+        expect(view.get('tlsOrSsl')).to.equal('ssl');
+      });
+      it('updateCategoryConfigs is called once', function () {
+        expect(view.updateCategoryConfigs.called).to.be.true;
+      });
+
     });
   });
 
@@ -218,19 +227,38 @@ describe('App.NotificationsConfigsView', function () {
       config.validate.restore();
     });
 
-    it("flag is true", function () {
-      view.updateConfig(config, true);
-      expect(config.get('isRequired')).to.be.true;
-      expect(config.get('isEditable')).to.be.true;
-      expect(config.validate.calledOnce).to.be.true;
+    describe("flag is true", function () {
+
+      beforeEach(function () {
+        view.updateConfig(config, true);
+      });
+      it('isRequired is true', function () {
+        expect(config.get('isRequired')).to.be.true;
+      });
+      it('isEditable is true', function () {
+        expect(config.get('isEditable')).to.be.true;
+      });
+      it('validate is called once', function () {
+        expect(config.validate.calledOnce).to.be.true;
+      });
     });
 
-    it("flag is false", function () {
-      view.updateConfig(config, false);
-      expect(config.get('isRequired')).to.be.false;
-      expect(config.get('isEditable')).to.be.false;
-      expect(config.get('errorMessage')).to.be.empty;
-      expect(config.validate.called).to.be.false;
+    describe("flag is false", function () {
+      beforeEach(function () {
+        view.updateConfig(config, false);
+      });
+      it('isRequired is false', function () {
+        expect(config.get('isRequired')).to.be.false;
+      });
+      it('isEditable is false', function () {
+        expect(config.get('isEditable')).to.be.false;
+      });
+      it('errorMessage is empty', function () {
+        expect(config.get('errorMessage')).to.be.empty;
+      });
+      it('validate is not called', function () {
+        expect(config.validate.called).to.be.false;
+      });
     });
   });
 });

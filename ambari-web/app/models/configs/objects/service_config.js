@@ -59,6 +59,10 @@ App.ServiceConfig = Ember.Object.extend({
     }, this);
   }.observes('configsWithErrors'),
 
+  configTypes: function() {
+    return App.StackService.find(this.get('serviceName')).get('configTypeList') || [];
+  }.property('serviceName'),
+
   observeForeignKeys: function() {
     //TODO refactor or move this logic to other place
     var configs = this.get('configs');

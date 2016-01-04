@@ -169,25 +169,55 @@ describe('App.WizardStep1View', function () {
       expect(view.get('operatingSystems.length')).to.equal(0);
     });
 
-    it('should create repo groups from repo list', function () {
-      controller = App.WizardStep1Controller.create({
-        content: {
-          stacks: App.Stack.find()
-        }
+    describe('should create repo groups from repo list', function () {
+
+      var repositories;
+
+      beforeEach(function () {
+        controller = App.WizardStep1Controller.create({
+          content: {
+            stacks: App.Stack.find()
+          }
+        });
+
+        view = App.WizardStep1View.create({'controller': controller});
+        view.set('$', function () {
+          return Em.Object.create({hide: Em.K, toggle: Em.K});
+        });
+
+        repositories = view.get('allRepositories');
       });
-      view = App.WizardStep1View.create({'controller': controller});
-      view.set('$', function () {
-        return Em.Object.create({hide: Em.K, toggle: Em.K});
+
+      it('operatingSystems.length', function () {
+        expect(view.get('operatingSystems.length')).to.equal(2);
       });
-      var repositories = view.get('allRepositories');
-      expect(view.get('operatingSystems.length')).to.equal(2);
-      expect(view.get('operatingSystems')[0].get('osType')).to.equal('redhat5');
-      expect(view.get('operatingSystems')[1].get('osType')).to.equal('redhat6');
-      expect(view.get('operatingSystems')[0].get('isSelected')).to.be.true;
-      expect(view.get('operatingSystems')[1].get('isSelected')).to.be.true;
-      expect(view.get('operatingSystems')[0].get('repositories')).to.eql([repositories[0], repositories[1]]);
-      expect(view.get('operatingSystems')[1].get('repositories')).to.eql([repositories[2], repositories[3]]);
+
+      it('operatingSystems.0.osType', function () {
+        expect(view.get('operatingSystems')[0].get('osType')).to.equal('redhat5');
+      });
+
+      it('operatingSystems.1.osType', function () {
+        expect(view.get('operatingSystems')[1].get('osType')).to.equal('redhat6');
+      });
+
+      it('operatingSystems.0.isSelected', function () {
+        expect(view.get('operatingSystems')[0].get('isSelected')).to.be.true;
+      });
+
+      it('operatingSystems.1.isSelected', function () {
+        expect(view.get('operatingSystems')[1].get('isSelected')).to.be.true;
+      });
+
+      it('operatingSystems.0.repositories', function () {
+        expect(view.get('operatingSystems')[0].get('repositories')).to.eql([repositories[0], repositories[1]]);
+      });
+
+      it('operatingSystems.1.repositories', function () {
+        expect(view.get('operatingSystems')[1].get('repositories')).to.eql([repositories[2], repositories[3]]);
+      });
+
     });
+
   });
 
   describe('#invalidFormatUrlExist', function () {
@@ -312,12 +342,19 @@ describe('App.WizardStep1View', function () {
   });
 
   describe('#didInsertElement', function () {
-    it('should create tooltip', function () {
+
+    beforeEach(function () {
       sinon.stub($.fn, 'tooltip', Em.K);
+    });
+
+    afterEach(function () {
+      $.fn.tooltip.restore();
+    });
+
+    it('should create tooltip', function () {
       view.set('isRLCollapsed', false);
       view.didInsertElement();
       expect($.fn.tooltip.calledOnce).to.equal(true);
-      $.fn.tooltip.restore();
     });
   });
 

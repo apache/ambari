@@ -18,7 +18,8 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'Alert', 'ROUTES', 'ConfirmationModal', '$rootScope', 'Stack', function($scope, Cluster, $location, Alert, ROUTES, ConfirmationModal, $rootScope, Stack) {
+.controller('NavbarCtrl',['$scope', 'Cluster', '$location', 'Alert', 'ROUTES', 'ConfirmationModal', '$rootScope', 'Stack', '$translate', function($scope, Cluster, $location, Alert, ROUTES, ConfirmationModal, $rootScope, Stack, $translate) {
+  var $t = $translate.instant;
   $scope.cluster = null;
   $scope.totalRepos = 0;
   $scope.editCluster = {
@@ -40,7 +41,7 @@ angular.module('ambariAdminConsole')
         setTimeout(loadClusterData, 1000);
       }
     }).catch(function (data) {
-      Alert.error('Cannot load cluster status', data.statusText);
+      Alert.error($t('common.alerts.cannotLoadClusterStatus'), data.statusText);
     });
   }
   loadClusterData();
@@ -56,7 +57,12 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.confirmClusterNameChange = function() {
-    ConfirmationModal.show('Confirm Cluster Name Change', 'Are you sure you want to change the cluster name to ' + $scope.editCluster.name + '?')
+    ConfirmationModal.show(
+      $t('common.clusterNameChangeConfirmation.title'),
+      $t('common.clusterNameChangeConfirmation.message', {
+        clusterName: $scope.editCluster.name
+      })
+    )
       .then(function() {
         $scope.saveClusterName();
       }).catch(function() {
@@ -71,9 +77,9 @@ angular.module('ambariAdminConsole')
 
     Cluster.editName(oldClusterName, newClusterName).then(function(data) {
       $scope.cluster.Clusters.cluster_name = newClusterName;
-      Alert.success('The cluster has been renamed to ' + newClusterName + '.');
+      Alert.success($t('common.alerts.clusterRenamed', {clusterName: newClusterName}));
     }).catch(function(data) {
-      Alert.error('Cannot rename cluster to ' + newClusterName, data.data.message);
+      Alert.error($t('common.alerts.cannotRenameCluster', {clusterName: newClusterName}), data.data.message);
     });
 
     $scope.toggleEditName();

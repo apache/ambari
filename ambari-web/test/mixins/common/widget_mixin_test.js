@@ -417,7 +417,7 @@ describe('App.WidgetLoadAggregator', function () {
       expect(aggregator.get('requests')).to.not.be.empty;
       expect(window.setTimeout.called).to.be.false;
     });
-    it("timeout started", function () {
+    it("timeout started (2)", function () {
       aggregator.set('timeoutId', null);
       aggregator.get('requests').clear();
       aggregator.add({});

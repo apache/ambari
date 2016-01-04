@@ -18,18 +18,19 @@
 
 describe('#Cluster', function () {
   describe('StackVersionsListCtrl', function() {
-    var scope, ctrl;
+    var scope, ctrl, $httpBackend;
 
     beforeEach(module('ambariAdminConsole', function($provide) {
 
     }));
 
-    beforeEach(inject(function($rootScope, $controller) {
+    beforeEach(inject(function($rootScope, $controller, _$httpBackend_) {
       scope = $rootScope.$new();
       ctrl = $controller('StackVersionsListCtrl', {$scope: scope});
+      $httpBackend = _$httpBackend_;
     }));
 
-    describe('fetchRepos()', function () {
+    describe('#fetchRepos()', function () {
 
       it('saves list of stacks', function() {
         scope.fetchRepos().then(function() {
@@ -39,7 +40,7 @@ describe('#Cluster', function () {
 
     });
 
-    describe('fillClusters()', function () {
+    describe('#fillClusters()', function () {
 
       var clusters = [
           {
@@ -76,6 +77,116 @@ describe('#Cluster', function () {
           scope.fillClusters(clusters);
           expect(scope.dropDownClusters).toEqual(clusters);
           expect(scope.filter.cluster.current).toEqual(item.current);
+        });
+      });
+
+    });
+
+    describe('#isNotEmptyFilter', function () {
+
+      var cases = [
+        {
+          filter: {
+            version: '',
+            cluster: {
+              current: null
+            }
+          },
+          isNotEmptyFilter: false,
+          title: 'no filters'
+        },
+        {
+          filter: {
+            version: '',
+            cluster: {
+              current: {
+                value: ''
+              }
+            }
+          },
+          isNotEmptyFilter: false,
+          title: 'empty filters'
+        },
+        {
+          filter: {
+            version: 'a',
+            cluster: {
+              current: {
+                value: ''
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'version filter'
+        },
+        {
+          filter: {
+            version: '0',
+            cluster: {
+              current: {
+                value: ''
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'version filter with "0" as string'
+        },
+        {
+          filter: {
+            version: '',
+            cluster: {
+              current: {
+                value: 'a'
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'cluster filter'
+        },
+        {
+          filter: {
+            version: '',
+            cluster: {
+              current: {
+                value: '0'
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'cluster filter with "0" as string'
+        },
+        {
+          filter: {
+            version: 'a',
+            cluster: {
+              current: {
+                value: 'a'
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'both filters'
+        },
+        {
+          filter: {
+            version: '0',
+            cluster: {
+              current: {
+                value: '0'
+              }
+            }
+          },
+          isNotEmptyFilter: true,
+          title: 'both filters with "0" as string'
+        }
+      ];
+
+      cases.forEach(function (item) {
+        it(item.title, function () {
+          $httpBackend.expectGET(/\/api\/v1\/clusters\?_=\d+/).respond(200);
+          scope.filter = item.filter;
+          scope.$digest();
+          expect(scope.isNotEmptyFilter).toEqual(item.isNotEmptyFilter);
         });
       });
 

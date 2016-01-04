@@ -264,7 +264,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.get('requestsInProgress').clear();
     this.clearLoadInfo();
     this.clearSaveInfo();
-    this.clearDependentConfigs();
+    this.clearAllRecommendations();
     this.setProperties({
       saveInProgress: false,
       isInit: true,
@@ -445,8 +445,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
           for (var prop in config.properties) {
             var fileName = App.config.getOriginalFileName(config.type);
             var serviceConfig = allConfigs.filterProperty('name', prop).findProperty('filename', fileName);
+            var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
             if (serviceConfig) {
-              var value = App.config.formatPropertyValue(serviceConfig, config.properties[prop]);
               var isFinal = !!(config.properties_attributes && config.properties_attributes.final && config.properties_attributes.final[prop]);
               if (self.get('selectedConfigGroup.isDefault') || configGroup.get('name') == self.get('selectedConfigGroup.name')) {
                 var overridePlainObject = {
@@ -460,7 +460,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
               }
             } else {
               var isEditable = self.get('canEdit') && configGroup.get('name') == self.get('selectedConfigGroup.name');
-              allConfigs.push(App.config.createCustomGroupConfig(prop, config, configGroup, isEditable));
+              allConfigs.push(App.config.createCustomGroupConfig(prop, fileName, value, configGroup, isEditable));
             }
           }
         });
@@ -494,7 +494,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this.getRecommendationsForDependencies(null, true, function () {self._onLoadComplete();}, this.get('selectedConfigGroup'));
+    this.getRecommendationsForDependencies(null, true, function () {self._onLoadComplete();});
     App.loadTimer.finish('Service Configs Page');
   },
 
@@ -533,6 +533,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
         });
       }
     }
+  },
+
+  /**
+   * Allow update property if recommendations
+   * is based on changing property
+   *
+   * @param parentProperties
+   * @returns {boolean}
+   * @override
+   */
+  allowUpdateProperty: function(parentProperties) {
+    return !!(parentProperties && parentProperties.length);
   },
 
   /**
@@ -576,7 +588,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    */
   doCancel: function () {
     this.set('preSelectedConfigVersion', null);
-    this.clearDependentConfigs();
+    this.clearAllRecommendations();
     this.loadSelectedVersion(this.get('selectedVersion'), this.get('selectedConfigGroup'));
   },
 

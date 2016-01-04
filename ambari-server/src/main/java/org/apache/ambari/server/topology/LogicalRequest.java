@@ -195,6 +195,7 @@ public class LogicalRequest extends Request {
   }
 
   // currently we are just returning all stages for all requests
+  //TODO technically StageEntity is simply a container for HostRequest info with additional redundant transformations
   public Collection<StageEntity> getStageEntities() {
     Collection<StageEntity> stages = new ArrayList<StageEntity>();
     for (HostRequest hostRequest : allHostRequests) {
@@ -232,7 +233,32 @@ public class LogicalRequest extends Request {
   public Map<Long, HostRoleCommandStatusSummaryDTO> getStageSummaries() {
     Map<Long, HostRoleCommandStatusSummaryDTO> summaryMap = new HashMap<Long, HostRoleCommandStatusSummaryDTO>();
 
-    for (StageEntity stage : getStageEntities()) {
+    Map<Long, Collection<HostRoleCommand>> stageTasksMap = new HashMap<>();
+
+    Map<Long, Long> taskToStageMap = new HashMap<>();
+
+
+    for (HostRequest hostRequest : getHostRequests()) {
+      Map<Long, Long> physicalTaskMapping = hostRequest.getPhysicalTaskMapping();
+      Collection<Long> stageTasks = physicalTaskMapping.values();
+      for (Long stageTask : stageTasks) {
+        taskToStageMap.put(stageTask, hostRequest.getStageId());
+      }
+    }
+
+    Collection<HostRoleCommand> physicalTasks = topology.getAmbariContext().getPhysicalTasks(taskToStageMap.keySet());
+
+    for (HostRoleCommand physicalTask : physicalTasks) {
+      Long stageId = taskToStageMap.get(physicalTask.getTaskId());
+      Collection<HostRoleCommand> stageTasks = stageTasksMap.get(stageId);
+      if (stageTasks == null) {
+        stageTasks = new ArrayList<>();
+        stageTasksMap.put(stageId, stageTasks);
+      }
+      stageTasks.add(physicalTask);
+    }
+
+    for (Long stageId : stageTasksMap.keySet()) {
       //Number minStartTime = 0;
       //Number maxEndTime = 0;
       int aborted = 0;
@@ -248,7 +274,7 @@ public class LogicalRequest extends Request {
       int skippedFailed = 0;
 
       //todo: where does this logic belong?
-      for (HostRoleCommandEntity task : stage.getHostRoleCommands()) {
+      for (HostRoleCommand task : stageTasksMap.get(stageId)) {
         HostRoleStatus taskStatus = task.getStatus();
 
         switch (taskStatus) {
@@ -291,12 +317,13 @@ public class LogicalRequest extends Request {
       }
 
       HostRoleCommandStatusSummaryDTO stageSummary = new HostRoleCommandStatusSummaryDTO(
-          stage.isSkippable() ? 1 : 0, 0, 0, stage.getStageId(), aborted, completed, failed,
+          0, 0, 0, stageId, aborted, completed, failed,
           holding, holdingFailed, holdingTimedout, inProgress, pending, queued, timedout,
           skippedFailed);
 
-      summaryMap.put(stage.getStageId(), stageSummary);
+      summaryMap.put(stageId, stageSummary);
     }
+
     return summaryMap;
   }
 

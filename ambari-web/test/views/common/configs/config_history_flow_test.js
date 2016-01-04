@@ -305,54 +305,91 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#willInsertElement()', function () {
+
     beforeEach(function () {
       sinon.stub(view, 'adjustFlowView', Em.K);
       sinon.stub(view, 'keepInfoBarAtTop', Em.K);
     });
+
     afterEach(function () {
       view.adjustFlowView.restore();
       view.keepInfoBarAtTop.restore();
     });
-    it('Only current version is present', function () {
-      view.set('serviceVersions', [Em.Object.create({isCurrent: true})]);
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(0);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true]);
-    });
-    it('Five service versions are present', function () {
-      view.set('serviceVersions', [
-        Em.Object.create({isCurrent: true}),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create()
-      ]);
+    describe('Only current version is present', function () {
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(0);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false]);
-    });
-    it('Six service versions are present', function () {
-      view.set('serviceVersions', [
-        Em.Object.create({isCurrent: true}),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create(),
-        Em.Object.create()
-      ]);
+      beforeEach(function () {
+        view.set('serviceVersions', [Em.Object.create({isCurrent: true})]);
+        view.willInsertElement();
+      });
 
-      view.willInsertElement();
-      expect(view.adjustFlowView.calledOnce).to.be.true;
-      expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
-      expect(view.get('startIndex')).to.equal(1);
-      expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false, false]);
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex = 0', function () {
+        expect(view.get('startIndex')).to.equal(0);
+      });
+      it('serviceVersions.@each.isDisplayed = [true]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true]);
+      });
     });
+
+    describe('Five service versions are present', function () {
+
+      beforeEach(function () {
+        view.set('serviceVersions', [
+          Em.Object.create({isCurrent: true}),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create()
+        ]);
+        view.willInsertElement();
+      });
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex = 0', function () {
+        expect(view.get('startIndex')).to.equal(0);
+      });
+      it('serviceVersions.@each.isDisplayed = [true, false, false, false, false]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false]);
+      });
+    });
+
+    describe('Six service versions are present', function () {
+      beforeEach(function () {
+        view.set('serviceVersions', [
+          Em.Object.create({isCurrent: true}),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create(),
+          Em.Object.create()
+        ]);
+        view.willInsertElement();
+      });
+
+      it('adjustFlowView is called once', function () {
+        expect(view.adjustFlowView.calledOnce).to.be.true;
+      });
+      it('keepInfoBarAtTop is called once', function () {
+        expect(view.keepInfoBarAtTop.calledOnce).to.be.true;
+      });
+      it('startIndex is 1', function () {
+        expect(view.get('startIndex')).to.equal(1);
+      });
+      it('serviceVersions.@each.isDisplayed = [true, false, false, false, false, false]', function () {
+        expect(view.get('serviceVersions').mapProperty('isDisplayed')).to.eql([true, false, false, false, false, false]);
+      });
+    });
+
   });
 
   describe('#setInfoBarPosition()', function () {
@@ -382,12 +419,19 @@ describe.skip('App.ConfigHistoryFlowView', function () {
     var infoBar = {
       css: Em.K
     };
+
+    beforeEach(function () {
+      sinon.spy(infoBar, 'css');
+    });
+
+    afterEach(function () {
+      infoBar.css.restore();
+    });
+
     testCases.forEach(function (test) {
       it('scroll top - ' + test.params.scrollTop + ', default top - ' + test.params.defaultTop, function () {
-        sinon.spy(infoBar, 'css');
         view.setInfoBarPosition(infoBar, test.params.defaultTop, test.params.scrollTop);
         expect(infoBar.css.calledWith('top', test.result)).to.be.true;
-        infoBar.css.restore();
       });
     });
   });
@@ -614,20 +658,25 @@ describe.skip('App.ConfigHistoryFlowView', function () {
   });
 
   describe('#save()', function () {
-    it('modal popup should be displayed', function () {
-      sinon.stub(App.ModalPopup, 'show', Em.K);
-      view.save();
 
-      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show', Em.K);
+      sinon.stub(App.ServiceConfigVersion, 'find').returns([
+        { serviceName: 'service'}
+      ]);
+    });
+
+    afterEach(function () {
       App.ModalPopup.show.restore();
+      App.ServiceConfigVersion.find.restore();
+    });
+
+    it('modal popup should be displayed', function () {
+      view.save();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
     });
 
     it('controller properties should be modified on save', function () {
-      sinon.stub(App.ServiceConfigVersion, 'find').returns([
-        {
-          serviceName: 'service'
-        }
-      ]);
       view.setProperties({
         'serviceName': 'service',
         'controller.saveConfigsFlag': false,
@@ -757,16 +806,22 @@ describe.skip('App.ConfigHistoryFlowView', function () {
       }
     ];
 
+    beforeEach(function () {
+      sinon.stub(view, 'adjustFlowView', Em.K);
+    });
+
+    afterEach(function () {
+      view.adjustFlowView.restore();
+    });
+
     testCases.forEach(function (test) {
       it('start index - ' + test.params.startIndex + ', serviceVersions length - ' + test.params.serviceVersions.length + ', versionIndex - ' + test.params.versionIndex, function () {
-        sinon.stub(view, 'adjustFlowView', Em.K);
         view.set('serviceVersions', test.params.serviceVersions);
         view.set('startIndex', test.params.startIndex);
         view.shiftFlowOnSwitch(test.params.versionIndex);
 
         expect(view.get('startIndex')).to.eql(test.result.startIndex);
         expect(view.adjustFlowView.calledOnce).to.eql(test.result.adjustFlowViewCall);
-        view.adjustFlowView.restore();
       });
     });
   });

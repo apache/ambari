@@ -110,17 +110,14 @@ describe('App.ajax', function() {
 
   describe('#formatRequest', function() {
 
-    it('App.testMode = true', function() {
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return true;
-        return Em.get(App, k);
-      });
-      var r = App.ajax.fakeFormatRequest({real:'/', mock: '/some_url'}, {});
-      expect(r.type).to.equal('GET');
-      expect(r.url).to.equal('/some_url');
-      expect(r.dataType).to.equal('json');
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
+    });
+
+    afterEach(function () {
       App.get.restore();
     });
+
     var tests = [
       {
         urlObj: {
@@ -138,14 +135,9 @@ describe('App.ajax', function() {
     ];
     tests.forEach(function(test) {
       it(test.m, function() {
-        sinon.stub(App, 'get', function(k) {
-          if ('testMode' === k) return false;
-          return Em.get(App, k);
-        });
         var r = App.ajax.fakeFormatRequest(test.urlObj, test.data);
         expect(r.type).to.equal(test.e.type);
         expect(r.url).to.equal(test.e.url);
-        App.get.restore();
       });
     });
   });

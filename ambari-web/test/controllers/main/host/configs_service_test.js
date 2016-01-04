@@ -118,17 +118,23 @@ describe('App.MainHostServiceConfigsController', function () {
 	});
 
 	describe("#renderServiceConfigs()", function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'filterServiceConfigs', function () {
+        this._super = Em.K;
+      });
+    });
+
+    afterEach(function () {
+      controller.filterServiceConfigs.restore();
+    });
+
 		it("should call filterServiceConfigs", function () {
 			var serviceConfigs = {
 				configCategories: 'val'
 			};
-			sinon.stub(controller, 'filterServiceConfigs', function () {
-				this._super = Em.K;
-			});
 			controller.renderServiceConfigs(serviceConfigs);
-
 			expect(controller.filterServiceConfigs.calledWith('val')).to.be.true;
-			controller.filterServiceConfigs.restore();
 		});
 	});
 

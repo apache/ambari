@@ -98,14 +98,24 @@ describe('App.WizardStep10Controller', function () {
       }
     ]);
     testsForLoadInstallTime.forEach(function(test) {
-      it('loadMasterComponents: ' + test.loadMasterComponents.toString() + ' loadStartedServices: ' + test.loadStartedServices.toString(), function() {
-        controller.set('content.controllerName', 'installerController');
-        sinon.stub(controller, 'loadMasterComponents', function() {return test.loadMasterComponents;});
-        sinon.stub(controller, 'loadStartedServices', function() {return test.loadStartedServices;});
-        controller.loadStep();
-        expect(controller.loadInstallTime.called).to.equal(test.e);
-        controller.loadMasterComponents.restore();
-        controller.loadStartedServices.restore();
+      describe('loadMasterComponents: ' + test.loadMasterComponents.toString() + ' loadStartedServices: ' + test.loadStartedServices.toString(), function() {
+
+        beforeEach(function () {
+          controller.set('content.controllerName', 'installerController');
+          sinon.stub(controller, 'loadMasterComponents', function() {return test.loadMasterComponents;});
+          sinon.stub(controller, 'loadStartedServices', function() {return test.loadStartedServices;});
+          controller.loadStep();
+        });
+
+        afterEach(function () {
+          controller.loadMasterComponents.restore();
+          controller.loadStartedServices.restore();
+        });
+
+        it('loadInstallTime was ' + (test.e ? '' : 'not') + ' called', function () {
+          expect(controller.loadInstallTime.called).to.equal(test.e);
+        });
+
       });
     });
   });
@@ -148,12 +158,19 @@ describe('App.WizardStep10Controller', function () {
       }
     ]);
     tests.forEach(function(test) {
-      it(test.m, function() {
-        controller.set('content.hosts', test.hosts);
-        controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
-        controller.loadInstalledHosts();
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          controller.set('content.hosts', test.hosts);
+          controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
+          controller.loadInstalledHosts();
+        });
+
         test.e.forEach(function(ex) {
-          expect(controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', ex.id).get('displayStatement').contains(ex.l)).to.equal(true);
+          it(JSON.stringify(test.e), function () {
+            var displayStatement = controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', ex.id).get('displayStatement');
+            expect(displayStatement.contains(ex.l)).to.equal(true);
+          });
         });
       })
     });
@@ -304,12 +321,19 @@ describe('App.WizardStep10Controller', function () {
       }
     ]);
     testsForFailedTasks.forEach(function(test) {
-      it(test.m, function() {
-        controller.set('content.hosts', test.hosts);
-        controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
-        controller.loadInstalledHosts();
+      describe(test.m, function() {
+
+        beforeEach(function () {
+          controller.set('content.hosts', test.hosts);
+          controller.set('clusterInfo', Em.A([Em.Object.create({id: 1, status: []})]));
+          controller.loadInstalledHosts();
+        });
+
         test.e.forEach(function(ex) {
-          expect(controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').mapProperty('status', ex.st).length).to.equal(ex.l);
+          it(JSON.stringify(test.e), function () {
+            var tasksWithNeededStatements = controller.get('clusterInfo').findProperty('id', 1).get('status').findProperty('id', 2).get('statements').filterProperty('status', ex.st);
+            expect(tasksWithNeededStatements.length).to.equal(ex.l);
+          });
         });
       })
     });
@@ -426,22 +450,37 @@ describe('App.WizardStep10Controller', function () {
   });
 
   describe('#loadRegisteredHosts', function() {
-    it('should add object to clusterInfo', function() {
-      var masterComponentHosts = [{hostName: 'h1'}, {hostName: 'h2'}, {hostName: 'h3'}],
-        slaveComponentHosts = [{hosts: [{hostName: 'h1'}, {hostName: 'h4'}]}, {hosts: [{hostName: 'h2'}, {hostName: 'h5'}]}],
-        hosts = [{hostName: 'h6'}, {hostName: 'h3'}, {hostName: 'h7'}];
+    var masterComponentHosts = [{hostName: 'h1'}, {hostName: 'h2'}, {hostName: 'h3'}],
+      slaveComponentHosts = [{hosts: [{hostName: 'h1'}, {hostName: 'h4'}]}, {hosts: [{hostName: 'h2'}, {hostName: 'h5'}]}],
+      hosts = [{hostName: 'h6'}, {hostName: 'h3'}, {hostName: 'h7'}];
+    var obj;
+    beforeEach(function () {
       controller.set('content.masterComponentHosts', masterComponentHosts);
       controller.set('content.slaveComponentHosts', slaveComponentHosts);
       controller.set('clusterInfo', []);
       sinon.stub(App.Host, 'find', function() {
         return hosts;
       });
-      var obj = controller.loadRegisteredHosts();
+      obj = controller.loadRegisteredHosts();
+    });
+
+    afterEach(function () {
       App.Host.find.restore();
+    });
+
+    it('id  = 1', function() {
       expect(obj.id).to.equal(1);
+    });
+    it('color = text-info', function () {
       expect(obj.color).to.equal('text-info');
+    });
+    it('displayStatement is valid', function () {
       expect(obj.displayStatement).to.equal(Em.I18n.t('installer.step10.hostsSummary').format(7));
+    });
+    it('status is []', function () {
       expect(obj.status).to.eql([]);
+    });
+    it('clusterInfo.firstObject is valid', function () {
       expect(controller.get('clusterInfo.firstObject')).to.eql(obj);
     });
   });

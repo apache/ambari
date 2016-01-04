@@ -231,7 +231,7 @@ public interface KerberosHelper {
    */
   Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster,
                                                                   Map<String, Map<String, String>> existingConfigurations,
-                                                                  Set<String> services)
+                                                                  Set<String> services, boolean serviceAlreadyExists)
       throws KerberosInvalidConfigurationException, AmbariException;
 
   /**

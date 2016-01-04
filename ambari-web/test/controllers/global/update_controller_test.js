@@ -34,18 +34,19 @@ describe('App.UpdateController', function () {
 
   describe('#getUrl()', function () {
 
-    it('testMode = true', function () {
-      App.set('testMode', true);
-      expect(controller.getUrl('test', '/real')).to.equal('test');
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('testMode').returns(false);
+    });
+
+    afterEach(function () {
+      App.get.restore();
     });
 
     it('testMode = false', function () {
-      App.set('testMode', false);
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters//real');
     });
 
-    it('testMode = false', function () {
-      App.set('testMode', false);
+    it('testMode = false (2)', function () {
       controller.set('clusterName', 'mycluster');
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters/mycluster/real');
     });
@@ -426,16 +427,24 @@ describe('App.UpdateController', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
-          loadUpgradeData: mock.loadUpgradeData,
-          isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
-        })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
-          .withArgs('router.currentState.name').returns(item.currentStateName)
-          .withArgs('router.currentState.parentState.name').returns(item.parentStateName);;
-        controller.updateUpgradeState(mock.callback);
-        expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
-        expect(mock.callback.callCount).to.equal(item.callbackCallCount);
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          appGetMock.withArgs('router.mainAdminStackAndUpgradeController').returns(Em.Object.create({
+            loadUpgradeData: mock.loadUpgradeData,
+            isLoadUpgradeDataPending: item.isLoadUpgradeDataPending
+          })).withArgs('wizardIsNotFinished').returns(item.wizardIsNotFinished)
+            .withArgs('router.currentState.name').returns(item.currentStateName)
+            .withArgs('router.currentState.parentState.name').returns(item.parentStateName);
+          controller.updateUpgradeState(mock.callback);
+        });
+        it('loadUpgradeData is called ' + item.loadUpgradeDataCallCount + ' times', function () {
+          expect(mock.loadUpgradeData.callCount).to.equal(item.loadUpgradeDataCallCount);
+        });
+        it('callback is called ' + item.callbackCallCount + ' times', function () {
+          expect(mock.callback.callCount).to.equal(item.callbackCallCount);
+        });
+
       });
     });
 

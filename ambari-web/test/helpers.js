@@ -15,6 +15,8 @@
  * the License.
  */
 
+/*eslint-disable mocha-cleanup/no-assertions-outside-it */
+
 module.exports = {
 
   /**

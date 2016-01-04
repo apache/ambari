@@ -64,7 +64,7 @@ App.showSelectGroupsPopup = function (selectedServiceName, selectedConfigGroup, 
         var currentGroupName = this.get('selectedGroups')[serviceName] || "";
         var configGroup = this.get('dependentStepConfigs').findProperty('serviceName', serviceName).get('configGroups').findProperty('name', selectedGroupName);
         if (selectedGroupName != currentGroupName) {
-          /** changing config group for _dependentConfigValues **/
+          /** changing config group for recommendations **/
           configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', selectedGroupName).forEach(function (c) {
             if (configs.filterProperty('serviceName', serviceName).filterProperty('configGroup', currentGroupName)) {
               configs.removeObject(c);

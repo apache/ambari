@@ -107,15 +107,27 @@ describe('App.MainServiceItemController', function () {
     ];
 
     tests.forEach(function (test) {
-      it(test.m, function () {
-        sinon.stub(App.router, 'get', function(k) {
-          if ('backgroundOperationsController.services' === k) return test.backgroundOperationsController.services;
-          return Em.get(App.router, k);
+      describe(test.m, function () {
+
+        var mainServiceItemController;
+
+        beforeEach(function () {
+          sinon.stub(App.router, 'get', function(k) {
+            if ('backgroundOperationsController.services' === k) return test.backgroundOperationsController.services;
+            return Em.get(App.router, k);
+          });
+          mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.serviceController.serviceName}});
+          mainServiceItemController.setStartStopState();
         });
-        var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.serviceController.serviceName}});
-        mainServiceItemController.setStartStopState();
-        App.router.get.restore();
-        expect(mainServiceItemController.get('isPending')).to.equal(test.isPending);
+
+        afterEach(function () {
+          App.router.get.restore();
+        });
+
+        it('isPending is ' + test.isPending, function () {
+          expect(mainServiceItemController.get('isPending')).to.equal(test.isPending);
+        });
+
       });
     })
   });
@@ -141,34 +153,41 @@ describe('App.MainServiceItemController', function () {
     ];
 
     tests.forEach(function (test) {
-      var reassignMasterController = App.ReassignMasterController.create({currentStep: ''});
+      describe(test.m, function () {
 
-      beforeEach(function () {
-        sinon.stub(reassignMasterController, 'saveComponentToReassign', Em.K);
-        sinon.stub(reassignMasterController, 'setCurrentStep', Em.K);
-      });
+        var reassignMasterController = App.ReassignMasterController.create({currentStep: ''});
 
-      afterEach(function () {
-        reassignMasterController.saveComponentToReassign.restore();
-        reassignMasterController.setCurrentStep.restore();
-      });
-
-      it(test.m, function () {
-        sinon.stub(App.router, 'transitionTo', Em.K);
-        var mainServiceItemController = App.MainServiceItemController.create({});
-        sinon.stub(App.HostComponent, 'find', function() {
-          return test.host_components
+        beforeEach(function () {
+          sinon.stub(reassignMasterController, 'saveComponentToReassign', Em.K);
+          sinon.stub(reassignMasterController, 'setCurrentStep', Em.K);
+          sinon.stub(App.router, 'transitionTo', Em.K);
+          var mainServiceItemController = App.MainServiceItemController.create({});
+          sinon.stub(App.HostComponent, 'find', function() {
+            return test.host_components
+          });
+          sinon.stub(App.router, 'get', function(k) {
+            if ('reassignMasterController' === k) return reassignMasterController;
+            return Em.get(App.router, k);
+          });
+          mainServiceItemController.reassignMaster(test.componentName);
         });
-        sinon.stub(App.router, 'get', function(k) {
-          if ('reassignMasterController' === k) return reassignMasterController;
-          return Em.get(App.router, k);
+
+        afterEach(function () {
+          reassignMasterController.saveComponentToReassign.restore();
+          reassignMasterController.setCurrentStep.restore();
+          App.HostComponent.find.restore();
+          App.router.transitionTo.restore();
+          App.router.get.restore();
         });
-        mainServiceItemController.reassignMaster(test.componentName);
-        expect(reassignMasterController.saveComponentToReassign.calledOnce).to.equal(test.result);
-        expect(reassignMasterController.setCurrentStep.calledOnce).to.equal(test.result);
-        App.HostComponent.find.restore();
-        App.router.transitionTo.restore();
-        App.router.get.restore();
+
+        it('saveComponentToReassign is ' + (test.result ? '' : 'not') + ' called once', function () {
+          expect(reassignMasterController.saveComponentToReassign.calledOnce).to.equal(test.result);
+        });
+
+        it('setCurrentStep is ' + (test.result ? '' : 'not') + ' called once', function () {
+          expect(reassignMasterController.setCurrentStep.calledOnce).to.equal(test.result);
+        });
+
       });
     }, this);
   });
@@ -285,25 +304,30 @@ describe('App.MainServiceItemController', function () {
 
     tests.forEach(function (test, index) {
 
-      function setupWithTestData() {
-        mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
-        mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
-      }
+      describe('case #' + (index + 1), function () {
 
-      it('request is sent with valid data ' + (index + 1), function () {
-        setupWithTestData();
-        expect($.ajax.calledOnce).to.equal(true);
-        expect(JSON.parse($.ajax.args[0][0].data).Body.ServiceInfo.state).to.equal(test.request.Body.ServiceInfo.state);
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.request.RequestInfo.context);
+        beforeEach(function () {
+          mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName}});
+          mainServiceItemController.startStopPopupPrimary(test.data.state, test.data.query);
+          this.data = JSON.parse($.ajax.args[0][0].data);
+        });
+
+        it('request is sent with valid data ' + (index + 1), function () {
+          expect($.ajax.calledOnce).to.equal(true);
+          expect(this.data.Body.ServiceInfo.state).to.equal(test.request.Body.ServiceInfo.state);
+          expect(this.data.RequestInfo.context).to.equal(test.request.RequestInfo.context);
+        });
+
+        it('isStopDisabled is true ' + (index + 1), function () {
+          expect(mainServiceItemController.get('isStopDisabled')).to.equal(true);
+        });
+
+        it('isStartDisabled is true ' + (index + 1), function () {
+          expect(mainServiceItemController.get('isStartDisabled')).to.equal(true);
+        });
+
       });
-      it('isStopDisabled is true ' + (index + 1), function () {
-        setupWithTestData();
-        expect(mainServiceItemController.get('isStopDisabled')).to.equal(true);
-      });
-      it('isStartDisabled is true ' + (index + 1), function () {
-        setupWithTestData();
-        expect(mainServiceItemController.get('isStartDisabled')).to.equal(true);
-      });
+
     });
 
 
@@ -498,37 +522,53 @@ describe('App.MainServiceItemController', function () {
         expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.not.be.ok;
       });
       
-      it ("should display dependent list if other services depend on the one to be stopped", function() {
-        var mainServiceItemController = App.MainServiceItemController.create(
-          {content: {
-            serviceName: "HDFS",
-            passiveState:'OFF',
-            hostComponents: [{
-              componentName: 'NAMENODE',
-              workStatus: 'INSTALLED'
-            }]
-          }}
-        );
-        mainServiceItemController.startStopPopup(event, "INSTALLED");
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.turnOnMM')).to.be.ok;
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
-        
-        var dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HDFS", "HBase,YARN")
-        var msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HDFS");
-        var fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", msg, "HDFS");
-        expect(fullMsg).to.be.equal(msg + " " + dependencies);
+      describe ("should display dependent list if other services depend on the one to be stopped", function() {
+        var mainServiceItemController;
+        beforeEach(function () {
+          mainServiceItemController = App.MainServiceItemController.create(
+            {content: {
+              serviceName: "HDFS",
+              passiveState:'OFF',
+              hostComponents: [{
+                componentName: 'NAMENODE',
+                workStatus: 'INSTALLED'
+              }]
+            }}
+          );
+          mainServiceItemController.startStopPopup(event, "INSTALLED");
+          this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HDFS", "HBase,YARN");
+          this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HDFS");
+          this.fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HDFS");
+        });
+
+        it('turnOnMM message is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.turnOnMM')).to.be.ok;
+        });
+        it('message about dependent services is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
+        });
+        it('full message is valid', function () {
+          expect(this.fullMsg).to.be.equal(this.msg + " " + this.dependencies);
+        });
       });
 
-      it ("should display the dependent service if another service depends on the one to be stopped", function() {
-        var mainServiceItemController = App.MainServiceItemController.create(
+      describe("should display the dependent service if another service depends on the one to be stopped", function() {
+
+        beforeEach(function () {
+          var mainServiceItemController = App.MainServiceItemController.create(
             {content: {serviceName: "HIVE", passiveState:'OFF'}});
-        mainServiceItemController.startStopPopup(event, "INSTALLED");
-        expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
-        
-        var dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HIVE", "Spark")
-        var msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HIVE");
-        var fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", msg, "HIVE");
-        expect(fullMsg).to.be.equal(msg + " " + dependencies);
+          mainServiceItemController.startStopPopup(event, "INSTALLED");
+          this.dependencies = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format("HIVE", "Spark");
+          this.msg = Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format("HIVE");
+          this.fullMsg = mainServiceItemController.addAdditionalWarningMessage("INSTALLED", this.msg, "HIVE");
+        });
+
+        it('message about dependent services is shown', function () {
+          expect(Em.I18n.t.calledWith('services.service.stop.warningMsg.dependent.services')).to.be.ok;
+        });
+        it('full message is valid', function () {
+          expect(this.fullMsg).to.be.equal(this.msg + " " + this.dependencies);
+        });
       });
       
       afterEach(function () {
@@ -966,7 +1006,8 @@ describe('App.MainServiceItemController', function () {
   });
 
   describe("#runRebalancer", function () {
-    it("run rebalancer", function () {
+
+    beforeEach(function () {
       sinon.stub(App.router, 'get', function(k) {
         if ('applicationController' === k) {
           return Em.Object.create({
@@ -977,15 +1018,22 @@ describe('App.MainServiceItemController', function () {
         }
         return Em.get(App.router, k);
       });
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it("run rebalancer", function () {
       var mainServiceItemController = App.MainServiceItemController.create({content: {runRebalancer: false}});
       mainServiceItemController.runRebalancer().onPrimary();
       expect(mainServiceItemController.get("content.runRebalancer")).to.equal(true);
-      App.router.get.restore();
     });
   });
 
   describe("#runCompaction", function () {
-    it("run compaction", function () {
+
+    beforeEach(function () {
       sinon.stub(App.router, 'get', function(k) {
         if ('applicationController' === k) {
           return Em.Object.create({
@@ -996,10 +1044,16 @@ describe('App.MainServiceItemController', function () {
         }
         return Em.get(App.router, k);
       });
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it("run compaction", function () {
       var mainServiceItemController = App.MainServiceItemController.create({content: {runCompaction: false}});
       mainServiceItemController.runCompaction().onPrimary();
       expect(mainServiceItemController.get("content.runCompaction")).to.equal(true);
-      App.router.get.restore();
     });
   });
 
@@ -1049,19 +1103,35 @@ describe('App.MainServiceItemController', function () {
 
       var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName,
         displayName: test.data.displayName}});
-      beforeEach(function () {
-        mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
-        mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
-      });
+      describe('send request to run smoke test for ' + test.data.serviceName, function () {
 
-      it('send request to run smoke test for ' + test.data.serviceName, function () {
-        mainServiceItemController.runSmokeTestPrimary(test.data.query);
-        expect($.ajax.calledOnce).to.equal(true);
+        beforeEach(function () {
+          mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
+          mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
+          mainServiceItemController.runSmokeTestPrimary(test.data.query);
+          this.data = JSON.parse($.ajax.args[0][0].data);
+        });
 
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.RequestInfo.context);
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.command).to.equal(test.RequestInfo.command);
-        expect(JSON.parse($.ajax.args[0][0].data)["Requests/resource_filters"][0].serviceName).to.equal(test["Requests/resource_filters"][0].serviceName);
-        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.operation_level).to.be.deep.equal(test.RequestInfo.operation_level);
+        it('ajax request is sent', function () {
+          expect($.ajax.calledOnce).to.equal(true);
+        });
+
+        it('RequestInfo.context is valid', function () {
+          expect(this.data.RequestInfo.context).to.equal(test.RequestInfo.context);
+        });
+
+        it('RequestInfo.command is valid', function () {
+          expect(this.data.RequestInfo.command).to.equal(test.RequestInfo.command);
+        });
+
+        it('Requests/resource_filter.0.serviceName is valid', function () {
+          expect(this.data["Requests/resource_filters"][0].serviceName).to.equal(test["Requests/resource_filters"][0].serviceName);
+        });
+
+        it('RequestInfo.operation_level is valid', function () {
+          expect(this.data.RequestInfo.operation_level).to.be.deep.equal(test.RequestInfo.operation_level);
+        });
+
       });
     });
   });

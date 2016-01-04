@@ -147,25 +147,38 @@ describe('App.DashboardWidgetView', function () {
       thresh1: '1',
       thresh2: '2'
     });
-    before(function () {
+    beforeEach(function () {
       sinon.spy(obj, 'observeThresh1Value');
       sinon.spy(obj, 'observeThresh2Value');
       sinon.stub(dashboardWidgetView.get('parentView'), 'getUserPref').returns({
         complete: Em.K
       });
+      var popup = dashboardWidgetView.showEditDialog(obj);
+      popup.onPrimary();
     });
-    after(function () {
+    afterEach(function () {
       obj.observeThresh1Value.restore();
       obj.observeThresh2Value.restore();
       dashboardWidgetView.get('parentView').getUserPref.restore();
     });
-    it("open popup", function () {
-      var popup = dashboardWidgetView.showEditDialog(obj);
-      popup.onPrimary();
+
+    it("observeThresh1Value is called once", function () {
       expect(obj.observeThresh1Value.calledOnce).to.be.true;
+    });
+
+    it("observeThresh2Value is called once", function () {
       expect(obj.observeThresh2Value.calledOnce).to.be.true;
+    });
+
+    it("thresh1 = 1", function () {
       expect(dashboardWidgetView.get('thresh1')).to.equal(1);
+    });
+
+    it("thresh2 = 2", function () {
       expect(dashboardWidgetView.get('thresh2')).to.equal(2);
+    });
+
+    it("getUserPref is called once", function () {
       expect(dashboardWidgetView.get('parentView').getUserPref.calledOnce).to.be.true;
     });
   });
@@ -322,15 +335,28 @@ describe('App.DashboardWidgetView', function () {
         }
       ];
       testCases.forEach(function (test) {
-        it("thresh1 - " + test.data.thresh1 + ', maxValue - ' + test.data.maxValue, function () {
-          widget.set('isThresh2Error', false);
-          widget.set('thresh2', test.data.thresh2 || "");
-          widget.set('thresh1', test.data.thresh1);
-          widget.set('maxValue', test.data.maxValue);
-          widget.observeThresh1Value();
-          expect(widget.get('isThresh1Error')).to.equal(test.result.isThresh1Error);
-          expect(widget.get('errorMessage1')).to.equal(test.result.errorMessage1);
-          expect(widget.updateSlider.called).to.be.true;
+        describe("thresh1 - " + test.data.thresh1 + ', maxValue - ' + test.data.maxValue, function () {
+
+          beforeEach(function () {
+            widget.set('isThresh2Error', false);
+            widget.set('thresh2', test.data.thresh2 || "");
+            widget.set('thresh1', test.data.thresh1);
+            widget.set('maxValue', test.data.maxValue);
+            widget.observeThresh1Value();
+          });
+
+          it('isThresh1Error is ' + test.result.isThresh1Error, function () {
+            expect(widget.get('isThresh1Error')).to.equal(test.result.isThresh1Error);
+          });
+
+          it('errorMessage1 is ' + test.result.errorMessage1, function () {
+            expect(widget.get('errorMessage1')).to.equal(test.result.errorMessage1);
+          });
+
+          it('updateSlider is called', function () {
+            expect(widget.updateSlider.called).to.be.true;
+          });
+
         });
       });
     });
@@ -395,13 +421,25 @@ describe('App.DashboardWidgetView', function () {
         }
       ];
       testCases.forEach(function (test) {
-        it("thresh2 - " + test.data.thresh2 + ', maxValue - ' + test.data.maxValue, function () {
-          widget.set('thresh2', test.data.thresh2 || "");
-          widget.set('maxValue', test.data.maxValue);
-          widget.observeThresh2Value();
-          expect(widget.get('isThresh2Error')).to.equal(test.result.isThresh2Error);
-          expect(widget.get('errorMessage2')).to.equal(test.result.errorMessage2);
-          expect(widget.updateSlider.called).to.be.true;
+        describe("thresh2 - " + test.data.thresh2 + ', maxValue - ' + test.data.maxValue, function () {
+
+          beforeEach(function () {
+            widget.set('thresh2', test.data.thresh2 || "");
+            widget.set('maxValue', test.data.maxValue);
+            widget.observeThresh2Value();
+          });
+
+          it('isThresh2Error is ' + test.result.isThresh2Error, function () {
+            expect(widget.get('isThresh2Error')).to.equal(test.result.isThresh2Error);
+          });
+
+          it('errorMessage2 is ' + JSON.stringify(test.result.errorMessage2), function () {
+            expect(widget.get('errorMessage2')).to.equal(test.result.errorMessage2);
+          });
+
+          it('updateSlider is called', function () {
+            expect(widget.updateSlider.called).to.be.true;
+          });
         });
       });
     });

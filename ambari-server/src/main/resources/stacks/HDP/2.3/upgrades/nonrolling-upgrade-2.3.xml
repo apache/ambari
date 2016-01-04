@@ -146,7 +146,6 @@
         </task>
       </execute-stage>
 
-      <!--TODO(dlysnichenko): This step is missing in 2.3->2.3+ RU pack -->
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
           <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>

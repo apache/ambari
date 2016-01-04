@@ -166,25 +166,31 @@ describe('App.WizardStep6HostView', function() {
   });
 
   describe('#didInsertElement', function() {
+
+    var data = [];
+
     beforeEach(function() {
       sinon.stub(App, 'popover', Em.K);
+      sinon.stub(view.get('controller'), 'getMasterComponentsForHost', function() {return data;});
     });
+
     afterEach(function() {
       App.popover.restore();
+      view.get('controller').getMasterComponentsForHost.restore();
     });
+
     it('should create popover if not controller.isMasters', function() {
-      sinon.stub(view.get('controller'), 'getMasterComponentsForHost', function() {return [{}, {}];});
+      data = [{}, {}];
       view.set('controller.isMasters', false);
       view.didInsertElement();
       expect(App.popover.calledOnce).to.equal(true);
-      view.get('controller').getMasterComponentsForHost.restore();
     });
+
     it('should create popover even if controller.getMasterComponentsForHost is an empty array', function() {
-      sinon.stub(view.get('controller'), 'getMasterComponentsForHost', function() {return [];});
+      data = [{}];
       view.set('controller.isMasters', true);
       view.didInsertElement();
       expect(App.popover.calledOnce).to.equal(true);
-      view.get('controller').getMasterComponentsForHost.restore();
     });
   });
 

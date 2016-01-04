@@ -26,7 +26,7 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
 
   clusterDeployState: 'RM_HIGH_AVAILABILITY_DEPLOY',
 
-  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHAWQ', 'startAllServices'],
+  commands: ['stopRequiredServices', 'installResourceManager', 'reconfigureYARN', 'reconfigureHAWQ', 'reconfigureHDFS', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.rm_highAvailability.wizard.step',
 
@@ -55,8 +55,12 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
     this.loadConfigsTags("Hawq");
   },
 
+  reconfigureHDFS: function () {
+    this.loadConfigsTags("Hdfs");
+  },
+
   loadConfigsTags: function (service) {
-    onLoadServiceConfigsTags = 'onLoad' + service + "ConfigsTags"
+    var onLoadServiceConfigsTags = 'onLoad' + service + "ConfigsTags";
     App.ajax.send({
       name: 'config.tags',
       sender: this,
@@ -70,9 +74,10 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')'
+        urlParams: '(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')',
+        type: 'yarn-site'
       },
-      success: 'onLoadYarnConfigs',
+      success: 'onLoadConfigs',
       error: 'onTaskError'
     });
   },
@@ -82,39 +87,34 @@ App.RMHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageCo
       name: 'reassign.load_configs',
       sender: this,
       data: {
-        urlParams: '(type=yarn-client&tag=' + data.Clusters.desired_configs['yarn-client'].tag + ')'
+        urlParams: '(type=yarn-client&tag=' + data.Clusters.desired_configs['yarn-client'].tag + ')',
+        type: 'yarn-client'
       },
-      success: 'onLoadHawqConfigs',
+      success: 'onLoadConfigs',
       error: 'onTaskError'
     });
   },
 
-  onLoadYarnConfigs: function (data) {
-    var propertiesToAdd = this.get('content.configs').filterProperty('filename', 'yarn-site');
-    propertiesToAdd.forEach(function (property) {
-      data.items[0].properties[property.name] = property.value;
-    });
-
-    var configData = this.reconfigureSites(['yarn-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
-
+  onLoadHdfsConfigsTags: function (data) {
     App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'reassign.load_configs',
       sender: this,
       data: {
-        desired_config: configData
+        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')',
+        type: 'core-site'
       },
-      success: 'onSaveConfigs',
+      success: 'onLoadConfigs',
       error: 'onTaskError'
     });
   },
 
-  onLoadHawqConfigs: function (data) {
-    var propertiesToAdd = this.get('content.configs').filterProperty('filename', 'yarn-client');
+  onLoadConfigs: function (data, opt, params) {
+    var propertiesToAdd = this.get('content.configs').filterProperty('filename', params.type);
     propertiesToAdd.forEach(function (property) {
       data.items[0].properties[property.name] = property.value;
     });
 
-    var configData = this.reconfigureSites(['yarn-client'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
+    var configData = this.reconfigureSites([params.type], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RESOURCEMANAGER')));
 
     App.ajax.send({
       name: 'common.service.configurations',

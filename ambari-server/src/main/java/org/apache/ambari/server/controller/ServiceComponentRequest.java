@@ -42,7 +42,6 @@ public class ServiceComponentRequest {
   public ServiceComponentRequest(String clusterName,
                                  String serviceName, String componentName,
                                  String desiredState, String componentCategory) {
-    super();
     this.clusterName = clusterName;
     this.serviceName = serviceName;
     this.componentName = componentName;
@@ -112,5 +111,11 @@ public class ServiceComponentRequest {
 
   public void setComponentCategory(String componentCategory) {
     this.componentCategory = componentCategory;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("[clusterName=%s, serviceName=%s, componentName=%s, desiredState=%s, componentCategory=%s]",
+        clusterName, serviceName, clusterName, desiredState, componentCategory);
   }
 }

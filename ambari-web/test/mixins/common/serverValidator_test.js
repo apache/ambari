@@ -158,19 +158,28 @@ describe('App.ServerValidatorMixin', function() {
           e: false
         }
       ].forEach(function(test) {
-        it('controller "name": {0} using "EnhancedConfigsMixin": {1} recommendations called: {2}'.format(test.controllerName, test.injectEnhancedConfigsMixin, test.e), function() {
+        describe('controller "name": {0} using "EnhancedConfigsMixin": {1} recommendations called: {2}'.format(test.controllerName, test.injectEnhancedConfigsMixin, test.e), function() {
           var mixed;
-          if (test.injectEnhancedConfigsMixin) {
-            mixed = Em.Object.extend(App.EnhancedConfigsMixin, App.ServerValidatorMixin);
-          } else {
-            mixed = Em.Object.extend(App.ServerValidatorMixin);
-          }
-          // mock controller name in mixed object directly
-          mixed.create({name: test.controllerName}).loadServerSideConfigsRecommendations();
-          expect(App.ajax.send.calledOnce).to.be.eql(test.e);
+          beforeEach(function () {
+            if (test.injectEnhancedConfigsMixin) {
+              mixed = Em.Object.extend(App.EnhancedConfigsMixin, App.ServerValidatorMixin);
+            } else {
+              mixed = Em.Object.extend(App.ServerValidatorMixin);
+            }
+            // mock controller name in mixed object directly
+            mixed.create({name: test.controllerName}).loadServerSideConfigsRecommendations();
+          });
+
+          it('request is ' + (test.e ? '' : 'not') + ' sent', function () {
+            expect(App.ajax.send.calledOnce).to.be.eql(test.e);
+          });
+
           if (test.e) {
-            expect(App.ajax.send.args[0][0].name).to.be.eql('config.recommendations');
+            it('request is valid', function () {
+              expect(App.ajax.send.args[0][0].name).to.be.eql('config.recommendations');
+            });
           }
+
         });
       });
     });

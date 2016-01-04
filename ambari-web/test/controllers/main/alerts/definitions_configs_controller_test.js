@@ -93,8 +93,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderPortConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -119,15 +118,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         uri: 'alertDefinitionUri',
         defaultPort: '777'
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderPortConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderPortConfigs();
-
+      var result = controller.renderPortConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -135,8 +136,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderMetricConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -174,15 +174,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
           value: null
         }
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderMetricConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderMetricConfigs();
-
+      var result = controller.renderMetricConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -190,8 +192,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderWebConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -221,15 +222,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
           "default_port": 0.0
         }
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderWebConfigs();
-
       expect(result.length).to.equal(11);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderWebConfigs();
-
+      var result = controller.renderWebConfigs();
       expect(result.length).to.equal(5);
     });
 
@@ -237,8 +240,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#renderScriptConfigs()', function () {
 
-    it('should render array of configs with correct values', function () {
-
+    beforeEach(function () {
       controller.set('content', Em.Object.create({
         name: 'alertDefinitionName',
         service: {displayName: 'alertDefinitionService'},
@@ -262,15 +264,17 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         ],
         location: 'path to script'
       }));
+    });
 
+    it('isWizard = true', function () {
       controller.set('isWizard', true);
       var result = controller.renderScriptConfigs();
-
       expect(result.length).to.equal(8);
+    });
 
+    it('isWizard = false', function () {
       controller.set('isWizard', false);
-      result = controller.renderScriptConfigs();
-
+      var result = controller.renderScriptConfigs();
       expect(result.length).to.equal(2);
     });
 
@@ -309,20 +313,23 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#editConfigs()', function () {
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
+    beforeEach(function () {
       controller.set('configs', [
         Em.Object.create({value: 'value1', previousValue: '', isDisabled: true}),
         Em.Object.create({value: 'value2', previousValue: '', isDisabled: true}),
         Em.Object.create({value: 'value3', previousValue: '', isDisabled: true})
       ]);
-
       controller.set('canEdit', false);
-
       controller.editConfigs();
+    });
 
+    it('should set previousValue', function () {
       expect(controller.get('configs').mapProperty('previousValue')).to.eql(['value1', 'value2', 'value3']);
+    });
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', true)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.true;
     });
 
@@ -330,20 +337,23 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#cancelEditConfigs()', function () {
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
+    beforeEach(function () {
       controller.set('configs', [
         Em.Object.create({value: '', previousValue: 'value1', isDisabled: false}),
         Em.Object.create({value: '', previousValue: 'value2', isDisabled: false}),
         Em.Object.create({value: '', previousValue: 'value3', isDisabled: false})
       ]);
-
       controller.set('canEdit', true);
-
       controller.cancelEditConfigs();
+    });
 
+    it('should set previousValue', function () {
       expect(controller.get('configs').mapProperty('value')).to.eql(['value1', 'value2', 'value3']);
+    });
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.false;
     });
 
@@ -353,26 +363,26 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
     beforeEach(function () {
       sinon.spy(App.ajax, 'send');
+      controller.set('configs', [
+        Em.Object.create({isDisabled: true}),
+        Em.Object.create({isDisabled: true}),
+        Em.Object.create({isDisabled: true})
+      ]);
+      controller.set('canEdit', true);
+      controller.saveConfigs();
     });
 
     afterEach(function () {
       App.ajax.send.restore();
     });
 
-    it('should set previousValue, isDisabled for each config and change canEdit flag', function () {
-
-      controller.set('configs', [
-        Em.Object.create({isDisabled: true}),
-        Em.Object.create({isDisabled: true}),
-        Em.Object.create({isDisabled: true})
-      ]);
-
-      controller.set('canEdit', true);
-
-      controller.saveConfigs();
-
+    it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
+    });
+    it('should change canEdit flag', function () {
       expect(controller.get('canEdit')).to.be.false;
+    });
+    it('should sent 1 request', function () {
       expect(App.ajax.send.calledOnce).to.be.true;
     });
 
@@ -474,8 +484,7 @@ describe('App.MainAlertDefinitionConfigsController', function () {
 
   describe('#changeType()', function () {
 
-    it('should disable and enable appropriate configs', function () {
-
+    beforeEach(function () {
       controller.set('allServices', ['service1', 'service2']);
       controller.set('allScopes', ['scope1', 'scope2']);
 
@@ -484,25 +493,57 @@ describe('App.MainAlertDefinitionConfigsController', function () {
         Em.Object.create({name: 'component', isDisabled: false}),
         Em.Object.create({name: 'scope', isDisabled: false})
       ]);
+    });
 
-      controller.changeType('Host Alert Definition');
+    describe('Host Alert Definition', function () {
 
-      expect(controller.get('configs').everyProperty('isDisabled', true)).to.be.true;
-      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['Ambari']);
-      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('Ambari');
-      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('Ambari Agent');
-      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['Host']);
-      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('Host');
+      beforeEach(function () {
+        controller.changeType('Host Alert Definition');
+      });
 
-      controller.changeType('alert_type_service');
+      it('all configs are disabled', function () {
+        expect(controller.get('configs').everyProperty('isDisabled', true)).to.be.true;
+      });
+      it('service.options = ["Ambari"]', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['Ambari']);
+      });
+      it('service.value = "Ambari"', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('Ambari');
+      });
+      it('component.value = "Ambari Agent"', function () {
+        expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('Ambari Agent');
+      });
+      it('scope.options = ["Host"]', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['Host']);
+      });
+      it('isDisabled.value = "Host"', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('Host');
+      });
+    });
 
-      expect(controller.get('configs').everyProperty('isDisabled', false)).to.be.true;
-      expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['service1', 'service2']);
-      expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('service1');
-      expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('No component');
-      expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['scope1', 'scope2']);
-      expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('scope1');
+    describe('alert_type_service', function () {
 
+      beforeEach(function () {
+        controller.changeType('alert_type_service');
+      });
+      it('all configs are not disabled', function () {
+        expect(controller.get('configs').everyProperty('isDisabled', false)).to.be.true;
+      });
+      it('service.options = ["service1", "service2"]', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('options')).to.eql(['service1', 'service2']);
+      });
+      it('service.value = "service1"', function () {
+        expect(controller.get('configs').findProperty('name', 'service').get('value')).to.equal('service1');
+      });
+      it('component.value = "No component"', function () {
+        expect(controller.get('configs').findProperty('name', 'component').get('value')).to.equal('No component');
+      });
+      it('scope.options = ["scope1", "scope2"]', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('options')).to.eql(['scope1', 'scope2']);
+      });
+      it('scope.value = "scope1"', function () {
+        expect(controller.get('configs').findProperty('name', 'scope').get('value')).to.equal('scope1');
+      });
     });
 
   });

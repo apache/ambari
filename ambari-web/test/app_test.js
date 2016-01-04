@@ -103,12 +103,22 @@ describe('App', function () {
     ];
 
     testCases.forEach(function (test) {
-      it(test.title, function () {
-        sinon.stub(App.Service, 'find', function () {
-          return test.service;
+      describe(test.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App.Service, 'find', function () {
+            return test.service;
+          });
         });
-        expect(App.get('falconServerURL')).to.equal(test.result);
-        App.Service.find.restore();
+
+        afterEach(function () {
+          App.Service.find.restore();
+        });
+
+        it('App.falconServerURL is ' + test.result, function () {
+          expect(App.get('falconServerURL')).to.equal(test.result);
+        });
+
       });
     });
   });
@@ -219,19 +229,42 @@ describe('App', function () {
       })
     ];
 
-    it('distribute services by categories', function () {
+    beforeEach(function () {
       sinon.stub(App.StackService, 'find', function () {
         return stackServices;
       });
+    });
 
-      expect(App.get('services.all')).to.eql(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']);
-      expect(App.get('services.clientOnly')).to.eql(['S1']);
-      expect(App.get('services.hasClient')).to.eql(['S2']);
-      expect(App.get('services.hasMaster')).to.eql(['S3']);
-      expect(App.get('services.hasSlave')).to.eql(['S4']);
-      expect(App.get('services.noConfigTypes')).to.eql(['S5']);
-      expect(App.get('services.monitoring')).to.eql(['S6']);
+    afterEach(function () {
       App.StackService.find.restore();
+    });
+
+    it('App.services.all', function () {
+      expect(App.get('services.all')).to.eql(['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7']);
+    });
+
+    it('App.services.clientOnly', function () {
+      expect(App.get('services.clientOnly')).to.eql(['S1']);
+    });
+
+    it('App.services.hasClient', function () {
+      expect(App.get('services.hasClient')).to.eql(['S2']);
+    });
+
+    it('App.services.hasMaster', function () {
+      expect(App.get('services.hasMaster')).to.eql(['S3']);
+    });
+
+    it('App.services.hasSlave', function () {
+      expect(App.get('services.hasSlave')).to.eql(['S4']);
+    });
+
+    it('App.services.noConfigTypes', function () {
+      expect(App.get('services.noConfigTypes')).to.eql(['S5']);
+    });
+
+    it('App.services.monitoring', function () {
+      expect(App.get('services.monitoring')).to.eql(['S6']);
     });
   });
 

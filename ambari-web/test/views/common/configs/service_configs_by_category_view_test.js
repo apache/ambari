@@ -180,17 +180,26 @@ describe('App.ServiceConfigsByCategoryView', function () {
       }
     ];
 
+    beforeEach(function () {
+      this._view = App.ServiceConfigsByCategoryView.create({
+        serviceConfigs: Em.A([])
+      });
+      sinon.stub(this._view, 'filteredCategoryConfigs', Em.K);
+    });
+
+    afterEach(function () {
+      this._view.filteredCategoryConfigs.restore();
+      this._view.destroy();
+    });
+
     tests.forEach(function(test) {
       it(test.m, function() {
-        var _view = App.ServiceConfigsByCategoryView.create({
-          serviceConfigs: Em.A([]),
+        this._view.reopen({
           category: test.category,
           categoryConfigs: test.categoryConfigs
         });
-        sinon.stub(_view, 'filteredCategoryConfigs', Em.K);
-        _view.filteredCategoryConfigs.restore();
-        expect(_view.get('isShowBlock')).to.be.eql(test.e);
-        _view.destroy();
+        expect(this._view.get('isShowBlock')).to.be.eql(test.e);
+
       });
     });
   });

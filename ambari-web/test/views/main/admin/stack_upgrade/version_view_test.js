@@ -203,16 +203,22 @@ describe('App.mainAdminStackVersionsView', function () {
         }
       ];
 
+    var displayOlderVersions = false;
+
+    beforeEach(function () {
+      sinon.stub(App, 'get', function (key) {
+        return key == 'supports.displayOlderVersions' ? displayOlderVersions : Em.get(App, key);
+      });
+    });
+
     afterEach(function () {
       App.get.restore();
     });
 
     testCases.forEach(function(t) {
-      var msg = t.filter.get('value') ? t.filter.get('value') : "All";
+      var msg = t.filter.get('value') || "All";
       it(t.message || "filter By " + msg, function () {
-        sinon.stub(App, 'get', function (key) {
-          return key == 'supports.displayOlderVersions' ? Boolean(t.displayOlderVersions) : Em.get(App, key);
-        });
+        displayOlderVersions = t.displayOlderVersions;
         view.set('controller.currentVersion', t.noCurrentVersion ? null : {repository_version: '2.2.1.1'});
         expect(view.filterBy(versions, t.filter)).to.eql(t.filteredVersions);
       });

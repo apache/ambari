@@ -19,6 +19,7 @@
 var App = require('app');
 require('utils/configs_collection');
 var stringUtils = require('utils/string_utils');
+var validator = require('utils/validator');
 
 var configTagFromFileNameMap = {};
 
@@ -212,7 +213,7 @@ App.config = Em.Object.create({
    */
   getServiceByConfigType: function(configType) {
     return App.StackService.find().find(function(s) {
-      return Object.keys(s.get('configTypes')).contains(configType);
+      return s.get('configTypeList').contains(configType);
     });
   },
 
@@ -495,6 +496,29 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Format float value
+   *
+   * @param {*} value
+   * @returns {string|*}
+   */
+  formatValue: function(value) {
+    return validator.isValidFloat(value) ? parseFloat(value).toString() : value;
+  },
+
+  /**
+   * Get step config by file name
+   *
+   * @param stepConfigs
+   * @param fileName
+   * @returns {Object|null}
+   */
+  getStepConfigForProperty: function (stepConfigs, fileName) {
+    return stepConfigs.find(function (s) {
+      return s.get('configTypes').contains(App.config.getConfigTagFromFileName(fileName));
+    });
+  },
+
+  /**
    *
    * @param configs
    * @returns {Object[]}
@@ -630,17 +654,19 @@ App.config = Em.Object.create({
    * can be created and assigned to non-default config group.
    *
    * @param {String} propertyName - name of the property
-   * @param {Object} config - config info
+   * @param {String} fileName - file name of the property
+   * @param {String} value - config value
    * @param {Em.Object} group - config group to set
-   * @param {Boolean} isEditable
+   * @param {Boolean} [isEditable]
+   * @param {Boolean} [isInstaller]
    * @return {Object}
    **/
-  createCustomGroupConfig: function (propertyName, config, group, isEditable) {
-    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(config.type), false, {
-      savedValue: config.properties[propertyName],
-      value: config.properties[propertyName],
+  createCustomGroupConfig: function (propertyName, fileName, value, group, isEditable, isInstaller) {
+    var propertyObject = this.createDefaultConfig(propertyName, group.get('service.serviceName'), this.getOriginalFileName(fileName), false, {
+      savedValue: isInstaller ? null : value,
+      value: value,
       group: group,
-      isEditable: isEditable !== false,
+      isEditable: !!isEditable,
       isOverridable: false
     });
     group.set('switchGroupTextShort', Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(group.get('name')));

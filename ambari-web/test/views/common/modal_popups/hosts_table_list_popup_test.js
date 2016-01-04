@@ -49,14 +49,32 @@ describe('App.showHostsTableListPopup', function () {
   ];
 
   cases.forEach(function (item) {
-    it(item.title, function () {
-      var popup = App.showHostsTableListPopup(item.header, item.hostName, item.items),
+
+    describe(item.title, function () {
+
+      var popup;
+      var popupBody;
+
+      beforeEach(function () {
+        popup = App.showHostsTableListPopup(item.header, item.hostName, item.items);
         popupBody = popup.bodyClass.create();
-      expect(popup.header).to.equal(item.header);
-      expect(popupBody.get('hostName')).to.equal(item.hostName);
-      expect(popupBody.get('items')).to.eql(item.items);
-      expect(popupBody.get('isObjectsList')).to.equal(item.isObjectsList);
+      });
+
+      it('header is valid', function () {
+        expect(popup.header).to.equal(item.header);
+      });
+      it('hostName is valid', function () {
+        expect(popupBody.get('hostName')).to.equal(item.hostName);
+      });
+      it('items are valid', function () {
+        expect(popupBody.get('items')).to.eql(item.items);
+      });
+      it('isObjectsList is valid', function () {
+        expect(popupBody.get('isObjectsList')).to.equal(item.isObjectsList);
+      });
+
     });
+
   });
 
 });

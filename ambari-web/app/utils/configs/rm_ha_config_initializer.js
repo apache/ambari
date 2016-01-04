@@ -52,13 +52,29 @@ App.RmHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
       'yarn.resourcemanager.webapp.https.address.rm1': this.getHostWithPortConfig('RESOURCEMANAGER', true, '', '', 'httpsWebAddressPort', true),
       'yarn.resourcemanager.webapp.https.address.rm2': this.getHostWithPortConfig('RESOURCEMANAGER', false, '', '', 'httpsWebAddressPort', true),
       'yarn.resourcemanager.ha': getRmHaHostsWithPort(8032),
-      'yarn.resourcemanager.scheduler.ha': getRmHaHostsWithPort(8030)
+      'yarn.resourcemanager.scheduler.ha': getRmHaHostsWithPort(8030),
+      'hadoop.proxyuser.{{yarnUser}}.hosts': this.getComponentsHostsConfig(['RESOURCEMANAGER'])
     };
   }.property(),
 
   initializerTypes: [
-    {name: 'rm_hosts_with_port', method: '_initRmHaHostsWithPort'},
+    {name: 'rm_hosts_with_port', method: '_initRmHaHostsWithPort'}
   ],
+
+  /**
+   * @override
+   * @param {object} settings
+   */
+  setup: function (settings) {
+    this._updateInitializers(settings);
+  },
+
+  /**
+   * @override
+   */
+  cleanup: function () {
+    this._restoreInitializers();
+  },
 
   /**
    * Initializer for configs that should be updated with yarn resourcemanager ha host addresses with port

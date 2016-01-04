@@ -214,7 +214,7 @@ public class Resource {
       FileSystem dfs, Path pathHadoop) throws IOException {
 
     if (resource.getMode() != null) {
-      FsPermission permission = new FsPermission(Short.valueOf(resource.getMode()));
+      FsPermission permission = new FsPermission((short)Integer.parseInt(resource.getMode(), 8));
       dfs.setPermission(pathHadoop, permission);
 
       // Recursive

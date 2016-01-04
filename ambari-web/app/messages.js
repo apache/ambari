@@ -1326,7 +1326,8 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step4.task1.title': 'Install Additional ResourceManager',
   'admin.rm_highAvailability.wizard.step4.task2.title': 'Reconfigure YARN',
   'admin.rm_highAvailability.wizard.step4.task3.title': 'Reconfigure HAWQ',
-  'admin.rm_highAvailability.wizard.step4.task4.title': 'Start All Services',
+  'admin.rm_highAvailability.wizard.step4.task4.title': 'Reconfigure HDFS',
+  'admin.rm_highAvailability.wizard.step4.task5.title': 'Start All Services',
   'admin.rm_highAvailability.wizard.step4.notice.inProgress':'Please wait while ResourceManager HA is being deployed.',
   'admin.rm_highAvailability.wizard.step4.notice.completed':'ResourceManager HA has been enabled successfully.',
 
@@ -1451,6 +1452,7 @@ Em.I18n.translations = {
   'admin.stackVersions.filter.upgraded': "Ready to Finalize ({0})",
   'admin.stackVersions.upgrade.start.fail.title':'Upgrade could not be started',
   'admin.stackVersions.upgrade.installPackage.fail.title':'Packages could not be installed',
+  'admin.stackVersions.upgrade.installPackage.fail.timeout':'Request timed out.',
 
   'admin.stackVersions.editRepositories.info': 'Provide Base URLs for the Operating Systems you are configuring. Uncheck all other Operating Systems.',
   'admin.stackVersions.editRepositories.validation.warning': 'Some of the repositories failed validation. Make changes to the base url or skip validation if you are sure that urls are correct',
@@ -1658,6 +1660,8 @@ Em.I18n.translations = {
   'services.service.actions.run.stopLdapKnox.context':'Stop Demo LDAP',
   'services.service.actions.run.startStopLdapKnox.error': 'Error during remote command: ',
   'services.service.actions.run.immediateStopHawqCluster.context':'Stop HAWQ Cluster (Immediate Mode)',
+  'services.service.actions.run.immediateStopHawqSegment.label':'Stop (Immediate Mode)',
+  'services.service.actions.run.immediateStopHawqSegment.context':'Stop HAWQ Segment (Immediate Mode)',
   'services.service.actions.run.immediateStopHawqCluster.error': 'Error during remote command: ',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',

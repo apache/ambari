@@ -453,6 +453,7 @@ describe('App.HostPopup', function () {
     beforeEach(function (){
       sinon.stub(App.HostPopup, "get").returns(true);
       sinon.spy(App.HostPopup, "set");
+      this.stub = sinon.stub(App.router, "get");
     });
 
     afterEach(function (){
@@ -462,14 +463,14 @@ describe('App.HostPopup', function () {
     });
 
     it("should display '2 Background Operations Running' when there are 2 background operations running", function(){
-      sinon.stub(App.router, "get").returns(2);
+      this.stub.returns(2);
       App.HostPopup.setBackgroundOperationHeader(false);
 
       expect(App.HostPopup.set.calledWith("popupHeaderName", "2 Background Operations Running")).to.be.true;
     });
 
     it("should display '1 Background Operation Running' when there is 1 background operation running", function(){
-      sinon.stub(App.router, "get").returns(1);
+      this.stub.returns(1);
       App.HostPopup.setBackgroundOperationHeader(false);
 
       expect(App.HostPopup.set.calledWith("popupHeaderName", "1 Background Operation Running")).to.be.true;

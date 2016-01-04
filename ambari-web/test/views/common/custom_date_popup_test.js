@@ -33,29 +33,60 @@ describe('CustomDatePopup', function() {
       expect(context.cancel.calledOnce).to.ok;
     });
 
-    it('empty values passed for end and start dates, validation should fail with appropriate message', function() {
-      expect(popup.onPrimary()).to.false;
-      expect(customDatePopup.get('errors.isStartDateError')).to.ok;
-      expect(customDatePopup.get('errors.isEndDateError')).to.ok;
-      expect(customDatePopup.get('errorMessages.startDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.required'));
-      expect(customDatePopup.get('errorMessages.endDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.required'));
+    describe('empty values passed for end and start dates, validation should fail with appropriate message', function () {
+      it('onPrimary is false', function () {
+        expect(popup.onPrimary()).to.false;
+      });
+      it('isStartDateError is true', function () {
+        expect(customDatePopup.get('errors.isStartDateError')).to.ok;
+      });
+      it('isEndDateError is true', function () {
+        expect(customDatePopup.get('errors.isEndDateError')).to.ok;
+      });
+      it('startDate invalid', function () {
+        expect(customDatePopup.get('errorMessages.startDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.required'));
+      });
+      it('endDate invalid', function () {
+        expect(customDatePopup.get('errorMessages.endDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.required'));
+      });
     });
 
-    it('passed start date is greater then end data, validation should fail with apporpriate message', function() {
-      customDatePopup.set('customDateFormFields.startDate', '11/11/11');
-      customDatePopup.set('customDateFormFields.endDate', '11/10/11');
-      expect(popup.onPrimary()).to.false;
-      expect(customDatePopup.get('errors.isStartDateError')).to.false;
-      expect(customDatePopup.get('errors.isEndDateError')).to.ok;
-      expect(customDatePopup.get('errorMessages.endDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.date.order'));
+    describe('passed start date is greater then end data, validation should fail with apporpriate message', function () {
+      beforeEach(function () {
+        customDatePopup.set('customDateFormFields.startDate', '11/11/11');
+        customDatePopup.set('customDateFormFields.endDate', '11/10/11');
+      });
+
+      it('onPrimary is false', function () {
+        expect(popup.onPrimary()).to.false;
+      });
+      it('isStartDateError is false', function () {
+        expect(customDatePopup.get('errors.isStartDateError')).to.false;
+      });
+      it('isEndDateError is true', function () {
+        expect(customDatePopup.get('errors.isEndDateError')).to.ok;
+      });
+      it('endDate invalid', function () {
+        expect(customDatePopup.get('errorMessages.endDate')).to.equal(Em.I18n.t('jobs.customDateFilter.error.date.order'));
+      });
     });
 
-    it('valid values passed, `valueObject` should contain `endTime` and `startTime`', function() {
-      customDatePopup.set('customDateFormFields.startDate', '11/11/11');
-      customDatePopup.set('customDateFormFields.endDate', '11/12/11');
-      popup.onPrimary();
-      expect(context.get('actualValues.startTime')).to.equal(new Date('11/11/11 01:00 AM').getTime());
-      expect(context.get('actualValues.endTime')).to.equal(new Date('11/12/11 01:00 AM').getTime());
+    describe('valid values passed, `valueObject` should contain `endTime` and `startTime`', function () {
+
+      beforeEach(function () {
+        customDatePopup.set('customDateFormFields.startDate', '11/11/11');
+        customDatePopup.set('customDateFormFields.endDate', '11/12/11');
+        popup.onPrimary();
+      });
+
+      it('startTime is valid', function() {
+        expect(context.get('actualValues.startTime')).to.equal(new Date('11/11/11 01:00 AM').getTime());
+      });
+      it('endTime is valid', function() {
+        expect(context.get('actualValues.endTime')).to.equal(new Date('11/12/11 01:00 AM').getTime());
+      });
+
     });
+
   });
 });

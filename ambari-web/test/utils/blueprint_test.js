@@ -387,7 +387,7 @@ describe('utils/blueprint', function() {
   });
 
   describe("#getComponentForHosts()", function() {
-
+    var res;
     beforeEach(function() {
       sinon.stub(App.ClientComponent, 'find').returns([
         Em.Object.create({
@@ -407,6 +407,7 @@ describe('utils/blueprint', function() {
           hostNames: ["host3"]
         })
       ]);
+      res = blueprintUtils.getComponentForHosts();
     });
     afterEach(function() {
       App.ClientComponent.find.restore();
@@ -414,13 +415,18 @@ describe('utils/blueprint', function() {
       App.MasterComponent.find.restore();
     });
 
-    it("generate components to host map", function() {
-      var res = blueprintUtils.getComponentForHosts();
-      expect(res['host1'][0]).to.eql("C1");
-      expect(res['host2'][0]).to.eql("C1");
-      expect(res['host2'][1]).to.eql("C2");
-      expect(res['host3'][0]).to.eql("C2");
-      expect(res['host3'][1]).to.eql("C3");
+    it('map for 3 items is created', function () {
+      expect(Object.keys(res)).to.have.property('length').equal(3);
+    });
+
+    it("host1 map is valid", function() {
+      expect(res.host1.toArray()).to.eql(['C1']);
+    });
+    it("host2 map is valid", function() {
+      expect(res.host2.toArray()).to.eql(['C1', 'C2']);
+    });
+    it("host3 map is valid", function() {
+      expect(res.host3.toArray()).to.eql(['C2', 'C3']);
     });
   });
 
@@ -435,12 +441,10 @@ describe('utils/blueprint', function() {
       expect(blueprintUtils._generateHostMap({}, [],'c1')).to.eql({});
     });
 
-    it('skip throws error when data is wrong', function() {
-      it('should assert error if no data returned from server', function () {
-        expect(function () {
-          blueprintUtils._generateHostMap();
-        }).to.throw(Error);
-      });
+    it('skip throws error when data is wrong (should assert error if no data returned from server)', function() {
+      expect(function () {
+        blueprintUtils._generateHostMap();
+      }).to.throw(Error);
     });
   });
 });

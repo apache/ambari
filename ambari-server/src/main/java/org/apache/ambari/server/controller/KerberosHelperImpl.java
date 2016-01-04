@@ -18,23 +18,10 @@
 
 package org.apache.ambari.server.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
@@ -122,9 +109,21 @@ import org.apache.directory.server.kerberos.shared.keytab.Keytab;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Singleton
 public class KerberosHelperImpl implements KerberosHelper {
@@ -311,7 +310,7 @@ public class KerberosHelperImpl implements KerberosHelper {
     Map<String, Map<String, String>> existingConfigurations = calculateExistingConfigurations(cluster, hostName);
 
     Map<String, Map<String, String>> updates = getServiceConfigurationUpdates(cluster,
-        existingConfigurations, Collections.singleton(serviceName));
+        existingConfigurations, Collections.singleton(serviceName), serviceAlreadyExists(cluster, serviceComponentHost));
 
     for (Map.Entry<String, Map<String, String>> entry : updates.entrySet()) {
       configHelper.updateConfigType(cluster, ambariManagementController, entry.getKey(), entry.getValue(), null,
@@ -319,8 +318,25 @@ public class KerberosHelperImpl implements KerberosHelper {
     }
   }
 
+  private boolean serviceAlreadyExists(Cluster cluster, ServiceComponentHost sch) throws AmbariException {
+    Service service = cluster.getService(sch.getServiceName());
+    if (service != null) {
+      Map<String, ServiceComponent> serviceComponentMap = service.getServiceComponents();
+      for (ServiceComponent serviceComponent : serviceComponentMap.values()) {
+        Map<String, ServiceComponentHost> serviceComponentHostMap = serviceComponent.getServiceComponentHosts();
+        for (ServiceComponentHost serviceComponentHost : serviceComponentHostMap.values()) {
+          if (serviceComponentHost.getState() == State.INSTALLED || serviceComponentHost.getState() == State.STARTED) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @Override
-  public Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster, Map<String, Map<String, String>> existingConfigurations, Set<String> services)
+  public Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster, Map<String, Map<String, String>> existingConfigurations, Set<String> services,
+                                                                         boolean serviceAlreadyExists)
       throws KerberosInvalidConfigurationException, AmbariException {
 
     Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
@@ -359,7 +375,7 @@ public class KerberosHelperImpl implements KerberosHelper {
             }
 
             mergeConfigurations(kerberosConfigurations,
-                componentDescriptor.getConfigurations(true), configurations);
+                componentDescriptor.getConfigurations(!serviceAlreadyExists), configurations);
           }
         }
       }
@@ -807,7 +823,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
           if (principalDescriptor != null) {
             principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
-            principalType = principalDescriptor.getType().name().toLowerCase();
+            principalType = KerberosPrincipalType.translate(principalDescriptor.getType());
             principalConfiguration = variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations);
           }
 
@@ -940,9 +956,16 @@ public class KerberosHelperImpl implements KerberosHelper {
                 String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
 
                 if (!hostActiveIdentities.containsKey(uniqueKey)) {
+                  KerberosPrincipalType principalType = principalDescriptor.getType();
+
+                  // Assume the principal is a service principal if not specified
+                  if(principalType == null) {
+                    principalType = KerberosPrincipalType.SERVICE;
+                  }
+
                   KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
                       new KerberosPrincipalDescriptor(principal,
-                          principalDescriptor.getType(),
+                          principalType,
                           variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations),
                           variableReplacementHelper.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
 

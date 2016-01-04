@@ -71,6 +71,9 @@
       }}
     {{/if}}
   {{/if}}
+  {{#if view.stateElement.isSpinner}}
+    <div {{bindAttr class="view.stateElement.class"}}></div>
+  {{/if}}
 </div>
 
 <div class="hosts-section">

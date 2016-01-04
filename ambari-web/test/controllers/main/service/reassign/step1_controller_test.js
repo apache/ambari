@@ -35,10 +35,12 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
   describe('#loadConfigTags', function() {
     beforeEach(function() {
       sinon.stub(App.ajax, 'send', Em.K);
+      this.stub = sinon.stub(App.router, 'get');
     });
 
     afterEach(function() {
       App.ajax.send.restore();
+      this.stub.restore();
     });
 
     it('tests loadConfigTags', function() {
@@ -48,47 +50,31 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
     });
 
     it('tests saveDatabaseType with type', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveDatabaseType: Em.K};
-      });
+      this.stub.returns({ saveDatabaseType: Em.K});
 
       controller.saveDatabaseType(true);
       expect(App.router.get.calledOnce).to.be.true;
-
-      App.router.get.restore();
     });
 
     it('tests saveDatabaseType without type', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveDatabaseType: Em.K};
-      });
+      this.stub.returns({ saveDatabaseType: Em.K});
 
       controller.saveDatabaseType(false);
       expect(App.router.get.called).to.be.false;
-
-      App.router.get.restore();
     });
 
-    it('tests saveServiceProperties with propertie', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveServiceProperties: Em.K};
-      });
+    it('tests saveServiceProperties with properties', function() {
+      this.stub.returns({ saveServiceProperties: Em.K});
 
       controller.saveServiceProperties(true);
       expect(App.router.get.calledOnce).to.be.true;
-
-      App.router.get.restore();
     });
 
     it('tests saveServiceProperties without properties', function() {
-      sinon.stub(App.router, 'get', function() {
-        return { saveServiceProperties: Em.K};
-      });
+      this.stub.returns({ saveServiceProperties: Em.K});
 
       controller.saveServiceProperties(false);
       expect(App.router.get.called).to.be.false;
-
-      App.router.get.restore();
     });
 
     it('tests getDatabaseHost', function() {

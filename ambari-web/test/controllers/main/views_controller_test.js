@@ -29,6 +29,7 @@ describe('MainViewsController', function () {
   describe('#loadAmbariViews()', function () {
     beforeEach(function () {
       sinon.stub(App.ajax, 'send', Em.K);
+      this.stub = sinon.stub(App.router, 'get');
     });
     afterEach(function () {
       App.router.get.restore();
@@ -36,13 +37,13 @@ describe('MainViewsController', function () {
     });
 
     it('should load views if the user is logged in', function () {
-      sinon.stub(App.router, 'get').withArgs('loggedIn').returns(true);
+      this.stub.withArgs('loggedIn').returns(true);
       mainViewsController.loadAmbariViews();
       expect(App.ajax.send.calledOnce).to.be.true;
     });
 
     it('should not load views if the user is not logged in', function () {
-      sinon.stub(App.router, 'get').withArgs('loggedIn').returns(false);
+      this.stub.withArgs('loggedIn').returns(false);
       mainViewsController.loadAmbariViews();
       expect(App.ajax.send.notCalled).to.be.true;
     })

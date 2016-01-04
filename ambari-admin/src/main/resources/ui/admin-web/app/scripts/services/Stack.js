@@ -18,20 +18,21 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.factory('Stack', ['$http', '$q', 'Settings', function ($http, $q, Settings) {
-  var statusMap = {
-    'INSTALLED': {
-      label: 'Installed',
-      class: 'label-default'
-    },
-    'IN_USE': {
-      label: 'In Use',
-      class: 'label-info'
-    },
-    'CURRENT': {
-      label: 'Current',
-      class: 'label-success'
-    }
+.factory('Stack', ['$http', '$q', 'Settings', '$translate', function ($http, $q, Settings,$translate) {
+  var $t = $translate.instant,
+    statusMap = {
+      'INSTALLED': {
+        label: $t('versions.installed'),
+        class: 'label-default'
+      },
+      'IN_USE': {
+        label: $t('versions.inUse'),
+        class: 'label-info'
+      },
+      'CURRENT': {
+        label: $t('versions.current'),
+        class: 'label-success'
+      }
   };
   /**
    * parse raw json to formatted objects
@@ -199,7 +200,7 @@ angular.module('ambariAdminConsole')
     },
 
     getSupportedOSList: function (stackName, stackVersion) {
-      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems/repositories/Repositories'
+      var url = Settings.baseUrl + '/stacks/' + stackName + '/versions/' + stackVersion + '?fields=operating_systems/repositories/Repositories';
       var deferred = $q.defer();
       $http.get(url, {mock: 'stack/operatingSystems.json'})
       .success(function (data) {

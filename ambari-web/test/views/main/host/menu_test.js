@@ -27,6 +27,10 @@ describe('App.MainHostMenuView', function () {
 
   describe('#content', function () {
 
+    beforeEach(function () {
+      this.mock = sinon.stub(App, 'get');
+    });
+
     afterEach(function () {
       App.get.restore();
     });
@@ -58,9 +62,8 @@ describe('App.MainHostMenuView', function () {
         }
       ]).forEach(function (test) {
         it(test.m, function () {
-          var stub = sinon.stub(App, 'get');
-          stub.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
-          stub.withArgs('supports.stackUpgrade').returns(test.stackUpgrade);
+          this.mock.withArgs('stackVersionsAvailable').returns(test.stackVersionsAvailable);
+          this.mock.withArgs('supports.stackUpgrade').returns(test.stackUpgrade);
           view.propertyDidChange('content');
           expect(view.get('content').findProperty('name', 'versions').get('hidden')).to.equal(test.e);
         });

@@ -334,7 +334,9 @@ class InstallPackages(Script):
     # Install packages
     packages_were_checked = False
     try:
-      Package('hdp-select', action="upgrade")
+      Package("hdp-select", 
+              action="upgrade",
+      )
       
       packages_installed_before = []
       allInstalledPackages(packages_installed_before)
@@ -343,8 +345,8 @@ class InstallPackages(Script):
       filtered_package_list = self.filter_package_list(package_list)
       for package in filtered_package_list:
         name = self.format_package_name(package['name'])
-        Package(name
-        # action="upgrade" # should we use "upgrade" action here, to upgrade not versioned packages?       
+        Package(name,
+          action="upgrade" # this enables upgrading non-versioned packages, despite the fact they exist. Needed by 'mahout' which is non-version but have to be updated     
         )
     except Exception, err:
       ret_code = 1

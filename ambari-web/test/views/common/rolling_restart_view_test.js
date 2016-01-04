@@ -69,15 +69,24 @@ describe('App.RollingRestartView', function () {
     ];
 
     testCases.forEach(function (test) {
-      it(test.restartHostComponents.length + ' components to restart', function () {
-        view.set('batchSize', -1);
-        view.set('interBatchWaitTimeSeconds', -1);
-        view.set('tolerateSize', -1);
-        view.set('hostComponentName', test.hostComponentName);
-        view.set('restartHostComponents', test.restartHostComponents);
-        view.initialize();
-        expect(view.get('batchSize')).to.equal(test.result.batchSize);
-        expect(view.get('tolerateSize')).to.equal(test.result.tolerateSize);
+      describe(test.restartHostComponents.length + ' components to restart', function () {
+
+        beforeEach(function () {
+          view.set('batchSize', -1);
+          view.set('interBatchWaitTimeSeconds', -1);
+          view.set('tolerateSize', -1);
+          view.set('hostComponentName', test.hostComponentName);
+          view.set('restartHostComponents', test.restartHostComponents);
+          view.initialize();
+        });
+
+        it('batchSize is ' + test.result.batchSize, function() {
+          expect(view.get('batchSize')).to.equal(test.result.batchSize);
+        });
+
+        it('tolerateSize is ' + test.result.tolerateSize, function() {
+          expect(view.get('tolerateSize')).to.equal(test.result.tolerateSize);
+        });
       })
     }, this);
   });

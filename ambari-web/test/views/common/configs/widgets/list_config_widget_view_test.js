@@ -136,11 +136,12 @@ describe('App.ListConfigWidgetView', function () {
       view.sendRequestRorDependentConfigs.restore();
     });
     it('value updates if some option', function () {
-      view.toggleOption({context: view.get('options')[2]});
+      var options = view.get('options');
+      view.toggleOption({context: options[2]});
       expect(view.get('config.value')).to.equal('2,1,3');
-      view.toggleOption({context: view.get('options')[1]});
+      view.toggleOption({context: options[1]});
       expect(view.get('config.value')).to.equal('1,3');
-      view.toggleOption({context: view.get('options')[1]});
+      view.toggleOption({context: options[1]});
       expect(view.get('config.value')).to.equal('1,3,2');
     });
 
@@ -161,13 +162,14 @@ describe('App.ListConfigWidgetView', function () {
       view.sendRequestRorDependentConfigs.restore();
     });
     it('should restore saved value', function () {
-      view.toggleOption({context: view.get('options')[0]});
-      view.toggleOption({context: view.get('options')[1]});
-      view.toggleOption({context: view.get('options')[2]});
+      var options = view.get('options');
+      view.toggleOption({context: options[0]});
+      view.toggleOption({context: options[1]});
+      view.toggleOption({context: options[2]});
       expect(view.get('config.value')).to.equal('3');
       view.restoreValue();
       expect(view.get('config.value')).to.equal('2,1');
-      expect(view.get('controller.removeCurrentFromDependentList')).to.be.called
+      expect(view.get('controller.removeCurrentFromDependentList')).to.be.called;
     });
 
   });
@@ -175,19 +177,30 @@ describe('App.ListConfigWidgetView', function () {
   describe('#toggleOption', function () {
 
     beforeEach(function() {
-      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K)
+      sinon.stub(view, 'sendRequestRorDependentConfigs', Em.K);
+      view.toggleOption({context: view.get('options')[2]});
     });
     afterEach(function() {
       view.sendRequestRorDependentConfigs.restore();
     });
 
-    it('should doesn\'t do nothing if maximum number of options is selected', function () {
-      view.toggleOption({context: view.get('options')[2]});
-      expect(view.get('options')[2].get('isSelected')).to.be.true;
-      expect(view.get('options')[3].get('isDisabled')).to.be.true;
-      expect(view.get('options')[3].get('isSelected')).to.be.false;
-      expect(view.get('options')[4].get('isDisabled')).to.be.true;
-      expect(view.get('options')[4].get('isSelected')).to.be.false;
+    describe('should doesn\'t do nothing if maximum number of options is selected', function () {
+
+      it('isSelected', function () {
+        expect(view.get('options')[2].get('isSelected')).to.be.true;
+        expect(view.get('options')[3].get('isSelected')).to.be.false;
+        expect(view.get('options')[4].get('isSelected')).to.be.false;
+      });
+
+      it('isDisabled', function () {
+        expect(view.get('options')[3].get('isDisabled')).to.be.true;
+        expect(view.get('options')[4].get('isDisabled')).to.be.true;
+      });
+
+    });
+
+    it('should doesn\'t do nothing if maximum number of options is selected (2)', function () {
+
       view.toggleOption({context: view.get('options')[3]});
       expect(view.get('options')[3].get('isDisabled')).to.be.true;
       expect(view.get('options')[3].get('isSelected')).to.be.false;

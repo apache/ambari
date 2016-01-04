@@ -160,19 +160,25 @@ describe('App.WizardStep4Controller', function () {
     ];
 
     testCases.forEach(function(testCase){
-      it(testCase.title, function () {
-        controller.clear();
-        for(var id in testCase.condition) {
-          controller.pushObject(Ember.Object.create({
-            'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
-            coSelectedServices: function() {
-              return App.StackService.coSelected[this.get('serviceName')] || [];
-            }.property('serviceName')
-          }));
-        }
-        controller.setGroupedServices();
+      describe(testCase.title, function () {
+
+        beforeEach(function () {
+          controller.clear();
+          for(var id in testCase.condition) {
+            controller.pushObject(Ember.Object.create({
+              'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
+              coSelectedServices: function() {
+                return App.StackService.coSelected[this.get('serviceName')] || [];
+              }.property('serviceName')
+            }));
+          }
+          controller.setGroupedServices();
+        });
+
         for(var service in testCase.result) {
-          expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
+          it(service, function () {
+            expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
+          });
         }
       });
     }, this);
@@ -350,14 +356,23 @@ describe('App.WizardStep4Controller', function () {
     });
 
     sparkCases.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
-          withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
-        controller.set('errorStack', []);
-        controller.set('content', generateSelectedServicesContent(['SPARK']));
-        controller.validate();
-        expect(controller.get('errorStack').someProperty('id', 'sparkWarning')).to.equal(item.sparkWarningExpected);
-        App.get.restore();
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
+            withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+          controller.set('errorStack', []);
+          controller.set('content', generateSelectedServicesContent(['SPARK']));
+          controller.validate();
+        });
+
+        afterEach(function () {
+          App.get.restore();
+        });
+
+        it('sparkWarning ' + (item.sparkWarningExpected ? 'exists' : 'not exists'), function () {
+          expect(controller.get('errorStack').someProperty('id', 'sparkWarning')).to.equal(item.sparkWarningExpected);
+        });
       });
     });
 
@@ -406,37 +421,48 @@ describe('App.WizardStep4Controller', function () {
       var message = 'Selected services: {0}. {1} errors should be confirmed'
         .format(test.services.join(', '), test.confirmPopupCount);
 
-      it(message, function() {
+      describe(message, function() {
         var runValidations = function() {
           c.serviceDependencyValidation();
           c.fileSystemServiceValidation();
         };
 
-        c.set('content', generateSelectedServicesContent(test.services));
-        runValidations();
-        // errors count validation
-        expect(c.get('errorStack.length')).to.equal(test.confirmPopupCount);
-        // if errors detected than it should be shown
+        beforeEach(function () {
+          c.set('content', generateSelectedServicesContent(test.services));
+          runValidations();
+        });
+
+        it('errors count validation', function () {
+          expect(c.get('errorStack.length')).to.equal(test.confirmPopupCount);
+        });
+
         if (test.errorsExpected) {
-          test.errorsExpected.forEach(function(error, index, errors) {
-            // validate current error
-            var currentErrorObject = c.get('errorStack').findProperty('isShown', false);
-            if (currentErrorObject) {
-              expect(test.errorsExpected).to.contain(currentErrorObject.id);
-              // show current error
-              var popup = c.showError(currentErrorObject);
-              // submit popup
-              popup.onPrimary();
-              // onPrimaryPopupCallback should be called
-              expect(c.onPrimaryPopupCallback.called).to.equal(true);
-              // submit called
-              expect(c.submit.called).to.equal(true);
-              if (c.get('errorStack').length) {
-                // current error isShown flag changed to true
-                expect(currentErrorObject.isShown).to.equal(true);
-              }
-              runValidations();
-            }
+          describe('if errors detected than it should be shown', function () {
+            var currentErrorObject;
+            beforeEach(function () {
+              currentErrorObject = c.get('errorStack').findProperty('isShown', false);
+            });
+            test.errorsExpected.forEach(function(error, index, errors) {
+              it(error, function () {
+                // validate current error
+                if (currentErrorObject) {
+                  expect(test.errorsExpected).to.contain(currentErrorObject.id);
+                  // show current error
+                  var popup = c.showError(currentErrorObject);
+                  // submit popup
+                  popup.onPrimary();
+                  // onPrimaryPopupCallback should be called
+                  expect(c.onPrimaryPopupCallback.called).to.equal(true);
+                  // submit called
+                  expect(c.submit.called).to.equal(true);
+                  if (c.get('errorStack').length) {
+                    // current error isShown flag changed to true
+                    expect(currentErrorObject.isShown).to.equal(true);
+                  }
+                  runValidations();
+                }
+              });
+            });
           });
         }
       });
@@ -445,6 +471,15 @@ describe('App.WizardStep4Controller', function () {
   });
 
   describe('#needToAddServicePopup', function() {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'submit', Em.K);
+    });
+
+    afterEach(function () {
+      controller.submit.restore();
+    });
+
     Em.A([
         {
           m: 'one service',
@@ -461,12 +496,10 @@ describe('App.WizardStep4Controller', function () {
         }
       ]).forEach(function (test) {
         it(test.m, function () {
-          sinon.stub(controller, 'submit', Em.K);
           controller.set('content', test.content);
           controller.needToAddServicePopup(test.services, '').onPrimary();
           expect(controller.submit.calledOnce).to.equal(true);
           expect(controller.mapProperty('isSelected')).to.eql(test.e);
-          controller.submit.restore();
         });
       });
   });
@@ -765,6 +798,7 @@ describe('App.WizardStep4Controller', function () {
     beforeEach(function() {
       controller.clear();
       controller.set('errorStack', []);
+      this.stub = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
@@ -772,21 +806,26 @@ describe('App.WizardStep4Controller', function () {
     });
 
     cases.forEach(function (item) {
-      it(item.title, function () {
-        sinon.stub(App, 'get').withArgs('currentStackName').returns(item.currentStackName).
-          withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
-        controller.set('content', generateSelectedServicesContent(item.services));
-        var spark = controller.findProperty('serviceName', 'SPARK');
-        if (item.services.contains('SPARK')) {
-          spark.setProperties({
-            isSelected: item.isSparkSelected,
-            isInstalled: item.isSparkInstalled
-          });
-        } else {
-          controller.removeObject(spark);
-        }
-        controller.sparkValidation();
-        expect(controller.get('errorStack').mapProperty('id').contains('sparkWarning')).to.equal(item.isSparkWarning);
+      describe(item.title, function () {
+        beforeEach(function () {
+          this.stub.withArgs('currentStackName').returns(item.currentStackName).
+            withArgs('currentStackVersionNumber').returns(item.currentStackVersionNumber);
+          controller.set('content', generateSelectedServicesContent(item.services));
+          var spark = controller.findProperty('serviceName', 'SPARK');
+          if (item.services.contains('SPARK')) {
+            spark.setProperties({
+              isSelected: item.isSparkSelected,
+              isInstalled: item.isSparkInstalled
+            });
+          } else {
+            controller.removeObject(spark);
+          }
+          controller.sparkValidation();
+        });
+
+        it('sparkWarning is ' + item.sparkWarning, function () {
+          expect(controller.get('errorStack').mapProperty('id').contains('sparkWarning')).to.equal(item.isSparkWarning);
+        });
       });
     });
 
