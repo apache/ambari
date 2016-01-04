@@ -84,9 +84,10 @@ def __create_local_dirs():
   Execute("chmod 700 {0}".format(params.hawq_master_dir), user=hawq_constants.root_user, timeout=hawq_constants.default_exec_timeout)
 
 
-def __create_hdfs_dirs():
+def __setup_hdfs_dirs():
   """
-  Creates the required HDFS directories for HAWQ
+  Creates the required HDFS directories for HAWQ if they don't exist
+  or sets proper owner/mode if directory exists
   """
   import params
 
@@ -97,6 +98,7 @@ def __create_hdfs_dirs():
                         action="create_on_execute",
                         owner=data_dir_owner,
                         group=hawq_constants.hawq_group,
+                        recursive_chown = True,
                         mode=0755)
   params.HdfsResource(None, action="execute")
 
@@ -105,7 +107,7 @@ def __init_active():
   """
   Initializes the active master
   """
-  __create_hdfs_dirs()
+  __setup_hdfs_dirs()
   utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.MASTER))
 
 
@@ -129,6 +131,9 @@ def __start_local_master():
   """
   import params
   component_name = __get_component_name()
+
+  __setup_hdfs_dirs()
+
   utils.exec_hawq_operation(
         hawq_constants.START, 
         "{0} -a -v".format(component_name),
