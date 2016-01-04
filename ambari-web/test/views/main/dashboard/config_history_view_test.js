@@ -60,13 +60,13 @@ describe('App.MainConfigHistoryView', function() {
     });
 
     before(function () {
-      sinon.stub(App.Service, 'find').returns([Em.Object.create({
+      sinon.stub(App.StackService, 'find').returns([Em.Object.create({
         serviceName: 'S1',
         displayName: 's1'
       })])
     });
     after(function () {
-      App.Service.find.restore();
+      App.StackService.find.restore();
     });
     it("content", function () {
       expect(subView.get('content')).to.eql([
