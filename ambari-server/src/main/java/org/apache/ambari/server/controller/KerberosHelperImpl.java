@@ -823,7 +823,7 @@ public class KerberosHelperImpl implements KerberosHelper {
 
           if (principalDescriptor != null) {
             principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
-            principalType = principalDescriptor.getType().name().toLowerCase();
+            principalType = KerberosPrincipalType.translate(principalDescriptor.getType());
             principalConfiguration = variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations);
           }
 
@@ -956,9 +956,16 @@ public class KerberosHelperImpl implements KerberosHelper {
                 String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
 
                 if (!hostActiveIdentities.containsKey(uniqueKey)) {
+                  KerberosPrincipalType principalType = principalDescriptor.getType();
+
+                  // Assume the principal is a service principal if not specified
+                  if(principalType == null) {
+                    principalType = KerberosPrincipalType.SERVICE;
+                  }
+
                   KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
                       new KerberosPrincipalDescriptor(principal,
-                          principalDescriptor.getType(),
+                          principalType,
                           variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations),
                           variableReplacementHelper.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
 
