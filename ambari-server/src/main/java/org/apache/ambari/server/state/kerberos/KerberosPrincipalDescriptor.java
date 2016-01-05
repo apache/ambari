@@ -73,7 +73,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * <p/>
    * Expecting either "service" or "user"
    */
-  private KerberosPrincipalType type = KerberosPrincipalType.SERVICE;
+  private KerberosPrincipalType type = null;
 
   /**
    * A string declaring configuration type and property name indicating the property to be updated
@@ -109,7 +109,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     // The name for this KerberosPrincipalDescriptor is stored in the "value" entry in the map
     // This is not automatically set by the super classes.
     setName(principal);
-    setType((type == null) ? KerberosPrincipalType.SERVICE : type);
+    setType(type);
     setConfiguration(configuration);
     setLocalUsername(localUsername);
   }
@@ -270,7 +270,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
     Map<String, Object> map = new HashMap<String, Object>();
 
     map.put("value", getValue());
-    map.put("type", getType().name().toLowerCase());
+    map.put("type", KerberosPrincipalType.translate(getType()));
     map.put("configuration", getConfiguration());
     map.put("local_username", getLocalUsername());
 
@@ -314,19 +314,16 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
 
   /**
    * Translates a string value representing a principal type to a KerberosPrincipalType.
-   * <p/>
-   * If no value is supplied for the key or a translation cannot be made then KerberosPrincipalType.SERVICE
-   * is assumed.
    *
    * @param map a Map containing the relevant data
    * @param key a String declaring the item to retrieve
-   * @return a KerberosPrincipalType
+   * @return a KerberosPrincipalType, or null is not specified in the map
    * @throws IllegalArgumentException if the principal type value is not one of the expected types.
    */
   private static KerberosPrincipalType getKerberosPrincipalTypeValue(Map<?, ?> map, String key) {
     String type = getStringValue(map, key);
     if ((type == null) || type.isEmpty()) {
-      return KerberosPrincipalType.SERVICE;
+      return null;
     } else {
       return KerberosPrincipalType.valueOf(type.toUpperCase());
     }

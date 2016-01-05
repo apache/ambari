@@ -35,5 +35,25 @@ public enum KerberosPrincipalType {
    * <p/>
    * Typically in the form <code>service/host@REALM</code>.
    */
-  SERVICE
+  SERVICE;
+
+  public static KerberosPrincipalType translate(String string) {
+    if(string == null)
+      return null;
+    else {
+      string = string.trim();
+
+      if(string.isEmpty())
+        return null;
+      else {
+        return valueOf(string.toUpperCase());
+      }
+    }
+  }
+
+  public static String translate(KerberosPrincipalType type) {
+    return (type == null)
+        ? null
+        : type.name().toLowerCase();
+  }
 }
