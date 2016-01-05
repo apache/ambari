@@ -263,15 +263,17 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      var addHostController = router.get('addHostController');
-      var wizardStep8Controller = router.get('wizardStep8Controller');
-      addHostController.applyConfigGroup();
-      addHostController.installServices(false, function () {
-        addHostController.setInfoForStep9();
-        // We need to do recovery based on whether we are in Add Host or Installer wizard
-        addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
-        wizardStep8Controller.set('servicesInstalled', true);
-        router.transitionTo('step6');
+      router.get('mainAdminKerberosController').getKDCSessionState(function() {
+        var addHostController = router.get('addHostController');
+        var wizardStep8Controller = router.get('wizardStep8Controller');
+        addHostController.applyConfigGroup();
+        addHostController.installServices(false, function () {
+          addHostController.setInfoForStep9();
+          // We need to do recovery based on whether we are in Add Host or Installer wizard
+          addHostController.saveClusterState('ADD_HOSTS_INSTALLING_3');
+          wizardStep8Controller.set('servicesInstalled', true);
+          router.transitionTo('step6');
+        });
       });
     }
   }),
