@@ -17,29 +17,29 @@ limitations under the License.
 
 """
 import os
-import shutil
 
 import ambari_simplejson as json
 from resource_management.core.logger import Logger
-from resource_management.core.resources.system import Execute
-from resource_management.core.shell import as_sudo
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.libraries.script import Script
 
 
-def setup_hdp_install_directory():
-  # This is a name of marker file.
-  SELECT_ALL_PERFORMED_MARKER = "/var/lib/ambari-agent/data/hdp-select-set-all.performed"
+def setup_hdp_symlinks():
+  """
+  Invokes hdp-select set all against a calculated fully-qualified, "normalized" version based on a
+  stack version, such as "2.3". This should always be called after a component has been
+  installed to ensure that all HDP pointers are correct. The stack upgrade logic does not
+  interact with this since it's done via a custom command and will not trigger this hook.
+  :return:
+  """
   import params
   if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    Execute(as_sudo(['touch', SELECT_ALL_PERFORMED_MARKER]) + ' ; ' +
-                   format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{stack_version_unformatted} | tail -1`'),
-            only_if=format('ls -d /usr/hdp/{stack_version_unformatted}*'),   # If any HDP version is installed
-            not_if=format("test -f {SELECT_ALL_PERFORMED_MARKER}")           # Do that only once (otherwise we break stack upgrade logic)
-    )
+    hdp_select.select_all(params.stack_version_unformatted)
+
 
 def setup_config():
   import params
