@@ -903,11 +903,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     hbase_zk_client_port = properties.get("hbase.zookeeper.property.clientPort")
     zkPort = self.getZKPort(services)
     hbase_zk_client_port_item = None
-    if distributed.lower() == "true" and op_mode == "distributed" and hbase_zk_client_port != zkPort:
+    if distributed.lower() == "true" and op_mode == "distributed" and \
+        hbase_zk_client_port != zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
       hbase_zk_client_port_item = self.getErrorItem("In AMS distributed mode, hbase.zookeeper.property.clientPort "
                                                     "should be the cluster zookeeper server port : {0}".format(zkPort))
 
-    if distributed.lower() == "false" and op_mode == "embedded" and hbase_zk_client_port == zkPort:
+    if distributed.lower() == "false" and op_mode == "embedded" and \
+        hbase_zk_client_port == zkPort and hbase_zk_client_port != "{{zookeeper_clientPort}}":
       hbase_zk_client_port_item = self.getErrorItem("In AMS embedded mode, hbase.zookeeper.property.clientPort "
                                                     "should be a different port than cluster zookeeper port."
                                                     "(default:61181)")
