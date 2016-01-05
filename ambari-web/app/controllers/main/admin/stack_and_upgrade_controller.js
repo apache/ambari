@@ -588,6 +588,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @param {object} version
    */
   upgrade: function (version) {
+    var self = this;
     this.set('requestInProgress', true);
     App.ajax.send({
       name: 'admin.upgrade.start',
@@ -600,6 +601,51 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       }
     });
     this.setDBProperty('currentVersion', this.get('currentVersion'));
+
+    // Show a "preparing the upgrade..." dialog in case the api call returns too slow
+    if (App.router.get('currentState.name') != 'stackUpgrade') {
+      self.showPreparingUpgradeIndicator();
+    }
+  },
+
+  /**
+   * Should progress bar be displayed when preparing upgrade,
+   * should show after Upgrade Options window and before Upgrade Wizard
+   * @method showPreparingUpgradeIndicator
+   */
+  showPreparingUpgradeIndicator: function () {
+    return App.ModalPopup.show({
+      header: '',
+      showFooter: false,
+      showCloseButton: false,
+      bodyClass: Em.View.extend({
+        templateName: require('templates/wizard/step8/step8_log_popup'),
+        controllerBinding: 'App.router.mainAdminStackAndUpgradeController',
+
+        /**
+         * Css-property for progress-bar
+         * @type {string}
+         */
+        barWidth: 'width: 100%;',
+        progressBarClass: 'progress progress-striped active log_popup',
+
+        /**
+         * Popup-message
+         * @type {string}
+         */
+        message: Em.I18n.t('admin.stackUpgrade.dialog.prepareUpgrade.header'),
+
+        /**
+         * Hide popup when upgrade wizard is open
+         * @method autoHide
+         */
+        autoHide: function () {
+          if (!this.get('controller.requestInProgress')) {
+            this.get('parentView').hide();
+          }
+        }.observes('controller.requestInProgress')
+      })
+    });
   },
 
   /**

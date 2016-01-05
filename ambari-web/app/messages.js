@@ -1588,6 +1588,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.details.open': "show details",
   'admin.stackUpgrade.dialog.details.hide': "hide details",
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",
+  'admin.stackUpgrade.dialog.prepareUpgrade.header': "Preparing the Upgrade...",
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
