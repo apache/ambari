@@ -431,6 +431,12 @@ public class AmbariActionExecutionHelper {
           execCmd.setForceRefreshConfigTagsBeforeExecution(configsToRefresh);
         }
       }
+
+      // Generate cluster host info
+      if (null != cluster) {
+        execCmd.setClusterHostInfo(
+          StageUtils.getClusterHostInfo(cluster));
+      }
     }
   }
 

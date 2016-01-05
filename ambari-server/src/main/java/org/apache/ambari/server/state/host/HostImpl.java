@@ -860,9 +860,8 @@ public class HostImpl implements Host {
 
   @Override
   public String getOsFamily() {
-    Map<String, String> hostAttributes = getHostAttributes();
-    String majorVersion = hostAttributes.get(OS_RELEASE_VERSION).split("\\.")[0];
-	  return hostAttributes.get(OSFAMILY) + majorVersion;
+	  String majorVersion = getHostAttributes().get(OS_RELEASE_VERSION).split("\\.")[0];
+	  return getHostAttributes().get(OSFAMILY) + majorVersion;
   }
 
   @Override

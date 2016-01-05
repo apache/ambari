@@ -1190,56 +1190,31 @@ public class ClusterImpl implements Cluster {
       Sets.SetView<String> hostsMissingRepoVersion = Sets.difference(
         hosts.keySet(), existingHostsWithClusterStackAndVersion);
 
-      createOrUpdateHostVersionToState(sourceClusterVersion, hosts,
-        existingHostStackVersions, hostsMissingRepoVersion,
-        RepositoryVersionState.INSTALLING);
+      for (String hostname : hosts.keySet()) {
+        // if the host is in maintenance mode, that's an explicit marker which
+        // indicates that it should not be transitioned to INSTALLING; these
+        // hosts are excluded from being transitioned into INSTALLING
+        Host host = hosts.get(hostname);
+        if (host.getMaintenanceState(getClusterId()) != MaintenanceState.OFF) {
+          continue;
+        }
+
+        if (hostsMissingRepoVersion.contains(hostname)) {
+          // Create new host stack version
+          HostEntity hostEntity = hostDAO.findByName(hostname);
+          HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
+              sourceClusterVersion.getRepositoryVersion(),
+              RepositoryVersionState.INSTALLING);
+          hostVersionDAO.create(hostVersionEntity);
+        } else {
+          // Update existing host stack version
+          HostVersionEntity hostVersionEntity = existingHostStackVersions.get(hostname);
+          hostVersionEntity.setState(RepositoryVersionState.INSTALLING);
+          hostVersionDAO.merge(hostVersionEntity);
+        }
+      }
     } finally {
       clusterGlobalLock.writeLock().unlock();
-    }
-  }
-
-  /**
-   * Moved out to a separate method due to performance reasons
-   * Iterates over all hosts and creates or transitions existing host versions
-   * to a given state. If host version for desired stack/version does not exist,
-   * host version is created and initialized to a given state. Otherwise, existing
-   * host version state is updated
-   * Hosts in maintenance mode are auto skipped.
-   *
-   * @param sourceClusterVersion cluster version to be queried for a stack
-   *                             name/version info when creating a new host version
-   * @param hosts list of all hosts
-   * @param existingHostStackVersions map of existing host versions to be updated
-   * @param hostsMissingRepoVersion set of hostnames of hosts that have no desired host version
-   * @param newState target host version state for transition
-   */
-  @Transactional
-  void createOrUpdateHostVersionToState(ClusterVersionEntity sourceClusterVersion, Map<String, Host> hosts,
-                                        HashMap<String, HostVersionEntity> existingHostStackVersions,
-                                        Sets.SetView<String> hostsMissingRepoVersion,
-                                                RepositoryVersionState newState) {
-    for (String hostname : hosts.keySet()) {
-      // if the host is in maintenance mode, that's an explicit marker which
-      // indicates that it should not be transitioned to newState; these
-      // hosts are excluded from being transitioned into newState
-      Host host = hosts.get(hostname);
-      if (host.getMaintenanceState(getClusterId()) != MaintenanceState.OFF) {
-        continue;
-      }
-
-      if (hostsMissingRepoVersion.contains(hostname)) {
-        // Create new host stack version
-        HostEntity hostEntity = hostDAO.findByName(hostname);
-        HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
-            sourceClusterVersion.getRepositoryVersion(),
-          newState);
-        hostVersionDAO.create(hostVersionEntity);
-      } else {
-        // Update existing host stack version
-        HostVersionEntity hostVersionEntity = existingHostStackVersions.get(hostname);
-        hostVersionEntity.setState(newState);
-        hostVersionDAO.merge(hostVersionEntity);
-      }
     }
   }
 
