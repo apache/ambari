@@ -42,15 +42,15 @@ class AccumuloServiceCheck(Script):
                                   'deletetable -f testtable\n\n')
       )
       if params.security_enabled and params.has_secure_user_auth:
-        Execute( format("{smokeuser_kinit_cmd} "
-                        "{client_script} shell -f {cmdfile}"),
-                 timeout=30,
-                 user=params.smoke_test_user)
+        cmd = format("{smokeuser_kinit_cmd} "
+                        "{client_script} shell -f {cmdfile}")
       else:
-        Execute( format("{client_script} shell -u {smoke_test_user} "
-                        "-p {smoke_test_password} -f {cmdfile}"),
-                 timeout=30,
-                 user=params.smoke_test_user)
+        cmd = format("{client_script} shell -u {smoke_test_user} "
+                        "-p {smoke_test_password} -f {cmdfile}")
+      Execute(cmd,
+              timeout=30,
+              user=params.smoke_test_user,
+              logoutput=True)
     finally:
       try_remove(cmdfile)
 
