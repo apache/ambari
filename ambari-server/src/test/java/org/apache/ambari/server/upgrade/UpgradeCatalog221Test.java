@@ -19,9 +19,9 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.inject.AbstractModule;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -33,12 +33,12 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -61,6 +61,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -70,7 +71,6 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
-import static org.easymock.EasyMock.capture;
 import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
@@ -79,8 +79,6 @@ public class UpgradeCatalog221Test {
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
-
-
 
   @Before
   public void init() {
@@ -280,6 +278,13 @@ public class UpgradeCatalog221Test {
       amsHbaseSecuritySite,
       clusterEnvProperties);
 
+    // Test zookeeper client port set to default
+    amsHbaseSecuritySite.put("hbase.zookeeper.property.clientPort", "61181");
+    newPropertiesAmsHbaseSite.put("hbase.zookeeper.property.clientPort", "{{zookeeper_clientPort}}");
+    testAmsHbaseSiteUpdates(Collections.singletonMap("hbase.zookeeper.property.clientPort", "61181"),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
   }
 
   private void testAmsHbaseSiteUpdates(Map<String, String> oldPropertiesAmsHbaseSite,

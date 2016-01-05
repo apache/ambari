@@ -249,7 +249,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
-    <value>61181</value>
+    <value>{{zookeeper_clientPort}}</value>
     <depends-on>
       <property>
         <type>zoo.cfg</type>

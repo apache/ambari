@@ -467,6 +467,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
     hbaseClusterDistributed = False
+    zk_port_default = []
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
@@ -474,12 +475,13 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
       if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
         hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
+      if "hbase.zookeeper.property.clientPort" in services["configurations"]["ams-hbase-site"]["properties"]:
+        zk_port_default = services["configurations"]["ams-hbase-site"]["properties"]["hbase.zookeeper.property.clientPort"]
 
-    if hbaseClusterDistributed:
+    # Skip recommendation item if default value is present
+    if hbaseClusterDistributed and not "{{zookeeper_clientPort}}" in zk_port_default:
       zkPort = self.getZKPort(services)
       putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", zkPort)
-    else:
-      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", "61181")
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:

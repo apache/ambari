@@ -146,8 +146,13 @@ max_open_files_limit = default("/configurations/ams-hbase-env/max_open_files_lim
 
 if not is_hbase_distributed:
   zookeeper_quorum_hosts = 'localhost'
+  zookeeper_clientPort = '61181'
 else:
   zookeeper_quorum_hosts = ",".join(config['clusterHostInfo']['zookeeper_hosts'])
+  if 'zoo.cfg' in config['configurations'] and 'clientPort' in config['configurations']['zoo.cfg']:
+    zookeeper_clientPort = config['configurations']['zoo.cfg']['clientPort']
+  else:
+    zookeeper_clientPort = '2181'
 
 ams_checkpoint_dir = config['configurations']['ams-site']['timeline.metrics.aggregator.checkpoint.dir']
 hbase_pid_dir = status_params.hbase_pid_dir
