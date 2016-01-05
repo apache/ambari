@@ -408,21 +408,6 @@ class TestHostCleanup(TestCase):
     sys.stdout = sys.__stdout__
 
 
-  @patch('os.path.isfile')
-  @patch('os.unlink')
-  def test_do_remove_hdp_select_marker(self, unlink_mock, isfile_mock):
-    out = StringIO.StringIO()
-    sys.stdout = out
-
-    isfile_mock.return_value = True
-
-    self.hostcleanup.do_remove_hdp_select_marker()
-
-    self.assertTrue(unlink_mock.called)
-
-    sys.stdout = sys.__stdout__
-
-
   @patch.object(HostCleanup.HostCleanup, 'get_files_in_dir')
   @patch.object(OSCheck, "get_os_type")
   def test_find_repo_files_for_repos(self, get_os_type_method,
