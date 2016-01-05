@@ -198,12 +198,15 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       for (var name in data) {
         var currentData = data[name];
         if (currentData) {
+          if (Array.isArray(currentData)) {
+            currentData = currentData.slice(0);
+          }
           var factor = template.factor,
             displayName = template.displayName ? template.displayName(name) : name;
           if (!Em.isNone(factor)) {
             var dataLength = currentData.length;
             for (var i = dataLength; i--;) {
-              currentData[i][0] *= factor;
+              currentData[i] = [currentData[i][0] * factor, currentData[i][1]];
             }
           }
           dataArray.push({
