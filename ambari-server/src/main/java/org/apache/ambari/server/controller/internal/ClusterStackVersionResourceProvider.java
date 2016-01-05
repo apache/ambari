@@ -367,15 +367,6 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
     String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
-    // Generate cluster host info
-    String clusterHostInfoJson;
-    try {
-      clusterHostInfoJson = StageUtils.getGson().toJson(
-        StageUtils.getClusterHostInfo(cluster));
-    } catch (AmbariException e) {
-      throw new SystemException("Could not build cluster topology", e);
-    }
-
     int maxTasks = configuration.getAgentPackageParallelCommandsLimit();
     int hostCount = hosts.size();
     int batchCount = (int) (Math.ceil((double)hostCount / maxTasks));
@@ -399,7 +390,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       }
 
       Stage stage = stageFactory.createNew(req.getId(), "/tmp/ambari", cluster.getClusterName(),
-          cluster.getClusterId(), stageName, clusterHostInfoJson, "{}", hostParamsJson);
+          cluster.getClusterId(), stageName, "{}", "{}", hostParamsJson);
 
       // if you have 1000 hosts (10 stages with 100 installs), we want to ensure
       // that a single failure doesn't cause all other stages to abort; set the
@@ -476,12 +467,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       final StackId stackId, Map<String, List<RepositoryEntity>> perOsRepos, Stage stage, Host host)
           throws SystemException {
     // Determine repositories for host
-    String osFamily = host.getOsFamily();
-    final List<RepositoryEntity> repoInfo = perOsRepos.get(osFamily);
+    final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
     if (repoInfo == null) {
       throw new SystemException(String.format("Repositories for os type %s are " +
                       "not defined. Repo version=%s, stackId=%s",
-        osFamily, desiredRepoVersion, stackId));
+              host.getOsFamily(), desiredRepoVersion, stackId));
     }
 
     // determine packages for all services that are installed on host
@@ -502,7 +492,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
               new HashMap<String, String>(), // Contents are ignored
-        osFamily);
+              host.getOsFamily());
       for (ServiceOsSpecific.Package aPackage : packagesForService) {
         if (! aPackage.getSkipUpgrade()) {
           boolean blacklisted = false;
