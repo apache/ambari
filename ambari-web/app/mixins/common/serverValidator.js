@@ -167,22 +167,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
     });
   },
 
-  /**
-   * @method loadRecommendationsSuccess
-   * success callback after loading recommendations
-   * (used only during install)
-   * @param data
-   */
-  loadRecommendationsSuccess: function(data) {
-    this._saveRecommendedValues(data, null, false);
-    this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
-    this.set('recommendationTimeStamp', (new Date).getTime());
-  },
-
-  loadRecommendationsError: function(jqXHR, ajaxOptions, error, opt) {
-
-  },
-
   serverSideValidation: function () {
     var deferred = $.Deferred();
     this.set('configValidationFailed', false);

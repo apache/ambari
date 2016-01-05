@@ -1535,7 +1535,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   showOozieDerbyWarningPopup: function(callback) {
     var self = this;
     if (this.get('selectedServiceNames').contains('OOZIE')) {
-      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml') || {}, 'value', '');
+      var databaseType = Em.getWithDefault(App.config.findConfigProperty(this.get('stepConfigs'), 'oozie_database', 'oozie-env.xml') || {}, 'value', '');
       if (databaseType == Em.I18n.t('installer.step7.oozie.database.new')) {
         return App.ModalPopup.show({
           header: Em.I18n.t('common.warning'),

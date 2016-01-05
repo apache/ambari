@@ -1810,7 +1810,7 @@ describe('App.InstallerStep7Controller', function () {
       describe(test.m, function() {
 
         beforeEach(function () {
-          sinon.stub(controller, 'findConfigProperty').returns(Em.Object.create({ value: test.databaseType}));
+          sinon.stub(App.config, 'findConfigProperty').returns(Em.Object.create({ value: test.databaseType}));
           controller.reopen({
             selectedServiceNames: test.selectedServiceNames
           });
@@ -1818,7 +1818,7 @@ describe('App.InstallerStep7Controller', function () {
         });
 
         afterEach(function () {
-          controller.findConfigProperty.restore();
+          App.config.findConfigProperty.restore();
         });
 
         it('modal popup is shown needed number of times', function () {

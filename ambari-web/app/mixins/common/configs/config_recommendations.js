@@ -37,165 +37,182 @@ var App = require('app');
 
 App.ConfigRecommendations = Em.Mixin.create({
 
-    /**
-     * List of recommendations that was applied to configs
-     *
-     * @type {recommendation[]}
-     */
-    recommendations: [],
+  /**
+   * List of recommendations that was applied to configs
+   *
+   * @type {recommendation[]}
+   */
+  recommendations: [],
 
-    /**
-     * Update recommendation property if exists
-     * otherwise add new
-     *
-     * @param {string} name
-     * @param {string} fileName
-     * @param {string} configGroupName
-     * @param {string} recommendedValue
-     * @param {string} initialValue
-     * @param {Object[]}parentProperties
-     * @returns {recommendation}
-     */
-    applyRecommendation: function(name, fileName, configGroupName, recommendedValue, initialValue, parentProperties) {
-        var parentPropertiesNames = parentProperties ? parentProperties.map(function(p) {
-            return App.config.configId(p.name, p.type);
-        }) : [];
-        var updated = this.updateRecommendation(name, fileName, configGroupName, recommendedValue, parentPropertiesNames);
-        if (!updated)
-            var added = this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames);
-        return updated || added;
-    },
+  /**
+   * Update recommendation property if exists
+   * otherwise add new
+   *
+   * @param {string} name
+   * @param {string} fileName
+   * @param {string} configGroupName
+   * @param {string} recommendedValue
+   * @param {string} initialValue
+   * @param {Object[]}parentProperties
+   * @returns {recommendation}
+   */
+  applyRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentProperties) {
+    var parentPropertiesNames = parentProperties ? parentProperties.map(function (p) {
+      return App.config.configId(p.name, p.type);
+    }) : [];
+    var updated = this.updateRecommendation(name, fileName, configGroupName, recommendedValue, parentPropertiesNames);
+    if (!updated)
+      var added = this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames);
+    return updated || added;
+  },
 
-    /**
-     * Add new recommendation
-     *
-     * @param {string} name
-     * @param {string} fileName
-     * @param {string} configGroupName
-     * @param {string} recommendedValue
-     * @param {string} initialValue
-     * @param {string[]} parentPropertiesNames
-     * @returns {recommendation}
-     */
-    addRecommendation: function(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames) {
-        Em.assert('name and fileName should be defined', name && fileName);
-        var site = App.config.getConfigTagFromFileName(fileName);
-        var service = App.config.get('serviceByConfigTypeMap')[site];
-        var recommendation = {
-            saveRecommended: true,
-            saveRecommendedDefault: true,
-            propertyFileName: site,
-            propertyName: name,
+  /**
+   * Add new recommendation
+   *
+   * @param {string} name
+   * @param {string} fileName
+   * @param {string} configGroupName
+   * @param {string} recommendedValue
+   * @param {string} initialValue
+   * @param {string[]} parentPropertiesNames
+   * @returns {recommendation}
+   */
+  addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames) {
+    Em.assert('name and fileName should be defined', name && fileName);
+    var site = App.config.getConfigTagFromFileName(fileName);
+    var service = App.config.get('serviceByConfigTypeMap')[site];
+    var recommendation = {
+      saveRecommended: true,
+      saveRecommendedDefault: true,
+      propertyFileName: site,
+      propertyName: name,
 
-            isDeleted: Em.isNone(recommendedValue),
-            notDefined: Em.isNone(initialValue),
+      isDeleted: Em.isNone(recommendedValue),
+      notDefined: Em.isNone(initialValue),
 
-            configGroup: configGroupName || "Default",
-            initialValue: initialValue,
-            parentConfigs: parentPropertiesNames || [],
-            serviceName: service.get('serviceName'),
-            allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
-            //TODO&& (App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')).length > 1), //TODO
-            serviceDisplayName: service.get('displayName'),
-            recommendedValue: recommendedValue
-        };
-        this.get('recommendations').pushObject(recommendation);
-        return recommendation;
-    },
+      configGroup: configGroupName || "Default",
+      initialValue: initialValue,
+      parentConfigs: parentPropertiesNames || [],
+      serviceName: service.get('serviceName'),
+      allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
+      //TODO&& (App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')).length > 1), //TODO
+      serviceDisplayName: service.get('displayName'),
+      recommendedValue: recommendedValue
+    };
+    this.get('recommendations').pushObject(recommendation);
+    return recommendation;
+  },
 
-    /**
-     * Remove recommendation
-     * based on unique identifiers
-     *
-     * @param {string} name
-     * @param {string} fileName
-     * @param {string} configGroupName
-     */
-    removeRecommendation: function(name, fileName, configGroupName) {
-        this.removeRecommendationObject(this.getRecommendation(name, fileName, configGroupName));
-    },
+  /**
+   * Remove recommendation
+   * based on unique identifiers
+   *
+   * @param {string} name
+   * @param {string} fileName
+   * @param {string} configGroupName
+   */
+  removeRecommendation: function (name, fileName, configGroupName) {
+    this.removeRecommendationObject(this.getRecommendation(name, fileName, configGroupName));
+  },
 
-    /**
-     * Remove recommended Object
-     *
-     * @param {recommendation} recommendation
-     */
-    removeRecommendationObject: function(recommendation) {
-        if (recommendation)
-            this.get('recommendations').removeObject(recommendation);
-    },
+  /**
+   * Remove recommended Object
+   *
+   * @param {recommendation} recommendation
+   */
+  removeRecommendationObject: function (recommendation) {
+    if (recommendation)
+      this.get('recommendations').removeObject(recommendation);
+  },
 
-    /**
-     * Update recommended object
-     *
-     * @param name
-     * @param fileName
-     * @param configGroupName
-     * @param recommendedValue
-     * @param parentPropertiesNames
-     * @returns {*|recommendation|null}
-     */
-    updateRecommendation: function(name, fileName, configGroupName, recommendedValue, parentPropertiesNames) {
-        var recommendation = this.getRecommendation(name, fileName, configGroupName);
-        if (recommendation) {
-            Em.set(recommendation, 'recommendedValue', recommendedValue);
-            if (parentPropertiesNames && parentPropertiesNames.length) {
-                var mergedProperties = parentPropertiesNames.concat(Em.get(recommendation, 'parentPropertiesNames'));
-                Em.set(recommendation, 'parentPropertiesNames', mergedProperties);
-            }
-        }
-        return recommendation;
-    },
-
-    /**
-     * Get single recommendation
-     *
-     * @param name
-     * @param fileName
-     * @param configGroupName
-     * @returns {recommendation|null}
-     */
-    getRecommendation: function(name, fileName, configGroupName) {
-        Em.assert('name and fileName should be defined', name && fileName);
-        return this.get('recommendations').find(function (dcv) {
-            return dcv.propertyName === name
-                && dcv.propertyFileName === App.config.getConfigTagFromFileName(fileName)
-                && dcv.configGroup === (configGroupName || "Default");
-        });
-    },
-
-    /**
-     * Clear recommendations that are
-     * same as initial value
-     *
-     * @method cleanUpRecommendations
-     */
-    cleanUpRecommendations: function() {
-        var cleanDependentList = this.get('recommendations').filter(function(d) {
-            return !((Em.isNone(d.initialValue) && Em.isNone(d.recommendedValue)) || d.initialValue == d.recommendedValue);
-        }, this);
-        this.set('recommendations', cleanDependentList);
-    },
-
-    /**
-     * Remove all recommendations
-     *
-     * @method clearAllRecommendations
-     */
-    clearAllRecommendations: function() {
-        this.set('recommendations', []);
-    },
-
-    /**
-     * Clear values for dependent configs for given services
-     *
-     * @method clearRecommendationsByServiceName
-     */
-    clearRecommendationsByServiceName: function(serviceNames) {
-        var filteredRecommendations = this.get('recommendations').reject(function(c) {
-            return serviceNames.contains(c.serviceName);
-        }, this);
-        this.set('recommendations', filteredRecommendations);
+  /**
+   * Update recommended object
+   *
+   * @param name
+   * @param fileName
+   * @param configGroupName
+   * @param recommendedValue
+   * @param parentPropertiesNames
+   * @returns {*|recommendation|null}
+   */
+  updateRecommendation: function (name, fileName, configGroupName, recommendedValue, parentPropertiesNames) {
+    var recommendation = this.getRecommendation(name, fileName, configGroupName);
+    if (recommendation) {
+      Em.set(recommendation, 'recommendedValue', recommendedValue);
+      if (parentPropertiesNames && parentPropertiesNames.length) {
+        var mergedProperties = parentPropertiesNames.concat(Em.get(recommendation, 'parentPropertiesNames'));
+        Em.set(recommendation, 'parentPropertiesNames', mergedProperties);
+      }
     }
+    return recommendation;
+  },
+
+  /**
+   *
+   * @param recommendation
+   * @param saveRecommendation
+   */
+  saveRecommendation: function (recommendation, saveRecommendation) {
+    Em.assert('recommendation should be defined object', recommendation && typeof recommendation === 'object');
+    if (recommendation.saveRecommended !== saveRecommendation) {
+      Em.setProperties(recommendation, {
+        'saveRecommended': !!saveRecommendation,
+        'saveRecommendedDefault': !!saveRecommendation
+      });
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * Get single recommendation
+   *
+   * @param name
+   * @param fileName
+   * @param configGroupName
+   * @returns {recommendation|null}
+   */
+  getRecommendation: function (name, fileName, configGroupName) {
+    Em.assert('name and fileName should be defined', name && fileName);
+    return this.get('recommendations').find(function (dcv) {
+      return dcv.propertyName === name
+        && dcv.propertyFileName === App.config.getConfigTagFromFileName(fileName)
+        && dcv.configGroup === (configGroupName || "Default");
+    });
+  },
+
+  /**
+   * Clear recommendations that are
+   * same as initial value
+   *
+   * @method cleanUpRecommendations
+   */
+  cleanUpRecommendations: function () {
+    var cleanDependentList = this.get('recommendations').filter(function (d) {
+      return !((Em.isNone(d.initialValue) && Em.isNone(d.recommendedValue)) || d.initialValue == d.recommendedValue);
+    }, this);
+    this.set('recommendations', cleanDependentList);
+  },
+
+  /**
+   * Remove all recommendations
+   *
+   * @method clearAllRecommendations
+   */
+  clearAllRecommendations: function () {
+    this.set('recommendations', []);
+  },
+
+  /**
+   * Clear values for dependent configs for given services
+   *
+   * @method clearRecommendationsByServiceName
+   */
+  clearRecommendationsByServiceName: function (serviceNames) {
+    var filteredRecommendations = this.get('recommendations').reject(function (c) {
+      return serviceNames.contains(c.serviceName);
+    }, this);
+    this.set('recommendations', filteredRecommendations);
+  }
 
 });

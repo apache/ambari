@@ -264,6 +264,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     this.get('requestsInProgress').clear();
     this.clearLoadInfo();
     this.clearSaveInfo();
+    this.clearRecommendationsInfo();
     this.clearAllRecommendations();
     this.setProperties({
       saveInProgress: false,
@@ -474,7 +475,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
-    var self = this;
     this.get('servicesToLoad').forEach(function(serviceName) {
       var configGroups = serviceName == this.get('content.serviceName') ? this.get('configGroups') : this.get('dependentConfigGroups').filterProperty('serviceName', serviceName);
       var configTypes = App.StackService.find(serviceName).get('configTypeList');
@@ -494,7 +494,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this.getRecommendationsForDependencies(null, true, function () {self._onLoadComplete();});
+    this.getRecommendationsForDependencies(null, this._onLoadComplete.bind(this));
     App.loadTimer.finish('Service Configs Page');
   },
 
