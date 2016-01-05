@@ -319,7 +319,7 @@ public class Stage {
 
     Map<String, HostRoleCommand> hrcMap = hostRoleCommands.get(hostName);
     if (hrcMap == null) {
-      hrcMap = new LinkedHashMap<String, HostRoleCommand>();
+      hrcMap = new LinkedHashMap<>();
       hostRoleCommands.put(hostName, hrcMap);
     }
     if (hrcMap.get(role.toString()) != null) {
@@ -330,7 +330,7 @@ public class Stage {
     hrcMap.put(role.toString(), hrc);
     List<ExecutionCommandWrapper> execCmdList = commandsToSend.get(hostName);
     if (execCmdList == null) {
-      execCmdList = new ArrayList<ExecutionCommandWrapper>();
+      execCmdList = new ArrayList<>();
       commandsToSend.put(hostName, execCmdList);
     }
 

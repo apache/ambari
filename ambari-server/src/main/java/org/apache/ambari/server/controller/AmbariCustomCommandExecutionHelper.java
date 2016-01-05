@@ -845,9 +845,7 @@ public class AmbariCustomCommandExecutionHelper {
 
       if (!serviceName.equals(Service.Type.HBASE.name()) || hostName.equals(primaryCandidate)) {
         commandParams.put(UPDATE_EXCLUDE_FILE_ONLY, "false");
-        addCustomCommandAction(commandContext, commandFilter, stage,
- commandParams,
-            commandDetail.toString());
+        addCustomCommandAction(commandContext, commandFilter, stage, commandParams, commandDetail.toString());
       }
     }
   }
