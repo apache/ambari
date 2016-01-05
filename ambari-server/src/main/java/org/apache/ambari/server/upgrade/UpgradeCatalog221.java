@@ -56,6 +56,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
   private static final String ZK_ZNODE_PARENT = "zookeeper.znode.parent";
+  private static final String ZK_CLIENT_PORT = "hbase.zookeeper.property.clientPort";
   private static final String CLUSTER_ENV = "cluster-env";
   private static final String SECURITY_ENABLED = "security_enabled";
 
@@ -200,6 +201,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
 
     return sourceJson.toString();
   }
+
   protected void updateAMSConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -234,9 +236,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
             Map<String, String> newProperties = new HashMap<>();
 
             if (!amsHbaseSiteProperties.containsKey(ZK_ZNODE_PARENT)) {
-
               if (StringUtils.isEmpty(znodeParent) || "/hbase".equals(znodeParent)) {
-
                 boolean isSecurityEnabled = false;
                 Config clusterEnv = cluster.getDesiredConfigByType(CLUSTER_ENV);
                 if (clusterEnv != null) {
@@ -251,6 +251,13 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
               LOG.info("Adding config zookeeper.znode.parent=" + znodeParent + " to ams-hbase-site");
               newProperties.put(ZK_ZNODE_PARENT, znodeParent);
 
+            }
+            if (amsHbaseSiteProperties.containsKey(ZK_CLIENT_PORT)) {
+              String newValue = "{{zookeeper_clientPort}}";
+              LOG.info("Replacing value of hbase.zookeeper.property.clientPort from " +
+                amsHbaseSiteProperties.get(ZK_CLIENT_PORT) + " to " + newValue);
+
+              newProperties.put(ZK_CLIENT_PORT, newValue);
             }
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }

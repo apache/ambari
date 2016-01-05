@@ -19,9 +19,9 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.inject.AbstractModule;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -79,8 +80,6 @@ public class UpgradeCatalog221Test {
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
-
-
 
   @Before
   public void init() {
@@ -280,6 +279,13 @@ public class UpgradeCatalog221Test {
       amsHbaseSecuritySite,
       clusterEnvProperties);
 
+    // Test zookeeper client port set to default
+    amsHbaseSecuritySite.put("hbase.zookeeper.property.clientPort", "61181");
+    newPropertiesAmsHbaseSite.put("hbase.zookeeper.property.clientPort", "{{zookeeper_clientPort}}");
+    testAmsHbaseSiteUpdates(Collections.singletonMap("hbase.zookeeper.property.clientPort", "61181"),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
   }
 
   private void testAmsHbaseSiteUpdates(Map<String, String> oldPropertiesAmsHbaseSite,
