@@ -65,8 +65,7 @@ public class ServiceComponentUninstalledEvent extends ServiceEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder(
-        "ServiceComponentUninstalledEvent{ ");
+    StringBuilder buffer = new StringBuilder("ServiceComponentUninstalledEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);

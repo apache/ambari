@@ -20,9 +20,9 @@ package org.apache.ambari.server.events;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
-import junit.framework.Assert;
-
+import org.apache.ambari.server.events.AmbariEvent.AmbariEventType;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -51,6 +51,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
+
+import junit.framework.Assert;
 
 /**
  * Tests that {@link EventsTest} instances are fired correctly and
@@ -240,6 +242,25 @@ public class EventsTest {
 
     Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
     Assert.assertEquals(2, m_listener.getAmbariEventReceivedCount(eventClass));
+  }
+
+  /**
+   * Tests that {@link ServiceComponentUninstalledEvent}s are fired correctly.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testClusterRenameEvent() throws Exception {
+    Class<? extends AmbariEvent> eventClass = ClusterEvent.class;
+    installHdfsService();
+
+    Assert.assertFalse(m_listener.isAmbariEventReceived(eventClass));
+    m_cluster.setClusterName(UUID.randomUUID().toString());
+
+    Assert.assertTrue(m_listener.isAmbariEventReceived(eventClass));
+    List<AmbariEvent> ambariEvents = m_listener.getAmbariEventInstances(eventClass);
+    Assert.assertEquals(1, ambariEvents.size());
+    Assert.assertEquals(AmbariEventType.CLUSTER_RENAME, ambariEvents.get(0).getType());
   }
 
   /**

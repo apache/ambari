@@ -90,7 +90,7 @@ public class AlertStateChangeEvent extends AlertEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("AlertStateChangeEvent{ ");
+    StringBuilder buffer = new StringBuilder("AlertStateChangeEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", fromState=").append(m_fromState);
     buffer.append(", alert=").append(m_alert);

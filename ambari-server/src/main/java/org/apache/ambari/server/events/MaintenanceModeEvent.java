@@ -165,10 +165,10 @@ public class MaintenanceModeEvent extends AmbariEvent {
       object = m_serviceComponentHost;
     }
 
-    StringBuilder buffer = new StringBuilder("MaintenanceModeEvent{ ");
+    StringBuilder buffer = new StringBuilder("MaintenanceModeEvent{");
     buffer.append("state=").append(m_state);
     buffer.append(", object=").append(object);
-    buffer.append(" }");
+    buffer.append("}");
 
     return buffer.toString();
   }

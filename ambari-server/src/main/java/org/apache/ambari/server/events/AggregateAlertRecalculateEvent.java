@@ -39,7 +39,7 @@ public class AggregateAlertRecalculateEvent extends AlertEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("AggregateAlertRecalculateEvent{ ");
+    StringBuilder buffer = new StringBuilder("AggregateAlertRecalculateEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append("}");
     return buffer.toString();

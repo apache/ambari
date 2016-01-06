@@ -54,11 +54,11 @@ public class HostComponentVersionEvent extends ClusterEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("HostComponentVersionEvent{ ");
+    StringBuilder buffer = new StringBuilder("HostComponentVersionEvent{");
     buffer.append("cluserId=").append(m_clusterId);
-    buffer.append(", serviceName=").append(this.sch.getServiceName());
-    buffer.append(", componentName=").append(this.sch.getServiceComponentName());
-    buffer.append(", hostName=").append(this.sch.getHostName());
+    buffer.append(", serviceName=").append(sch.getServiceName());
+    buffer.append(", componentName=").append(sch.getServiceComponentName());
+    buffer.append(", hostName=").append(sch.getHostName());
     buffer.append("}");
     return buffer.toString();
   }
