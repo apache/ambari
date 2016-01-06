@@ -2131,6 +2131,47 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__MultipleAppTimelineServer() throws Exception {
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+
+    typeProps.put("yarn.timeline-service.address", "testhost:10200");
+    typeProps.put("yarn.timeline-service.webapp.address", "testhost:8188");
+    typeProps.put("yarn.timeline-service.webapp.https.address", "testhost:8190");
+    properties.put("yarn-site", typeProps);
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> group1Components = new HashSet<String>();
+    group1Components.add("NAMENODE");
+    group1Components.add("SECONDARY_NAMENODE");
+    group1Components.add("RESOURCEMANAGER");
+    group1Components.add("APP_TIMELINE_SERVER");
+    TestHostGroup group1 = new TestHostGroup("group1", group1Components, Collections.singleton("testhost"));
+
+    Collection<String> group2Components = new HashSet<String>();
+    group2Components.add("DATANODE");
+    group2Components.add("HDFS_CLIENT");
+    group2Components.add("APP_TIMELINE_SERVER");
+    TestHostGroup group2 = new TestHostGroup("group2", group2Components, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
+
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+    String updatedVal = topology.getConfiguration().getFullProperties().get("yarn-site").get("yarn.timeline-service.address");
+    assertEquals("Timeline Server config property should not have been updated", "testhost:10200", updatedVal);
+  }
+
+  @Test
   public void testDoUpdateForClusterCreate_SingleHostProperty__MissingOptionalComponent() throws Exception {
     final String expectedHostName = "localhost";
 
