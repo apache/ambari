@@ -20,6 +20,7 @@ import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
 var controller;
+var store;
 
 moduleFor('controller:databases', 'DatabasesController', {
   needs: [ 'adapter:database',
@@ -35,9 +36,22 @@ moduleFor('controller:databases', 'DatabasesController', {
       defer.resolve();
 
       return defer.promise;
-    }
+    };
 
+    //mock getDatabasesFromServer which is called by the poller
+    this.container.lookup('service:database').getDatabasesFromServer = function () {
+     var defer = Ember.RSVP.defer();
+
+     var databases = [ "database_a", "database_b"];
+
+     defer.resolve(databases);
+     return defer.promise;
+     };
+
+    store = this.container.lookup('store:main');
     controller = this.subject();
+    controller.store = store;
+
   },
 
   teardown: function () {
@@ -207,4 +221,56 @@ test('showMoreColumns pushes more columns to visibleColumns if there are still h
 
   equal(table.get('visibleColumns.length'), controller.get('pageCount') * 2, 'there are 2 visible columns out of 3.');
   equal(table.get('canGetNextPage'), true, 'user can get next columns page.');
+});
+
+test('syncDatabases pushed more databases when new databases are added in the backend', function() {
+  expect(3);
+
+  var databaseA = {
+    id: "database_a",
+    name: "database_a"
+  };
+
+  Ember.run(function() {
+    store.createRecord('database', databaseA);
+    controller.syncDatabases();
+  });
+
+  var latestDbNames = store.all('database').mapBy('name');
+  equal(latestDbNames.length, 2, "There is 1 additional database added to hive");
+  equal(latestDbNames.contains("database_a"), true, "New database list should contain the old database name.");
+  equal(latestDbNames.contains("database_b"), true, "New database list should contain the new database name.");
+});
+
+test('syncDatabases removed database when old databases are removed in the backend', function() {
+  expect(4);
+
+  var latestDbNames;
+
+  var databaseA = {
+    id: "database_a",
+    name: "database_a"
+  };
+  var databaseB = {
+    id: "database_b",
+    name: "database_b"
+  };
+  var databaseC = {
+    id: "database_c",
+    name: "database_c"
+  };
+
+  Ember.run(function() {
+    store.createRecord('database', databaseA);
+    store.createRecord('database', databaseB);
+    store.createRecord('database', databaseC);
+    controller.syncDatabases();
+  });
+
+  latestDbNames = store.all('database').mapBy('name');
+  equal(latestDbNames.length, 2, "One database is removed from hive");
+  equal(latestDbNames.contains("database_a"), true, "New database list should contain the old database name.");
+  equal(latestDbNames.contains("database_b"), true, "New database list should contain the old database name.");
+  equal(latestDbNames.contains("database_c"), false, "New database list should not contain the database name removed in the backend.");
+
 });
