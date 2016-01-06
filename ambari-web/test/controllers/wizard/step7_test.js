@@ -2033,6 +2033,49 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#addHawqConfigsOnRMHa', function () {
+    var configs = [
+      {
+        id: 'yarn.resourcemanager.hostname.rm1',
+        name: 'yarn.resourcemanager.hostname.rm1',
+        value: 'c6401.ambari.apache.org',
+        recommendedValue: 'c6401.ambari.apache.org',
+        filename: 'yarn-site.xml'
+      },
+      {
+        id: 'yarn.resourcemanager.hostname.rm2',
+        name: 'yarn.resourcemanager.hostname.rm2',
+        value: 'c6402.ambari.apache.org',
+        recommendedValue: 'c6402.ambari.apache.org',
+        filename: 'yarn-site.xml'
+      }
+    ];
+
+    it('should update properties in yarn-client for HAWQ if yarn ha is enabled', function() {
+      var inputConfigsCount = configs.length;
+      installerStep7Controller.addHawqConfigsOnRMHa(configs);
+      var yarnClientConfig = configs.filterProperty('filename', 'yarn-client.xml')
+      var yarnRmDetails = yarnClientConfig.findProperty('name', 'yarn.resourcemanager.ha');
+      var yarnRmSchedulerDetails = yarnClientConfig.findProperty('name', 'yarn.resourcemanager.scheduler.ha');
+
+      var expectedYarnRmHaValue = 'c6401.ambari.apache.org:8032,c6402.ambari.apache.org:8032';
+      expect(yarnRmDetails.value).to.be.eql(expectedYarnRmHaValue);
+      expect(yarnRmDetails.recommendedValue).to.be.eql(expectedYarnRmHaValue);
+      expect(yarnRmDetails.displayName).to.be.eql('yarn.resourcemanager.ha');
+      expect(yarnRmDetails.description).to.be.eql('Comma separated yarn resourcemanager host addresses with port');
+
+      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
+      expect(yarnRmSchedulerDetails.value).to.be.eql(expectedYarnRmSchedulerValue);
+      expect(yarnRmSchedulerDetails.recommendedValue).to.be.eql(expectedYarnRmSchedulerValue);
+      expect(yarnRmSchedulerDetails.displayName).to.be.eql('yarn.resourcemanager.scheduler.ha');
+      expect(yarnRmSchedulerDetails.description).to.be.eql('Comma separated yarn resourcemanager scheduler addresses with port');
+
+      var noOfConfigsAdded = 2;
+      expect(configs.length).to.be.eql(inputConfigsCount + noOfConfigsAdded) ;
+    });
+  });
+
+
   describe('#errorsCount', function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {

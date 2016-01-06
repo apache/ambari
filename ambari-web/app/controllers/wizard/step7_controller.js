@@ -703,9 +703,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-    // if HA is enabled and HAWQ is selected to be installed -> Add HAWQ related configs
-    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled') && this.get('allSelectedServiceNames').contains('HAWQ')) {
-      this.addHawqConfigsOnNnHa(configs);
+    // If Hawq service is being added, add NN/RM HA related parameter to hdfs-client/yarn-client respectively if applicable
+    if (this.get('wizardController.name') === 'addServiceController' && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      if (App.get('isHaEnabled')) {
+        this.addHawqConfigsOnNnHa(configs);
+      }
+      if (App.get('isRMHaEnabled')) {
+        this.addHawqConfigsOnRMHa(configs);
+      }
     }
     var dependedServices = ["STORM", "YARN"];
     dependedServices.forEach(function (serviceName) {
@@ -871,6 +876,50 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         name: propertyFromHdfs.name,
         value: propertyFromHdfs.value,
         recommendedValue: propertyFromHdfs.recommendedValue
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
+  },
+
+  /**
+   * For ResourceManager HA, HAWQ service requires additional config parameters in yarn-client.xml
+   * This method ensures that these additional parameters are added to yarn-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
+   * @private
+   */
+  addHawqConfigsOnRMHa: function(configs) {
+    var yarnSiteConfigs = configs.filterProperty('filename', 'yarn-site.xml');
+    rmHost1 = yarnSiteConfigs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').value ;
+    rmHost2 = yarnSiteConfigs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').value ;
+    var yarnConfigToBeAdded = [
+      {
+        propertyName: 'yarn.resourcemanager.ha',
+        displayName: 'yarn.resourcemanager.ha',
+        description: 'Comma separated yarn resourcemanager host addresses with port',
+        port: '8032'
+      },
+      {
+        propertyName: 'yarn.resourcemanager.scheduler.ha',
+        displayName: 'yarn.resourcemanager.scheduler.ha',
+        description: 'Comma separated yarn resourcemanager scheduler addresses with port',
+        port: '8030'
+      }
+    ]
+
+    yarnConfigToBeAdded.forEach(function(propertyDetails) {
+      var newProperty = App.config.createDefaultConfig(propertyDetails.propertyName, 'HAWQ', 'yarn-client.xml', true);
+      var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
+      Em.setProperties(newProperty, {
+        name: propertyDetails.propertyName,
+        description: propertyDetails.description,
+        displayName: propertyDetails.displayName,
+        isOverridable: false,
+        isReconfigurable: false,
+        value: value,
+        recommendedValue: value
       });
 
       configs.push(App.ServiceConfigProperty.create(newProperty));
