@@ -194,7 +194,7 @@ public class ClusterImpl implements Cluster {
   /**
    * The unique ID of the {@link @ClusterEntity}.
    */
-  private final Long clusterId;
+  private final long clusterId;
 
   private String clusterName;
 
