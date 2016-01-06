@@ -688,9 +688,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-    // if HA is enabled and HAWQ is selected to be installed -> Add HAWQ related configs
-    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled') && this.get('allSelectedServiceNames').contains('HAWQ')) {
-      this.addHawqConfigsOnNnHa(configs);
+    // If Hawq service is being added, add NN/RM HA related parameter to hdfs-client/yarn-client respectively if applicable
+    if (this.get('wizardController.name') == 'addServiceController' && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      if (App.get('isHaEnabled')) {
+        this.addHawqConfigsOnNnHa(configs);
+      }
+      if (App.get('isRMHaEnabled')) {
+        this.addHawqConfigsOnRMHa(configs);
+      }
     }
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
@@ -797,6 +802,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return stepConfigs;
   },
 
+
   /**
    * For Namenode HA, HAWQ service requires additional config parameters in hdfs-client.xml
    * This method ensures that these additional parameters are added to hdfs-client.xml
@@ -828,6 +834,49 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         name: propertyFromHdfs.name,
         value: propertyFromHdfs.value,
         recommendedValue: propertyFromHdfs.recommendedValue
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
+  },
+
+  /**
+   * For ResourceManager HA, HAWQ service requires additional config parameters in yarn-client.xml
+   * This method ensures that these additional parameters are added to yarn-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
+   * @private
+   */
+  addHawqConfigsOnRMHa: function(configs) {
+    rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
+    rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
+    var yarnConfigToBeAdded = [
+      {
+        propertyName: 'yarn.resourcemanager.ha',
+        displayName: 'yarn.resourcemanager.ha',
+        description: 'Comma separated yarn resourcemanager host addresses with port',
+        port: '8032'
+      },
+      {
+        propertyName: 'yarn.resourcemanager.scheduler.ha',
+        displayName: 'yarn.resourcemanager.scheduler.ha',
+        description: 'Comma separated yarn resourcemanager scheduler addresses with port',
+        port: '8030'
+      }
+    ]
+
+    yarnConfigToBeAdded.forEach(function(propertyDetails) {
+      var newProperty = App.config.createDefaultConfig(propertyDetails.propertyName, 'HAWQ', 'yarn-client.xml', true);
+      var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
+      Em.setProperties(newProperty, {
+        name: propertyDetails.name,
+        description: propertyDetails.description,
+        displayName: propertyDetails.displayName,
+        isOverridable: false,
+        isReconfigurable: false,
+        value: value,
+        recommendedValue: value
       });
 
       configs.push(App.ServiceConfigProperty.create(newProperty));

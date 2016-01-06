@@ -1702,6 +1702,45 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#addHawqConfigsOnRMHa', function () {
+    var configs = [
+      {
+        id: 'yarn.resourcemanager.hostname.rm1__yarn-site',
+        name: 'yarn.resourcemanager.hostname.rm1',
+        value: 'c6401.ambari.apache.org',
+        recommendedValue: 'c6401.ambari.apache.org'
+      },
+      {
+        id: 'yarn.resourcemanager.hostname.rm2__yarn-site',
+        name: 'yarn.resourcemanager.hostname.rm2',
+        value: 'c6402.ambari.apache.org',
+        recommendedValue: 'c6402.ambari.apache.org'
+      }
+    ];
+
+    it('should update properties in yarn-client for HAWQ if yarn ha is enabled', function() {
+      var inputConfigsCount = configs.length;
+      installerStep7Controller.addHawqConfigsOnRMHa(configs);
+      var yarnRmDetails = configs.findProperty('id', 'yarn.resourcemanager.ha__yarn-client');
+      var yarnRmSchedulerDetails = configs.findProperty('id', 'yarn.resourcemanager.scheduler.ha__yarn-client');
+
+      var expectedYarnRmHaValue = 'c6401.ambari.apache.org:8032,c6402.ambari.apache.org:8032';
+      expect(yarnRmDetails.value).to.be.eql(expectedYarnRmHaValue);
+      expect(yarnRmDetails.recommendedValue).to.be.eql(expectedYarnRmHaValue);
+      expect(yarnRmDetails.displayName).to.be.eql('yarn.resourcemanager.ha');
+      expect(yarnRmDetails.description).to.be.eql('Comma separated yarn resourcemanager host addresses with port');
+
+      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
+      expect(yarnRmSchedulerDetails.value).to.be.eql(expectedYarnRmSchedulerValue);
+      expect(yarnRmSchedulerDetails.recommendedValue).to.be.eql(expectedYarnRmSchedulerValue);
+      expect(yarnRmSchedulerDetails.displayName).to.be.eql('yarn.resourcemanager.scheduler.ha');
+      expect(yarnRmSchedulerDetails.description).to.be.eql('Comma separated yarn resourcemanager scheduler addresses with port');
+
+      var noOfConfigsAdded = 2;
+      expect(configs.length).to.be.eql(inputConfigsCount + noOfConfigsAdded) ;
+    });
+  });
+
   describe('#errorsCount', function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {
