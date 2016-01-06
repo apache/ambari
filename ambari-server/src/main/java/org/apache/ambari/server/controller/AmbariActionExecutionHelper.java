@@ -434,9 +434,6 @@ public class AmbariActionExecutionHelper {
       }
 
       if (null != cluster) {
-        // Generate cluster host info
-        execCmd.setClusterHostInfo(
-          StageUtils.getClusterHostInfo(cluster));
         // Generate localComponents
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
           execCmd.getLocalComponents().add(sch.getServiceComponentName());
