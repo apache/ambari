@@ -859,13 +859,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
     var yarnConfigToBeAdded = [
       {
-        propertyName: 'yarn.resourcemanager.ha',
+        name: 'yarn.resourcemanager.ha',
         displayName: 'yarn.resourcemanager.ha',
         description: 'Comma separated yarn resourcemanager host addresses with port',
         port: '8032'
       },
       {
-        propertyName: 'yarn.resourcemanager.scheduler.ha',
+        name: 'yarn.resourcemanager.scheduler.ha',
         displayName: 'yarn.resourcemanager.scheduler.ha',
         description: 'Comma separated yarn resourcemanager scheduler addresses with port',
         port: '8030'
@@ -873,7 +873,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     ]
 
     yarnConfigToBeAdded.forEach(function(propertyDetails) {
-      var newProperty = App.config.createDefaultConfig(propertyDetails.propertyName, 'HAWQ', 'yarn-client.xml', true);
+      var newProperty = App.config.createDefaultConfig(propertyDetails.name, 'HAWQ', 'yarn-client.xml', true);
       var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
       Em.setProperties(newProperty, {
         name: propertyDetails.name,
