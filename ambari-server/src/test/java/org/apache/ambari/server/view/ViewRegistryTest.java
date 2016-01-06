@@ -238,20 +238,25 @@ public class ViewRegistryTest {
 
   @Test
   public void testReadViewArchives() throws Exception {
-    testReadViewArchives(false, false);
+    testReadViewArchives(false, false, false);
   }
 
   @Test
   public void testReadViewArchives_removeUndeployed() throws Exception {
-    testReadViewArchives(false, true);
+    testReadViewArchives(false, true, false);
   }
 
   @Test
   public void testReadViewArchives_badArchive() throws Exception {
-    testReadViewArchives(true, false);
+    testReadViewArchives(true, false, false);
   }
 
-  private void testReadViewArchives(boolean badArchive, boolean removeUndeployed) throws Exception {
+  @Test
+  public void testReadViewArchives_viewAutoInstanceCreation() throws Exception {
+    testReadViewArchives(false, false, true);
+  }
+
+  private void testReadViewArchives(boolean badArchive, boolean removeUndeployed, boolean checkAutoInstanceCreation) throws Exception {
 
     File viewDir = createNiceMock(File.class);
     File extractedArchiveDir = createNiceMock(File.class);
@@ -394,19 +399,52 @@ public class ViewRegistryTest {
     expect(fileEntry.toURI()).andReturn(new URI("file:./")).anyTimes();
 
     expect(configuration.isViewRemoveUndeployedEnabled()).andReturn(removeUndeployed).anyTimes();
+
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    ViewInstanceEntity viewAutoInstanceEntity = createNiceMock(ViewInstanceEntity.class);
+    Capture<ViewInstanceEntity> viewAutoInstanceCapture = new Capture<ViewInstanceEntity>();
+
+    ViewInstanceDataEntity autoInstanceDataEntity = createNiceMock(ViewInstanceDataEntity.class);
+    expect(autoInstanceDataEntity.getName()).andReturn("p1").anyTimes();
+    expect(autoInstanceDataEntity.getUser()).andReturn(" ").anyTimes();
+
+    Map<String, Service> serviceMap = new HashMap<String, Service>();
+    serviceMap.put("HDFS", service);
+    serviceMap.put("HIVE", service);
+
+
+    StackId stackId = new StackId("HDP-2.0");
+
+    if(checkAutoInstanceCreation) {
+      Map<String, Cluster> allClusters = new HashMap<String, Cluster>();
+      expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+      expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+      expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+      allClusters.put("c1", cluster);
+      expect(clusters.getClusters()).andReturn(allClusters);
+
+      expect(viewInstanceDAO.merge(capture(viewAutoInstanceCapture))).andReturn(viewAutoInstanceEntity).anyTimes();
+      expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", "AUTO-INSTANCE")).andReturn(viewAutoInstanceEntity).anyTimes();
+      expect(viewAutoInstanceEntity.getInstanceData("p1")).andReturn(autoInstanceDataEntity).anyTimes();
+    } else {
+      expect(clusters.getClusters()).andReturn(new HashMap<String, Cluster>());
+    }
+
     if (removeUndeployed) {
       expect(viewDAO.findAll()).andReturn(Collections.<ViewEntity>emptyList());
     }
 
     // replay mocks
     replay(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
-        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, resourceDAO, viewDAO, viewInstanceDAO);
+        libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, fos, resourceDAO, viewDAO, viewInstanceDAO, clusters,
+      cluster, viewAutoInstanceEntity);
 
     TestViewArchiveUtility archiveUtility =
         new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, badArchive);
 
     ViewRegistry registry = getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo);
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, archiveUtility, ambariMetaInfo, clusters);
 
     registry.readViewArchives();
 
@@ -419,6 +457,8 @@ public class ViewRegistryTest {
       view = registry.getDefinition("MY_VIEW", "1.0.0");
     }
 
+    int instanceDefinitionSize = checkAutoInstanceCreation ? 3: 2;
+
     if (badArchive) {
       Assert.assertNull(view);
       Assert.assertTrue(archiveUtility.isDeploymentFailed());
@@ -427,9 +467,21 @@ public class ViewRegistryTest {
       Assert.assertEquals(ViewDefinition.ViewStatus.DEPLOYED, view.getStatus());
 
       Collection<ViewInstanceEntity> instanceDefinitions = registry.getInstanceDefinitions(view);
-      Assert.assertEquals(2, instanceDefinitions.size());
+      ArrayList<ViewInstanceEntity> filteredInstanceDefinition = new ArrayList<>();
+      Assert.assertEquals(instanceDefinitionSize, instanceDefinitions.size());
 
-      for (ViewInstanceEntity viewInstanceEntity : instanceDefinitions) {
+      if(checkAutoInstanceCreation) {
+        Assert.assertEquals(viewAutoInstanceCapture.getValue(), registry.getInstanceDefinition("MY_VIEW", "1.0.0", "AUTO-INSTANCE"));
+      }
+
+      //Filter out AutoInstance view Entity
+      for(ViewInstanceEntity entity : instanceDefinitions) {
+        if(!entity.getName().equals("AUTO-INSTANCE")) {
+          filteredInstanceDefinition.add(entity);
+        }
+      }
+
+      for (ViewInstanceEntity viewInstanceEntity : filteredInstanceDefinition) {
         Assert.assertEquals("v1", viewInstanceEntity.getInstanceData("p1").getValue());
 
         Collection<ViewEntityEntity> entities = viewInstanceEntity.getEntities();
@@ -439,6 +491,8 @@ public class ViewRegistryTest {
         Assert.assertEquals(viewInstanceEntity.getName(), viewEntityEntity.getViewInstanceName());
       }
     }
+
+
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
