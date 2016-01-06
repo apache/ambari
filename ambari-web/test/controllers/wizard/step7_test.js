@@ -1104,8 +1104,8 @@ describe('App.InstallerStep7Controller', function () {
       sinon.stub(App.config, 'fileConfigsIntoTextarea', function(configs) {
         return configs;
       });
-      sinon.stub(installerStep7Controller, 'loadServerSideConfigsRecommendations', function() {
-        return $.Deferred().resolve();
+      sinon.stub(installerStep7Controller, 'loadConfigRecommendations', function(c, callback) {
+        return callback();
       });
       sinon.stub(installerStep7Controller, 'checkHostOverrideInstaller', Em.K);
       sinon.stub(installerStep7Controller, 'selectProperService', Em.K);
@@ -1128,15 +1128,15 @@ describe('App.InstallerStep7Controller', function () {
 
     afterEach(function () {
       App.config.fileConfigsIntoTextarea.restore();
-      installerStep7Controller.loadServerSideConfigsRecommendations.restore();
+      installerStep7Controller.loadConfigRecommendations.restore();
       installerStep7Controller.checkHostOverrideInstaller.restore();
       installerStep7Controller.selectProperService.restore();
       App.router.send.restore();
       App.StackService.find.restore();
     });
 
-    it('loadServerSideConfigsRecommendations is called once' , function () {
-     expect(installerStep7Controller.loadServerSideConfigsRecommendations.calledOnce).to.equal(true);
+    it('loadConfigRecommendations is called once' , function () {
+     expect(installerStep7Controller.loadConfigRecommendations.calledOnce).to.equal(true);
     });
     it('isRecommendedLoaded is true' , function () {
      expect(installerStep7Controller.get('isRecommendedLoaded')).to.equal(true);

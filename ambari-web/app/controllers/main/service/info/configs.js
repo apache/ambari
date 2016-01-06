@@ -494,7 +494,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     } else {
       App.config.removeRangerConfigs(this.get('stepConfigs'));
     }
-    this.getRecommendationsForDependencies(null, this._onLoadComplete.bind(this));
+    this.loadConfigRecommendations(null, this._onLoadComplete.bind(this));
     App.loadTimer.finish('Service Configs Page');
   },
 

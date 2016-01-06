@@ -53,17 +53,32 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @param {string} configGroupName
    * @param {string} recommendedValue
    * @param {string} initialValue
-   * @param {Object[]}parentProperties
+   * @param {Object[]} parentProperties
    * @returns {recommendation}
    */
   applyRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentProperties) {
-    var parentPropertiesNames = parentProperties ? parentProperties.map(function (p) {
+    try {
+      var parentPropertyIds = this.formatParentProperties(parentProperties);
+      var recommendation = this.getRecommendation(name, fileName, configGroupName);
+      if (recommendation) {
+        return this.updateRecommendation(recommendation, recommendedValue, parentPropertyIds);
+      }
+      return this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds);
+    } catch(e) {
+      console.error(e.message);
+    }
+  },
+
+  /**
+   * Format objects like {name: {String}, type: {String}} to config Id
+   *
+   * @param parentProperties
+   * @returns {*}
+   */
+  formatParentProperties: function(parentProperties) {
+    return Em.isArray(parentProperties) ? parentProperties.map(function (p) {
       return App.config.configId(p.name, p.type);
     }) : [];
-    var updated = this.updateRecommendation(name, fileName, configGroupName, recommendedValue, parentPropertiesNames);
-    if (!updated)
-      var added = this.addRecommendation(name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames);
-    return updated || added;
   },
 
   /**
@@ -74,10 +89,10 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @param {string} configGroupName
    * @param {string} recommendedValue
    * @param {string} initialValue
-   * @param {string[]} parentPropertiesNames
+   * @param {string[]} parentPropertyIds
    * @returns {recommendation}
    */
-  addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertiesNames) {
+  addRecommendation: function (name, fileName, configGroupName, recommendedValue, initialValue, parentPropertyIds) {
     Em.assert('name and fileName should be defined', name && fileName);
     var site = App.config.getConfigTagFromFileName(fileName);
     var service = App.config.get('serviceByConfigTypeMap')[site];
@@ -92,7 +107,7 @@ App.ConfigRecommendations = Em.Mixin.create({
 
       configGroup: configGroupName || "Default",
       initialValue: initialValue,
-      parentConfigs: parentPropertiesNames || [],
+      parentConfigs: parentPropertyIds || [],
       serviceName: service.get('serviceName'),
       allowChangeGroup: false,//TODO groupName!= "Default" && (service.get('serviceName') != this.get('selectedService.serviceName'))
       //TODO&& (App.ServiceConfigGroup.find().filterProperty('serviceName', service.get('serviceName')).length > 1), //TODO
@@ -121,28 +136,24 @@ App.ConfigRecommendations = Em.Mixin.create({
    * @param {recommendation} recommendation
    */
   removeRecommendationObject: function (recommendation) {
-    if (recommendation)
-      this.get('recommendations').removeObject(recommendation);
+    Em.assert('recommendation should be defined object', recommendation && typeof recommendation === 'object');
+    this.get('recommendations').removeObject(recommendation);
   },
 
   /**
    * Update recommended object
    *
-   * @param name
-   * @param fileName
-   * @param configGroupName
+   * @param recommendation
    * @param recommendedValue
-   * @param parentPropertiesNames
+   * @param parentPropertyIds
    * @returns {*|recommendation|null}
    */
-  updateRecommendation: function (name, fileName, configGroupName, recommendedValue, parentPropertiesNames) {
-    var recommendation = this.getRecommendation(name, fileName, configGroupName);
-    if (recommendation) {
-      Em.set(recommendation, 'recommendedValue', recommendedValue);
-      if (parentPropertiesNames && parentPropertiesNames.length) {
-        var mergedProperties = parentPropertiesNames.concat(Em.get(recommendation, 'parentPropertiesNames'));
-        Em.set(recommendation, 'parentPropertiesNames', mergedProperties);
-      }
+  updateRecommendation: function (recommendation, recommendedValue, parentPropertyIds) {
+    Em.assert('recommendation should be defined object', recommendation && typeof recommendation === 'object');
+    Em.set(recommendation, 'recommendedValue', recommendedValue);
+    if (parentPropertyIds && parentPropertyIds.length) {
+      var mergedProperties = parentPropertyIds.concat(Em.get(recommendation, 'parentConfigs') || []).uniq();
+      Em.set(recommendation, 'parentConfigs', mergedProperties);
     }
     return recommendation;
   },
@@ -178,7 +189,7 @@ App.ConfigRecommendations = Em.Mixin.create({
       return dcv.propertyName === name
         && dcv.propertyFileName === App.config.getConfigTagFromFileName(fileName)
         && dcv.configGroup === (configGroupName || "Default");
-    });
+    }) || null;
   },
 
   /**

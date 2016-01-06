@@ -89,11 +89,11 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
        if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || Em.get(p, 'displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
-         return controller.getRecommendationsForDependencies([{
+         return controller.loadConfigRecommendations([{
            "type": type,
            "name": name,
            "old_value": Em.isNone(old) ? config.get('initialValue') : old
-         }], false, function() {
+         }], function() {
            controller.removeCurrentFromDependentList(config, saveRecommended);
          });
       } else {

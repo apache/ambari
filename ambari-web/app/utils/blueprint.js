@@ -299,7 +299,6 @@ module.exports = {
   /**
    * @method buildConfigsJSON - generates JSON according to blueprint format
    * @param {Em.Array} stepConfigs - array of Ember Objects
-   * @param {Array} services
    * @returns {Object}
    * Example:
    * {
@@ -317,24 +316,18 @@ module.exports = {
    *   }
    * }
    */
-  buildConfigsJSON: function(services, stepConfigs) {
+  buildConfigsJSON: function (stepConfigs) {
     var configurations = {};
-    services.forEach(function(service) {
-      var config = stepConfigs.findProperty('serviceName', service.get('serviceName'));
-      if (config && service.get('configTypes')) {
-        Object.keys(service.get('configTypes')).forEach(function(type) {
-          if(!configurations[type]){
-            configurations[type] = {
-              properties: {}
-            }
+    stepConfigs.forEach(function (stepConfig) {
+      stepConfig.get('configs').forEach(function (config) {
+        if (config.get('isRequiredByAgent')) {
+          var type = App.config.getConfigTagFromFileName(config.get('filename'));
+          if (!configurations[type]) {
+            configurations[type] = {properties: {}}
           }
-        });
-        config.get('configs').forEach(function(property){
-          if (configurations[property.get('filename').replace('.xml','')]){
-            configurations[property.get('filename').replace('.xml','')]['properties'][property.get('name')] = property.get('value');
-          }
-        });
-      }
+          configurations[type]['properties'][config.get('name')] = config.get('value');
+        }
+      });
     });
     return configurations;
   },

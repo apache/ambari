@@ -136,6 +136,7 @@ var files = [
   'test/mappers/configs/service_config_version_mapper_test',
   'test/mappers/configs/themes_mapper_test',
   'test/mixins/common/configs/enhanced_configs_test',
+  'test/mixins/common/configs/config_recommendations_test',
   'test/mixins/common/configs/configs_saver_test',
   'test/mixins/common/configs/toggle_isrequired_test',
   'test/mixins/common/chart/storm_linear_time_test',

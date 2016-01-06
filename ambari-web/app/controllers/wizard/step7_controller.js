@@ -721,7 +721,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
-    this.loadServerSideConfigsRecommendations().always(this.completeConfigLoading.bind(this));
+    this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
   },
 
   completeConfigLoading: function() {
