@@ -189,7 +189,7 @@ public class ClusterImpl implements Cluster {
   private final ReentrantReadWriteLock hostTransitionStateLock = new ReentrantReadWriteLock();
   private final Lock hostTransitionStateWriteLock = hostTransitionStateLock.writeLock();
 
-  private Long clusterId;
+  private long clusterId;
 
   private String clusterName;
 
