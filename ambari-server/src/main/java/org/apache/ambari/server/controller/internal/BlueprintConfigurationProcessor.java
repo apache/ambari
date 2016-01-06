@@ -1268,6 +1268,13 @@ public class BlueprintConfigurationProcessor {
               }
             }
 
+            if ((isComponentAppTimelineServer() || isComponentHistoryServer()) &&
+              (matchingGroupCount > 1 && origValue != null && !origValue.contains("localhost"))) {
+                // in case of multiple component instances of AppTimelineServer or History Server leave custom value
+                // if set
+                return origValue;
+            }
+
             throw new IllegalArgumentException(
                 String.format("Unable to update configuration property '%s' with topology information. " +
                     "Component '%s' is mapped to an invalid number of hosts '%s'.", propertyName, component, matchingGroupCount));
@@ -1318,6 +1325,7 @@ public class BlueprintConfigurationProcessor {
     private boolean isComponentNameNode() {
       return component.equals("NAMENODE");
     }
+
 
     /**
      * Utility method to determine if the component associated with this updater
@@ -1384,6 +1392,31 @@ public class BlueprintConfigurationProcessor {
     private boolean isRangerAdmin() {
       return component.equals("RANGER_ADMIN");
     }
+
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is a History Server
+     *
+     * @return true if the component associated is a History Server
+     *         false if the component is not a History Server
+     */
+    private boolean isComponentHistoryServer() {
+      return component.equals("HISTORYSERVER");
+    }
+
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is a AppTimeline Server
+     *
+     * @return true if the component associated is a AppTimeline Server
+     *         false if the component is not a AppTimeline Server
+     */
+    private boolean isComponentAppTimelineServer() {
+      return component.equals("APP_TIMELINE_SERVER");
+    }
+
 
     /**
      * Provides access to the name of the component associated
