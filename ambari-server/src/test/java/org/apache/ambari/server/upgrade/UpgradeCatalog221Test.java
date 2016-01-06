@@ -72,6 +72,7 @@ import static org.easymock.EasyMock.verify;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
@@ -262,7 +263,7 @@ public class UpgradeCatalog221Test {
       clusterEnvProperties);
 
     //Unsecure with empty value
-    clusterEnvProperties.put("security_enabled","false");
+    clusterEnvProperties.put("security_enabled", "false");
     amsHbaseSecuritySite.put("zookeeper.znode.parent", "");
     newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");
     testAmsHbaseSiteUpdates(new HashMap<String, String>(),
@@ -271,7 +272,7 @@ public class UpgradeCatalog221Test {
       clusterEnvProperties);
 
     //Secure with /hbase value
-    clusterEnvProperties.put("security_enabled","true");
+    clusterEnvProperties.put("security_enabled", "true");
     amsHbaseSecuritySite.put("zookeeper.znode.parent", "/hbase");
     newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-secure");
     testAmsHbaseSiteUpdates(new HashMap<String, String>(),
@@ -339,6 +340,9 @@ public class UpgradeCatalog221Test {
     easyMockSupport.verifyAll();
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
+    // Test zookeeper tick time setting
+    String tickTime = updatedProperties.remove("hbase.zookeeper.property.tickTime");
+    assertEquals("6000", tickTime);
     assertTrue(Maps.difference(newPropertiesAmsHbaseSite, updatedProperties).areEqual());
   }
 

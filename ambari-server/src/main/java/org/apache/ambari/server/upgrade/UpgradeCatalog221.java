@@ -52,11 +52,14 @@ import java.util.UUID;
 public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
 
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
+  private static final String AMS_SITE = "ams-site";
   private static final String AMS_HBASE_SECURITY_SITE = "ams-hbase-security-site";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
+  private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
   private static final String ZK_ZNODE_PARENT = "zookeeper.znode.parent";
   private static final String ZK_CLIENT_PORT = "hbase.zookeeper.property.clientPort";
+  private static final String ZK_TICK_TIME = "hbase.zookeeper.property.tickTime";
   private static final String CLUSTER_ENV = "cluster-env";
   private static final String SECURITY_ENABLED = "security_enabled";
 
@@ -252,13 +255,31 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
               newProperties.put(ZK_ZNODE_PARENT, znodeParent);
 
             }
-            if (amsHbaseSiteProperties.containsKey(ZK_CLIENT_PORT)) {
+
+            boolean isDistributed = false;
+            Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
+            if (amsSite != null) {
+              if ("distributed".equals(amsSite.getProperties().get(AMS_MODE))) {
+                isDistributed = true;
+              }
+            }
+
+            // Skip override if custom port found in embedded mode.
+            if (amsHbaseSiteProperties.containsKey(ZK_CLIENT_PORT) &&
+               (isDistributed || amsHbaseSiteProperties.get(ZK_CLIENT_PORT).equals("61181"))) {
               String newValue = "{{zookeeper_clientPort}}";
-              LOG.info("Replacing value of hbase.zookeeper.property.clientPort from " +
-                amsHbaseSiteProperties.get(ZK_CLIENT_PORT) + " to " + newValue);
+              LOG.info("Replacing value of " + ZK_CLIENT_PORT + " from " +
+                amsHbaseSiteProperties.get(ZK_CLIENT_PORT) + " to " +
+                newValue + " in ams-hbase-site");
 
               newProperties.put(ZK_CLIENT_PORT, newValue);
             }
+
+            if (!amsHbaseSiteProperties.containsKey(ZK_TICK_TIME)) {
+              LOG.info("Adding config " + ZK_TICK_TIME + " to ams-hbase-site");
+              newProperties.put(ZK_TICK_TIME, "6000");
+            }
+
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }
 
