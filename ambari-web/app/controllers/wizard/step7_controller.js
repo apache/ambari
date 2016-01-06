@@ -1349,7 +1349,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
         return true;
       } else if (stackProperty.propertyDependsOn.length) {
-        return stackProperty.propertyDependsOn.filter(function (p) {
+        return !!stackProperty.propertyDependsOn.filter(function (p) {
           var service = App.config.getServiceByConfigType(p.type);
           return service && !this.get('installedServices')[service.get('serviceName')];
         }, this).length;

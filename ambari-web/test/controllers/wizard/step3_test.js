@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-
-var Ember = require('ember');
 var App = require('app');
 var c;
 require('utils/ajax/ajax');
@@ -606,17 +604,25 @@ describe('App.WizardStep3Controller', function () {
     it('shouldn\'t do nothing if isRetryDisabled is true', function () {
       c.set('isRetryDisabled', true);
       c.retrySelectedHosts();
-      expect(c.retryHosts.called).to.equal(false);
+      expect(c.retryHosts.called).to.be.false;
     });
 
-    it('should retry hosts with FAILED bootStatus and set isRetryDisabled to true', function () {
-      c.set('isRetryDisabled', false);
-      c.set('bootHosts', Em.A([Em.Object.create({name: 'c1', bootStatus: 'FAILED'}), Em.Object.create({name: 'c2', bootStatus: 'REGISTERED'})]));
+    it('should retry hosts with FAILED bootStatus', function () {
+      c.set('bootHosts', Em.A([
+        Em.Object.create({
+          name: 'c1',
+          bootStatus: 'FAILED'
+        }),
+        Em.Object.create({
+          name: 'c2',
+          bootStatus: 'REGISTERED'
+        })
+      ]));
+      c.reopen({isRetryDisabled: false});
       c.retrySelectedHosts();
       expect(c.retryHosts.calledWith([
-        {name: 'c1', bootStatus: 'RUNNING'}
-      ]));
-      expect(c.get('isRetryDisabled')).to.equal(true);
+        Em.Object.create({name: 'c1', bootStatus: 'DONE', bootLog: 'Retrying ...'})
+      ])).to.be.true;
     });
 
   });
@@ -3080,4 +3086,131 @@ describe('App.WizardStep3Controller', function () {
     });
 
   });
+
+  describe('#hostsInCluster', function () {
+
+    var hosts = {
+      host1: {isInstalled: true},
+      host2: {isInstalled: false},
+      host3: {isInstalled: true},
+      host4: {isInstalled: false}
+    };
+
+    beforeEach(function () {
+      c.set('content', {hosts: hosts});
+      c.propertyDidChange('hostsInCluster');
+    });
+
+    it('should take only installed hosts', function () {
+      expect(c.get('hostsInCluster')).to.be.eql(['host1', 'host3']);
+    });
+
+  });
+
+  describe('#filterHostsData', function () {
+
+    var bootHosts = [
+      Em.Object.create({name: 'c1'}),
+      Em.Object.create({name: 'c2'}),
+      Em.Object.create({name: 'c3'})
+    ];
+
+    var data = {
+      href: 'abc',
+      tasks: [
+        {Tasks: {host_name: 'c1'}},
+        {Tasks: {host_name: 'c2'}},
+        {Tasks: {host_name: 'c3'}},
+        {Tasks: {host_name: 'c2'}},
+        {Tasks: {host_name: 'c3'}},
+        {Tasks: {host_name: 'c4'}}
+      ]
+    };
+
+    beforeEach(function() {
+      c.set('bootHosts', bootHosts);
+      this.result = c.filterHostsData(data);
+    });
+
+    it('href is valid', function () {
+      expect(this.result.href).to.be.equal('abc');
+    });
+
+    it('tasks are valid', function () {
+      expect(this.result.tasks).to.be.eql([
+        {Tasks: {host_name: 'c1'}},
+        {Tasks: {host_name: 'c2'}},
+        {Tasks: {host_name: 'c3'}},
+        {Tasks: {host_name: 'c2'}},
+        {Tasks: {host_name: 'c3'}}
+      ]);
+    });
+
+
+  });
+
+  describe('#parseHostNameResolution', function () {
+
+    var data = {
+      tasks: [
+        {Tasks: {status: 'COMPLETED', host_name: 'h1', structured_out: {host_resolution_check: {failed_count: 2, failures: [{host: 'h2'}, {host: 'h3'}]}}}},
+        {Tasks: {status: 'COMPLETED', host_name: 'h4', structured_out: {host_resolution_check: {failed_count: 2, failures: [{host: 'h5'}, {host: 'h6'}]}}}},
+        {Tasks: {status: 'COMPLETED', host_name: 'h7', structured_out: {host_resolution_check: {failed_count: 1, failures: [{host: 'h8'}]}}}}
+      ]
+    };
+    var hostCheckWarnings = [];
+
+    beforeEach(function () {
+      c.set('hostCheckWarnings', hostCheckWarnings);
+      c.parseHostNameResolution(data);
+      this.warnings = c.get('hostCheckWarnings').findProperty('name', Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.error'));
+    });
+
+    it('Host check warnings for hostname resolutions exist', function () {
+      expect(this.warnings).to.exist;
+    });
+
+    it('hostsNames are ["h1", "h4", "h7"]', function () {
+      expect(this.warnings.hostsNames.toArray()).to.be.eql(['h1', 'h4', 'h7']);
+    });
+
+    it('warning appears on many hosts', function () {
+      expect(this.warnings.onSingleHost).to.be.false;
+    });
+
+    it('validation context for hosts is valid', function () {
+      var hosts = this.warnings.hosts;
+      var expected = [
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h1', 2 + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.hosts')),
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h4', 2 + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.hosts')),
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h7', 1 + ' ' + Em.I18n.t('installer.step3.hostWarningsPopup.host'))
+      ];
+      expect(hosts).to.be.eql(expected);
+    });
+
+    it('validation context (long) for hosts is valid', function () {
+      var hostsLong = this.warnings.hostsLong;
+      var expected = [
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h1', 'h2, h3'),
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h4', 'h5, h6'),
+        Em.I18n.t('installer.step3.hostWarningsPopup.resolution.validation.context').format('h7', 'h8')
+      ];
+      expect(hostsLong).to.be.eql(expected);
+    });
+
+  });
+
+  describe('#getHostCheckTasksError', function () {
+
+    beforeEach(function () {
+      c.set('stopChecking', false);
+    });
+
+    it('should set `stopChecking` to true', function () {
+      c.getHostCheckTasksError();
+      expect(c.get('stopChecking')).to.be.true;
+    });
+
+  });
+
 });

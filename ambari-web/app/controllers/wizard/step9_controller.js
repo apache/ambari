@@ -847,34 +847,33 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           self.changeParseHostInfo(false);
         });
         return;
+      }
+      if (App.get('supports.skipComponentStartAfterInstall')) {
+        clusterStatus.status = 'START_SKIPPED';
+        clusterStatus.isCompleted = true;
+        this.saveClusterStatus(clusterStatus);
+        this.get('hosts').forEach(function (host) {
+          host.set('status', 'success');
+          host.set('message', Em.I18n.t('installer.step9.host.status.success'));
+          host.set('progress', '100');
+        });
+        this.set('progress', '100');
+        self.saveInstalledHosts(self);
+        this.changeParseHostInfo(true);
       } else {
-        if (App.get('supports.skipComponentStartAfterInstall')) {
-          clusterStatus.status = 'START_SKIPPED';
-          clusterStatus.isCompleted = true;
-          this.saveClusterStatus(clusterStatus);
-          this.get('hosts').forEach(function (host) {
-            host.set('status', 'success');
-            host.set('message', Em.I18n.t('installer.step9.host.status.success'));
-            host.set('progress', '100');
+        this.set('progress', '34');
+        if (this.get('content.controllerName') === 'installerController') {
+          this.isAllComponentsInstalled().done(function () {
+            self.saveInstalledHosts(self);
+            self.changeParseHostInfo(true);
           });
-          this.set('progress', '100');
-          self.saveInstalledHosts(self);
-          this.changeParseHostInfo(true);
+          return;
         } else {
-          this.set('progress', '34');
-          if (this.get('content.controllerName') === 'installerController') {
-            this.isAllComponentsInstalled().done(function () {
-              self.saveInstalledHosts(self);
-              self.changeParseHostInfo(true);
-            });
-            return;
-          } else {
-            this.launchStartServices(function () {
-              self.saveInstalledHosts(self);
-              self.changeParseHostInfo(true);
-            });
-            return;
-          }
+          this.launchStartServices(function () {
+            self.saveInstalledHosts(self);
+            self.changeParseHostInfo(true);
+          });
+          return;
         }
       }
     }
