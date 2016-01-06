@@ -786,6 +786,7 @@ class TestActionQueue(TestCase):
     process_command_mock.assert_any_calls([call(self.datanode_install_command), call(self.hbase_install_command)])
 
 
+  @not_for_platform(PLATFORM_LINUX)
   @patch("time.sleep")
   @patch.object(OSCheck, "os_distribution", new=MagicMock(return_value=os_distro_value))
   @patch.object(StackVersionsFileHandler, "read_stack_version")
