@@ -180,6 +180,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return serviceNames;
   }.property('content.services').cacheable(),
 
+  installedServices: function () {
+    return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
+      return Em.get(item, 'isInstalled');
+    });
+  }.property(),
+
   /**
    * List of master components
    * @type {Ember.Enumerable}
