@@ -38,7 +38,10 @@ def setup_hdp_symlinks():
   """
   import params
   if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-    hdp_select.select_all(params.stack_version_unformatted)
+    # try using the exact version first, falling back in just the stack if it's not defined
+    # which would only be during an intial cluster installation
+    version = params.current_version if params.current_version is not None else params.stack_version_unformatted
+    hdp_select.select_all(version)
 
 
 def setup_config():

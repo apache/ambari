@@ -105,18 +105,23 @@ HADOOP_DIR_DEFAULTS = {
   "lib": "/usr/lib/hadoop/lib"
 }
 
-def select_all(stack_version):
+def select_all(version_to_select):
   """
-  Executes hdp-select on every component for the latest installed version of the specified stack.
-  For example, if stack_version is "2.3", then this will find the latest installed version which
-  could be "2.3.0.0-9999".
-  :param stack_version: the stack version to use when calculating the latest actual version,
-  such as "2.3".
+  Executes hdp-select on every component for the specified version. If the value passed in is a
+  stack version such as "2.3", then this will find the latest installed version which
+  could be "2.3.0.0-9999". If a version is specified instead, such as 2.3.0.0-1234, it will use
+  that exact version.
+  :param version_to_select: the version to hdp-select on, such as "2.3" or "2.3.0.0-1234"
   """
-  Logger.info("Executing hdp-select set all on the latest calculated version for stack {0}".format(stack_version))
+  # it's an error, but it shouldn't really stop anything from working
+  if version_to_select is None:
+    Logger.error("Unable to execute hdp-select after installing because there was no version specified")
+    return
 
-  command = format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{stack_version} | tail -1`')
-  only_if_command = format('ls -d /usr/hdp/{stack_version}*')
+  Logger.info("Executing hdp-select set all on {0}".format(version_to_select))
+
+  command = format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{version_to_select} | tail -1`')
+  only_if_command = format('ls -d /usr/hdp/{version_to_select}*')
   Execute(command, only_if = only_if_command)
 
 
