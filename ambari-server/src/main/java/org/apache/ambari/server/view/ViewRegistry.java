@@ -1558,6 +1558,9 @@ public class ViewRegistry {
         }
         persistView(viewDefinition, instanceDefinitions);
 
+        // add auto instance configurations if required
+        addAutoInstanceDefinition(viewDefinition);
+
         setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
 
         LOG.info("View deployed: " + viewDefinition.getName() + ".");
@@ -1567,6 +1570,41 @@ public class ViewRegistry {
 
       setViewStatus(viewDefinition, ViewEntity.ViewStatus.ERROR, msg + " : " + e.getMessage());
       LOG.error(msg, e);
+    }
+  }
+
+  private void addAutoInstanceDefinition(ViewEntity viewEntity) {
+    ViewConfig viewConfig = viewEntity.getConfiguration();
+    String viewName = viewEntity.getViewName();
+
+    AutoInstanceConfig autoInstanceConfig = viewConfig.getAutoInstance();
+    if (autoInstanceConfig == null) {
+      return;
+    }
+
+    List<String> services = autoInstanceConfig.getServices();
+
+    Map<String, org.apache.ambari.server.state.Cluster> allClusters = clustersProvider.get().getClusters();
+    for (org.apache.ambari.server.state.Cluster cluster : allClusters.values()) {
+
+      String clusterName = cluster.getClusterName();
+      StackId stackId = cluster.getCurrentStackVersion();
+      Set<String> serviceNames = cluster.getServices().keySet();
+
+      for (String service : services) {
+        try {
+
+          if (checkAutoInstanceConfig(autoInstanceConfig, stackId, service, serviceNames)) {
+            LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
+            ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoInstanceConfig);
+            viewInstanceEntity.setClusterHandle(clusterName);
+            installViewInstance(viewInstanceEntity);
+          }
+        } catch (Exception e) {
+          LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
+            ".  Caught exception :" + e.getMessage(), e);
+        }
+      }
     }
   }
 
