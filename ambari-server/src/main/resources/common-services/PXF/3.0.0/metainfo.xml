@@ -66,6 +66,10 @@
         </osSpecific>
       </osSpecifics>
 
+      <configuration-dependencies>
+        <config-type>pxf-site</config-type>
+      </configuration-dependencies>
+
     </service>
   </services>
 </metainfo>
