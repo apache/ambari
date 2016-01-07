@@ -75,6 +75,13 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
   private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
   private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
+  private static final String RANGER_KMS_DBKS_CONFIG = "dbks-site";
+  private static final String RANGER_KMS_DB_FLAVOR = "DB_FLAVOR";
+  private static final String RANGER_KMS_DB_HOST = "db_host";
+  private static final String RANGER_KMS_DB_NAME = "db_name";
+  private static final String RANGER_KMS_JDBC_URL = "ranger.ks.jpa.jdbc.url";
+  private static final String RANGER_KMS_JDBC_DRIVER = "ranger.ks.jpa.jdbc.driver";
+  private static final String RANGER_KMS_PROPERTIES = "kms-properties";
 
 
   // ----- Constructors ------------------------------------------------------
@@ -130,6 +137,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     updateOozieConfigs();
+    updateRangerKmsDbksConfigs();
   }
 
   protected void updateAlerts() {
@@ -337,4 +345,41 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateRangerKmsDbksConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Map<String, String> newRangerKmsProps = new HashMap<>();
+      Config rangerKmsDbConfigs = cluster.getDesiredConfigByType(RANGER_KMS_PROPERTIES);
+      if (rangerKmsDbConfigs != null) {
+        String dbFlavor = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_FLAVOR);
+        String dbHost = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_HOST);
+        String dbName = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_NAME);
+        String dbConnectionString = null;
+        String dbDriver = null;
+
+        if (dbFlavor != null && dbHost != null && dbName != null) {
+          if ("MYSQL".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:mysql://"+dbHost+"/"+dbName;
+            dbDriver = "com.mysql.jdbc.Driver";
+          } else if ("ORACLE".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:oracle:thin:@//"+dbHost;
+            dbDriver = "oracle.jdbc.driver.OracleDriver";
+          } else if ("POSTGRES".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:postgresql://"+dbHost+"/"+dbName;
+            dbDriver = "org.postgresql.Driver";
+          } else if ("MSSQL".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:sqlserver://"+dbHost+";databaseName="+dbName;
+            dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+          } else if ("SQLA".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:sqlanywhere:database="+dbName+";host="+dbHost;
+            dbDriver = "sap.jdbc4.sqlanywhere.IDriver";
+          }
+          newRangerKmsProps.put(RANGER_KMS_JDBC_URL, dbConnectionString);
+          newRangerKmsProps.put(RANGER_KMS_JDBC_DRIVER, dbDriver);
+          updateConfigurationPropertiesForCluster(cluster, RANGER_KMS_DBKS_CONFIG, newRangerKmsProps, true, false);
+        }
+      }
+    }
+  }
 }
