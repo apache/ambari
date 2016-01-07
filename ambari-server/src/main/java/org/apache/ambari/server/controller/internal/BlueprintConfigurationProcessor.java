@@ -466,8 +466,11 @@ public class BlueprintConfigurationProcessor {
   private void doReplaceProperties(Configuration configuration, String configType,
                                    AdvisedConfiguration advisedConfig, Set<String> configTypesUpdated) {
     for (Map.Entry<String, String> propEntry : advisedConfig.getProperties().entrySet()) {
+      String originalValue = configuration.getPropertyValue(configType, propEntry.getKey());
       configuration.setProperty(configType, propEntry.getKey(), propEntry.getValue());
-      configTypesUpdated.add(configType);
+      if (!propEntry.getValue().equals(originalValue)) {
+        configTypesUpdated.add(configType);
+      }
     }
   }
 
