@@ -1691,6 +1691,8 @@ describe('App.InstallerStep7Controller', function () {
     it('should copy properties from hdfs-site to hdfs-client for HAWQ', function() {
       var oldConfigs = configs.slice();
       installerStep7Controller.addHawqConfigsOnNnHa(configs);
+      // ensure 6 new configs were added
+      expect(configs.length - oldConfigs.length).to.be.eql(6);
       oldConfigs.forEach(function(property){
         // find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property's attribute value in hdfs-site
         expect(configs.findProperty('id', property.name + '__hdfs-client').description).to.be.eql(property.description);
@@ -1737,6 +1739,58 @@ describe('App.InstallerStep7Controller', function () {
 
       var noOfConfigsAdded = 2;
       expect(configs.length).to.be.eql(inputConfigsCount + noOfConfigsAdded) ;
+    });
+  });
+
+  describe('#addHawqConfigsOnKerberizedCluster', function () {
+    var secureProperties = [
+      {
+        name: 'hadoop.security.authentication',
+        value: 'kerberos',
+        file: 'hdfs-client',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'enable_secure_filesystem',
+        value: 'ON',
+        file: 'hawq-site',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'krb_server_keyfile',
+        value: '/etc/security/keytabs/hawq.service.keytab',
+        file: 'hawq-site',
+        isOverridable: true,
+        isReconfigurable: true
+      }
+    ];
+
+    var configs = [
+        {
+          id: 'dummy__dummy-site',
+          description: 'dummy__dummy-site',
+          displayName: 'dummy',
+          displayType: 'string',
+          name: 'dummy',
+          value: 'dummy'
+        }
+      ];
+
+    it('should add three security related configs for HAWQ if Kerberos is enabled', function () {
+      var originalConfigsLength = configs.length;
+      installerStep7Controller.addHawqConfigsOnKerberizedCluster(configs);
+      // ensure 3 new configs are added
+      expect(configs.length - originalConfigsLength).to.be.eql(3);
+      // check if all three new properties were added
+      secureProperties.forEach(function (newProperty) {
+        var newPropertyAdded = configs.findProperty('id', newProperty.name + '__' + newProperty.file);
+        expect(newPropertyAdded.name).to.be.eql(newProperty.name);
+        expect(newPropertyAdded.displayName).to.be.eql(newProperty.name);
+        expect(newPropertyAdded.value).to.be.eql(newProperty.value);
+        expect(newPropertyAdded.recommendedValue).to.be.eql(newProperty.value);
+        expect(newPropertyAdded.isOverridable).to.be.eql(newProperty.isOverridable);
+        expect(newPropertyAdded.isReconfigurable).to.be.eql(newProperty.isReconfigurable);
+      });
     });
   });
 
