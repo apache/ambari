@@ -5496,6 +5496,10 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
 
+    Map<String, String> dummySiteMap = new HashMap<String, String>();
+    properties.put("dummy-site", dummySiteMap);
+    dummySiteMap.put("dummy.prop", "dummyValue2");
+
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
 
     Collection<String> hgComponents = new HashSet<String>();
@@ -5527,7 +5531,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getConfiguration(bp.getServices())).andReturn(createStackDefaults()).anyTimes();
     replay(stack);
     // WHEN
-    configProcessor.doUpdateForClusterCreate();
+    Set<String> configTypeUpdated = configProcessor.doUpdateForClusterCreate();
     // THEN
     assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site", "fs.default.name"));
     assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
@@ -5535,6 +5539,7 @@ public class BlueprintConfigurationProcessorTest {
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
     // verify that fs.notStackDefault is filtered out
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
+    assertTrue(configTypeUpdated.contains("dummy-site"));
   }
 
   @Test
@@ -5550,6 +5555,10 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteMap.put("fs.default.name", expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.defaultFS", "hdfs://" + expectedHostName + ":" + expectedPortNum);
     coreSiteMap.put("fs.stackDefault.key2", "dummyValue");
+
+    Map<String, String> dummySiteMap = new HashMap<String, String>();
+    properties.put("dummy-site", dummySiteMap);
+    dummySiteMap.put("dummy.prop", "dummyValue");
 
     Map<String, Map<String, String>> parentProperties = new HashMap<String, Map<String, String>>();
 
@@ -5579,7 +5588,7 @@ public class BlueprintConfigurationProcessorTest {
     topology.setConfigRecommendationStrategy(ConfigRecommendationStrategy.ALWAYS_APPLY);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     // WHEN
-    configProcessor.doUpdateForClusterCreate();
+    Set<String> configTypes = configProcessor.doUpdateForClusterCreate();
     // THEN
     assertEquals(expectedHostName + ":" + expectedPortNum, clusterConfig.getPropertyValue("core-site","fs.default.name"));
     assertEquals("stackDefaultUpgraded", clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key1"));
@@ -5587,7 +5596,8 @@ public class BlueprintConfigurationProcessorTest {
     assertNull(clusterConfig.getPropertyValue("core-site", "fs.stackDefault.key2"));
     // verify that fs.notStackDefault is not filtered out
     assertNotNull(clusterConfig.getPropertyValue("core-site", "fs.notStackDefault"));
-    assertEquals(1, topology.getAdvisedConfigurations().size());
+    assertEquals(2, topology.getAdvisedConfigurations().size());
+    assertFalse(configTypes.contains("dummy-site"));
   }
 
   @Test
@@ -6324,6 +6334,9 @@ public class BlueprintConfigurationProcessorTest {
     vaInfo.setDelete("true");
     valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo);
     advMap.put("core-site", new AdvisedConfiguration(confProp, valueAttributesInfoMap));
+    Map<String, String> dummyConfProp = new HashMap<String, String>();
+    dummyConfProp.put("dummy.prop", "dummyValue");
+    advMap.put("dummy-site", new AdvisedConfiguration(dummyConfProp, new HashMap<String, ValueAttributesInfo>()));
     return advMap;
   }
 
@@ -6352,6 +6365,11 @@ public class BlueprintConfigurationProcessorTest {
     coreSiteDefault.put("fs.stackDefault.key1", "stackDefaultValue1");
     coreSiteDefault.put("fs.stackDefault.key2", "stackDefaultValue2");
     stackDefaultProps.put("core-site", coreSiteDefault);
+
+    Map<String, String> dummySiteDefaults =
+      new HashMap<String, String>();
+    dummySiteDefaults.put("dummy.prop", "dummyValue");
+    stackDefaultProps.put("dummy-site", dummySiteDefaults);
 
     Map<String, Map<String, Map<String, String>>> stackDefaultAttributes =
       new HashMap<String, Map<String, Map<String, String>>>();
