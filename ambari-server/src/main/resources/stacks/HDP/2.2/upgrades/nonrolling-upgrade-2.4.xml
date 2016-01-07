@@ -66,13 +66,8 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
       <service-check>false</service-check>
-
-      <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
-      </service>
+      <parallel-scheduler/>
 
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
@@ -84,7 +79,7 @@
         <component>ACCUMULO_TSERVER</component>
         <component>ACCUMULO_MONITOR</component>
         <component>ACCUMULO_MASTER</component>
-      </service>
+      </service>      
 
       <service name="STORM">
         <component>DRPC_SERVER</component>
@@ -137,7 +132,7 @@
 
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Backup Oozie Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Oozie Server database on {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Oozie Server database referenced by the Oozie server located on {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -149,7 +144,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -172,25 +167,18 @@
           <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
-
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database</message>
-        </task>
-      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <service-check>false</service-check>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
 
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
-        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="HDFS">
@@ -199,16 +187,11 @@
         <component>SECONDARY_NAMENODE</component>
         <component>ZKFC</component>
         <component>JOURNALNODE</component>
-        <component>NFS_GATEWAY</component>
       </service>
 
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
-      </service>
-
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -237,7 +220,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /usr/hdp/$(old_version)/knox/data/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /var/lib/knox/data/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -246,13 +229,28 @@
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
+    </group>
 
-      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Restore Ranger KMS Database">
-        <task xsi:type="manual">
-          <message>Before continuing, please restore Ranger KMS database</message>
+    <!--
+    On an HDP 2.4 to 2.2 downgrade, the /etc/component/conf must be turned back from a symlink
+    into a normal directory. This will avoid the circular symbolic link that will happen after
+    hdp-select sets /usr/hdp/current/component back to 2.2:
+
+    # new symlink created for 2.3 and higher
+    /etc/flume/conf -> /usr/hdp/current/flume-server/conf
+
+    # circular reference from 2.2 (current)
+    /usr/hdp/2.2.0.0-1234/flume/conf -> /etc/flume/conf
+    /usr/hdp/current/flume-server/conf -> /etc/flume/conf
+    -->
+    <group xsi:type="cluster" name="RESTORE_CONFIG_DIRS" title="Restore Configuration Directories">
+      <direction>DOWNGRADE</direction>
+      <execute-stage title="Restore configuration directories and remove HDP 2.3+ symlinks">
+        <task xsi:type="execute">
+          <script>scripts/ru_set_all.py</script>
+          <function>unlink_all_configs</function>
         </task>
       </execute-stage>
-
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
@@ -264,22 +262,262 @@
     </group>
 
     <group xsi:type="cluster" name="Upgrade service configs" title="Upgrade service configs">
-      <direction>UPGRADE</direction>   <!--  prevent config changes on downgrade -->
-      <skippable>true</skippable>  <!-- May fix configuration problems manually -->
+      <direction>UPGRADE</direction>    <!--  prevent config changes on downgrade -->
+      <skippable>true</skippable>       <!-- May fix configuration problems manually -->
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_env"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Calculating Ranger Properties">
+        <task xsi:type="server_action" summary="Calculating Ranger Properties" class="org.apache.ambari.server.serveraction.upgrades.RangerConfigCalculation" />
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_site"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_sync_source"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_usersync_properties"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_delete_oracle_home"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_hdfs_audit"/>
+      </execute-stage>
+
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Apply config changes for Ranger">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_ranger_admin_db_audit"/>
+      </execute-stage>
+
+      <!--HDFS-->
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_namenode_ha_adjustments"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_modify_hadoop_env"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_adjust_ranger_plugin"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_transition_ranger_hdfs_policy"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_transition_ranger_hdfs_audit"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_transition_ranger_hdfs_security"/>
+      </execute-stage>
+
+      <execute-stage service="HDFS" component="NAMENODE" title="Apply config changes for NameNode">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hdfs_ranger_hdfs_delete_old_properties"/>
+      </execute-stage>
+
+      <!--YARN-->
+      <execute-stage service="MAPREDUCE2" component="HISTORYSERVER" title="Apply config changes for HistoryServer">
+        <task xsi:type="configure" id="hdp_2_3_0_0_mapreduce2_adjust_history_server"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_ats_enable_recovery"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="APP_TIMELINE_SERVER" title="Apply config changes for AppTimelineServer">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_keep_ats_v1"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_disable_node_labels"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_clear_default_node_label_expression"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_def_capacity"/>
+      </execute-stage>
+
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Apply config changes for ResourceManager">
+        <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
+      </execute-stage>
+
+      <!--HBASE-->
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_rpc_controller_factory"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_set_global_memstore_size"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Calculating HBase Properties">
+        <task xsi:type="server_action" summary="Calculating HBase Properties" class="org.apache.ambari.server.serveraction.upgrades.HBaseConfigCalculation" />
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_indexed_wal_edit_codec"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_authorization_coprocessors"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_policy"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_transition_ranger_hbase_audit"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_copy_ranger_policies"/>
+      </execute-stage>
+
+      <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_delete_old_ranger_properties"/>
+      </execute-stage>
+
+      <!--TEZ-->
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
+      </execute-stage>
+
+      <!-- Apply HDP 2.4 since same as that in HDP 2.3 -->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
       </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
+      </execute-stage>
+
+      <!--HIVE-->
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_replace_auth_manager"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_authentication"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_policy"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_security"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_configure_ranger_audit"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_deprecated_ranger_properties"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="HIVE_SERVER" title="Apply config changes for Hive Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_hive_server_remove_datastore_classname"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_env"/>
+      </execute-stage>
+
+      <execute-stage service="HIVE" component="WEBHCAT_SERVER" title="Apply config changes for WebHCat Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_webhcat_server_update_configuration_paths"/>
+      </execute-stage>
+
+      <!--OOZIE-->
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="configure" id="hdp_2_3_0_0_oozie_remove_redundant_configurations"/>
+      </execute-stage>
+
+      <!--KNOX-->
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
+        <task xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_policy"/>
+      </execute-stage>
+
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
+        <task xsi:type="configure" id="hdp_2_3_0_0_knox_configure_ranger_knox_audit"/>
+      </execute-stage>
+
+      <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Apply config changes for Knox Gateway">
+        <task xsi:type="configure" id="hdp_2_3_0_0_knox_remove_deprecated_ranger_properties"/>
+      </execute-stage>
+
+      <!--STORM-->
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_monitor_freq_adjustment"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_convert_nimbus_host_to_seeds"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_update_storm_env"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_update_env_vars"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_policy"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_configure_ranger_audit"/>
+      </execute-stage>
+
+      <execute-stage service="STORM" component="NIMBUS" title="Apply config changes for Nimbus">
+        <task xsi:type="configure" id="hdp_2_3_0_0_nimbus_remove_deprecated_ranger_properties"/>
+      </execute-stage>
+
+      <!-- KAFKA  -->
+      <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">
+        <task xsi:type="configure" id ="hdp_2_3_0_0_kafka_broker_listeners"/>
+      </execute-stage>
+
     </group>
 
     <!-- Now, restart all of the services. -->
     <group xsi:type="restart" name="ZOOKEEPER" title="ZooKeeper">
-      <service-check>false</service-check>
+      <service-check>true</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="ZOOKEEPER">
-        <service-check>true</service-check>
+        <service-check>false</service-check>
         <component>ZOOKEEPER_SERVER</component>
         <component>ZOOKEEPER_CLIENT</component>
       </service>
@@ -296,16 +534,6 @@
       </service>
     </group>
 
-    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="RANGER_KMS">
-        <component>RANGER_KMS_SERVER</component>
-      </service>
-    </group>
-
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -316,7 +544,6 @@
         <component>ZKFC</component>
         <component>NAMENODE</component>
         <component>SECONDARY_NAMENODE</component>
-        <component>NFS_GATEWAY</component>
         <component>HDFS_CLIENT</component>
       </service>
     </group>
@@ -380,7 +607,6 @@
         <component>HBASE_MASTER</component>
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_CLIENT</component>
-        <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
@@ -390,10 +616,6 @@
       <parallel-scheduler/>
       <service name="TEZ">
         <component>TEZ_CLIENT</component>
-      </service>
-
-      <service name="MAHOUT">
-        <component>MAHOUT</component>
       </service>
 
       <service name="PIG">
@@ -437,7 +659,6 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
-        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
@@ -447,17 +668,6 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
-      </service>
-    </group>
-
-    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
-    <group xsi:type="restart" name="ATLAS" title="Atlas">
-      <service-check>false</service-check>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <parallel-scheduler/>
-      <service name="ATLAS">
-        <component>ATLAS_SERVER</component>
       </service>
     </group>
 
@@ -577,7 +787,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-    
+
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -670,22 +880,8 @@
       </component>
     </service>
 
-    <service name="RANGER_KMS">
-      <component name="RANGER_KMS_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
     <service name="HDFS">
       <component name="NAMENODE">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="SECONDARY_NAMENODE">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -710,12 +906,6 @@
       </component>
 
       <component name="ZKFC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="NFS_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -784,14 +974,6 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
-
-    <service name="MAHOUT">
-      <component name="MAHOUT">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -918,65 +1100,93 @@
 
     <service name="STORM">
       <component name="NIMBUS">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
+        <pre-downgrade>
+          <task xsi:type="manual">
+            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-downgrade>
+        
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
 
       <component name="DRPC_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-    </service>
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
 
-    <service name="ACCUMULO">
-      <component name="ACCUMULO_MASTER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
-      </component>
 
-      <component name="ACCUMULO_TSERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_MONITOR">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_GC">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_TRACER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
-      <component name="ACCUMULO_CLIENT">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
+        <post-upgrade>
+          <task xsi:type="manual">
+            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
+          </task>
+        </post-upgrade>
       </component>
     </service>
 
@@ -994,16 +1204,6 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
-    </service>
-
-    <!-- TODO, Atlas doesn't yet support upgrades and the client doesn't exist in hdp-select. -->
-    <service name="ATLAS">
-      <component name="ATLAS_SERVER">
-        <upgrade>
-          <task xsi:type="restart-task"/>
-        </upgrade>
-      </component>
-
     </service>
   </processing>
 </upgrade>
