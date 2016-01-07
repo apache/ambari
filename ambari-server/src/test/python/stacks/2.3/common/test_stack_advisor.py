@@ -155,7 +155,7 @@ class TestHDP23StackAdvisor(TestCase):
   def test_createComponentLayoutRecommendations_pxf_co_locate_with_namenode_or_datanode(self):
     """ Test that PXF gets recommended on same host group which has NAMENODE or DATANODE"""
 
-    services = self.load_json("services-pxf-hdfs.json")
+    services = self.load_json("services-hawq-pxf-hdfs.json")
     hosts = self.load_json("hosts-3-hosts.json")
     recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
 
@@ -163,6 +163,19 @@ class TestHDP23StackAdvisor(TestCase):
       component_names = [component["name"] for component in hostgroup["components"]]
       if "NAMENODE" in component_names or "DATANODE" in component_names:
         self.assertTrue("PXF" in component_names)
+
+
+  def test_hawqsegmentDatanode(self):
+    """ Test that HAWQSegment gets recommended on same host group which has DATANODE"""
+
+    services = self.load_json("services-hawq-pxf-hdfs.json")
+    hosts = self.load_json("hosts-3-hosts.json")
+    recommendations = self.stackAdvisor.createComponentLayoutRecommendations(services, hosts)
+
+    for hostgroup in recommendations["blueprint"]["host_groups"]:
+      component_names = [component["name"] for component in hostgroup["components"]]
+      if 'DATANODE' in component_names:
+        self.assertTrue('HAWQSEGMENT' in component_names)
 
 
   def fqdn_mock_result(value=None):
