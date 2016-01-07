@@ -24,7 +24,6 @@
   <prerequisite-checks>
     <configuration>
       <!-- Configuration properties for all pre-reqs including required pre-reqs -->
-      <!--TODO: is it required? -->
       <check-properties name="org.apache.ambari.server.checks.HiveDynamicServiceDiscoveryCheck">
         <property name="min-failure-stack-version">HDP-2.3.0.0</property>
       </check-properties>
@@ -633,6 +632,12 @@
 
     <service name="HDFS">
       <component name="NAMENODE">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="SECONDARY_NAMENODE">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
