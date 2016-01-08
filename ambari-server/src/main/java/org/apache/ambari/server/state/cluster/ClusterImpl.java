@@ -283,8 +283,8 @@ public class ClusterImpl implements Cluster {
                      Injector injector) throws AmbariException {
     injector.injectMembers(this);
 
-    this.clusterId = clusterEntity.getClusterId();
-    this.clusterName = clusterEntity.getClusterName();
+    clusterId = clusterEntity.getClusterId();
+    clusterName = clusterEntity.getClusterName();
 
     serviceComponentHosts = new HashMap<>();
 
@@ -1276,30 +1276,33 @@ public class ClusterImpl implements Cluster {
    * @param newState target host version state for transition
    */
   @Transactional
-  void createOrUpdateHostVersionToState(ClusterVersionEntity sourceClusterVersion, Map<String, Host> hosts,
-                                        HashMap<String, HostVersionEntity> existingHostStackVersions,
-                                        Sets.SetView<String> hostsMissingRepoVersion,
-                                                RepositoryVersionState newState) {
+  void createOrUpdateHostVersionToState(ClusterVersionEntity sourceClusterVersion,
+      Map<String, Host> hosts, HashMap<String, HostVersionEntity> existingHostStackVersions,
+      Sets.SetView<String> hostsMissingRepoVersion, RepositoryVersionState newState) {
+
     for (String hostname : hosts.keySet()) {
+      // start off with the requested new state for each host
+      RepositoryVersionState repositoryVersionState = newState;
+
       // if the host is in maintenance mode, that's an explicit marker which
-      // indicates that it should not be transitioned to newState; these
-      // hosts are excluded from being transitioned into newState
+      // indicates that it should not be transitioned to INSTALLING; instead
+      // they will be transitioned to OUT_OF_SYNC
       Host host = hosts.get(hostname);
       if (host.getMaintenanceState(getClusterId()) != MaintenanceState.OFF) {
-        continue;
+        repositoryVersionState = RepositoryVersionState.OUT_OF_SYNC;
       }
 
       if (hostsMissingRepoVersion.contains(hostname)) {
         // Create new host stack version
         HostEntity hostEntity = hostDAO.findByName(hostname);
         HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
-            sourceClusterVersion.getRepositoryVersion(),
-          newState);
+            sourceClusterVersion.getRepositoryVersion(), repositoryVersionState);
+
         hostVersionDAO.create(hostVersionEntity);
       } else {
         // Update existing host stack version
         HostVersionEntity hostVersionEntity = existingHostStackVersions.get(hostname);
-        hostVersionEntity.setState(newState);
+        hostVersionEntity.setState(repositoryVersionState);
         hostVersionDAO.merge(hostVersionEntity);
       }
     }
