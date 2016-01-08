@@ -71,6 +71,11 @@ App.StackServiceComponent = DS.Model.extend({
   isReassignable: Em.computed.existsIn('componentName', ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER',
     'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR', 'HISTORYSERVER']),
 
+  /** @property {Boolean} isNonHDPComponent - component not belongs to HDP services **/
+  isNonHDPComponent: function() {
+    return ['METRICS_COLLECTOR', 'METRICS_MONITOR'].contains(this.get('componentName'));
+  }.property('componentName'),
+
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
   isRollinRestartAllowed: function() {
     return this.get('isSlave') || this.get('componentName') === 'KAFKA_BROKER';

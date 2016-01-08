@@ -114,6 +114,13 @@ App.HostComponent = DS.Model.extend({
   isActive: Em.computed.equal('passiveState', 'OFF'),
 
   passiveTooltip: Em.computed.ifThenElse('isActive', '', Em.I18n.t('hosts.component.passive.mode')),
+  /**
+   * Determine if component is a HDP component
+   * @returns {bool}
+   */
+  isHDPComponent: function () {
+    return !App.get('components.nonHDP').contains(this.get('componentName'));
+  }.property('componentName', 'App.components.nonHDP'),
 
   statusClass: function () {
     return this.get('isActive') ? this.get('workStatus') : 'icon-medkit';

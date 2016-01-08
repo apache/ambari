@@ -343,6 +343,10 @@ module.exports = Em.Application.create({
 
     clients: function () {
       return App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName')
+    }.property('App.router.clusterController.isLoaded'),
+
+    nonHDP: function () {
+      return App.StackServiceComponent.find().filterProperty('isNonHDPComponent').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded')
   })
 });
