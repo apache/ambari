@@ -15,11 +15,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.AbstractMiniHBaseClusterTest;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
@@ -56,34 +59,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
-  private Connection conn;
-  private PhoenixHBaseAccessor hdb;
-
-  @Before
-  public void setUp() throws Exception {
-    Logger.getLogger("org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline").setLevel(Level.DEBUG);
-    hdb = createTestableHBaseAccessor();
-    // inits connection, starts mini cluster
-    conn = getConnection(getUrl());
-
-    hdb.initMetricSchema();
-  }
-
-  @After
-  public void tearDown() throws Exception {
-    Connection conn = getConnection(getUrl());
-    Statement stmt = conn.createStatement();
-
-    stmt.execute("delete from METRIC_AGGREGATE");
-    stmt.execute("delete from METRIC_AGGREGATE_HOURLY");
-    stmt.execute("delete from METRIC_RECORD");
-    stmt.execute("delete from METRIC_RECORD_HOURLY");
-    stmt.execute("delete from METRIC_RECORD_MINUTE");
-    conn.commit();
-
-    stmt.close();
-    conn.close();
-  }
 
   @Test
   public void testShouldInsertMetrics() throws Exception {

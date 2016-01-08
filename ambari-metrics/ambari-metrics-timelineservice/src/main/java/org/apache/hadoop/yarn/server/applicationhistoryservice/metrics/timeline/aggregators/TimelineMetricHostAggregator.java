@@ -36,7 +36,8 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricHostAggregator.class);
   TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
-  public TimelineMetricHostAggregator(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricHostAggregator(String aggregatorName,
+                                      PhoenixHBaseAccessor hBaseAccessor,
                                       Configuration metricsConf,
                                       String checkpointLocation,
                                       Long sleepIntervalMillis,
@@ -45,9 +46,9 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
                                       String tableName,
                                       String outputTableName,
                                       Long nativeTimeRangeDelay) {
-    super(hBaseAccessor, metricsConf, checkpointLocation, sleepIntervalMillis,
-      checkpointCutOffMultiplier, hostAggregatorDisabledParam, tableName,
-      outputTableName, nativeTimeRangeDelay);
+    super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
+      sleepIntervalMillis, checkpointCutOffMultiplier, hostAggregatorDisabledParam,
+      tableName, outputTableName, nativeTimeRangeDelay);
   }
 
   @Override
