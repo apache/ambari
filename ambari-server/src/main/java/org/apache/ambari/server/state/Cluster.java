@@ -188,9 +188,8 @@ public interface Cluster {
    * {@link Cluster#mapHostVersions} is that it affects all hosts (not only
    * missing hosts).
    * <p/>
-   * Hosts that are in maintenance mode will not be included. These hosts have
-   * been explicitely marked as being in maintenance andd are not included in
-   * this operation.
+   * Hosts that are in maintenance mode will be transititioned directly into
+   * {@link RepositoryVersionState#OUT_OF_SYNC} instead.
    *
    * @param sourceClusterVersion
    *          cluster version to be queried for a stack name/version info and

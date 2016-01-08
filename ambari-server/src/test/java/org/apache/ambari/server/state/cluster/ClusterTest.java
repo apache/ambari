@@ -1589,12 +1589,12 @@ public class ClusterTest {
     List<HostVersionEntity> otherHostVersions = hostVersionDAO.findByClusterAndHost("c1",
         hostNotInMaintenanceMode.getHostName());
 
-    // verify the MM host is in INSTALL_FAILED still
+    // verify the MM host has moved to OUT_OF_SYNC
     for (HostVersionEntity hostVersionEntity : hostInMaintModeVersions) {
       StackEntity repoVersionStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
       if (repoVersionStackEntity.getStackName().equals("HDP")
           && repoVersionStackEntity.getStackVersion().equals("0.2")) {
-        assertEquals(RepositoryVersionState.INSTALL_FAILED, hostVersionEntity.getState());
+        assertEquals(RepositoryVersionState.OUT_OF_SYNC, hostVersionEntity.getState());
       }
     }
 
