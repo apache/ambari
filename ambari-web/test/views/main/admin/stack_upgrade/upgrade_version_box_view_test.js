@@ -272,6 +272,7 @@ describe('App.UpgradeVersionBoxView', function () {
       view.set('content', Em.Object.create({
         p1: []
       }));
+      view.set('p1', []);
       view.showHosts({contexts: [
         {'property': 'p1'}
       ]});
@@ -282,6 +283,7 @@ describe('App.UpgradeVersionBoxView', function () {
         p1: ['host1'],
         displayName: 'version'
       }));
+      view.set('p1', ['host1']);
       var popup = view.showHosts({contexts: [
         {id: 1, 'property': 'p1'}
       ]});
