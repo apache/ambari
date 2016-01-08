@@ -236,6 +236,13 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
     App.tooltip($('.hosts-tooltip'));
     App.tooltip($('.out-of-sync-badge'), {title: Em.I18n.t('hosts.host.stackVersions.status.out_of_sync')});
+    Em.run.later(this, function () {
+      if (this.get('maintenanceHosts').length + this.get('notRequiredHosts').length) {
+        App.tooltip(this.$('.hosts-section'), {placement: 'bottom', title: Em.I18n.t('admin.stackVersions.version.hostsInfoTooltip').format(
+          this.get('maintenanceHosts').length + this.get('notRequiredHosts').length, this.get('maintenanceHosts').length, this.get('notRequiredHosts').length
+        )});
+      }
+    }, 1000);
   },
 
   /**
@@ -349,7 +356,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
   showHosts: function (event) {
     var status = event.contexts[0];
     var displayName = this.get('content.displayName');
-    var hosts = this.get('content').get(status['property']);
+    var hosts = this.get(status['property']);
     var self = this;
     hosts.sort();
     if (hosts.length) {
@@ -381,5 +388,68 @@ App.UpgradeVersionBoxView = Em.View.extend({
     App.router.get('mainHostController').filterByStack(displayName, state);
     App.router.get('mainHostController').set('showFilterConditionsFirstLoad', true);
     App.router.transitionTo('hosts.index');
-  }
+  },
+
+  /**
+   * Not installed hosts should exclude 1.not required hosts 2. Maintenance Mode hosts,
+   * or it maybe confusing to users
+   * @type {Array}
+   */
+  notInstalledHosts: function () {
+    var notInstalledHosts = this.get('content.notInstalledHosts') || App.get('allHostNames');
+    var notRequiredHosts = this.get('notRequiredHosts');
+    var maintenanceHosts = this.get('maintenanceHosts');
+    if (notInstalledHosts.length && notRequiredHosts.length) {
+      notRequiredHosts.forEach(function(not_required) {
+        var index = notInstalledHosts.indexOf(not_required)
+        if (index > -1) {
+          notInstalledHosts.splice(index, 1);
+        }
+      });
+    }
+    if (notInstalledHosts.length && maintenanceHosts.length) {
+      maintenanceHosts.forEach(function(mm_host) {
+        var index = notInstalledHosts.indexOf(mm_host)
+        if (index > -1) {
+          notInstalledHosts.splice(index, 1);
+        }
+      });
+    }
+    return notInstalledHosts;
+  }.property('content.notInstalledHosts', 'notRequiredHosts', 'maintenanceHosts'),
+
+  /**
+   * @type {Array}
+   */
+  maintenanceHosts: function () {
+    return App.Host.find().filterProperty('passiveState', 'ON').mapProperty('hostName') || [];
+  }.property(''),
+
+  /**
+   * Host with no HDP component is not required to install new version
+   * @type {Array}
+   */
+  notRequiredHosts: function () {
+    var notRequiredHosts = [];
+    App.Host.find().forEach(function(host) {
+      if (!host.get('hostComponents').someProperty('isHDPComponent')) {
+        notRequiredHosts.push(host.get('hostName'));
+      }
+    });
+    return notRequiredHosts.uniq() || [];
+  }.property(''),
+
+  /**
+   * @type {Array}
+   */
+  installedHosts: function () {
+    return this.get('content.installedHosts') || [];
+  }.property('content.installedHosts'),
+
+  /**
+   * @type {Array}
+   */
+  currentHosts: function () {
+    return this.get('content.currentHosts') || [];
+  }.property('content.currentHosts')
 });

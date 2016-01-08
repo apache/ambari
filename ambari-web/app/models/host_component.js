@@ -111,6 +111,14 @@ App.HostComponent = DS.Model.extend({
     return (this.get('passiveState') == 'OFF');
   }.property('passiveState'),
 
+  /**
+   * Determine if component is a HDP component
+   * @returns {bool}
+   */
+  isHDPComponent: function () {
+    return !App.get('components.nonHDP').contains(this.get('componentName'));
+  }.property('componentName', 'App.components.nonHDP'),
+
   passiveTooltip: function () {
     if (!this.get('isActive')) {
       return Em.I18n.t('hosts.component.passive.mode');
