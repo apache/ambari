@@ -36,10 +36,10 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
   private final TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(true);
-  private static final Log LOG = LogFactory.getLog(TimelineMetricClusterAggregator.class);
   private final boolean isClusterPrecisionInputTable;
 
-  public TimelineMetricClusterAggregator(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricClusterAggregator(String aggregatorName,
+                                         PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf,
                                          String checkpointLocation,
                                          Long sleepIntervalMillis,
@@ -48,7 +48,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
                                          String inputTableName,
                                          String outputTableName,
                                          Long nativeTimeRangeDelay) {
-    super(hBaseAccessor, metricsConf, checkpointLocation,
+    super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
       sleepIntervalMillis, checkpointCutOffMultiplier,
       hostAggregatorDisabledParam, inputTableName, outputTableName,
       nativeTimeRangeDelay);

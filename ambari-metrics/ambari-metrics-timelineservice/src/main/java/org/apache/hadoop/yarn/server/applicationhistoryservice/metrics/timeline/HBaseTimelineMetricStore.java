@@ -148,6 +148,8 @@ public class HBaseTimelineMetricStore extends AbstractService implements Timelin
       executorService.scheduleWithFixedDelay(
         new TimelineMetricStoreWatcher(this, configuration), initDelay, delay,
         TimeUnit.SECONDS);
+      LOG.info("Started watchdog for timeline metrics store with initial " +
+        "delay = " + initDelay + ", delay = " + delay);
 
       isInitialized = true;
     }

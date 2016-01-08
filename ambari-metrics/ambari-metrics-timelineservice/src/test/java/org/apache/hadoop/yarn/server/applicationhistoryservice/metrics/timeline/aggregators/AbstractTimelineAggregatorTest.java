@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AbstractTimelineAggregator;
@@ -59,8 +59,7 @@ public class AbstractTimelineAggregatorTest {
     checkPoint = new AtomicLong(-1);
     actualRuns = 0;
 
-    agg = new AbstractTimelineAggregator(
-      null, metricsConf, clock) {
+    agg = new AbstractTimelineAggregator("TimelineAggregatorTest", null, metricsConf, clock) {
       @Override
       public boolean doWork(long startTime, long endTime) {
         startTimeInDoWork.set(startTime);

@@ -34,9 +34,9 @@ import java.util.Date;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_AGGREGATED_HOST_METRIC_GROUPBY_SQL;
 
 public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
-  private static final Log LOG = LogFactory.getLog(TimelineMetricHostAggregator.class);
 
-  public TimelineMetricHostAggregator(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricHostAggregator(String aggregatorName,
+                                      PhoenixHBaseAccessor hBaseAccessor,
                                       Configuration metricsConf,
                                       String checkpointLocation,
                                       Long sleepIntervalMillis,
@@ -45,9 +45,9 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
                                       String tableName,
                                       String outputTableName,
                                       Long nativeTimeRangeDelay) {
-    super(hBaseAccessor, metricsConf, checkpointLocation, sleepIntervalMillis,
-      checkpointCutOffMultiplier, hostAggregatorDisabledParam, tableName,
-      outputTableName, nativeTimeRangeDelay);
+    super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
+      sleepIntervalMillis, checkpointCutOffMultiplier, hostAggregatorDisabledParam,
+      tableName, outputTableName, nativeTimeRangeDelay);
   }
 
   @Override
@@ -67,7 +67,10 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
       outputTableName, tableName, startTime, endTime));
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Condition: " + condition.toString());
+    }
+
     return condition;
   }
-
 }

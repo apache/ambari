@@ -43,7 +43,6 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
  * the precision table and saves into the aggregate.
  */
 public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggregator {
-  private static final Log LOG = LogFactory.getLog(TimelineMetricClusterAggregatorSecond.class);
   public Long timeSliceIntervalMillis;
   private TimelineMetricReadHelper timelineMetricReadHelper = new TimelineMetricReadHelper(true);
   // Aggregator to perform app-level aggregates for host metrics
@@ -51,7 +50,8 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
   // 1 minute client side buffering adjustment
   private final Long serverTimeShiftAdjustment;
 
-  public TimelineMetricClusterAggregatorSecond(PhoenixHBaseAccessor hBaseAccessor,
+  public TimelineMetricClusterAggregatorSecond(String aggregatorName,
+                                               PhoenixHBaseAccessor hBaseAccessor,
                                                Configuration metricsConf,
                                                String checkpointLocation,
                                                Long sleepIntervalMillis,
@@ -61,9 +61,9 @@ public class TimelineMetricClusterAggregatorSecond extends AbstractTimelineAggre
                                                String outputTableName,
                                                Long nativeTimeRangeDelay,
                                                Long timeSliceInterval) {
-    super(hBaseAccessor, metricsConf, checkpointLocation, sleepIntervalMillis,
-      checkpointCutOffMultiplier, aggregatorDisabledParam, tableName,
-      outputTableName, nativeTimeRangeDelay);
+    super(aggregatorName, hBaseAccessor, metricsConf, checkpointLocation,
+      sleepIntervalMillis, checkpointCutOffMultiplier, aggregatorDisabledParam,
+      tableName, outputTableName, nativeTimeRangeDelay);
 
     appAggregator = new TimelineMetricAppAggregator(metricsConf);
     this.timeSliceIntervalMillis = timeSliceInterval;
