@@ -102,7 +102,6 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       App.tooltip(this.$("[rel=tooltip]"));
       App.tooltip(this.$(".alert-text"), {
         placement: 'left',
-        delay: { "show": 0, "hide": 1500 },
         template: '<div class="tooltip"><div class="tooltip-arrow"></div><div class="tooltip-inner alert-def-detail-tooltip"></div></div>'
       });
     },
@@ -132,6 +131,14 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
         App.router.get('mainHostDetailsController').set('referer', App.router.location.lastSetURL);
         App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
       }
+    },
+
+    /**
+     * open popup that contain full response of Alert Instance
+     * @param {Object} event
+     */
+    openFullResponse: function(event) {
+      App.showLogsPopup(Em.I18n.t('alerts.instance.fullLogPopup.header'), event.context.get('text'));
     }
 
   }),

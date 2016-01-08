@@ -16,19 +16,20 @@
 * limitations under the License.
 }}
 
-<div>
-  <div class="task-top-wrap">
-    <div class="task-detail-ico-wrap">
-      <a href="#" {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
-    </div>
+<div id="logs-popup">
+  <div class="controls-block pull-right">
+    <a {{translateAttr title="common.fullLogPopup.clickToCopy"}} {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i
+      class="icon-copy"></i> {{t common.copy}}</a>
+    <a {{translateAttr title="common.openNewWindow"}} {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i
+      class="icon-external-link"></i> {{t common.open}}</a>
   </div>
+  <div class="clearfix"></div>
+
   <div class="task-detail-log-info">
-    <div class="content-area" >
-      <div {{bindAttr class="view.textareaVisible::hidden :task-detail-log-clipboard-wrap"}}>
-        <textarea class="task-detail-log-clipboard"></textarea>
-      </div>
-      <div {{bindAttr class="view.textareaVisible:hidden :task-detail-log-maintext"}}>
-        {{content}}
+    <div class="content-area">
+      <div class="task-detail-log-clipboard-wrap"></div>
+      <div class="task-detail-log-maintext">
+        <pre>{{view.content}}</pre>
       </div>
     </div>
   </div>

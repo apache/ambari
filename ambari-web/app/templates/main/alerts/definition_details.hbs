@@ -193,7 +193,9 @@
                 </td>
                 <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
                 <td>
-                  <span class="alert-text" {{bindAttr data-original-title="instance.text"}}>{{instance.text}}</span>
+                  <a href="#" class="alert-text" {{action openFullResponse instance target="view"}} {{bindAttr data-original-title="instance.text"}}>
+                    {{instance.text}}
+                  </a>
                 </td>
               {{/view}}
             {{/each}}

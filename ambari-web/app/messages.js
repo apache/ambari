@@ -299,6 +299,7 @@ Em.I18n.translations = {
   'common.timeout.warning.popup.primary': 'Remain Logged In',
   'common.timeout.warning.popup.secondary': 'Log Out Now',
   'common.openNewWindow': 'Open in New Window',
+  'common.fullLogPopup.clickToCopy': 'Click to Copy',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -2828,5 +2829,7 @@ Em.I18n.translations = {
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
   'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
 
-  'wizard.inProgress': '{0} in Progress'
+  'wizard.inProgress': '{0} in Progress',
+
+  'alerts.instance.fullLogPopup.header': 'Instance Response'
 };
