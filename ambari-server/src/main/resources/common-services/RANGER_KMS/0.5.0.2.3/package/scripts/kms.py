@@ -37,7 +37,6 @@ from resource_management.core.utils import PasswordString
 from resource_management.core.shell import as_sudo
 import re
 import time
-import socket
 
 def password_validation(password, key):
   import params
@@ -115,12 +114,7 @@ def setup_kms_db():
     dba_setup = format('python {kms_home}/dba_script.py -q')
     db_setup = format('python {kms_home}/db_setup.py')
 
-    if params.create_db_user:
-      Logger.info('Setting up Ranger KMS DB and DB User')
-      Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
-    else:
-      Logger.info('Separate DBA property not set. Assuming Ranger KMS DB and DB User exists!')
-
+    Execute(dba_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
     Execute(db_setup, environment=env_dict, logoutput=True, user=params.kms_user, tries=5, try_sleep=10)
 
 def setup_java_patch():
@@ -179,23 +173,6 @@ def kms():
       group = params.kms_group,
       recursive = True
     )
-
-    File(format("/usr/lib/ambari-agent/{check_db_connection_jar_name}"),
-      content = DownloadSource(format("{jdk_location}{check_db_connection_jar_name}")),
-      mode = 0644,
-    )
-
-    cp = format("{check_db_connection_jar}")
-    cp = cp + os.pathsep + format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
-
-    db_connection_check_command = format(
-      "{java_home}/bin/java -cp {cp} org.apache.ambari.server.DBConnectionVerification '{ranger_kms_jdbc_connection_url}' {db_user} {db_password!p} {ranger_kms_jdbc_driver}")
-    
-    env_dict = {}
-    if params.db_flavor.lower() == 'sqla':
-      env_dict = {'LD_LIBRARY_PATH':params.ld_library_path}
-
-    Execute(db_connection_check_command, path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10, environment=env_dict)
 
     if params.xa_audit_db_is_enabled:
       File(params.downloaded_connector_path,
@@ -425,9 +402,6 @@ def create_repo(url, data, usernamepassword):
     else:
       Logger.error("Error creating service. Reason - {0}.".format(e.reason))
       return False
-  except socket.timeout as e:
-    Logger.error("Error creating service. Reason - {0}".format(e))
-    return False
 
 def get_repo(url, name, usernamepassword):
   try:
@@ -458,6 +432,3 @@ def get_repo(url, name, usernamepassword):
     else:
       Logger.error("Error getting {0} service. Reason - {1}.".format(name, e.reason))
       return False
-  except socket.timeout as e:
-    Logger.error("Error getting service. Reason - {0}".format(e))
-    return False
