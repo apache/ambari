@@ -243,16 +243,6 @@ describe('utils/blueprint', function() {
   describe('#buildConfigsJSON', function () {
     var tests = [
       {
-        "services": [
-          Em.Object.create({
-            serviceName: "YARN",
-            configTypes: {
-              "yarn-site": {},
-              "yarn-env": {}
-            },
-            isInstalled: true
-          })
-        ],
         "stepConfigs": [
           Em.Object.create({
             serviceName: "YARN",
@@ -260,17 +250,31 @@ describe('utils/blueprint', function() {
               Em.Object.create({
                 name: "p1",
                 value: "v1",
-                filename: "yarn-site.xml"
+                filename: "yarn-site.xml",
+                isRequiredByAgent: true
               }),
               Em.Object.create({
                 name: "p2",
                 value: "v2",
-                filename: "yarn-site.xml"
+                filename: "yarn-site.xml",
+                isRequiredByAgent: true
               }),
               Em.Object.create({
                 name: "p3",
                 value: "v3",
-                filename: "yarn-env.xml"
+                filename: "yarn-env.xml",
+                isRequiredByAgent: true
+              })
+            ]
+          }),
+          Em.Object.create({
+            serviceName: "MISC",
+            configs: [
+              Em.Object.create({
+                name: "user",
+                value: "yarn",
+                filename: "yarn-env.xml",
+                isRequiredByAgent: true
               })
             ]
           })
@@ -284,7 +288,8 @@ describe('utils/blueprint', function() {
           },
           "yarn-env": {
             "properties": {
-              "p3": "v3"
+              "p3": "v3",
+              "user": "yarn"
             }
           }
         }
@@ -292,7 +297,7 @@ describe('utils/blueprint', function() {
     ];
     tests.forEach(function (test) {
       it("generate configs for request (use in validation)", function () {
-        expect(blueprintUtils.buildConfigsJSON(test.services, test.stepConfigs)).to.eql(test.configurations);
+        expect(blueprintUtils.buildConfigsJSON(test.stepConfigs)).to.eql(test.configurations);
       });
     });
   });

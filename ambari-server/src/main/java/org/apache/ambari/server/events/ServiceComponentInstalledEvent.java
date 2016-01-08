@@ -59,7 +59,7 @@ public class ServiceComponentInstalledEvent extends ServiceEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("ServiceComponentInstalledEvent{ ");
+    StringBuilder buffer = new StringBuilder("ServiceComponentInstalledEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", stackName=").append(m_stackName);
     buffer.append(", stackVersion=").append(m_stackVersion);

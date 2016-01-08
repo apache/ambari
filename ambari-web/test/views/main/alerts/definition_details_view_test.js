@@ -54,6 +54,22 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     });
   });
 
+  describe("#openFullResponse()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App, 'showLogsPopup');
+    });
+
+    afterEach(function() {
+      App.showLogsPopup.restore();
+    });
+
+    it("App.showLogsPopup should be called", function() {
+      instanceTableRow.openFullResponse({context: Em.Object.create({text: 'text1'})});
+      expect(App.showLogsPopup.calledWith(Em.I18n.t('alerts.instance.fullLogPopup.header'), 'text1')).to.be.true;
+    });
+  });
+
 });
 
 function getInstanceView() {

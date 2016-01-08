@@ -47,7 +47,7 @@
                   {{/if}}
                 {{/if}}
               {{else}}
-                <div class="spinner"></div>
+                {{view App.SpinnerView}}
               {{/if}}
            </ul>
           </li>
@@ -109,7 +109,7 @@
             </li>
             {{/each}}
           {{else}}
-            <div class="spinner service-button-spinner"></div>
+            {{view App.SpinnerView classNames="service-button-spinner"}}
           {{/if}}
         {{/isAuthorized}}
       </ul>

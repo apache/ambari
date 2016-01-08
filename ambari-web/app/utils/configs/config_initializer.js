@@ -137,7 +137,6 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
   }.property(''),
 
   uniqueInitializers: {
-    'hadoop.registry.rm.enabled': '_setYarnSliderDependency',
     'ranger_admin_password': '_setRangerAdminPassword',
     'hive_database': '_initHiveDatabaseValue',
     'templeton.hive.properties': '_initTempletonHiveProperties',
@@ -164,24 +163,6 @@ App.ConfigInitializer = App.ConfigInitializerClass.create(App.MountPointsBasedIn
     var value = 'P1!q' + stringUtils.getRandomString(12);
     Em.setProperties(configProperty, {'value': value, 'recommendedValue': value, 'retypedPassword': value});
     return configProperty;
-  },
-
-
-  /**
-   * Set specific config for YARN that depends on SLIDER.
-   * TODO DELETE as soon as <code>hadoop.registry.rm.enabled</code> will be fetched from stack adviser!
-   *
-   * @param configProperty
-   * @param localDb
-   * @param dependencies
-   * @private
-   */
-  _setYarnSliderDependency: function(configProperty, localDb, dependencies) {
-    var res = (!!dependencies.sliderSelected).toString();
-    if (Em.get(configProperty, 'value') !== res) {
-      Em.set(configProperty, 'recommendedValue', res);
-      Em.set(configProperty, 'value', res);
-    }
   },
 
   /**

@@ -26,6 +26,7 @@ from resource_management.core.exceptions import Fail
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.format import format
 from resource_management.libraries.script.script import Script
 from resource_management.core.shell import call
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -33,6 +34,7 @@ from resource_management.libraries.functions.version_select_util import get_vers
 
 HDP_SELECT = '/usr/bin/hdp-select'
 HDP_SELECT_PREFIX = ('ambari-python-wrap', HDP_SELECT)
+
 # hdp-select set oozie-server 2.2.0.0-1234
 TEMPLATE = HDP_SELECT_PREFIX + ('set',)
 
@@ -103,6 +105,26 @@ HADOOP_DIR_DEFAULTS = {
   "lib": "/usr/lib/hadoop/lib"
 }
 
+def select_all(version_to_select):
+  """
+  Executes hdp-select on every component for the specified version. If the value passed in is a
+  stack version such as "2.3", then this will find the latest installed version which
+  could be "2.3.0.0-9999". If a version is specified instead, such as 2.3.0.0-1234, it will use
+  that exact version.
+  :param version_to_select: the version to hdp-select on, such as "2.3" or "2.3.0.0-1234"
+  """
+  # it's an error, but it shouldn't really stop anything from working
+  if version_to_select is None:
+    Logger.error("Unable to execute hdp-select after installing because there was no version specified")
+    return
+
+  Logger.info("Executing hdp-select set all on {0}".format(version_to_select))
+
+  command = format('{sudo} /usr/bin/hdp-select set all `ambari-python-wrap /usr/bin/hdp-select versions | grep ^{version_to_select} | tail -1`')
+  only_if_command = format('ls -d /usr/hdp/{version_to_select}*')
+  Execute(command, only_if = only_if_command)
+
+
 def select(component, version):
   """
   Executes hdp-select on the specific component and version. Some global
@@ -112,7 +134,8 @@ def select(component, version):
   recalculated is to call reload(...) on each module that has global parameters.
   After invoking hdp-select, this function will also reload params, status_params,
   and params_linux.
-  :param component: the hdp-select component, such as oozie-server
+  :param component: the hdp-select component, such as oozie-server. If "all", then all components
+  will be updated.
   :param version: the version to set the component to, such as 2.2.0.0-1234
   """
   command = TEMPLATE + (component, version)
@@ -128,7 +151,7 @@ def select(component, version):
     if moduleName in modules:
       module = modules.get(moduleName)
       reload(module)
-      Logger.info("After hdp-select {0}, reloaded module {1}".format(component, moduleName))
+      Logger.info("After {0}, reloaded module {1}".format(command, moduleName))
 
 
 def get_role_component_current_hdp_version():

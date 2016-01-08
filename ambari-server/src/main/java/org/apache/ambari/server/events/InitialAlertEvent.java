@@ -80,7 +80,7 @@ public class InitialAlertEvent extends AlertEvent {
    */
   @Override
   public String toString() {
-    StringBuilder buffer = new StringBuilder("InitialAlertEvent{ ");
+    StringBuilder buffer = new StringBuilder("InitialAlertEvent{");
     buffer.append("cluserId=").append(m_clusterId);
     buffer.append(", alert=").append(m_alert);
 

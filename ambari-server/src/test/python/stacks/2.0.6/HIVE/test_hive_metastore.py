@@ -47,7 +47,7 @@ class TestHiveMetastore(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -106,7 +106,7 @@ class TestHiveMetastore(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /etc/hive/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr',
            'HIVE_BIN': 'hive',
            'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
@@ -498,7 +498,7 @@ class TestHiveMetastore(RMFTestCase):
                               create_parents = True,
                               cd_access = 'a')
 
-    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.log /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
+    self.assertResourceCalled('Execute', '/tmp/start_metastore_script /var/log/hive/hive.out /var/log/hive/hive.err /var/run/hive/hive.pid /usr/hdp/current/hive-server2/conf/conf.server /var/log/hive',
         environment = {'HADOOP_HOME': '/usr/hdp/2.3.0.0-1234/hadoop', 'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45', 'HIVE_BIN': '/usr/hdp/current/hive-server2/bin/hive'},
         not_if = None,
         user = 'hive',

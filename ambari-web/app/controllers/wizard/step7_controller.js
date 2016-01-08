@@ -180,6 +180,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return serviceNames;
   }.property('content.services').cacheable(),
 
+  installedServices: function () {
+    return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
+      return Em.get(item, 'isInstalled');
+    });
+  }.property(),
+
   /**
    * List of master components
    * @type {Ember.Enumerable}
@@ -688,9 +694,17 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-    // if HA is enabled and HAWQ is selected to be installed -> Add HAWQ related configs
-    if (this.get('wizardController.name') === 'addServiceController' && App.get('isHaEnabled') && this.get('allSelectedServiceNames').contains('HAWQ')) {
-      this.addHawqConfigsOnNnHa(configs);
+    // If HAWQ service is being added, add NN-HA/RM-HA/Kerberos related parameters to hdfs-client/yarn-client if applicable
+    if (this.get('wizardController.name') == 'addServiceController' && !this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      if (App.get('isHaEnabled')) {
+        this.addHawqConfigsOnNnHa(configs);
+      }
+      if (App.get('isRMHaEnabled')) {
+        this.addHawqConfigsOnRMHa(configs);
+      }
+      if (App.get('isKerberosEnabled')) {
+        this.addHawqConfigsOnKerberizedCluster(configs);
+      }
     }
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
@@ -710,7 +724,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (rangerService && !rangerService.get('isInstalled') && !rangerService.get('isSelected')) {
       App.config.removeRangerConfigs(self.get('stepConfigs'));
     }
-    this.loadServerSideConfigsRecommendations().always(this.completeConfigLoading.bind(this));
+    this.loadConfigRecommendations(null, this.completeConfigLoading.bind(this));
   },
 
   completeConfigLoading: function() {
@@ -797,12 +811,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return stepConfigs;
   },
 
+
   /**
    * For Namenode HA, HAWQ service requires additional config parameters in hdfs-client.xml
    * This method ensures that these additional parameters are added to hdfs-client.xml
    * @param configs existing configs on cluster
    * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml
-   * @private
    */
   addHawqConfigsOnNnHa: function(configs) {
     var nameService = configs.findProperty('id', 'dfs.nameservices__hdfs-site').value;
@@ -833,6 +847,91 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configs.push(App.ServiceConfigProperty.create(newProperty));
     });
     return configs;
+  },
+
+  /**
+   * For ResourceManager HA, HAWQ service requires additional config parameters in yarn-client.xml
+   * This method ensures that these additional parameters are added to yarn-client.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
+   */
+  addHawqConfigsOnRMHa: function(configs) {
+    rmHost1 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm1__yarn-site').value ;
+    rmHost2 = configs.findProperty('id', 'yarn.resourcemanager.hostname.rm2__yarn-site').value ;
+    var yarnConfigToBeAdded = [
+      {
+        name: 'yarn.resourcemanager.ha',
+        displayName: 'yarn.resourcemanager.ha',
+        description: 'Comma separated yarn resourcemanager host addresses with port',
+        port: '8032'
+      },
+      {
+        name: 'yarn.resourcemanager.scheduler.ha',
+        displayName: 'yarn.resourcemanager.scheduler.ha',
+        description: 'Comma separated yarn resourcemanager scheduler addresses with port',
+        port: '8030'
+      }
+    ];
+
+    yarnConfigToBeAdded.forEach(function(propertyDetails) {
+      var newProperty = App.config.createDefaultConfig(propertyDetails.name, 'HAWQ', 'yarn-client.xml', true);
+      var value = rmHost1 + ':' + propertyDetails.port + ',' + rmHost2 + ':' + propertyDetails.port;
+      Em.setProperties(newProperty, {
+        name: propertyDetails.name,
+        description: propertyDetails.description,
+        displayName: propertyDetails.displayName,
+        isOverridable: false,
+        isReconfigurable: false,
+        value: value,
+        recommendedValue: value
+      });
+
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
+    return configs;
+  },
+
+  /**
+   * For Kerberos Enabled cluster, HAWQ service requires additional config parameters in hdfs-client.xml and hawq-site.xml
+   * This method ensures that these additional parameters are added to hdfs-client.xml and hawq-site.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml and hawq-site.xml
+   */
+  addHawqConfigsOnKerberizedCluster: function(configs) {
+    Em.A([
+      {
+        name: 'hadoop.security.authentication',
+        value: 'kerberos',
+        filename: 'hdfs-client.xml',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'enable_secure_filesystem',
+        value: 'ON',
+        filename: 'hawq-site.xml',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'krb_server_keyfile',
+        value: '/etc/security/keytabs/hawq.service.keytab',
+        filename: 'hawq-site.xml',
+        isOverridable: true,
+        isReconfigurable: true
+      }
+    ]).forEach(function (property) {
+      var newProperty = App.config.createDefaultConfig(property.name, 'HAWQ', property.filename, true);
+      Em.setProperties(newProperty, {
+        displayName: property.name,
+        displayType: 'string',
+        name: property.name,
+        value: property.value,
+        recommendedValue: property.value,
+        isOverridable: property.isOverridable,
+        isReconfigurable: property.isReconfigurable,
+        isSecureConfig: true
+      });
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
   },
 
   /**
@@ -1294,7 +1393,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       if (!stackProperty || !this.get('installedServices')[stackProperty.serviceName]) {
         return true;
       } else if (stackProperty.propertyDependsOn.length) {
-        return stackProperty.propertyDependsOn.filter(function (p) {
+        return !!stackProperty.propertyDependsOn.filter(function (p) {
           var service = App.config.getServiceByConfigType(p.type);
           return service && !this.get('installedServices')[service.get('serviceName')];
         }, this).length;
@@ -1535,7 +1634,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   showOozieDerbyWarningPopup: function(callback) {
     var self = this;
     if (this.get('selectedServiceNames').contains('OOZIE')) {
-      var databaseType = Em.getWithDefault(this.findConfigProperty('oozie_database', 'oozie-env.xml') || {}, 'value', '');
+      var databaseType = Em.getWithDefault(App.config.findConfigProperty(this.get('stepConfigs'), 'oozie_database', 'oozie-env.xml') || {}, 'value', '');
       if (databaseType == Em.I18n.t('installer.step7.oozie.database.new')) {
         return App.ModalPopup.show({
           header: Em.I18n.t('common.warning'),

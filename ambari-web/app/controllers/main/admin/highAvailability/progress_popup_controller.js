@@ -87,7 +87,7 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
         primary: false,
         secondary: false,
         bodyClass: Ember.View.extend({
-          template: Ember.Handlebars.compile('<div class="spinner"></div>')
+          template: Ember.Handlebars.compile('{{view App.SpinnerView}}')
         })
       });
       this.set('spinnerPopup', loadingPopup);

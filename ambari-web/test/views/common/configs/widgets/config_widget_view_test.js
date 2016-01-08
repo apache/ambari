@@ -261,12 +261,12 @@ describe('App.ConfigWidgetView', function () {
       });
 
       it('dependent3 value is `1`', function () {
-        expect(view.get('controller').findConfigProperty('dependent3', 'some-file.xml').get('value')).to.be.equal('1');
+        expect(App.config.findConfigProperty(ctrl.get('stepConfigs'), 'dependent3', 'some-file.xml').get('value')).to.be.equal('1');
       });
 
       it('dependent2 value is `10`', function () {
         // config with multi dependency should not be updated
-        expect(view.get('controller').findConfigProperty('dependent2', 'some-file.xml').get('value')).to.be.equal('10');
+        expect(App.config.findConfigProperty(ctrl.get('stepConfigs'), 'dependent2', 'some-file.xml').get('value')).to.be.equal('10');
       });
 
     });

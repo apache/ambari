@@ -20,6 +20,7 @@
 // load all views here
 
 require('views/application');
+require('views/common/global/spinner');
 require('views/common/ajax_default_error_popup_body');
 require('views/common/chart');
 require('views/common/chart/pie');
@@ -35,6 +36,7 @@ require('views/common/modal_popups/cluster_check_popup');
 require('views/common/modal_popups/invalid_KDC_popup');
 require('views/common/modal_popups/dependent_configs_list_popup');
 require('views/common/modal_popups/select_groups_popup');
+require('views/common/modal_popups/logs_popup');
 require('views/common/editable_list');
 require('views/common/host_progress_popup_body_view');
 require('views/common/rolling_restart_view');

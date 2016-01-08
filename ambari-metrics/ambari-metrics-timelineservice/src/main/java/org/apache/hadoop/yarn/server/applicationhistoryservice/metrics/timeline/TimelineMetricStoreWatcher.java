@@ -37,8 +37,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TimelineMetricStoreWatcher implements Runnable {
 
-  private static final Log LOG = LogFactory
-    .getLog(TimelineMetricStoreWatcher.class);
+  private static final Log LOG = LogFactory.getLog(TimelineMetricStoreWatcher.class);
   private static final String FAKE_METRIC_NAME = "TimelineMetricStoreWatcher.FakeMetric";
   private static final String FAKE_HOSTNAME = "fakehostname";
   private static final String FAKE_APP_ID = "timeline_metric_store_watcher";
@@ -60,16 +59,13 @@ public class TimelineMetricStoreWatcher implements Runnable {
 
   @Override
   public void run() {
-
     if (checkMetricStore()) {
       failures = 0;
       if (LOG.isDebugEnabled()) {
         LOG.debug("Successfully got metrics from TimelineMetricStore");
       }
     } else {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Failed to get metrics from TimelineMetricStore");
-      }
+      LOG.info("Failed to get metrics from TimelineMetricStore, attempt = " + failures);
       failures++;
     }
 

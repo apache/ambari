@@ -129,9 +129,13 @@
       </commandScript>
 
       <configuration-dependencies>
-        <config-type>hawq-site</config-type>
         <config-type>hawq-env</config-type>
+        <config-type>hawq-site</config-type>
         <config-type>gpcheck-env</config-type>
+        <config-type>hdfs-client</config-type>
+        <config-type>yarn-client</config-type>
+        <config-type>hawq-limits-env</config-type>
+        <config-type>hawq-sysctl-env</config-type>
       </configuration-dependencies>
     </service>
 

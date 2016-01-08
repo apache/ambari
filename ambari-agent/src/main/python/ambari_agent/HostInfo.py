@@ -132,7 +132,8 @@ class HostInfoLinux(HostInfo):
     "rrdcached", "hcat", "ambari-qa", "sqoop-ambari-qa", "sqoop-ambari_qa",
     "webhcat", "hadoop-hdfs", "hadoop-yarn", "hadoop-mapreduce",
     "knox", "yarn", "hive-webhcat", "kafka", "slider", "storm-slider-client",
-    "ganglia-web", "mahout", "spark", "pig", "phoenix", "ranger", "accumulo"
+    "ganglia-web", "mahout", "spark", "pig", "phoenix", "ranger", "accumulo",
+    "ambari-metrics-collector", "ambari-metrics-monitor", "atlas"
   ]
 
 

@@ -58,11 +58,14 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -183,7 +186,8 @@ public class HostStackVersionResourceProviderTest {
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
-
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(new HashMap<String, Service>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
 
@@ -203,6 +207,9 @@ public class HostStackVersionResourceProviderTest {
     expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.INSTALL_FAILED).anyTimes();
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+
+    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
+    StageUtils.setTopologyManager(topologyManager);
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
@@ -291,7 +298,8 @@ public class HostStackVersionResourceProviderTest {
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHost(anyObject(String.class))).andReturn(host1);
-
+    expect(cluster.getHosts()).andReturn(hostsForCluster.values()).atLeastOnce();
+    expect(cluster.getServices()).andReturn(new HashMap<String, Service>()).anyTimes();
     expect(cluster.getCurrentStackVersion()).andReturn(stackId);
     expect(cluster.getServiceComponentHosts(anyObject(String.class))).andReturn(schs).anyTimes();
 
@@ -311,6 +319,9 @@ public class HostStackVersionResourceProviderTest {
     expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.OUT_OF_SYNC).anyTimes();
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
+
+    TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
+    StageUtils.setTopologyManager(topologyManager);
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,

@@ -28,35 +28,22 @@ describe('App.ReloadPopupMixin', function () {
     obj = Em.Object.create(App.ReloadPopupMixin);
   });
 
-  describe('#showReloadPopup', function () {
-
-    var spanRegExp = new RegExp('<span>([\\s\\S]+)<\/span>'),
-      cases = [
-        {
-          result: Em.I18n.t('app.reloadPopup.text'),
-          title: 'should show modal popup with default message'
-        },
-        {
-          text: 'text',
-          result: 'text',
-          title: 'should show modal popup with custom message'
-        }
-      ];
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show', function (popup) {
-        return popup.body;
-      });
-    });
-
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
+  describe('#popupText', function () {
+    var cases = [
+      {
+        result: Em.I18n.t('app.reloadPopup.text'),
+        title: 'should show modal popup with default message'
+      },
+      {
+        text: 'text',
+        result: 'text',
+        title: 'should show modal popup with custom message'
+      }
+    ];
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        obj.showReloadPopup(item.text);
-        expect(obj.get('reloadPopup').match(spanRegExp)[1]).to.equal(item.result);
+        expect(obj.popupText(item.text)).to.equal(item.result);
       });
     });
 

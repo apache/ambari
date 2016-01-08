@@ -299,6 +299,7 @@ Em.I18n.translations = {
   'common.timeout.warning.popup.primary': 'Remain Logged In',
   'common.timeout.warning.popup.secondary': 'Log Out Now',
   'common.openNewWindow': 'Open in New Window',
+  'common.fullLogPopup.clickToCopy': 'Click to Copy',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -1210,11 +1211,12 @@ Em.I18n.translations = {
   'admin.highAvailability.wizard.step9.task0.title':'Start Additional NameNode',
   'admin.highAvailability.wizard.step9.task1.title':'Install Failover Controllers',
   'admin.highAvailability.wizard.step9.task2.title':'Start Failover Controllers',
-  'admin.highAvailability.wizard.step9.task3.title':'Reconfigure HBase',
-  'admin.highAvailability.wizard.step9.task4.title':'Reconfigure Accumulo',
-  'admin.highAvailability.wizard.step9.task5.title':'Reconfigure Hawq',
-  'admin.highAvailability.wizard.step9.task6.title':'Delete Secondary NameNode',
-  'admin.highAvailability.wizard.step9.task7.title':'Start All Services',
+  'admin.highAvailability.wizard.step9.task3.title':'Install PXF',
+  'admin.highAvailability.wizard.step9.task4.title':'Reconfigure HBase',
+  'admin.highAvailability.wizard.step9.task5.title':'Reconfigure Accumulo',
+  'admin.highAvailability.wizard.step9.task6.title':'Reconfigure HAWQ',
+  'admin.highAvailability.wizard.step9.task7.title':'Delete Secondary NameNode',
+  'admin.highAvailability.wizard.step9.task8.title':'Start All Services',
   'admin.highAvailability.wizard.step9.notice.completed':'NameNode HA has been enabled successfully.',
 
   'admin.highAvailability.wizard.step3.curNameNode': '<b>Current NameNode:</b> ',
@@ -1235,16 +1237,19 @@ Em.I18n.translations = {
   'admin.highAvailability.rollback.header':'Disable NameNode HA Wizard',
   'admin.highAvailability.rollback.task0.title':'Stop All Services',
   'admin.highAvailability.rollback.task1.title':'Restore HBase Configurations',
-  'admin.highAvailability.rollback.task2.title':'Stop Failover Controllers',
-  'admin.highAvailability.rollback.task3.title':'Delete Failover Controllers',
-  'admin.highAvailability.rollback.task4.title':'Stop Additional NameNode',
-  'admin.highAvailability.rollback.task5.title':'Stop NameNode',
-  'admin.highAvailability.rollback.task6.title':'Restore HDFS Configurations',
-  'admin.highAvailability.rollback.task7.title':'Enable Secondary NameNode',
-  'admin.highAvailability.rollback.task8.title':'Stop JournalNodes',
-  'admin.highAvailability.rollback.task9.title':'Delete JournalNodes',
-  'admin.highAvailability.rollback.task10.title':'Delete Additional NameNode',
-  'admin.highAvailability.rollback.task11.title':'Start All Services',
+  'admin.highAvailability.rollback.task2.title':'Restore Accumulo Configurations',
+  'admin.highAvailability.rollback.task3.title':'Restore HAWQ Configurations',
+  'admin.highAvailability.rollback.task4.title':'Stop Failover Controllers',
+  'admin.highAvailability.rollback.task5.title':'Delete Failover Controllers',
+  'admin.highAvailability.rollback.task6.title':'Delete PXF',
+  'admin.highAvailability.rollback.task7.title':'Stop Additional NameNode',
+  'admin.highAvailability.rollback.task8.title':'Stop NameNode',
+  'admin.highAvailability.rollback.task9.title':'Restore HDFS Configurations',
+  'admin.highAvailability.rollback.task10.title':'Enable Secondary NameNode',
+  'admin.highAvailability.rollback.task11.title':'Stop JournalNodes',
+  'admin.highAvailability.rollback.task12.title':'Delete JournalNodes',
+  'admin.highAvailability.rollback.task13.title':'Delete Additional NameNode',
+  'admin.highAvailability.rollback.task14.title':'Start All Services',
   'admin.highAvailability.rollback.notice.inProgress':'Please wait while the wizard reverts back to the non-HA setup.',
 
   'admin.highAvailability.rollback.step2.body':
@@ -1477,6 +1482,8 @@ Em.I18n.translations = {
   'admin.stackVersions.version.downgrade.running': "Downgrade: In Process",
   'admin.stackVersions.version.downgrade.aborted': "Downgrade: Aborted",
   'admin.stackVersions.version.downgrade.suspended': "Downgrade: Paused",
+  'admin.stackUpgrade.state.paused.fail.header': "Pause Upgrade failed",
+  'admin.stackUpgrade.state.paused.fail.body': "Upgrade could not be paused. Try again later.",
 
   'admin.stackVersions.version.upgrade.upgradeOptions.header': "Upgrade Options",
   'admin.stackVersions.version.upgrade.upgradeOptions.bodyMsg.version': "You are about to perform an upgrade to <b>{0}</b>.",
@@ -1573,6 +1580,7 @@ Em.I18n.translations = {
   'admin.stackUpgrade.dialog.details.open': "show details",
   'admin.stackUpgrade.dialog.details.hide': "hide details",
   'admin.stackUpgrade.dialog.notActive': "Waiting to execute the next task...",
+  'admin.stackUpgrade.dialog.prepareUpgrade.header': "Preparing the Upgrade...",
   'services.service.start':'Start',
   'services.service.stop':'Stop',
   'services.service.metrics':'Metrics',
@@ -2821,5 +2829,7 @@ Em.I18n.translations = {
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
   'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
 
-  'wizard.inProgress': '{0} in Progress'
+  'wizard.inProgress': '{0} in Progress',
+
+  'alerts.instance.fullLogPopup.header': 'Instance Response'
 };

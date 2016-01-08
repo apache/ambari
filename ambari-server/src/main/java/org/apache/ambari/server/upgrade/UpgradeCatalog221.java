@@ -52,10 +52,14 @@ import java.util.UUID;
 public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
 
   private static final String AMS_HBASE_SITE = "ams-hbase-site";
+  private static final String AMS_SITE = "ams-site";
   private static final String AMS_HBASE_SECURITY_SITE = "ams-hbase-security-site";
   private static final String AMS_ENV = "ams-env";
   private static final String AMS_HBASE_ENV = "ams-hbase-env";
+  private static final String AMS_MODE = "timeline.metrics.service.operation.mode";
   private static final String ZK_ZNODE_PARENT = "zookeeper.znode.parent";
+  private static final String ZK_CLIENT_PORT = "hbase.zookeeper.property.clientPort";
+  private static final String ZK_TICK_TIME = "hbase.zookeeper.property.tickTime";
   private static final String CLUSTER_ENV = "cluster-env";
   private static final String SECURITY_ENABLED = "security_enabled";
 
@@ -71,6 +75,13 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
   private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
   private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
+  private static final String RANGER_KMS_DBKS_CONFIG = "dbks-site";
+  private static final String RANGER_KMS_DB_FLAVOR = "DB_FLAVOR";
+  private static final String RANGER_KMS_DB_HOST = "db_host";
+  private static final String RANGER_KMS_DB_NAME = "db_name";
+  private static final String RANGER_KMS_JDBC_URL = "ranger.ks.jpa.jdbc.url";
+  private static final String RANGER_KMS_JDBC_DRIVER = "ranger.ks.jpa.jdbc.driver";
+  private static final String RANGER_KMS_PROPERTIES = "kms-properties";
 
 
   // ----- Constructors ------------------------------------------------------
@@ -126,6 +137,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     updateOozieConfigs();
+    updateRangerKmsDbksConfigs();
   }
 
   protected void updateAlerts() {
@@ -200,6 +212,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
 
     return sourceJson.toString();
   }
+
   protected void updateAMSConfigs() throws AmbariException {
     AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     Clusters clusters = ambariManagementController.getClusters();
@@ -234,9 +247,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
             Map<String, String> newProperties = new HashMap<>();
 
             if (!amsHbaseSiteProperties.containsKey(ZK_ZNODE_PARENT)) {
-
               if (StringUtils.isEmpty(znodeParent) || "/hbase".equals(znodeParent)) {
-
                 boolean isSecurityEnabled = false;
                 Config clusterEnv = cluster.getDesiredConfigByType(CLUSTER_ENV);
                 if (clusterEnv != null) {
@@ -252,6 +263,31 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
               newProperties.put(ZK_ZNODE_PARENT, znodeParent);
 
             }
+
+            boolean isDistributed = false;
+            Config amsSite = cluster.getDesiredConfigByType(AMS_SITE);
+            if (amsSite != null) {
+              if ("distributed".equals(amsSite.getProperties().get(AMS_MODE))) {
+                isDistributed = true;
+              }
+            }
+
+            // Skip override if custom port found in embedded mode.
+            if (amsHbaseSiteProperties.containsKey(ZK_CLIENT_PORT) &&
+               (isDistributed || amsHbaseSiteProperties.get(ZK_CLIENT_PORT).equals("61181"))) {
+              String newValue = "{{zookeeper_clientPort}}";
+              LOG.info("Replacing value of " + ZK_CLIENT_PORT + " from " +
+                amsHbaseSiteProperties.get(ZK_CLIENT_PORT) + " to " +
+                newValue + " in ams-hbase-site");
+
+              newProperties.put(ZK_CLIENT_PORT, newValue);
+            }
+
+            if (!amsHbaseSiteProperties.containsKey(ZK_TICK_TIME)) {
+              LOG.info("Adding config " + ZK_TICK_TIME + " to ams-hbase-site");
+              newProperties.put(ZK_TICK_TIME, "6000");
+            }
+
             updateConfigurationPropertiesForCluster(cluster, AMS_HBASE_SITE, newProperties, true, true);
           }
 
@@ -309,4 +345,41 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     }
   }
 
+  protected void updateRangerKmsDbksConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Map<String, String> newRangerKmsProps = new HashMap<>();
+      Config rangerKmsDbConfigs = cluster.getDesiredConfigByType(RANGER_KMS_PROPERTIES);
+      if (rangerKmsDbConfigs != null) {
+        String dbFlavor = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_FLAVOR);
+        String dbHost = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_HOST);
+        String dbName = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_NAME);
+        String dbConnectionString = null;
+        String dbDriver = null;
+
+        if (dbFlavor != null && dbHost != null && dbName != null) {
+          if ("MYSQL".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:mysql://"+dbHost+"/"+dbName;
+            dbDriver = "com.mysql.jdbc.Driver";
+          } else if ("ORACLE".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:oracle:thin:@//"+dbHost;
+            dbDriver = "oracle.jdbc.driver.OracleDriver";
+          } else if ("POSTGRES".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:postgresql://"+dbHost+"/"+dbName;
+            dbDriver = "org.postgresql.Driver";
+          } else if ("MSSQL".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:sqlserver://"+dbHost+";databaseName="+dbName;
+            dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+          } else if ("SQLA".equalsIgnoreCase(dbFlavor)) {
+            dbConnectionString = "jdbc:sqlanywhere:database="+dbName+";host="+dbHost;
+            dbDriver = "sap.jdbc4.sqlanywhere.IDriver";
+          }
+          newRangerKmsProps.put(RANGER_KMS_JDBC_URL, dbConnectionString);
+          newRangerKmsProps.put(RANGER_KMS_JDBC_DRIVER, dbDriver);
+          updateConfigurationPropertiesForCluster(cluster, RANGER_KMS_DBKS_CONFIG, newRangerKmsProps, true, false);
+        }
+      }
+    }
+  }
 }

@@ -2428,4 +2428,40 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
+  describe('#updateKerberosDescriptor', function () {
+
+    var requestData = {artifactName: 'kerberos_descriptor',
+      data: {
+        artifact_data: 1234
+      }
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.db, 'get').withArgs('KerberosWizard', 'kerberosDescriptorConfigs').returns(1234);
+      sinon.stub(App.ajax, 'send', Em.K);
+      sinon.stub(installerStep8Controller, 'addRequestToAjaxQueue', Em.K);
+    });
+
+    afterEach(function () {
+      App.db.get.restore();
+      App.ajax.send.restore();
+      installerStep8Controller.addRequestToAjaxQueue.restore();
+    });
+
+    it('should send request instantly', function () {
+      installerStep8Controller.updateKerberosDescriptor(true);
+      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(installerStep8Controller.addRequestToAjaxQueue.called).to.be.false;
+      expect(App.ajax.send.args[0][0].data).to.be.eql(requestData);
+    });
+
+    it('should add request to the queue', function () {
+      installerStep8Controller.updateKerberosDescriptor(false);
+      expect(App.ajax.send.called).to.be.false;
+      expect(installerStep8Controller.addRequestToAjaxQueue.calledOnce).to.be.true;
+      expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.be.eql(requestData);
+    });
+
+  });
+
 });

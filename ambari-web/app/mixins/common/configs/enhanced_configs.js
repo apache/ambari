@@ -36,6 +36,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   forceUpdateBoundaries: false,
 
   /**
+   * object with loaded recommendations
+   *
+   * @type {Object}
+   */
+  recommendationsConfigs: null,
+
+  /**
    * flag is true when Ambari changes some of the dependent properties
    * @type {boolean}
    */
@@ -132,74 +139,61 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
     }
   },
 
-  /**
-   * disable saving recommended value for current config
-   * @param config
-   * @param {boolean} saveRecommended
-   * @method removeCurrentFromDependentList
-   */
-  removeCurrentFromDependentList: function (config, saveRecommended) {
-    var current = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
-    if (current) {
-      Em.setProperties(current, {
-          'saveRecommended': !!saveRecommended,
-          'saveRecommendedDefault': !!saveRecommended
-        });
-    }
+  clearRecommendationsInfo: function() {
+    this.set('recommendationsConfigs', null);
   },
 
   /**
    * sends request to get values for dependent configs
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
-   * @param {Boolean} initial
    * @param {Function} onComplete
    * @returns {$.ajax|null}
    */
-  getRecommendationsForDependencies: function(changedConfigs, initial, onComplete) {
-    if (Em.isArray(changedConfigs) && changedConfigs.length > 0 || initial) {
+  loadConfigRecommendations: function(changedConfigs, onComplete) {
+    var updateDependencies = Em.isArray(changedConfigs) && changedConfigs.length > 0;
+    if (updateDependencies || Em.isNone(this.get('recommendationsConfigs'))) {
       var configGroup = this.get('selectedConfigGroup');
       var recommendations = this.get('hostGroups');
-      delete recommendations.config_groups;
 
       var dataToSend = {
-        recommend: 'configurations',
+        recommend: updateDependencies ? 'configuration-dependencies' : 'configurations',
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
+      if (updateDependencies) {
+        dataToSend.changed_configurations = changedConfigs;
+      }
 
-      var clearConfigsOnAddService = configGroup.get('isDefault') && this.isConfigHasInitialState();
-      if (clearConfigsOnAddService) {
-        recommendations.blueprint.configurations = this.get('initialConfigValues');
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('stepConfigs'));
+
+      if (configGroup && !configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
+        recommendations.config_groups = [this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup)];
       } else {
-        recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
-        if (changedConfigs) {
-          dataToSend.recommend = 'configuration-dependencies';
-          dataToSend.changed_configurations = changedConfigs;
-        }
+        delete recommendations.config_groups;
       }
-      if (!configGroup.get('isDefault') && configGroup.get('hosts.length') > 0) {
-        var configGroups = this.buildConfigGroupJSON(this.get('selectedService.configs'), configGroup);
-        recommendations.config_groups = [configGroups];
-      }
+
       dataToSend.recommendations = recommendations;
+      var self = this;
       return App.ajax.send({
         name: 'config.recommendations',
         sender: this,
         data: {
           stackVersionUrl: App.get('stackVersionURL'),
-          dataToSend: dataToSend,
-          notDefaultGroup: configGroup && !configGroup.get('isDefault'),
-          clearConfigsOnAddService: clearConfigsOnAddService
+          dataToSend: dataToSend
         },
-        success: 'dependenciesSuccess',
-        error: 'dependenciesError',
+        success: 'loadRecommendationsSuccess',
+        error: 'loadRecommendationsError',
         callback: function() {
+          self.set('recommendationTimeStamp', (new Date).getTime());
           if (onComplete) {
             onComplete()
           }
         }
       });
     } else {
+      if (onComplete) {
+        onComplete()
+      }
       return null;
     }
   },
@@ -211,35 +205,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @returns {boolean}
    */
   isConfigHasInitialState: function() {
-    return !this.get('stepConfigs').filter(function(stepConfig) {
+    return this.get('selectedConfigGroup.isDefault') && !Em.isNone(this.get('recommendationsConfigs'))
+      && !this.get('stepConfigs').filter(function(stepConfig) {
       return stepConfig.get('changedConfigProperties').filter(function(c) {
         return !this.get('changedProperties').map(function(changed) {
           return App.config.configId(changed.propertyName, changed.propertyFileName);
         }).contains(App.config.configId(c.get('name'), c.get('filename')));
       }, this).length;
     }, this).length;
-  },
-
-
-  /**
-   * Set all config values to their default (initialValue)
-   */
-  clearConfigValues: function() {
-    this.get('stepConfigs').forEach(function(stepConfig) {
-      stepConfig.get('changedConfigProperties').forEach(function(c) {
-        var recommendedProperty = this.getRecommendation(c.get('name'), c.get('filename'), c.get('group.name'));
-        if (recommendedProperty) {
-          var initialValue = recommendedProperty.initialValue;
-          if (Em.isNone(initialValue)) {
-            stepConfig.get('configs').removeObject(c);
-          } else {
-            c.set('initialValue', initialValue);
-            c.set('value', initialValue);
-          }
-          this.removeRecommendationObject(recommendedProperty);
-        }
-      }, this)
-    }, this);
   },
 
   /**
@@ -277,14 +250,54 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @param params
    * @method dependenciesSuccess
    */
-  dependenciesSuccess: function (data, opt, params) {
-    this._saveRecommendedValues(data, params.dataToSend.changed_configurations, params.notDefaultGroup);
-    this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
-    if (params.clearConfigsOnAddService) {
-      this.clearConfigValues();
+  loadRecommendationsSuccess: function (data, opt, params) {
+    this._saveRecommendedValues(data, params.dataToSend.changed_configurations);
+    if (this.isConfigHasInitialState()) {
+      this.undoRedoRecommended(this.get('recommendations'), false);
       this.clearAllRecommendations();
     }
-    this.set('recommendationTimeStamp', (new Date).getTime());
+    this.set("recommendationsConfigs", Em.get(data, "resources.0.recommendations.blueprint.configurations"));
+  },
+
+  loadRecommendationsError: Em.K,
+
+  changedDependentGroup: function() {
+    var dependentServices = this.get('stepConfigs').filter(function(stepConfig) {
+      return this.get('selectedService.dependentServiceNames').contains(stepConfig.get('serviceName'));
+    }, this);
+    App.showSelectGroupsPopup(this.get('selectedService.serviceName'),
+      this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),
+      dependentServices, this.get('recommendations'))
+  },
+
+  /**
+   * saves values from response for dependent config properties to <code>recommendations<code>
+   * @param data
+   * @param [changedConfigs=null]
+   * @method saveRecommendedValues
+   * @private
+   */
+  _saveRecommendedValues: function(data, changedConfigs) {
+    Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
+    var recommendations = data.resources[0].recommendations;
+    if (recommendations['config-groups'] && this.get('selectedConfigGroup') && !this.get('selectedConfigGroup.isDefault')) {
+      var configFroGroup = recommendations['config-groups'][0];
+      this.get('stepConfigs').forEach(function(stepConfig) {
+        var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
+        if (configGroup) {
+          this.updateOverridesByRecommendations(configFroGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
+          this.updateOverridesByRecommendations(configFroGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
+          this.toggleProperty('forceUpdateBoundaries');
+        }
+      }, this);
+    } else {
+      var configObject = recommendations.blueprint.configurations;
+      this.get('stepConfigs').forEach(function(stepConfig) {
+        this.updateConfigsByRecommendations(configObject, stepConfig.get('configs'), changedConfigs);
+      }, this);
+      this.addByRecommendations(configObject, changedConfigs);
+    }
+    this.cleanUpRecommendations();
   },
 
   /**
@@ -292,13 +305,31 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    * @method showChangedDependentConfigs
    */
   showChangedDependentConfigs: function(event, callback, secondary) {
-    if (this.get('recommendations.length') > 0) {
-      App.showDependentConfigsPopup(this.get('changedProperties'), this.onSaveRecommendedPopup.bind(this), secondary);
+    var self = this;
+    var recommendations = event ? this.get('changedProperties') : this.get('recommendations');
+    if (recommendations.length > 0) {
+      App.showDependentConfigsPopup(recommendations, function() {
+        self.onSaveRecommendedPopup(recommendations);
+        if (callback) callback();
+      }, secondary);
     } else {
-      if (callback) {
-        callback();
-      }
+      if (callback) callback();
     }
+  },
+
+  /**
+   * update configs when toggle checkbox on dependent configs popup
+   */
+  onSaveRecommendedPopup: function(recommendations) {
+    var propertiesToUpdate = recommendations.filter(function(c) {
+        return Em.get(c, 'saveRecommendedDefault') != Em.get(c, 'saveRecommended');
+      }),
+      propertiesToUndo = propertiesToUpdate.filterProperty('saveRecommended', false),
+      propertiesToRedo = propertiesToUpdate.filterProperty('saveRecommended', true);
+
+    this.undoRedoRecommended(propertiesToUndo, false);
+    this.undoRedoRecommended(propertiesToRedo, true);
+    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   /**
@@ -341,92 +372,22 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   },
 
   /**
-   * update configs when toggle checkbox on dependent configs popup
-   * @param propertiesToUndo
-   * @param propertiesToRedo
+   * disable saving recommended value for current config
+   * @param config
+   * @param {boolean} saveRecommended
+   * @method removeCurrentFromDependentList
    */
-  onSaveRecommendedPopup: function(propertiesToUndo, propertiesToRedo) {
-    this.undoRedoRecommended(propertiesToUndo, false);
-    this.undoRedoRecommended(propertiesToRedo, true);
-    this.set('recommendationTimeStamp', (new Date).getTime());
-  },
-
-  changedDependentGroup: function() {
-    var dependentServices = this.get('stepConfigs').filter(function(stepConfig) {
-      return this.get('selectedService.dependentServiceNames').contains(stepConfig.get('serviceName'));
-    }, this);
-    App.showSelectGroupsPopup(this.get('selectedService.serviceName'),
-      this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name')),
-      dependentServices, this.get('recommendations'))
-  },
-
-  /**
-   *
-   * @param jqXHR
-   * @param ajaxOptions
-   * @param error
-   * @param opt
-   */
-  dependenciesError: function(jqXHR, ajaxOptions, error, opt) {
-    this.set('recommendationTimeStamp', (new Date).getTime());
-    // We do not want to show user dialogs of failed recommendations
-  },
-
-  /**
-   * saves values from response for dependent config properties to <code>recommendations<code>
-   * @param data
-   * @param [changedConfigs=null]
-   * @param notDefaultGroup
-   * @method saveRecommendedValues
-   * @private
-   */
-  _saveRecommendedValues: function(data, changedConfigs, notDefaultGroup) {
-    Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
-    var configObject = data.resources[0].recommendations.blueprint.configurations;
-    if (!notDefaultGroup) {
-      this.get('stepConfigs').forEach(function(stepConfig) {
-        this.updateConfigsByRecommendations(configObject, stepConfig.get('configs'), changedConfigs);
-      }, this);
-      this.addByRecommendations(configObject, changedConfigs);
-    } else if (data.resources[0].recommendations['config-groups']) {
-      var configFroGroup = data.resources[0].recommendations['config-groups'][0];
-      this.get('stepConfigs').forEach(function(stepConfig) {
-        var configGroup = this.getGroupForService(stepConfig.get('serviceName'));
-        if (configGroup) {
-          this.updateOverridesByRecommendations(configFroGroup.configurations, stepConfig.get('configs'), changedConfigs, configGroup);
-          this.updateOverridesByRecommendations(configFroGroup.dependent_configurations, stepConfig.get('configs'), changedConfigs, configGroup);
-          this.toggleProperty('forceUpdateBoundaries');
+  removeCurrentFromDependentList: function (config, saveRecommended) {
+    var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
+    if (recommendation) {
+      try {
+        if (this.saveRecommendation(recommendation)) {
+          this.undoRedoRecommended([recommendation], saveRecommended);
+          this.set('recommendationTimeStamp', (new Date).getTime());
         }
-      }, this);
+      } catch(e) {
+        console.warn(e.message);
+      }
     }
-    this.cleanUpRecommendations();
-  },
-
-  installedServices: function () {
-    return App.StackService.find().toArray().toMapByCallback('serviceName', function (item) {
-      return Em.get(item, 'isInstalled');
-    });
-  }.property(),
-
-  /**
-   * Helper method to get property from the <code>stepConfigs</code>
-   *
-   * @param {String} name - config property name
-   * @param {String} fileName - config property filename
-   * @return {App.ServiceConfigProperty|Boolean} - App.ServiceConfigProperty instance or <code>false</code> when property not found
-   */
-  findConfigProperty: function(name, fileName) {
-    if (!name && !fileName) return false;
-    if (this.get('stepConfigs') && this.get('stepConfigs.length')) {
-      return this.get('stepConfigs').mapProperty('configs').filter(function(item) {
-        return item.length;
-      }).reduce(function(p, c) {
-        if (p) {
-          return p.concat(c);
-        }
-      }).filterProperty('filename', fileName).findProperty('name', name);
-    }
-    return false;
   }
-
 });

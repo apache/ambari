@@ -133,7 +133,7 @@
             {
               "family": "redhat6,suse11",
               "packages": [
-                "hbase_3_0_*"
+                "hbase_${stack_version}"
               ]
             }
           ]
@@ -156,7 +156,7 @@
             {
               "family": "redhat6,suse11",
               "packages": [
-                "oozie_3_0_*"
+                "oozie_${stack_version}"
               ]
             },
             {
@@ -174,7 +174,7 @@
             {
               "family": "redhat6,suse11",
               "packages": [
-                "knox_3_0_*"
+                "knox_${stack_version}"
               ]
             }
           ]
@@ -191,8 +191,8 @@
             {
               "family": "redhat6,suse11",
               "packages": [
-                "ranger_3_0_*-admin",
-                "ranger_3_0_*-usersync"
+                "ranger_${stack_version}-admin",
+                "ranger_${stack_version}-usersync"
               ]
             }
           ]
@@ -241,9 +241,9 @@
             {
               "family": "redhat6,redhat7,suse11",
               "packages": [
-                "hive_3_3_*",
-                "hive_3_3_*-hcatalog",
-                "hive_3_3_*-webhcat"
+                "hive_${stack_version}",
+                "hive_${stack_version}-hcatalog",
+                "hive_${stack_version}-webhcat"
               ]
             },
             {
@@ -297,7 +297,7 @@
             {
               "family": "redhat6,redhat7,suse11",
               "packages": [
-                "oozie_3_3_*"
+                "oozie_${stack_version}"
               ]
             },
             {
@@ -322,7 +322,7 @@
             {
               "family": "redhat6,redhat7,suse11",
               "packages": [
-                "pig_3_3_*"
+                "pig_${stack_version}"
               ]
             }
           ]
@@ -336,8 +336,8 @@
             {
               "family": "redhat6,redhat7,suse11",
               "packages": [
-                "ranger_3_3_*-admin",
-                "ranger_3_3_*-usersync"
+                "ranger_${stack_version}-admin",
+                "ranger_${stack_version}-usersync"
               ]
             }
           ]
@@ -348,7 +348,7 @@
             {
               "family": "redhat6,redhat7,suse11",
               "packages": [
-                "ranger_3_3_*-kms"
+                "ranger_${stack_version}-kms"
               ]
             }
           ]

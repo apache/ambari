@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
@@ -433,9 +434,6 @@ public class AmbariActionExecutionHelper {
       }
 
       if (null != cluster) {
-        // Generate cluster host info
-        execCmd.setClusterHostInfo(
-          StageUtils.getClusterHostInfo(cluster));
         // Generate localComponents
         for (ServiceComponentHost sch : cluster.getServiceComponentHosts(hostName)) {
           execCmd.getLocalComponents().add(sch.getServiceComponentName());
@@ -499,7 +497,7 @@ public class AmbariActionExecutionHelper {
       }
     }
 
-    hostLevelParams.put("repo_info", rootJsonObject.toString());
+    hostLevelParams.put(REPO_INFO, rootJsonObject.toString());
 
     StackId stackId = cluster.getCurrentStackVersion();
     hostLevelParams.put(STACK_NAME, stackId.getStackName());

@@ -26,18 +26,24 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     parentComponentLayoutRecommendations = super(HDP23StackAdvisor, self).createComponentLayoutRecommendations(services, hosts)
 
     hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    hostGroups = parentComponentLayoutRecommendations["blueprint"]["host_groups"]
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
-    # remove HAWQSTANDBY on a single node
-    if len(hostsList) == 1 and "HAWQ" in servicesList:
-      components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
-      components = [ component for component in components if component["name"] != 'HAWQSTANDBY' ]
-      parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
+    if "HAWQ" in servicesList:
+      # remove HAWQSTANDBY on a single node
+      if len(hostsList) == 1:
+        components = parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"]
+        components = [component for component in components if component["name"] != 'HAWQSTANDBY']
+        parentComponentLayoutRecommendations["blueprint"]["host_groups"][0]["components"] = components
+
+      # co-locate HAWQSEGMENT with DATANODE
+      for host_group in hostGroups:
+        if {"name": "DATANODE"} in host_group["components"] and {"name": "HAWQSEGMENT"} not in host_group["components"]:
+          host_group["components"].append({"name": "HAWQSEGMENT"})
 
     # co-locate PXF with NAMENODE and DATANODE
     if "PXF" in servicesList:
-      host_groups = parentComponentLayoutRecommendations["blueprint"]["host_groups"]
-      for host_group in host_groups:
+      for host_group in hostGroups:
         if ({"name": "NAMENODE"} in host_group["components"] or {"name": "DATANODE"} in host_group["components"]) \
             and {"name": "PXF"} not in host_group["components"]:
           host_group["components"].append({"name": "PXF"})
@@ -120,6 +126,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
       "RANGER": self.recommendRangerConfigurations,
+      "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "HAWQ": self.recommendHAWQConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
@@ -411,6 +418,41 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
+  def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
+    putRangerKmsProperty = self.putProperty(configurations, "kms-properties", services)
+
+    if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
+
+      rangerKmsDbFlavor = services['configurations']["kms-properties"]["properties"]["DB_FLAVOR"]
+      ranger_kms_sql_connector_dict = {
+        'MYSQL': '/usr/share/java/mysql-connector-java.jar',
+        'ORACLE': '/usr/share/java/ojdbc6.jar',
+        'POSTGRES': '/usr/share/java/postgresql.jar',
+        'MSSQL': '/usr/share/java/sqljdbc4.jar',
+        'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
+      }
+
+      rangerKmsSqlConnectorProperty = ranger_kms_sql_connector_dict.get(rangerKmsDbFlavor, ranger_kms_sql_connector_dict['MYSQL'])
+      putRangerKmsProperty('SQL_CONNECTOR_JAR', rangerKmsSqlConnectorProperty)
+
+      if ('db_host' in services['configurations']['kms-properties']['properties']) and ('db_name' in services['configurations']['kms-properties']['properties']):
+
+        rangerKmsDbHost =   services['configurations']["kms-properties"]["properties"]["db_host"]
+        rangerKmsDbName =   services['configurations']["kms-properties"]["properties"]["db_name"]
+
+        ranger_kms_db_url_dict = {
+          'MYSQL': {'ranger.ks.jpa.jdbc.driver': 'com.mysql.jdbc.Driver', 'ranger.ks.jpa.jdbc.url': 'jdbc:mysql://' + rangerKmsDbHost + '/' + rangerKmsDbName},
+          'ORACLE': {'ranger.ks.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + rangerKmsDbHost},
+          'POSTGRES': {'ranger.ks.jpa.jdbc.driver': 'org.postgresql.Driver', 'ranger.ks.jpa.jdbc.url': 'jdbc:postgresql://' + rangerKmsDbHost + '/' + rangerKmsDbName},
+          'MSSQL': {'ranger.ks.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:sqlserver://' + rangerKmsDbHost + ';databaseName=' + rangerKmsDbName},
+          'SQLA': {'ranger.ks.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + rangerKmsDbHost + ';database=' + rangerKmsDbName}
+        }
+
+        rangerKmsDbProperties = ranger_kms_db_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_url_dict['MYSQL'])
+        for key in rangerKmsDbProperties:
+          putRangerKmsDbksProperty(key, rangerKmsDbProperties.get(key))
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)

@@ -50,16 +50,32 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
     });
     // if description for this serviceConfig not exist, then no need to show popover
     if (this.get('isPopoverEnabled') !== 'false' && this.get('serviceConfig.description')) {
-      App.popover(this.$(), {
-        title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
-          this.get('serviceConfig.displayName'),
-          (this.get('serviceConfig.displayName') == this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
-        ),
-        content: this.get('serviceConfig.description'),
-        placement: this.get('popoverPlacement'),
-        trigger: 'hover'
-      });
+      this.addPopover();
     }
+  },
+
+  /**
+   * Element where popover is "appended"
+   */
+  elementForPopover: function () {
+    return this.$();
+  }.property(),
+
+  /**
+   * Add Popover for config-boxes
+   *
+   * @method addPopover
+   */
+  addPopover: function () {
+    App.popover(this.get('elementForPopover'), {
+      title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
+        this.get('serviceConfig.displayName'),
+        (this.get('serviceConfig.displayName') === this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
+      ),
+      content: this.get('serviceConfig.description'),
+      placement: this.get('popoverPlacement'),
+      trigger: 'hover'
+    });
   },
 
   willDestroyElement: function() {
@@ -89,11 +105,11 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
        if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || Em.get(p, 'displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
-         return controller.getRecommendationsForDependencies([{
+         return controller.loadConfigRecommendations([{
            "type": type,
            "name": name,
            "old_value": Em.isNone(old) ? config.get('initialValue') : old
-         }], false, function() {
+         }], function() {
            controller.removeCurrentFromDependentList(config, saveRecommended);
          });
       } else {
@@ -121,7 +137,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
             item.parentConfigs.removeObject(parentConfig.get('name'));
           } else {
             // reset property value
-            var property = controller.findConfigProperty(item.propertyName, App.config.getOriginalFileName(item.fileName));
+            var property = App.config.findConfigProperty(controller.get('stepConfigs'), item.propertyName, App.config.getOriginalFileName(item.fileName));
             if (property) {
               property.set('value', property.get('savedValue') || property.get('initialValue'));
             }
@@ -317,10 +333,14 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
 
   checked: false,
 
+  elementForPopover: function () {
+    return this.$().parent('.control-group').find('.bootstrap-checkbox');
+  }.property(),
+
   /**
    * set appropriate config values pair
    * to define which value is positive (checked) property
-   * and what value is negative (unchecked) proeprty
+   * and what value is negative (unchecked) property
    */
   didInsertElement: function() {
     var self = this;
@@ -335,13 +355,16 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     this.set('checked', this.get('serviceConfig.value') === this.get('trueValue'));
     this.propertyDidChange('checked');
     Em.run.next(function () {
-      if (self.$())
+      if (self.$()) {
         self.$().checkbox({
           defaultState: self.get('serviceConfig.value'),
           buttonStyle: 'btn-link btn-large',
           checkedClass: 'icon-check',
           uncheckedClass: 'icon-check-empty'
         });
+        self.propertyDidChange('elementForPopover');
+        self.addPopover();
+      }
     });
   },
 

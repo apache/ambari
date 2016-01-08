@@ -136,4 +136,12 @@ public class EmptyCondition implements Condition {
   public boolean doUpdate() {
     return doUpdate;
   }
+
+  @Override
+  public String toString() {
+    return "EmptyCondition{ " +
+      " statement = " + this.getStatement() +
+      " doUpdate = " + this.doUpdate() +
+      " }";
+  }
 }

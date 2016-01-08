@@ -252,7 +252,7 @@
   </property>
   <property>
     <name>hbase.zookeeper.property.clientPort</name>
-    <value>61181</value>
+    <value>{{zookeeper_clientPort}}</value>
     <depends-on>
       <property>
         <type>zoo.cfg</type>
@@ -304,6 +304,15 @@
     <name>hbase.replication</name>
     <value>false</value>
     <description>Enable/Disable HBase replication.</description>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.tickTime</name>
+    <value>6000</value>
+    <description>
+      The length of a single tick, which is the basic time unit used by
+      ZooKeeper, as measured in milliseconds. This property setting only
+      affects the ZK server started by AMS in embedded mode. Unit = ms.
+    </description>
   </property>
   <property>
     <name>zookeeper.session.timeout</name>

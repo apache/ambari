@@ -37,6 +37,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     'restoreHawqConfigs',
     'stopFailoverControllers',
     'deleteFailoverControllers',
+    'deletePXF',
     'stopStandbyNameNode',
     'stopNameNode',
     'restoreHDFSConfigs',
@@ -63,12 +64,13 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
 
   setCommandsAndTasks: function(tmpTasks) {
     var fTask = this.get('failedTask');
-    var index = [
+    var commandsArray = [
       'deleteSNameNode',
       'startAllServices',
       'reconfigureHBase',
       'reconfigureAccumulo',
       'reconfigureHawq',
+      'installPXF',
       'startZKFC',
       'installZKFC',
       'startSecondNameNode',
@@ -80,9 +82,10 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       'installJournalNodes',
       'installNameNode',
       'stopAllServices'
-    ].indexOf(fTask.command);
+    ];
+    var index = commandsArray.indexOf(fTask.command);
 
-    if(index > 6){
+    if(index > commandsArray.indexOf('startSecondNameNode')){
       --index;
     }
     var newCommands = this.get('commands').splice(index);
@@ -92,6 +95,10 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       newTasks[i].id = i;
     }
     this.set('tasks', newTasks);
+    var pxfTask = this.get('tasks').findProperty('command', 'deletePXF');
+    if (!App.Service.find().someProperty('serviceName', 'PXF') && pxfTask) {
+      this.get('tasks').splice(pxfTask.get('id'), 1);
+    }
     var hbaseTask = this.get('tasks').findProperty('command', 'restoreHBaseConfigs');
     if (!App.Service.find().someProperty('serviceName', 'HBASE') && hbaseTask) {
       this.get('tasks').splice(hbaseTask.get('id'), 1);
@@ -255,6 +262,40 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       success: 'onLoadHawqConfigs',
       error: 'onTaskError'
     });
+  },
+
+  deletePXF: function(){
+    var secondNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).mapProperty('hostName');
+    var pxfComponent = this.getSlaveComponentHosts().findProperty('componentName', 'PXF');
+    var dataNodeComponent = this.getSlaveComponentHosts().findProperty('componentName', 'DATANODE');
+
+    var host, i;
+
+    // check if PXF is already installed on the host assigned for additional NameNode
+    var pxfComponentInstalled = false;
+    for(i = 0; i < pxfComponent.hosts.length; i++) {
+      host = pxfComponent.hosts[i];
+      if (host.hostName === secondNameNodeHost) {
+        pxfComponentInstalled = true;
+        break;
+      }
+    }
+
+    // check if DATANODE is already installed on the host assigned for additional NameNode
+    var dataNodeComponentInstalled = false;
+    for(i = 0; i < dataNodeComponent.hosts.length; i++) {
+      host = dataNodeComponent.hosts[i];
+      if (host.hostName === secondNameNodeHost) {
+        dataNodeComponentInstalled = true;
+        break;
+      }
+    }
+
+    // if no DATANODE exists on that host, remove PXF
+    if (!dataNodeComponentInstalled && pxfComponentInstalled) {
+      this.updateComponent('PXF', secondNameNodeHost, "PXF", "Stop");
+      this.checkBeforeDelete('PXF', secondNameNodeHost);
+    }
   },
 
   stopFailoverControllers: function(){

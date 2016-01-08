@@ -1767,6 +1767,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
          * @type {string}
          */
         barWidth: '',
+        progressBarClass: 'progress log_popup',
 
         /**
          * Popup-message

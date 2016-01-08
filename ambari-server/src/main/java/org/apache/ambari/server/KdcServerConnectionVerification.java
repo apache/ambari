@@ -28,8 +28,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.kerberos.client.KdcConfig;
 import org.apache.directory.kerberos.client.KdcConnection;
+import org.apache.directory.shared.kerberos.KerberosMessageType;
 import org.apache.directory.shared.kerberos.exceptions.ErrorType;
 import org.apache.directory.shared.kerberos.exceptions.KerberosException;
+import org.apache.directory.shared.kerberos.messages.KrbError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,22 +137,75 @@ public class KdcServerConnectionVerification {
     FutureTask<Boolean> future = new FutureTask<Boolean>(new Callable<Boolean>() {
       @Override
       public Boolean call() {
+        Boolean success;
+
         try {
           KdcConnection connection = getKdcConnection(config);
           // we are only testing whether we can communicate with server and not
           // validating credentials
           connection.getTgt("noUser@noRealm", "noPassword");
+
+          LOG.info(String.format("Encountered no Exceptions while testing connectivity to the KDC:\n" +
+                  "**** Host: %s:%d (%s)",
+              server, port, connectionProtocol.name()));
+          success = true;
         } catch (KerberosException e) {
+          KrbError error = e.getError();
+          ErrorType errorCode = error.getErrorCode();
+
+          String errorCodeMessage;
+          int errorCodeCode;
+          if(errorCode != null) {
+            errorCodeMessage = errorCode.getMessage();
+            errorCodeCode = errorCode.getValue();
+          }
+          else {
+            errorCodeMessage = "<Not Specified>";
+            errorCodeCode = -1;
+          }
+
           // unfortunately, need to look at msg as error 60 is a generic error code
-          return !(e.getErrorCode() == ErrorType.KRB_ERR_GENERIC.getValue() &&
-              e.getMessage().contains("TimeOut"));
           //todo: evaluate other error codes to provide better information
           //todo: as there may be other error codes where we should return false
-        } catch (Exception e) {
+          success  = !(errorCodeCode == ErrorType.KRB_ERR_GENERIC.getValue() &&
+              errorCodeMessage.contains("TimeOut"));
+
+          if(!success || LOG.isDebugEnabled()) {
+            KerberosMessageType messageType = error.getMessageType();
+
+            String messageTypeMessage;
+            int messageTypeCode;
+            if (messageType != null) {
+              messageTypeMessage = messageType.getMessage();
+              messageTypeCode = messageType.getValue();
+            } else {
+              messageTypeMessage = "<Not Specified>";
+              messageTypeCode = -1;
+            }
+
+            String message = String.format("Received KerberosException while testing connectivity to the KDC: %s\n" +
+                    "**** Host:    %s:%d (%s)\n" +
+                    "**** Error:   %s\n" +
+                    "**** Code:    %d (%s)\n" +
+                    "**** Message: %d (%s)",
+                e.getLocalizedMessage(), server, port, connectionProtocol.name(), error.getEText(), errorCodeCode,
+                errorCodeMessage, messageTypeCode, messageTypeMessage);
+
+            if (LOG.isDebugEnabled()) {
+              LOG.info(message, e);
+            } else {
+              LOG.info(message);
+            }
+          }
+        } catch (Throwable e) {
+          LOG.info(String.format("Received Exception while testing connectivity to the KDC: %s\n**** Host: %s:%d (%s)",
+              e.getLocalizedMessage(), server, port, connectionProtocol.name()), e);
+
           // some bad unexpected thing occurred
           throw new RuntimeException(e);
         }
-        return true;
+
+        return success;
       }
     });
 

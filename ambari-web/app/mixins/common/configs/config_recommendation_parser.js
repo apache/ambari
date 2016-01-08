@@ -99,12 +99,13 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 	 */
 	addByRecommendations: function (recommendationObject, parentProperties) {
 		for (var site in recommendationObject) {
-			if (Object.keys(recommendationObject[site].properties).length) {
+			var properties = recommendationObject[site].properties;
+			if (properties && Object.keys(properties).length) {
 				var stepConfig = App.config.getStepConfigForProperty(this.get('stepConfigs'), site), configs = [];
 				if (stepConfig) {
-					for (var propertyName in recommendationObject[site].properties) {
+					for (var propertyName in properties) {
 						if (this.allowUpdateProperty(parentProperties, propertyName, site)) {
-							this._addConfigByRecommendation(configs, propertyName, site, recommendationObject[site].properties[propertyName], parentProperties);
+							this._addConfigByRecommendation(configs, propertyName, site, properties[propertyName], parentProperties);
 						}
 					}
 					var mergedConfigs = configs.concat(stepConfig.get('configs'));

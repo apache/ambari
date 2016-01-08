@@ -866,4 +866,54 @@ describe('App.WizardStep4Controller', function () {
 
   });
 
+  describe('Service warnings popup', function () {
+
+    var target = {
+      clb: Em.K
+    };
+    var id = 1;
+
+    beforeEach(function () {
+      sinon.spy(target, 'clb');
+      sinon.stub(controller, 'onPrimaryPopupCallback', Em.K);
+    });
+
+    afterEach(function () {
+      target.clb.restore();
+      controller.onPrimaryPopupCallback.restore();
+    });
+
+    Em.A([
+      'ambariMetricsCheckPopup',
+      'rangerRequirementsPopup',
+      'sparkWarningPopup'
+    ]).forEach(function (methodName) {
+
+      describe('#' + methodName, function () {
+
+        beforeEach(function () {
+          this.popup = controller[methodName](target.clb, id);
+        });
+
+        it('#onPrimary', function () {
+          this.popup.onPrimary();
+          expect(controller.onPrimaryPopupCallback.calledWith(target.clb)).to.be.true;
+        });
+
+        it('#onSecondary', function () {
+          this.popup.onSecondary();
+          expect(target.clb.calledWith(id)).to.be.true;
+        });
+
+        it('#onClose', function () {
+          this.popup.onClose();
+          expect(target.clb.calledWith(id)).to.be.true;
+        });
+
+      });
+
+    });
+
+  });
+
 });

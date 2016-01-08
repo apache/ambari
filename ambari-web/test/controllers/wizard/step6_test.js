@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 var validationUtils = require('utils/validator');
 require('utils/helper');
@@ -46,7 +45,7 @@ var controller,
   ];
 
 function getController() {
-  var controller = App.WizardStep6Controller.create({
+  var c = App.WizardStep6Controller.create({
     content: Em.Object.create({
       hosts: {},
       masterComponentHosts: {},
@@ -66,10 +65,10 @@ function getController() {
     m.push(obj);
   });
 
-  controller.set('content.hosts', h);
-  controller.set('content.masterComponentHosts', m);
-  controller.set('isMasters', false);
-  return controller;
+  c.set('content.hosts', h);
+  c.set('content.masterComponentHosts', m);
+  c.set('isMasters', false);
+  return c;
 }
 
 describe('App.WizardStep6Controller', function () {
@@ -1613,6 +1612,225 @@ describe('App.WizardStep6Controller', function () {
         });
 
       });
+    });
+
+  });
+
+  describe('#isAllCheckboxesEmpty', function () {
+
+    Em.A([
+      {
+        m: 'all checkboxes are not empty',
+        hosts: [
+          {checkboxes: [{checked: true}, {checked: true}]},
+          {checkboxes: [{checked: true}, {checked: true}]}
+        ],
+        e: false
+      },
+      {
+        m: 'some checkboxes are empty',
+        hosts: [
+          {checkboxes: [{checked: true}, {checked: false}]},
+          {checkboxes: [{checked: true}, {checked: false}]}
+        ],
+        e: false
+      },
+      {
+        m: 'all checkboxes are empty',
+        hosts: [
+          {checkboxes: [{checked: false}, {checked: false}]},
+          {checkboxes: [{checked: false}, {checked: false}]}
+        ],
+        e: true
+      }
+    ]).forEach(function (test) {
+
+      it(test.m, function () {
+        controller.set('hosts', test.hosts);
+        expect(controller.isAllCheckboxesEmpty()).to.be.equal(test.e);
+      });
+
+    });
+
+  });
+
+  describe('#loadStep', function () {
+
+    beforeEach(function () {
+      sinon.stub(controller, 'render', Em.K);
+      sinon.stub(controller, 'callValidation', Em.K);
+      sinon.stub(App.StackService, 'find').returns([
+        Em.Object.create({
+          isSelected: true,
+          serviceName: 's1',
+          serviceComponents: [
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's1c1', isRequired: true}),
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's1c2', isRequired: true})
+          ]
+        }),
+        Em.Object.create({
+          isSelected: true,
+          serviceName: 's2',
+          serviceComponents: [
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's2c3', isRequired: false}),
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's2c4', isRequired: false})
+          ]
+        }),
+        Em.Object.create({
+          isInstalled: true,
+          serviceName: 's3',
+          serviceComponents: [
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's3c1', isRequired: true}),
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's3c2', isRequired: true})
+          ]
+        }),
+        Em.Object.create({
+          isInstalled: true,
+          serviceName: 's4',
+          serviceComponents: [
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's4c3', isRequired: false}),
+            Em.Object.create({isShownOnInstallerSlaveClientPage: true, componentName: 's4c4', isRequired: false})
+          ]
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      controller.render.restore();
+      controller.callValidation.restore();
+      App.StackService.find.restore();
+    });
+
+    describe('isInstallerWizard', function () {
+
+      beforeEach(function () {
+        controller.set('content', {
+          clients: [{}],
+          controllerName: 'installerController'
+        });
+        controller.loadStep();
+      });
+
+      it('component names are valid', function () {
+        expect(controller.get('headers').mapProperty('name')).to.be.eql(['s1c1', 's1c2', 's2c3', 's2c4', 'CLIENT']);
+      });
+
+      it('component labels are valid', function () {
+        expect(controller.get('headers').mapProperty('label')).to.be.eql(['S1c1', 'S1c2', 'S2c3', 'S2c4', 'Client']);
+      });
+
+      it('everyone allChecked is false', function () {
+        expect(controller.get('headers').everyProperty('allChecked', false)).to.be.true;
+      });
+
+      it('component required-flags are valid', function () {
+        expect(controller.get('headers').mapProperty('isRequired')).to.be.eql([true, true, false, false, undefined]);
+      });
+
+      it('everyone noChecked is false', function () {
+        expect(controller.get('headers').everyProperty('noChecked', true)).to.be.true;
+      });
+
+      it('everyone isDisabled is false', function () {
+        expect(controller.get('headers').everyProperty('isDisabled', false)).to.be.true;
+      });
+
+      it('component allId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('allId')).to.be.eql(['all-s1c1', 'all-s1c2', 'all-s2c3', 'all-s2c4', 'all-CLIENT']);
+      });
+
+      it('component noneId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('noneId')).to.be.eql(['none-s1c1', 'none-s1c2', 'none-s2c3', 'none-s2c4', 'none-CLIENT']);
+      });
+
+    });
+
+    describe('isAddHostWizard', function () {
+
+      beforeEach(function () {
+        controller.set('content', {
+          clients: [{}],
+          controllerName: 'addHostController'
+        });
+        controller.loadStep();
+      });
+
+      it('component names are valid', function () {
+        expect(controller.get('headers').mapProperty('name')).to.be.eql(['s3c1', 's3c2', 's4c3', 's4c4', 'CLIENT']);
+      });
+
+      it('component labels are valid', function () {
+        expect(controller.get('headers').mapProperty('label')).to.be.eql(['S3c1', 'S3c2', 'S4c3', 'S4c4', 'Client']);
+      });
+
+      it('everyone allChecked is false', function () {
+        expect(controller.get('headers').everyProperty('allChecked', false)).to.be.true;
+      });
+
+      it('component required-flags are valid', function () {
+        expect(controller.get('headers').mapProperty('isRequired')).to.be.eql([true, true, false, false, undefined]);
+      });
+
+      it('everyone noChecked is false', function () {
+        expect(controller.get('headers').everyProperty('noChecked', true)).to.be.true;
+      });
+
+      it('everyone isDisabled is false', function () {
+        expect(controller.get('headers').everyProperty('isDisabled', false)).to.be.true;
+      });
+
+      it('component allId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('allId')).to.be.eql(['all-s3c1', 'all-s3c2', 'all-s4c3', 'all-s4c4', 'all-CLIENT']);
+      });
+
+      it('component noneId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('noneId')).to.be.eql(['none-s3c1', 'none-s3c2', 'none-s4c3', 'none-s4c4', 'none-CLIENT']);
+      });
+
+    });
+
+    describe('isAddServiceWizard', function () {
+
+      beforeEach(function () {
+        controller.set('content', {
+          clients: [{}],
+          controllerName: 'addServiceController'
+        });
+        controller.loadStep();
+      });
+
+      it('component names are valid', function () {
+        expect(controller.get('headers').mapProperty('name')).to.be.eql(['s3c1', 's3c2', 's4c3', 's4c4', 's1c1', 's1c2', 's2c3', 's2c4', 'CLIENT']);
+      });
+
+      it('component labels are valid', function () {
+        expect(controller.get('headers').mapProperty('label')).to.be.eql(['S3c1', 'S3c2', 'S4c3', 'S4c4', 'S1c1', 'S1c2', 'S2c3', 'S2c4', 'Client']);
+      });
+
+      it('everyone allChecked is false', function () {
+        expect(controller.get('headers').everyProperty('allChecked', false)).to.be.true;
+      });
+
+      it('component required-flags are valid', function () {
+        expect(controller.get('headers').mapProperty('isRequired')).to.be.eql([true, true, false, false, true, true, false, false, undefined]);
+      });
+
+      it('everyone noChecked is false', function () {
+        expect(controller.get('headers').everyProperty('noChecked', true)).to.be.true;
+      });
+
+      it('installed services are disabled', function () {
+        expect(controller.get('headers').mapProperty('isDisabled', false)).to.be.eql([true, true, true, true, false, false, false, false, false]);
+      });
+
+      it('component allId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('allId')).to.be.eql(['all-s3c1', 'all-s3c2', 'all-s4c3', 'all-s4c4', 'all-s1c1', 'all-s1c2', 'all-s2c3', 'all-s2c4', 'all-CLIENT']);
+      });
+
+      it('component noneId-fields are valid', function () {
+        expect(controller.get('headers').mapProperty('noneId')).to.be.eql(['none-s3c1', 'none-s3c2', 'none-s4c3', 'none-s4c4', 'none-s1c1', 'none-s1c2', 'none-s2c3', 'none-s2c4', 'none-CLIENT']);
+      });
+
     });
 
   });

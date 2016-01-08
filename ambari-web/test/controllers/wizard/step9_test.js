@@ -1,4 +1,4 @@
-  /**
+/**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-
-var Ember = require('ember');
 var App = require('app');
 require('models/stack_service_component');
 require('models/hosts');
@@ -523,7 +521,67 @@ describe('App.InstallerStep9Controller', function () {
       it(test.m, function () {
         c.setProperties(test.c);
         c.setIsServicesInstalled(test.polledData);
+        expect(c.get('progress')).to.equal(test.e.progress);
+        expect(c.get('isPolling')).to.be.equal(test.e.isPolling);
       });
+    });
+
+    describe('`skipComponentStartAfterInstall` is true', function () {
+
+      var polledData = Em.A([
+        Em.Object.create({
+          Tasks: Em.Object.create({
+            status: 'NONE'
+          })
+        }),
+        Em.Object.create({
+          Tasks: Em.Object.create({
+            status: 'NONE'
+          })
+        })
+      ]);
+
+      var hosts = [
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0}),
+        Em.Object.create({status: '', message: '', progress: 0})
+      ];
+
+      beforeEach(function () {
+        sinon.stub(App, 'get').withArgs('supports.skipComponentStartAfterInstall').returns(true);
+        sinon.stub(c, 'saveClusterStatus', Em.K);
+        sinon.stub(c, 'saveInstalledHosts', Em.K);
+        sinon.stub(c, 'changeParseHostInfo', Em.K);
+        c.set('hosts', hosts);
+        c.setIsServicesInstalled(polledData);
+      });
+
+      afterEach(function () {
+        App.get.restore();
+        c.saveClusterStatus.restore();
+        c.saveInstalledHosts.restore();
+        c.changeParseHostInfo.restore();
+      });
+
+      it('cluster status is valid', function () {
+        var clusterStatus = c.saveClusterStatus.args[0][0];
+        expect(clusterStatus.status).to.be.equal('START_SKIPPED');
+        expect(clusterStatus.isCompleted).to.be.true;
+      });
+
+      it('each host status is `success`', function () {
+        expect(c.get('hosts').everyProperty('status', 'success')).to.be.true;
+      });
+
+      it('each host progress is `100`', function () {
+        expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+      });
+
+      it('each host message is valid', function () {
+        expect(c.get('hosts').everyProperty('message', Em.I18n.t('installer.step9.host.status.success'))).to.be.true;
+      });
+
     });
 
   });
@@ -1685,6 +1743,118 @@ describe('App.InstallerStep9Controller', function () {
           }
         });
       });
+  });
+
+  describe('#isAllComponentsInstalledSuccessCallback', function () {
+
+    var hosts = [
+      Em.Object.create({name: 'h1', status: '', message: '', progress: ''}),
+      Em.Object.create({name: 'h2', status: '', message: '', progress: ''})
+    ];
+
+    var jsonData = {
+      items: [
+        {
+          Hosts: {
+            host_state: 'HEARTBEAT_LOST',
+            host_name: 'h1'
+          },
+          host_components: [
+            {
+              HostRoles: {
+                component_name: 'c1'
+              }
+            },
+            {
+              HostRoles: {
+                component_name: 'c2'
+              }
+            }
+          ]
+        },
+        {
+          Hosts: {
+            host_state: 'HEARTBEAT_LOST',
+            host_name: 'h2'
+          },
+          host_components: [
+            {
+              HostRoles: {
+                component_name: 'c3'
+              }
+            },
+            {
+              HostRoles: {
+                component_name: 'c4'
+              }
+            }
+          ]
+        }
+      ]
+    };
+
+    beforeEach(function () {
+      sinon.stub(c, 'changeParseHostInfo', Em.K);
+      sinon.stub(c, 'launchStartServices', Em.K);
+      sinon.stub(c, 'saveClusterStatus', Em.K);
+      c.set('hosts', hosts);
+      c.isAllComponentsInstalledSuccessCallback(jsonData);
+      this.clusterStatus = c.saveClusterStatus.args[0][0];
+    });
+
+    afterEach(function () {
+      c.changeParseHostInfo.restore();
+      c.launchStartServices.restore();
+      c.saveClusterStatus.restore();
+    });
+
+    it('cluster status / status', function () {
+      expect(this.clusterStatus.status).to.be.equal('INSTALL FAILED');
+    });
+
+    it('cluster status / isStartError', function () {
+      expect(this.clusterStatus.isStartError).to.be.true;
+    });
+
+    it('cluster status / isCompleted', function () {
+      expect(this.clusterStatus.isCompleted).to.be.false;
+    });
+
+    it('each host progress is 100', function () {
+      expect(c.get('hosts').everyProperty('progress', '100')).to.be.true;
+    });
+
+    it('each host status is `heartbeat_lost`', function () {
+      expect(c.get('hosts').everyProperty('status', 'heartbeat_lost')).to.be.true;
+    });
+
+    it('overall progress is 100', function () {
+      expect(c.get('progress')).to.be.equal('100');
+    });
+
+  });
+
+  describe('#loadDoServiceChecksFlagSuccessCallback', function () {
+
+    var data = {
+      RootServiceComponents: {
+        properties: {
+          'skip.service.checks': 'true'
+        }
+      }
+    };
+
+    it('skipServiceChecks should be true', function () {
+      c.loadDoServiceChecksFlagSuccessCallback(data);
+      expect(c.get('skipServiceChecks')).to.be.true;
+    });
+
+    it('skipServiceChecks should be false', function () {
+      data.RootServiceComponents.properties['skip.service.checks'] = 'false';
+      c.loadDoServiceChecksFlagSuccessCallback(data);
+      expect(c.get('skipServiceChecks')).to.be.false;
+    });
+
   });
 
 });

@@ -55,10 +55,10 @@ def hive_service(name, action='start', upgrade_type=None):
 
   if name == 'metastore':
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
-    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_metastore_path} {hive_log_dir}/hive.out {hive_log_dir}/hive.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
   elif name == 'hiveserver2':
     pid_file = format("{hive_pid_dir}/{hive_pid}")
-    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.log {pid_file} {hive_server_conf_dir} {hive_log_dir}")
+    cmd = format("{start_hiveserver2_path} {hive_log_dir}/hive-server2.out {hive_log_dir}/hive-server2.err {pid_file} {hive_server_conf_dir} {hive_log_dir}")
 
     if params.security_enabled and params.current_version != None and (params.current_version.startswith("2.2.4") or
           params.current_version.startswith("2.2.3")):

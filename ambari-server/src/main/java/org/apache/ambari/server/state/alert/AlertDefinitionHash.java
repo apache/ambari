@@ -434,6 +434,39 @@ public class AlertDefinitionHash {
   }
 
   /**
+   * Enqueue {@link AlertDefinitionCommand}s for every host in the cluster so
+   * that they will receive a payload of alert definitions that they should be
+   * running.
+   * <p/>
+   * This method is typically called after {@link #invalidateAll()} has caused a
+   * cache invalidation of all alert definitions.
+   *
+   * @param clusterId
+   *          the ID of the cluster.
+   * @param hosts
+   *          the hosts to push {@link AlertDefinitionCommand}s for.
+   */
+  public void enqueueAgentCommands(long clusterId) {
+    String clusterName = null;
+    Collection<String> hostNames;
+
+    try {
+      Cluster cluster = m_clusters.get().getClusterById(clusterId);
+      clusterName = cluster.getClusterName();
+      Collection<Host> hosts = cluster.getHosts();
+
+      hostNames = new ArrayList<>(hosts.size());
+      for (Host host : hosts) {
+        hostNames.add(host.getHostName());
+      }
+
+      enqueueAgentCommands(clusterName, hostNames);
+    } catch (AmbariException ae) {
+      LOG.error("Unable to lookup cluster for alert definition commands", ae);
+    }
+  }
+
+  /**
    * Enqueue {@link AlertDefinitionCommand}s for every host specified so that
    * they will receive a payload of alert definitions that they should be
    * running.
@@ -442,8 +475,8 @@ public class AlertDefinitionHash {
    * {@link #invalidateHosts(AlertDefinitionEntity)} has caused a cache
    * invalidation of the alert definition hash.
    *
-   * @param clusterName
-   *          the name of the cluster (not {@code null}).
+   * @param clusterId
+   *          the ID of the cluster.
    * @param hosts
    *          the hosts to push {@link AlertDefinitionCommand}s for.
    */

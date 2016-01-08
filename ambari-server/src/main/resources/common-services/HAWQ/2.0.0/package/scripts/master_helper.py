@@ -74,7 +74,7 @@ def configure_master():
 
 def __create_local_dirs():
   """
-  Creates the required local directories for HAWQ 
+  Creates the required local directories for HAWQ
   """
   import params
   # Create Master directories
@@ -107,15 +107,19 @@ def __init_active():
   """
   Initializes the active master
   """
+  import params
   __setup_hdfs_dirs()
   utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.MASTER))
+  Logger.info("Active master {0} initialized".format(params.hostname))
 
 
 def __init_standby():
   """
   Initializes the HAWQ Standby Master
   """
+  import params
   utils.exec_hawq_operation(hawq_constants.INIT, "{0} -a -v".format(hawq_constants.STANDBY))
+  Logger.info("Standby host {0} initialized".format(params.hostname))
 
 
 def __get_component_name():
@@ -135,11 +139,12 @@ def __start_local_master():
   __setup_hdfs_dirs()
 
   utils.exec_hawq_operation(
-        hawq_constants.START, 
+        hawq_constants.START,
         "{0} -a -v".format(component_name),
         not_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
+  Logger.info("Master {0} started".format(params.hostname))
 
-  
+
 def __is_local_initialized():
   """
   Checks if the local node has been initialized
@@ -156,15 +161,20 @@ def __get_standby_host():
   return None if standby_host is None or standby_host.lower() == 'none' else standby_host
 
 
-def __is_standby_initialized():
+def __is_active_master():
   """
-  Returns True if HAWQ Standby Master is initialized, False otherwise
+  Finds if this node is the active master
   """
   import params
-  
-  file_path = os.path.join(params.hawq_master_dir, hawq_constants.postmaster_opts_filename)
-  (retcode, _, _) = utils.exec_ssh_cmd(__get_standby_host(), "[ -f {0} ]".format(file_path))
-  return retcode == 0
+  return params.hostname == common.get_local_hawq_site_property("hawq_master_address_host")
+
+
+def __is_standby_host():
+  """
+  Finds if this node is the standby host
+  """
+  import params
+  return params.hostname == common.get_local_hawq_site_property("hawq_standby_address_host")
 
 
 def start_master():
@@ -183,11 +193,11 @@ def start_master():
 
   if __is_local_initialized():
     __start_local_master()
+    return
 
-  elif is_active_master:
+  if is_active_master:
     __init_active()
-
-  if is_active_master and __get_standby_host() is not None and not __is_standby_initialized():
+  elif __is_standby_host():
     __init_standby()
 
 
@@ -201,11 +211,3 @@ def stop(mode=hawq_constants.FAST, component=None):
                 hawq_constants.STOP,
                 "{0} -M {1} -a -v".format(component_name, mode),
                 only_if=utils.chk_hawq_process_status_cmd(params.hawq_master_address_port, component_name))
-
-
-def __is_active_master():
-  """
-  Finds if this node is the active master
-  """
-  import params
-  return params.hostname == common.get_local_hawq_site_property("hawq_master_address_host")

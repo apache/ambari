@@ -19,9 +19,9 @@
 package org.apache.ambari.server.upgrade;
 
 
-import com.google.inject.AbstractModule;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
+import com.google.inject.AbstractModule;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -59,6 +59,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -71,6 +72,7 @@ import static org.easymock.EasyMock.verify;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.capture;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
@@ -79,8 +81,6 @@ public class UpgradeCatalog221Test {
   private EntityManager entityManager = createNiceMock(EntityManager.class);
   private UpgradeCatalogHelper upgradeCatalogHelper;
   private StackEntity desiredStackEntity;
-
-
 
   @Before
   public void init() {
@@ -263,7 +263,7 @@ public class UpgradeCatalog221Test {
       clusterEnvProperties);
 
     //Unsecure with empty value
-    clusterEnvProperties.put("security_enabled","false");
+    clusterEnvProperties.put("security_enabled", "false");
     amsHbaseSecuritySite.put("zookeeper.znode.parent", "");
     newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-unsecure");
     testAmsHbaseSiteUpdates(new HashMap<String, String>(),
@@ -272,7 +272,7 @@ public class UpgradeCatalog221Test {
       clusterEnvProperties);
 
     //Secure with /hbase value
-    clusterEnvProperties.put("security_enabled","true");
+    clusterEnvProperties.put("security_enabled", "true");
     amsHbaseSecuritySite.put("zookeeper.znode.parent", "/hbase");
     newPropertiesAmsHbaseSite.put("zookeeper.znode.parent", "/ams-hbase-secure");
     testAmsHbaseSiteUpdates(new HashMap<String, String>(),
@@ -280,6 +280,13 @@ public class UpgradeCatalog221Test {
       amsHbaseSecuritySite,
       clusterEnvProperties);
 
+    // Test zookeeper client port set to default
+    amsHbaseSecuritySite.put("hbase.zookeeper.property.clientPort", "61181");
+    newPropertiesAmsHbaseSite.put("hbase.zookeeper.property.clientPort", "{{zookeeper_clientPort}}");
+    testAmsHbaseSiteUpdates(Collections.singletonMap("hbase.zookeeper.property.clientPort", "61181"),
+      newPropertiesAmsHbaseSite,
+      amsHbaseSecuritySite,
+      clusterEnvProperties);
   }
 
   private void testAmsHbaseSiteUpdates(Map<String, String> oldPropertiesAmsHbaseSite,
@@ -333,6 +340,9 @@ public class UpgradeCatalog221Test {
     easyMockSupport.verifyAll();
 
     Map<String, String> updatedProperties = propertiesCapture.getValue();
+    // Test zookeeper tick time setting
+    String tickTime = updatedProperties.remove("hbase.zookeeper.property.tickTime");
+    assertEquals("6000", tickTime);
     assertTrue(Maps.difference(newPropertiesAmsHbaseSite, updatedProperties).areEqual());
   }
 

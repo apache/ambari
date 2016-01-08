@@ -999,6 +999,29 @@ App.config = Em.Object.create({
     }
   },
 
+
+  /**
+   * Helper method to get property from the <code>stepConfigs</code>
+   *
+   * @param {String} name - config property name
+   * @param {String} fileName - config property filename
+   * @param {Object[]} stepConfigs
+   * @return {App.ServiceConfigProperty|Boolean} - App.ServiceConfigProperty instance or <code>false</code> when property not found
+   */
+  findConfigProperty: function(stepConfigs, name, fileName) {
+    if (!name && !fileName) return false;
+    if (stepConfigs && stepConfigs.length) {
+      return stepConfigs.mapProperty('configs').filter(function(item) {
+        return item.length;
+      }).reduce(function(p, c) {
+        if (p) {
+          return p.concat(c);
+        }
+      }).filterProperty('filename', fileName).findProperty('name', name);
+    }
+    return false;
+  },
+
   /**
    * Update config property value based on its current value and list of zookeeper server hosts.
    * Used to prevent sort order issues.
