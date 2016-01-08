@@ -1313,7 +1313,6 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     }, this);
 
     this.updateZkConfigs(configs);
-
     var groups = [
       {
         properties: {
@@ -1326,7 +1325,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       }
     ];
-    if ((App.Service.find().someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
+    var installedServiceNames = App.Service.find().mapProperty('serviceName');
+    if (installedServiceNames.contains('YARN') && App.get('isHadoop22Stack') || App.get('isRMHaEnabled')) {
       groups.push(
         {
           properties: {
@@ -1338,7 +1338,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       );
     }
-    if (App.Service.find().someProperty('serviceName', 'HBASE')) {
+    if (installedServiceNames.contains('HBASE')) {
       groups.push(
         {
           properties: {
@@ -1350,7 +1350,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         }
       );
     }
-    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+    if (installedServiceNames.contains('ACCUMULO')) {
       groups.push(
         {
           properties: {
