@@ -22,18 +22,26 @@ App.ReloadPopupMixin = Em.Mixin.create({
 
   reloadPopup: null,
 
-  showReloadPopup: function () {
-    var self = this;
+
+  popupText: function(text) {
+    return text || Em.I18n.t('app.reloadPopup.text');
+  },
+
+  showReloadPopup: function (text) {
+    var self = this,
+      bodyText = this.popupText(text);
     if (!this.get('reloadPopup')) {
       this.set('reloadPopup', App.ModalPopup.show({
         primary: null,
         secondary: null,
         showFooter: false,
         header: this.t('app.reloadPopup.header'),
-        body: "<div id='reload_popup' class='alert alert-info'><div class='spinner'><span>" +
-          this.t('app.reloadPopup.text') + "</span></div></div><div><a href='javascript:void(null)' onclick='location.reload();'>" +
-          this.t('app.reloadPopup.link') + "</a></div>",
-        encodeBody: false,
+        bodyClass: Ember.View.extend({
+          template: Ember.Handlebars.compile("<div id='reload_popup' class='alert alert-info'>" +
+            "{{view App.SpinnerView}}" +
+            "<div><span>" + bodyText + "</span><a href='javascript:void(null)' onclick='location.reload();'>"
+            + this.t('app.reloadPopup.link') + "</a></div>")
+        }),
         onClose: function () {
           self.set('reloadPopup', null);
           this._super();

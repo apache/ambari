@@ -145,7 +145,7 @@
     {{view.message}}
     <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
     {{#unless isWarningsLoaded}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
     {{/unless}}
   </div>
   <div class="btn-area">

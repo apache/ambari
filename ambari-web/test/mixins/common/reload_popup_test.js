@@ -28,24 +28,25 @@ describe('App.ReloadPopupMixin', function () {
     obj = Em.Object.create(App.ReloadPopupMixin);
   });
 
-  describe('#showReloadPopup', function () {
+  describe('#popupText', function () {
+    var cases = [
+      {
+        result: Em.I18n.t('app.reloadPopup.text'),
+        title: 'should show modal popup with default message'
+      },
+      {
+        text: 'text',
+        result: 'text',
+        title: 'should show modal popup with custom message'
+      }
+    ];
 
-    var mockObj = {
-      key: 'value'
-    };
-
-    beforeEach(function () {
-      sinon.stub(App.ModalPopup, 'show').returns(mockObj);
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(obj.popupText(item.text)).to.equal(item.result);
+      });
     });
 
-    afterEach(function () {
-      App.ModalPopup.show.restore();
-    });
-
-    it('should show modal popup', function () {
-      obj.showReloadPopup();
-      expect(obj.get('reloadPopup')).to.eql(mockObj);
-    });
   });
 
   describe('#closeReloadPopup', function () {

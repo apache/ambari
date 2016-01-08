@@ -231,7 +231,7 @@
         </div>
 
       {{else}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/if}}
 
     </div>
@@ -240,5 +240,5 @@
 
   </div>
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

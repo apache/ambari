@@ -84,7 +84,7 @@
                       {{/each}}
                     {{/if}}
                   {{else}}
-                    <div class="spinner"></div>
+                    {{view App.SpinnerView}}
                   {{/if}}
                 </ul>
               </div>
@@ -92,7 +92,7 @@
           {{/if}}
         </div>
       {{else}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/if}}
     </li>
   </ul>

@@ -137,7 +137,7 @@
         {{/if}}
       </div>
     {{else}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
     {{/if}}
   </div>
 
@@ -234,11 +234,11 @@
         </div>
       </div>
     {{else}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
     {{/if}}
   </div>
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}
 </div>
 {{#if view.isPaginate}}
