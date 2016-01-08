@@ -47,11 +47,11 @@
             {{view activeWidget.viewClass contentBinding="activeWidget" racksBinding = "racks" idBinding="activeWidget.id"}}
           </div>
         {{else}}
-          <div class="spinner"></div>
+          {{view App.SpinnerView}}
         {{/if}}
       </div>
     </div>
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 </div>

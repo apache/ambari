@@ -1090,13 +1090,19 @@ h1 {
 .spinner {
   width: @spinner-default-width;
   height: @spinner-default-height;
-  background: url("/img/spinner.gif");
   margin: 0 auto;
+  i {
+    color: #555;
+    font-size: 2.5em;
+  }
 
   &.service-button-spinner {
     width: @spinner-small-width;
     height: @spinner-small-height;
     background-size: cover;
+    i {
+      font-size: 1em;
+    }
   }
 }
 
@@ -1372,6 +1378,9 @@ h1 {
       width: @spinner-small-width;
       height: @spinner-small-height;
       background-size: cover;
+      i {
+        font-size: 1em;
+      }
     }
     .icon-ok-sign, .icon-warning-sign {
       font-size: 27px;
@@ -2780,7 +2789,9 @@ table.graphs {
         height: 105px;
         border: 1px solid silver;
         color: #ffffff;
-        background: url(/img/spinner.gif) no-repeat center center;
+        i {
+          font-size: 4em;
+        }
       }
     }
     .thumbnail .widget-content-isNA{ // for pie chart n\a
@@ -4645,7 +4656,9 @@ ul.inline li {
   height: 157px;
   border: 1px solid silver;
   margin: 20px 15px 10px 15px;
-  background: url(/img/spinner.gif) no-repeat center center;
+  i {
+    font-size: 4em;
+  }
 }
 
 /* TIME RANGE WIDGET END */
@@ -4883,14 +4896,6 @@ li.break {
   .config-groups-dropdown-menu {
     overflow: auto;
     max-height: 416px;
-  }
-}
-
-#reload_popup {
-  .spinner {
-    padding: 8px 35px 0 42px;
-    width: auto;
-    background: url(/img/spinner.gif) no-repeat;
   }
 }
 

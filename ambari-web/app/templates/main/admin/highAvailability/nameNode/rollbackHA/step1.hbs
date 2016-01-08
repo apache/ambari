@@ -45,6 +45,6 @@
           <a {{bindAttr class=":btn controller.isNameServiceIdValid::disabled :btn-success :pull-right"}} {{action done target="view"}}>{{t common.next}} &rarr;</a>
       </div>
   {{else}}
-      <div class="spinner"></div>
+      {{view App.SpinnerView}}
   {{/if}}
 </div>

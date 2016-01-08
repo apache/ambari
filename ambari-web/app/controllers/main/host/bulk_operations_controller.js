@@ -572,7 +572,7 @@ App.BulkOperationsController = Em.Controller.extend({
       primary: false,
       secondary: false,
       bodyClass: Em.View.extend({
-        template: Em.Handlebars.compile('<div class="spinner"></div>')
+        template: Em.Handlebars.compile('{{view App.SpinnerView}}')
       })
     });
 

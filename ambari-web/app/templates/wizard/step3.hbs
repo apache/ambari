@@ -143,7 +143,7 @@
     <a href="#" {{action hostWarningsPopup warnings target="controller"}}>{{view.linkText}}</a>
     {{#unless isBootstrapFailed}}
       {{#unless isWarningsLoaded}}
-        <div class="spinner"></div>
+        {{view App.SpinnerView}}
       {{/unless}}
     {{/unless}}
   </div>

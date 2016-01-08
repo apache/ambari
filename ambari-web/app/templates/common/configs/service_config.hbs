@@ -67,7 +67,7 @@
           {{/each}}
         </ul>
       {{else}}
-        <div class="pull-left spinner"></div>
+        {{view App.SpinnerView classNames="pull-left"}}
       {{/if}}
 		</span>
       {{#if controller.isHostsConfigsPage}}
@@ -88,7 +88,7 @@
   {{#if allVersionsLoaded}}
     {{view App.ConfigHistoryFlowView serviceBinding="selectedService"}}
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 {{/if}}
 
@@ -142,7 +142,7 @@
                 </div>
               {{/each}}
             {{else}}
-              <div class="spinner"></div>
+              {{view App.SpinnerView}}
             {{/if}}
           {{else}}
               {{! Render Enhanced Config Section }}
@@ -168,5 +168,5 @@
     </div>
   {{/if}}
 {{else}}
-  <div class="spinner"></div>
+  {{view App.SpinnerView}}
 {{/if}}

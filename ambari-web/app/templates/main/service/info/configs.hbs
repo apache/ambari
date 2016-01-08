@@ -50,6 +50,6 @@
     <div class="clearfix"></div>
     {{view App.ServiceConfigView filterBinding="controller.filter" columnsBinding="controller.filterColumns" canEditBinding="controller.canEdit"}}
   {{else}}
-    <div class="spinner"></div>
+    {{view App.SpinnerView}}
   {{/if}}
 </div>
