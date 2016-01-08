@@ -51,4 +51,25 @@ describe('App.MainAlertDefinitionDetailsView', function () {
     });
   });
 
+  describe("#openFullResponse()", function() {
+
+    beforeEach(function() {
+      sinon.stub(App.ModalPopup, 'show');
+    });
+
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+    });
+
+    it("App.ModalPopup.show should be called", function() {
+      instanceTableRow.openFullResponse({context: Em.Object.create({text: 'text1'})});
+      expect(App.ModalPopup.show.calledWith({
+        header: Em.I18n.t('alerts.instance.fullLogPopup.header'),
+        secondary: null,
+        content: 'text1',
+        bodyClass: App.SelectablePopupBodyView
+      })).to.be.true;
+    });
+  });
+
 });

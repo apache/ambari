@@ -290,6 +290,8 @@ Em.I18n.translations = {
   'common.timeout.warning.popup.body.after': ' seconds due to inactivity',
   'common.timeout.warning.popup.primary': 'Remain Logged In',
   'common.timeout.warning.popup.secondary': 'Log Out Now',
+  'common.openNewWindow': 'Open in New Window',
+  'common.fullLogPopup.clickToCopy': 'Click to Copy',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",
@@ -2834,5 +2836,7 @@ Em.I18n.translations = {
 
   'utils.ajax.errorMessage': 'Error message',
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
-  'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code'
+  'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code',
+
+  'alerts.instance.fullLogPopup.header': 'Instance Response'
 };
