@@ -62,7 +62,6 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
@@ -165,8 +164,6 @@ public class ClusterStackVersionResourceProviderTest {
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
     stackDAO = injector.getInstance(StackDAO.class);
-    clusterDAO = injector.getInstance(ClusterDAO.class);
-    hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After

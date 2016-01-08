@@ -15,30 +15,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.state.repository;
+
+import javax.xml.bind.annotation.XmlAttribute;
 
 /**
- * Identifies the type of repository
+ * Represents a service definition in the manifest.  The service manifest is a list
+ * of all services available in a repository.
  */
-public enum RepositoryType {
+public class ManifestService {
 
   /**
-   * Repository should be considered to have all components for a cluster
-   * deployment
+   * The unique id for the service and version.
    */
-  STANDARD,
+  @XmlAttribute(name="id")
+  public String serviceId;
 
   /**
-   * Repository may have only minimum components and is used for patching
-   * purposes
+   * Name of the service.
    */
-  PATCH,
+  @XmlAttribute(name="name")
+  public String serviceName;
 
   /**
-   * Repository is used to update services
+   * Version of the service.  This is the publicly available version.
    */
-  SERVICE
+  @XmlAttribute(name="version")
+  public String version;
 
-
-
+  /**
+   * Version id of the service.  This may be a build number.
+   */
+  @XmlAttribute(name="version-id")
+  public String versionId;
 }

@@ -15,30 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.state;
+package org.apache.ambari.server.state.repository;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
 
 /**
- * Identifies the type of repository
+ * An available service can be upgraded.  This is mostly a marker class identifying the
+ * {@link ManifestService} with a set of optional components to upgrade.
  */
-public enum RepositoryType {
+public class AvailableServiceReference {
 
   /**
-   * Repository should be considered to have all components for a cluster
-   * deployment
+   * The reference id back to the service in the repository.
    */
-  STANDARD,
+  @XmlAttribute(name="idref")
+  public String serviceIdReference;
 
   /**
-   * Repository may have only minimum components and is used for patching
-   * purposes
+   * Set of components to update.
    */
-  PATCH,
-
-  /**
-   * Repository is used to update services
-   */
-  SERVICE
-
-
+  @XmlElement(name="component")
+  public Set<String> components = new HashSet<>();
 
 }
