@@ -680,13 +680,52 @@ of hadoop-common prior to running the unit tests in $ordered_modules"
   fi
   failed_test_builds=""
   test_timeouts=""
+
+  # Get the list of modified files
+  TMP=/tmp/tmp.paths.$$
+
+  $GREP '^+++ \|^--- ' $PATCH_DIR/patch | cut -c '5-' | $GREP -v /dev/null | sort > $TMP
+
+  # if all of the lines start with a/ or b/, then this is a git patch that
+  # was generated without --no-prefix
+  if ! $GREP -qv '^a/\|^b/' $TMP ; then
+    sed -i -e 's,^[ab]/,,' $TMP
+  fi
+
   for module in $ordered_modules; do
     cd $module
+    skip_surefiretests=1
     module_suffix=`basename ${module}`
+
+    echo "Get the list of files modified in module $module"
+
+    # Come up with a list of changed files for $module into $MODULE_FILES
+    MODULE_FILES=/tmp/${module_suffix}_files.txt
+    $GREP $module $TMP > $MODULE_FILES
+    module_files=$(cat $MODULE_FILES)
+
+    for module_filename in $module_files; do
+      file_ext=$(echo $module_filename | awk -F . '{if (NF>1) {print $NF}}')
+      # Look for java extension
+      if [[ "$file_ext" == "java" ]]; then
+        skip_surefiretests=0
+        break
+      fi
+    done
+
     test_logfile=$PATCH_DIR/testrun_${module_suffix}.txt
     echo "  Running tests in $module"
-    echo "  $MVN clean install -fn  -D${PROJECT_NAME}PatchProcess"
-    $MVN clean install -fae -D${PROJECT_NAME}PatchProcess > $test_logfile 2>&1
+
+    # Skip java tests if this module did not have changes to java files
+    if [[ $skip_surefiretests -eq 0 ]];
+    then
+      echo "  $MVN clean install -fae  -D${PROJECT_NAME}PatchProcess"
+      $MVN clean install -fae -D${PROJECT_NAME}PatchProcess > $test_logfile 2>&1
+    else
+      echo "  $MVN clean install -fae  -D${PROJECT_NAME}PatchProcess -DskipSurefireTests"
+      $MVN clean install -fae -D${PROJECT_NAME}PatchProcess -DskipSurefireTests > $test_logfile 2>&1
+    fi
+
     test_build_result=$?
     cat $test_logfile
     # module_test_timeouts=`$AWK '/^Running / { if (last) { print last } last=$2 } /^Tests run: / { last="" }' $test_logfile`
