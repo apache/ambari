@@ -29,17 +29,17 @@ def write_function(path, handle, interval):
           handle.flush()
           time.sleep(interval)
           
-thread = Thread(target =  write_function, args = ('balancer.log', sys.stdout, 1.5))
+thread = Thread(target =  write_function, args = ('balancer.out', sys.stdout, 1.5))
 thread.start()
 
-threaderr = Thread(target =  write_function, args = ('balancer-err.log', sys.stderr, 1.5 * 0.023))
+threaderr = Thread(target =  write_function, args = ('balancer.err', sys.stderr, 1.5 * 0.023))
 threaderr.start()
 
 thread.join()  
 
 
 def rebalancer_out():
-  write_function('balancer.log', sys.stdout)
+  write_function('balancer.out', sys.stdout)
   
 def rebalancer_err():
-  write_function('balancer-err.log', sys.stdout)
+  write_function('balancer.err', sys.stdout)
