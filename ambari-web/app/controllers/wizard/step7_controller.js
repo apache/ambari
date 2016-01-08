@@ -703,13 +703,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-    // If Hawq service is being added, add NN/RM HA related parameter to hdfs-client/yarn-client respectively if applicable
-    if (this.get('wizardController.name') === 'addServiceController' && this.get('allSelectedServiceNames').contains('HAWQ')) {
+    // If HAWQ service is being added, add NN-HA/RM-HA/Kerberos related parameters to hdfs-client/yarn-client if applicable
+    if (this.get('wizardController.name') == 'addServiceController' && !this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
       if (App.get('isHaEnabled')) {
         this.addHawqConfigsOnNnHa(configs);
       }
       if (App.get('isRMHaEnabled')) {
         this.addHawqConfigsOnRMHa(configs);
+      }
+      if (App.get('isKerberosEnabled')) {
+        this.addHawqConfigsOnKerberizedCluster(configs);
       }
     }
     var dependedServices = ["STORM", "YARN"];
@@ -849,7 +852,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * This method ensures that these additional parameters are added to hdfs-client.xml
    * @param configs existing configs on cluster
    * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml
-   * @private
    */
   addHawqConfigsOnNnHa: function(configs) {
     var hdfsSiteConfigs = configs.filterProperty('filename', 'hdfs-site.xml');
@@ -888,7 +890,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * This method ensures that these additional parameters are added to yarn-client.xml
    * @param configs existing configs on cluster
    * @returns {Object[]} existing configs + additional config parameters in yarn-client.xml
-   * @private
    */
   addHawqConfigsOnRMHa: function(configs) {
     var yarnSiteConfigs = configs.filterProperty('filename', 'yarn-site.xml');
@@ -907,7 +908,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         description: 'Comma separated yarn resourcemanager scheduler addresses with port',
         port: '8030'
       }
-    ]
+    ];
 
     yarnConfigToBeAdded.forEach(function(propertyDetails) {
       var newProperty = App.config.createDefaultConfig(propertyDetails.propertyName, 'HAWQ', 'yarn-client.xml', true);
@@ -925,6 +926,49 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       configs.push(App.ServiceConfigProperty.create(newProperty));
     });
     return configs;
+  },
+
+  /**
+   * For Kerberos Enabled cluster, HAWQ service requires additional config parameters in hdfs-client.xml and hawq-site.xml
+   * This method ensures that these additional parameters are added to hdfs-client.xml and hawq-site.xml
+   * @param configs existing configs on cluster
+   * @returns {Object[]} existing configs + additional config parameters in hdfs-client.xml and hawq-site.xml
+   */
+  addHawqConfigsOnKerberizedCluster: function(configs) {
+    Em.A([
+      {
+        name: 'hadoop.security.authentication',
+        value: 'kerberos',
+        filename: 'hdfs-client.xml',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'enable_secure_filesystem',
+        value: 'ON',
+        filename: 'hawq-site.xml',
+        isOverridable: false,
+        isReconfigurable: false
+      }, {
+        name: 'krb_server_keyfile',
+        value: '/etc/security/keytabs/hawq.service.keytab',
+        filename: 'hawq-site.xml',
+        isOverridable: true,
+        isReconfigurable: true
+      }
+    ]).forEach(function (property) {
+      var newProperty = App.config.createDefaultConfig(property.name, 'HAWQ', property.filename, true);
+      Em.setProperties(newProperty, {
+        displayName: property.name,
+        displayType: 'string',
+        name: property.name,
+        value: property.value,
+        recommendedValue: property.value,
+        isOverridable: property.isOverridable,
+        isReconfigurable: property.isReconfigurable,
+        isSecureConfig: true
+      });
+      configs.push(App.ServiceConfigProperty.create(newProperty));
+    });
   },
 
   /**
