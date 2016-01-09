@@ -413,6 +413,7 @@ CREATE TABLE hostgroup_component (
   blueprint_name VARCHAR(100) NOT NULL,
   hostgroup_name VARCHAR(100) NOT NULL,
   name VARCHAR(100) NOT NULL,
+  provision_action VARCHAR(100),
   PRIMARY KEY(blueprint_name, hostgroup_name, name));
 
 CREATE TABLE blueprint_configuration (

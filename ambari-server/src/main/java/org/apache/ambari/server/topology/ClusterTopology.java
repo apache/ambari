@@ -19,8 +19,7 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 
 import java.util.Collection;
 import java.util.Map;

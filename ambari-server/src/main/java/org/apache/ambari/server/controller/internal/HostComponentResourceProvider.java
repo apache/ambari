@@ -386,7 +386,16 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return requestStages.getRequestStatusResponse();
   }
 
+
+  // TODO, revisit this extra method, that appears to be used during Add Hosts
+  // TODO, How do we determine the component list for INSTALL_ONLY during an Add Hosts operation? rwn
   public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
+    UnsupportedPropertyException, NoSuchParentResourceException {
+
+    return this.start(cluster, hostName, Collections.<String>emptySet());
+  }
+
+  public RequestStatusResponse start(String cluster, String hostName, Collection<String> installOnlyComponents) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<String, String>();
@@ -410,9 +419,34 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       Predicate notClientPredicate = new NotPredicate(new ClientComponentPredicate());
       Predicate clusterAndClientPredicate = new AndPredicate(clusterPredicate, notClientPredicate);
       Predicate hostAndStatePredicate = new AndPredicate(installedStatePredicate, hostPredicate);
-      Predicate startPredicate = new AndPredicate(clusterAndClientPredicate, hostAndStatePredicate);
+      Predicate startPredicate;
 
-      LOG.info("Starting all non-client components on host: " + hostName);
+      if (installOnlyComponents.isEmpty()) {
+        // all installed components should be started
+        startPredicate = new AndPredicate(clusterAndClientPredicate, hostAndStatePredicate);
+        LOG.info("Starting all non-client components on host: " + hostName);
+      } else {
+        // any INSTALL_ONLY components should not be started
+        List<Predicate> listOfComponentPredicates =
+          new ArrayList<Predicate>();
+
+        for (String installOnlyComponent : installOnlyComponents) {
+          Predicate componentNameEquals = new EqualsPredicate<String>(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, installOnlyComponent);
+          // create predicate to filter out the install only component
+          listOfComponentPredicates.add(new NotPredicate(componentNameEquals));
+        }
+
+        Predicate[] arrayOfInstallOnlyPredicates = new Predicate[listOfComponentPredicates.size()];
+        // aggregate Predicate of all INSTALL_ONLY component names
+        Predicate installOnlyComponentsPredicate = new AndPredicate(listOfComponentPredicates.toArray(arrayOfInstallOnlyPredicates));
+
+        // start predicate must now include the INSTALL_ONLY component predicates, in
+        // order to filter out those components for START attempts
+        startPredicate = new AndPredicate(clusterAndClientPredicate, hostAndStatePredicate, installOnlyComponentsPredicate);
+        LOG.info("Starting all non-client components on host: " + hostName + ", except for the INSTALL_ONLY components specified: " + installOnlyComponents);
+      }
+
+
       requestStages = doUpdateResources(null, startRequest, startPredicate, true);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {

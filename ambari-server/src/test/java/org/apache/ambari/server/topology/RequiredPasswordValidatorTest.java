@@ -130,8 +130,8 @@ public class RequiredPasswordValidatorTest {
     expect(blueprint.getHostGroup("group2")).andReturn(group2).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
 
-    expect(group1.getComponents()).andReturn(group1Components).anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).anyTimes();
+    expect(group1.getComponentNames()).andReturn(group1Components).anyTimes();
+    expect(group2.getComponentNames()).andReturn(group2Components).anyTimes();
     expect(group1.getComponents("service1")).andReturn(Arrays.asList("component1", "component2")).anyTimes();
     expect(group1.getComponents("service2")).andReturn(Arrays.asList("component3")).anyTimes();
     expect(group1.getComponents("service3")).andReturn(Collections.<String>emptySet()).anyTimes();

@@ -157,7 +157,7 @@ public class BlueprintImpl implements Blueprint {
   public Collection<HostGroup> getHostGroupsForComponent(String component) {
     Collection<HostGroup> resultGroups = new HashSet<HostGroup>();
     for (HostGroup group : hostGroups.values() ) {
-      if (group.getComponents().contains(component)) {
+      if (group.getComponentNames().contains(component)) {
         resultGroups.add(group);
       }
     }
@@ -358,18 +358,25 @@ public class BlueprintImpl implements Blueprint {
     * Create component entities and add to parent host group.
     */
   @SuppressWarnings("unchecked")
-  private void createComponentEntities(HostGroupEntity group, Collection<String> components) {
+  private void createComponentEntities(HostGroupEntity group, Collection<Component> components) {
     Collection<HostGroupComponentEntity> componentEntities = new HashSet<HostGroupComponentEntity>();
     group.setComponents(componentEntities);
 
-    for (String component : components) {
+    for (Component component : components) {
       HostGroupComponentEntity componentEntity = new HostGroupComponentEntity();
       componentEntities.add(componentEntity);
 
-      componentEntity.setName(component);
+      componentEntity.setName(component.getName());
       componentEntity.setBlueprintName(group.getBlueprintName());
       componentEntity.setHostGroupEntity(group);
       componentEntity.setHostGroupName(group.getName());
+
+      // add provision action (if specified) to entity type
+      // otherwise, just leave this column null (provision_action)
+      if (component.getProvisionAction() != null) {
+        componentEntity.setProvisionAction(component.getProvisionAction().toString());
+      }
+
     }
     group.setComponents(componentEntities);
   }

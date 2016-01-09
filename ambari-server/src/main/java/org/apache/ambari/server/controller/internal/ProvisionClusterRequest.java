@@ -99,11 +99,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String PROVISION_ACTION_PROPERTY = "provision_action";
 
-  public enum ProvisionAction {
-    INSTALL_ONLY,     // Skip Start
-    INSTALL_AND_START // Default action
-  }
-
   /**
    * configuration factory
    */

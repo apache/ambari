@@ -27,6 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -76,6 +77,10 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
   private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
 
+  private static final String BLUEPRINT_HOSTGROUP_COMPONENT_TABLE_NAME = "hostgroup_component";
+  private static final String BLUEPRINT_PROVISION_ACTION_COLUMN_NAME = "provision_action";
+
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -118,6 +123,13 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     dbAccessor.createIndex("idx_hrc_request_id", "host_role_command", "request_id");
     dbAccessor.createIndex("idx_rsc_request_id", "role_success_criteria", "request_id");
 
+    executeBlueprintProvisionActionDDLUpdates();
+  }
+
+  private void executeBlueprintProvisionActionDDLUpdates() throws AmbariException, SQLException {
+    // add provision_action column to the hostgroup_component table for Blueprints
+    dbAccessor.addColumn(BLUEPRINT_HOSTGROUP_COMPONENT_TABLE_NAME, new DBAccessor.DBColumnInfo(BLUEPRINT_PROVISION_ACTION_COLUMN_NAME,
+      String.class, 255, null, true));
   }
 
   @Override

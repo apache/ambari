@@ -32,6 +32,7 @@ import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.ConfigRecommendationStrategy;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
@@ -6305,9 +6306,14 @@ public class BlueprintConfigurationProcessorTest {
       //todo: HG configs
       groupInfo.setConfiguration(hostGroup.configuration);
 
+      List<Component> componentList = new ArrayList<Component>();
+      for (String componentName : hostGroup.components) {
+        componentList.add(new Component(componentName));
+      }
+
       //create host group which is set on topology
       allHostGroups.put(hostGroup.name, new HostGroupImpl(hostGroup.name, "test-bp", stack,
-          hostGroup.components, EMPTY_CONFIG, "1"));
+          componentList, EMPTY_CONFIG, "1"));
 
       hostGroupInfo.put(hostGroup.name, groupInfo);
 

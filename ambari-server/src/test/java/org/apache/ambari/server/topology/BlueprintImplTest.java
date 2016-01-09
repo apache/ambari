@@ -23,16 +23,14 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.state.SecurityType;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -56,13 +54,13 @@ public class BlueprintImplTest {
 
     Stack stack = createNiceMock(Stack.class);
 
-    HostGroup group1 = createNiceMock(HostGroup.class);
-    HostGroup group2 = createNiceMock(HostGroup.class);
+    HostGroup group1 = createMock(HostGroup.class);
+    HostGroup group2 = createMock(HostGroup.class);
     Collection<HostGroup> hostGroups = new HashSet<HostGroup>();
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    Set<String> group1Components = new HashSet<String>();
+    Collection<String> group1Components = new HashSet<String>();
     group1Components.add("c1");
     group1Components.add("c2");
 
@@ -95,11 +93,15 @@ public class BlueprintImplTest {
 
     expect(group1.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     expect(group1.getName()).andReturn("group1").anyTimes();
-    expect(group1.getComponents()).andReturn(group1Components).atLeastOnce();
+    expect(group1.getComponentNames()).andReturn(group1Components).atLeastOnce();
+    expect(group1.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
 
     expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     expect(group2.getName()).andReturn("group2").anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).atLeastOnce();
+    expect(group2.getComponentNames()).andReturn(group2Components).atLeastOnce();
+    expect(group2.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c3"))).atLeastOnce();
 
     replay(stack, group1, group2);
 
@@ -143,11 +145,11 @@ public class BlueprintImplTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    Set<String> group1Components = new HashSet<String>();
+    Collection<String> group1Components = new HashSet<String>();
     group1Components.add("c1");
     group1Components.add("c2");
 
-    Set<String> group2Components = new HashSet<String>();
+    Collection<String> group2Components = new HashSet<String>();
     group2Components.add("c1");
     group2Components.add("c3");
 
@@ -176,11 +178,11 @@ public class BlueprintImplTest {
 
     expect(group1.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     expect(group1.getName()).andReturn("group1").anyTimes();
-    expect(group1.getComponents()).andReturn(group1Components).atLeastOnce();
+    expect(group1.getComponentNames()).andReturn(group1Components).atLeastOnce();
 
     expect(group2.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     expect(group2.getName()).andReturn("group2").anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).atLeastOnce();
+    expect(group2.getComponentNames()).andReturn(group2Components).atLeastOnce();
 
     replay(stack, group1, group2);
 
@@ -214,8 +216,8 @@ public class BlueprintImplTest {
 
     Stack stack = createNiceMock(Stack.class);
 
-    HostGroup group1 = createNiceMock(HostGroup.class);
-    HostGroup group2 = createNiceMock(HostGroup.class);
+    HostGroup group1 = createMock(HostGroup.class);
+    HostGroup group2 = createMock(HostGroup.class);
     Collection<HostGroup> hostGroups = new HashSet<HostGroup>();
     hostGroups.add(group1);
     hostGroups.add(group2);
@@ -258,10 +260,14 @@ public class BlueprintImplTest {
 
     expect(group1.getConfiguration()).andReturn(EMPTY_CONFIGURATION).atLeastOnce();
     expect(group1.getName()).andReturn("group1").anyTimes();
-    expect(group1.getComponents()).andReturn(group1Components).atLeastOnce();
+    expect(group1.getComponentNames()).andReturn(group1Components).atLeastOnce();
+    expect(group1.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group1.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c2"))).atLeastOnce();
 
     expect(group2.getName()).andReturn("group2").anyTimes();
-    expect(group2.getComponents()).andReturn(group2Components).atLeastOnce();
+    expect(group2.getComponentNames()).andReturn(group2Components).atLeastOnce();
+    expect(group2.getCardinality()).andReturn("1").atLeastOnce();
+    expect(group2.getComponents()).andReturn(Arrays.asList(new Component("c1"), new Component("c3"))).atLeastOnce();
 
     // Blueprint config
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();

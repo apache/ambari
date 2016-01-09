@@ -21,8 +21,7 @@ package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,7 +120,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
   public Collection<String> getHostGroupsForComponent(String component) {
     Collection<String> resultGroups = new ArrayList<String>();
     for (HostGroup group : getBlueprint().getHostGroups().values() ) {
-      if (group.getComponents().contains(component)) {
+      if (group.getComponentNames().contains(component)) {
         resultGroups.add(group.getName());
       }
     }
@@ -231,7 +230,15 @@ public class ClusterTopologyImpl implements ClusterTopology {
   @Override
   public RequestStatusResponse startHost(String hostName) {
     try {
-      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()));
+      String hostGroupName = getHostGroupForHost(hostName);
+      HostGroup hostGroup = this.blueprint.getHostGroup(hostGroupName);
+
+      // get the set of components that are marked as INSTALL_ONLY
+      // for this hostgroup
+      Collection<String> installOnlyComponents =
+        hostGroup.getComponentNames(ProvisionAction.INSTALL_ONLY);
+
+      return ambariContext.startHost(hostName, ambariContext.getClusterName(getClusterId()), installOnlyComponents);
     } catch (AmbariException e) {
       LOG.error("Cannot get cluster name for clusterId = " + getClusterId(), e);
       throw new RuntimeException(e);

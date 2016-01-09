@@ -142,8 +142,8 @@ public class TopologyManagerTest {
   private HostGroupInfo group2Info = new HostGroupInfo("group2");
   private Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
 
-  private Collection<String> group1Components = Arrays.asList("component1", "component2", "component3");
-  private Collection<String> group2Components = Arrays.asList("component3", "component4");
+  private Collection<Component> group1Components = Arrays.asList(new Component("component1"), new Component("component2"), new Component("component3"));
+  private Collection<Component> group2Components = Arrays.asList(new Component("component3"), new Component("component4"));
 
   private Map<String, Collection<String>> group1ServiceComponents = new HashMap<String, Collection<String>>();
   private Map<String, Collection<String>> group2ServiceComponents = new HashMap<String, Collection<String>>();
