@@ -380,7 +380,7 @@ public class TopologyManager {
     }
   }
 
-  public Request getRequest(long requestId) {
+  public LogicalRequest getRequest(long requestId) {
     ensureInitialized();
     return allRequests.get(requestId);
   }
