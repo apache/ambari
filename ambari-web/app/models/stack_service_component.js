@@ -198,7 +198,12 @@ App.StackServiceComponent = DS.Model.extend({
   /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
   isNotAddableOnlyInInstall: function() {
     return ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER'].contains(this.get('componentName'));
-  }.property('componentName')
+  }.property('componentName'),
+
+  /** @property {Boolean} isNotAllowedOnSingleNodeCluster - is this component allowed on single node  **/
+  isNotAllowedOnSingleNodeCluster: function() {
+    return ['HAWQSTANDBY'].contains(this.get('componentName'));
+   }.property('componentName')
 
 });
 

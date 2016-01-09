@@ -65,8 +65,8 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    hawqMasterHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER"]
-    hawqStandbyHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY"]
+    hawqMasterHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER" for hostname in component["StackServiceComponents"]["hostnames"]]
+    hawqStandbyHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY" for hostname  in component["StackServiceComponents"]["hostnames"]]
 
     # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
     if len(hawqMasterHosts) == 1 and len(hawqStandbyHosts) == 1 and hawqMasterHosts == hawqStandbyHosts:
@@ -591,8 +591,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def isHawqMasterComponentOnAmbariServer(self, services):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
-    hawqMasterComponentHosts = [component["StackServiceComponents"]["hostnames"][0] for component in componentsList 
-                               if component["StackServiceComponents"]["component_name"] in ("HAWQMASTER", "HAWQSTANDBY")]
+    hawqMasterComponentHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] in ("HAWQMASTER", "HAWQSTANDBY") for hostname in component["StackServiceComponents"]["hostnames"]]
     return any([self.isLocalHost(host) for host in hawqMasterComponentHosts])
 
 

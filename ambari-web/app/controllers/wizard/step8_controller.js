@@ -440,6 +440,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         if (component.get('isMaster') && !component.get('isShownOnInstallerAssignMasterPage')) return;
         // no HA component
         if (component.get('isHAComponentOnly')) return;
+        // skip if component is not allowed on single node cluster
+        if (Object.keys(this.get('content.hosts')).length == 1 && component.get('isNotAllowedOnSingleNodeCluster')) return;
         var displayName;
         if (component.get('isClient')) {
           displayName = Em.I18n.t('common.clients')
