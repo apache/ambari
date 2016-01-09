@@ -98,15 +98,15 @@ public class ClusterTopologyImplTest {
     hostGroupMap.put("group3", group3);
     hostGroupMap.put("group4", group4);
 
-    Set<String> group1Components = new HashSet<String>();
-    group1Components.add("component1");
-    group1Components.add("component2");
-    Set<String> group2Components = new HashSet<String>();
-    group2Components.add("component3");
-    Set<String> group3Components = new HashSet<String>();
-    group3Components.add("component4");
-    Set<String> group4Components = new HashSet<String>();
-    group4Components.add("component5");
+    Set<Component> group1Components = new HashSet<Component>();
+    group1Components.add(new Component("component1"));
+    group1Components.add(new Component("component2"));
+    Set<Component> group2Components = new HashSet<Component>();
+    group2Components.add(new Component("component3"));
+    Set<Component> group3Components = new HashSet<Component>();
+    group3Components.add(new Component("component4"));
+    Set<Component> group4Components = new HashSet<Component>();
+    group4Components.add(new Component("component5"));
 
     expect(blueprint.getHostGroups()).andReturn(hostGroupMap).anyTimes();
     expect(blueprint.getHostGroup("group1")).andReturn(group1).anyTimes();

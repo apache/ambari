@@ -43,7 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.ambari.server.controller.internal.ProvisionClusterRequest.ProvisionAction.INSTALL_ONLY;
+import static org.apache.ambari.server.controller.internal.ProvisionAction.INSTALL_ONLY;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
@@ -194,7 +194,7 @@ public class HostRequest implements Comparable<HostRequest> {
 
     // lower level logical component level tasks which get mapped to physical tasks
     HostGroup hostGroup = getHostGroup();
-    for (String component : hostGroup.getComponents()) {
+    for (String component : hostGroup.getComponentNames()) {
       if (component == null || component.equals("AMBARI_SERVER")) {
         LOG.info("Skipping component {} when creating request\n", component);
         continue;

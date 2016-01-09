@@ -188,7 +188,7 @@ public class LogicalRequest extends Request {
           hostComponents = new HashSet<String>();
           hostComponentMap.put(host, hostComponents);
         }
-        hostComponents.addAll(hostGroup.getComponents());
+        hostComponents.addAll(hostGroup.getComponentNames());
       }
     }
     return hostComponentMap;

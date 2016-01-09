@@ -20,9 +20,9 @@ package org.apache.ambari.server.api.services.stackadvisor;
 
 import com.google.common.collect.Maps;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
-import org.apache.ambari.server.topology.HostGroupImpl;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
@@ -81,7 +81,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
-    expect(hostGroup.getComponents()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
+    expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(createRecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(createProps());
 
@@ -108,7 +108,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
-    expect(hostGroup.getComponents()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
+    expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andThrow(new StackAdvisorException("ex"));
     expect(configuration.getFullProperties()).andReturn(createProps());
@@ -136,7 +136,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(stack.getName()).andReturn("HDP").anyTimes();
     expect(blueprint.getServices()).andReturn(Arrays.asList("HDFS", "YARN", "HIVE")).anyTimes();
     expect(blueprint.getHostGroups()).andReturn(createHostGroupMap()).anyTimes();
-    expect(hostGroup.getComponents()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
+    expect(hostGroup.getComponentNames()).andReturn(Arrays.asList("comp1", "comp2")).anyTimes();
     expect(stackAdvisorHelper.recommend(anyObject(StackAdvisorRequest.class))).andReturn(new RecommendationResponse());
     expect(configuration.getFullProperties()).andReturn(createProps());
 

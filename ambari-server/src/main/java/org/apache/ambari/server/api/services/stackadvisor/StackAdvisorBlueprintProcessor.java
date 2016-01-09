@@ -105,7 +105,7 @@ public class StackAdvisorBlueprintProcessor {
   private Map<String, Set<String>> gatherHostGroupComponents(ClusterTopology clusterTopology) {
     Map<String, Set<String>> hgComponentsMap = Maps.newHashMap();
     for (Map.Entry<String, HostGroup> hgEnrty: clusterTopology.getBlueprint().getHostGroups().entrySet()) {
-      hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponents()));
+      hgComponentsMap.put(hgEnrty.getKey(), Sets.newCopyOnWriteArraySet(hgEnrty.getValue().getComponentNames()));
     }
     return hgComponentsMap;
   }
