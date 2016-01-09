@@ -45,7 +45,9 @@ exports.config =
           'vendor/scripts/d3.v2.js',
           'vendor/scripts/cubism.v1.js',
           'vendor/scripts/jquery.ui.core.js',
+          'vendor/scripts/jquery.ui.position.js',
           'vendor/scripts/jquery.ui.widget.js',
+          'vendor/scripts/jquery.ui.autocomplete.js',
           'vendor/scripts/jquery.ui.mouse.js',
           'vendor/scripts/jquery.ui.datepicker.js',
           'vendor/scripts/jquery-ui-timepicker-addon.js',
@@ -55,6 +57,9 @@ exports.config =
           'vendor/scripts/jquery.timeago.js',
           'vendor/scripts/jquery.ajax-retry.js',
           'vendor/scripts/jquery.sticky-kit.js',
+          'vendor/scripts/underscore.js',
+          'vendor/scripts/backbone.js',
+          'vendor/scripts/visualsearch.js',
           'vendor/scripts/moment.js',
           'vendor/scripts/moment-timezone-with-data-2010-2020.js',
           'vendor/scripts/workflow_visualization.js',
@@ -63,6 +68,7 @@ exports.config =
           'vendor/scripts/jquery.flexibleArea.js',
           'vendor/scripts/FileSaver.js',
           'vendor/scripts/Blob.js'
+
           ]
 
     stylesheets:
@@ -79,7 +85,8 @@ exports.config =
           'vendor/styles/rickshaw.css',
           'vendor/styles/bootstrap-combobox.css',
           'vendor/styles/bootstrap-checkbox.css',
-          'vendor/styles/bootstrap-slider.min.css'
+          'vendor/styles/bootstrap-slider.min.css',
+          'vendor/styles/visualsearch-datauri.css'
         ],
         after: ['app/styles/custom-ui.css']
 
