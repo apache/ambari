@@ -298,7 +298,6 @@ public class PhoenixTransactSQL {
     if (condition.getStatement() != null) {
       stmtStr = condition.getStatement();
     } else {
-
       String metricsTable;
       String query;
       if (condition.getPrecision() == null) {

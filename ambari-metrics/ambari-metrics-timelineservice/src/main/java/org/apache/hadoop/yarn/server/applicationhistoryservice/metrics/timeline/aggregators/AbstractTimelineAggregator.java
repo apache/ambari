@@ -308,6 +308,19 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
     return metricsConf.getBoolean(aggregatorDisableParam, false);
   }
 
+  protected String getQueryHint(Long startTime) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("/*+ ");
+    sb.append("NATIVE_TIME_RANGE(");
+    sb.append(startTime - nativeTimeRangeDelay);
+    sb.append(") ");
+    if (hBaseAccessor.isSkipBlockCacheForAggregatorsEnabled()) {
+      sb.append("NO_CACHE ");
+    }
+    sb.append("*/");
+    return sb.toString();
+  }
+
   protected String getCheckpointLocation() {
     return checkpointLocation;
   }

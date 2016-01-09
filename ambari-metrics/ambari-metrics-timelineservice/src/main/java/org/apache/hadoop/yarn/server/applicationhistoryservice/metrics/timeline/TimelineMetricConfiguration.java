@@ -199,6 +199,9 @@ public class TimelineMetricConfiguration {
   public static final String AGGREGATE_TABLE_SPLIT_POINTS =
     "timeline.metrics.cluster.aggregate.splitpoints";
 
+  public static final String AGGREGATORS_SKIP_BLOCK_CACHE =
+    "timeline.metrics.aggregators.skip.blockcache.enabled";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;

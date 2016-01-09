@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATE_TABLE_SPLIT_POINTS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATORS_SKIP_BLOCK_CACHE;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_DAILY_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_HOUR_TABLE_TTL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_MINUTE_TABLE_TTL;
@@ -121,13 +122,14 @@ public class PhoenixHBaseAccessor {
   private final RetryCounterFactory retryCounterFactory;
   private final ConnectionProvider dataSource;
   private final long outOfBandTimeAllowance;
+  private final boolean skipBlockCacheForAggregatorsEnabled;
 
   public PhoenixHBaseAccessor(Configuration hbaseConf,
                               Configuration metricsConf){
     this(hbaseConf, metricsConf, new DefaultPhoenixDataSource(hbaseConf));
   }
 
-  public PhoenixHBaseAccessor(Configuration hbaseConf,
+  PhoenixHBaseAccessor(Configuration hbaseConf,
                               Configuration metricsConf,
                               ConnectionProvider dataSource) {
     this.hbaseConf = hbaseConf;
@@ -140,11 +142,11 @@ public class PhoenixHBaseAccessor {
       throw new IllegalStateException(e);
     }
     this.dataSource = dataSource;
-    this.retryCounterFactory = new RetryCounterFactory(
-      metricsConf.getInt(GLOBAL_MAX_RETRIES, 10),
+    this.retryCounterFactory = new RetryCounterFactory(metricsConf.getInt(GLOBAL_MAX_RETRIES, 10),
       (int) SECONDS.toMillis(metricsConf.getInt(GLOBAL_RETRY_INTERVAL, 5)));
     this.outOfBandTimeAllowance = metricsConf.getLong(OUT_OFF_BAND_DATA_TIME_ALLOWANCE,
       DEFAULT_OUT_OF_BAND_TIME_ALLOWANCE);
+    this.skipBlockCacheForAggregatorsEnabled = metricsConf.getBoolean(AGGREGATORS_SKIP_BLOCK_CACHE, false);
   }
 
   private static TimelineMetric getLastTimelineMetricFromResultSet(ResultSet rs)
@@ -1022,5 +1024,12 @@ public class PhoenixHBaseAccessor {
       LOG.info("Time to save: " + (end - start) + ", " +
         "thread = " + Thread.currentThread().getName());
     }
+  }
+
+  /**
+   * Provide skip block cache hint for aggregator queries.
+   */
+  public boolean isSkipBlockCacheForAggregatorsEnabled() {
+    return skipBlockCacheForAggregatorsEnabled;
   }
 }

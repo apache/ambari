@@ -17,22 +17,20 @@
  */
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
+
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_TIME_SQL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator {
   private final TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(true);
@@ -61,14 +59,10 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       endTime, null, null, true);
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
-    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
-      tableName);
+    String sqlStr = String.format(GET_CLUSTER_AGGREGATE_TIME_SQL, getQueryHint(startTime), tableName);
     // HOST_COUNT vs METRIC_COUNT
     if (isClusterPrecisionInputTable) {
-      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL,
-        PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
-        tableName);
+      sqlStr = String.format(GET_CLUSTER_AGGREGATE_SQL, getQueryHint(startTime), tableName);
     }
 
     condition.setStatement(sqlStr);
