@@ -39,14 +39,5 @@ class SparkServiceCheck(Script):
       logoutput=True
     )
 
-    # Run SparkPi to verify spark
-    if Script.is_hdp_stack_greater_or_equal("2.4"):
-      command = "spark-submit --class org.apache.spark.examples.SparkPi --master yarn-client /usr/hdp/current/spark-client/lib/spark-examples*.jar 10"
-      Execute(command,
-        tries = 10,
-        try_sleep = 3,
-        user = params.spark_user,
-        logoutput=True)
-
 if __name__ == "__main__":
   SparkServiceCheck().execute()
