@@ -526,5 +526,13 @@
       Enable Compaction policy for lower for Precision and Minute aggregate tables.
     </description>
   </property>
+  <property>
+    <name>timeline.metrics.aggregators.skip.blockcache.enabled</name>
+    <value>false</value>
+    <description>
+      Skip block cache on aggregator queries to allow, HBase block
+      utilization only for user queries.
+    </description>
+  </property>
 
 </configuration>

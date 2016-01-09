@@ -24,7 +24,6 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -67,8 +66,7 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     condition.setNoLimit();
     condition.setFetchSize(resultsetFetchSize);
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
-      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
-      tableName));
+      getQueryHint(startTime), tableName));
     // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("METRIC_NAME");
     condition.addOrderByColumn("HOSTNAME");
