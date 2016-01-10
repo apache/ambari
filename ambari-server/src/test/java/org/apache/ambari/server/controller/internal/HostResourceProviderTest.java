@@ -48,6 +48,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -1289,7 +1290,13 @@ public class HostResourceProviderTest {
 
   public static void deleteHosts(AmbariManagementController controller, Set<HostRequest> requests)
       throws AmbariException {
+    TopologyManager topologyManager = createNiceMock(TopologyManager.class);
+    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+
+    replay(topologyManager);
+
     HostResourceProvider provider = getHostProvider(controller);
+    HostResourceProvider.setTopologyManager(topologyManager);
     provider.deleteHosts(requests);
   }
   

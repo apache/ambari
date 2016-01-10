@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,6 +62,7 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.LogicalRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.commons.lang.StringUtils;
@@ -827,6 +829,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     for (HostRequest hostRequest : okToRemove) {
       // Assume the user also wants to delete it entirely, including all clusters.
       clusters.deleteHost(hostRequest.getHostname());
+
+      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.EMPTY_LIST)) {
+        logicalRequest.removeHostRequestByHostName(hostRequest.getHostname());
+      }
 
       if (null != hostRequest.getClusterName()) {
         clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
