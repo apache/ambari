@@ -56,9 +56,7 @@ import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.powermock.api.easymock.PowerMock.replayAll;
 import java.net.InetAddress;
-import static org.powermock.api.easymock.PowerMock.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -71,15 +69,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.powermock.api.easymock.PowerMock.replayAll;
+import static org.powermock.api.easymock.PowerMock.mockStatic;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -1008,12 +1009,18 @@ public class HostResourceProviderTest {
     expect(healthStatus.getHealthStatus()).andReturn(HostHealthStatus.HealthStatus.HEALTHY).anyTimes();
     expect(healthStatus.getHealthReport()).andReturn("HEALTHY").anyTimes();
 
+    TopologyManager topologyManager = createNiceMock(TopologyManager.class);
+    expect(topologyManager.getRequests(Collections.EMPTY_LIST)).andReturn(Collections.EMPTY_LIST).anyTimes();
+
     // replay
-    replay(managementController, clusters, cluster,
+    replay(managementController, clusters, cluster, topologyManager,
         host1,
         healthStatus);
 
+
+
     ResourceProvider provider = getHostProvider(managementController);
+    HostResourceProvider.setTopologyManager(topologyManager);
 
     AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
 
