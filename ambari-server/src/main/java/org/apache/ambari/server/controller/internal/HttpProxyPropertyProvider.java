@@ -65,8 +65,18 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
   private static final String PROPERTY_YARN_HTTP_POLICY_VALUE_HTTPS_ONLY = "HTTPS_ONLY";
   private static final String PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE = "true";
 
+
+  private static final String PROPERTY_RESOURCEMANAGER_WEBAPP_ADDRESS = "yarn.resourcemanager.webapp.address";
+  private static final String PROPERTY_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS = "yarn.resourcemanager.webapp.https.address";
+  // resource manager HA properties
+
+  private static final String PROPERTY_RESOURCEMANAGER_HA_RM_IDS = "yarn.resourcemanager.ha.rm-ids";
+  private static final String PROPERTY_RESOURCEMANAGER_HOSTNAME_TEMPLATE = "yarn.resourcemanager.hostname.%s";
+  private static final String PROPERTY_RESOURCEMANAGER_WEBAPP_ADDRESS_TEMPLATE = "yarn.resourcemanager.webapp.address.%s";
+  private static final String PROPERTY_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS_TEMPLATE = "yarn.resourcemanager.webapp.https.address.%s";
+
   static {
-    URL_TEMPLATES.put(COMPONENT_RESOURCEMANAGER, "http://%s:8088/ws/v1/cluster/info");
+    URL_TEMPLATES.put(COMPONENT_RESOURCEMANAGER, "http://%s:%s/ws/v1/cluster/info");
     
     MAPPINGS.put(COMPONENT_RESOURCEMANAGER, PropertyHelper.getPropertyId("HostRoles", "ha_state"));
 
@@ -125,7 +135,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
           MAPPINGS.containsKey(componentName.toString()) &&
           URL_TEMPLATES.containsKey(componentName.toString())) {
         
-        String template = getTemplate(componentName.toString(), clusterName.toString());
+        String template = getTemplate(componentName.toString(), clusterName.toString(), hostName.toString());
         String propertyId = MAPPINGS.get(componentName.toString());
         String url = String.format(template, hostName);
         
@@ -136,7 +146,7 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
     return resources;
   }
 
-  private String getTemplate(String componentName, String clusterName) throws SystemException {
+  private String getTemplate(String componentName, String clusterName, String hostName) throws SystemException {
     String template = URL_TEMPLATES.get(componentName);
 
     if (componentName.equals(COMPONENT_RESOURCEMANAGER)) {
@@ -146,16 +156,54 @@ public class HttpProxyPropertyProvider extends BaseProvider implements PropertyP
         Map<String, String> coreConfigProperties = cluster.getDesiredConfigByType(CONFIG_CORE_SITE).getProperties();
         String yarnHttpPolicy = yarnConfigProperties.get(PROPERTY_YARN_HTTP_POLICY);
         String hadoopSslEnabled = coreConfigProperties.get(PROPERTY_HADOOP_SSL_ENABLED);
-        if ((yarnHttpPolicy != null && yarnHttpPolicy.equals(PROPERTY_YARN_HTTP_POLICY_VALUE_HTTPS_ONLY)) ||
-             hadoopSslEnabled != null && hadoopSslEnabled.equals(PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE)) {
+        boolean useHttps = (yarnHttpPolicy != null && yarnHttpPolicy.equals(PROPERTY_YARN_HTTP_POLICY_VALUE_HTTPS_ONLY)) ||
+            hadoopSslEnabled != null && hadoopSslEnabled.equals(PROPERTY_HADOOP_SSL_ENABLED_VALUE_TRUE);
+        if (useHttps) {
           template = template.replace("http", "https");
         }
+        // determine correct port, we don't want to use hardcoded one
+        String port;
+        if(!yarnConfigProperties.containsKey(PROPERTY_RESOURCEMANAGER_HA_RM_IDS)) {
+          //non ha mode
+          if(useHttps) {
+            port = getPortFromProperty(yarnConfigProperties, PROPERTY_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS, "8090");
+          } else {
+            port = getPortFromProperty(yarnConfigProperties, PROPERTY_RESOURCEMANAGER_WEBAPP_ADDRESS, "8088");
+          }
+        } else {
+          // ha mode
+          String rmId = null;
+          for(String id : yarnConfigProperties.get(PROPERTY_RESOURCEMANAGER_HA_RM_IDS).split(",")) {
+            String hostNameProperty = String.format(PROPERTY_RESOURCEMANAGER_HOSTNAME_TEMPLATE, id);
+            String hostNameById =  yarnConfigProperties.get(hostNameProperty);
+            if(hostNameById.equals(hostName)){
+              rmId = id;
+              break;
+            }
+          }
+          if(useHttps) {
+            String httpsAddressPoperty = String.format(PROPERTY_RESOURCEMANAGER_WEBAPP_HTTPS_ADDRESS_TEMPLATE, rmId);
+            port = getPortFromProperty(yarnConfigProperties, httpsAddressPoperty, "8090");
+          } else {
+            String httpAddressPoperty = String.format(PROPERTY_RESOURCEMANAGER_WEBAPP_ADDRESS_TEMPLATE, rmId);
+            port = getPortFromProperty(yarnConfigProperties, httpAddressPoperty, "8088");
+          }
+
+        }
+        template = String.format(template, "%s", port);
       } catch (AmbariException e) {
           LOG.debug(String.format("Could not load cluster with name %s. %s", clusterName, e.getMessage()));
           throw new SystemException(String.format("Could not load cluster with name %s.", clusterName),e);
       }
     }
     return template;
+  }
+
+  private String getPortFromProperty(Map<String, String> propertyMap, String property, String defaultValue) {
+    if(propertyMap.containsKey(property))
+      return propertyMap.get(property).split(":")[1];
+    else
+      return defaultValue;
   }
 
   private Object getPropertyValueToSet(Map<String, Object> propertyValueFromJson, Object componentName) throws SystemException {
