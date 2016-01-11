@@ -116,7 +116,15 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
 
-  sortView: sort.wrapperView,
+  sortView: sort.wrapperView.extend({
+    didInsertElement: function () {
+      this._super();
+      // set default sorting to status sorting
+      var statusSortingView = this.get('childViews').findProperty('name', 'summary');
+      this.set('controller.sortingColumn', statusSortingView);
+      this.addSortingObserver(statusSortingView.get('name'))
+    }
+  }),
 
   /**
    * Define whether initial view rendering has finished
