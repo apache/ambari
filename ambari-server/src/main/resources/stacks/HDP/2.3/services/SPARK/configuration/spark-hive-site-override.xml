@@ -19,6 +19,13 @@ limitations under the License.
 
 <configuration supports_final="true">
   <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>false</value>
+    <description>
+      Disable impersonation in Hive Server 2.
+    </description>
+  </property>
+  <property>
     <name>hive.metastore.client.socket.timeout</name>
     <value>1800</value>
     <description>MetaStore Client socket timeout in seconds</description>
