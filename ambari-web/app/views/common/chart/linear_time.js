@@ -345,20 +345,29 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   },
 
   getDataForAjaxRequest: function () {
-    var toSeconds = Math.round(App.dateTime() / 1000);
-    var hostName = (this.get('content')) ? this.get('content.hostName') : "";
-
-    var HDFSService = App.HDFSService.find().objectAt(0);
-    var nameNodeName = "";
-    var YARNService = App.YARNService.find().objectAt(0);
-    var resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
-    var timeUnit = this.get('timeUnitSeconds');
+    var fromSeconds,
+      toSeconds,
+      hostName = (this.get('content')) ? this.get('content.hostName') : "",
+      HDFSService = App.HDFSService.find().objectAt(0),
+      nameNodeName = "",
+      YARNService = App.YARNService.find().objectAt(0),
+      resourceManager = YARNService ? YARNService.get('resourceManager.hostName') : "";
     if (HDFSService) {
       nameNodeName = (HDFSService.get('activeNameNode')) ? HDFSService.get('activeNameNode.hostName') : HDFSService.get('nameNode.hostName');
     }
+    if (this.get('currentTimeIndex') === 8 && !Em.isNone(this.get('customStartTime')) && !Em.isNone(this.get('customEndTime'))) {
+      // Custom start and end time is specified by user
+      toSeconds = this.get('customEndTime') / 1000;
+      fromSeconds = this.get('customStartTime') / 1000;
+    } else {
+      // Preset time range is specified by user
+      var timeUnit = this.get('timeUnitSeconds');
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - timeUnit;
+    }
     return {
       toSeconds: toSeconds,
-      fromSeconds: toSeconds - timeUnit,
+      fromSeconds: fromSeconds,
       stepSeconds: 15,
       hostName: hostName,
       nameNodeName: nameNodeName,
@@ -905,7 +914,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     var self = this;
 
     App.ModalPopup.show({
-      bodyClass: Em.View.extend(App.ExportMetricsMixin, {
+      bodyClass: Em.View.extend(App.ExportMetricsMixin, App.TimeRangeMixin, {
 
         containerId: null,
         containerClass: null,
@@ -920,11 +929,17 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         titleId: null,
         titleClass: null,
 
+        timeRangeClassName: 'graph-details-time-range',
         isReady: function () {
           return this.get('parentView.graph.isPopupReady');
         }.property('parentView.graph.isPopupReady'),
 
         didInsertElement: function () {
+          this.setTimeRange({
+            context: {
+              index: 0
+            }
+          });
           var popupBody = this;
           App.tooltip(this.$('.corner-icon > .icon-save'), {
             title: Em.I18n.t('common.export')
@@ -962,11 +977,14 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         }.property(),
 
         rightArrowVisible: function () {
-          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 0));
+          // Time range is neither custom nor the least possible preset
+          return (this.get('isReady') && this.get('parentView.currentTimeIndex') != 0 &&
+            this.get('parentView.currentTimeIndex') != 8);
         }.property('isReady', 'parentView.currentTimeIndex'),
 
         leftArrowVisible: function () {
-          return (this.get('isReady') && (this.get('parentView.currentTimeIndex') != 7));
+          // Time range is neither custom nor the largest possible preset
+          return (this.get('isReady') && this.get('parentView.currentTimeIndex') < 7);
         }.property('isReady', 'parentView.currentTimeIndex'),
 
         exportGraphData: function (event) {
@@ -976,6 +994,17 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           targetView.exportGraphData({
             context: event.context
           });
+        },
+
+        setTimeRange: function (event) {
+          var index = event.context.index,
+            callback = this.get('parentView').reloadGraphByTime.bind(this.get('parentView'), index);
+          this._super(event, callback, self);
+
+          // Preset time range is specified by user
+          if (index !== 8) {
+            callback();
+          }
         }
       }),
       header: this.get('title'),
@@ -1003,7 +1032,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
        */
       switchTimeBack: function (event) {
         var index = this.get('currentTimeIndex');
-        // 7 - number of last time state
+        // 7 - number of last preset time state
         if (index < 7) {
           this.reloadGraphByTime(++index);
         }
@@ -1023,6 +1052,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
        * @param index
        */
       reloadGraphByTime: function (index) {
+        this.set('childViews.firstObject.currentTimeRangeIndex', index);
         this.set('currentTimeIndex', index);
         self.set('currentTimeIndex', index);
       },
@@ -1039,8 +1069,10 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     });
   },
   reloadGraphByTime: function () {
-    this.loadData();
-  }.observes('timeUnitSeconds'),
+    Em.run.once(this, function () {
+      this.loadData();
+    });
+  }.observes('timeUnitSeconds', 'customStartTime', 'customStartTime'),
 
   timeStates: [
     {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
@@ -1050,17 +1082,37 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     {name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
     {name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
     {name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
-    {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+    {name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000},
+    {name: Em.I18n.t('common.custom'), seconds: 0}
   ],
   // should be set by time range control dropdown list when create current graph
   currentTimeIndex: 0,
+  customStartTime: null,
+  customEndTime: null,
   setCurrentTimeIndexFromParent: function () {
-    var index = !Em.isNone(this.get('parentView.currentTimeRangeIndex')) ? this.get('parentView.currentTimeRangeIndex') : this.get('parentView.parentView.currentTimeRangeIndex');
-    this.set('currentTimeIndex', index);
-  }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex'),
-  timeUnitSeconds: function () {
-    return this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
-  }.property('currentTimeIndex')
+    // 8 index corresponds to custom start and end time selection
+    var targetView = !Em.isNone(this.get('parentView.currentTimeRangeIndex')) ? this.get('parentView') : this.get('parentView.parentView'),
+      index = targetView.get('currentTimeRangeIndex'),
+      customStartTime = (index === 8) ? targetView.get('customStartTime') : null,
+      customEndTime = (index === 8) ? targetView.get('customEndTime'): null;
+    this.setProperties({
+      currentTimeIndex: index,
+      customStartTime: customStartTime,
+      customEndTime: customEndTime
+    });
+  }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex', 'parentView.parentView.customStartTime', 'parentView.customStartTime', 'parentView.parentView.customEndTime', 'parentView.customEndTime'),
+  timeUnitSeconds: 3600,
+  timeUnitSecondsSetter: function () {
+      var index = this.get('currentTimeIndex');
+    if (index !== 8) {
+      // Preset time range is specified by user
+      var seconds = this.get('timeStates').objectAt(this.get('currentTimeIndex')).seconds;
+      this.set('timeUnitSeconds', seconds);
+    } else {
+      // Custom start and end time is specified by user
+      this.propertyDidChange('timeUnitSeconds');
+    }
+  }.observes('currentTimeIndex')
 
 });
 
@@ -1403,10 +1455,18 @@ App.ChartLinearTimeView.LoadAggregator = Em.Object.create({
    * @returns {number[]}
    */
   formatRequestData: function (request) {
-    var toSeconds = Math.round(App.dateTime() / 1000);
-    var timeUnit = request.context.get('timeUnitSeconds');
+    var fromSeconds, toSeconds;
+    if (request.context.get('currentTimeIndex') === 8 && !Em.isNone(request.context.get('customStartTime')) && !Em.isNone(request.context.get('customEndTime'))) {
+      // Custom start and end time is specified by user
+      toSeconds = request.context.get('customEndTime') / 1000;
+      fromSeconds = request.context.get('customStartTime') / 1000;
+    } else {
+      var timeUnit = request.context.get('timeUnitSeconds');
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - timeUnit;
+    }
     var fields = request.fields.uniq().map(function (field) {
-      return field + "[" + (toSeconds - timeUnit) + "," + toSeconds + "," + 15 + "]";
+      return field + "[" + (fromSeconds) + "," + toSeconds + "," + 15 + "]";
     });
 
     return fields.join(",");

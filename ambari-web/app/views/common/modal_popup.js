@@ -72,7 +72,7 @@ App.ModalPopup = Ember.View.extend({
       }
     }
     this.fitZIndex();
-    var firstInputElement = this.$('#modal').find(':input').not(':disabled').first();
+    var firstInputElement = this.$('#modal').find(':input').not(':disabled, .no-autofocus').first();
     this.focusElement(firstInputElement);
   },
 
