@@ -38,6 +38,7 @@ import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
@@ -621,8 +622,14 @@ public interface AmbariManagementController {
   public String getMysqljdbcUrl();
 
   /**
-   * Return a healthy host if found otherwise any random host
+   * Chooses a healthy host from the list of candidate hosts randomly. If there
+   * are no healthy hosts, then this method will return {@code null}.
+   * <p/>
+   * The host's {@link HostState} is used to determine if a host is healthy.
+   *
+   * @return a random healthy host, or {@code null}.
    * @throws AmbariException
+   * @see {@link HostState#HEALTHY}
    */
   public String getHealthyHost(Set<String> hostList) throws AmbariException;
 

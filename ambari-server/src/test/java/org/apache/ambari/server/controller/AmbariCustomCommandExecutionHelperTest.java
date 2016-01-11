@@ -59,6 +59,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -311,6 +312,52 @@ public class AmbariCustomCommandExecutionHelperTest {
         "ZOOKEEPER_QUORUM_SERVICE_CHECK",
         null, Arrays.asList(new RequestResourceFilter("ZOOKEEPER", "ZOOKEEPER_CLIENT",
             Collections.singletonList("c6402"))),
+
+        new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
+        new HashMap<String, String>() {
+          {
+          }
+        }, false);
+
+    controller.createAction(actionRequest, requestProperties);
+    Assert.fail(
+        "Expected an exception since there are no hosts which can run the ZK service check");
+  }
+
+  /**
+   * Tests that client-only services like TEZ are not run on hosts which are in
+   * MM. The client-only service is a special path since a component is
+   * typically not specified in the request.
+   */
+  @Test(expected = AmbariException.class)
+  public void testServiceCheckMaintenanceModeWithMissingComponentName() throws Exception {
+    SecurityContextHolder.getContext().setAuthentication(
+        TestAuthenticationFactory.createAdministrator());
+
+    createClusterFixture("HDP-2.0.6");
+    long clusterId = clusters.getCluster("c1").getClusterId();
+
+    // put host into MM
+    clusters.getHost("c6402").setMaintenanceState(clusterId, MaintenanceState.ON);
+
+    // ensure that service check is added for ZOOKEEPER
+    injector.getInstance(ActionMetadata.class).addServiceCheckAction("ZOOKEEPER");
+
+    // !!! use a null operation level to have us guess at the component
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put("context", "Service Check ZooKeeper");
+        put("operation_level/level", null);
+        put("operation_level/service_name", "ZOOKEEPER");
+        put("operation_level/cluster_name", "c1");
+      }
+    };
+
+    // create the service check on the host in MM, passing in null for the
+    // component name
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest("c1",
+        "ZOOKEEPER_QUORUM_SERVICE_CHECK", null, Arrays.asList(
+            new RequestResourceFilter("ZOOKEEPER", null, Collections.singletonList("c6402"))),
 
         new RequestOperationLevel(Resource.Type.Service, "c1", "ZOOKEEPER", null, null),
         new HashMap<String, String>() {
