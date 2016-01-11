@@ -47,7 +47,6 @@ import javax.persistence.Table;
 import javax.persistence.TableGenerator;
 
 import org.apache.ambari.server.state.AlertState;
-import org.eclipse.persistence.annotations.Noncacheable;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -91,7 +90,6 @@ public class AlertTargetEntity {
    * Bi-directional many-to-many association to {@link AlertGroupEntity}
    */
   @ManyToMany(mappedBy = "alertTargets", cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-  @Noncacheable
   private Set<AlertGroupEntity> alertGroups;
 
   /**
