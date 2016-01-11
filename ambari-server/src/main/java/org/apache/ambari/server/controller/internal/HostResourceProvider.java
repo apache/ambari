@@ -876,7 +876,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       // Assume the user also wants to delete it entirely, including all clusters.
       clusters.deleteHost(hostRequest.getHostname());
 
-      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.<Long>emptyList())) {
+      for (LogicalRequest logicalRequest: topologyManager.getRequests(Collections.EMPTY_LIST)) {
         logicalRequest.removeHostRequestByHostName(hostRequest.getHostname());
       }
 
