@@ -2189,6 +2189,8 @@ a:focus {
     min-height: 420px !important;
     overflow: hidden;
     .corner-icon {
+      position: absolute;
+      right: 15px;
       text-decoration: none;
       .icon-save {
         color: #555;
@@ -2219,6 +2221,15 @@ a:focus {
 
 /*start chart/style graphs*/
 .chart-wrapper {
+  .actions-container {
+    text-align: center;
+    .graph-details-time-range {
+      display: inline-block;
+      .dropdown-menu {
+        text-align: left;
+      }
+    }
+  }
   .timezone {
     font-size: @smaller-font-size;
   }

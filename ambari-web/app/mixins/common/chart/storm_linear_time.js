@@ -24,11 +24,24 @@ App.StormLinearTimeChartMixin = Em.Mixin.create({
   metricsTemplate: 'metrics/storm/nimbus/{0}[{1},{2},{3}]',
 
   getDataForAjaxRequest: function() {
-    var currentTime = Math.round(App.dateTime() / 1000);
+    var fromSeconds,
+      toSeconds,
+      index = this.get('isPopup') ? this.get('currentTimeIndex') : this.get('parentView.currentTimeRangeIndex'),
+      customStartTime = this.get('isPopup') ? this.get('customStartTime') : this.get('parentView.customStartTime'),
+      customEndTime = this.get('isPopup') ? this.get('customEndTime') : this.get('parentView.customEndTime');
+    if (index === 8 && !Em.isNone(customStartTime) && !Em.isNone(customEndTime)) {
+      // Custom start and end time is specified by user
+      fromSeconds = customStartTime / 1000;
+      toSeconds = customEndTime / 1000;
+    } else {
+      // Preset time range is specified by user
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - this.get('timeUnitSeconds')
+    }
     var metricTemplate = [];
     this.get('stormChartDefinition').forEach(function(chartInfo) {
       metricTemplate.push(
-        this.get('metricsTemplate').format(chartInfo.field, currentTime - this.get('timeUnitSeconds'), currentTime, 15)
+        this.get('metricsTemplate').format(chartInfo.field, fromSeconds, toSeconds, 15)
       );
     }, this);
     return {

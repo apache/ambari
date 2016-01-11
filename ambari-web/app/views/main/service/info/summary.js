@@ -487,11 +487,18 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
    * @param {object} event
    */
   setTimeRange: function (event) {
-    this._super(event);
+    var graphs = this.get('controller.widgets').filterProperty('widgetType', 'GRAPH'),
+      callback = function () {
+        graphs.forEach(function (widget) {
+          widget.set('properties.time_range', event.context.value);
+        });
+      };
+    this._super(event, callback);
 
-    this.get('controller.widgets').filterProperty('widgetType', 'GRAPH').forEach(function (widget) {
-      widget.set('properties.time_range', event.context.value);
-    }, this);
+    // Preset time range is specified by user
+    if (event.context.value !== '0') {
+      callback();
+    }
   },
 
   loadServiceSummary: function () {

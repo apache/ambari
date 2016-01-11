@@ -20,6 +20,8 @@ var App = require('app');
 
 require('mixins/common/widgets/time_range_mixin');
 
+var timeRangePopup = require('views/common/custom_date_popup');
+
 describe('App.TimeRangeMixin', function () {
 
   var obj;
@@ -44,13 +46,95 @@ describe('App.TimeRangeMixin', function () {
 
   describe('#setTimeRange', function () {
 
-    it('should set time range', function () {
-      obj.setTimeRange({
-        context: {
-          index: 1
+    var indexCases = [
+        {
+          index: 1,
+          showCustomDatePopupCallCount: 0,
+          title: 'preset time range',
+          popupTestTitle: 'popup should not be displayed'
+        },
+        {
+          index: 8,
+          showCustomDatePopupCallCount: 1,
+          title: 'custom time range',
+          popupTestTitle: 'popup should be displayed'
         }
+      ],
+      rangeCases = [
+        {
+          currentTimeRangeIndex: 1,
+          customStartTime: null,
+          customEndTime: null,
+          title: 'previous time range is preset',
+          testTitle: 'should reset time range boundaries'
+        },
+        {
+          currentTimeRangeIndex: 8,
+          customStartTime: 1,
+          customEndTime: 1,
+          title: 'previous time range is custom',
+          testTitle: 'should not reset time range boundaries'
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(timeRangePopup, 'showCustomDatePopup', Em.K);
+    });
+
+    afterEach(function () {
+      timeRangePopup.showCustomDatePopup.restore();
+    });
+
+    indexCases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          obj.setTimeRange({
+            context: {
+              index: item.index
+            }
+          });
+        });
+
+        it('should set time range', function () {
+          expect(obj.get('currentTimeRangeIndex')).to.equal(item.index);
+        });
+
+        it(item.popupTestTitle, function () {
+          expect(timeRangePopup.showCustomDatePopup.callCount).to.equal(item.showCustomDatePopupCallCount);
+        });
+
       });
-      expect(obj.get('currentTimeRangeIndex')).to.equal(1);
+
+    });
+
+    rangeCases.forEach(function (item) {
+
+      describe(item.title, function () {
+
+        beforeEach(function () {
+          obj.setProperties({
+            currentTimeRangeIndex: item.currentTimeRangeIndex,
+            customStartTime: 1,
+            customEndTime: 1
+          });
+          obj.setTimeRange({
+            context: {
+              index: 0
+            }
+          });
+        });
+
+        it(item.testTitle, function () {
+          expect(obj.getProperties(['customStartTime', 'customEndTime'])).to.eql({
+            customStartTime: item.customStartTime,
+            customEndTime: item.customEndTime
+          });
+        });
+
+      });
+
     });
 
   });

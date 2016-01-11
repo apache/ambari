@@ -57,6 +57,12 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
       //1h - default time range
       timeRange = 1;
     }
+
+    // Custom start and end time is specified by user
+    if (this.get('exportTargetView.currentTimeIndex') === 8) {
+      return 0;
+    }
+
     return this.get('customTimeRange') || timeRange * this.get('TIME_FACTOR');
   }.property('content.properties.time_range', 'customTimeRange'),
 
@@ -200,10 +206,23 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
    * @returns {Array} result
    */
   addTimeProperties: function (metricPaths) {
-    var toSeconds = Math.round(App.dateTime() / 1000);
-    var fromSeconds = toSeconds - this.get('timeRange');
-    var step = this.get('timeStep');
-    var result = [];
+    var toSeconds,
+      fromSeconds,
+      step = this.get('timeStep'),
+      timeRange = this.get('timeRange'),
+      result = [],
+      targetView = this.get('exportTargetView.isPopup') ? this.get('exportTargetView') : this.get('parentView'),
+      customStartTime = targetView.get('customStartTime'),
+      customEndTime = targetView.get('customEndTime');
+    if (timeRange === 0 && !Em.isNone(customStartTime) && !Em.isNone(customEndTime)) {
+      // Custom start and end time is specified by user
+      toSeconds = customEndTime / 1000;
+      fromSeconds = customStartTime / 1000;
+    } else {
+      // Preset time range is specified by user
+      toSeconds = Math.round(App.dateTime() / 1000);
+      fromSeconds = toSeconds - timeRange;
+    }
 
     metricPaths.forEach(function (metricPath) {
       result.push(metricPath + '[' + fromSeconds + ',' + toSeconds + ',' + step + ']');
@@ -237,7 +256,13 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, App.ExportMetricsMixin, {
      */
     setTimeRange: function () {
       if (this.get('isPopup')) {
-        this.set('parentView.customTimeRange', this.get('timeUnitSeconds'));
+        if (this.get('currentTimeIndex') === 8) {
+          // Custom start and end time is specified by user
+          this.get('parentView').propertyDidChange('customTimeRange');
+        } else {
+          // Preset time range is specified by user
+          this.set('parentView.customTimeRange', this.get('timeUnitSeconds'));
+        }
       } else {
         this.set('parentView.customTimeRange', null);
       }

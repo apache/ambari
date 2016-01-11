@@ -770,6 +770,17 @@ App.dateTimeWithTimeZone = function (x) {
   return x || new Date().getTime();
 };
 
+App.getTimeStampFromLocalTime = function (time) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone'),
+    offsetString = '',
+    date = moment(time).format('YYYY-MM-DD HH:mm:ss');
+  if (timezone) {
+    var offset = timezone.utcOffset;
+    offsetString = moment().utcOffset(offset).format('Z');
+  }
+  return moment(date + offsetString).toDate().getTime();
+};
+
 /**
  * Helper function for bound property helper registration
  * @memberof App
