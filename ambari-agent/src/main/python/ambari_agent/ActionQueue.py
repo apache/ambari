@@ -98,6 +98,7 @@ class ActionQueue(threading.Thread):
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)
+      logger.debug(pprint.pformat(command))
 
   def put(self, commands):
     for command in commands:
