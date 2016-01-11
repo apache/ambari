@@ -183,6 +183,26 @@ var wrapperView = Em.View.extend({
         };
     }
     return func;
+  },
+
+  /**
+   * Add observer for key to call  <code>onContentChange</code>
+   * @param key
+   */
+  addSortingObserver: function (key) {
+    this.addObserver('content.@each.' + key, this, 'onContentChange');
+  },
+
+  /**
+   * Remove observer for key to call  <code>onContentChange</code>
+   * @param key
+   */
+  removeSortingObserver: function (key) {
+    this.removeObserver('content.@each.' + key, this, 'onContentChange');
+  },
+
+  willDestroyElement: function () {
+    this.removeSortingObserver(this.get('controller.sortingColumn.name'));
   }
 });
 
@@ -296,7 +316,16 @@ var fieldView = Em.View.extend({
    * @param event
    */
   click: function (event) {
-    this.get('parentView').sort(this, (this.get('status') !== 'sorting_desc'));
+    var wrapperView = this.get('parentView');
+    var currentObserverProperty = this.get('controller.sortingColumn.name');
+    wrapperView.sort(this, (this.get('status') !== 'sorting_desc'));
+
+    // add observer for sorting property key to apply sorting if some value will be changed
+    if (currentObserverProperty) {
+      wrapperView.removeSortingObserver(currentObserverProperty);
+    }
+
+    wrapperView.addSortingObserver(this.get('name'));
     this.get('controller').set('sortingColumn', this);
   }
 });
