@@ -129,24 +129,6 @@
         <packagingFormat>jar</packagingFormat>
       </properties>
     </profile>
-    <profile>
-      <id>windows</id>
-      <activation>
-        <os>
-          <family>win</family>
-        </os>
-      </activation>
-      <properties>
-        <envClassifier>win</envClassifier>
-        <dirsep>\</dirsep>
-        <pathsep>;</pathsep>
-        <executable.shell>cmd</executable.shell>
-        <fileextension.shell>cmd</fileextension.shell>
-        <fileextension.dot.shell-default></fileextension.dot.shell-default>
-        <assemblydescriptor>src/main/assemblies/funtest.xml</assemblydescriptor>
-        <packagingFormat>jar</packagingFormat>
-        </properties>
-    </profile>
   </profiles>
   <dependencies>
     <dependency>
