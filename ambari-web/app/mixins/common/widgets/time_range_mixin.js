@@ -19,6 +19,7 @@
 var App = require('app');
 
 require('views/common/time_range_list');
+var timeRangePopup = require('views/common/custom_date_popup');
 
 App.TimeRangeMixin = Em.Mixin.create({
 
@@ -36,7 +37,8 @@ App.TimeRangeMixin = Em.Mixin.create({
     {index: 4, name: Em.I18n.t('graphs.timeRange.day'), value: '24'},
     {index: 5, name: Em.I18n.t('graphs.timeRange.week'), value: '168'},
     {index: 6, name: Em.I18n.t('graphs.timeRange.month'), value: '720'},
-    {index: 7, name: Em.I18n.t('graphs.timeRange.year'), value: '8760'}
+    {index: 7, name: Em.I18n.t('graphs.timeRange.year'), value: '8760'},
+    {index: 8, name: Em.I18n.t('common.custom'), value: '0'}
   ],
 
   currentTimeRangeIndex: 0,
@@ -45,12 +47,49 @@ App.TimeRangeMixin = Em.Mixin.create({
     return this.get('timeRangeOptions').objectAt(this.get('currentTimeRangeIndex'));
   }.property('currentTimeRangeIndex'),
 
+  customStartTime: null,
+
+  customEndTime: null,
+
   /**
    * onclick handler for a time range option
    * @param {object} event
    */
-  setTimeRange: function (event) {
-    this.set('currentTimeRangeIndex', event.context.index);
+  setTimeRange: function (event, callback, context) {
+    var prevIndex = this.get('currentTimeRangeIndex'),
+      prevCustomTimeRange = {
+        start: this.get('customStartTime'),
+        end: this.get('customEndTime')
+      },
+      index = event.context.index,
+      primary = function () {
+        if (callback) {
+          callback();
+        }
+      },
+      secondary = function () {
+        this.setProperties({
+          currentTimeRangeIndex: prevIndex,
+          customStartTime: prevCustomTimeRange.start,
+          customEndTime: prevCustomTimeRange.end
+        });
+      };
+
+    // Preset time range is active
+    if (prevIndex !== 8) {
+      this.setProperties({
+        customStartTime: null,
+        customEndTime: null
+      });
+    }
+
+    // Custom start and end time is specified by user
+    if (index === 8) {
+      context = context || this;
+      timeRangePopup.showCustomDatePopup(context, primary.bind(this), secondary.bind(this));
+    }
+
+    this.set('currentTimeRangeIndex', index);
   },
 
   timeRangeListView: App.TimeRangeListView.extend()

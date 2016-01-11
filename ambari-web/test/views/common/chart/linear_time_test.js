@@ -153,6 +153,32 @@ describe('App.ChartLinearTimeView', function () {
       yarnService: [],
       hdfsService: []
     };
+    var rangeCases = [
+      {
+        currentTimeIndex: 0,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        fromSeconds: -3599,
+        toSeconds: 1,
+        title: 'preset time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        fromSeconds: 100,
+        toSeconds: 200,
+        title: 'custom time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: null,
+        customEndTime: null,
+        fromSeconds: -3599,
+        toSeconds: 1,
+        title: 'custom time range, no boundaries set'
+      }
+    ];
     beforeEach(function(){
       sinon.stub(App.HDFSService, 'find', function(){return services.hdfsService});
       sinon.stub(App.YARNService, 'find', function(){return services.yarnService});
@@ -226,6 +252,20 @@ describe('App.ChartLinearTimeView', function () {
       });
       services.yarnService = [];
     });
+    rangeCases.forEach(function (item) {
+      it(item.title, function () {
+        chartLinearTimeView.setProperties({
+          currentTimeIndex: item.currentTimeIndex,
+          customStartTime: item.customStartTime,
+          customEndTime: item.customEndTime
+        });
+        var requestData = Em.Object.create(chartLinearTimeView.getDataForAjaxRequest());
+        expect(requestData.getProperties(['fromSeconds', 'toSeconds'])).to.eql({
+          fromSeconds: item.fromSeconds,
+          toSeconds: item.toSeconds
+        });
+      });
+    });
   });
 
   describe('#setCurrentTimeIndexFromParent', function () {
@@ -255,12 +295,12 @@ describe('App.ChartLinearTimeView', function () {
     beforeEach(function () {
       view = App.ChartLinearTimeView.create({
         controller: {},
-        parentView: {
+        parentView: Em.Object.create({
           currentTimeRangeIndex: 1,
-          parentView: {
+          parentView: Em.Object.create({
             currentTimeRangeIndex: 2
-          }
-        }
+          })
+        })
       });
     });
 
@@ -458,22 +498,50 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
   });
 
   describe("#formatRequestData()", function () {
+    var cases = [
+      {
+        currentTimeIndex: 0,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        result: 'f3[400,4000,15],f4[400,4000,15]',
+        title: 'preset time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: 100000,
+        customEndTime: 200000,
+        result: 'f3[100,200,15],f4[100,200,15]',
+        title: 'custom time range'
+      },
+      {
+        currentTimeIndex: 8,
+        customStartTime: null,
+        customEndTime: null,
+        result: 'f3[400,4000,15],f4[400,4000,15]',
+        title: 'custom time range, no boundaries set'
+      }
+    ];
     beforeEach(function () {
       sinon.stub(App, 'dateTime').returns(4000000);
-
     });
     afterEach(function () {
       App.dateTime.restore();
-
     });
-    it("data is formed", function () {
-      var context = Em.Object.create({timeUnitSeconds: 3600});
-      var request = {
-        name: 'r1',
-        context: context,
-        fields: ['f3', 'f4']
-      };
-      expect(aggregator.formatRequestData(request)).to.equal('f3[400,4000,15],f4[400,4000,15]');
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        var context = Em.Object.create({
+          timeUnitSeconds: 3600,
+          currentTimeIndex: item.currentTimeIndex,
+          customStartTime: item.customStartTime,
+          customEndTime: item.customEndTime
+        });
+        var request = {
+          name: 'r1',
+          context: context,
+          fields: ['f3', 'f4']
+        };
+        expect(aggregator.formatRequestData(request)).to.equal(item.result);
+      });
     });
   });
 
