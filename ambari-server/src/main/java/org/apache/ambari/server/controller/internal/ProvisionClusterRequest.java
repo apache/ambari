@@ -73,6 +73,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   public static final String HOSTGROUP_HOST_FQDN_PROPERTY = "fqdn";
 
+
+  /**
+   * rack info property name
+   */
+  public static final String HOSTGROUP_HOST_RACK_INFO_PROPERTY = "rack_info";
+
   /**
    * host group hosts property name
    */
@@ -363,6 +369,12 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
       for (Map<String, String> hostProperties : hosts) {
         if (hostProperties.containsKey(HOSTGROUP_HOST_FQDN_PROPERTY)) {
           hostGroupInfo.addHost(hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY));
+        }
+
+        if (hostProperties.containsKey(HOSTGROUP_HOST_RACK_INFO_PROPERTY)) {
+          hostGroupInfo.addHostRackInfo(
+              hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY),
+              hostProperties.get(HOSTGROUP_HOST_RACK_INFO_PROPERTY));
         }
       }
     }
