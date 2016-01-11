@@ -347,10 +347,6 @@ public class MaintenanceStateHelper {
     return result;
   }
 
-  public static interface HostPredicate {
-    public boolean shouldHostBeRemoved(String hostname) throws AmbariException;
-  }
-
   /**
    * Removes from a set all hosts that match a given condition.
    *
@@ -373,4 +369,22 @@ public class MaintenanceStateHelper {
     return removedHosts;
   }
 
+  /**
+   * The {@link HostPredicate} interaface is used as a way to pass a custom
+   * implementation into one of the many
+   * {@link MaintenanceStateHelper#isOperationAllowed(org.apache.ambari.server.controller.spi.Resource.Type, Service)}
+   * methods.
+   */
+  public static interface HostPredicate {
+    /**
+     * Gets whether the specified host should not be included in a result set.
+     *
+     * @param hostname
+     *          the host (not {@code null}).
+     * @return {@code true} to indicate that the specified host is not a valid
+     *         choice, {@code false} otherwise.
+     * @throws AmbariException
+     */
+    public boolean shouldHostBeRemoved(String hostname) throws AmbariException;
+  }
 }
