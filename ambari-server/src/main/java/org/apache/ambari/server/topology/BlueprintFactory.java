@@ -24,6 +24,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -58,6 +59,7 @@ public class BlueprintFactory {
   // Host Group Components
   protected static final String COMPONENT_PROPERTY_ID ="components";
   protected static final String COMPONENT_NAME_PROPERTY_ID ="name";
+  protected static final String COMPONENT_PROVISION_ACTION_PROPERTY_ID = "provision_action";
 
   // Configurations
   protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
@@ -144,7 +146,7 @@ public class BlueprintFactory {
       Collection<Map<String, String>> configProps = (Collection<Map<String, String>>)
           hostGroupProperties.get(CONFIGURATION_PROPERTY_ID);
 
-      Collection<String> components = processHostGroupComponents(stack, hostGroupName, componentProps);
+      Collection<Component> components = processHostGroupComponents(stack, hostGroupName, componentProps);
       Configuration configuration = configFactory.getConfiguration(configProps);
       String cardinality = String.valueOf(hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
 
@@ -155,13 +157,13 @@ public class BlueprintFactory {
     return hostGroups;
   }
 
-  private Collection<String> processHostGroupComponents(Stack stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
+  private Collection<Component> processHostGroupComponents(Stack stack, String groupName, HashSet<HashMap<String, String>>  componentProps) {
     if (componentProps == null || componentProps.isEmpty()) {
       throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
     }
 
     Collection<String> stackComponentNames = getAllStackComponents(stack);
-    Collection<String> components = new ArrayList<String>();
+    Collection<Component> components = new ArrayList<Component>();
 
     for (HashMap<String, String> componentProperties : componentProps) {
       String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
@@ -174,9 +176,16 @@ public class BlueprintFactory {
         throw new IllegalArgumentException("The component '" + componentName + "' in host group '" +
             groupName + "' is not valid for the specified stack");
       }
-      components.add(componentName);
 
+      String componentProvisionAction = componentProperties.get(COMPONENT_PROVISION_ACTION_PROPERTY_ID);
+      if (componentProvisionAction != null) {
+        //TODO, might want to add some validation here, to only accept value enum types, rwn
+        components.add(new Component(componentName, ProvisionAction.valueOf(componentProvisionAction)));
+      } else {
+        components.add(new Component(componentName));
+      }
     }
+
     return components;
   }
 

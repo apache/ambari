@@ -20,6 +20,7 @@
 package org.apache.ambari.server.topology;
 
 import com.google.gson.Gson;
+import org.apache.ambari.server.controller.internal.ProvisionAction;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
@@ -50,7 +51,7 @@ public class HostGroupImpl implements HostGroup {
   /**
    * components contained in the host group
    */
-  private Collection<String> components = new HashSet<String>();
+  private Map<String, Component> components = new HashMap<String, Component>();
 
   /**
    * map of service to components for the host group
@@ -78,20 +79,22 @@ public class HostGroupImpl implements HostGroup {
     parseConfigurations(entity);
   }
 
-  public HostGroupImpl(String name, String bpName, Stack stack, Collection<String> components, Configuration configuration, String cardinality) {
+  public HostGroupImpl(String name, String bpName, Stack stack, Collection<Component> components, Configuration configuration, String cardinality) {
     this.name = name;
     this.blueprintName = bpName;
     this.stack = stack;
 
     // process each component
-    for (String component : components) {
-      addComponent(component);
+    for (Component component : components) {
+      addComponent(component.getName(), component.getProvisionAction());
     }
+
     this.configuration = configuration;
     if (cardinality != null && ! cardinality.equals("null")) {
       this.cardinality = cardinality;
     }
   }
+
 
   @Override
   public String getName() {
@@ -110,9 +113,28 @@ public class HostGroupImpl implements HostGroup {
   }
 
   @Override
-  public Collection<String> getComponents() {
-    return components;
+  public Collection<Component> getComponents() {
+    return components.values();
   }
+
+  @Override
+  public Collection<String> getComponentNames() {
+    return components.keySet();
+  }
+
+  @Override
+  public Collection<String> getComponentNames(ProvisionAction provisionAction) {
+    Set<String> setOfComponentNames = new HashSet<String>();
+    for (String componentName : components.keySet()) {
+      Component component = components.get(componentName);
+      if ( (component.getProvisionAction() != null) && (component.getProvisionAction() == provisionAction) ) {
+        setOfComponentNames.add(componentName);
+      }
+    }
+
+    return setOfComponentNames;
+  }
+
 
   /**
    * Get the services which are deployed to this host group.
@@ -133,7 +155,27 @@ public class HostGroupImpl implements HostGroup {
    */
   @Override
   public boolean addComponent(String component) {
-    boolean added = components.add(component);
+    return this.addComponent(component, null);
+  }
+
+  /**
+   * Add a component with the specified provision action to the
+   *   host group.
+   *
+   * @param component  component name
+   * @param provisionAction provision action for this component
+   *
+   * @return true if component was added; false if component already existed
+   */
+  public boolean addComponent(String component, ProvisionAction provisionAction) {
+    boolean added;
+    if (!components.containsKey(component)) {
+      components.put(component, new Component(component, provisionAction));
+      added = true;
+    } else {
+      added = false;
+    }
+
     if (stack.isMasterComponent(component)) {
       containsMasterComponent = true;
     }
@@ -207,7 +249,13 @@ public class HostGroupImpl implements HostGroup {
    */
   private void parseComponents(HostGroupEntity entity) {
     for (HostGroupComponentEntity componentEntity : entity.getComponents() ) {
-      addComponent(componentEntity.getName());
+      if (componentEntity.getProvisionAction() != null) {
+        addComponent(componentEntity.getName(), ProvisionAction.valueOf(componentEntity.getProvisionAction()));
+      } else {
+        addComponent(componentEntity.getName());
+      }
+
+
     }
   }
 

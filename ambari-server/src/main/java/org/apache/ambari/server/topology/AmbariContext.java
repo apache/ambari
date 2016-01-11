@@ -338,9 +338,9 @@ public class AmbariContext {
     }
   }
 
-  public RequestStatusResponse startHost(String hostName, String clusterName) {
+  public RequestStatusResponse startHost(String hostName, String clusterName, Collection<String> installOnlyComponents) {
     try {
-      return getHostComponentResourceProvider().start(clusterName, hostName);
+      return getHostComponentResourceProvider().start(clusterName, hostName, installOnlyComponents);
     } catch (Exception e) {
       e.printStackTrace();
       throw new RuntimeException("START Host request submission failed: " + e, e);

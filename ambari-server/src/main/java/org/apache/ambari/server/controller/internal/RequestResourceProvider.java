@@ -52,6 +52,7 @@ import org.apache.ambari.server.security.authorization.RoleAuthorization;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.LogicalRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -673,12 +674,15 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     // get summaries from TopologyManager for logical requests
     summary.putAll(topologyManager.getStageSummaries(entity.getRequestId()));
 
-    CalculatedStatus status;
-    if (summary.isEmpty()) {
-      // Delete host might have cleared all HostRoleCommands
+    LogicalRequest logicalRequest = topologyManager.getRequest(entity.getRequestId());
+
+    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+    if (summary.isEmpty() && (logicalRequest == null || logicalRequest.hasCompleted())) {
+
+      // summary might be empty due to delete host have cleared all HostRoleCommands
+      // or due to hosts haven't registered yet with the cluster when the cluster is provisioned
+      // with a Blueprint
       status = CalculatedStatus.getCompletedStatus();
-    } else {
-      status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
     }
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);

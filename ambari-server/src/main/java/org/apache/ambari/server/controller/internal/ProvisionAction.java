@@ -1,5 +1,3 @@
-<?xml version="1.0"?>
-<!--
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -17,31 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
--->
-<metainfo>
-  <schemaVersion>2.0</schemaVersion>
-  <services>
-    <service>
-      <name>RANGER_KMS</name>
-      <extends>common-services/RANGER_KMS/0.5.0.2.3</extends>
-      <osSpecifics>
-        <osSpecific>
-          <osFamily>redhat7,redhat6,suse11</osFamily>
-          <packages>
-            <package>
-              <name>ranger_${stack_version}-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-        <osSpecific>
-          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
-          <packages>
-            <package>
-              <name>ranger-${stack_version}-kms</name>
-            </package>
-          </packages>
-        </osSpecific>
-      </osSpecifics>
-    </service>
-  </services>
-</metainfo>
+
+package org.apache.ambari.server.controller.internal;
+
+
+public enum ProvisionAction {
+  INSTALL_ONLY,     // Skip Start
+  INSTALL_AND_START // Default action
+}

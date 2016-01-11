@@ -40,6 +40,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Component;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
@@ -115,10 +116,10 @@ public class ClusterBlueprintRendererTest {
     clusterAttributeProps.put("propertyOne", "true");
     clusterTypeAttributes.put("final", clusterAttributeProps);
 
-    Collection<String> group1Components = Arrays.asList(
-        "JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER");
+    Collection<Component> group1Components = Arrays.asList(
+        new Component("JOBTRACKER"), new Component("TASKTRACKER"), new Component("NAMENODE"), new Component("DATANODE"), new Component("AMBARI_SERVER"));
 
-    Collection<String> group2Components = Arrays.asList("TASKTRACKER", "DATANODE");
+    Collection<Component> group2Components = Arrays.asList(new Component("TASKTRACKER"), new Component("DATANODE"));
 
     Map<String, Configuration> hostGroupConfigs = new HashMap<String, Configuration>();
     hostGroupConfigs.put("host_group_1", emptyConfiguration);

@@ -171,7 +171,10 @@ App.StackServiceComponent = DS.Model.extend({
   }.property('componentName'),
 
   /** @property {Boolean} isNotAddableOnlyInInstall - is this component addable, except Install and Add Service Wizards  **/
-  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER'])
+  isNotAddableOnlyInInstall: Em.computed.existsIn('componentName', ['HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'OOZIE_SERVER']),
+
+  /** @property {Boolean} isNotAllowedOnSingleNodeCluster - is this component allowed on single node  **/
+  isNotAllowedOnSingleNodeCluster: Em.computed.existsIn('componentName', ['HAWQSTANDBY'])
 
 });
 

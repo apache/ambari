@@ -59,20 +59,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class UpgradeCatalog221Test {
@@ -114,6 +103,10 @@ public class UpgradeCatalog221Test {
     dbAccessor.createIndex(eq("idx_rsc_request_id"), eq("role_success_criteria"), eq("request_id"));
     expectLastCall().once();
 
+    Capture<DBAccessor.DBColumnInfo> capturedHostGroupComponentProvisionColumn = EasyMock.newCapture();
+    dbAccessor.addColumn(eq("hostgroup_component"), capture(capturedHostGroupComponentProvisionColumn));
+    expectLastCall().once();
+
 
     replay(dbAccessor);
     Module module = new Module() {
@@ -128,6 +121,15 @@ public class UpgradeCatalog221Test {
     Injector injector = Guice.createInjector(module);
     UpgradeCatalog221 upgradeCatalog221 = injector.getInstance(UpgradeCatalog221.class);
     upgradeCatalog221.executeDDLUpdates();
+
+    // verify that the column was added for provision_action to the hostgroup_component table
+    assertEquals("Incorrect column name added", "provision_action", capturedHostGroupComponentProvisionColumn.getValue().getName());
+    assertNull("Incorrect default value added", capturedHostGroupComponentProvisionColumn.getValue().getDefaultValue());
+    assertEquals("Incorrect column type added", String.class, capturedHostGroupComponentProvisionColumn.getValue().getType());
+    assertEquals("Incorrect column length added", 255, capturedHostGroupComponentProvisionColumn.getValue().getLength().intValue());
+    assertTrue("Incorrect column nullable state added", capturedHostGroupComponentProvisionColumn.getValue().isNullable());
+
+
     verify(dbAccessor);
   }
 

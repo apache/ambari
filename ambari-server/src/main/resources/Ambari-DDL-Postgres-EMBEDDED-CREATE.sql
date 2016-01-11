@@ -453,6 +453,7 @@ CREATE TABLE ambari.hostgroup_component (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
   name VARCHAR(255) NOT NULL,
+  provision_action VARCHAR(255),
   PRIMARY KEY(blueprint_name, hostgroup_name, name));
 
 CREATE TABLE ambari.blueprint_configuration (
@@ -705,6 +706,7 @@ CREATE TABLE ambari.topology_host_info (
   fqdn VARCHAR(255),
   host_count INTEGER,
   predicate VARCHAR(2048),
+  rack_info VARCHAR(255),
   PRIMARY KEY (id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.topology_host_info TO :username;

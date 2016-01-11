@@ -27,6 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -62,6 +63,8 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String ZK_TICK_TIME = "hbase.zookeeper.property.tickTime";
   private static final String CLUSTER_ENV = "cluster-env";
   private static final String SECURITY_ENABLED = "security_enabled";
+  private static final String TOPOLOGY_HOST_INFO_TABLE = "topology_host_info";
+  private static final String TOPOLOGY_HOST_INFO_RACK_INFO_COLUMN = "rack_info";
 
   @Inject
   DaoUtils daoUtils;
@@ -75,13 +78,10 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME = "oozie.service.HadoopAccessorService.hadoop.configurations";
   private static final String OLD_DEFAULT_HADOOP_CONFIG_PATH = "/etc/hadoop/conf";
   private static final String NEW_DEFAULT_HADOOP_CONFIG_PATH = "{{hadoop_conf_dir}}";
-  private static final String RANGER_KMS_DBKS_CONFIG = "dbks-site";
-  private static final String RANGER_KMS_DB_FLAVOR = "DB_FLAVOR";
-  private static final String RANGER_KMS_DB_HOST = "db_host";
-  private static final String RANGER_KMS_DB_NAME = "db_name";
-  private static final String RANGER_KMS_JDBC_URL = "ranger.ks.jpa.jdbc.url";
-  private static final String RANGER_KMS_JDBC_DRIVER = "ranger.ks.jpa.jdbc.driver";
-  private static final String RANGER_KMS_PROPERTIES = "kms-properties";
+
+  private static final String BLUEPRINT_HOSTGROUP_COMPONENT_TABLE_NAME = "hostgroup_component";
+  private static final String BLUEPRINT_PROVISION_ACTION_COLUMN_NAME = "provision_action";
+
 
 
   // ----- Constructors ------------------------------------------------------
@@ -125,6 +125,17 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     dbAccessor.createIndex("idx_hrc_request_id", "host_role_command", "request_id");
     dbAccessor.createIndex("idx_rsc_request_id", "role_success_criteria", "request_id");
 
+    executeBlueprintProvisionActionDDLUpdates();
+
+    dbAccessor.addColumn(TOPOLOGY_HOST_INFO_TABLE,
+        new DBAccessor.DBColumnInfo(TOPOLOGY_HOST_INFO_RACK_INFO_COLUMN, String.class, 255));
+
+  }
+
+  private void executeBlueprintProvisionActionDDLUpdates() throws AmbariException, SQLException {
+    // add provision_action column to the hostgroup_component table for Blueprints
+    dbAccessor.addColumn(BLUEPRINT_HOSTGROUP_COMPONENT_TABLE_NAME, new DBAccessor.DBColumnInfo(BLUEPRINT_PROVISION_ACTION_COLUMN_NAME,
+      String.class, 255, null, true));
   }
 
   @Override
@@ -137,7 +148,6 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     updateOozieConfigs();
-    updateRangerKmsDbksConfigs();
   }
 
   protected void updateAlerts() {
@@ -345,41 +355,4 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     }
   }
 
-  protected void updateRangerKmsDbksConfigs() throws AmbariException {
-    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
-
-    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
-      Map<String, String> newRangerKmsProps = new HashMap<>();
-      Config rangerKmsDbConfigs = cluster.getDesiredConfigByType(RANGER_KMS_PROPERTIES);
-      if (rangerKmsDbConfigs != null) {
-        String dbFlavor = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_FLAVOR);
-        String dbHost = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_HOST);
-        String dbName = rangerKmsDbConfigs.getProperties().get(RANGER_KMS_DB_NAME);
-        String dbConnectionString = null;
-        String dbDriver = null;
-
-        if (dbFlavor != null && dbHost != null && dbName != null) {
-          if ("MYSQL".equalsIgnoreCase(dbFlavor)) {
-            dbConnectionString = "jdbc:mysql://"+dbHost+"/"+dbName;
-            dbDriver = "com.mysql.jdbc.Driver";
-          } else if ("ORACLE".equalsIgnoreCase(dbFlavor)) {
-            dbConnectionString = "jdbc:oracle:thin:@//"+dbHost;
-            dbDriver = "oracle.jdbc.driver.OracleDriver";
-          } else if ("POSTGRES".equalsIgnoreCase(dbFlavor)) {
-            dbConnectionString = "jdbc:postgresql://"+dbHost+"/"+dbName;
-            dbDriver = "org.postgresql.Driver";
-          } else if ("MSSQL".equalsIgnoreCase(dbFlavor)) {
-            dbConnectionString = "jdbc:sqlserver://"+dbHost+";databaseName="+dbName;
-            dbDriver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-          } else if ("SQLA".equalsIgnoreCase(dbFlavor)) {
-            dbConnectionString = "jdbc:sqlanywhere:database="+dbName+";host="+dbHost;
-            dbDriver = "sap.jdbc4.sqlanywhere.IDriver";
-          }
-          newRangerKmsProps.put(RANGER_KMS_JDBC_URL, dbConnectionString);
-          newRangerKmsProps.put(RANGER_KMS_JDBC_DRIVER, dbDriver);
-          updateConfigurationPropertiesForCluster(cluster, RANGER_KMS_DBKS_CONFIG, newRangerKmsProps, true, false);
-        }
-      }
-    }
-  }
 }

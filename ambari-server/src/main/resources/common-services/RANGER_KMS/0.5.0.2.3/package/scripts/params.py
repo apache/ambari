@@ -52,8 +52,6 @@ has_ranger_admin = len(ranger_admin_hosts) > 0
 kms_host = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
 kms_port = config['configurations']['kms-env']['kms_port']
 
-create_db_user = config['configurations']['kms-env']['create_db_user']
-
 #kms properties
 db_flavor = (config['configurations']['kms-properties']['DB_FLAVOR']).lower()
 db_host = config['configurations']['kms-properties']['db_host']
@@ -125,7 +123,6 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
-ews_lib_jar_path = format("{kms_home}/ews/webapp/lib/{jdbc_jar_name}")
 
 if db_flavor == 'sqla':
   downloaded_custom_connector = format("{tmp_dir}/sqla-client-jdbc.tar.gz")
@@ -194,13 +191,7 @@ ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr
 #For SQLA explicitly disable audit to DB for Ranger
 if xa_audit_db_flavor == 'sqla':
   xa_audit_db_is_enabled = False
-
 current_host = config['hostname']
 ranger_kms_hosts = config['clusterHostInfo']['ranger_kms_server_hosts']
 if current_host in ranger_kms_hosts:
   kms_host = current_host
-
-check_db_connection_jar_name = "DBConnectionVerification.jar"
-check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
-ranger_kms_jdbc_connection_url = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.url']
-ranger_kms_jdbc_driver = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.driver']

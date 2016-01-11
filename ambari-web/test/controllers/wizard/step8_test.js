@@ -504,7 +504,11 @@ describe('App.WizardStep8Controller', function () {
       var content = Em.Object.create({
         services: services,
         selectedServices: selectedServices,
-        slaveComponentHosts: slaveComponentHosts
+        slaveComponentHosts: slaveComponentHosts,
+        hosts: Em.A([
+          Em.Object.create({hostName: 'h1', isInstalled: true}),
+          Em.Object.create({hostName: 'h2', isInstalled: false})
+        ])
       });
       installerStep8Controller.set('content', content);
       installerStep8Controller.set('services', Em.A([]));

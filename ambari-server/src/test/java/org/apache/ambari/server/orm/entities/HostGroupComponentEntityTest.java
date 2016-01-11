@@ -55,4 +55,12 @@ public class HostGroupComponentEntityTest {
     entity.setBlueprintName("foo");
     assertEquals("foo", entity.getBlueprintName());
   }
+
+  @Test
+  public void testSetGetProvisionAction() {
+    HostGroupComponentEntity entity = new HostGroupComponentEntity();
+    entity.setProvisionAction("INSTALL_ONLY");
+    assertEquals("INSTALL_ONLY", entity.getProvisionAction());
+  }
+
 }

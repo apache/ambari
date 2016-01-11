@@ -188,7 +188,7 @@ public class LogicalRequest extends Request {
           hostComponents = new HashSet<String>();
           hostComponentMap.put(host, hostComponents);
         }
-        hostComponents.addAll(hostGroup.getComponents());
+        hostComponents.addAll(hostGroup.getComponentNames());
       }
     }
     return hostComponentMap;
@@ -325,6 +325,37 @@ public class LogicalRequest extends Request {
     }
 
     return summaryMap;
+  }
+
+  /**
+   * Removes all HostRequest associated with the passed host name from internal collections
+   * @param hostName name of the host
+   */
+  public void removeHostRequestByHostName(String hostName) {
+    synchronized (requestsWithReservedHosts) {
+      synchronized (outstandingHostRequests) {
+        requestsWithReservedHosts.remove(hostName);
+
+        Iterator<HostRequest> hostRequestIterator = outstandingHostRequests.iterator();
+        while (hostRequestIterator.hasNext()) {
+          if (hostRequestIterator.next().getHostName().equals(hostName)) {
+            hostRequestIterator.remove();
+            break;
+          }
+        }
+
+        //todo: synchronization
+        Iterator<HostRequest> allHostRequesIterator = allHostRequests.iterator();
+        while (allHostRequesIterator.hasNext()) {
+          if (allHostRequesIterator.next().getHostName().equals(hostName)) {
+            allHostRequesIterator.remove();
+            break;
+          }
+        }
+      }
+    }
+
+
   }
 
   private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
