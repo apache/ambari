@@ -91,7 +91,8 @@ public class HttpPropertyProviderTest {
 
     Map<String, String> map = new HashMap<String, String>();
     map.put("yarn.http.policy", "HTTPS_ONLY");
-
+    map.put("yarn.resourcemanager.webapp.https.address", "ec2-54-234-33-50.compute-1.amazonaws.com:8999");
+    map.put("yarn.resourcemanager.webapp.address", "ec2-54-234-33-50.compute-1.amazonaws.com:8088");
 
     expect(injector.getInstance(Clusters.class)).andReturn(clusters);
     expect(clusters.getCluster("testCluster")).andReturn(cluster);
@@ -119,9 +120,60 @@ public class HttpPropertyProviderTest {
     propProvider.populateResources(Collections.singleton(resource), request, null);
 
     Assert.assertTrue(resource.getPropertiesMap().get("HostRoles").get("ha_state").equals("ACTIVE"));
-    Assert.assertTrue(streamProvider.getLastSpec().equals("https://ec2-54-234-33-50.compute-1.amazonaws.com:8088" +
+    Assert.assertTrue(streamProvider.getLastSpec().equals("https://ec2-54-234-33-50.compute-1.amazonaws.com:8999" +
             "/ws/v1/cluster/info"));
   }
+
+  @Test
+  public void testReadResourceManagerHA() throws Exception {
+
+    TestStreamProvider streamProvider = new TestStreamProvider(false);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Injector injector = createNiceMock(Injector.class);
+    Config config1 = createNiceMock(Config.class);
+    Config config2 = createNiceMock(Config.class);
+
+    Map<String, String> map = new HashMap<String, String>();
+    map.put("yarn.http.policy", "HTTPS_ONLY");
+    map.put("yarn.resourcemanager.ha.rm-ids", "rm1,rm2");
+    map.put("yarn.resourcemanager.hostname.rm1", "lc6402.ambari.apache.org");
+    map.put("yarn.resourcemanager.hostname.rm2", "lc6403.ambari.apache.org");
+    map.put("yarn.resourcemanager.webapp.address.rm1", "lc6402.ambari.apache.org:8099");
+    map.put("yarn.resourcemanager.webapp.address.rm2", "lc6403.ambari.apache.org:8099");
+    map.put("yarn.resourcemanager.webapp.https.address.rm1", "lc6402.ambari.apache.org:8066");
+    map.put("yarn.resourcemanager.webapp.https.address.rm2", "lc6403.ambari.apache.org:8066");
+
+    expect(injector.getInstance(Clusters.class)).andReturn(clusters);
+    expect(clusters.getCluster("testCluster")).andReturn(cluster);
+    expect(cluster.getDesiredConfigByType("yarn-site")).andReturn(config1).anyTimes();
+    expect(cluster.getDesiredConfigByType("core-site")).andReturn(config2).anyTimes();
+    expect(config1.getProperties()).andReturn(map).anyTimes();
+    expect(config2.getProperties()).andReturn(new HashMap<String, String>()).anyTimes();
+
+    replay(injector, clusters, cluster, config1, config2);
+
+    HttpProxyPropertyProvider propProvider = new HttpProxyPropertyProvider(
+        streamProvider, configuration, injector,
+        PROPERTY_ID_CLUSTER_NAME,
+        PROPERTY_ID_HOST_NAME,
+        PROPERTY_ID_COMPONENT_NAME);
+
+    Resource resource = new ResourceImpl(Resource.Type.HostComponent);
+
+    resource.setProperty(PROPERTY_ID_HOST_NAME, "lc6402.ambari.apache.org");
+    resource.setProperty(PROPERTY_ID_CLUSTER_NAME, "testCluster");
+    resource.setProperty(PROPERTY_ID_COMPONENT_NAME, "RESOURCEMANAGER");
+
+    Request request = PropertyHelper.getReadRequest(Collections.<String>emptySet());
+
+    propProvider.populateResources(Collections.singleton(resource), request, null);
+
+    Assert.assertTrue(resource.getPropertiesMap().get("HostRoles").get("ha_state").equals("ACTIVE"));
+    Assert.assertTrue(streamProvider.getLastSpec().equals("https://lc6402.ambari.apache.org:8066" +
+        "/ws/v1/cluster/info"));
+  }
+
 
   @Test
   public void testReadGangliaServer() throws Exception {
