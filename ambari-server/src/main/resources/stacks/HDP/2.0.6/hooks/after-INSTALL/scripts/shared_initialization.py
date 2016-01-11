@@ -47,7 +47,14 @@ def setup_hdp_symlinks():
 def setup_config():
   import params
   stackversion = params.stack_version_unformatted
-  if params.has_namenode or stackversion.find('Gluster') >= 0:
+
+  is_hadoop_conf_dir_present = False
+  if params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
+    is_hadoop_conf_dir_present = True
+  else:
+    Logger.warning("Parameter hadoop_conf_dir is missing or directory does not exist.")
+  
+  if is_hadoop_conf_dir_present and (params.has_namenode or stackversion.find('Gluster') >= 0):
     # create core-site only if the hadoop config diretory exists
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
