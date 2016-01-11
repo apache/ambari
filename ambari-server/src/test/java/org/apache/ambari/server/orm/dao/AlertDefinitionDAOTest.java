@@ -303,7 +303,6 @@ public class AlertDefinitionDAOTest {
    * @throws Exception
    */
   @Test
-  @Ignore
   public void testCascadeDelete() throws Exception {
     AlertDefinitionEntity definition = helper.createAlertDefinition(clusterId);
 
