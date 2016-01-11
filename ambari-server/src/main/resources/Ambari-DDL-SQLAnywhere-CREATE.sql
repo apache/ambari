@@ -605,6 +605,7 @@ CREATE TABLE topology_host_info (
   fqdn VARCHAR(255),
   host_count INTEGER,
   predicate VARCHAR(2048),
+  rack_info VARCHAR(255),
   PRIMARY KEY (id)
 );
 

@@ -63,6 +63,8 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String ZK_TICK_TIME = "hbase.zookeeper.property.tickTime";
   private static final String CLUSTER_ENV = "cluster-env";
   private static final String SECURITY_ENABLED = "security_enabled";
+  private static final String TOPOLOGY_HOST_INFO_TABLE = "topology_host_info";
+  private static final String TOPOLOGY_HOST_INFO_RACK_INFO_COLUMN = "rack_info";
 
   @Inject
   DaoUtils daoUtils;
@@ -124,6 +126,10 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     dbAccessor.createIndex("idx_rsc_request_id", "role_success_criteria", "request_id");
 
     executeBlueprintProvisionActionDDLUpdates();
+
+    dbAccessor.addColumn(TOPOLOGY_HOST_INFO_TABLE,
+        new DBAccessor.DBColumnInfo(TOPOLOGY_HOST_INFO_RACK_INFO_COLUMN, String.class, 255));
+
   }
 
   private void executeBlueprintProvisionActionDDLUpdates() throws AmbariException, SQLException {

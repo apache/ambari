@@ -282,6 +282,7 @@ public class PersistedStateImpl implements PersistedState {
           hostInfoEntity.setPredicate(groupInfo.getPredicateString());
         }
         hostInfoEntity.setFqdn(hostName);
+        hostInfoEntity.setRackInfo(groupInfo.getHostRackInfo().get(hostName));
         hostInfoEntity.setHostCount(0);
         hostInfoEntities.add(hostInfoEntity);
       }
@@ -383,6 +384,7 @@ public class PersistedStateImpl implements PersistedState {
           String hostname = hostInfoEntity.getFqdn();
           if (hostname != null && ! hostname.isEmpty()) {
             groupInfo.addHost(hostname);
+            groupInfo.addHostRackInfo(hostname, hostInfoEntity.getRackInfo());
           } else {
             // should not be more than one group info if host count is specified
             groupInfo.setRequestedCount(hostInfoEntity.getHostCount());

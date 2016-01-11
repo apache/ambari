@@ -51,6 +51,9 @@ public class TopologyHostInfoEntity {
   @JoinColumn(name = "group_id", referencedColumnName = "id", nullable = false)
   private TopologyHostGroupEntity topologyHostGroupEntity;
 
+  @Column(name = "rack_info", length = 255)
+  private String rackInfo;
+
   public Long getId() {
     return id;
   }
@@ -93,6 +96,14 @@ public class TopologyHostInfoEntity {
 
   public void setTopologyHostGroupEntity(TopologyHostGroupEntity topologyHostGroupEntity) {
     this.topologyHostGroupEntity = topologyHostGroupEntity;
+  }
+
+  public String getRackInfo() {
+    return rackInfo;
+  }
+
+  public void setRackInfo(String rackInfo) {
+    this.rackInfo = rackInfo;
   }
 
   @Override
