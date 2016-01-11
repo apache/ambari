@@ -47,7 +47,6 @@ public class HostGroupComponentEntity {
   @Column(name = "name", nullable = false, insertable = true, updatable = false)
   private String name;
 
-  @Id
   @Column(name = "provision_action", nullable = true, insertable = true, updatable = false)
   private String provisionAction;
 
