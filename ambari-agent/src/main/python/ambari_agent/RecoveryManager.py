@@ -150,7 +150,9 @@ class RecoveryManager:
       self.__status_lock.acquire()
       try:
         if component not in self.statuses:
-          self.statuses[component] = copy.deepcopy(self.default_component_status)
+          component_status = copy.deepcopy(self.default_component_status)
+          component_status["stale_config"] = is_config_stale
+          self.statuses[component] = component_status
       finally:
         self.__status_lock.release()
       pass
@@ -169,7 +171,9 @@ class RecoveryManager:
       self.__status_lock.acquire()
       try:
         if component not in self.statuses:
-          self.statuses[component] = copy.deepcopy(self.default_component_status)
+          component_status = copy.deepcopy(self.default_component_status)
+          component_status["current"] = state
+          self.statuses[component] = component_status
       finally:
         self.__status_lock.release()
       pass
@@ -189,12 +193,15 @@ class RecoveryManager:
       self.__status_lock.acquire()
       try:
         if component not in self.statuses:
-          self.statuses[component] = copy.deepcopy(self.default_component_status)
+          component_status = copy.deepcopy(self.default_component_status)
+          component_status["desired"] = state
+          self.statuses[component] = component_status
       finally:
         self.__status_lock.release()
       pass
 
     self.statuses[component]["desired"] = state
+    logger.info("desired status is set to %s for %s", self.statuses[component]["desired"], component)
     if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
             self.statuses[component]["stale_config"] == False:
       self.remove_command(component)
@@ -232,21 +239,20 @@ class RecoveryManager:
     if component not in self.statuses:
       return False
 
+    status = self.statuses[component]
     if self.auto_start_only:
-      status = self.statuses[component]
       if status["current"] == status["desired"]:
         return False
       if status["desired"] not in self.allowed_desired_states:
         return False
     else:
-      status = self.statuses[component]
       if status["current"] == status["desired"] and status['stale_config'] == False:
         return False
 
     if status["desired"] not in self.allowed_desired_states or status["current"] not in self.allowed_current_states:
       return False
 
-    logger.info("%s needs recovery.", component)
+    logger.info("%s needs recovery, desired = %s, and current = %s.", component, status["desired"], status["current"])
     return True
     pass
 
