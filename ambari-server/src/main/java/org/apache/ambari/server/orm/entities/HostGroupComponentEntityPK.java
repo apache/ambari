@@ -38,10 +38,6 @@ public class HostGroupComponentEntityPK {
   @Column(name = "name", nullable = false, insertable = true, updatable = false, length = 100)
   private String name;
 
-  @Id
-  @Column(name = "provision_action", nullable = true, insertable = true, updatable = false, length = 100)
-  private String provisionAction;
-
   /**
    * Get the name of the associated host group.
    *
