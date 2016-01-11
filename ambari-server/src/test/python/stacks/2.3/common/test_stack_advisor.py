@@ -182,6 +182,30 @@ class TestHDP23StackAdvisor(TestCase):
       return 'c6401.ambari.apache.org' if value is None else value
 
 
+  def test_validations_hawqsegment(self):
+    """ Test validation warning for HAWQ segment not colocated with DATANODE """
+
+    services = self.load_json("services-normal-hawq-3-hosts.json")
+    hosts = self.load_json("hosts-3-hosts.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+
+    hawqsegmentComponent = [component["StackServiceComponents"] for component in componentsList
+                            if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
+    hawqsegmentComponent["hostnames"] = ['c6401.ambari.apache.org']
+    datanodeComponent = [component["StackServiceComponents"] for component in componentsList
+                         if component["StackServiceComponents"]["component_name"] == "DATANODE"][0]
+    datanodeComponent["hostnames"] = ['c6402.ambari.apache.org']
+
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    expected = {'component-name': 'HAWQSEGMENT', 'message': 'HAWQSEGMENT is not co-located with DATANODE on the following 2 host(s): c6402.ambari.apache.org, c6401.ambari.apache.org', 'type': 'host-component', 'level': 'WARN'}
+    self.assertEquals(validations[0], expected)
+
+    datanodeComponent["hostnames"] = ['c6401.ambari.apache.org']
+    validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 0)
+
+
   @patch('socket.getfqdn', side_effect=fqdn_mock_result)
   def test_getComponentLayoutValidations_hawq_3_Hosts(self, socket_mock):
     """ Test layout validations for HAWQ components on a 3-node cluster """
