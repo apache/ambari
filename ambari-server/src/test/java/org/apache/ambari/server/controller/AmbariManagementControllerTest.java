@@ -8424,13 +8424,8 @@ public class AmbariManagementControllerTest {
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
     request.setBaseUrl("https://hortonworks.com");
     requests.add(request);
-    // test bad url
-    try {
-      controller.updateRepositories(requests);
-      fail("Expected IllegalStateException");
-    } catch (IllegalStateException e) {
-      //expected
-    }
+    // test https url
+    controller.updateRepositories(requests);
 
     requests.clear();
     request = new RepositoryRequest(STACK_NAME, STACK_VERSION, OS_TYPE, REPO_ID);
