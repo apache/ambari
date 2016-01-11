@@ -1194,7 +1194,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         "ru_execute_tasks", Collections.singletonList(filter), params);
 
     // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeIgnored(false);
+    actionContext.setMaintenanceModeHostExcluded(true);
 
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
     actionContext.setRetryAllowed(allowRetry);
@@ -1295,7 +1295,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeIgnored(false);
+    actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
@@ -1356,7 +1356,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     // hosts in maintenance mode are excluded from the upgrade and should not be
     // candidates for service checks
-    actionContext.setMaintenanceModeIgnored(false);
+    actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
@@ -1473,7 +1473,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setAutoSkipFailures(context.isComponentFailureAutoSkipped());
 
     // hosts in maintenance mode are excluded from the upgrade
-    actionContext.setMaintenanceModeIgnored(false);
+    actionContext.setMaintenanceModeHostExcluded(true);
 
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(actionContext,
         cluster, context.getEffectiveStackId());
