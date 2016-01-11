@@ -350,10 +350,13 @@ class BSRunner extends Thread {
       } else {
         stat = BSStat.ERROR;
       }
-      tmpStatus.setLog(scriptlog);
-      tmpStatus.setStatus(stat);
-      bsImpl.updateStatus(requestId, tmpStatus);
-      bsImpl.reset();
+
+      // creating new status instance to avoid modifying exposed object
+      BootStrapStatus newStat = new BootStrapStatus();
+      newStat.setHostsStatus(hostStatusList);
+      newStat.setLog(scriptlog);
+      newStat.setStatus(stat);
+
       // Remove private ssh key after bootstrap is complete
       try {
         FileUtils.forceDelete(sshKeyFile);
@@ -368,6 +371,10 @@ class BSRunner extends Thread {
           LOG.warn(io.getMessage());
         }
       }
+
+      bsImpl.updateStatus(requestId, newStat);
+      bsImpl.reset();
+
       finished();
     }
   }
