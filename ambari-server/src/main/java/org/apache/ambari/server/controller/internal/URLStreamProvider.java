@@ -52,6 +52,7 @@ public class URLStreamProvider implements StreamProvider {
   private static final String NEGOTIATE = "Negotiate";
   private static Log LOG = LogFactory.getLog(URLStreamProvider.class);
 
+  private boolean setupTruststoreForHttps;
   private final int connTimeout;
   private final int readTimeout;
   private final String trustStorePath;
@@ -97,8 +98,16 @@ public class URLStreamProvider implements StreamProvider {
     this.trustStorePath     = trustStorePath;
     this.trustStorePassword = trustStorePassword;
     this.trustStoreType     = trustStoreType;
+    this.setupTruststoreForHttps = true;
   }
 
+  public void setSetupTruststoreForHttps(boolean setupTruststoreForHttps) {
+    this.setupTruststoreForHttps = setupTruststoreForHttps;
+  }
+  
+  public boolean getSetupTruststoreForHttps() {
+    return this.setupTruststoreForHttps;
+  }
 
   // ----- StreamProvider ----------------------------------------------------
 
@@ -169,7 +178,7 @@ public class URLStreamProvider implements StreamProvider {
       LOG.debug("readFrom spec:" + spec);
     }
 
-    HttpURLConnection connection = spec.startsWith("https") ?
+    HttpURLConnection connection = (spec.startsWith("https") && this.setupTruststoreForHttps) ?
             getSSLConnection(spec) : getConnection(spec);
 
     AppCookieManager appCookieManager = getAppCookieManager();

@@ -3798,6 +3798,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    */
   private void verifyRepository(RepositoryRequest request) throws AmbariException {
     URLStreamProvider usp = new URLStreamProvider(REPO_URL_CONNECT_TIMEOUT, REPO_URL_READ_TIMEOUT, null, null, null);
+    usp.setSetupTruststoreForHttps(false);
 
     RepositoryInfo repositoryInfo = ambariMetaInfo.getRepository(request.getStackName(), request.getStackVersion(), request.getOsType(), request.getRepoId());
     String repoName = repositoryInfo.getRepoName();
