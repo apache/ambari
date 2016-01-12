@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller.internal;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.ValueAttributesInfo;
@@ -413,28 +414,27 @@ public class BlueprintConfigurationProcessor {
     ConfigRecommendationStrategy configRecommendationStrategy = clusterTopology.getConfigRecommendationStrategy();
     Map<String, AdvisedConfiguration> advisedConfigurations = clusterTopology.getAdvisedConfigurations();
     if (ConfigRecommendationStrategy.ONLY_STACK_DEFAULTS_APPLY.equals(configRecommendationStrategy)) {
-      LOG.debug("Filter out recommended configurations. Keep only the stack defaults.");
-      doFilterStackDefaults(configuration, advisedConfigurations);
+      LOG.info("Filter out recommended configurations. Keep only the stack defaults.");
+      doFilterStackDefaults(advisedConfigurations);
     }
     if (!ConfigRecommendationStrategy.NEVER_APPLY.equals(configRecommendationStrategy)) {
       for (Map.Entry<String, AdvisedConfiguration> advConfEntry : advisedConfigurations.entrySet()) {
         String configType = advConfEntry.getKey();
         AdvisedConfiguration advisedConfig = advConfEntry.getValue();
-        LOG.debug("Update '{}' configurations with recommended configurations provided by the stack advisor.", configType);
+        LOG.info("Update '{}' configurations with recommended configurations provided by the stack advisor.", configType);
         doReplaceProperties(configuration, configType, advisedConfig, configTypesUpdated);
         doRemovePropertiesIfNeeded(configuration, configType, advisedConfig, configTypesUpdated);
       }
     } else {
-      LOG.debug("No any recommended configuration applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
+      LOG.info("No any recommended configuration applied. (strategy: {})", ConfigRecommendationStrategy.NEVER_APPLY);
     }
   }
 
   /**
    * Drop every configuration property from advised configuration that is not found in the stack defaults.
-   * @param configuration configuration being processed
    * @param advisedConfigurations advised configuration instance
    */
-  private void doFilterStackDefaults(Configuration configuration, Map<String, AdvisedConfiguration> advisedConfigurations) {
+  private void doFilterStackDefaults(Map<String, AdvisedConfiguration> advisedConfigurations) {
     Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
     Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
@@ -444,12 +444,13 @@ public class BlueprintConfigurationProcessor {
         Map<String, String> defaultProps = stackDefaultProps.get(adConfEntry.getKey());
         Map<String, String> outFilteredProps = Maps.filterKeys(advisedConfiguration.getProperties(),
           Predicates.not(Predicates.in(defaultProps.keySet())));
-        advisedConfiguration.getProperties().keySet().removeAll(outFilteredProps.keySet());
+        advisedConfiguration.getProperties().keySet().removeAll(Sets.newCopyOnWriteArraySet(outFilteredProps.keySet()));
 
         if (advisedConfiguration.getPropertyValueAttributes() != null) {
           Map<String, ValueAttributesInfo> outFilteredValueAttrs = Maps.filterKeys(advisedConfiguration.getPropertyValueAttributes(),
             Predicates.not(Predicates.in(defaultProps.keySet())));
-          advisedConfiguration.getPropertyValueAttributes().keySet().removeAll(outFilteredValueAttrs.keySet());
+          advisedConfiguration.getPropertyValueAttributes().keySet().removeAll(
+            Sets.newCopyOnWriteArraySet(outFilteredValueAttrs.keySet()));
         }
       } else {
         advisedConfiguration.getProperties().clear();
