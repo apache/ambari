@@ -59,7 +59,6 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -331,9 +330,6 @@ public class AmbariCustomCommandExecutionHelperTest {
    */
   @Test(expected = AmbariException.class)
   public void testServiceCheckMaintenanceModeWithMissingComponentName() throws Exception {
-    SecurityContextHolder.getContext().setAuthentication(
-        TestAuthenticationFactory.createAdministrator());
-
     createClusterFixture("HDP-2.0.6");
     long clusterId = clusters.getCluster("c1").getClusterId();
 
