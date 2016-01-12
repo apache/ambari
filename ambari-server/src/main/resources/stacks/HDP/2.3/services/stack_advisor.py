@@ -53,50 +53,59 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
   def getComponentLayoutValidations(self, services, hosts):
     parentItems = super(HDP23StackAdvisor, self).getComponentLayoutValidations(services, hosts)
 
-    hiveExists = "HIVE" in [service["StackServices"]["service_name"] for service in services["services"]]
-    sparkExists = "SPARK" in [service["StackServices"]["service_name"] for service in services["services"]]
-
-    if not "HAWQ" in [service["StackServices"]["service_name"] for service in services["services"]] and not sparkExists:
-      return parentItems
-
-    childItems = []
-    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
-    hostsCount = len(hostsList)
-
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     componentsListList = [service["components"] for service in services["services"]]
-    componentsList = [item for sublist in componentsListList for item in sublist]
-    hawqMasterHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQMASTER" for hostname in component["StackServiceComponents"]["hostnames"]]
-    hawqStandbyHosts = [hostname for component in componentsList if component["StackServiceComponents"]["component_name"] == "HAWQSTANDBY" for hostname  in component["StackServiceComponents"]["hostnames"]]
+    componentsList = [item["StackServiceComponents"] for sublist in componentsListList for item in sublist]
+    childItems = []
 
-    # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
-    if len(hawqMasterHosts) == 1 and len(hawqStandbyHosts) == 1 and hawqMasterHosts == hawqStandbyHosts:
-      message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
-      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
+    if "HAWQ" in servicesList:
+      hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+      hostsCount = len(hostsList)
 
-    if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
-      message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
-                "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                "to a value different from the port number used by Ambari Server database."
-      childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
+      hawqMasterHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQMASTER"][0]
+      hawqStandbyHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQSTANDBY"][0]
+      hawqSegmentHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQSEGMENT"][0]
+      datanodeHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "DATANODE"][0]
 
-    if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
-      message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
-                "If you leave them collocated, make sure to set HAWQ Master Port property " \
-                "to a value different from the port number used by Ambari Server database."
-      childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
+      # Generate WARNING if any HAWQSEGMENT is not colocated with a DATANODE
+      mismatchHosts = set(hawqSegmentHosts).symmetric_difference(set(datanodeHosts))
+      if len(mismatchHosts) > 0:
+        hostsString = ', '.join(mismatchHosts)
+        message = "HAWQSEGMENT is not co-located with DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSEGMENT' } )
 
-    if "SPARK_THRIFTSERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
-      if not "HIVE_SERVER" in [service["StackServices"]["service_name"] for service in services["services"]]:
-        message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
-        childItems.append( {"type": 'host-component', "level": 'ERROR', "message": messge, "component-name": 'SPARK_THRIFTSERVER'} )
+      # single node case is not analyzed because HAWQ Standby Master will not be present in single node topology due to logic in createComponentLayoutRecommendations()
+      if len(hawqMasterHosts) == 1 and len(hawqStandbyHosts) == 1 and hawqMasterHosts == hawqStandbyHosts:
+        message = "HAWQ Standby Master and HAWQ Master should not be deployed on the same host."
+        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
-    hmsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "HIVE_METASTORE"][0] if hiveExists else []
-    sparkTsHosts = [component["StackServiceComponents"]["hostnames"] for component in componentsList if component["StackServiceComponents"]["component_name"] == "SPARK_THRIFTSERVER"][0] if sparkExists else []
+      if len(hawqMasterHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqMasterHosts[0]):
+        message = "HAWQ Master and Ambari Server should not be deployed on the same host. " \
+                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                  "to a value different from the port number used by Ambari Server database."
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQMASTER', "host": hawqMasterHosts[0] } )
 
-    # if Spark Thrift Server is deployed but no Hive Server is deployed
-    if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
-      message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
-      childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
+      if len(hawqStandbyHosts) ==  1 and hostsCount > 1 and self.isLocalHost(hawqStandbyHosts[0]):
+        message = "HAWQ Standby Master and Ambari Server should not be deployed on the same host. " \
+                  "If you leave them collocated, make sure to set HAWQ Master Port property " \
+                  "to a value different from the port number used by Ambari Server database."
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
+
+    if "SPARK" in servicesList:
+      if "SPARK_THRIFTSERVER" in servicesList:
+        if not "HIVE_SERVER" in servicesList:
+          message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
+          childItems.append( {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER'} )
+
+      hmsHosts = [component["hostnames"] for component in componentsList
+                  if component["component_name"] == "HIVE_METASTORE"][0] if "HIVE" in servicesList else []
+      sparkTsHosts = [component["hostnames"] for component in componentsList
+                      if component["component_name"] == "SPARK_THRIFTSERVER"][0] if "SPARK" in servicesList else []
+
+      # if Spark Thrift Server is deployed but no Hive Server is deployed
+      if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
+        message = "SPARK_THRIFTSERVER requires HIVE_METASTORE to be selected/deployed."
+        childItems.append( { "type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER' } )
 
     parentItems.extend(childItems)
     return parentItems
