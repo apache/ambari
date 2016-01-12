@@ -1416,6 +1416,13 @@ class TestHDP206StackAdvisor(TestCase):
         'level': 'WARN',
         'message': 'In distributed mode hbase.rootdir should point to HDFS.',
         'type': 'configuration'
+      },
+      {
+        'config-name': 'hbase.cluster.distributed',
+        'config-type': 'ams-hbase-site',
+        'level': 'ERROR',
+        'message': 'hbase.cluster.distributed property should be set to true for distributed mode',
+        'type': 'configuration'
       }
     ]
     self.assertEquals(res, expected)

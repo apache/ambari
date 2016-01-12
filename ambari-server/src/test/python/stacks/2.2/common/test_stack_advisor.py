@@ -2003,8 +2003,10 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hbase.hregion.memstore.flush.size": "134217728",
           "hfile.block.cache.size": "0.3",
+          "hbase.cluster.distributed": "false",
           "hbase.rootdir": "file:///var/lib/ambari-metrics-collector/hbase",
           "hbase.tmp.dir": "/var/lib/ambari-metrics-collector/hbase-tmp",
+          "hbase.zookeeper.property.clientPort": "61181",
         }
       },
       "ams-site": {
@@ -2132,6 +2134,8 @@ class TestHDP22StackAdvisor(TestCase):
     ]
 
     services['configurations'] = {
+      'core-site': {'properties': {}},
+      'ams-site': {'properties': {}},
       'ams-hbase-site': {'properties': {}},
       'ams-hbase-env': {'properties': {}}
     }
@@ -2172,12 +2176,12 @@ class TestHDP22StackAdvisor(TestCase):
         "old_value": "512"
       }
     ]
-    services["configurations"]['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
-    services["configurations"]['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
-    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1/amshbase'
+    services["configurations"]['ams-site']['properties']['timeline.metrics.service.operation.mode'] = 'distributed'
+    services["configurations"]["core-site"]["properties"]["fs.defaultFS"] = 'hdfs://host1:8020'
+    expected['ams-hbase-site']['properties']['hbase.cluster.distributed'] = 'true'
+    expected['ams-hbase-site']['properties']['hbase.rootdir'] = 'hdfs://host1:8020/user/ams/hbase'
     expected['ams-hbase-site']['properties']['hbase.zookeeper.property.clientPort'] = '2181'
     expected['ams-hbase-env']['properties']['hbase_master_heapsize'] = '512'
-    # services["configurations"]['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
     expected['ams-hbase-site']['properties']['dfs.client.read.shortcircuit'] = 'true'
 
     # Distributed mode, low memory, no splitpoints recommended
