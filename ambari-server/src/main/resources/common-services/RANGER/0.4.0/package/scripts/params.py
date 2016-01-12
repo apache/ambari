@@ -45,6 +45,8 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
+upgrade_marker_file = format("{tmp_dir}/rangeradmin_ru.inprogress")
+
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
 create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
