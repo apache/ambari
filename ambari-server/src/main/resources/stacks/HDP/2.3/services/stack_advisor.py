@@ -135,6 +135,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       "HBASE": self.recommendHBASEConfigurations,
       "KAFKA": self.recommendKAFKAConfigurations,
       "RANGER": self.recommendRangerConfigurations,
+      "RANGER_KMS": self.recommendRangerKMSConfigurations,
       "HAWQ": self.recommendHAWQConfigurations
     }
     parentRecommendConfDict.update(childRecommendConfDict)
@@ -426,6 +427,41 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     elif not security_enabled:
       putKafkaBrokerAttributes('authorizer.class.name', 'delete', 'true')
 
+  def recommendRangerKMSConfigurations(self, configurations, clusterData, services, hosts):
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    putRangerKmsDbksProperty = self.putProperty(configurations, "dbks-site", services)
+    putRangerKmsProperty = self.putProperty(configurations, "kms-properties", services)
+
+    if 'kms-properties' in services['configurations'] and ('DB_FLAVOR' in services['configurations']['kms-properties']['properties']):
+
+      rangerKmsDbFlavor = services['configurations']["kms-properties"]["properties"]["DB_FLAVOR"]
+      ranger_kms_sql_connector_dict = {
+        'MYSQL': '/usr/share/java/mysql-connector-java.jar',
+        'ORACLE': '/usr/share/java/ojdbc6.jar',
+        'POSTGRES': '/usr/share/java/postgresql.jar',
+        'MSSQL': '/usr/share/java/sqljdbc4.jar',
+        'SQLA': '/path_to_driver/sqla-client-jdbc.tar.gz'
+      }
+
+      rangerKmsSqlConnectorProperty = ranger_kms_sql_connector_dict.get(rangerKmsDbFlavor, ranger_kms_sql_connector_dict['MYSQL'])
+      putRangerKmsProperty('SQL_CONNECTOR_JAR', rangerKmsSqlConnectorProperty)
+
+      if ('db_host' in services['configurations']['kms-properties']['properties']) and ('db_name' in services['configurations']['kms-properties']['properties']):
+
+        rangerKmsDbHost =   services['configurations']["kms-properties"]["properties"]["db_host"]
+        rangerKmsDbName =   services['configurations']["kms-properties"]["properties"]["db_name"]
+
+        ranger_kms_db_url_dict = {
+          'MYSQL': {'ranger.ks.jpa.jdbc.driver': 'com.mysql.jdbc.Driver', 'ranger.ks.jpa.jdbc.url': 'jdbc:mysql://' + rangerKmsDbHost + '/' + rangerKmsDbName},
+          'ORACLE': {'ranger.ks.jpa.jdbc.driver': 'oracle.jdbc.driver.OracleDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:oracle:thin:@//' + rangerKmsDbHost},
+          'POSTGRES': {'ranger.ks.jpa.jdbc.driver': 'org.postgresql.Driver', 'ranger.ks.jpa.jdbc.url': 'jdbc:postgresql://' + rangerKmsDbHost + '/' + rangerKmsDbName},
+          'MSSQL': {'ranger.ks.jpa.jdbc.driver': 'com.microsoft.sqlserver.jdbc.SQLServerDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:sqlserver://' + rangerKmsDbHost + ';databaseName=' + rangerKmsDbName},
+          'SQLA': {'ranger.ks.jpa.jdbc.driver': 'sap.jdbc4.sqlanywhere.IDriver', 'ranger.ks.jpa.jdbc.url': 'jdbc:sqlanywhere:host=' + rangerKmsDbHost + ';database=' + rangerKmsDbName}
+        }
+
+        rangerKmsDbProperties = ranger_kms_db_url_dict.get(rangerKmsDbFlavor, ranger_kms_db_url_dict['MYSQL'])
+        for key in rangerKmsDbProperties:
+          putRangerKmsDbksProperty(key, rangerKmsDbProperties.get(key))
 
   def recommendRangerConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP23StackAdvisor, self).recommendRangerConfigurations(configurations, clusterData, services, hosts)
