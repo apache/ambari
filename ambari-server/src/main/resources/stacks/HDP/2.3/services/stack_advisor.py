@@ -62,12 +62,12 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
       hostsCount = len(hostsList)
 
-      hawqMasterHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQMASTER"][0]
-      hawqStandbyHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQSTANDBY"][0]
-      hawqSegmentHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "HAWQSEGMENT"][0]
-      datanodeHosts = [component["hostnames"] for component in componentsList if component["component_name"] == "DATANODE"][0]
+      hawqMasterHosts = self.__getHosts(componentsList, "HAWQMASTER")
+      hawqStandbyHosts = self.__getHosts(componentsList, "HAWQSTANDBY")
+      hawqSegmentHosts = self.__getHosts(componentsList, "HAWQSEGMENT")
+      datanodeHosts = self.__getHosts(componentsList, "DATANODE")
 
-      # Generate WARNING if any HAWQSEGMENT is not colocated with a DATANODE
+      # Generate WARNING if any HAWQSEGMENT is not co-located with a DATANODE
       mismatchHosts = set(hawqSegmentHosts).symmetric_difference(set(datanodeHosts))
       if len(mismatchHosts) > 0:
         hostsString = ', '.join(mismatchHosts)
@@ -91,16 +91,40 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
                   "to a value different from the port number used by Ambari Server database."
         childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'HAWQSTANDBY', "host": hawqStandbyHosts[0] } )
 
+    if "PXF" in servicesList:
+      pxfHosts = self.__getHosts(componentsList, "PXF")
+      namenodeHosts = self.__getHosts(componentsList, "NAMENODE")
+      datanodeHosts = self.__getHosts(componentsList, "DATANODE")
+
+      # Generate WARNING if any PXF is not co-located with a NAMENODE
+      mismatchHosts = sorted(set(namenodeHosts).difference(set(pxfHosts)))
+      if len(mismatchHosts) > 0:
+        hostsString = ', '.join(mismatchHosts)
+        message = "PXF is not co-located with NAMENODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
+
+      # Generate WARNING if any PXF is not co-located with a DATANODE
+      mismatchHosts = sorted(set(datanodeHosts).difference(set(pxfHosts)))
+      if len(mismatchHosts) > 0:
+        hostsString = ', '.join(mismatchHosts)
+        message = "PXF is not co-located with DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
+
+      # Generate WARNING if any PXF is not co-located with a NAMENODE or a DATANODE
+      mismatchHosts = sorted(set(pxfHosts).difference(set(namenodeHosts).union(set(datanodeHosts))))
+      if len(mismatchHosts) > 0:
+        hostsString = ', '.join(mismatchHosts)
+        message = "PXF is not co-located with NAMENODE or DATANODE on the following {0} host(s): {1}".format(len(mismatchHosts), hostsString)
+        childItems.append( { "type": 'host-component', "level": 'WARN', "message": message, "component-name": 'PXF' } )
+
     if "SPARK" in servicesList:
       if "SPARK_THRIFTSERVER" in servicesList:
         if not "HIVE_SERVER" in servicesList:
           message = "SPARK_THRIFTSERVER requires HIVE services to be selected."
           childItems.append( {"type": 'host-component', "level": 'ERROR', "message": message, "component-name": 'SPARK_THRIFTSERVER'} )
 
-      hmsHosts = [component["hostnames"] for component in componentsList
-                  if component["component_name"] == "HIVE_METASTORE"][0] if "HIVE" in servicesList else []
-      sparkTsHosts = [component["hostnames"] for component in componentsList
-                      if component["component_name"] == "SPARK_THRIFTSERVER"][0] if "SPARK" in servicesList else []
+      hmsHosts = self.__getHosts(componentsList, "HIVE_METASTORE") if "HIVE" in servicesList else []
+      sparkTsHosts = self.__getHosts(componentsList, "SPARK_THRIFTSERVER") if "SPARK" in servicesList else []
 
       # if Spark Thrift Server is deployed but no Hive Server is deployed
       if len(sparkTsHosts) > 0 and len(hmsHosts) == 0:
@@ -109,6 +133,9 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
 
     parentItems.extend(childItems)
     return parentItems
+
+  def __getHosts(self, componentsList, componentName):
+    return [component["hostnames"] for component in componentsList if component["component_name"] == componentName][0]
 
   def getNotPreferableOnServerComponents(self):
     parentComponents = super(HDP23StackAdvisor, self).getNotPreferableOnServerComponents()

@@ -182,6 +182,10 @@ class TestHDP23StackAdvisor(TestCase):
       return 'c6401.ambari.apache.org' if value is None else value
 
 
+  def __getHosts(self, componentsList, componentName):
+    return [component["StackServiceComponents"] for component in componentsList if component["StackServiceComponents"]["component_name"] == componentName][0]
+
+
   def test_validations_hawqsegment(self):
     """ Test validation warning for HAWQ segment not colocated with DATANODE """
 
@@ -190,11 +194,9 @@ class TestHDP23StackAdvisor(TestCase):
     componentsListList = [service["components"] for service in services["services"]]
     componentsList = [item for sublist in componentsListList for item in sublist]
 
-    hawqsegmentComponent = [component["StackServiceComponents"] for component in componentsList
-                            if component["StackServiceComponents"]["component_name"] == "HAWQSEGMENT"][0]
+    hawqsegmentComponent = self.__getHosts(componentsList, "HAWQSEGMENT")
     hawqsegmentComponent["hostnames"] = ['c6401.ambari.apache.org']
-    datanodeComponent = [component["StackServiceComponents"] for component in componentsList
-                         if component["StackServiceComponents"]["component_name"] == "DATANODE"][0]
+    datanodeComponent = self.__getHosts(componentsList, "DATANODE")
     datanodeComponent["hostnames"] = ['c6402.ambari.apache.org']
 
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
@@ -203,6 +205,111 @@ class TestHDP23StackAdvisor(TestCase):
 
     datanodeComponent["hostnames"] = ['c6401.ambari.apache.org']
     validations = self.stackAdvisor.getComponentLayoutValidations(services, hosts)
+    self.assertEquals(len(validations), 0)
+
+
+  def test_getComponentLayoutValidations_pxf_not_co_located_with_nn(self):
+    """ Test warning is generated when PXF is not co-located with NAMENODE """
+
+    services = self.load_json("services-hawq-pxf-hdfs.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    nameNodeComponent = self.__getHosts(componentsList, "NAMENODE")
+    dataNodeComponent = self.__getHosts(componentsList, "DATANODE")
+    pxfComponent = self.__getHosts(componentsList, "PXF")
+    nameNodeComponent["hostnames"] = ["c6401.ambari.apache.org"]
+    dataNodeComponent["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+    pxfComponent["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
+    self.assertEquals(len(validations), 1)
+    expected = {
+        "type": 'host-component',
+        "level": 'WARN',
+        "message": 'PXF is not co-located with NAMENODE on the following 1 host(s): c6401.ambari.apache.org',
+        "component-name": 'PXF'
+      }
+    self.assertEquals(validations[0], expected)
+
+
+  def test_getComponentLayoutValidations_pxf_not_co_located_with_dn(self):
+    """ Test warning is generated when PXF is not co-located with NAMENODE or DATANODE """
+
+    services = self.load_json("services-hawq-pxf-hdfs.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    nameNodeComponent = self.__getHosts(componentsList, "NAMENODE")
+    dataNodeComponent = self.__getHosts(componentsList, "DATANODE")
+    pxfComponent = self.__getHosts(componentsList, "PXF")
+    nameNodeComponent["hostnames"] = ["c6401.ambari.apache.org"]
+    dataNodeComponent["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+    pxfComponent["hostnames"] = ["c6401.ambari.apache.org"]
+
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
+    self.assertEquals(len(validations), 1)
+    expected = {
+        "type": 'host-component',
+        "level": 'WARN',
+        "message": 'PXF is not co-located with DATANODE on the following 2 host(s): c6402.ambari.apache.org, c6403.ambari.apache.org',
+        "component-name": 'PXF'
+      }
+    self.assertEquals(validations[0], expected)
+
+
+  def test_getComponentLayoutValidations_pxf_not_co_located_with_nn_or_dn(self):
+    """ Test warning is generated when PXF is not co-located with NAMENODE or DATANODE """
+
+    services = self.load_json("services-hawq-pxf-hdfs.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    nameNodeComponent = self.__getHosts(componentsList, "NAMENODE")
+    dataNodeComponent = self.__getHosts(componentsList, "DATANODE")
+    pxfComponent = self.__getHosts(componentsList, "PXF")
+    nameNodeComponent["hostnames"] = ["c6401.ambari.apache.org"]
+    dataNodeComponent["hostnames"] = ["c6402.ambari.apache.org"]
+    pxfComponent["hostnames"] = ["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
+    self.assertEquals(len(validations), 1)
+    expected = {
+        "type": 'host-component',
+        "level": 'WARN',
+        "message": 'PXF is not co-located with NAMENODE or DATANODE on the following 1 host(s): c6403.ambari.apache.org',
+        "component-name": 'PXF'
+      }
+    self.assertEquals(validations[0], expected)
+
+
+  def test_getComponentLayoutValidations_pxf_co_located_with_nn_and_dn(self):
+    """ Test NO warning is generated when PXF is co-located with NAMENODE and DATANODE """
+
+    services = self.load_json("services-hawq-pxf-hdfs.json")
+    componentsListList = [service["components"] for service in services["services"]]
+    componentsList = [item for sublist in componentsListList for item in sublist]
+    nameNodeComponent = self.__getHosts(componentsList, "NAMENODE")
+    dataNodeComponent = self.__getHosts(componentsList, "DATANODE")
+    pxfComponent = self.__getHosts(componentsList, "PXF")
+    nameNodeComponent["hostnames"] = ["c6401.ambari.apache.org"]
+    dataNodeComponent["hostnames"] = ["c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+    pxfComponent["hostnames"] = ["c6401.ambari.apache.org", "c6402.ambari.apache.org", "c6403.ambari.apache.org"]
+
+    hosts = self.load_json("hosts-3-hosts.json")
+    hostsList = [host["Hosts"]["host_name"] for host in hosts["items"]]
+    self.assertEquals(len(hostsList), 3)
+
+    validations = [validation for validation in self.stackAdvisor.getComponentLayoutValidations(services, hosts) if validation["component-name"] == "PXF"]
     self.assertEquals(len(validations), 0)
 
 
