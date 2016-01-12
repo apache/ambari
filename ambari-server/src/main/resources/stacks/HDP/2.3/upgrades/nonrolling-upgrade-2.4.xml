@@ -66,8 +66,12 @@
       <direction>UPGRADE</direction>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <service-check>false</service-check>
       <parallel-scheduler/>
+      <service-check>false</service-check>
+
+      <service name="ATLAS">
+        <component>ATLAS_SERVER</component>
+      </service>
 
       <service name="FLUME">
         <component>FLUME_HANDLER</component>
@@ -79,7 +83,7 @@
         <component>ACCUMULO_TSERVER</component>
         <component>ACCUMULO_MONITOR</component>
         <component>ACCUMULO_MASTER</component>
-      </service>      
+      </service>
 
       <service name="STORM">
         <component>DRPC_SERVER</component>
@@ -106,6 +110,7 @@
 
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
 
       <service name="HIVE">
@@ -144,7 +149,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Backup Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /var/lib/knox/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please backup the Knox data. E.g., "cp -RL /usr/hdp/current/knox-server/data/* ~/knox_backup/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -167,6 +172,12 @@
           <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
+        </task>
+      </execute-stage>
     </group>
 
     <group xsi:type="stop" name="STOP_LOW_LEVEL_SERVICE_COMPONENTS" title="Stop Components for Core Services">
@@ -179,6 +190,7 @@
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_MASTER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="HDFS">
@@ -187,11 +199,16 @@
         <component>SECONDARY_NAMENODE</component>
         <component>ZKFC</component>
         <component>JOURNALNODE</component>
+        <component>NFS_GATEWAY</component>
       </service>
 
       <service name="RANGER">
         <component>RANGER_USERSYNC</component>
         <component>RANGER_ADMIN</component>
+      </service>
+
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
       </service>
 
       <service name="ZOOKEEPER">
@@ -220,7 +237,7 @@
 
       <execute-stage service="KNOX" component="KNOX_GATEWAY" title="Restore Knox Data">
         <task xsi:type="manual">
-          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /var/lib/knox/data/" on the following host(s): {{hosts.all}}.</message>
+          <message>Before continuing, please restore the Knox data. E.g., "cp -RL ~/knox_backup/* /usr/hdp/$(old_version)/knox/data/" on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
 
@@ -229,6 +246,13 @@
           <message>Before continuing, please restore the Ranger Admin database and Ranger Audit database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
+
+      <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Restore Ranger KMS Database">
+        <task xsi:type="manual">
+          <message>Before continuing, please restore Ranger KMS database</message>
+        </task>
+      </execute-stage>
+
     </group>
 
     <!-- After processing this group, will change the effective Stack of the UpgradeContext object. -->
@@ -288,6 +312,16 @@
       </service>
     </group>
 
+    <group xsi:type="restart" name="RANGER_KMS" title="Ranger KMS">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="RANGER_KMS">
+        <component>RANGER_KMS_SERVER</component>
+      </service>
+    </group>
+
     <group xsi:type="restart" name="HDFS" title="HDFS">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -298,6 +332,7 @@
         <component>ZKFC</component>
         <component>NAMENODE</component>
         <component>SECONDARY_NAMENODE</component>
+        <component>NFS_GATEWAY</component>
         <component>HDFS_CLIENT</component>
       </service>
     </group>
@@ -361,6 +396,7 @@
         <component>HBASE_MASTER</component>
         <component>HBASE_REGIONSERVER</component>
         <component>HBASE_CLIENT</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
     </group>
 
@@ -370,6 +406,10 @@
       <parallel-scheduler/>
       <service name="TEZ">
         <component>TEZ_CLIENT</component>
+      </service>
+
+      <service name="MAHOUT">
+        <component>MAHOUT</component>
       </service>
 
       <service name="PIG">
@@ -413,6 +453,7 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
     </group>
 
@@ -422,6 +463,16 @@
       <parallel-scheduler/>
       <service name="SPARK">
         <component>SPARK_CLIENT</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="ATLAS" title="Atlas">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <parallel-scheduler/>
+      <service name="ATLAS">
+        <component>ATLAS_SERVER</component>
       </service>
     </group>
 
@@ -541,7 +592,7 @@
         <component>FLUME_HANDLER</component>
       </service>
     </group>
-
+    
     <group xsi:type="restart" name="ACCUMULO" title="Accumulo">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -634,6 +685,14 @@
       </component>
     </service>
 
+    <service name="RANGER_KMS">
+      <component name="RANGER_KMS_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
     <service name="HDFS">
       <component name="NAMENODE">
         <upgrade>
@@ -666,6 +725,12 @@
       </component>
 
       <component name="ZKFC">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="NFS_GATEWAY">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -740,6 +805,14 @@
       </component>
     </service>
 
+    <service name="MAHOUT">
+      <component name="MAHOUT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
     <service name="PIG">
       <component name="PIG">
         <upgrade>
@@ -790,6 +863,11 @@
 
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK_THRIFTSERVER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
@@ -950,6 +1028,44 @@
       </component>
     </service>
 
+    <service name="ACCUMULO">
+      <component name="ACCUMULO_MASTER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="ACCUMULO_TSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="ACCUMULO_MONITOR">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="ACCUMULO_GC">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="ACCUMULO_TRACER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
+      <component name="ACCUMULO_CLIENT">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+    </service>
+
     <service name="SLIDER">
       <component name="SLIDER">
         <upgrade>
@@ -964,6 +1080,15 @@
           <task xsi:type="restart-task"/>
         </upgrade>
       </component>
+    </service>
+
+    <service name="ATLAS">
+      <component name="ATLAS_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+
     </service>
   </processing>
 </upgrade>
