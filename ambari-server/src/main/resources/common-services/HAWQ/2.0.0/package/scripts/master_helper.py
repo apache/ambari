@@ -16,11 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import sys
 from resource_management.core.resources.system import File, Execute
 from resource_management.core.source import Template
 from resource_management.core.exceptions import Fail
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.default import default
 
 import utils
 import common
@@ -177,6 +179,28 @@ def __is_standby_host():
   return params.hostname == common.get_local_hawq_site_property("hawq_standby_address_host")
 
 
+def __check_dfs_truncate_enforced():
+  """
+  If enforce_hdfs_truncate is set to True:
+    throw an ERROR, HAWQMASTER or HAWQSTANDBY start should fail
+  Else:
+    throw a WARNING,
+  """
+  import custom_params
+
+  DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE = "dfs.allow.truncate property in hdfs-site.xml configuration file should be set to True. Please review HAWQ installation guide for more information."
+
+  # Check if dfs.allow.truncate exists in hdfs-site.xml and throw appropriate exception if not set to True
+  dfs_allow_truncate = default('/configurations/hdfs-site/dfs.allow.truncate', None)
+
+  if dfs_allow_truncate is None or str(dfs_allow_truncate).lower() != 'true':
+    if custom_params.enforce_hdfs_truncate:
+      Logger.error("**ERROR**: {0}".format(DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE))
+      sys.exit(1)
+    else:
+      Logger.warning("**WARNING**: {0}".format(DFS_ALLOW_TRUNCATE_EXCEPTION_MESSAGE))
+
+
 def start_master():
   """
   Initializes HAWQ Master/Standby if not already done and starts them
@@ -185,6 +209,8 @@ def start_master():
 
   if not params.hostname in [params.hawqmaster_host, params.hawqstandby_host]:
     Fail("Host should be either active Hawq master or Hawq standby.")
+
+  __check_dfs_truncate_enforced()
 
   is_active_master = __is_active_master()
   # Exchange ssh keys from active hawq master before starting.
