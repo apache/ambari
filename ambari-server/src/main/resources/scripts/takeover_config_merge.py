@@ -63,7 +63,7 @@ class ConfigMerge:
     configurations = {}
     tree = ET.parse(path)
     root = tree.getroot()
-    for properties in root.iter('property'):
+    for properties in root.getiterator('property'):
       name = properties.find('name')
       value = properties.find('value')
 
