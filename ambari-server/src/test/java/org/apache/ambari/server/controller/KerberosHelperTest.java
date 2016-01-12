@@ -218,7 +218,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     setClusterController();
     //todo: StageUtils shouldn't be called for this test
     StageUtils.setTopologyManager(topologyManager);
-    expect(topologyManager.getProjectedTopology()).andReturn(
+    expect(topologyManager.getPendingHostComponents()).andReturn(
         Collections.<String, Collection<String>>emptyMap()).anyTimes();
 
     CredentialStoreService credentialStoreService = injector.getInstance(CredentialStoreService.class);

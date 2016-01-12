@@ -28,6 +28,7 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.internal.ArtifactResourceProvider;
+import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.controller.internal.CredentialResourceProvider;
 import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
 import org.apache.ambari.server.controller.internal.RequestImpl;
@@ -459,20 +460,24 @@ public class TopologyManager {
     return clusterTopologyMap.get(clusterId);
   }
 
-  public Map<String, Collection<String>> getProjectedTopology() {
+  public Map<String, Collection<String>> getPendingHostComponents() {
     ensureInitialized();
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
 
     for (LogicalRequest logicalRequest : allRequests.values()) {
-      Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
-      for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
-        String host = entry.getKey();
-        Collection<String> hostComponents = hostComponentMap.get(host);
-        if (hostComponents == null) {
-          hostComponents = new HashSet<String>();
-          hostComponentMap.put(host, hostComponents);
+      Map<Long, HostRoleCommandStatusSummaryDTO> summary = logicalRequest.getStageSummaries();
+      final CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
+      if (status.getStatus().isInProgress()) {
+        Map<String, Collection<String>> requestTopology = logicalRequest.getProjectedTopology();
+        for (Map.Entry<String, Collection<String>> entry : requestTopology.entrySet()) {
+          String host = entry.getKey();
+          Collection<String> hostComponents = hostComponentMap.get(host);
+          if (hostComponents == null) {
+            hostComponents = new HashSet<String>();
+            hostComponentMap.put(host, hostComponents);
+          }
+          hostComponents.addAll(entry.getValue());
         }
-        hostComponents.addAll(entry.getValue());
       }
     }
     return hostComponentMap;
