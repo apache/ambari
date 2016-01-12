@@ -126,6 +126,44 @@
             "graph_type": "LINE",
             "time_range": "1"
           }
+        },
+        {
+          "widget_name": "HAWQ Segment Hosts Memory",
+          "description": "Percentage of Memory resources being consumed on HAWQSEGMENT hosts.",
+          "default_section_name": "HAWQ_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "mem_total",
+              "metric_path": "metrics/memory/mem_total",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "mem_free",
+              "metric_path": "metrics/memory/mem_free",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "mem_cached",
+              "metric_path": "metrics/memory/mem_cached",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            }
+          ],
+          "values": [
+            {
+              "name": "Memory utilization",
+              "value": "${((mem_total - mem_free - mem_cached)/mem_total) * 100}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
         }
       ]
     }

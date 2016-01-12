@@ -58,6 +58,48 @@
               "pointInTime":true,
               "temporal":true,
               "amsHostMetric":true
+            },
+            "metrics/memory/mem_buffers": {
+              "metric": "mem_buffers",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_cached": {
+              "metric": "mem_cached",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_free": {
+              "metric": "mem_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_shared": {
+              "metric": "mem_shared",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/mem_total": {
+              "metric": "mem_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_total": {
+              "metric": "swap_total",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
+            },
+            "metrics/memory/swap_free": {
+              "metric": "swap_free",
+              "pointInTime": true,
+              "temporal": true,
+              "amsHostMetric": true
             }
           }
         }
