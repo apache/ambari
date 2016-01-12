@@ -66,6 +66,8 @@ angular.module('ambariAdminConsole')
       'all': 'All',
       'group': 'Group',
       'user': 'User',
+      'settings': 'Settings',
+      'authentication': 'Authentication',
       'deleteConfirmation': 'Are you sure you want to delete {{instanceType}} {{instanceName}}?',
       'local': 'Local',
       'ldap': 'LDAP',
@@ -76,6 +78,12 @@ angular.module('ambariAdminConsole')
       'clusterNameChangeConfirmation': {
         'title': 'Confirm Cluster Name Change',
         'message': 'Are you sure you want to change the cluster name to {{clusterName}}?'
+      },
+
+      'loginActivities': {
+        'loginActivities':'Login Activities',
+        'loginMessage': 'Login Message',
+        'homeDirectory': 'Home Directory'
       },
 
       'controls': {
