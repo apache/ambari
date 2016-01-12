@@ -24,6 +24,18 @@ angular.module('ambariAdminConsole')
     templateUrl: 'views/main.html',
     controller: 'MainCtrl'
   },
+  authentication: {
+    main: {
+      url: '/authentication',
+      templateUrl: 'views/authentication/main.html',
+      controller: 'AuthenticationMainCtrl'
+    }
+  },
+  loginActivities: {
+      url: '/loginActivities',
+      templateUrl: 'views/loginActivities/main.html',
+      controller: 'LoginActivitiesMainCtrl'
+  },
   users: {
     list: {
       url: '/users',
