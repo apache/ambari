@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var sort = require('views/common/sort_view');
 require('utils/misc');
 require('utils/string_utils');

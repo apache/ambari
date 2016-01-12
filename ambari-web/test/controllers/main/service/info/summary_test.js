@@ -288,11 +288,11 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
       App.ajax.send.restore();
     });
     it("make GET call", function () {
-      var controller = App.MainServiceInfoSummaryController.create({
+      var _controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.getActiveWidgetLayout();
+      _controller.getActiveWidgetLayout();
       expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layouts.active.get');
     });
   });
@@ -307,14 +307,14 @@ App.TestAliases.testAsComputedOr(getController(), 'showTimeRangeControl', ['!isS
       App.widgetMapper.map.restore();
     });
     it("isWidgetLayoutsLoaded should be set to true", function () {
-      var controller = App.MainServiceInfoSummaryController.create({
+      var _controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.getActiveWidgetLayoutSuccessCallback({items:[{
+      _controller.getActiveWidgetLayoutSuccessCallback({items:[{
         WidgetLayoutInfo: {}
       }]});
-      expect(controller.get('isWidgetsLoaded')).to.be.true;
+      expect(_controller.get('isWidgetsLoaded')).to.be.true;
     });
 
   });

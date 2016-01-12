@@ -37,7 +37,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       });
       sinon.spy(mixedObjectInstance, 'onCreateComponent');
       sinon.spy(mixedObjectInstance, 'updateComponent');
-      sinon.stub(mixedObjectInstance, 'checkInstalledComponents', function(componentName, hostNames) {
+      sinon.stub(mixedObjectInstance, 'checkInstalledComponents', function(componentName) {
         var def = $.Deferred();
         var data = {
           'ZOOKEEPER_SERVER': {
@@ -106,7 +106,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       });
       it('updateComponent is called', function () {
         // invoke callback
-        this.args.sender[this.args.success].apply(this.args.sender, [null, null, this.args.data]);
+        this.args.sender[this.args.success](null, null, this.args.data);
         expect(mixedObjectInstance.updateComponent.called).to.be.true;
       });
     });
@@ -131,7 +131,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       });
       it('updateComponent is called', function () {
         // invoke callback
-        this.args.sender[this.args.success].apply(this.args.sender, [null, null, this.args.data]);
+        this.args.sender[this.args.success](null, null, this.args.data);
         expect(mixedObjectInstance.updateComponent.called).to.be.true;
       });
     });

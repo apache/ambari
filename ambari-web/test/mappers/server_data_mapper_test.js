@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 var mapper;
 
@@ -24,7 +23,7 @@ require('mappers/server_data_mapper');
 
 describe('App.QuickDataMapper', function () {
 
-  var test_json = {
+  var testJson = {
     a1: {
       b1: {
         c1: 'val1'
@@ -62,7 +61,7 @@ describe('App.QuickDataMapper', function () {
     ];
     tests.forEach(function(test) {
       it(test.i, function() {
-        expect(mapper.getJsonProperty(test_json, test.i)).to.equal(test.e);
+        expect(mapper.getJsonProperty(testJson, test.i)).to.equal(test.e);
       });
     });
   });
@@ -82,7 +81,7 @@ describe('App.QuickDataMapper', function () {
     var result;
 
     beforeEach(function () {
-      result = mapper.parseIt(test_json, config);
+      result = mapper.parseIt(testJson, config);
     });
 
     it('Property starts with $', function() {

@@ -52,20 +52,20 @@ describe('App.clusterController', function () {
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:0');
     });
     it('when first item is loaded then isLoaded should be false', function () {
-      controller.updateLoadStatus.call(controller, 'item1');
+      controller.updateLoadStatus('item1');
       expect(controller.get('isLoaded')).to.equal(false);
     });
     it('when first item is loaded then width should be "width:50%"', function () {
-      controller.updateLoadStatus.call(controller, 'item1');
+      controller.updateLoadStatus('item1');
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:50%');
     });
 
     it('when all items are loaded then isLoaded should be true', function () {
-      controller.updateLoadStatus.call(controller, 'item2');
+      controller.updateLoadStatus('item2');
       expect(controller.get('isLoaded')).to.equal(true);
     });
     it('when all items are loaded then width should be "width:100%"', function () {
-      controller.updateLoadStatus.call(controller, 'item2');
+      controller.updateLoadStatus('item2');
       expect(controller.get('clusterDataLoadedPercent')).to.equal('width:100%');
     });
   });
@@ -115,7 +115,7 @@ describe('App.clusterController', function () {
   });
 
   describe('#reloadSuccessCallback', function () {
-    var test_data = {
+    var testData = {
       "items": [
         {
           "Clusters": {
@@ -126,7 +126,7 @@ describe('App.clusterController', function () {
       ]
     };
     it('Check cluster', function () {
-      controller.reloadSuccessCallback(test_data);
+      controller.reloadSuccessCallback(testData);
       expect(App.get('clusterName')).to.equal('tdk');
       expect(App.get('currentStackVersion')).to.equal('HDP-1.3.0');
     });

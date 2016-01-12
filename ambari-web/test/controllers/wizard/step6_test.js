@@ -90,13 +90,13 @@ describe('App.WizardStep6Controller', function () {
 
   describe('#installedServiceNames', function () {
     it(' should filter content.services by isInstalled property', function () {
-      var services = Em.A([]);
-      services.pushObjects(Em.A([{isInstalled: true, serviceName: "service1"},
+      var _services = Em.A([]);
+      _services.pushObjects(Em.A([{isInstalled: true, serviceName: "service1"},
                            {isInstalled: false, serviceName: "service2"},
                            {isInstalled: true, serviceName: "service3"},
                            {isInstalled: false, serviceName: "service4"},
                            {isInstalled: true, serviceName: "service5"}]));
-      controller.set('content.services', services);
+      controller.set('content.services', _services);
       expect(controller.get('installedServiceNames')).to.eql(["service1", "service3", "service5"]);
     });
   });
@@ -588,7 +588,7 @@ describe('App.WizardStep6Controller', function () {
 
     beforeEach(function () {
       sinon.stub(validationUtils, 'filterNotInstalledComponents', function () {
-        return  Em.A([Em.Object.create({
+        return Em.A([Em.Object.create({
               componentName: 'c0',
               isSlave: true,
               type: 'host-component',

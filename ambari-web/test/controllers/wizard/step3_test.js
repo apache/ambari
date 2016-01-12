@@ -73,7 +73,7 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({name: 'wst3_host2'})
         ]
       });
-      var test_data = {
+      var testData = {
         items: [
           {
             Hosts: {
@@ -92,7 +92,7 @@ describe('App.WizardStep3Controller', function () {
           }
         ]
       };
-      c.getAllRegisteredHostsCallback(test_data);
+      c.getAllRegisteredHostsCallback(testData);
       expect(c.get('hasMoreRegisteredHosts')).to.equal(true);
       expect(c.get('registeredHosts').length).to.equal(1);
     });
@@ -107,7 +107,7 @@ describe('App.WizardStep3Controller', function () {
           {name: 'wst3_host4'}
         ]
       });
-      var test_data = {
+      var testData = {
         items: [
           {
             Hosts: {
@@ -121,7 +121,7 @@ describe('App.WizardStep3Controller', function () {
           }
         ]
       };
-      c.getAllRegisteredHostsCallback(test_data);
+      c.getAllRegisteredHostsCallback(testData);
       expect(c.get('hasMoreRegisteredHosts')).to.equal(false);
       expect(c.get('registeredHosts')).to.equal('');
     });
@@ -135,7 +135,7 @@ describe('App.WizardStep3Controller', function () {
           {name: 'wst3_host1'}
         ]
       });
-      var test_data = {
+      var testData = {
         items: [
           {
             Hosts: {
@@ -144,7 +144,7 @@ describe('App.WizardStep3Controller', function () {
           }
         ]
       };
-      c.getAllRegisteredHostsCallback(test_data);
+      c.getAllRegisteredHostsCallback(testData);
       expect(c.get('hasMoreRegisteredHosts')).to.equal(false);
       expect(c.get('registeredHosts')).to.equal('');
     });
@@ -2738,8 +2738,7 @@ describe('App.WizardStep3Controller', function () {
     it('should do request to ambari-server', function () {
 
       var data = null,
-        jdkRequestIndex = 'jdkRequestIndex',
-        url = '/requests/' + jdkRequestIndex + '?fields=*,tasks/Tasks/host_name,tasks/Tasks/status,tasks/Tasks/structured_out';
+        jdkRequestIndex = 'jdkRequestIndex';
       c.set('jdkRequestIndex', jdkRequestIndex);
       c.set('jdkCategoryWarnings', null);
       c.doCheckJDKsuccessCallback(data);
@@ -2751,11 +2750,9 @@ describe('App.WizardStep3Controller', function () {
   describe('#doCheckJDKerrorCallback', function () {
 
     it('should set isJDKWarningsLoaded to true', function () {
-
       c.set('isJDKWarningsLoaded', false);
       c.doCheckJDKerrorCallback();
-      c.set('isJDKWarningsLoaded', true);
-
+      expect(c.get('isJDKWarningsLoaded')).to.be.true;
     });
 
   });

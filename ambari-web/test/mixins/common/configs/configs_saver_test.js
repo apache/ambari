@@ -19,7 +19,7 @@
 var App = require('app');
 
 describe('App.ConfigsSaverMixin', function() {
-  var mixinObject =  Em.Controller.extend(App.ConfigsSaverMixin, {});
+  var mixinObject = Em.Controller.extend(App.ConfigsSaverMixin, {});
   var instanceObject = mixinObject.create({});
 
   describe('#allowSaveSite()', function() {

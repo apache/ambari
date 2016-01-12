@@ -127,7 +127,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         passwordConfigsAreChanged: false
       });
       sinon.stub(mainServiceInfoConfigsController, "get", function(key) {
-        return key == 'isSubmitDisabled' ?  false : Em.get(mainServiceInfoConfigsController, key);
+        return key === 'isSubmitDisabled' ? false : Em.get(mainServiceInfoConfigsController, key);
       });
       sinon.stub(mainServiceInfoConfigsController, "restartServicePopup", Em.K);
       sinon.stub(mainServiceInfoConfigsController, "getHash", function () {
@@ -340,7 +340,7 @@ describe("App.MainServiceInfoConfigsController", function () {
         mainServiceInfoConfigsController.set("content.displayName", t.displayName);
         mainServiceInfoConfigsController.set("content.passiveState", t.passiveState);
         mainServiceInfoConfigsController.rollingRestartStaleConfigSlaveComponents(t.componentName);
-        expect(batchUtils.launchHostComponentRollingRestart.calledWith(t.componentName.context, t.displayName, t.passiveState == "ON", true)).to.equal(true);
+        expect(batchUtils.launchHostComponentRollingRestart.calledWith(t.componentName.context, t.displayName, t.passiveState === "ON", true)).to.equal(true);
       });
     });
   });

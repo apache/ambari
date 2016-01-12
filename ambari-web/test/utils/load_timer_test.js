@@ -16,8 +16,6 @@
  * limitations under the License.
  */
 
-var misc = require('utils/load_timer');
-
 describe('App.loadTimer', function () {
 
   window.performance = {
@@ -38,7 +36,7 @@ describe('App.loadTimer', function () {
   describe("#start()", function() {
     it("time should be cached", function() {
       App.loadTimer.start('test');
-      expect(App.loadTimer.get('timeStampCache')['test']).to.be.an('number');
+      expect(App.loadTimer.get('timeStampCache.test')).to.be.an('number');
     });
   });
 

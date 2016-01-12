@@ -189,12 +189,12 @@ describe('App.HighAvailabilityWizardStep3Controller', function() {
 
     tests.forEach(function(test) {
       it(test.m, function() {
-        var controller = App.HighAvailabilityWizardStep3Controller.create({
+        var _controller = App.HighAvailabilityWizardStep3Controller.create({
           configsToRemove: test.toRemove,
           serverConfigData: test.configs
         });
-        var result = controller.removeConfigs(test.toRemove, controller.get('serverConfigData'));
-        expect(JSON.stringify(controller.get('serverConfigData'))).to.equal(JSON.stringify(test.expected));
+        var result = _controller.removeConfigs(test.toRemove, _controller.get('serverConfigData'));
+        expect(JSON.stringify(_controller.get('serverConfigData'))).to.equal(JSON.stringify(test.expected));
         expect(JSON.stringify(result)).to.equal(JSON.stringify(test.expected));
       });
     });

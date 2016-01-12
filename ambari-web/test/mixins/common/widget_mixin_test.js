@@ -118,7 +118,7 @@ describe('App.WidgetMixin', function () {
     });
 
     it('HBASE_HBASE_REGIONSERVER', function () {
-      var HBASE_HBASE_REGIONSERVER = {
+      var hbaseRegionServer = {
         "name": "regionserver.Server.percentFilesLocal",
         "service_name": "HBASE",
         "component_name": "HBASE_REGIONSERVER",
@@ -137,11 +137,11 @@ describe('App.WidgetMixin', function () {
             }
           ]
         };
-      expect(JSON.stringify(this.requestData['HBASE_HBASE_REGIONSERVER'])).to.equal(JSON.stringify(HBASE_HBASE_REGIONSERVER));
+      expect(JSON.stringify(this.requestData.HBASE_HBASE_REGIONSERVER)).to.equal(JSON.stringify(hbaseRegionServer));
     });
 
     it('HBASE_HBASE_REGIONSERVER_c1', function () {
-      var HBASE_HBASE_REGIONSERVER_c1 = {
+      var hbaseRegionServerC1 = {
         "name": "regionserver.Server.percentFilesLocal",
         "service_name": "HBASE",
         "component_name": "HBASE_REGIONSERVER",
@@ -155,11 +155,11 @@ describe('App.WidgetMixin', function () {
           }
         ]
       };
-      expect(JSON.stringify(this.requestData['HBASE_HBASE_REGIONSERVER_c1'])).to.equal(JSON.stringify(HBASE_HBASE_REGIONSERVER_c1));
+      expect(JSON.stringify(this.requestData.HBASE_HBASE_REGIONSERVER_c1)).to.equal(JSON.stringify(hbaseRegionServerC1));
     });
 
     it('HDFS_DATANODE_c1', function () {
-      var HDFS_DATANODE_c1 = {
+      var hdfsDataNodeC1 = {
         "name": "regionserver.Server.percentFilesLocal",
         "service_name": "HDFS",
         "component_name": "DATANODE",
@@ -173,7 +173,7 @@ describe('App.WidgetMixin', function () {
           }
         ]
       };
-      expect(JSON.stringify(this.requestData['HDFS_DATANODE_c1'])).to.equal(JSON.stringify(HDFS_DATANODE_c1));
+      expect(JSON.stringify(this.requestData.HDFS_DATANODE_c1)).to.equal(JSON.stringify(hdfsDataNodeC1));
     });
 
   });
@@ -484,29 +484,29 @@ describe('App.WidgetLoadAggregator', function () {
       result = aggregator.groupRequests(requests);
     });
 
-    it("result['n1_C1'].subRequests.length", function () {
-      expect(result['n1_C1'].subRequests.length).to.equal(1);
+    it("result.n1_C1.subRequests.length", function () {
+      expect(result.n1_C1.subRequests.length).to.equal(1);
     });
-    it("result['n1_C1'].data.metric_paths.length", function () {
-      expect(result['n1_C1'].data.metric_paths.length).to.equal(1);
+    it("result.n1_C1.data.metric_paths.length", function () {
+      expect(result.n1_C1.data.metric_paths.length).to.equal(1);
     });
-    it("result['n1_C1_graph'].subRequests.length", function () {
-      expect(result['n1_C1_graph'].subRequests.length).to.equal(1);
+    it("result.n1_C1_graph.subRequests.length", function () {
+      expect(result.n1_C1_graph.subRequests.length).to.equal(1);
     });
-    it("result['n1_C1_graph'].data.metric_paths.length", function () {
-      expect(result['n1_C1_graph'].data.metric_paths.length).to.equal(1);
+    it("result.n1_C1_graph.data.metric_paths.length", function () {
+      expect(result.n1_C1_graph.data.metric_paths.length).to.equal(1);
     });
-    it("result['n2_C1'].subRequests.length", function () {
-      expect(result['n2_C1'].subRequests.length).to.equal(1);
+    it("result.n2_C1.subRequests.length", function () {
+      expect(result.n2_C1.subRequests.length).to.equal(1);
     });
-    it("result['n2_C1'].data.metric_paths.length", function () {
-      expect(result['n2_C1'].data.metric_paths.length).to.equal(1);
+    it("result.n2_C1.data.metric_paths.length", function () {
+      expect(result.n2_C1.data.metric_paths.length).to.equal(1);
     });
-    it("result['n1_C2'].subRequests.length", function () {
-      expect(result['n1_C2'].subRequests.length).to.equal(1);
+    it("result.n1_C2.subRequests.length", function () {
+      expect(result.n1_C2.subRequests.length).to.equal(1);
     });
-    it("result['n1_C2'].data.metric_paths.length", function () {
-      expect(result['n1_C2'].data.metric_paths.length).to.equal(1);
+    it("result.n1_C2.data.metric_paths.length", function () {
+      expect(result.n1_C2.data.metric_paths.length).to.equal(1);
     });
   });
 
@@ -541,7 +541,7 @@ describe('App.WidgetLoadAggregator', function () {
         }
       };
       aggregator.runRequests(requests);
-      expect(mock.f1.calledWith(requests['r1'].data)).to.be.true;
+      expect(mock.f1.calledWith(requests.r1.data)).to.be.true;
     });
     it("view destroyed", function () {
       var requests = {

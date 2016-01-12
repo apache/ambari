@@ -466,7 +466,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         );
         expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
         expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
-        if (item.check.id == 'CONFIG_MERGE') {
+        if (item.check.id === 'CONFIG_MERGE') {
           expect(App.showClusterCheckPopup.firstCall.args[2]).to.eql(item.configs);
         }
       });
@@ -2125,6 +2125,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
 
     it('new window content is valid', function () {
+      /*eslint-disable no-useless-concat */
       expect(mock.document.write.calledWith('<table style="text-align: left;"><thead><tr>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.configType') + '</th>' +
         '<th>' + Em.I18n.t('popup.clusterCheck.Upgrade.configsMerge.propertyName') + '</th>' +
@@ -2146,6 +2147,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
         '<td>' + 'recommendedValue2' + '</td>' +
         '<td>' + 'resultingValue2' + '</td>' +
         '</tr></tbody></table>')).to.be.true;
+      /*eslint-enable no-useless-concat */
     });
 
     it('document.focus is called once', function () {

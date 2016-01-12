@@ -16,16 +16,4 @@
  * limitations under the License.
  */
 
-
-var App = require('app');
-require('messages');
-var filters = require('views/common/filter_view');
-require('views/main/dashboard');
-var mainDashboardView;
-describe('App.MainDashboardView', function() {
-
-   beforeEach(function() {
-     mainDashboardView = App.MainDashboardView.create();
-   });
-
-});
+describe('App.MainDashboardView', function() {});

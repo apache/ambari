@@ -93,7 +93,7 @@ describe('App.alertGroupsMapper', function () {
       });
 
       App.alertGroupsMapper.set('model', {});
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
     });
 
@@ -102,10 +102,11 @@ describe('App.alertGroupsMapper', function () {
       App.store.commit.restore();
       App.store.loadMany.restore();
       App.alertGroupsMapper.set('model', App.AlertGroup);
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
     });
 
+    /*eslint-disable mocha-cleanup/asserts-limit */
     it('should parse alert groups', function() {
 
       var expected = [
@@ -126,12 +127,10 @@ describe('App.alertGroupsMapper', function () {
       ];
 
       App.alertGroupsMapper.map(json);
-
       var mapped = App.alertGroupsMapper.get('model.content');
-
       testHelpers.nestedExpect(expected, mapped);
-
     });
+    /*eslint-enable mocha-cleanup/asserts-limit */
 
     it('should set App.cache.previousAlertGroupsMap', function () {
 
@@ -149,7 +148,7 @@ describe('App.alertGroupsMapper', function () {
 
       App.alertGroupsMapper.map(json);
 
-      expect(App.cache['previousAlertGroupsMap']).to.eql(expected);
+      expect(App.cache.previousAlertGroupsMap).to.eql(expected);
 
     });
 

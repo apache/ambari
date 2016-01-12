@@ -262,7 +262,7 @@ describe('App.InstallerStep7Controller', function () {
 
   describe('#_createSiteToTagMap', function () {
     it('should return filtered map', function () {
-      var desired_configs = {
+      var desiredConfigs = {
         site1: {
           tag: "tag1"
         },
@@ -277,7 +277,7 @@ describe('App.InstallerStep7Controller', function () {
         site1: true,
         site3: true
       };
-      var siteToTagMap = installerStep7Controller._createSiteToTagMap(desired_configs,sites);
+      var siteToTagMap = installerStep7Controller._createSiteToTagMap(desiredConfigs,sites);
       expect(siteToTagMap).to.eql({
         site1: "tag1",
         site3: "tag3"
@@ -363,7 +363,7 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     it('should return serviceConfigTags', function () {
-      var desired_configs = {
+      var desiredConfigs = {
         site1: {
           tag: "tag1"
         },
@@ -376,10 +376,10 @@ describe('App.InstallerStep7Controller', function () {
       };
       var data = {
         Clusters: {
-          desired_configs: desired_configs
+          desired_configs: desiredConfigs
         }
       };
-      var siteToTagMap = installerStep7Controller.getConfigTagsSuccess(data);
+      installerStep7Controller.getConfigTagsSuccess(data);
       expect(installerStep7Controller.get('serviceConfigTags')).to.eql([
         {
           "siteName": "site1",
@@ -541,8 +541,7 @@ describe('App.InstallerStep7Controller', function () {
           {isDefault: false, n: 'n1'},
           defaultGroup,
           {n: 'n3'}
-        ],
-        selectedConfigGroup = {};
+        ];
       installerStep7Controller.reopen({selectedService: {serviceName: 's1', configGroups: configGroups}});
       installerStep7Controller.selectedServiceObserver();
       expect(installerStep7Controller.get('configGroups').mapProperty('n')).to.eql(['n2', 'n1', 'n3']);
@@ -1517,7 +1516,7 @@ describe('App.InstallerStep7Controller', function () {
       });
       installerStep7Controller.set('wizardController', wizardController);
       installerStep7Controller.set('stepConfigs', Em.A([Em.Object.create({serviceName: 'OOZIE', configs: Em.A([]) })]));
-      var desired_configs = {
+      var desiredConfigs = {
         site1: {
           tag: "tag1"
         },
@@ -1543,7 +1542,7 @@ describe('App.InstallerStep7Controller', function () {
           })
         })]),
         Clusters: {
-          desired_configs: desired_configs
+          desired_configs: desiredConfigs
         }
       };
       installerStep7Controller.loadServiceTagsSuccess(data, {}, params);
@@ -1687,14 +1686,16 @@ describe('App.InstallerStep7Controller', function () {
         recommendedValue: 'c6402.ambari.apache.org:50070'
       }
     ];
+    var oldConfigs = configs.slice();
 
     it('should copy properties from hdfs-site to hdfs-client for HAWQ', function() {
-      var oldConfigs = configs.slice();
       installerStep7Controller.addHawqConfigsOnNnHa(configs);
       // ensure 6 new configs were added
       expect(configs.length - oldConfigs.length).to.be.eql(6);
-      oldConfigs.forEach(function(property){
-        // find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property's attribute value in hdfs-site
+    });
+
+    it('find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property\'s attribute value in hdfs-site', function () {
+      oldConfigs.forEach(function(property) {
         expect(configs.findProperty('id', property.name + '__hdfs-client').description).to.be.eql(property.description);
         expect(configs.findProperty('id', property.name + '__hdfs-client').displayName).to.be.eql(property.displayName);
         expect(configs.findProperty('id', property.name + '__hdfs-client').value).to.be.eql(property.value);
@@ -1719,26 +1720,32 @@ describe('App.InstallerStep7Controller', function () {
       }
     ];
 
-    it('should update properties in yarn-client for HAWQ if yarn ha is enabled', function() {
-      var inputConfigsCount = configs.length;
+    beforeEach(function () {
+      this.inputConfigsCount = configs.length;
       installerStep7Controller.addHawqConfigsOnRMHa(configs);
-      var yarnRmDetails = configs.findProperty('id', 'yarn.resourcemanager.ha__yarn-client');
-      var yarnRmSchedulerDetails = configs.findProperty('id', 'yarn.resourcemanager.scheduler.ha__yarn-client');
+      this.yarnRmDetails = configs.findProperty('id', 'yarn.resourcemanager.ha__yarn-client');
+      this.yarnRmSchedulerDetails = configs.findProperty('id', 'yarn.resourcemanager.scheduler.ha__yarn-client');
+    });
 
-      var expectedYarnRmHaValue = 'c6401.ambari.apache.org:8032,c6402.ambari.apache.org:8032';
-      expect(yarnRmDetails.value).to.be.eql(expectedYarnRmHaValue);
-      expect(yarnRmDetails.recommendedValue).to.be.eql(expectedYarnRmHaValue);
-      expect(yarnRmDetails.displayName).to.be.eql('yarn.resourcemanager.ha');
-      expect(yarnRmDetails.description).to.be.eql('Comma separated yarn resourcemanager host addresses with port');
-
-      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
-      expect(yarnRmSchedulerDetails.value).to.be.eql(expectedYarnRmSchedulerValue);
-      expect(yarnRmSchedulerDetails.recommendedValue).to.be.eql(expectedYarnRmSchedulerValue);
-      expect(yarnRmSchedulerDetails.displayName).to.be.eql('yarn.resourcemanager.scheduler.ha');
-      expect(yarnRmSchedulerDetails.description).to.be.eql('Comma separated yarn resourcemanager scheduler addresses with port');
-
+    it('should update properties in yarn-client for HAWQ if yarn ha is enabled', function() {
       var noOfConfigsAdded = 2;
-      expect(configs.length).to.be.eql(inputConfigsCount + noOfConfigsAdded) ;
+      expect(configs.length).to.be.equal(this.inputConfigsCount + noOfConfigsAdded);
+    });
+
+    it('yarn.resourcemanager.ha__yarn-client', function() {
+      var expectedYarnRmHaValue = 'c6401.ambari.apache.org:8032,c6402.ambari.apache.org:8032';
+      expect(this.yarnRmDetails.value).to.be.equal(expectedYarnRmHaValue);
+      expect(this.yarnRmDetails.recommendedValue).to.be.equal(expectedYarnRmHaValue);
+      expect(this.yarnRmDetails.displayName).to.be.equal('yarn.resourcemanager.ha');
+      expect(this.yarnRmDetails.description).to.be.equal('Comma separated yarn resourcemanager host addresses with port');
+    });
+
+    it('yarn.resourcemanager.scheduler.ha__yarn-client', function() {
+      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
+      expect(this.yarnRmSchedulerDetails.value).to.be.equal(expectedYarnRmSchedulerValue);
+      expect(this.yarnRmSchedulerDetails.recommendedValue).to.be.equal(expectedYarnRmSchedulerValue);
+      expect(this.yarnRmSchedulerDetails.displayName).to.be.equal('yarn.resourcemanager.scheduler.ha');
+      expect(this.yarnRmSchedulerDetails.description).to.be.equal('Comma separated yarn resourcemanager scheduler addresses with port');
     });
   });
 
@@ -1776,20 +1783,43 @@ describe('App.InstallerStep7Controller', function () {
         }
       ];
 
-    it('should add three security related configs for HAWQ if Kerberos is enabled', function () {
-      var originalConfigsLength = configs.length;
+    beforeEach(function () {
+      this.originalConfigsLength = configs.length;
       installerStep7Controller.addHawqConfigsOnKerberizedCluster(configs);
+    });
+
+    it('should add three security related configs for HAWQ if Kerberos is enabled', function () {
       // ensure 3 new configs are added
-      expect(configs.length - originalConfigsLength).to.be.eql(3);
-      // check if all three new properties were added
-      secureProperties.forEach(function (newProperty) {
-        var newPropertyAdded = configs.findProperty('id', newProperty.name + '__' + newProperty.file);
-        expect(newPropertyAdded.name).to.be.eql(newProperty.name);
-        expect(newPropertyAdded.displayName).to.be.eql(newProperty.name);
-        expect(newPropertyAdded.value).to.be.eql(newProperty.value);
-        expect(newPropertyAdded.recommendedValue).to.be.eql(newProperty.value);
-        expect(newPropertyAdded.isOverridable).to.be.eql(newProperty.isOverridable);
-        expect(newPropertyAdded.isReconfigurable).to.be.eql(newProperty.isReconfigurable);
+      expect(configs.length - this.originalConfigsLength).to.be.eql(3);
+    });
+
+    // check if all three new properties were added
+    secureProperties.forEach(function (newProperty) {
+      var id = newProperty.name + '__' + newProperty.file;
+      describe(id, function () {
+
+        beforeEach(function () {
+          this.newPropertyAdded = configs.findProperty('id', id);
+        });
+
+        it('#name', function () {
+          expect(this.newPropertyAdded.name).to.be.equal(newProperty.name);
+        });
+        it('#displayName', function () {
+          expect(this.newPropertyAdded.displayName).to.be.equal(newProperty.name);
+        });
+        it('#value', function () {
+          expect(this.newPropertyAdded.value).to.be.equal(newProperty.value);
+        });
+        it('#recommendedValue', function () {
+          expect(this.newPropertyAdded.recommendedValue).to.be.equal(newProperty.value);
+        });
+        it('#isOverridable', function () {
+          expect(this.newPropertyAdded.isOverridable).to.be.equal(newProperty.isOverridable);
+        });
+        it('#isReconfigurable', function () {
+          expect(this.newPropertyAdded.isReconfigurable).to.be.equal(newProperty.isReconfigurable);
+        });
       });
     });
   });
@@ -2319,8 +2349,6 @@ describe('App.InstallerStep7Controller', function () {
     });
 
     describe('#addServiceController', function () {
-
-      var installedServices = [];
 
       beforeEach(function () {
         installerStep7Controller.set('wizardController', {name: 'addServiceController'});

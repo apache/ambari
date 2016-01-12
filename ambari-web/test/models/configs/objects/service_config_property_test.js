@@ -54,56 +54,6 @@ var serviceConfigProperty,
     })
   ],
 
-  components = [
-    {
-      name: 'NameNode',
-      master: true
-    },
-    {
-      name: 'SNameNode',
-      master: true
-    },
-    {
-      name: 'JobTracker',
-      master: true
-    },
-    {
-      name: 'HBase Master',
-      master: true
-    },
-    {
-      name: 'Oozie Master',
-      master: true
-    },
-    {
-      name: 'Hive Metastore',
-      master: true
-    },
-    {
-      name: 'WebHCat Server',
-      master: true
-    },
-    {
-      name: 'ZooKeeper Server',
-      master: true
-    },
-    {
-      name: 'Ganglia',
-      master: true
-    },
-    {
-      name: 'DataNode',
-      slave: true
-    },
-    {
-      name: 'TaskTracker',
-      slave: true
-    },
-    {
-      name: 'RegionServer',
-      slave: true
-    }
-  ],
   overridableFalseData = [
     {
       isOverridable: false
@@ -120,7 +70,8 @@ var serviceConfigProperty,
     {
       isOverridable: true,
       isEditable: true
-    },    {
+    },
+    {
       isOverridable: true,
       overrides: []
     },

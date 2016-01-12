@@ -410,7 +410,7 @@ describe('App.WizardStep10Controller', function () {
     tests.forEach(function(test) {
       it('Install time' + test.installTime ? ' available' : ' not available', function() {
         controller.set('content', {cluster: {installTime: test.installTime}});
-        var r = controller.loadInstallTime();
+        controller.loadInstallTime();
         expect(controller.get('clusterInfo').mapProperty('id')).to.eql(test.e);
       });
     });

@@ -21,7 +21,7 @@ var helpers = App.TestAliases.helpers;
 function prepareHash(dependentKeys, index) {
   var hash = {};
   dependentKeys.forEach(function (key, i) {
-    hash[key] =  i < index ? null : '' + i;
+    hash[key] = i < index ? null : '' + i;
   });
   return hash;
 }

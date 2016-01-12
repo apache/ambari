@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var validator = require('utils/validator');
 require('utils/batch_scheduled_requests');
 require('controllers/main/host');
 require('mappers/server_data_mapper');

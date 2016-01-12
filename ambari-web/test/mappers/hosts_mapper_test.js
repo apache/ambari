@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 
 require('models/host');

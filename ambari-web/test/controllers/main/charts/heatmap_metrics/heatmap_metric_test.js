@@ -38,7 +38,7 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.formatLegendNumber(test.i)).to.equal(test.e);
       });
     });
-    it('NaN to NaN' + ' ', function () {
+    it('NaN to NaN', function () {
       expect(isNaN(mainChartHeatmapMetric.formatLegendNumber(NaN))).to.equal(true);
     });
   });

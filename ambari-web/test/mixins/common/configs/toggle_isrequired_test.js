@@ -19,8 +19,7 @@
 var App = require('app');
 
 describe('#_overrideConfigIsRequired', function () {
-  var controller,
-    instanceObject,
+  var instanceObject,
     configs,
     serviceConfig;
 

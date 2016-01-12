@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 require('mappers/server_data_mapper');
 require('mappers/stack_mapper');
@@ -27,7 +26,7 @@ require('models/repository');
 describe('App.stackMapper', function () {
 	describe("#map", function() {
     
-    var test_data = {
+    var testData = {
         items: [{
           "Versions" : {
             "active" : true,
@@ -261,7 +260,7 @@ describe('App.stackMapper', function () {
       App.resetDsStoreTypeMap(App.OperatingSystem);
       App.resetDsStoreTypeMap(App.Stack);
       sinon.stub(App.store, 'commit', Em.K);
-      App.stackMapper.map(test_data);
+      App.stackMapper.map(testData);
     });
     afterEach(function(){
       App.store.commit.restore();

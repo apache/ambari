@@ -28,7 +28,7 @@ describe('App.ResourceManagerUptimeView', function() {
   var tests = [
     {
       model: Em.Object.create({
-        resourceManagerStartTime: ((new Date()).getTime() - 192.1*24*3600*1000)
+        resourceManagerStartTime: (new Date()).getTime() - 192.1*24*3600*1000
       }),
       e: {
         isRed: false,

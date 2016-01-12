@@ -447,7 +447,7 @@ describe('App.MainServiceInfoSummaryView', function() {
   describe("#restartAllStaleConfigComponents", function () {
 
     describe('trigger restartAllServiceHostComponents', function () {
-      var view;
+
       beforeEach(function () {
         view = App.MainServiceInfoSummaryView.create({
           controller: Em.Object.create({
@@ -476,7 +476,6 @@ describe('App.MainServiceInfoSummaryView', function() {
 
     describe('trigger check last check point warning before triggering restartAllServiceHostComponents', function () {
 
-      var view;
       var mainServiceItemController;
 
       beforeEach(function () {

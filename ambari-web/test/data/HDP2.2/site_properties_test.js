@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 require('utils/helper');
 require('data/HDP2/gluster_fs_properties');
 var siteProperties = require('data/HDP2.2/site_properties').configProperties;
@@ -26,7 +25,7 @@ describe('hdp2SiteProperties', function () {
    * @stackProperties: All the properties that are derived from stack definition
    */
   var stackProperties = siteProperties.filter(function(item){
-    return  !(item.isRequiredByAgent === false || item.category === 'Ambari Principals')
+    return !(item.isRequiredByAgent === false || item.category === 'Ambari Principals')
   });
 
   stackProperties.forEach(function(siteProperty){
@@ -43,7 +42,7 @@ describe('hdp2SiteProperties', function () {
      * showLabel
      * unit
      */
-    describe('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Stack driven attributes should be undefined ', function () {
+    describe('Check attributes of "{0}/{1}". Stack driven attributes should be undefined '.format(siteProperty.filename, siteProperty.name), function () {
       ['isVisible', 'value', 'recommendedValue', 'description', 'isReconfigurable', 'isRequired', 'displayName', 'showLabel', 'unit'].forEach(function (p) {
         it(p, function () {
           expect(siteProperty[p]).to.not.exist;
@@ -55,7 +54,7 @@ describe('hdp2SiteProperties', function () {
      * displayTypes <code>supportTextConnection<code> and <code>radio button<code>
      * can be used as exception. Other displayTypes values should be used in stack definition
      */
-    it('Check attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Display type value ' + siteProperty.displayType + ' should be described in stack ', function () {
+    it('Check attributes of "{0}/{1}". Display type value {2} should be described in stack '.format(siteProperty.filename, siteProperty.name, siteProperty.displayType), function () {
       expect(siteProperty.displayType).to.match(/undefined|supportTextConnection|radio button/);
     });
 
@@ -64,7 +63,7 @@ describe('hdp2SiteProperties', function () {
      * name
      * filename
      */
-    describe('Check primary attributes of "' + siteProperty.filename + '/' + siteProperty.name  + '"' + '. Attributes that uniquely represent a property should be defined ', function () {
+    describe('Check primary attributes of "{0}/{1}". Attributes that uniquely represent a property should be defined '.format(siteProperty.filename, siteProperty.name), function () {
       it('name', function () {
         expect(siteProperty.name).to.not.equal(undefined);
       });

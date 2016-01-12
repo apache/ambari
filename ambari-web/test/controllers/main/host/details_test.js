@@ -827,10 +827,7 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#showAddComponentPopup()', function () {
 
-    var message = 'Comp1',
-      component = Em.Object.create({
-        componentName: ' Comp1'
-      });
+    var message = 'Comp1';
 
     beforeEach(function () {
       sinon.spy(App.ModalPopup, 'show');
@@ -857,7 +854,6 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('data is null', function () {
-      var data = {Requests: null};
       expect(controller.installNewComponentSuccessCallback(null, {}, {})).to.be.false;
       expect(controller.showBackgroundOperationsPopup.called).to.be.false;
     });
@@ -2152,7 +2148,7 @@ describe('App.MainHostDetailsController', function () {
       this.stub = sinon.stub(App.HostComponent, 'find').returns([{
         id: 'TASKTRACKER_host1',
         componentName: 'TASKTRACKER'
-      }]);;
+      }]);
     });
 
     afterEach(function () {
@@ -3065,7 +3061,7 @@ describe('App.MainHostDetailsController', function () {
       describe(item.title, function () {
 
         beforeEach(function () {
-          sinon.stub(controller, 'checkComponentDependencies', function (componentName, params) {
+          sinon.stub(controller, 'checkComponentDependencies', function (componentName) {
             return item.dependencies[componentName];
           });
           controller.installClients({
@@ -3578,7 +3574,7 @@ describe('App.MainHostDetailsController', function () {
   describe("#removeHostComponentModel()", function () {
 
     beforeEach(function () {
-      App.cache['services'] = [
+      App.cache.services = [
         {
           ServiceInfo: {
             service_name: 'S1'
@@ -3604,7 +3600,7 @@ describe('App.MainHostDetailsController', function () {
       App.serviceMapper.deleteRecord.restore();
     });
     it("App.cache is updated", function () {
-      expect(App.cache['services'][0].host_components).to.be.empty;
+      expect(App.cache.services[0].host_components).to.be.empty;
     });
     it('Record is deleted', function () {
       expect(App.serviceMapper.deleteRecord.calledOnce).to.be.true;
@@ -3823,8 +3819,8 @@ describe('App.MainHostDetailsController', function () {
 
     var makeHostComponentModel = function(componentName, hostNames) {
       if (Em.isArray(componentName)) {
-        return componentName.map(function(componentName, index) {
-          return makeHostComponentModel(componentName, hostNames[index]);
+        return componentName.map(function(cName, index) {
+          return makeHostComponentModel(cName, hostNames[index]);
         }).reduce(function(p,c) { return p.concat(c); }, []);
       }
       return hostNames.map(function(hostName) {

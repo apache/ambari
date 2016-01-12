@@ -463,11 +463,12 @@ describe('App.Host', function () {
       }
     ];
 
-    it('reset healthClass to plain property', function(){
+    beforeEach(function() {
       host1.reopen({
         healthClass: ''
       });
     });
+
     testCases.forEach(function (test) {
       it('healthClass - ' + test.params.healthClass, function () {
         host1.set('healthClass', test.params.healthClass);

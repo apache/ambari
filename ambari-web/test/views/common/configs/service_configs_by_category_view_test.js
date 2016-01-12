@@ -26,8 +26,6 @@ describe('App.ServiceConfigsByCategoryView', function () {
     serviceConfigs: []
   });
 
-  var result = [1, 2, 3, 4];
-
   var testData = [
     {
       title: 'four configs in correct order',
@@ -97,6 +95,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
   App.TestAliases.testAsComputedIfThenElse(view, 'isCategoryBodyVisible', 'category.isCollapsed', 'display: none;', 'display: block;');
 
   describe('#sortByIndex', function () {
+    var result = [1, 2, 3, 4];
     testData.forEach(function(_test){
       it(_test.title, function () {
         expect(view.sortByIndex(_test.configs).mapProperty('resultId')).to.deep.equal(result);
@@ -352,9 +351,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
   });
 
   describe('#categoryConfigs', function () {
-    var view,
-      result = [1,2,3,4,5],
-      cases = [
+    var result = [1, 2, 3, 4, 5];
+    var cases = [
         {
           categoryNname: 'TestCategory',
           serviceConfigs: [

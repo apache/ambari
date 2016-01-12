@@ -331,7 +331,7 @@ describe('App.MainHostSummaryView', function() {
       sinon.stub(App.StackServiceComponent, 'find', function(component) {
         var customCommands = [];
 
-        if (component == 'WITH_CUSTOM_COMMANDS') {
+        if (component === 'WITH_CUSTOM_COMMANDS') {
           customCommands = ['CUSTOMCOMMAND'];
         }
 

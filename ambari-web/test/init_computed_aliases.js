@@ -40,10 +40,9 @@ App.TestAliases = {
     /**
      * Stub <code>get</code> for <code>App</code> or <code>self</code>
      *
-     * @param {Ember.Object} self
      * @returns {App.TestAliases}
      */
-    smartStubGet: function (self) {
+    smartStubGet: function () {
       var args = [].slice.call(arguments);
       if (args.length === 3) {
         return this._stubOneKey.apply(this, args);
@@ -156,7 +155,7 @@ App.TestAliases = {
       for (var y = 0; y < allCombos; y++) {
         var combo = {};
         for (var x = 0; x < n; x++) {
-          combo[dependentKeys[x]] = !!((y >> x) & 1);
+          combo[dependentKeys[x]] = !!(y >> x & 1);
         }
         result.push(combo);
       }

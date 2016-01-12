@@ -33,14 +33,14 @@ describe('App.ServerValidatorMixin', function() {
     };
     var genResponse = function(items) {
       return {
-        items: (items.map(function(item) { return genRespItem.apply(undefined, item); }))
+        items: items.map(function(item) { return genRespItem.apply(undefined, item); })
       };
     };
     var genConfigs = function(configs) {
       return Em.Object.create({
-        configs: (configs.map(function(item) {
+        configs: configs.map(function(item) {
             return Em.Object.create({ name: item[0], filename: item[1] });
-          }))
+          })
       });
     };
     var tests = [

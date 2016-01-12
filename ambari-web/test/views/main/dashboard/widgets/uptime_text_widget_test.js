@@ -80,8 +80,8 @@ describe('App.UptimeTextDashboardWidgetView', function() {
     ];
     timestamps.forEach(function(timestamp) {
       var uptimeTextDashboardWidgetView = App.UptimeTextDashboardWidgetView.create({thresh1:40, thresh2:70});
-      it('timestamp ' + timestamp.t + '. timeUnit should be ' + '"' + timestamp.e.timeUnit + '"', function() {
-        var result = uptimeTextDashboardWidgetView.uptimeProcessing(((new Date()).getTime() - timestamp.diff));
+      it('timestamp {0}. timeUnit should be "{1}"'.format(timestamp.t, timestamp.e.timeUnit), function() {
+        uptimeTextDashboardWidgetView.uptimeProcessing(new Date().getTime() - timestamp.diff);
         expect(uptimeTextDashboardWidgetView.get('timeUnit')).to.equal(timestamp.e.timeUnit);
       });
     });

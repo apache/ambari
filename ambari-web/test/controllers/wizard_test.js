@@ -22,41 +22,41 @@ require('controllers/wizard');
 
 var c;
 
+function getSteps(start, count) {
+  var steps = [];
+  for (var j = start; j <= count; j++) {
+    steps.push(Em.Object.create({step: j, value: false}));
+  }
+  return steps;
+}
+
 describe('App.WizardController', function () {
 
   var wizardController = App.WizardController.create({});
 
   var totalSteps = 11;
-  var ruller = [];
-  for(var i = 0; i < totalSteps; i++) {
-    ruller.push(i);
-  }
-
+  var ruller = d3.range(0, totalSteps);
+  var i;
   beforeEach(function () {
     c = App.WizardController.create({});
   });
 
-  describe('#setLowerStepsDisable', function() {
-    for(var i = 1; i < totalSteps; i++) {
-      var indx = i;
-      var steps = [];
-      for(var j = 1; j <= indx; j++) {
-        steps.push(Em.Object.create({step:j,value:false}));
-      }
-      wizardController.set('isStepDisabled', steps);
-      for(j = 1; j <= indx; j++) {
-        it('Steps: ' + i + ' | Disabled: ' + (j-1), function() {
-          wizardController.setLowerStepsDisable(j);
-          expect(wizardController.get('isStepDisabled').filterProperty('value', true).length).to.equal(j-1);
-        });
-      }
-    }
+  describe('#setLowerStepsDisable', function () {
+    var steps = getSteps(1, 10);
+    wizardController.set('isStepDisabled', steps);
+    steps.forEach(function (step) {
+      var index = step.get('step');
+      it('Steps: 10 | Disabled: ' + (index - 1), function () {
+        wizardController.setLowerStepsDisable(index);
+        expect(wizardController.get('isStepDisabled').filterProperty('value', true).length).to.be.equal(index - 1);
+      });
+    });
   });
 
   // isStep0 ... isStep10 tests
   App.WizardController1 = App.WizardController.extend({currentStep:''});
   var tests = [];
-  for (var i = 0; i < totalSteps; i++) {
+  for (i = 0; i < totalSteps; i++) {
     var n = ruller.slice(0);
     n.splice(i, 1);
     tests.push({i: i, n: n});
@@ -65,11 +65,13 @@ describe('App.WizardController', function () {
     describe('isStep' + test.i, function () {
       var w = App.WizardController1.create();
       w.set('currentStep', test.i);
-      it('Current Step is ' + test.i + ', so isStep' + test.i + ' is TRUE', function () {
+
+      it('Current Step is {0}, so isStep{1} is TRUE'.format(test.i, test.i), function () {
         expect(w.get('isStep' + test.i)).to.equal(true);
       });
+
       test.n.forEach(function (indx) {
-        it('Current Step is ' + test.i + ', so isStep' + indx + ' is FALSE', function () {
+        it('Current Step is {0}, so isStep{1} is FALSE'.format(test.i, indx), function () {
           expect(w.get('isStep' + indx)).to.equal(false);
         });
       });
@@ -79,14 +81,11 @@ describe('App.WizardController', function () {
 
   describe('#gotoStep', function() {
     var w = App.WizardController1.create();
-    var steps = [];
-    for(var j = 0; j < totalSteps; j++) {
-      steps.push(Em.Object.create({step:j,value:false}));
-    }
+    var steps = getSteps(0, totalSteps - 1);
     steps.forEach(function(step, index) {
       step.set('value', true);
       w.set('isStepDisabled', steps);
-      it('step ' + index + ' is disabled, so gotoStep('+index+') is not possible', function() {
+      it('step {0} is disabled, so gotoStep({1}) is not possible'.format(index, index), function() {
         expect(w.gotoStep(index)).to.equal(false);
       });
     });
@@ -284,8 +283,7 @@ describe('App.WizardController', function () {
     });
 
     describe('#finishLoading', function () {
-      var callback = sinon.spy(),
-        stepController = App.get('router.wizardStep3Controller'),
+      var stepController = App.get('router.wizardStep3Controller'),
         cases = [
           {
             requestId: null,
@@ -691,11 +689,6 @@ describe('App.WizardController', function () {
       App.ajax.send.restore();
     });
     it('should call callbeck with data', function () {
-      var jsonData = {
-        Requests: {
-          id: 1
-        }
-      };
       wizardController.set('content', Em.Object.create({
         cluster: {
           oldRequestsId: '1'
@@ -846,7 +839,7 @@ describe('App.WizardController', function () {
       sinon.stub(App.MainAdminServiceAccountsController,'create').returns({
         loadUsers: function() {},
         get: function(type) {
-          if (type == 'dataIsLoaded') {
+          if (type === 'dataIsLoaded') {
             return true;
           }
           return Em.Object.create({
@@ -1502,9 +1495,7 @@ describe('App.WizardController', function () {
       });
       sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(true);
       sinon.stub(App.config, 'loadConfigsFromStack').returns({
-        done: function(callback) {
-          callback();
-        }
+        done: Em.clb
       });
       sinon.stub(App.StackService, 'find').returns(Em.A([
         Em.Object.create({
@@ -1521,16 +1512,16 @@ describe('App.WizardController', function () {
       App.themesMapper.generateAdvancedTabs.restore();
       wizardController.loadConfigThemeForServices.restore();
     });
-    it('Should load config themes', function() { 
+    it('Should load config themes', function(done) {
       this.stub.returns(true);
-      wizardController.loadConfigThemes().then(function(data) {
-        expect().to.be.undefined;
+      wizardController.loadConfigThemes().then(function() {
+        done();
       });
     });
-    it('Should load config themes (2)', function() {
+    it('Should load config themes (2)', function(done) {
       this.stub.returns(false);
-      wizardController.loadConfigThemes().then(function(data) {
-        expect().to.be.undefined;
+      wizardController.loadConfigThemes().then(function() {
+        done();
       });
     });
   });

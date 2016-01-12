@@ -64,7 +64,7 @@ describe('App.NodeManagerComponentView', function () {
       expect(view.setStatusAs.calledWith('DECOMMISSIONED')).to.be.true;
     });
     it("RM contains host", function () {
-      var curObj =  {rm_metrics: {
+      var curObj = {rm_metrics: {
         cluster: {
           nodeManagers: [{
             HostName: 'host1'
@@ -75,7 +75,7 @@ describe('App.NodeManagerComponentView', function () {
       expect(view.setStatusAs.calledWith('DECOMMISSIONING')).to.be.true;
     });
     it("RM does not contain host", function () {
-      var curObj =  {rm_metrics: {
+      var curObj = {rm_metrics: {
         cluster: {
           nodeManagers: []
         }

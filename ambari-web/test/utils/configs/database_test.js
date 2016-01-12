@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var App = require('app');
 var dbUtils = require('utils/configs/database');
 
 describe('Database Utils', function() {

@@ -201,7 +201,7 @@ describe('App.alertDefinitionsMapper', function () {
       });
 
       sinon.stub(App.router, 'get', function() {return false;});
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
       sinon.stub(App.alertDefinitionsMapper, 'setMetricsSourcePropertyLists', Em.K);
       sinon.stub(App.alertDefinitionsMapper, 'setAlertDefinitionsRawSourceData', Em.K);
@@ -224,7 +224,7 @@ describe('App.alertDefinitionsMapper', function () {
       App.alertDefinitionsMapper.deleteRecord.restore();
 
       App.router.get.restore();
-      App.cache['previousAlertGroupsMap'] = {};
+      App.cache.previousAlertGroupsMap = {};
 
       App.alertDefinitionsMapper.setMetricsSourcePropertyLists.restore();
       App.alertDefinitionsMapper.setAlertDefinitionsRawSourceData.restore();
@@ -403,7 +403,7 @@ describe('App.alertDefinitionsMapper', function () {
 
     it('should set groups from App.cache.previousAlertGroupsMap', function () {
 
-      App.cache['previousAlertGroupsMap'] = {
+      App.cache.previousAlertGroupsMap = {
         1: [5,1],
         2: [4,3],
         3: [3,2],

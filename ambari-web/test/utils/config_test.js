@@ -22,7 +22,6 @@ require('utils/configs_collection');
 require('utils/config');
 require('models/service/hdfs');
 var setups = require('test/init_model_test');
-var modelSetup = setups.configs;
 
 function dummyCopy(val) {
   return JSON.parse(JSON.stringify(val));
@@ -59,7 +58,7 @@ describe('App.config', function () {
     describe('two configs into textarea', function () {
       var result;
       beforeEach(function () {
-        result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
+        result = App.config.fileConfigsIntoTextarea(configs, filename);
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -77,7 +76,7 @@ describe('App.config', function () {
       newConfigs.push(dummyCopy(c3));
       var result;
       beforeEach(function () {
-        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, filename);
+        result = App.config.fileConfigsIntoTextarea(newConfigs, filename);
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -97,7 +96,7 @@ describe('App.config', function () {
       var result;
 
       beforeEach(function () {
-        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, filename);
+        result = App.config.fileConfigsIntoTextarea(newConfigs, filename);
       });
 
       it('Two configs are returned', function () {
@@ -115,7 +114,7 @@ describe('App.config', function () {
     describe('none configs into empty textarea', function () {
       var result;
       beforeEach(function () {
-        result = App.config.fileConfigsIntoTextarea.call(App.config, [], 'capacity-scheduler.xml');
+        result = App.config.fileConfigsIntoTextarea([], 'capacity-scheduler.xml');
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -136,7 +135,7 @@ describe('App.config', function () {
       newConfigs.push(dummyCopy(c3));
       var result;
       beforeEach(function () {
-        result = App.config.fileConfigsIntoTextarea.call(App.config, newConfigs, 'capacity-scheduler.xml', [c3]);
+        result = App.config.fileConfigsIntoTextarea(newConfigs, 'capacity-scheduler.xml', [c3]);
       });
       it('Two configs are returned', function () {
         expect(result.length).to.equal(2);
@@ -194,7 +193,7 @@ describe('App.config', function () {
     describe('config1=value1 to one config', function () {
       var result;
       beforeEach(function () {
-        result = App.config.textareaIntoFileConfigs.call(App.config, testData[0].configs, filename);
+        result = App.config.textareaIntoFileConfigs(testData[0].configs, filename);
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -213,7 +212,7 @@ describe('App.config', function () {
     describe('config1=value1\\nconfig2=value2\\n to two configs', function () {
       var result;
       beforeEach(function () {
-        result = App.config.textareaIntoFileConfigs.call(App.config, testData[1].configs, filename);
+        result = App.config.textareaIntoFileConfigs(testData[1].configs, filename);
       });
       it('Two configs are returned', function (){
         expect(result.length).to.equal(2);
@@ -241,7 +240,7 @@ describe('App.config', function () {
     describe('config1=value1,value2\n to one config', function () {
       var result;
       beforeEach(function () {
-        result = App.config.textareaIntoFileConfigs.call(App.config, testData[2].configs, filename);
+        result = App.config.textareaIntoFileConfigs(testData[2].configs, filename);
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -260,7 +259,7 @@ describe('App.config', function () {
     describe('config1=value1 config2=value2 to two configs', function () {
       var result;
       beforeEach(function () {
-        result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
+        result = App.config.textareaIntoFileConfigs(testData[3].configs, filename);
       });
       it('One config is returned', function () {
         expect(result.length).to.equal(1);
@@ -676,9 +675,9 @@ describe('App.config', function () {
 
     it('creates override with save properties as original config', function() {
       var override = App.config.createOverride(configProperty, {}, group);
-      for (var key in template) {
+      Object.keys(template).forEach(function (key) {
         expect(override.get(key)).to.eql(template[key]);
-      }
+      });
     });
 
     describe('overrides some values that should be different for override', function() {
@@ -711,9 +710,9 @@ describe('App.config', function () {
       };
 
       var override = App.config.createOverride(configProperty, overridenTemplate, group);
-      for (var key in overridenTemplate) {
+      Object.keys(overridenTemplate).forEach(function (key) {
         expect(override.get(key)).to.eql(overridenTemplate[key]);
-      }
+      });
     });
 
     it('throws error due to undefined configGroup', function() {

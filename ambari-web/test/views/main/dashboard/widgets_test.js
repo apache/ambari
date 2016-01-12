@@ -19,7 +19,6 @@
 
 var App = require('app');
 require('messages');
-var filters = require('views/common/filter_view');
 require('mixins/common/userPref');
 require('mixins/common/localStorage');
 require('views/main/dashboard/widgets');
@@ -29,11 +28,11 @@ describe('App.MainDashboardWidgetsView', function () {
   var view = App.MainDashboardWidgetsView.create();
 
   describe('#setInitPrefObject', function () {
-    var host_metrics_widgets_count = 4;
-    var hdfs_widgets_count = 7;
-    var hbase_widgets_count = 4;
-    var yarn_widgets_count = 4;
-    var total_widgets_count = 20;
+    var hostMetricsWidgetsCount = 4;
+    var hdfsWidgetsCount = 7;
+    var hbaseWidgetsCount = 4;
+    var yarnWidgetsCount = 4;
+    var totalWidgetsCount = 20;
     var tests = Em.A([
       {
         models: {
@@ -43,7 +42,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - host_metrics_widgets_count - hdfs_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: totalWidgetsCount - hostMetricsWidgetsCount - hdfsWidgetsCount - hbaseWidgetsCount - yarnWidgetsCount - 1,
           hiddenL: 0
         },
         m: 'All models are null'
@@ -56,7 +55,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - hdfs_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: totalWidgetsCount - hdfsWidgetsCount - hbaseWidgetsCount - yarnWidgetsCount - 1,
           hiddenL: 0
         },
         m: 'hdfs_model, hbase_model, yarn_model are null'
@@ -69,7 +68,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: totalWidgetsCount - hbaseWidgetsCount - yarnWidgetsCount - 1,
           hiddenL: 0
         },
         m: 'hbase_model, yarn_model are null'
@@ -82,7 +81,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - hbase_widgets_count - yarn_widgets_count - 1,
+          visibleL: totalWidgetsCount - hbaseWidgetsCount - yarnWidgetsCount - 1,
           hiddenL: 0
         },
         m: 'hbase_model and yarn_model are null'
@@ -95,7 +94,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: null
         },
         e: {
-          visibleL: total_widgets_count - yarn_widgets_count - 1,
+          visibleL: totalWidgetsCount - yarnWidgetsCount - 1,
           hiddenL: 1
         },
         m: 'yarn_model is null'
@@ -108,7 +107,7 @@ describe('App.MainDashboardWidgetsView', function () {
           yarn_model: {}
         },
         e: {
-          visibleL: total_widgets_count,
+          visibleL: totalWidgetsCount,
           hiddenL: 1
         },
         m: 'All models are not null'
@@ -253,7 +252,6 @@ describe('App.MainDashboardWidgetsView', function () {
     });
 
     describe("#applyFilterComplete()", function () {
-      var widget = {checked: true};
       beforeEach(function () {
         sinon.stub(view, 'postUserPref');
         sinon.stub(view, 'translateToReal');
@@ -496,7 +494,7 @@ describe('App.MainDashboardWidgetsView', function () {
     Em.keys(widgetsMap).forEach(function (item, index, array) {
       it(notEmptyModelTitle.format(item), function () {
         array.forEach(function (modelName) {
-          view.set(modelName, modelName == item ? {} : null);
+          view.set(modelName, modelName === item ? {} : null);
         });
         expect(view.checkServicesChange(emptyCurrentPref).visible).to.eql(widgetsMap[item]);
       });
@@ -506,7 +504,7 @@ describe('App.MainDashboardWidgetsView', function () {
       it(emptyModelTitle.format(item), function () {
         var expected = [];
         array.forEach(function (modelName) {
-          if (modelName == item) {
+          if (modelName === item) {
             view.set(modelName, null);
           } else {
             view.set(modelName, {});

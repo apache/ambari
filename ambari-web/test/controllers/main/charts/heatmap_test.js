@@ -366,9 +366,9 @@ describe('MainChartsHeatmapController', function () {
         {rack: 'r1'}
       ];
       var rackMap = controller.indexByRackId(hosts);
-      expect(rackMap['r1'].name).to.equal('r1');
-      expect(rackMap['r1'].rackId).to.equal('r1');
-      expect(rackMap['r1'].hosts).to.eql([{rack: 'r1'}, {rack: 'r1'}]);
+      expect(rackMap.r1.name).to.equal('r1');
+      expect(rackMap.r1.rackId).to.equal('r1');
+      expect(rackMap.r1.hosts).to.eql([{rack: 'r1'}, {rack: 'r1'}]);
     });
   });
 

@@ -22,10 +22,7 @@ require('views/common/configs/services_config');
 
 describe('App.ServiceConfigContainerView', function () {
 
-  var view,
-    selectedService = {
-      configCategories: []
-    };
+  var view;
 
   beforeEach(function () {
     view = App.ServiceConfigContainerView.create({

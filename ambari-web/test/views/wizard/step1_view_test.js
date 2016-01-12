@@ -279,7 +279,7 @@ describe('App.WizardStep1View', function () {
 
   });
 
-  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', App.Repository.validation['INVALID']);
+  App.TestAliases.testAsComputedSomeBy(getView(), 'invalidUrlExist', 'allRepositories', 'validation', App.Repository.validation.INVALID);
 
   App.TestAliases.testAsComputedSomeBy(getView(), 'invalidFormatUrlExist', 'allRepositories', 'invalidFormatError', true);
 
@@ -448,7 +448,7 @@ describe('App.WizardStep1View', function () {
       })
     ];
 
-    var controller = {
+    var ctrl = {
       content: {
         stacks: [
           Em.Object.create({
@@ -485,7 +485,7 @@ describe('App.WizardStep1View', function () {
     it('target group isn\'t isSelected', function () {
       view.reopen({
         operatingSystems: operatingSystems,
-        controller: controller
+        controller: ctrl
       });
       view.updateByCheckbox();
       var targetGroup = view.get('operatingSystems.firstObject.repositories.firstObject');
@@ -496,11 +496,11 @@ describe('App.WizardStep1View', function () {
     });
 
     it('target group is isSelected, skipValidationisSelected = true', function () {
-      controller.content.stacks[0].operatingSystems[0].selected = true;
+      ctrl.content.stacks[0].operatingSystems[0].selected = true;
       operatingSystems[0].set('isSelected', true);
       view.reopen({
         operatingSystems: operatingSystems,
-        controller: controller
+        controller: ctrl
       });
       view.updateByCheckbox();
       var targetGroup = view.get('operatingSystems.firstObject.repositories.firstObject');

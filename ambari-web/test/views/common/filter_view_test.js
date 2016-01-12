@@ -328,9 +328,10 @@ describe('filters.getFilterByType', function () {
       }
     ];
 
-    testData.forEach(function(item){
-      it('Condition: ' + item.condition + ((item.result) ? ' - match ' : ' - doesn\'t match ' + 'value: ') +
-        item.value.mapProperty('componentName').join(" "), function () {
+    testData.forEach(function(item) {
+      var substr = item.condition + (item.result ? ' - match ' : ' - doesn\'t match ');
+      var components = item.value.mapProperty('componentName').join(' ');
+      it('Condition: {0} value: {1}'.format(substr, components), function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
       })
     });
@@ -389,9 +390,10 @@ describe('filters.getFilterByType', function () {
     ];
 
     testData.forEach(function(item){
-      it('Condition: ' + item.condition + ((item.result) ? ' - match ' : ' - doesn\'t match ' + 'value: ') + item.value, function () {
+      var substr = item.condition + (item.result ? ' - match ' : ' - doesn\'t match ');
+      it('Condition: {0} value: {1}'.format(substr, item.value), function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
-      })
+      });
     });
   });
 

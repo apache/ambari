@@ -110,7 +110,7 @@ describe('App.MainServiceController', function () {
 
   describe('#cluster', function() {
 
-    var tests = Em.A([
+    Em.A([
       {
         isLoaded: true,
         cluster: [],

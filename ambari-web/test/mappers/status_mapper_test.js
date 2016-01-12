@@ -16,12 +16,4 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
-var App = require('app');
-
-require('mappers/server_data_mapper');
-
-describe('App.statusMapper', function () {
-
-
-});
+describe('App.statusMapper', function () {});

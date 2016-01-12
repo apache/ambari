@@ -89,7 +89,7 @@ describe('App.ManageAlertNotificationsView', function () {
         selectedAlertNotification: null,        
         m: 'some alert notification is not selected and user is a non-admin operator',
         p: {
-	   isAddButtonDisabled: true,
+          isAddButtonDisabled: true,
           isEditButtonDisabled: false,
           isRemoveButtonDisabled: false,
           isDuplicateButtonDisabled: false

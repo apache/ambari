@@ -225,10 +225,10 @@ describe('App.HostComponent', function() {
       }
     ];
 
-    it('reset statusClass to plain property', function () {
+    beforeEach(function () {
       hc.reopen({
         statusClass: ''
-      })
+      });
     });
     testCases.forEach(function (test) {
       it('statusClass - ' + test.statusClass, function () {
