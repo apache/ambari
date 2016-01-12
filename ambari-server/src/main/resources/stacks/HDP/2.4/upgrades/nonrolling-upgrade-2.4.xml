@@ -417,15 +417,27 @@
       </priority>
     </group>
 
-    <group xsi:type="restart" name="HIVE" title="Hive">
+    <group xsi:type="restart" name="HIVE_MASTERS" title="Hive Masters">
+      <service-check>false</service-check>
+      <skippable>true</skippable>
+      <supports-auto-skip-failure>false</supports-auto-skip-failure>
+      <!-- Must be ran sequentially because Hive Metastore upgrades the schema and Hive Server copies tarballs. -->
+      <parallel-scheduler>
+        <max-degree-of-parallelism>1</max-degree-of-parallelism>
+      </parallel-scheduler>
+      <service name="HIVE">
+        <component>HIVE_METASTORE</component>
+        <component>HIVE_SERVER</component>
+        <component>WEBHCAT_SERVER</component>
+      </service>
+    </group>
+
+    <group xsi:type="restart" name="HIVE_CLIENTS" title="Hive Clients">
       <service-check>false</service-check>
       <skippable>true</skippable>
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
       <parallel-scheduler/>
       <service name="HIVE">
-        <component>HIVE_METASTORE</component>
-        <component>HIVE_SERVER</component>
-        <component>WEBHCAT_SERVER</component>
         <component>HIVE_CLIENT</component>
         <component>HCAT</component>
       </service>
