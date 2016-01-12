@@ -48,7 +48,9 @@ hostname = config['hostname']
 # Users and Groups
 hdfs_superuser = config['configurations']['hadoop-env']['hdfs_user']
 user_group = config['configurations']['cluster-env']['user_group']
-hawq_password = config['configurations']['hawq-env']['hawq_password']
+
+# Convert hawq_password to unicode for crypt() function in case user enters a numeric password
+hawq_password = unicode(config['configurations']['hawq-env']['hawq_password'])
 
 
 # HAWQ Hostnames
