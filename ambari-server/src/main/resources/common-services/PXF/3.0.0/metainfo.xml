@@ -67,6 +67,8 @@
       </osSpecifics>
 
       <configuration-dependencies>
+        <config-type>pxf-profiles</config-type>
+        <config-type>pxf-public-classpath</config-type>
         <config-type>pxf-site</config-type>
       </configuration-dependencies>
 

@@ -43,6 +43,12 @@
         "pxf-site": {
             "a": "b"
         },
+        "pxf-public-classpath": {
+            "content": " classpath"
+        },
+        "pxf-profiles": {
+            "content": " profile"
+        },
         "cluster-env": {
             "security_enabled": "false",
             "ignore_groupsusers_create": "false",
