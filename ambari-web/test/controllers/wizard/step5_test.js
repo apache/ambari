@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-var Ember = require('ember');
 var App = require('app');
 require('controllers/wizard/step5_controller');
 var modelSetup = require('test/init_model_test');
@@ -30,7 +29,6 @@ describe('App.WizardStep5Controller', function () {
 
   var controller = App.WizardStep5Controller.create();
   controller.set('content', {});
-  var cpu = 2, memory = 4;
 
   controller.set('content', {});
 

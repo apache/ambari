@@ -194,6 +194,7 @@ describe('App.InstallerController', function () {
         ])
       })
     ]);
+    var resolve = false;
     var data = {
       osId: 1,
       repoId: 11,
@@ -203,7 +204,6 @@ describe('App.InstallerController', function () {
         }
       }
     };
-    var resolve = false;
     it ('Should check stacks for sucess', function() {
 
       installerController.set('content.stacks', stacks);
@@ -277,6 +277,7 @@ describe('App.InstallerController', function () {
         ])
       })
     ]);
+    var resolve = false;
     var data = {
       osId: 1,
       repoId: 11,
@@ -286,7 +287,6 @@ describe('App.InstallerController', function () {
         }
       }
     };
-    var resolve = false;
     it ('Should check stacks for error', function() {
 
       var req = {
@@ -962,7 +962,7 @@ describe('App.InstallerController', function () {
 
   describe('#loadMasterComponentHosts', function() {
     beforeEach(function () {
-      sinon.stub(installerController, 'getDBProperties', function(key) {
+      sinon.stub(installerController, 'getDBProperties', function() {
         return {
           masterComponentHosts: Em.A([
             {
@@ -1226,7 +1226,7 @@ describe('App.InstallerController', function () {
 
         var successCallback;
 
-        beforeEach(function ()  {
+        beforeEach(function () {
           sinon.stub(App.Stack, 'find').returns(test.stacks);
           sinon.stub(App.router, 'get').withArgs('clusterController.isCustomJDK').returns(test.isCustomJDK)
             .withArgs('clusterController.ambariProperties').returns(test.ambariProperties);

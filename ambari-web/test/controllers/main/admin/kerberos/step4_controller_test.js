@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-var c  = App.KerberosWizardStep4Controller.create({
+var c = App.KerberosWizardStep4Controller.create({
   wizardController: Em.Object.create({
     name: ''
   })
@@ -57,6 +57,49 @@ describe('App.KerberosWizardStep4Controller', function() {
 
   describe('#prepareConfigProperties', function() {
 
+    var properties = Em.A([
+      Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
+      Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster' }),
+      Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', identityType: 'user', observesValueFrom: 'spnego_keytab' }),
+      Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
+      Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
+      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' }),
+      Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' })
+    ]);
+
+    var propertyValidationCases = [
+      {
+        property: 'spnego_keytab',
+        e: [
+          { key: 'category', value: 'Global' },
+          { key: 'observesValueFrom', absent: true }
+        ]
+      },
+      {
+        property: 'realm',
+        e: [
+          { key: 'category', value: 'Global' },
+          { key: 'value', value: 'realm_value' }
+        ]
+      },
+      {
+        property: 'hdfs_keytab',
+        e: [
+          { key: 'category', value: 'Ambari Principals' },
+          { key: 'value', value: 'spnego_keytab_value' },
+          { key: 'observesValueFrom', value: 'spnego_keytab' }
+        ]
+      },
+      {
+        property: 'hadoop.security.auth_to_local',
+        e: [
+          { key: 'displayType', value: 'multiLine' }
+        ]
+      }
+    ];
+
+    var absentPropertiesTest = ['falcon_keytab', 'mapreduce_keytab'];
+
     before(function() {
       var controller = App.KerberosWizardStep4Controller.create({
         wizardController: {
@@ -89,49 +132,6 @@ describe('App.KerberosWizardStep4Controller', function() {
       App.router.get.restore();
     });
 
-    var properties = Em.A([
-      Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
-      Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster' }),
-      Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', identityType: 'user', observesValueFrom: 'spnego_keytab' }),
-      Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON' }),
-      Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2' }),
-      Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' }),
-      Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' })
-    ]);
-    
-    var propertyValidationCases = [
-      {
-        property: 'spnego_keytab',
-        e: [
-          { key: 'category', value: 'Global' },
-          { key: 'observesValueFrom', absent: true }
-        ]
-      },
-      {
-        property: 'realm',
-        e: [
-          { key: 'category', value: 'Global' },
-          { key: 'value', value: 'realm_value' }
-        ]
-      },
-      {
-        property: 'hdfs_keytab',
-        e: [
-          { key: 'category', value: 'Ambari Principals' },
-          { key: 'value', value: 'spnego_keytab_value' },
-          { key: 'observesValueFrom', value: 'spnego_keytab' }
-        ]
-      },
-      {
-        property: 'hadoop.security.auth_to_local',
-        e: [
-          { key: 'displayType', value: 'multiLine' }
-        ]
-      }
-    ];
-    
-    var absentPropertiesTest = ['falcon_keytab', 'mapreduce_keytab'];
-    
     it('should contains properties only for installed services', function() {
       expect(this.result.mapProperty('serviceName').uniq()).to.be.eql(['Cluster', 'HDFS']);
     });
@@ -160,6 +160,24 @@ describe('App.KerberosWizardStep4Controller', function() {
   
   describe('#setStepConfigs', function() {
     describe('Add Service Wizard', function() {
+
+      var properties = Em.A([
+        Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
+        Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster', isEditable: true }),
+        Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', observesValueFrom: 'spnego_keytab', isEditable: true }),
+        Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON', isEditable: true }),
+        Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2', isEditable: true })
+      ]);
+
+      var propertiesEditableTests = [
+        { name: 'spnego_keytab', e: false },
+        { name: 'falcon_keytab', e: true },
+        { name: 'hdfs_keytab', e: false },
+        { name: 'mapreduce_keytab', e: true },
+        { name: 'admin_principal', e: true },
+        { name: 'admin_password', e: true }
+      ];
+
       var res;
       var controller;
       before(function() {
@@ -204,23 +222,6 @@ describe('App.KerberosWizardStep4Controller', function() {
         res = controller.get('stepConfigs')[0].get('configs').concat(controller.get('stepConfigs')[1].get('configs'));
       });
 
-      var properties = Em.A([
-        Em.Object.create({ name: 'realm', value: '', serviceName: 'Cluster' }),
-        Em.Object.create({ name: 'spnego_keytab', value: 'spnego_keytab_value', serviceName: 'Cluster', isEditable: true }),
-        Em.Object.create({ name: 'hdfs_keytab', value: '', serviceName: 'HDFS', observesValueFrom: 'spnego_keytab', isEditable: true }),
-        Em.Object.create({ name: 'falcon_keytab', value: 'falcon_keytab_value', serviceName: 'FALCON', isEditable: true }),
-        Em.Object.create({ name: 'mapreduce_keytab', value: 'mapreduce_keytab_value', serviceName: 'MAPREDUCE2', isEditable: true })
-      ]);
-
-      var propertiesEditableTests = [
-        { name: 'spnego_keytab', e: false },
-        { name: 'falcon_keytab', e: true },
-        { name: 'hdfs_keytab', e: false },
-        { name: 'mapreduce_keytab', e: true },
-        { name: 'admin_principal', e: true },
-        { name: 'admin_password', e: true }
-      ];
-      
       propertiesEditableTests.forEach(function(test) {
         it('Add Service: property `{0}` should be {1} editable'.format(test.name, !!test.e ? '' : 'not '), function() {
           expect(res.findProperty('name', test.name).get('isEditable')).to.eql(test.e);

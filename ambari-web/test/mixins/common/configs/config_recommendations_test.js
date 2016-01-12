@@ -19,7 +19,7 @@
 var App = require('app');
 
 describe('App.ConfigRecommendations', function() {
-	var mixinObject =  Em.Controller.extend(App.ConfigRecommendations, {});
+	var mixinObject = Em.Controller.extend(App.ConfigRecommendations, {});
 	var instanceObject = mixinObject.create({});
 
 	beforeEach(function() {
@@ -307,7 +307,7 @@ describe('App.ConfigRecommendations', function() {
 			expect(instanceObject.getRecommendation('p1', 'f1')).to.eql(recommendations[0]);
 		});
 
-		it('get recommendation for default group', function () {
+		it('get recommendation for default group (2)', function () {
 			expect(instanceObject.getRecommendation('p1', 'f1', 'group1')).to.eql(recommendations[2]);
 		});
 

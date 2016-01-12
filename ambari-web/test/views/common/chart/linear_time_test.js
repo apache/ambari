@@ -382,7 +382,7 @@ describe('App.ChartLinearTimeView', function () {
         view.setYAxisFormatter();
         view.yAxisFormatter();
         methodNames.forEach(function (name) {
-          expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name == item.formatter));
+          expect(App.ChartLinearTimeView[name].callCount).to.equal(Number(name === item.formatter));
         });
       });
     });
@@ -443,16 +443,16 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       result = aggregator.groupRequests(requests);
     });
     it("result['r1'].subRequests.length", function () {
-      expect(result['r1'].subRequests.length).to.equal(1);
+      expect(result.r1.subRequests.length).to.equal(1);
     });
     it("result['r1'].fields.length", function () {
-      expect(result['r1'].fields.length).to.equal(1);
+      expect(result.r1.fields.length).to.equal(1);
     });
     it("result['r2'].subRequests.length", function () {
-      expect(result['r2'].subRequests.length).to.equal(2);
+      expect(result.r2.subRequests.length).to.equal(2);
     });
     it("result['r2'].fields.length", function () {
-      expect(result['r2'].fields.length).to.equal(3);
+      expect(result.r2.fields.length).to.equal(3);
     });
   });
 

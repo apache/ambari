@@ -54,7 +54,7 @@ describe('App.ChartServiceMetricsAMS_RegionServerBaseView', function () {
     });
 
     it('data.length', function () {
-      expect(this.result[0].data.length).to.equal(jsonData.metrics.hbase.regionserver['test'].length);
+      expect(this.result[0].data.length).to.equal(jsonData.metrics.hbase.regionserver.test.length);
     });
 
     it('y-property', function () {

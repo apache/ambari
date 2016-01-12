@@ -42,19 +42,22 @@ describe('App.RepositoryVersion', function () {
     before(function () {
       sinon.stub(App, 'get').returns(['host1']);
     });
+
+    beforeEach(function () {
+      model = getModel();
+    });
+
     after(function () {
       App.get.restore();
     });
 
     it("stackVersion is null", function() {
-      var model = getModel();
       model.set('stackVersion', null);
       model.propertyDidChange('notInstalledHosts');
       expect(model.get('notInstalledHosts')).to.eql(['host1']);
     });
 
     it("stackVersion has notInstalledHosts array", function() {
-      var model = getModel();
       model.set('stackVersion', Em.Object.create({
         notInstalledHosts: ['host2']
       }));

@@ -16,8 +16,7 @@
  * limitations under the License.
  */
 
-var ui_utils = require('utils/ui_effects');
-var App = require('app');
+var uiUtils = require('utils/ui_effects');
 
 describe('utils/ui_effects', function(){
   describe('#pulsate()', function(){
@@ -34,13 +33,13 @@ describe('utils/ui_effects', function(){
 
     it('opacity should be 0.2 on 5-th iteration', function() {
       var domEl = $('#pulsate-test-dom');
-      ui_utils.pulsate(domEl, 1000);
+      uiUtils.pulsate(domEl, 1000);
       this.clock.tick(300);
       expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.eql('0.2');
     });
     it('should call callback at the end', function() {
       var domEl = $('#pulsate-test-dom');
-      ui_utils.pulsate(domEl, 1000, this.clb);
+      uiUtils.pulsate(domEl, 1000, this.clb);
       this.clock.tick(2000);
       expect(this.clb.calledOnce).to.be.ok;
     });

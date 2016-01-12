@@ -381,7 +381,7 @@ describe('App.AddServiceController', function() {
       sinon.stub(this.controller, 'setDBProperty', function(key, value) {
         mock.db = value;
       });
-      this.mockStackService =  sinon.stub(App.StackService, 'find');
+      this.mockStackService = sinon.stub(App.StackService, 'find');
       this.mockService = sinon.stub(App.Service, 'find');
     });
 

@@ -98,7 +98,7 @@ describe('App.MainAdminKerberosController', function() {
       controller.startKerberosWizard.restore();
     });
     it("shows popup", function () {
-      var check =  { items: [{
+      var check = { items: [{
         UpgradeChecks: {
           "check": "Work-preserving RM/NM restart is enabled in YARN configs",
           "status": "FAIL",

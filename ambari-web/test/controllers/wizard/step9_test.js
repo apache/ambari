@@ -342,7 +342,7 @@ describe('App.InstallerStep9Controller', function () {
     });
   });
 
-  var hosts_for_load_and_render = {
+  var hostsForLoadAndRender = {
     'host1': {
       message: 'message1',
       status: 'unknown',
@@ -387,23 +387,23 @@ describe('App.InstallerStep9Controller', function () {
   describe('#loadHosts', function () {
 
     beforeEach(function() {
-      c.reopen({content: {hosts: hosts_for_load_and_render}});
+      c.reopen({content: {hosts: hostsForLoadAndRender}});
       c.loadHosts();
     });
 
     it('Only REGISTERED hosts', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.length).to.equal(2);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.length).to.equal(2);
     });
 
     it('All hosts have progress 0', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('progress', 0)).to.equal(true);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.everyProperty('progress', 0)).to.equal(true);
     });
 
     it('All host don\'t have logTasks', function () {
-      var loaded_hosts = c.get('hosts');
-      expect(loaded_hosts.everyProperty('logTasks.length', 0)).to.equal(true);
+      var loadedHosts = c.get('hosts');
+      expect(loadedHosts.everyProperty('logTasks.length', 0)).to.equal(true);
     });
   });
 
@@ -589,7 +589,7 @@ describe('App.InstallerStep9Controller', function () {
   describe('#launchStartServices', function () {
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", 
                   "JOURNALNODE", "ZKFC", 
                   "APP_TIMELINE_SERVER", 
@@ -598,6 +598,7 @@ describe('App.InstallerStep9Controller', function () {
                   "HBASE_REGIONSERVER", 
                   "SUPERVISOR", 
                   "FLUME_HANDLER"];
+        }
         return true;
       });
     });
@@ -870,8 +871,9 @@ describe('App.InstallerStep9Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", "JOURNALNODE", "ZKFC", "APP_TIMELINE_SERVER", "NODEMANAGER", "GANGLIA_MONITOR", "HBASE_REGIONSERVER", "SUPERVISOR", "FLUME_HANDLER"];
+        }
         return Em.get(App, k);
       });
     });
@@ -964,7 +966,7 @@ describe('App.InstallerStep9Controller', function () {
     tests.forEach(function (test) {
       it(test.m, function () {
         c.onInProgressPerHost(test.actions, test.host);
-        expect(test.host.message == test.e.message).to.equal(test.e.b);
+        expect(test.host.message === test.e.message).to.equal(test.e.b);
       });
     });
   });
@@ -1163,8 +1165,9 @@ describe('App.InstallerStep9Controller', function () {
 
     beforeEach(function() {
       sinon.stub(App, 'get', function(k) {
-        if (k === 'components.slaves')
+        if (k === 'components.slaves') {
           return ["TASKTRACKER", "DATANODE", "JOURNALNODE", "ZKFC", "APP_TIMELINE_SERVER", "NODEMANAGER", "GANGLIA_MONITOR", "HBASE_REGIONSERVER", "SUPERVISOR", "FLUME_HANDLER"];
+        }
         return Em.get(App, k);
       });
     });

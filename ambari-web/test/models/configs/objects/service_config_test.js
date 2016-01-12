@@ -21,7 +21,6 @@ var App = require('app');
 require('models/configs/objects/service_config');
 
 var serviceConfig,
-  group, 
   configs = [
       Em.Object.create({
         'name': 'p1',

@@ -194,6 +194,7 @@ describe('App.FormField', function () {
     });
   });
 
+  /*eslint-disable mocha-cleanup/asserts-limit */
   describe('#validate', function () {
     it('should return error message', function () {
       formField.set('isRequired', true);
@@ -206,6 +207,7 @@ describe('App.FormField', function () {
       expectError('');
     });
   });
+  /*eslint-enable mocha-cleanup/asserts-limit */
 
   describe('#isHiddenField', function () {
     hiddenCases.forEach(function (item) {

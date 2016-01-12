@@ -21,13 +21,7 @@ require('mappers/alert_instances_mapper');
 
 describe('App.alertInstanceMapper', function () {
 
-  var alertInstances = [
-      {id: 1},
-      {id: 2},
-      {id: 3},
-      {id: 4}
-    ],
-    json = {
+  var json = {
       "items": [
         {
           "Alert": {

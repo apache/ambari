@@ -207,7 +207,7 @@ describe('App.mainAdminStackVersionsView', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'get', function (key) {
-        return key == 'supports.displayOlderVersions' ? displayOlderVersions : Em.get(App, key);
+        return key === 'supports.displayOlderVersions' ? displayOlderVersions : Em.get(App, key);
       });
     });
 

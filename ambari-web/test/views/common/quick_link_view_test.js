@@ -299,7 +299,7 @@ describe('App.QuickViewLinks', function () {
       quickViewLinks.setEmptyLinks();
       expect(quickViewLinks.get('quickLinks')).to.eql([{
         label: quickViewLinks.t('quick.links.error.label'),
-        url: 'javascript:alert("' + quickViewLinks.t('contact.administrator') + '");return false;'
+        url: 'javascript:alert("' + quickViewLinks.t('contact.administrator') + '");return false;' // eslint-disable-line no-script-url
       }]);
       expect(quickViewLinks.get('isLoaded')).to.be.true;
     });

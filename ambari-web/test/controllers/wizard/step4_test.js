@@ -40,7 +40,7 @@ describe('App.WizardStep4Controller', function () {
         'isSelected': false,
         'canBeSelected': true,
         'isInstalled': false,
-        isPrimaryDFS: serviceName == 'HDFS',
+        isPrimaryDFS: serviceName === 'HDFS',
         isDFS: ['HDFS','GLUSTERFS'].contains(serviceName),
         isMonitoringService: ['GANGLIA'].contains(serviceName),
         requiredServices: App.StackService.find(serviceName).get('requiredServices'),
@@ -58,7 +58,7 @@ describe('App.WizardStep4Controller', function () {
     return allServices;
   };
 
-  services.forEach(function(serviceName, index){
+  services.forEach(function(serviceName) {
     controller.pushObject(Ember.Object.create({
       'serviceName':serviceName, 'isSelected': true, 'isHiddenOnSelectServicePage': false, 'isInstalled': false, 'isDisabled': 'HDFS' === serviceName, isDFS: 'HDFS' === serviceName
     }));
@@ -164,22 +164,25 @@ describe('App.WizardStep4Controller', function () {
 
         beforeEach(function () {
           controller.clear();
-          for(var id in testCase.condition) {
+          Object.keys(testCase.condition).forEach(function (id) {
             controller.pushObject(Ember.Object.create({
-              'serviceName':id, 'isSelected': testCase.condition[id], 'canBeSelected': true, 'isInstalled': false,
+              serviceName: id,
+              isSelected: testCase.condition[id],
+              canBeSelected: true,
+              isInstalled: false,
               coSelectedServices: function() {
                 return App.StackService.coSelected[this.get('serviceName')] || [];
               }.property('serviceName')
             }));
-          }
+          });
           controller.setGroupedServices();
         });
 
-        for(var service in testCase.result) {
+        Object.keys(testCase.result).forEach(function (service) {
           it(service, function () {
             expect(controller.findProperty('serviceName', service).get('isSelected')).to.equal(testCase.result[service]);
           });
-        }
+        });
       });
     }, this);
   });
@@ -335,7 +338,7 @@ describe('App.WizardStep4Controller', function () {
     controllerNames.forEach(function (name) {
       tests.forEach(function(test) {
         var errorsExpected = test.errorsExpected;
-        if (name != 'installerController') {
+        if (name !== 'installerController') {
           errorsExpected = test.errorsExpected.without('ambariMetricsCheck');
         }
         var message = '{0}, {1} selected validation should be {2}, errors: {3}'
@@ -442,7 +445,7 @@ describe('App.WizardStep4Controller', function () {
             beforeEach(function () {
               currentErrorObject = c.get('errorStack').findProperty('isShown', false);
             });
-            test.errorsExpected.forEach(function(error, index, errors) {
+            test.errorsExpected.forEach(function(error) {
               it(error, function () {
                 // validate current error
                 if (currentErrorObject) {

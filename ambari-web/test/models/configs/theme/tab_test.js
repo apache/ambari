@@ -17,17 +17,12 @@
  */
 
 var App = require('app');
-var model;
 
 function getModel() {
   return App.Tab.createRecord();
 }
 
 describe('App.Tab', function () {
-
-  beforeEach(function () {
-    model = getModel();
-  });
 
   App.TestAliases.testAsComputedSumBy(getModel(), 'errorsCount', 'sections', 'errorsCount');
 

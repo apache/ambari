@@ -660,7 +660,7 @@ describe('App.BackgroundOperationsController', function () {
       controller.set('services', [request]);
       controller.callBackFilteredByRequest(data);
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED"});
-      expect(request.get('hostsMap')['host1'].logTasks.length).to.equal(1);
+      expect(request.get('hostsMap.host1.logTasks.length')).to.equal(1);
       expect(request.get('isRunning')).to.equal(false);
     });
 
@@ -694,7 +694,7 @@ describe('App.BackgroundOperationsController', function () {
       controller.set('services', [request]);
       controller.callBackFilteredByRequest(data);
       expect(request.get('previousTaskStatusMap')).to.eql({"1": "COMPLETED", "2": "IN_PROGRESS"});
-      expect(request.get('hostsMap')['host1'].logTasks.length).to.equal(2);
+      expect(request.get('hostsMap.host1.logTasks.length')).to.equal(2);
       expect(request.get('isRunning')).to.equal(true);
     });
   });

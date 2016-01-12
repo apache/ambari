@@ -22,30 +22,6 @@ require('mixins/main/host/details/host_components/decommissionable');
 
 var decommissionable,
   view,
-  statusCases = [
-    {
-      status: App.HostComponentStatus.started,
-      expected: false
-    },
-    {
-      status: 'status',
-      expected: true
-    }
-  ],
-  responseCases = [
-    {
-      HostRoles: {
-        desired_admin_state: 'state'
-      },
-      ServiceComponentInfo: {component_state: ''}
-    },
-    {
-      HostRoles: {
-        desired_admin_state: null
-      },
-      ServiceComponentInfo: {component_state: ''}
-    }
-  ],
   textCases = [
     {
       available: true,

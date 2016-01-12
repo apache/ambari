@@ -181,8 +181,9 @@ describe('utils/helper', function() {
       });
       it('should sort array', function() {
         result.forEach(function(resultObj, index, resultArr) {
-          if (index > resultArr.length - 1)
+          if (index > resultArr.length - 1) {
             expect(resultObj.a < resultArr[index + 1].a).to.eql(false);
+          }
         });
       });
       it('should try to sort without throwing exception', function(){
@@ -244,7 +245,7 @@ describe('utils/helper', function() {
       beforeEach(appendDiv);
       afterEach(removeDiv);
       it('should add tooltip', function() {
-        var tooltip = App.tooltip($('#tooltip-test'));
+        App.tooltip($('#tooltip-test'));
         expect($('#tooltip-test').data('tooltip').enabled).to.eql(true);
       });
     });
@@ -252,7 +253,7 @@ describe('utils/helper', function() {
       beforeEach(appendDiv);
       afterEach(removeDiv);
       it('should add popover', function() {
-        var tooltip = App.popover($('#tooltip-test'));
+        App.popover($('#tooltip-test'));
         expect($('#tooltip-test').data('popover').enabled).to.eql(true);
       });
     });
@@ -304,13 +305,11 @@ describe('utils/helper', function() {
           'FALCON': 'Falcon',
           'falcon': 'Falcon'
         };
-        for (var inputName in tests) {
-          (function(name) {
-            it(testMessage.format(name, tests[name]), function() {
-              expect(App.format.normalizeNameBySeparators(name, ["-", "_", " "])).to.eql(tests[name]);
-            });
-          })(inputName)
-        }
+        Object.keys(tests).forEach(function (inputName) {
+          it(testMessage.format(inputName, tests[inputName]), function() {
+            expect(App.format.normalizeNameBySeparators(inputName, ["-", "_", " "])).to.eql(tests[inputName]);
+          });
+        });
       });
 
       describe('#normalizeName()', function() {
@@ -386,13 +385,11 @@ describe('utils/helper', function() {
           'ZOOKEEPER_SERVICE_CHECK': 'ZooKeeper Service Check',
           'CLIENT': 'Client'
         };
-        for (var inputName in tests) {
-          (function(name) {
-            it(testMessage.format(name, tests[name]), function() {
-              expect(App.format.normalizeName(name)).to.eql(tests[name]);
-            });
-          })(inputName)
-        }
+        Object.keys(tests).forEach(function (inputName) {
+          it(testMessage.format(inputName, tests[inputName]), function() {
+            expect(App.format.normalizeName(inputName)).to.eql(tests[inputName]);
+          });
+        });
       });
       describe('#kdcErrorMsg()', function() {
         var tests = [

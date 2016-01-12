@@ -40,7 +40,7 @@ App.TestAliases.testAsComputedAlias = function (context, propertyName, dependent
   }
   else {
    // all
-    testsCases = [].concat.call([], Object.keys(typesMap).map(function (key) {return typesMap[key]}));
+    testsCases = [].concat(Object.keys(typesMap).map(function (key) {return typesMap[key]}));
   }
 
   describe('#' + propertyName + ' as Em.computed.alias', function () {

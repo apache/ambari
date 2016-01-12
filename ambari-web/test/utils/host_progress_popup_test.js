@@ -26,76 +26,7 @@ require('utils/host_progress_popup');
 
 describe('App.HostPopup', function () {
 
-  var services = [
-    {
-      displayName: "Start service WebHCat",
-      hosts: [
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-12-123-90.ec2.internal",
-                role: "WEBHCAT_SERVER",
-                status: "QUEUED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/23/tasks/94"
-            }
-          ],
-          name: "ip-10-12-123-90.ec2.internal",
-          publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service WebHCat"
-        }
-      ],
-      isRunning: false
-    },
-    {
-      displayName: "Start service Hive/HCat",
-      hosts: [
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "INSTALL",
-                host_name: "ip-10-12-123-90.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/76"
-            }
-          ],
-          name: "ip-10-12-123-90.ec2.internal",
-          publicName: "ip-10-12-123-90.ec2.internal",
-          serviceName: "Start service Hive/HCat"
-        },
-        {
-          logTasks: [
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-33-7-23.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/78"
-            },
-            {
-              Tasks: {
-                command: "START",
-                host_name: "ip-10-33-7-23.ec2.internal",
-                status: "COMPLETED"
-              },
-              href: "http://ec2-54-224-233-43.compute-1.amazonaws.com:8080/api/v1/clusters/mycluster/requests/15/tasks/79"
-            }
-          ],
-          name: "ip-10-33-7-23.ec2.internal",
-          publicName: "ip-10-33-7-23.ec2.internal",
-          serviceName: "Start service Hive/HCat"
-        }
-      ],
-      isRunning: false
-    }
-  ];
-
-  var test_tasks = [
+  var testTasks = [
     {
       t: [
         {
@@ -346,17 +277,17 @@ describe('App.HostPopup', function () {
   });
 
   describe('#getStatus', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.getStatus(test_task.t)[0]).to.equal(test_task.r);
+    testTasks.forEach(function(testTask) {
+      it(testTask.m, function() {
+        expect(App.HostPopup.getStatus(testTask.t)[0]).to.equal(testTask.r);
       });
     });
   });
 
   describe('#getProgress', function() {
-    test_tasks.forEach(function(test_task) {
-      it(test_task.m, function() {
-        expect(App.HostPopup.getProgress(test_task.t)).to.equal(test_task.p);
+    testTasks.forEach(function(testTask) {
+      it(testTask.m, function() {
+        expect(App.HostPopup.getProgress(testTask.t)).to.equal(testTask.p);
       });
     });
   });

@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-var data_manipulation = require('utils/data_manipulation');
+var dataManipulation = require('utils/data_manipulation');
 
-describe('data_manipulation', function () {
+describe('dataManipulation', function () {
 
   describe('#rejectPropertyValues', function () {
 
@@ -31,7 +31,7 @@ describe('data_manipulation', function () {
         ],
         key = 'n',
         valuesToReject = ['v2', 'v3'];
-      var result = data_manipulation.rejectPropertyValues(collection, key, valuesToReject);
+      var result = dataManipulation.rejectPropertyValues(collection, key, valuesToReject);
       expect(result).to.eql([
         {n: 'v1'},
         {n: 'v4'}
@@ -51,7 +51,7 @@ describe('data_manipulation', function () {
         ],
         key = 'n',
         valuesToFilter = ['v2', 'v3'];
-      var result = data_manipulation.filterPropertyValues(collection, key, valuesToFilter);
+      var result = dataManipulation.filterPropertyValues(collection, key, valuesToFilter);
       expect(result).to.eql([
         {n: 'v2'},
         {n: 'v3'}
@@ -70,7 +70,7 @@ describe('data_manipulation', function () {
           {n: 'v4'}
         ],
         key = 'n';
-      var result = data_manipulation.groupPropertyValues(collection, key);
+      var result = dataManipulation.groupPropertyValues(collection, key);
       expect(JSON.stringify(result)).to.equal(JSON.stringify({
         v1: [
           {n: 'v1'}

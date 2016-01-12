@@ -549,7 +549,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#getConfigUrlParams()', function () {
-    var testCases  = [
+    var testCases = [
       {
         componentName: 'NAMENODE',
         result: [
@@ -1577,7 +1577,7 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
 
   });
 
-  describe("#prepareDBCheckAction()", function() {
+  describe.skip("#prepareDBCheckAction()", function() {
     beforeEach(function () {
       sinon.stub(App.router, 'get').returns({
         'jdk_location': 'jdk_location',

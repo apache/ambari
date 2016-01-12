@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var Ember = require('ember');
 require('controllers/wizard/step2_controller');
 require('models/host');
 require('models/host_component');
@@ -412,7 +411,7 @@ describe('App.WizardStep2Controller', function () {
       var result = true;
       var hosts = controller.get('hostNameArr');
       for (var i = 1; i<12; i++) {
-        var extra = (i.toString().length == 1) ? 0 : '';
+        var extra = i.toString().length === 1 ? 0 : '';
         if (hosts[i-1] !== 'host0' + extra + i) {
           result = false;
         }

@@ -21,62 +21,7 @@ var App = require('app');
 require('models/configs/objects/service_config_property');
 require('utils/configs/config_initializer');
 
-var serviceConfig,
-  group,
-  serviceConfigProperty,
-
-  components = [
-    {
-      name: 'NameNode',
-      master: true
-    },
-    {
-      name: 'SNameNode',
-      master: true
-    },
-    {
-      name: 'JobTracker',
-      master: true
-    },
-    {
-      name: 'HBase Master',
-      master: true
-    },
-    {
-      name: 'Oozie Master',
-      master: true
-    },
-    {
-      name: 'Hive Metastore',
-      master: true
-    },
-    {
-      name: 'WebHCat Server',
-      master: true
-    },
-    {
-      name: 'ZooKeeper Server',
-      master: true
-    },
-    {
-      name: 'Ganglia',
-      master: true
-    },
-    {
-      name: 'DataNode',
-      slave: true
-    },
-    {
-      name: 'TaskTracker',
-      slave: true
-    },
-    {
-      name: 'RegionServer',
-      slave: true
-    }
-  ],
-  masters = components.filterProperty('master'),
-  slaves = components.filterProperty('slave');
+var serviceConfigProperty;
 
 describe('App.ConfigInitializer', function () {
 
@@ -357,7 +302,7 @@ describe('App.ConfigInitializer', function () {
         App.get.restore();
       });
 
-      cases['hive_database'].forEach(function (item) {
+      cases.hive_database.forEach(function (item) {
         var title = 'hive_database value should be set to {0}';
         describe(title.format(item.value), function () {
 
@@ -410,10 +355,10 @@ describe('App.ConfigInitializer', function () {
       });
     });
 
-    it(cases['hive_master_hosts'].title, function () {
+    it(cases.hive_master_hosts.title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB, []);
-      expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases.hive_master_hosts.localDB, []);
+      expect(serviceConfigProperty.get('value')).to.equal(cases.hive_master_hosts.value);
     });
 
     it(cases['hive.metastore.uris'].title, function () {
@@ -432,7 +377,7 @@ describe('App.ConfigInitializer', function () {
         recommendedValue: cases['templeton.hive.properties'].recommendedValue,
         value: cases['templeton.hive.properties'].recommendedValue
       });
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB,  {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB, {'hive.metastore.uris': cases['templeton.hive.properties'].recommendedValue});
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -442,7 +387,7 @@ describe('App.ConfigInitializer', function () {
         name: 'yarn.resourcemanager.zk-address',
         recommendedValue: cases['yarn.resourcemanager.zk-address'].recommendedValue
       });
-      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB,  cases['yarn.resourcemanager.zk-address'].dependencies);
+      App.ConfigInitializer.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('recommendedValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });

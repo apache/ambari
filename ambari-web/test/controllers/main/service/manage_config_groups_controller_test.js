@@ -194,7 +194,7 @@ describe('App.ManageConfigGroupsController', function() {
     var service = Em.Object.create({});
     manageConfigGroupsController.set('hostsModifiedConfigGroups', {});
     describe("#controller passed", function () {
-      var controller = Em.Object.create({
+      controller = Em.Object.create({
         content: Em.Object.create()
       });
       var popup = manageConfigGroupsController.manageConfigurationGroups(controller, service);

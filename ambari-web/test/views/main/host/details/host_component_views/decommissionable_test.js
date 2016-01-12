@@ -28,13 +28,15 @@ describe('App.Decommissionable', function() {
 
   beforeEach(function() {
     sinon.stub(App.router, 'get', function (k) {
-      if (k === 'mainHostDetailsController.content') return Em.Object.create({
-        hostComponents: [
-          {
-            componentName: 'component'
-          }
-        ]
-      });
+      if (k === 'mainHostDetailsController.content') {
+        return Em.Object.create({
+          hostComponents: [
+            {
+              componentName: 'component'
+            }
+          ]
+        });
+      }
       return Em.get(App.router, k);
     });
   });

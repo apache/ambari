@@ -71,6 +71,19 @@ describe('App.KDCCredentialsControllerMixin', function() {
 
   describe('#createKDCCredentials', function() {
 
+    function createConfig (name, value) {
+      return App.ServiceConfigProperty.create({
+        name: name,
+        value: value
+      });
+    }
+    function resolveWith (data) {
+      return $.Deferred().resolve(data).promise();
+    }
+    function rejectWith (data) {
+      return $.Deferred().reject(data).promise();
+    }
+
     beforeEach(function () {
       sinon.stub(App, 'get').withArgs('clusterName').returns('testName');
       sinon.stub(credentialsUtils, 'createCredentials', function() {
@@ -90,18 +103,6 @@ describe('App.KDCCredentialsControllerMixin', function() {
       credentialsUtils.updateCredentials.restore();
     });
 
-    var createConfig = function(name, value) {
-      return App.ServiceConfigProperty.create({
-        name: name,
-        value: value
-      });
-    };
-    var resolveWith = function(data) {
-      return $.Deferred().resolve(data).promise();
-    };
-    var rejectWith = function(data) {
-      return $.Deferred().reject(data).promise();
-    };
     [
       {
         configs: [

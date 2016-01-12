@@ -263,7 +263,7 @@ describe('App.WidgetWizardStep2Controller', function () {
     });
 
     it('check id', function () {
-      expect(controller.get('expressions').mapProperty('id')).to.eql([1, 2]);;
+      expect(controller.get('expressions').mapProperty('id')).to.eql([1, 2]);
     });
 
     it('check isRemovable', function () {

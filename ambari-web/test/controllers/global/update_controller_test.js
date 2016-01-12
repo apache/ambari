@@ -195,7 +195,7 @@ describe('App.UpdateController', function () {
     });
     testCases.forEach(function (test) {
       it(test.title, function () {
-        App.cache['services'] = test.services;
+        App.cache.services = test.services;
         this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
       });
@@ -203,7 +203,7 @@ describe('App.UpdateController', function () {
 
     testCasesByStackVersion.forEach(function (test) {
       it(test.title, function () {
-        App.cache['services'] = test.services;
+        App.cache.services = test.services;
         this.mock.withArgs('currentStackVersionNumber').returns(test.stackVersionNumber);
         this.mock.withArgs('router.clusterController.isServiceMetricsLoaded').returns(true);
         expect(controller.getConditionalFields()).to.eql(test.result);
@@ -211,7 +211,7 @@ describe('App.UpdateController', function () {
     });
 
     it('FLUME service, first load', function () {
-      App.cache['services'] = [
+      App.cache.services = [
         {
           ServiceInfo: {
             service_name: 'FLUME'
@@ -410,7 +410,6 @@ describe('App.UpdateController', function () {
           };
         }
       },
-      mainAdminStackAndUpgradeController = App.get('router.mainAdminStackAndUpgradeController'),
       appGetMock;
 
     beforeEach(function () {

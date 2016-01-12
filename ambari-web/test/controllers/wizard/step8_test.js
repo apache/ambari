@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-var modelSetup = require('test/init_model_test');
 require('utils/ajax/ajax_queue');
 require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
@@ -432,10 +431,10 @@ describe('App.WizardStep8Controller', function () {
           isNotDefaultValue: false
         })
       });
-      var configs = Em.A([Em.Object.create({
+      var _configs = Em.A([Em.Object.create({
         name: 'property'
       })]);
-      expect(installerStep8Controller.isConfigsChanged(properties,configs)).to.be.true;
+      expect(installerStep8Controller.isConfigsChanged(properties, _configs)).to.be.true;
     });
   });
 
@@ -1186,7 +1185,7 @@ describe('App.WizardStep8Controller', function () {
       installerStep8Controller.deleteClusters(clusterNames);
       expect(App.ajax.send.callCount).to.equal(clusterNames.length);
       clusterNames.forEach(function(n, i) {
-        expect(App.ajax.send.getCall(i).args[0].data).to.eql({name: n, isLast: i == clusterNames.length - 1});
+        expect(App.ajax.send.getCall(i).args[0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
       });
     });
 
@@ -1199,7 +1198,7 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#createStormSiteObj', function() {
     it('should replace quote \'"\' to "\'" for some properties', function() {
-      var configs = [
+      var _configs = [
           {filename: 'storm-site.xml', value: ["a", "b"], name: 'storm.zookeeper.servers'}
         ],
         expected = {
@@ -1209,12 +1208,12 @@ describe('App.WizardStep8Controller', function () {
             'storm.zookeeper.servers': '[\'a\',\'b\']'
           }
         };
-      installerStep8Controller.reopen({configs: configs});
+      installerStep8Controller.reopen({configs: _configs});
       expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
     });
 
     it('should not escape special characters', function() {
-      var configs = [
+      var _configs = [
           {filename: 'storm-site.xml', value: "abc\n\t", name: 'nimbus.childopts'},
           {filename: 'storm-site.xml', value: "a\nb", name: 'supervisor.childopts'},
           {filename: 'storm-site.xml', value: "a\t\tb", name: 'worker.childopts'}
@@ -1228,7 +1227,7 @@ describe('App.WizardStep8Controller', function () {
             'worker.childopts': 'a\t\tb'
           }
         };
-      installerStep8Controller.reopen({configs: configs});
+      installerStep8Controller.reopen({configs: _configs});
       expect(installerStep8Controller.createStormSiteObj('version1')).to.eql(expected);
     });
   });
@@ -1967,7 +1966,7 @@ describe('App.WizardStep8Controller', function () {
           expect(data.properties['ambari.dispatch.credential.password']).to.equal('pwd');
         });
         it('custom property is valid', function () {
-          expect(data.properties['some_p']).to.equal('some_v');
+          expect(data.properties.some_p).to.equal('some_v');
         });
 
       });

@@ -35,7 +35,6 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
 
   describe('#customClientSideValidation', function () {
     var hostComponents = [];
-    var isSubmitDisabled = false;
 
     beforeEach(function () {
       sinon.stub(App.HostComponent, 'find', function () {
@@ -89,8 +88,6 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
     });
 
     it('submitDisabled is already true', function () {
-      isSubmitDisabled = true;
-
       expect(controller.customClientSideValidation()).to.be.false;
     });
   });

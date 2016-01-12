@@ -99,8 +99,9 @@ describe('batch_scheduled_requests', function() {
       sinon.spy(batchUtils, 'showRollingRestartPopup');
       sinon.spy(batchUtils, 'showWarningRollingRestartPopup');
       sinon.stub(App, 'get', function(k) {
-        if ('components.rollinRestartAllowed' === k)
+        if ('components.rollinRestartAllowed' === k) {
           return ['DATANODE', 'TASKTRACKER', 'NODEMANAGER', 'HBASE_REGIONSERVER', 'SUPERVISOR'];
+        }
         return Em.get(App, k);
       });
     });

@@ -59,16 +59,16 @@ describe('App.MainServiceItemView', function () {
     var actionMap = App.HostComponentActionMap.getMap(view);
 
     var customActionsArray = [];
-    for (var iter in actionMap) {
+    Object.keys(actionMap).forEach(function (iter) {
       customActionsArray.push(actionMap[iter]);
-    }
+    });
     var customActions = customActionsArray.mapProperty('customCommand').filter(function (action) {
       return !nonCustomAction.contains(action);
     }).uniq();
 
     // remove null and undefined from the list
     customActions = customActions.filter(function (value) {
-      return value != null;
+      return !Em.isNone(value);
     });
 
     customActions.forEach(function (action) {
@@ -402,7 +402,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "restartAllHostComponents", "context": "KNOX", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Knox", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP",  "label": "Start Demo LDAP", "cssClass": "icon-play-sign", "disabled": false},
+            {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP", "label": "Start Demo LDAP", "cssClass": "icon-play-sign", "disabled": false},
             {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "context": "Stop Demo LDAP", "label": "Stop Demo LDAP", "cssClass": "icon-stop", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
@@ -436,7 +436,7 @@ describe('App.MainServiceItemView', function () {
       sinon.stub(App, 'get', function (k) {
         switch (k) {
           case 'isSingleNode':
-            return view.get('controller.content.serviceName') == 'HDFS';
+            return view.get('controller.content.serviceName') === 'HDFS';
           case 'supports.autoRollbackHA':
           case 'isRMHaEnabled':
           case 'isHaEnabled':
@@ -479,8 +479,9 @@ describe('App.MainServiceItemView', function () {
         ];
       });
 
-      sinon.stub(App.StackServiceComponent, 'find', function () {
-        switch (arguments[0]) {
+      /*eslint-disable complexity */
+      sinon.stub(App.StackServiceComponent, 'find', function (id) {
+        switch (id) {
           case 'NAMENODE':
             return Em.Object.create({ customCommands: ["DECOMMISSION", "REBALANCEHDFS"] });
           case 'RESOURCEMANAGER':
@@ -510,6 +511,7 @@ describe('App.MainServiceItemView', function () {
             ];
         }
       });
+      /*eslint-enable complexity */
     });
 
     afterEach(function () {

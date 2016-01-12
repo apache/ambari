@@ -286,7 +286,7 @@ describe('App.upgradeWizardView', function () {
     afterEach(function () {
       this.mock.restore();
     });
-    var testCases = [
+    [
       {
         data: {
           failedItem: null,
@@ -442,7 +442,7 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#upgradeStatusLabel", function () {
-    var testCases = [
+    [
       {
         data: {
           status: 'QUEUED',

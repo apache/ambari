@@ -942,13 +942,13 @@ describe('App.ManageAlertNotificationsController', function () {
       controller.set('inputFields.customProperties', []);
     });
 
+    /*eslint-disable mocha-cleanup/asserts-limit */
     it('should add custom Property to customProperties', function () {
-
       controller.set('newCustomProperty', {name: 'n1', value: 'v1'});
       controller.addCustomProperty();
       helpers.nestedExpect([{name: 'n1', value: 'v1', defaultValue: 'v1'}], controller.get('inputFields.customProperties'));
-
     });
+    /*eslint-enable mocha-cleanup/asserts-limit */
 
   });
 
@@ -964,8 +964,8 @@ describe('App.ManageAlertNotificationsController', function () {
       ]);
     });
 
+    /*eslint-disable mocha-cleanup/asserts-limit */
     it('should remove selected custom property', function () {
-
       controller.removeCustomPropertyHandler({context: c});
       helpers.nestedExpect(
         [
@@ -974,8 +974,8 @@ describe('App.ManageAlertNotificationsController', function () {
         ],
         controller.get('inputFields.customProperties')
       );
-
     });
+    /*eslint-enable mocha-cleanup/asserts-limit */
 
   });
 

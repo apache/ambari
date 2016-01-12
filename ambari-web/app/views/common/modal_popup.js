@@ -68,7 +68,7 @@ App.ModalPopup = Ember.View.extend({
     if (this.autoHeight && !$.mocho) {
       var block = this.$().find('#modal > .modal-body').first();
       if(block.offset()) {
-        block.css('max-height', $(window).height() - block.offset().top  - this.marginBottom + $(window).scrollTop()); // fix popup height
+        block.css('max-height', $(window).height() - block.offset().top - this.marginBottom + $(window).scrollTop()); // fix popup height
       }
     }
     this.fitZIndex();
@@ -82,7 +82,7 @@ App.ModalPopup = Ember.View.extend({
    */
   fitZIndex: function () {
     var existedPopups = $('.modal-backdrop');
-    if (existedPopups) {
+    if (existedPopups && !$.mocho) {
       var maxZindex = 1;
       existedPopups.each(function(index, popup) {
         if ($(popup).css('z-index') > maxZindex) {
@@ -103,7 +103,7 @@ App.ModalPopup = Ember.View.extend({
     var block = this.$().find('#modal > .modal-body');
     var wh = $(window).height();
 
-    var top = wh * .05;
+    var top = wh * 0.05;
     popup.css({
       'top': top + 'px',
       'marginTop': 0

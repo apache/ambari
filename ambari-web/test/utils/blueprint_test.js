@@ -438,8 +438,8 @@ describe('utils/blueprint', function() {
   describe('#_generateHostMap', function() {
     it('generate map', function() {
       var map = blueprintUtils._generateHostMap({}, ['h1','h2', 'h1'],'c1');
-      expect(map['h1'][0]).to.eql('c1');
-      expect(map['h2'][0]).to.eql('c1');
+      expect(map.h1[0]).to.eql('c1');
+      expect(map.h2[0]).to.eql('c1');
     });
 
     it('skip generations as hosts is empty', function() {

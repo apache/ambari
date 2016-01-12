@@ -450,7 +450,6 @@ describe('App.Router', function () {
   });
 
   describe("#getAuthenticated", function() {
-    var router;
     beforeEach(function () {
       router = App.Router.create();
       this.mockGetCurrentLocationUrl = sinon.stub(router, 'getCurrentLocationUrl');

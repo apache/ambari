@@ -92,7 +92,6 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
 
   describe('#onLoadConfigs', function() {
 
-    var controller;
     var reassignCtrl;
 
     beforeEach(function() {

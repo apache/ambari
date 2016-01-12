@@ -53,12 +53,12 @@ describe('App.AuthenticationForm', function () {
   methods.forEach(function (method) {
     method.fields.forEach(function (field) {
       describe('#' + field + '.isRequired', function () {
-        for (var i = 2; i--; ) {
+        [2, 1, 0].forEach(function (i) {
           it('should be ' + i + ' dependent on ' + method.name + ' value', function () {
             form.getField(method.name).set('value', i);
             expect(form.getField(field).get('isRequired')).to.equal(i);
           });
-        }
+        });
       });
     });
   });

@@ -232,8 +232,9 @@ describe('validator', function () {
       { obj: 1, detect: false },
       { obj: true, detect: false }
     ];
-    testable.forEach(function(value){
-      it('should ' + (value.detect ? '' : 'not') + ' detect empty value in `' + new String(value.obj) + '`', function(){
+    testable.forEach(function(value) {
+      var detect = value.detect ? '' : 'not';
+      it('should {0} detect empty value in `{1}`'.format(detect, JSON.stringify(value.obj)), function() {
         expect(validator.empty(value.obj)).to.eql(value.detect);
       });
     });
@@ -420,7 +421,7 @@ describe('validator', function () {
         { value: 'a{1,2}{', expected: false }
       ];
     tests.forEach(function(test) {
-      it(message.format(test.value, (test.expected) ? 'valid' : 'not valid'), function() {
+      it(message.format(test.value, test.expected ? 'valid' : 'not valid'), function() {
         expect(validator.isValidMatchesRegexp(test.value)).to.equal(test.expected);
       })
     });
