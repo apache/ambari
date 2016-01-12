@@ -56,9 +56,10 @@ def curl_krb_request(tmp_dir, keytab, principal, url, cache_file_prefix,
 
   # Create the kerberos credentials cache (ccache) file and set it in the environment to use
   # when executing curl. Use the md5 hash of the combination of the principal and keytab file
-  # to generate a (relatively) unique cache filename so that we can use it as needed.
+  # to generate a (relatively) unique cache filename so that we can use it as needed. Scope
+  # this file by user in order to prevent sharing of cache files by multiple users.
   ccache_file_name = _md5("{0}|{1}".format(principal, keytab)).hexdigest()
-  ccache_file_path = "{0}{1}{2}_cc_{3}".format(tmp_dir, os.sep, cache_file_prefix, ccache_file_name)
+  ccache_file_path = "{0}{1}{2}_{3}_cc_{4}".format(tmp_dir, os.sep, cache_file_prefix, user, ccache_file_name)
   kerberos_env = {'KRB5CCNAME': ccache_file_path}
 
   # If there are no tickets in the cache or they are expired, perform a kinit, else use what
