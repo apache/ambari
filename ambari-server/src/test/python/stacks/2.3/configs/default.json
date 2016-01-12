@@ -204,6 +204,10 @@
        },
       "ranger-env": {
             "xml_configurations_supported" : "true"
+      },
+      "dbks-site": {
+        "ranger.ks.jpa.jdbc.url": "{{db_jdbc_url}}",
+        "ranger.ks.jpa.jdbc.driver": "{{db_jdbc_driver}}"
       }
     },
     "configuration_attributes": {
