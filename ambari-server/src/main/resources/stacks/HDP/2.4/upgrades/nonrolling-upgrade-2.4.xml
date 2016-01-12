@@ -111,6 +111,7 @@
 
       <service name="SPARK">
         <component>SPARK_JOBHISTORYSERVER</component>
+        <component>SPARK_THRIFTSERVER</component>
       </service>
 
       <service name="HIVE">
@@ -175,7 +176,7 @@
 
       <execute-stage service="RANGER_KMS" component="RANGER_KMS_SERVER" title="Backup Ranger KMS Database">
         <task xsi:type="manual">
-          <message>Before continuing, please backup Ranger KMS database</message>
+          <message>Before continuing, please backup Ranger KMS database on the following host(s): {{hosts.all}}.</message>
         </task>
       </execute-stage>
     </group>
@@ -848,6 +849,11 @@
 
     <service name="SPARK">
       <component name="SPARK_JOBHISTORYSERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
+      <component name="SPARK_THRIFTSERVER">
         <upgrade>
           <task xsi:type="restart-task"/>
         </upgrade>
