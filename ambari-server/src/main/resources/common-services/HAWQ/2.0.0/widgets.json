@@ -1,0 +1,133 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_hawq_dashboard",
+      "display_name": "Standard HAWQ Dashboard",
+      "section_name": "HAWQ_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "HAWQ Segment Hosts CPU",
+          "description": "Percentage of CPU utilized across all HAWQ Segment hosts.",
+          "default_section_name": "HAWQ_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system._sum",
+              "metric_path": "metrics/cpu/cpu_system._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "cpu_user._sum",
+              "metric_path": "metrics/cpu/cpu_user._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "cpu_nice._sum",
+              "metric_path": "metrics/cpu/cpu_nice._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "cpu_idle._sum",
+              "metric_path": "metrics/cpu/cpu_idle._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "cpu_wio._sum",
+              "metric_path": "metrics/cpu/cpu_wio._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization",
+              "value": "${((cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)) * 100}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
+          }
+        },
+        {
+          "widget_name": "HAWQ Segment Hosts Network",
+          "description": "Average of Network IO utilized across all HAWQ Segment hosts.",
+          "default_section_name": "HAWQ_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "bytes_in._avg",
+              "metric_path": "metrics/network/bytes_in._avg",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "bytes_out._avg",
+              "metric_path": "metrics/network/bytes_out._avg",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            }
+          ],
+          "values": [
+            {
+              "name": "Bytes In",
+              "value": "${bytes_in._avg/1048576}"
+            },
+            {
+              "name": "Bytes Out",
+              "value": "${bytes_out._avg/1048576}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MBps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "HAWQ Segment Hosts Disk",
+          "description": "Sum of disk throughput for all HAWQ Segment hosts.",
+          "default_section_name": "HAWQ_SUMMARY",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "read_bps._sum",
+              "metric_path": "metrics/disk/read_bps._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            },
+            {
+              "name": "write_bps._sum",
+              "metric_path": "metrics/disk/write_bps._sum",
+              "service_name": "HAWQ",
+              "component_name": "HAWQSEGMENT"
+            }
+          ],
+          "values": [
+            {
+              "name": "Read throughput",
+              "value": "${read_bps._sum/1048576}"
+            },
+            {
+              "name": "Write throughput",
+              "value": "${write_bps._sum/1048576}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Mbps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

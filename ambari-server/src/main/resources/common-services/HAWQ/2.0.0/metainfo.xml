@@ -31,6 +31,7 @@
           <displayName>HAWQ Master</displayName>
           <category>MASTER</category>
           <cardinality>1</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
             <script>scripts/hawqmaster.py</script>
             <scriptType>PYTHON</scriptType>
@@ -69,6 +70,7 @@
           <displayName>HAWQ Standby Master</displayName>
           <category>MASTER</category>
           <cardinality>0-1</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
               <script>scripts/hawqstandby.py</script>
               <scriptType>PYTHON</scriptType>
@@ -90,6 +92,7 @@
           <displayName>HAWQ Segment</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>HAWQ</timelineAppid>
           <commandScript>
             <script>scripts/hawqsegment.py</script>
             <scriptType>PYTHON</scriptType>
@@ -106,7 +109,7 @@
             </customCommand>
           </customCommands>
         </component>
-      </components> 
+      </components>
       <requiredServices>
           <service>HDFS</service>
       </requiredServices>
