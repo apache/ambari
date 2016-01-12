@@ -527,7 +527,7 @@ public class StageUtilsTest extends EasyMockSupport {
 
 
     final TopologyManager topologyManager = injector.getInstance(TopologyManager.class);
-    topologyManager.getProjectedTopology();
+    topologyManager.getPendingHostComponents();
     expectLastCall().andReturn(projectedTopology).once();
 
     replayAll();
