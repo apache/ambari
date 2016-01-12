@@ -6331,9 +6331,15 @@ public class BlueprintConfigurationProcessorTest {
     confProp.put("fs.stackDefault.key1", "stackDefaultUpgraded");
     confProp.put("fs.notStackDefault", "notStackDefault");
     Map<String, ValueAttributesInfo> valueAttributesInfoMap = new HashMap<String, ValueAttributesInfo>();
-    ValueAttributesInfo vaInfo = new ValueAttributesInfo();
-    vaInfo.setDelete("true");
-    valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo);
+    ValueAttributesInfo vaInfo1 = new ValueAttributesInfo();
+    vaInfo1.setDelete("true");
+    ValueAttributesInfo vaInfo2 = new ValueAttributesInfo();
+    vaInfo2.setMaximum("150");
+    ValueAttributesInfo vaInfo3 = new ValueAttributesInfo();
+    vaInfo3.setMinimum("100");
+    valueAttributesInfoMap.put("fs.stackDefault.key2", vaInfo1);
+    valueAttributesInfoMap.put("fs.notStackDefault", vaInfo2);
+    valueAttributesInfoMap.put("fs.stackDefault.key3", vaInfo3);
     advMap.put("core-site", new AdvisedConfiguration(confProp, valueAttributesInfoMap));
     Map<String, String> dummyConfProp = new HashMap<String, String>();
     dummyConfProp.put("dummy.prop", "dummyValue");
