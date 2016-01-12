@@ -3267,6 +3267,10 @@ public class ClusterImpl implements Cluster {
   public void removeConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
+      // make sure the entity isn't stale in the current unit of work.
+      ClusterEntity clusterEntity = getClusterEntity();
+      clusterDAO.refresh(clusterEntity);
+
       removeAllConfigsForStack(stackId);
       cacheConfigurations();
     } finally {
