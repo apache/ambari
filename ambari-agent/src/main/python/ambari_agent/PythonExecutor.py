@@ -54,13 +54,27 @@ class PythonExecutor(object):
 
 
   def open_subprocess_files(self, tmpoutfile, tmperrfile, override_output_files):
-    if override_output_files: # Recreate files
+    if override_output_files: # Recreate files, existing files are backed up
+      self.back_up_log_file_if_exists(tmpoutfile)
       tmpout =  open(tmpoutfile, 'w')
+      self.back_up_log_file_if_exists(tmperrfile)
       tmperr =  open(tmperrfile, 'w')
     else: # Append to files
       tmpout =  open(tmpoutfile, 'a')
       tmperr =  open(tmperrfile, 'a')
     return tmpout, tmperr
+
+  def back_up_log_file_if_exists(self, file_path):
+    if os.path.isfile(file_path):
+      counter = 0
+      while True:
+        # Find backup name that is not used yet (saves logs
+        # from multiple command retries)
+        backup_name = file_path + "." + str(counter)
+        if not os.path.isfile(backup_name):
+          break
+        counter += 1
+      os.rename(file_path, backup_name)
 
   def run_file(self, script, script_params, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, callback, task_id,
