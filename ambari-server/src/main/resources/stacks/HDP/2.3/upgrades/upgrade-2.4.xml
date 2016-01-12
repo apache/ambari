@@ -486,6 +486,9 @@
       </component>
 
       <component name="RESOURCEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+        </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
         <upgrade>
