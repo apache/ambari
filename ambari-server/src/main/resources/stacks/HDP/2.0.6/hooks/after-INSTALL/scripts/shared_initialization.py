@@ -49,10 +49,10 @@ def setup_config():
   stackversion = params.stack_version_unformatted
 
   is_hadoop_conf_dir_present = False
-  if params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
+  if hasattr(params, "hadoop_conf_dir") and params.hadoop_conf_dir is not None and os.path.exists(params.hadoop_conf_dir):
     is_hadoop_conf_dir_present = True
   else:
-    Logger.warning("Parameter hadoop_conf_dir is missing or directory does not exist.")
+    Logger.warning("Parameter hadoop_conf_dir is missing or directory does not exist. This is expected if this host does not have any Hadoop components.")
   
   if is_hadoop_conf_dir_present and (params.has_namenode or stackversion.find('Gluster') >= 0):
     # create core-site only if the hadoop config diretory exists
