@@ -244,6 +244,10 @@
       <skippable>true</skippable>  <!-- May fix configuration problems manually -->
       <supports-auto-skip-failure>false</supports-auto-skip-failure>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
+        <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+      </execute-stage>
+
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
       </execute-stage>
