@@ -42,6 +42,12 @@ class TestPxf(RMFTestCase):
     self.assertResourceCalled('File', '/etc/pxf/conf/pxf-env.sh',
                 content=Template('pxf-env.j2'))
 
+    self.assertResourceCalled('File', '/etc/pxf/conf/pxf-public.classpath',
+                content = self.getConfig()['configurations']['pxf-public-classpath']['content'].lstrip())
+
+    self.assertResourceCalled('File', '/etc/pxf/conf/pxf-profiles.xml',
+                content = self.getConfig()['configurations']['pxf-profiles']['content'].lstrip())
+
     self.assertResourceCalled('XmlConfig', 'pxf-site.xml',
                               conf_dir='/etc/pxf/conf',
                               configurations=self.getConfig()['configurations']['pxf-site'],
