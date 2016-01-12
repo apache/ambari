@@ -138,11 +138,13 @@ public class UpgradeCatalog221Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateAlerts = UpgradeCatalog221.class.getDeclaredMethod("updateAlerts");
     Method updateOozieConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateOozieConfigs");
+    Method updateRangerKmsDbksConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateRangerKmsDbksConfigs");
 
     UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(updateAlerts)
       .addMockedMethod(updateOozieConfigs)
+      .addMockedMethod(updateRangerKmsDbksConfigs)
       .createMock();
 
     upgradeCatalog221.addNewConfigurationsFromXml();
@@ -150,6 +152,8 @@ public class UpgradeCatalog221Test {
     upgradeCatalog221.updateAlerts();
     expectLastCall().once();
     upgradeCatalog221.updateOozieConfigs();
+    expectLastCall().once();
+    upgradeCatalog221.updateRangerKmsDbksConfigs();
     expectLastCall().once();
 
 
@@ -239,6 +243,46 @@ public class UpgradeCatalog221Test {
     replay(upgradeCatalog221);
     upgradeCatalog221.updateOozieConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateRangerKmsDbksConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Map<String, String> propertiesRangerKmsDbConfigs = new HashMap<String, String>();
+    propertiesRangerKmsDbConfigs.put("DB_FLAVOR", "MYSQL");
+    propertiesRangerKmsDbConfigs.put("db_host", "localhost");
+    propertiesRangerKmsDbConfigs.put("db_name", "testdb");
+
+    final Config mockrangerKmsDbConfigs = easyMockSupport.createNiceMock(Config.class);
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+    expect(mockClusterExpected.getDesiredConfigByType("kms-properties")).andReturn(mockrangerKmsDbConfigs).atLeastOnce();
+    expect(mockrangerKmsDbConfigs.getProperties()).andReturn(propertiesRangerKmsDbConfigs).times(3);
+
+    easyMockSupport.replayAll();
+    mockInjector.getInstance(UpgradeCatalog221.class).updateRangerKmsDbksConfigs();
+    easyMockSupport.verifyAll();
+
   }
 
   @Test
