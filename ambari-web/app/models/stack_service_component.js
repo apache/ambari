@@ -68,7 +68,8 @@ App.StackServiceComponent = DS.Model.extend({
   isRestartable: Em.computed.not('isClient'),
 
   /** @property {Boolean} isReassignable - component supports reassign action **/
-  isReassignable: Em.computed.existsIn('componentName', ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER', 'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR']),
+  isReassignable: Em.computed.existsIn('componentName', ['NAMENODE', 'SECONDARY_NAMENODE', 'JOBTRACKER', 'RESOURCEMANAGER', 'APP_TIMELINE_SERVER', 'OOZIE_SERVER',
+    'WEBHCAT_SERVER', 'HIVE_SERVER', 'HIVE_METASTORE', 'MYSQL_SERVER', 'METRICS_COLLECTOR', 'HISTORYSERVER']),
 
   /** @property {Boolean} isRollinRestartAllowed - component supports rolling restart action **/
   isRollinRestartAllowed: function() {

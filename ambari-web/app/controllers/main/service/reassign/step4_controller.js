@@ -191,6 +191,15 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
           'javax.jdo.option.ConnectionURL': 'jdbc:mysql://<replace-value>/hive?createDatabaseIfNotExist=true'
         }
       }
+    },
+    {
+      componentName: 'HISTORYSERVER',
+      configs: {
+        'mapred-site': {
+          'mapreduce.jobhistory.webapp.address': '<replace-value>:19888',
+          'mapreduce.jobhistory.address': '<replace-value>:10020'
+        }
+      }
     }
   ],
 
@@ -518,6 +527,20 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     });
   },
 
+  serviceToConfigSiteMap: {
+    'NAMENODE': ['hdfs-site', 'core-site'],
+    'SECONDARY_NAMENODE': ['hdfs-site', 'core-site'],
+    'JOBTRACKER': ['mapred-site'],
+    'RESOURCEMANAGER': ['yarn-site'],
+    'WEBHCAT_SERVER': ['webhcat-site'],
+    'APP_TIMELINE_SERVER': ['yarn-site', 'yarn-env'],
+    'OOZIE_SERVER': ['oozie-site', 'core-site', 'oozie-env'],
+    'HIVE_SERVER': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
+    'HIVE_METASTORE': ['hive-site', 'webhcat-site', 'hive-env', 'core-site'],
+    'MYSQL_SERVER': ['hive-site'],
+    'HISTORYSERVER': ['mapred-site']
+  },
+
   /**
    * construct URL parameters for config call
    * @param componentName
@@ -526,50 +549,21 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
    */
   getConfigUrlParams: function (componentName, data) {
     var urlParams = [];
-    switch (componentName) {
-      case 'NAMENODE':
-        urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
-        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
+
+    this.get('serviceToConfigSiteMap')[componentName].forEach(function(site){
+      urlParams.push('(type=' + site + '&tag=' + data.Clusters.desired_configs[site].tag + ')');
+    });
+
+    // specific cases for NameNode component
+    if (componentName === 'NAMENODE') {
         if (App.Service.find().someProperty('serviceName', 'HBASE')) {
           urlParams.push('(type=hbase-site&tag=' + data.Clusters.desired_configs['hbase-site'].tag + ')');
         }
         if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
           urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
         }
-        break;
-      case 'SECONDARY_NAMENODE':
-        urlParams.push('(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')');
-        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
-        break;
-      case 'JOBTRACKER':
-        urlParams.push('(type=mapred-site&tag=' + data.Clusters.desired_configs['mapred-site'].tag + ')');
-        break;
-      case 'RESOURCEMANAGER':
-        urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
-        break;
-      case 'WEBHCAT_SERVER':
-        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
-        break;
-      case 'APP_TIMELINE_SERVER':
-        urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
-        urlParams.push('(type=yarn-env&tag=' + data.Clusters.desired_configs['yarn-env'].tag + ')');
-        break;
-      case 'OOZIE_SERVER':
-        urlParams.push('(type=oozie-site&tag=' + data.Clusters.desired_configs['oozie-site'].tag + ')');
-        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
-        urlParams.push('(type=oozie-env&tag=' + data.Clusters.desired_configs['oozie-env'].tag + ')');
-        break;
-      case 'HIVE_SERVER':
-      case 'HIVE_METASTORE':
-        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
-        urlParams.push('(type=webhcat-site&tag=' + data.Clusters.desired_configs['webhcat-site'].tag + ')');
-        urlParams.push('(type=hive-env&tag=' + data.Clusters.desired_configs['hive-env'].tag + ')');
-        urlParams.push('(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')');
-        break;
-      case 'MYSQL_SERVER':
-        urlParams.push('(type=hive-site&tag=' + data.Clusters.desired_configs['hive-site'].tag + ')');
-        break;
     }
+
     return urlParams;
   },
 
