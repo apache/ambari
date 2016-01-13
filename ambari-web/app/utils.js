@@ -19,6 +19,7 @@
 
 // load needed utils here
 
+require('utils/errors/assertions');
 require('utils/base64');
 require('utils/db');
 require('utils/helper');
