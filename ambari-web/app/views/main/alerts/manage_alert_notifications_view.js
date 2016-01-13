@@ -31,12 +31,24 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.groups').toArray().mapProperty('displayName').join(', ');
   }.property('controller.selectedAlertNotification', 'controller.selectedAlertNotification.groups.@each', 'controller.isLoaded'),
 
+  /**
+   * @type {boolean}
+   */
   isAddButtonDisabled: true,
 
+  /**
+   * @type {boolean}
+   */
   isEditButtonDisabled: true,
 
+  /**
+   * @type {boolean}
+   */
   isRemoveButtonDisabled: true,
 
+  /**
+   * @type {boolean}
+   */
   isDuplicateButtonDisabled: true,
 
   /**
@@ -55,6 +67,9 @@ App.ManageAlertNotificationsView = Em.View.extend({
     return this.get('controller.selectedAlertNotification.properties')['ambari.dispatch.recipients'];
   }.property('controller.selectedAlertNotification.properties'),
 
+  /**
+   * @type {string}
+   */
   severities: function () {
     return this.get('controller.selectedAlertNotification.alertStates').join(', ');
   }.property('controller.selectedAlertNotification.alertStates'),
@@ -96,17 +111,16 @@ App.ManageAlertNotificationsView = Em.View.extend({
       if (notifications && notifications.length) {
         this.set('selectedAlertNotification', this.get('controller.selectedAlertNotification') || notifications[0]);
         this.buttonObserver();
-      }  else {
-        if(!App.isOperator)
-	 {
-	    this.set('isAddButtonDisabled',false);
-	 }
+      } else {
+        if (!App.isOperator) {
+          this.set('isAddButtonDisabled', false);
+        }
         this.set('selectedAlertNotification', null);
       }
       Em.run.later(this, function () {
         App.tooltip(this.$("[rel='button-info']"));
         App.tooltip(this.$("[rel='button-info-dropdown']"), {placement: 'left'});
-      }, 50) ;
+      }, 50);
     }
   }.observes('controller.isLoaded'),
 

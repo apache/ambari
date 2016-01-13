@@ -101,7 +101,7 @@ App.InstallComponent = Em.Mixin.create({
   updateAndCreateServiceComponent: function (componentName) {
     var self = this;
     var dfd = $.Deferred();
-    var updater =  App.router.get('updateController');
+    var updater = App.router.get('updateController');
     updater.updateComponentsState(function () {
       updater.updateServiceMetric(function () {
         self.createServiceComponent(componentName, dfd);
@@ -112,9 +112,9 @@ App.InstallComponent = Em.Mixin.create({
 
   /**
    *
-   * @param componentName
-   * @param dfd
-   * @returns {*}
+   * @param {string} componentName
+   * @param {$.Deferred} dfd
+   * @returns {$.ajax|null}
    */
   createServiceComponent: function (componentName, dfd) {
     var allServiceComponents = [];
@@ -125,6 +125,7 @@ App.InstallComponent = Em.Mixin.create({
     }, this);
     if (allServiceComponents.contains(componentName)) {
       dfd.resolve();
+      return null;
     } else {
       return App.ajax.send({
         name: 'common.create_component',
