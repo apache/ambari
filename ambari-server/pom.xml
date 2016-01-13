@@ -46,6 +46,7 @@
     <commonServicesSrcLocation>target/classes/common-services</commonServicesSrcLocation>
     <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
+    <hadoop.version>2.7.1</hadoop.version>
   </properties>
   <build>
     <plugins>
@@ -1959,6 +1960,11 @@
       <groupId>net.sf.ehcache</groupId>
       <artifactId>ehcache</artifactId>
       <version>2.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-auth</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
   </dependencies>
 
