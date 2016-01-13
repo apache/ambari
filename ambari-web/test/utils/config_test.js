@@ -951,7 +951,7 @@ describe('App.config', function () {
       /** core properties **/
       id: "pName__pFileName",
       name: 'pName',
-      filename: 'pFileName',
+      filename: 'pFileName.xml',
       value: '',
       savedValue: null,
       isFinal: false,

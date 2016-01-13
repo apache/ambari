@@ -245,8 +245,7 @@ App.config = Em.Object.create({
       var properties = siteConfig.properties || {};
 
       for (var index in properties) {
-        var advancedConfig = App.configsCollection.getConfigByName(index, siteConfig.type);
-        var serviceConfigObj = advancedConfig || this.createDefaultConfig(index, serviceName, filename, false);
+        var serviceConfigObj = this.getDefaultConfig(index, serviceName, filename);
         this.restrictSecureProperties(serviceConfigObj);
 
         if (serviceConfigObj.isRequiredByAgent !== false) {
@@ -278,6 +277,26 @@ App.config = Em.Object.create({
   },
 
   /**
+   * Get config from configsCollections or
+   * generate new default config in collection does not contain
+   * such config
+   *
+   * @param name
+   * @param serviceName
+   * @param fileName
+   * @param coreObject
+   * @returns {*|Object}
+   */
+  getDefaultConfig: function(name, serviceName, fileName, coreObject) {
+    var cfg = App.configsCollection.getConfigByName(name, fileName) ||
+      App.config.createDefaultConfig(name, serviceName, fileName, false, coreObject);
+    if (Em.typeOf(coreObject) === 'object') {
+      Em.setProperties(cfg, coreObject);
+    }
+    return cfg;
+  },
+
+  /**
    * This method sets default values for config property
    * These property values has the lowest priority and can be overridden be stack/UI
    * config property but is used when such properties are absent in stack/UI configs
@@ -293,7 +312,7 @@ App.config = Em.Object.create({
       /** core properties **/
       id: this.configId(name, fileName),
       name: name,
-      filename: fileName,
+      filename: this.getOriginalFileName(fileName),
       value: '',
       savedValue: null,
       isFinal: false,
