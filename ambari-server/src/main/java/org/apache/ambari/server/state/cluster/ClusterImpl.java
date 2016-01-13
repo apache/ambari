@@ -270,6 +270,7 @@ public class ClusterImpl implements Cluster {
   private volatile boolean svcHostsLoaded = false;
 
   private volatile Multimap<String, String> serviceConfigTypes;
+  private Map<String, DesiredConfig> cachedDesiredConfigs;
 
   /**
    * Used to publish events relating to cluster CRUD operations.
@@ -1124,7 +1125,15 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public ClusterVersionEntity getCurrentClusterVersion() {
-    return clusterVersionDAO.findByClusterAndStateCurrent(getClusterName());
+    Collection<ClusterVersionEntity> clusterVersionEntities = getClusterEntity().getClusterVersionEntities();
+    for (ClusterVersionEntity clusterVersionEntity : clusterVersionEntities) {
+      if (clusterVersionEntity.getState() == RepositoryVersionState.CURRENT) {
+//      TODO assuming there's only 1 current version, return 1st found, exception was expected in previous implementation
+        return clusterVersionEntity;
+      }
+    }
+    return null;
+//    return clusterVersionDAO.findByClusterAndStateCurrent(getClusterName());
   }
 
   /**
@@ -1670,10 +1679,13 @@ public class ClusterImpl implements Cluster {
       return;
     }
 
+    ClusterEntity clusterEntity = getClusterEntity();
     ClusterVersionEntity clusterVersionEntity = new ClusterVersionEntity(
-      getClusterEntity(), repositoryVersionEntity, state,
+        clusterEntity, repositoryVersionEntity, state,
       System.currentTimeMillis(), System.currentTimeMillis(), userName);
     clusterVersionDAO.create(clusterVersionEntity);
+    clusterEntity.getClusterVersionEntities().add(clusterVersionEntity);
+    clusterDAO.merge(clusterEntity);
   }
 
   /**
@@ -2177,6 +2189,7 @@ public class ClusterImpl implements Cluster {
       if (configs == null) {
         return null;
       }
+      cachedDesiredConfigs = null; //clear desired configs cache
 
       Iterator<Config> configIterator = configs.iterator();
 
@@ -2220,16 +2233,23 @@ public class ClusterImpl implements Cluster {
    */
   @Override
   public Map<String, DesiredConfig> getDesiredConfigs() {
+    //test desired configs caching as this method is called too frequently
+    if (cachedDesiredConfigs != null) {
+      return new HashMap<>(cachedDesiredConfigs);
+    }
+
     Map<String, Set<DesiredConfig>> activeConfigsByType = getDesiredConfigs(false);
 
-    return Maps.transformEntries(
-      activeConfigsByType,
-      new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
-        @Override
-        public DesiredConfig transformEntry(@Nullable String key, @Nullable Set<DesiredConfig> value) {
-          return value.iterator().next();
-        }
-      });
+    cachedDesiredConfigs = Maps.transformEntries(
+        activeConfigsByType,
+        new Maps.EntryTransformer<String, Set<DesiredConfig>, DesiredConfig>() {
+          @Override
+          public DesiredConfig transformEntry(@Nullable String key, @Nullable Set<DesiredConfig> value) {
+            return value.iterator().next();
+          }
+        });
+
+    return new HashMap<>(cachedDesiredConfigs);
   }
 
 
@@ -2408,6 +2428,7 @@ public class ClusterImpl implements Cluster {
 
     clusterGlobalLock.writeLock().lock();
     try {
+      cachedDesiredConfigs = null; //clear desired configs cache
       ServiceConfigVersionResponse serviceConfigVersionResponse = applyServiceConfigVersion(
           serviceName, version, user, note);
       configHelper.invalidateStaleConfigsCache();
@@ -3282,6 +3303,7 @@ public class ClusterImpl implements Cluster {
    * Caches all of the {@link ClusterConfigEntity}s in {@link #allConfigs}.
    */
   private void cacheConfigurations() {
+    cachedDesiredConfigs = null; //clear desired configs cache
     ClusterEntity clusterEntity = getClusterEntity();
     if (clusterEntity != null) {
       if (null == allConfigs) {
