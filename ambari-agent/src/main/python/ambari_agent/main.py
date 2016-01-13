@@ -158,12 +158,6 @@ def perform_prestart_checks(expected_hostname):
 
 
 def daemonize():
-  # Daemonize current instance of Ambari Agent
-  # Currently daemonization is done via /usr/sbin/ambari-agent script (nohup)
-  # and agent only dumps self pid to file
-  if not os.path.exists(ProcessHelper.piddir):
-    os.makedirs(ProcessHelper.piddir, 0755)
-
   pid = str(os.getpid())
   file(ProcessHelper.pidfile, 'w').write(pid)
 
