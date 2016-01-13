@@ -78,7 +78,7 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
       final String newAuxServices;
 
       if (yarnSiteProperties.containsKey(YARN_NODEMANAGER_AUX_SERVICES)) {
-        auxSevices = Arrays.asList(oldAuxServices.split(",", -1));
+        auxSevices = new ArrayList<>(Arrays.asList(oldAuxServices.split(",", -1)));
       } else {
         auxSevices = new ArrayList<>();
       }
