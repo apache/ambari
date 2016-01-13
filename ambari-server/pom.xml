@@ -47,6 +47,7 @@
     <stacksSrcLocation>target/classes/stacks/${stack.distribution}</stacksSrcLocation>
     <tarballResourcesFolder>src/main/resources</tarballResourcesFolder>
     <skipPythonTests>false</skipPythonTests>
+    <hadoop.version>2.7.1</hadoop.version>
   </properties>
   <build>
     <plugins>
@@ -2020,6 +2021,11 @@
           <artifactId>bcprov-jdk15on</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-auth</artifactId>
+      <version>${hadoop.version}</version>
     </dependency>
   </dependencies>
 

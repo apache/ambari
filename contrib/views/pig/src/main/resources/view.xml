@@ -107,6 +107,14 @@
         <required>false</required>
     </parameter>
 
+    <parameter>
+        <name>hdfs.auth_to_local</name>
+        <description>Auth to Local Configuration</description>
+        <label>Auth To Local</label>
+        <required>false</required>
+        <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+    </parameter>
+
     <!-- WebHCat Configs -->
     <parameter>
         <name>webhcat.hostname</name>
@@ -132,6 +140,7 @@
         <label>WebHCat Username</label>
         <required>false</required>
     </parameter>
+
 
     <!-- General Configs -->
     <parameter>
