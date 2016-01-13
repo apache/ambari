@@ -2114,6 +2114,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiRangerKmsSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> rangerAdminPropsMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> hawqSiteMap = new HashMap<String, PropertyUpdater>();
 
 
 
@@ -2131,6 +2132,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
     singleHostTopologyUpdaters.put("kafka-broker", kafkaBrokerMap);
     singleHostTopologyUpdaters.put("admin-properties", rangerAdminPropsMap);
+    singleHostTopologyUpdaters.put("hawq-site", hawqSiteMap);
 
     mPropertyUpdaters.put("hadoop-env", hadoopEnvMap);
     mPropertyUpdaters.put("hbase-env", hbaseEnvMap);
@@ -2328,6 +2330,11 @@ public class BlueprintConfigurationProcessor {
     hbaseEnvMap.put("hbase_regionserver_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_heapsize", new MPropertyUpdater());
     oozieEnvHeapSizeMap.put("oozie_permsize", new MPropertyUpdater());
+
+    // HAWQ
+    hawqSiteMap.put("hawq_master_address_host", new SingleHostTopologyUpdater("HAWQMASTER"));
+    hawqSiteMap.put("hawq_standby_address_host", new SingleHostTopologyUpdater("HAWQSTANDBY"));
+    hawqSiteMap.put("hawq_dfs_url", new SingleHostTopologyUpdater("NAMENODE"));
   }
 
   /**
