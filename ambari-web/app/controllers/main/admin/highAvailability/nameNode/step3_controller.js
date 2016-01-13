@@ -132,6 +132,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   tweakServiceConfigValues: function(configs,nameServiceId) {
     var
       value = "",
+      config2,
       currentNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName,
       newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName,
       journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName'),
@@ -174,9 +175,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     if (App.Service.find().someProperty('serviceName', 'AMBARI_METRICS')) {
       config = configs.filterProperty('filename', 'ams-hbase-site').findProperty('name','hbase.rootdir');
       value = this.get('serverConfigData.items').findProperty('type', 'ams-hbase-site').properties['hbase.rootdir'];
-      value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + nameServiceId : value;
-      config.isVisible = config.value != value ;
-      this.setConfigInitialValue(config,value);
+      if(value.contains("hdfs://" + currentNameNodeHost)){
+        value = value.replace(/\/\/[^\/]*/, '//' + nameServiceId);
+        config.isVisible = true ;
+        this.setConfigInitialValue(config,value);
+      }
     }
     config = configs.findProperty('name','instance.volumes');
     config2 = configs.findProperty('name','instance.volumes.replacements');
