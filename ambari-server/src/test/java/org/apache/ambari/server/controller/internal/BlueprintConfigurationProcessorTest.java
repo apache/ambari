@@ -6324,6 +6324,54 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("host1:100,host2:200", updatedValue);
   }
 
+  @Test
+  public void testHawqConfigClusterUpdate() throws Exception {
+    final String expectedHostNameHawqMaster = "c6401.apache.ambari.org";
+    final String expectedHostNameHawqStandby = "c6402.apache.ambari.org";
+    final String expectedHostNameNamenode = "c6403.apache.ambari.org";
+    final String expectedPortNamenode = "8020";
+
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> hawqSite = new HashMap<String, String>();
+    properties.put("hawq-site", hawqSite);
+
+    // setup properties that include host information
+    hawqSite.put("hawq_master_address_host", "localhost");
+    hawqSite.put("hawq_standby_address_host", "localhost");
+    hawqSite.put("hawq_dfs_url", createHostAddress("localhost", expectedPortNamenode) + "/hawq_default");
+
+    Configuration clusterConfig = new Configuration(properties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    //Host group which has NAMENODE
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton(expectedHostNameNamenode));
+
+    //Host group which has HAWQMASTER
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("HAWQMASTER");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton(expectedHostNameHawqMaster));
+
+    //Host group which has HAWQSTANDBY
+    Collection<String> hgComponents3 = new HashSet<String>();
+    hgComponents3.add("HAWQSTANDBY");
+    TestHostGroup group3 = new TestHostGroup("group3", hgComponents3, Collections.singleton(expectedHostNameHawqStandby));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+    hostGroups.add(group3);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+
+    updater.doUpdateForClusterCreate();
+
+    assertEquals(expectedHostNameHawqMaster, hawqSite.get("hawq_master_address_host"));
+    assertEquals(expectedHostNameHawqStandby, hawqSite.get("hawq_standby_address_host"));
+    assertEquals(createHostAddress(expectedHostNameNamenode, expectedPortNamenode) + "/hawq_default", hawqSite.get("hawq_dfs_url"));
+  }
+
 
   private Map<String, AdvisedConfiguration> createAdvisedConfigMap() {
     Map<String, AdvisedConfiguration> advMap = new HashMap<String, AdvisedConfiguration>();
