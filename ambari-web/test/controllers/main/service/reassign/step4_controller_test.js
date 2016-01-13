@@ -620,6 +620,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
         result: [
           '(type=hive-site&tag=10)'
         ]
+      },
+      {
+        componentName: 'HISTORYSERVER',
+        result: [
+          '(type=mapred-site&tag=4)'
+        ]
       }
     ];
 
