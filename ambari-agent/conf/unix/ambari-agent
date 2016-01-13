@@ -41,7 +41,8 @@ export PYTHONPATH=/usr/lib/python2.6/site-packages:$PYTHONPATH
 
 AMBARI_AGENT=ambari-agent
 PYTHON_WRAP=/var/lib/ambari-agent/ambari-python-wrap
-PIDFILE=/var/run/ambari-agent/$AMBARI_AGENT.pid
+PIDDIR=/var/run/ambari-agent
+PIDFILE=$PIDDIR/$AMBARI_AGENT.pid
 OUTFILE=/var/log/ambari-agent/ambari-agent.out
 LOGFILE=/var/log/ambari-agent/ambari-agent.log
 AGENT_SCRIPT=/usr/lib/python2.6/site-packages/ambari_agent/main.py
@@ -72,7 +73,8 @@ change_files_permissions() {
     if [ ! -z "$keysdir" ]; then
         ambari-sudo.sh chown -R $current_user "$keysdir"
     fi
-	ambari-sudo.sh chown -R $current_user "/var/run/ambari-agent/"
+	ambari-sudo.sh mkdir -p "$PIDDIR"
+	ambari-sudo.sh chown -R $current_user "$PIDDIR"
 	ambari-sudo.sh chown -R $current_user "/var/log/ambari-agent/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/data/"
 	ambari-sudo.sh chown -R $current_user "/var/lib/ambari-agent/cache/"
