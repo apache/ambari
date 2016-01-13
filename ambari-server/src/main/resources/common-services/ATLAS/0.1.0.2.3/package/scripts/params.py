@@ -31,6 +31,12 @@ config = Script.get_config()
 # security enabled
 security_enabled = status_params.security_enabled
 
+if security_enabled:
+  _hostname_lowercase = config['hostname'].lower()
+  _atlas_principal_name = config['configurations']['application-properties']['atlas.authentication.principal']
+  atlas_jaas_principal = _atlas_principal_name.replace('_HOST',_hostname_lowercase)
+  atlas_keytab_path = config['configurations']['application-properties']['atlas.authentication.keytab']
+
 stack_name = default("/hostLevelParams/stack_name", None)
 
 # New Cluster Stack Version that is defined during the RESTART of a Stack Upgrade
@@ -53,6 +59,9 @@ conf_dir = status_params.conf_dir # "/etc/metadata/conf"
 
 # service locations
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf") if 'HADOOP_HOME' in os.environ else '/etc/hadoop/conf'
+
+# some commands may need to supply the JAAS location when running as atlas
+atlas_jaas_file = format("{conf_dir}/atlas_jaas.conf")
 
 # user and status
 metadata_user = status_params.metadata_user

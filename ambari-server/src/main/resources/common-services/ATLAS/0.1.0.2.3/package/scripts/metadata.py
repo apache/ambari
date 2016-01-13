@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import Directory, Fail, Logger, File, \
     InlineTemplate, PropertiesFile, StaticFile
 from resource_management.libraries.functions import format
+from resource_management.libraries.resources.template_config import TemplateConfig
 
 
 def metadata():
@@ -89,3 +90,7 @@ def metadata():
          group=params.user_group,
          content=StaticFile('atlas-log4j.xml')
     )
+
+    if params.security_enabled:
+        TemplateConfig(format(params.atlas_jaas_file),
+                         owner=params.metadata_user)

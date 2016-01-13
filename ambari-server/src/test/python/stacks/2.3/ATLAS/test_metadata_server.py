@@ -108,6 +108,21 @@ class TestMetadataServer(RMFTestCase):
     self.configureResourcesCalled()
     self.assertNoMoreResources()
 
+  def test_configure_secure(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
+                       classname = "MetadataServer",
+                       command = "configure",
+                       config_file="secure.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       )
+
+    self.configureResourcesCalled()
+    self.assertResourceCalled('TemplateConfig', '/etc/atlas/conf/atlas_jaas.conf',
+                              owner = 'atlas',
+                              )
+    self.assertNoMoreResources()
+
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
