@@ -48,9 +48,13 @@ import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.directory.api.util.Strings;
+import org.apache.hadoop.security.authentication.util.KerberosName;
+import org.apache.hadoop.security.authentication.util.KerberosUtil;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.ParseErrorException;
+import sun.security.krb5.KrbException;
 
 import java.io.StringWriter;
 import java.io.Writer;
@@ -70,6 +74,10 @@ public class ViewContextImpl implements ViewContext, ViewController {
    * Logger.
    */
   private static final Log LOG = LogFactory.getLog(ViewContextImpl.class);
+
+  public static final String HADOOP_SECURITY_AUTH_TO_LOCAL = "hadoop.security.auth_to_local";
+  public static final String CORE_SITE = "core-site";
+  public static final String HDFS_AUTH_TO_LOCAL = "hdfs.auth_to_local";
 
   /**
    * The associated view definition.
@@ -218,6 +226,36 @@ public class ViewContextImpl implements ViewContext, ViewController {
 
   @Override
   public String getUsername() {
+    String shortName = getLoggedinUser();
+    try {
+      String authToLocalRules = getAuthToLocalRules();
+      //Getting ambari server realm. Ideally this should come from user
+      String defaultRealm = KerberosUtil.getDefaultRealm();
+      if(Strings.isNotEmpty(authToLocalRules) && Strings.isNotEmpty(defaultRealm)){
+        synchronized (KerberosName.class){
+          KerberosName.setRules(authToLocalRules);
+          shortName = new KerberosName(shortName+"@"+defaultRealm).getShortName();
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to get username",e);
+    }
+    return shortName;
+  }
+
+  private String getAuthToLocalRules(){
+    Cluster cluster = getCluster();
+    String authToLocalRules = null;
+    if (cluster != null) {
+      authToLocalRules = cluster.getConfigurationValue(CORE_SITE, HADOOP_SECURITY_AUTH_TO_LOCAL);
+    }else if(viewInstanceEntity != null) {
+      authToLocalRules = viewInstanceEntity.getPropertyMap().get(HDFS_AUTH_TO_LOCAL);
+    }
+    return authToLocalRules;
+  }
+
+  @Override
+  public String getLoggedinUser(){
     return viewInstanceEntity != null ? viewInstanceEntity.getUsername() : null;
   }
 
@@ -465,6 +503,13 @@ public class ViewContextImpl implements ViewContext, ViewController {
             return viewContext.getInstanceName();
           }
         });
+    context.put("loggedinUser",
+            new ParameterResolver() {
+              @Override
+              protected String getValue() {
+                return viewContext.getLoggedinUser();
+              }
+            });
     return context;
   }
 

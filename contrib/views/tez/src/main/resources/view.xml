@@ -35,6 +35,13 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
     <placeholder>yarn.resourcemanager.hostname:8088</placeholder>
     <cluster-config>yarn-site/yarn.resourcemanager.webapp.address</cluster-config>
   </parameter>
+  <parameter>
+    <name>hdfs.auth_to_local</name>
+    <description>Auth to Local Configuration</description>
+    <label>Auth To Local</label>
+    <required>false</required>
+    <cluster-config>core-site/hadoop.security.auth_to_local</cluster-config>
+  </parameter>
 
   <!-- The status resource exists to show the subset of properties that any user is allowed to see, not just an admin user. -->
   <resource>

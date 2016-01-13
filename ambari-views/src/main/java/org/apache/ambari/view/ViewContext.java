@@ -36,11 +36,18 @@ public interface ViewContext {
   public static final String CONTEXT_ATTRIBUTE = "ambari-view-context";
 
   /**
-   * Get the current user name.
+   * Get the current user name after auth_to_local conversion
    *
    * @return the current user name
    */
   public String getUsername();
+
+  /**
+   * Get the current ambari user.
+   *
+   * @return the current user name
+   */
+  public String getLoggedinUser();
 
   /**
    * Determine whether or not the access specified by the given permission name
