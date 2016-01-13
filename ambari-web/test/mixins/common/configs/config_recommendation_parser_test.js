@@ -275,7 +275,7 @@ describe('App.ConfigRecommendationParser', function() {
     });
     
     it('adds new config', function() {
-      expect(instanceObject._createNewProperty('name', 'serviceName', 'fileName', 'recommendedValue', null)).to.eql(App.ServiceConfigProperty.create({
+      expect(instanceObject._createNewProperty('name', 'fileName', 'serviceName', 'recommendedValue', null)).to.eql(App.ServiceConfigProperty.create({
         'value': 'recommendedValue',
         'recommendedValue': 'recommendedValue',
         'initialValue': 'initialValue',
