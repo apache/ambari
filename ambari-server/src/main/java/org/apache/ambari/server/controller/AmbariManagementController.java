@@ -675,7 +675,9 @@ public interface AmbariManagementController {
 
   /**
    * Get JobTracker hostname
+   * HDP-1.x is not supported anymore
    */
+  @Deprecated
   public String getJobTrackerHost(Cluster cluster);
 
   /**

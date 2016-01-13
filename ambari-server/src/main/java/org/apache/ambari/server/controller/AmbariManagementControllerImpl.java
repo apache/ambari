@@ -1915,15 +1915,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     Host host = clusters.getHost(scHost.getHostName());
 
-    String jobtrackerHost = getJobTrackerHost(cluster);
-    if (!scHost.getHostName().equals(jobtrackerHost)) {
-      if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-        configHelper.applyCustomConfig(
-          configurations, Configuration.GLOBAL_CONFIG_TAG,
-          Configuration.RCA_ENABLED_PROPERTY, "false", false);
-      }
-    }
-
     execCmd.setConfigurations(configurations);
     execCmd.setConfigurationAttributes(configurationAttributes);
     execCmd.setConfigurationTags(configTags);
@@ -2221,8 +2212,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<ServiceComponentHost>();
       Set<String> hostsToForceKerberosOperations = new HashSet<String>();
 
-      //HACK
-      String jobtrackerHost = getJobTrackerHost(cluster);
       for (String compName : changedScHosts.keySet()) {
         for (State newState : changedScHosts.get(compName).keySet()) {
           for (ServiceComponentHost scHost :
@@ -2441,15 +2430,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             Map<String, Map<String, String>> configTags =
                 findConfigurationTagsWithOverrides(cluster, host.getHostName());
 
-            // HACK - Set configs on the ExecCmd
-            if (!scHost.getHostName().equals(jobtrackerHost)) {
-              if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-                configHelper.applyCustomConfig(
-                    configurations, Configuration.GLOBAL_CONFIG_TAG,
-                    Configuration.RCA_ENABLED_PROPERTY, "false", false);
-              }
-            }
-
             createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
                              roleCommand, requestParameters, event);
           }
@@ -2643,6 +2623,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     return response;  }
 
+  @Transactional
   void updateServiceStates(
       Cluster cluster,
       Map<State, List<Service>> changedServices,
@@ -2650,51 +2631,44 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       Map<String, Map<State, List<ServiceComponentHost>>> changedScHosts,
       Collection<ServiceComponentHost> ignoredScHosts
   ) {
-    Lock clusterWriteLock = cluster.getClusterGlobalLock().writeLock();
-
-    clusterWriteLock.lock();
-    try {
-      if (changedServices != null) {
-        for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
-          State newState = entry.getKey();
-          for (Service s : entry.getValue()) {
-            if (s.isClientOnlyService()
-                && newState == State.STARTED) {
-              continue;
-            }
-            s.setDesiredState(newState);
+    if (changedServices != null) {
+      for (Entry<State, List<Service>> entry : changedServices.entrySet()) {
+        State newState = entry.getKey();
+        for (Service s : entry.getValue()) {
+          if (s.isClientOnlyService()
+              && newState == State.STARTED) {
+            continue;
           }
+          s.setDesiredState(newState);
         }
       }
+    }
 
-      if (changedComps != null) {
-        for (Entry<State, List<ServiceComponent>> entry :
-            changedComps.entrySet()) {
-          State newState = entry.getKey();
-          for (ServiceComponent sc : entry.getValue()) {
-            sc.setDesiredState(newState);
-          }
+    if (changedComps != null) {
+      for (Entry<State, List<ServiceComponent>> entry :
+          changedComps.entrySet()) {
+        State newState = entry.getKey();
+        for (ServiceComponent sc : entry.getValue()) {
+          sc.setDesiredState(newState);
         }
       }
+    }
 
-      for (Map<State, List<ServiceComponentHost>> stateScHostMap :
-          changedScHosts.values()) {
-        for (Entry<State, List<ServiceComponentHost>> entry :
-            stateScHostMap.entrySet()) {
-          State newState = entry.getKey();
-          for (ServiceComponentHost sch : entry.getValue()) {
-            sch.setDesiredState(newState);
-          }
+    for (Map<State, List<ServiceComponentHost>> stateScHostMap :
+        changedScHosts.values()) {
+      for (Entry<State, List<ServiceComponentHost>> entry :
+          stateScHostMap.entrySet()) {
+        State newState = entry.getKey();
+        for (ServiceComponentHost sch : entry.getValue()) {
+          sch.setDesiredState(newState);
         }
       }
+    }
 
-      if (ignoredScHosts != null) {
-        for (ServiceComponentHost scHost : ignoredScHosts) {
-          scHost.setDesiredState(scHost.getState());
-        }
+    if (ignoredScHosts != null) {
+      for (ServiceComponentHost scHost : ignoredScHosts) {
+        scHost.setDesiredState(scHost.getState());
       }
-    } finally {
-      clusterWriteLock.unlock();
     }
   }
 
@@ -2730,7 +2704,13 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         changedHosts, requestParameters, requestProperties,
         runSmokeTest, reconfigureClients);
 
-    updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
+    Lock clusterWriteLock = cluster.getClusterGlobalLock().writeLock();
+    clusterWriteLock.lock();
+    try {
+      updateServiceStates(cluster, changedServices, changedComponents, changedHosts, ignoredHosts);
+    } finally {
+      clusterWriteLock.unlock();
+    }
     return requestStages;
   }
 
