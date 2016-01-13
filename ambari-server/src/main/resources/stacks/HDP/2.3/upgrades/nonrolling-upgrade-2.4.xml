@@ -280,6 +280,10 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
       </execute-stage>
 
+      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
+        <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
+      </execute-stage>
+
       <!-- KAFKA  -->
       <!--TODO: remove? Used for non-rolling upgrade only-->
       <execute-stage service="KAFKA" component="KAFKA_BROKER" title="Apply config changes for Kafka">

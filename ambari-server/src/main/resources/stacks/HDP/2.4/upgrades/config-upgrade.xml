@@ -30,6 +30,17 @@
         </changes>
       </component>
     </service>
+    
+    <service name="OOZIE">
+      <component name="OOZIE_SERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" summary="Updating Oozie Service classes">
+            <type>oozie-site</type>
+            <replace key="oozie.services" find="org.apache.oozie.service.CoordinatorStoreService," replace-with="" />
+          </definition>
+        </changes>
+      </component>
+    </service>
 
     <service name="HIVE">
       <component name="HIVE_SERVER">
