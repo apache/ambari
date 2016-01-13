@@ -277,8 +277,10 @@ App.NnHaConfigInitializer = App.HaConfigInitializerClass.create(App.HostsBasedIn
     if (localDB.installedServices.contains('AMBARI_METRICS')) {
       var value = dependencies.serverConfigs.findProperty('type', 'ams-hbase-site').properties['hbase.rootdir'];
       var currentNameNodeHost = localDB.masterComponentHosts.filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
-      value = (value == "hdfs://" + currentNameNodeHost) ? "hdfs://" + dependencies.namespaceId : value;
-      configProperty.isVisible = configProperty.value != value;
+      if(value.contains("hdfs://" + currentNameNodeHost)){
+        value = value.replace(/\/\/[^\/]*/, '//' + dependencies.namespaceId);
+        configProperty.isVisible = true;
+      }
       Em.setProperties(configProperty, {
         value: value,
         recommendedValue: value
