@@ -213,9 +213,7 @@ def start_master():
   __check_dfs_truncate_enforced()
 
   is_active_master = __is_active_master()
-  # Exchange ssh keys from active hawq master before starting.
-  if is_active_master:
-    __setup_passwordless_ssh()
+  __setup_passwordless_ssh()
 
   if __is_local_initialized():
     __start_local_master()
