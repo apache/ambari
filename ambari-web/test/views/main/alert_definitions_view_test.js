@@ -31,7 +31,7 @@ describe('App.MainAlertDefinitionsView', function () {
   beforeEach(function () {
     view = getView();
     sinon.stub(App.db, 'setFilterConditions', Em.K);
-    sinon.stub(App.db, 'getFilterConditions', Em.K);
+    sinon.stub(App.db, 'getFilterConditions').returns([]);
     sinon.stub(App.db, 'getDisplayLength', Em.K);
     sinon.stub(App.db, 'setStartIndex', Em.K);
     sinon.stub(view, 'initFilters', Em.K);

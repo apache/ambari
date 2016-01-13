@@ -300,6 +300,7 @@ Em.I18n.translations = {
   'common.timeout.warning.popup.secondary': 'Log Out Now',
   'common.openNewWindow': 'Open in New Window',
   'common.fullLogPopup.clickToCopy': 'Click to Copy',
+  'common.nothingToDelete': 'Nothing to delete',
 
   'models.alert_instance.tiggered.verbose': "Occurred on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occurred on {0}",

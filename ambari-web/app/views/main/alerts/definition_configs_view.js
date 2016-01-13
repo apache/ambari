@@ -32,6 +32,11 @@ App.AlertDefinitionConfigsView = Em.View.extend({
   canEdit: true,
 
   /**
+   * @type {string}
+   */
+  alertDefinitionType: '',
+
+  /**
    * List of classes applied to all inputs
    * @type {String}
    */

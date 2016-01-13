@@ -45,25 +45,30 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
   willInsertElement: function () {
     this._super();
     this.get('controller').clearStep();
-    var self = this,
-      updater = App.router.get('updateController');
-    if (self.get('controller.content.isLoaded')) {
-      self.set('isLoaded', true);
-      self.get('controller').loadAlertInstances();
+
+    if (this.get('controller.content.isLoaded')) {
+      this.set('isLoaded', true);
+      this.get('controller').loadAlertInstances();
+    } else {
+      this.loadDefinitionDetails();
     }
-    else {
-      updater.updateAlertGroups(function () {
-        updater.updateAlertDefinitions(function () {
-          updater.updateAlertDefinitionSummary(function () {
-            self.set('isLoaded', true);
-            // App.AlertDefinition doesn't represents real models
-            // Real model (see AlertDefinition types) should be used
-            self.set('controller.content', App.AlertDefinition.find().findProperty('id', parseInt(self.get('controller.content.id'))));
-            self.get('controller').loadAlertInstances();
-          });
+  },
+
+  loadDefinitionDetails: function() {
+    var self = this,
+        updater = App.router.get('updateController');
+
+    updater.updateAlertGroups(function () {
+      updater.updateAlertDefinitions(function () {
+        updater.updateAlertDefinitionSummary(function () {
+          self.set('isLoaded', true);
+          // App.AlertDefinition doesn't represents real models
+          // Real model (see AlertDefinition types) should be used
+          self.set('controller.content', App.AlertDefinition.find(parseInt(self.get('controller.content.id'))));
+          self.get('controller').loadAlertInstances();
         });
       });
-    }
+    });
   },
 
   didInsertElement: function () {

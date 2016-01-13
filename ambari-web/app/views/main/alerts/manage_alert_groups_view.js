@@ -120,14 +120,11 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
   addDefinitionTooltip: function () {
     if (this.get('controller.selectedAlertGroup.default')) {
       return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionToDefault');
+    } else if (this.get('controller.selectedAlertGroup.isAddDefinitionsDisabled')) {
+      return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionDisabled');
+    } else {
+      return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinition');
     }
-    else
-      if (this.get('controller.selectedAlertGroup.isAddDefinitionsDisabled')) {
-        return Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinitionDisabled');
-      }
-      else {
-        return  Em.I18n.t('alerts.actions.manage_alert_groups_popup.addDefinition');
-      }
   }.property('controller.selectedAlertGroup.default', 'controller.selectedAlertGroup.isAddDefinitionsDisabled'),
 
   /**
@@ -137,13 +134,11 @@ App.MainAlertsManageAlertGroupView = Em.View.extend({
   removeDefinitionTooltip: function () {
     if (this.get('controller.selectedAlertGroup.default')) {
       return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinitionDisabled');
+    } else if (this.get('controller.isDeleteDefinitionsDisabled')) {
+      return Em.I18n.t('common.nothingToDelete');
+    } else {
+      return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
     }
-    else
-      if (this.get('controller.isDeleteDefinitionsDisabled')) {
-        return 'Nothing to delete';
-      } else {
-        return Em.I18n.t('alerts.actions.manage_alert_groups_popup.removeDefinition');
-      }
   }.property('controller.selectedAlertGroup.default', 'controller.isDeleteDefinitionsDisabled')
 
 });
