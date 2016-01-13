@@ -17,35 +17,38 @@
  */
 package org.apache.ambari.server.state.repository;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
 /**
- * Represents a service definition in the manifest.  The service manifest is a list
- * of all services available in a repository.
+ * A representation of a {@link ManifestService} that is available for upgrading.  This
+ * object will be serialized directly in API responses.
  */
-public class ManifestService {
+public class AvailableService {
+
+  @JsonProperty("name")
+  private String name;
+
+  @JsonProperty("display_name")
+  @JsonSerialize(include=Inclusion.NON_NULL)
+  private String displayName;
+
+  private List<AvailableVersion> versions = new ArrayList<>();
+
+  AvailableService(String service, String serviceDisplay) {
+    name = service;
+    displayName = serviceDisplay;
+  }
 
   /**
-   * The XML unique id for the service and version.
+   * @return the list of versions to append additional versions.
    */
-  @XmlAttribute(name="id")
-  public String serviceId;
+  public List<AvailableVersion> getVersions() {
+    return versions;
+  }
 
-  /**
-   * Name of the service.
-   */
-  @XmlAttribute(name="name")
-  public String serviceName;
-
-  /**
-   * Version of the service.  This is the publicly available version.
-   */
-  @XmlAttribute(name="version")
-  public String version;
-
-  /**
-   * Version id of the service.  This may be a build number.
-   */
-  @XmlAttribute(name="version-id")
-  public String versionId;
 }

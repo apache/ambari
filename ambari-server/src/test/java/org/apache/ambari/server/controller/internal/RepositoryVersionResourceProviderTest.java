@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -52,6 +54,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
@@ -155,12 +158,18 @@ public class RepositoryVersionResourceProviderTest {
         map.put("pack2", pack2);
         return map;
       }
+
+      @Override
+      public ServiceInfo getService(String name) {
+        return new ServiceInfo();
+      }
+
     };
     stackInfo.setName("HDP");
     stackInfo.setVersion("1.1");
     stacks.add(stackInfo);
-    Mockito.when(ambariMetaInfo.getStack(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<StackInfo>() {
 
+    Mockito.when(ambariMetaInfo.getStack(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<StackInfo>() {
       @Override
       public StackInfo answer(InvocationOnMock invocation) throws Throwable {
         final String stack = invocation.getArguments()[0].toString();
@@ -173,6 +182,7 @@ public class RepositoryVersionResourceProviderTest {
       }
 
     });
+
     Mockito.when(ambariMetaInfo.getStacks()).thenReturn(stacks);
     Mockito.when(ambariMetaInfo.getUpgradePacks(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<Map<String, UpgradePack>>() {
 
@@ -265,6 +275,61 @@ public class RepositoryVersionResourceProviderTest {
 
     Assert.assertEquals(1, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
   }
+
+  @Test
+  public void testCreateResourcesWithUrl() throws Exception {
+    Authentication authentication = TestAuthenticationFactory.createAdministrator();
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    File file = new File("src/test/resources/version_definition_resource_provider.xml");
+
+    final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
+
+    final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
+    final Map<String, Object> properties = new LinkedHashMap<String, Object>();
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
+    properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DEFINITION_URL, file.toURI().toURL().toString());
+    propertySet.add(properties);
+
+    final Predicate predicateStackName = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).equals("HDP").toPredicate();
+    final Predicate predicateStackVersion = new PredicateBuilder().property(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).equals("1.1").toPredicate();
+    Request getRequest = PropertyHelper.getReadRequest(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID);
+    Assert.assertEquals(0, provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion)).size());
+
+    final Request createRequest = PropertyHelper.getCreateRequest(propertySet, null);
+    provider.createResources(createRequest);
+
+    Set<Resource> results = provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+    Assert.assertEquals(1, results.size());
+
+    getRequest = PropertyHelper.getReadRequest(
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID,
+        RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID,
+        "RepositoryVersions/release",
+        "RepositoryVersions/services",
+        RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID,
+        RepositoryVersionResourceProvider.SUBRESOURCE_REPOSITORIES_PROPERTY_ID);
+
+    results = provider.getResources(getRequest, new AndPredicate(predicateStackName, predicateStackVersion));
+    Assert.assertEquals(1, results.size());
+
+    Resource r = results.iterator().next();
+    Map<String, Map<String, Object>> map = r.getPropertiesMap();
+    Assert.assertTrue(map.containsKey("RepositoryVersions"));
+
+    Map<String, Object> vals = map.get("RepositoryVersions");
+    Assert.assertEquals("1.1.7.1-1234", vals.get("repository_version"));
+
+    Assert.assertTrue(map.containsKey("RepositoryVersions/release"));
+    vals = map.get("RepositoryVersions/release");
+    Assert.assertEquals("1234", vals.get("build"));
+    Assert.assertEquals("2.3.4.[1-9]", vals.get("compatible_with"));
+    Assert.assertEquals("http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/", vals.get("notes"));
+  }
+
 
   @Test
   public void testGetResourcesAsAdministrator() throws Exception {

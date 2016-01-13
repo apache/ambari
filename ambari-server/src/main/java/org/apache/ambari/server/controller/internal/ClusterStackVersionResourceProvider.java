@@ -415,9 +415,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
       // determine services for the repo
       Set<String> serviceNames = new HashSet<>();
-      for (RepositoryVersionEntity.Component component : repoVersionEnt.getComponents()) {
-        serviceNames.add(component.getService());
-      }
+//      for (RepositoryVersionEntity.Component component : repoVersionEnt.getComponents()) {
+//        serviceNames.add(component.getService());
+//      }
 
       // Populate with commands for host
       for (int i = 0; i < maxTasks && hostIterator.hasNext(); i++) {

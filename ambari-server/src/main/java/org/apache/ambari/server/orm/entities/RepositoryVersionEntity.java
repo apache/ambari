@@ -17,20 +17,17 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
 import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -102,9 +99,6 @@ public class RepositoryVersionEntity {
   @Column(name = "repositories")
   private String operatingSystems;
 
-  @Column(name = "repo_type", nullable = false, insertable = true, updatable = true)
-  @Enumerated(value = EnumType.STRING)
-  private RepositoryType type = RepositoryType.STANDARD;
 
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<ClusterVersionEntity> clusterVersionEntities;
@@ -112,9 +106,20 @@ public class RepositoryVersionEntity {
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Set<HostVersionEntity> hostVersionEntities;
 
-  @ElementCollection(targetClass = Component.class)
-  @CollectionTable(name = "repo_version_component", joinColumns = @JoinColumn(name = "repo_version_id"))
-  private List<Component> components = new ArrayList<>();
+  @Column(name = "repo_type", nullable = false, insertable = true, updatable = true)
+  @Enumerated(value = EnumType.STRING)
+  private RepositoryType type = RepositoryType.STANDARD;
+
+  @Basic(fetch=FetchType.LAZY)
+  @Lob
+  @Column(name="version_xml", insertable = true, updatable = true)
+  private String versionXml;
+
+  @Column(name="version_url", nullable=true, insertable=true, updatable=true)
+  private String versionUrl;
+
+  @Column(name="version_xsd", insertable = true, updatable = true)
+  private String versionXsd;
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
@@ -267,11 +272,54 @@ public class RepositoryVersionEntity {
     if (displayName != null ? !displayName.equals(that.displayName) : that.displayName != null) {
       return false;
     }
+
     if (operatingSystems != null ? !operatingSystems.equals(that.operatingSystems) : that.operatingSystems != null) {
       return false;
     }
 
     return true;
+  }
+
+  /**
+   * @return the XML that is the basis for the version
+   */
+  public String getVersionXml() {
+    return versionXml;
+  }
+
+  /**
+   * @param xml the XML that is the basis for the version
+   */
+  public void setVersionXml(String xml) {
+    versionXml = xml;
+  }
+
+  /**
+   * @return The url used for the version.  Optional in case the XML was loaded via blob.
+   */
+  public String getVersionUrl() {
+    return versionUrl;
+  }
+
+  /**
+   * @param url the url used to load the XML.
+   */
+  public void setVersionUrl(String url) {
+    versionUrl = url;
+  }
+
+  /**
+   * @return the XSD name extracted from the XML.
+   */
+  public String getVersionXsd() {
+    return versionXml;
+  }
+
+  /**
+   * @param xsdLocation the XSD name extracted from XML.
+   */
+  public void setVersionXsd(String xsdLocation) {
+    versionXsd = xsdLocation;
   }
 
   @Override
@@ -309,48 +357,6 @@ public class RepositoryVersionEntity {
       return true;
     }
     return false;
-  }
-
-
-  /**
-   * Used to identify the components associated with a repository.
-   */
-  @Embeddable
-  public static class Component {
-    private String service;
-    private String component;
-    private int component_order;
-
-    public Component() {
-    }
-
-    public Component(String serviceName, String componentName, int order) {
-      service = serviceName;
-      component = componentName;
-      component_order = order;
-    }
-
-    public String getService() {
-      return service;
-    }
-
-    public String getComponent() {
-      return component;
-    }
-
-  }
-
-
-  /**
-   * @param components
-   */
-  public void setComponents(List<Component> components) {
-    // TODO Auto-generated method stub
-    this.components = components;
-  }
-
-  public List<Component> getComponents() {
-    return components;
   }
 
 }

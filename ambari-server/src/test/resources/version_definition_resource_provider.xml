@@ -21,8 +21,8 @@
   
   <release>
     <type>PATCH</type>
-    <stack-id>HDP-2.3</stack-id>
-    <version>2.3.4.1</version>
+    <stack-id>HDP-1.1</stack-id>
+    <version>1.1.7.1</version>
     <build>1234</build>
     <compatible-with>2.3.4.[1-9]</compatible-with>
     <release-notes>http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/</release-notes>
@@ -32,12 +32,10 @@
     <service id="HDFS-271" name="HDFS" version="2.7.1" version-id="10" />
     <service id="HIVE-110" name="HIVE" version="1.1.0" />
     <service id="HIVE-200" name="HIVE" version="2.0.0" />
-    <service id="HBASE-899" name="HBASE" version="8.9.9" />
   </manifest>
   
   <available-services>
     <service idref="HDFS-271" />
-    <service idref="HIVE-200" />
     <service idref="HIVE-110">
       <component>HIVE_METASTORE</component>
     </service>

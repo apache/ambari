@@ -110,8 +110,8 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   /**
    * validity flag
    */
-  protected boolean valid = true;  
-  
+  protected boolean valid = true;
+
   /**
    * Logger
    */
@@ -342,7 +342,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         setValid(false);
         stackInfo.setValid(false);
         setErrors(baseService.getErrors());
-        stackInfo.setErrors(baseService.getErrors());        
+        stackInfo.setErrors(baseService.getErrors());
       }
     }
   }
@@ -439,7 +439,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         setValid(false);
         setErrors(stackInfo.getErrors());
       }
-      
+
       //todo: shouldn't blindly catch Exception, re-evaluate this.
     } catch (Exception e) {
       String error = "Exception caught while populating services for stack: " +
@@ -475,7 +475,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setValid(metaInfoXml.isValid());
       setValid(metaInfoXml.isValid());
       stackInfo.setErrors(metaInfoXml.getErrors());
-      setErrors(metaInfoXml.getErrors());      
+      setErrors(metaInfoXml.getErrors());
       return;
     }
     List<ServiceInfo> serviceInfos = metaInfoXml.getServices();
@@ -487,7 +487,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         stackInfo.setValid(false);
         setValid(false);
         stackInfo.setErrors(serviceModule.getErrors());
-        setErrors(serviceModule.getErrors());        
+        setErrors(serviceModule.getErrors());
       }
     }
     addServices(serviceModules);
@@ -648,6 +648,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @throws AmbariException if unable to fully process the stack repositories
    */
   private void processRepositories() throws AmbariException {
+
     RepositoryXml rxml = stackDirectory.getRepoFile();
     if (rxml == null) {
       return;
@@ -658,15 +659,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
         ", stackVersion=" + stackInfo.getVersion() +
         ", repoFolder=" + stackDirectory.getRepoDir());
 
-    List<RepositoryInfo> repos = new ArrayList<RepositoryInfo>();
+    List<RepositoryInfo> repos = rxml.getRepositories();
 
-    for (RepositoryXml.Os o : rxml.getOses()) {
-      String osFamily = o.getFamily();
-      for (String os : osFamily.split(",")) {
-        for (RepositoryXml.Repo r : o.getRepos()) {
-          repos.add(processRepository(osFamily, os, r));
-        }
-      }
+    for (RepositoryInfo ri : repos) {
+      processRepository(ri);
     }
 
     stackInfo.getRepositories().addAll(repos);
@@ -683,19 +679,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    * @param osType    OS type
    * @param r         repo
    */
-  private RepositoryInfo processRepository(String osFamily, String osType, RepositoryXml.Repo r) {
-    RepositoryInfo ri = new RepositoryInfo();
-    ri.setBaseUrl(r.getBaseUrl());
-    ri.setDefaultBaseUrl(r.getBaseUrl());
-    ri.setMirrorsList(r.getMirrorsList());
-    ri.setOsType(osType.trim());
-    ri.setRepoId(r.getRepoId());
-    ri.setRepoName(r.getRepoName());
-    ri.setLatestBaseUrl(r.getBaseUrl());
+  private RepositoryInfo processRepository(RepositoryInfo ri) {
 
     LOG.debug("Checking for override for base_url");
     String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),
-        osFamily, r.getRepoId());
+        ri.getOsType(), ri.getRepoId());
 
     if (null != updatedUrl) {
       ri.setBaseUrl(updatedUrl);
@@ -709,6 +697,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     return ri;
   }
 
+
   /**
    * Merge role command order with the parent stack
    *
@@ -716,9 +705,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
    */
 
   private void mergeRoleCommandOrder(StackModule parentStack) {
-
     stackInfo.getRoleCommandOrder().merge(parentStack.stackInfo.getRoleCommandOrder());
-
   }
 
   @Override
@@ -732,7 +719,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   }
 
   private Set<String> errorSet = new HashSet<String>();
-  
+
   @Override
   public void setErrors(String error) {
     errorSet.add(error);
@@ -741,11 +728,11 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
   @Override
   public Collection getErrors() {
     return errorSet;
-  }   
+  }
 
   @Override
   public void setErrors(Collection error) {
     this.errorSet.addAll(error);
   }
-  
+
 }

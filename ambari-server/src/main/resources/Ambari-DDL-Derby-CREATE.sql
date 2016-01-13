@@ -551,6 +551,9 @@ CREATE TABLE repo_version (
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
   repositories VARCHAR(3000) NOT NULL,
+  version_url VARCHAR(1024),
+  version_xml CLOB,
+  version_xsd VARCHAR(512),
   PRIMARY KEY(repo_version_id)
 );
 

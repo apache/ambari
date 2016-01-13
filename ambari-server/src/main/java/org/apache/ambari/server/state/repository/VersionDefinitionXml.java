@@ -21,7 +21,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -31,12 +37,17 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.repository.AvailableVersion.Component;
 import org.apache.ambari.server.state.stack.RepositoryXml;
 import org.apache.commons.io.IOUtils;
 
@@ -58,7 +69,7 @@ public class VersionDefinitionXml {
    */
   @XmlElementWrapper(name="manifest")
   @XmlElement(name="service")
-  public List<ManifestService> manifestServices = new ArrayList<>();
+  List<ManifestService> manifestServices = new ArrayList<>();
 
   /**
    * For PATCH and SERVICE repositories, this dictates what is available for upgrade
@@ -66,13 +77,86 @@ public class VersionDefinitionXml {
    */
   @XmlElementWrapper(name="available-services")
   @XmlElement(name="service")
-  public List<AvailableServiceReference> availableServices = new ArrayList<>();
+  List<AvailableServiceReference> availableServices = new ArrayList<>();
 
   /**
    * Represents the repository details.  This is reused from stack repo info.
    */
   @XmlElement(name="repository-info")
   public RepositoryXml repositoryInfo;
+
+  /**
+   * The xsd location.  Never {@code null}.
+   */
+  @XmlTransient
+  public String xsdLocation;
+
+  @XmlTransient
+  private Map<String, AvailableService> availableMap;
+
+
+  /**
+   * @param stack the stack info needed to lookup service and component display names
+   * @return a collection of AvailableServices used for web service consumption
+   */
+  public Collection<AvailableService> getAvailableServices(StackInfo stack) {
+    if (availableServices.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    if (null == availableMap) {
+      Map<String, ManifestService> manifests = buildManifest();
+      availableMap = new HashMap<>();
+
+      for (AvailableServiceReference ref : availableServices) {
+        ManifestService ms = manifests.get(ref.serviceIdReference);
+        ServiceInfo service = stack.getService(ms.serviceName);
+
+        if (!availableMap.containsKey(ms.serviceName)) {
+          String display = (null == service) ? ms.serviceName: service.getDisplayName();
+
+          availableMap.put(ms.serviceName, new AvailableService(ms.serviceName, display));
+        }
+
+        AvailableService as = availableMap.get(ms.serviceName);
+        as.getVersions().add(new AvailableVersion(ms.version, ms.versionId,
+            buildComponents(service, ref.components)));
+      }
+    }
+
+    return availableMap.values();
+  }
+
+  /**
+   * @return the list of manifest services to a map for easier access.
+   */
+  private Map<String, ManifestService> buildManifest() {
+    Map<String, ManifestService> normalized = new HashMap<>();
+
+    for (ManifestService ms : manifestServices) {
+      normalized.put(ms.serviceId, ms);
+    }
+    return normalized;
+  }
+
+  /**
+   * @param service the service containing components
+   * @param components the set of components in the service
+   * @return the set of components name/display name pairs
+   */
+  private Set<Component> buildComponents(ServiceInfo service, Set<String> components) {
+    Set<Component> set = new HashSet<>();
+
+    for (String component : components) {
+      ComponentInfo ci = service.getComponentByName(component);
+      String display = (null == ci) ? component : ci.getDisplayName();
+      set.add(new Component(component, display));
+    }
+
+    return set;
+  }
+
+
 
   /**
    * Parses a URL for a definition XML file into the object graph.
@@ -128,8 +212,13 @@ public class VersionDefinitionXml {
       unmarshaller.setSchema(schema);
     }
 
-    return (VersionDefinitionXml) unmarshaller.unmarshal(xmlReader);
+    VersionDefinitionXml xml = (VersionDefinitionXml) unmarshaller.unmarshal(xmlReader);
+    xml.xsdLocation = xsdName;
+
+    return xml;
   }
+
+
 
 
 }

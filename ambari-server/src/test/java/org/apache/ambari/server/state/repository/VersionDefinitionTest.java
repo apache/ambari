@@ -56,18 +56,18 @@ public class VersionDefinitionTest {
     assertEquals("2.3.4.[1-9]", xml.release.compatibleWith);
     assertEquals("http://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.3.4/", xml.release.releaseNotes);
 
-    assertEquals(3, xml.manifestServices.size());
+    assertEquals(4, xml.manifestServices.size());
     assertEquals("HDFS-271", xml.manifestServices.get(0).serviceId);
     assertEquals("HDFS", xml.manifestServices.get(0).serviceName);
     assertEquals("2.7.1", xml.manifestServices.get(0).version);
     assertEquals("10", xml.manifestServices.get(0).versionId);
 
-    assertEquals(2, xml.availableServices.size());
+    assertEquals(3, xml.availableServices.size());
     assertEquals("HDFS-271", xml.availableServices.get(0).serviceIdReference);
     assertEquals(0, xml.availableServices.get(0).components.size());
 
-    assertEquals("HIVE-110", xml.availableServices.get(1).serviceIdReference);
-    assertEquals(1, xml.availableServices.get(1).components.size());
+    assertEquals("HIVE-110", xml.availableServices.get(2).serviceIdReference);
+    assertEquals(1, xml.availableServices.get(2).components.size());
 
     assertNotNull(xml.repositoryInfo);
     assertEquals(2, xml.repositoryInfo.getOses().size());

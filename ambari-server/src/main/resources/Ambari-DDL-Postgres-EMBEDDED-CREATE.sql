@@ -621,18 +621,12 @@ CREATE TABLE ambari.repo_version (
   display_name VARCHAR(128) NOT NULL,
   repositories TEXT NOT NULL,
   repo_type VARCHAR(255) DEFAULT 'STANDARD' NOT NULL,
+  version_url VARCHAR(1024),
+  version_xml TEXT,
+  version_xsd VARCHAR(512),
   PRIMARY KEY(repo_version_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.repo_version TO :username;
-
-CREATE TABLE ambari.repo_version_component (
-  repo_version_id BIGINT NOT NULL,
-  service VARCHAR(255) NOT NULL,
-  component VARCHAR(255) NOT NULL,
-  component_order BIGINT NOT NULL,
-  PRIMARY KEY (repo_version_id, service, component)
-);
-GRANT ALL PRIVILEGES ON TABLE ambari.repo_version_component TO :username;
 
 CREATE TABLE ambari.artifact (
   artifact_name VARCHAR(255) NOT NULL,
@@ -849,7 +843,6 @@ ALTER TABLE ambari.servicecomponentdesiredstate ADD CONSTRAINT FK_scds_desired_s
 ALTER TABLE ambari.servicedesiredstate ADD CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES ambari.stack(stack_id);
 ALTER TABLE ambari.blueprint ADD CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES ambari.stack(stack_id);
 ALTER TABLE ambari.repo_version ADD CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES ambari.stack(stack_id);
-ALTER TABLE ambari.repo_version_component ADD CONSTRAINT FK_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES ambari.repo_version(repo_version_id);
 
 -- Kerberos
 CREATE TABLE ambari.kerberos_principal (

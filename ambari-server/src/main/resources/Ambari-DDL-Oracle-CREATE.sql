@@ -548,15 +548,10 @@ CREATE TABLE repo_version (
   display_name VARCHAR2(128) NOT NULL,
   repositories CLOB NOT NULL,
   repo_type VARCHAR2(255) DEFAULT 'STANDARD' NOT NULL,
+  version_url VARCHAR(1024),
+  version_xml CLOB,
+  version_xsd VARCHAR(512),
   PRIMARY KEY(repo_version_id)
-);
-
-CREATE TABLE repo_version_component (
-  repo_version_id NUMBER(19) NOT NULL,
-  service VARCHAR2(255) NOT NULL,
-  component VARCHAR2(255) NOT NULL,
-  component_order NUMBER(19) NOT NULL,
-  PRIMARY KEY(repo_version_id, service, component)
 );
 
 CREATE TABLE widget (
@@ -765,7 +760,6 @@ ALTER TABLE servicecomponentdesiredstate ADD CONSTRAINT FK_scds_desired_stack_id
 ALTER TABLE servicedesiredstate ADD CONSTRAINT FK_sds_desired_stack_id FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id);
 ALTER TABLE blueprint ADD CONSTRAINT FK_blueprint_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
 ALTER TABLE repo_version ADD CONSTRAINT FK_repoversion_stack_id FOREIGN KEY (stack_id) REFERENCES stack(stack_id);
-ALTER TABLE repo_version_component ADD CONSTRAINT FK_repo_version_id FOREIGN KEY (repo_version_id) REFERENCES repo_version(repo_version_id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
