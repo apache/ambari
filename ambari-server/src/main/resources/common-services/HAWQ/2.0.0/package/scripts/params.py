@@ -99,10 +99,6 @@ ExecuteHadoop = functools.partial(ExecuteHadoop,
 rm_host = __get_component_host('rm_host')
 yarn_ha_enabled = default('/configurations/yarn-site/yarn.resourcemanager.ha.enabled', False)
 
-# Security
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-
-
 # Config files
 gpcheck_content = config['configurations']['gpcheck-env']['content']
 # database user limits
