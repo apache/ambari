@@ -636,6 +636,8 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
+          <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
+        
           <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
