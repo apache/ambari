@@ -290,7 +290,6 @@ def format_namenode(force=None):
   if not params.dfs_ha_enabled:
     if force:
       ExecuteHadoop('namenode -format',
-                    kinit_override=True,
                     bin_dir=params.hadoop_bin_dir,
                     conf_dir=hadoop_conf_dir)
     else:
@@ -310,7 +309,6 @@ def format_namenode(force=None):
       # only format the "active" namenode in an HA deployment
       if force:
         ExecuteHadoop('namenode -format',
-                      kinit_override=True,
                       bin_dir=params.hadoop_bin_dir,
                       conf_dir=hadoop_conf_dir)
       else:
@@ -406,7 +404,6 @@ def decommission():
     ExecuteHadoop(nn_refresh_cmd,
                   user=hdfs_user,
                   conf_dir=conf_dir,
-                  kinit_override=True,
                   bin_dir=params.hadoop_bin_dir)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)

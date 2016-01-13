@@ -65,25 +65,16 @@ def hcat_service_check():
             logoutput=True)
 
     if params.security_enabled:
-      ExecuteHadoop(test_cmd,
-                    user=params.hdfs_user,
-                    logoutput=True,
-                    conf_dir=params.hadoop_conf_dir,
-                    security_enabled=params.security_enabled,
-                    kinit_path_local=params.kinit_path_local,
-                    keytab=params.hdfs_user_keytab,
-                    principal=params.hdfs_principal_name,
-                    bin_dir=params.execute_path)
-    else:
-      ExecuteHadoop(test_cmd,
-                    user=params.hdfs_user,
-                    logoutput=True,
-                    conf_dir=params.hadoop_conf_dir,
-                    security_enabled=params.security_enabled,
-                    kinit_path_local=params.kinit_path_local,
-                    keytab=params.hdfs_user_keytab,
-                    bin_dir=params.execute_path
+      Execute (format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+               user = params.hdfs_user,
       )
+
+    ExecuteHadoop(test_cmd,
+                  user=params.hdfs_user,
+                  logoutput=True,
+                  conf_dir=params.hadoop_conf_dir,
+                  bin_dir=params.execute_path
+    )
 
     cleanup_cmd = format("{kinit_cmd} {tmp_dir}/hcatSmoke.sh hcatsmoke{unique} cleanup {purge_tables}")
 

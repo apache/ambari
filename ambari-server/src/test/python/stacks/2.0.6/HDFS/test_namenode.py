@@ -1021,8 +1021,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin',
-                              kinit_override = True)
+                              bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
   def test_decommission_update_exclude_file_only(self):
@@ -1058,8 +1057,7 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
                               user = 'hdfs',
                               conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin',
-                              kinit_override = True)
+                              bin_dir = '/usr/bin')
     self.assertNoMoreResources()
 
 
@@ -1082,7 +1080,6 @@ class TestNamenode(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -refreshNodes',
         bin_dir = '/usr/bin',
         conf_dir = '/etc/hadoop/conf',
-        kinit_override = True,
         user = 'hdfs',
     )
     self.assertNoMoreResources()
