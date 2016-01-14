@@ -1848,7 +1848,7 @@ describe('App.WizardStep8Controller', function () {
                   hosts: Em.A([
                     Em.Object.create({hostName: 'h1', isInstalled: false}),
                     Em.Object.create({hostName: 'h2', isInstalled: false})
-                  ]),
+                  ])
                 }),
                 Em.Object.create({
                   componentName: 'CLIENT',
@@ -2443,12 +2443,16 @@ describe('App.WizardStep8Controller', function () {
       sinon.stub(App.db, 'get').withArgs('KerberosWizard', 'kerberosDescriptorConfigs').returns(1234);
       sinon.stub(App.ajax, 'send', Em.K);
       sinon.stub(installerStep8Controller, 'addRequestToAjaxQueue', Em.K);
+      sinon.stub(installerStep8Controller, 'get').withArgs('wizardController').returns(Em.Object.create({
+        getDBProperty: function() { return true; }
+      }));
     });
 
     afterEach(function () {
       App.db.get.restore();
       App.ajax.send.restore();
       installerStep8Controller.addRequestToAjaxQueue.restore();
+      installerStep8Controller.get.restore();
     });
 
     it('should send request instantly', function () {
