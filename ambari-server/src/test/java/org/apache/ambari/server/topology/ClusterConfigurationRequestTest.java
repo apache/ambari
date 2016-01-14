@@ -35,9 +35,11 @@ import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -114,6 +116,18 @@ public class ClusterConfigurationRequestTest {
     services.add("KERBEROS");
     services.add("ZOOKEPER");
     expect(blueprint.getServices()).andReturn(services).anyTimes();
+
+    List<String> hdfsComponents = new ArrayList<>();
+    hdfsComponents.add("NAMENODE");
+    List<String> kerberosComponents = new ArrayList<>();
+    kerberosComponents.add("KERBEROS_CLIENT");
+    List<String> zookeeperComponents = new ArrayList<>();
+    zookeeperComponents.add("ZOOKEEPER_SERVER");
+
+    expect(blueprint.getComponents("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+
     expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
     expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
@@ -144,5 +158,67 @@ public class ClusterConfigurationRequestTest {
     verify(blueprint, topology, ambariContext, controller, kerberosHelper);
 
   }
+
+  @Test
+  public void testProcessClusterConfigRequestDontIncludeKererosConfigs() throws Exception {
+
+    Map<String, Map<String, String>> existingConfig = new HashMap<String, Map<String, String>>();
+    Configuration stackConfig = new Configuration(existingConfig,
+      new HashMap<String, Map<String, Map<String, String>>>());
+
+    PowerMock.mockStatic(AmbariContext.class);
+    AmbariContext.getController();
+    expectLastCall().andReturn(controller).anyTimes();
+
+    expect(controller.getClusters()).andReturn(clusters).anyTimes();
+    expect(clusters.getCluster("testCluster")).andReturn(cluster).anyTimes();
+
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(stack.getAllConfigurationTypes(anyString())).andReturn(Collections.<String>singletonList("testConfigType")
+    ).anyTimes();
+    expect(stack.getExcludedConfigurationTypes(anyString())).andReturn(Collections.<String>emptySet()).anyTimes();
+    expect(stack.getConfigurationPropertiesWithMetadata(anyString(), anyString())).andReturn(Collections.<String,
+      Stack.ConfigProperty>emptyMap()).anyTimes();
+
+    Set<String> services = new HashSet<>();
+    services.add("HDFS");
+    services.add("KERBEROS");
+    services.add("ZOOKEPER");
+    expect(blueprint.getServices()).andReturn(services).anyTimes();
+
+    List<String> hdfsComponents = new ArrayList<>();
+    hdfsComponents.add("NAMENODE");
+    List<String> kerberosComponents = new ArrayList<>();
+    kerberosComponents.add("KERBEROS_CLIENT");
+    List<String> zookeeperComponents = new ArrayList<>();
+    zookeeperComponents.add("ZOOKEEPER_SERVER");
+
+    expect(blueprint.getComponents("HDFS")).andReturn(hdfsComponents).anyTimes();
+    expect(blueprint.getComponents("KERBEROS")).andReturn(kerberosComponents).anyTimes();
+    expect(blueprint.getComponents("ZOOKEPER")).andReturn(zookeeperComponents).anyTimes();
+
+    expect(topology.getConfigRecommendationStrategy()).andReturn(ConfigRecommendationStrategy.NEVER_APPLY).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getConfiguration()).andReturn(stackConfig).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(Collections.<String, HostGroupInfo>emptyMap());
+    expect(topology.getClusterId()).andReturn(Long.valueOf(1)).anyTimes();
+    expect(ambariContext.getClusterName(Long.valueOf(1))).andReturn("testCluster").anyTimes();
+    expect(ambariContext.createConfigurationRequests(anyObject(Map.class))).andReturn(Collections
+      .<ConfigurationRequest>emptyList()).anyTimes();
+
+
+    PowerMock.replay(stack, blueprint, topology, controller, clusters, ambariContext,
+      AmbariContext
+        .class);
+
+    ClusterConfigurationRequest clusterConfigurationRequest = new ClusterConfigurationRequest(
+      ambariContext, topology, false, stackAdvisorBlueprintProcessor);
+    clusterConfigurationRequest.process();
+
+    verify(blueprint, topology, ambariContext, controller);
+
+  }
+
+
 
 }
