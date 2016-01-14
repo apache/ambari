@@ -485,24 +485,33 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "fs.defaultFS" in services["configurations"]["core-site"]["properties"]:
       defaultFs = services["configurations"]["core-site"]["properties"]["fs.defaultFS"]
 
+    operatingMode = "embedded"
+    if "ams-site" in services["configurations"]:
+      if "timeline.metrics.service.operation.mode" in services["configurations"]["ams-site"]["properties"]:
+        operatingMode = services["configurations"]["ams-site"]["properties"]["timeline.metrics.service.operation.mode"]
+
+    if operatingMode == "distributed":
+      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'true')
+    else:
+      putAmsHbaseSiteProperty("hbase.cluster.distributed", 'false')
+
     rootDir = "file:///var/lib/ambari-metrics-collector/hbase"
     tmpDir = "/var/lib/ambari-metrics-collector/hbase-tmp"
-    hbaseClusterDistributed = False
     zk_port_default = []
     if "ams-hbase-site" in services["configurations"]:
       if "hbase.rootdir" in services["configurations"]["ams-hbase-site"]["properties"]:
         rootDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.rootdir"]
       if "hbase.tmp.dir" in services["configurations"]["ams-hbase-site"]["properties"]:
         tmpDir = services["configurations"]["ams-hbase-site"]["properties"]["hbase.tmp.dir"]
-      if "hbase.cluster.distributed" in services["configurations"]["ams-hbase-site"]["properties"]:
-        hbaseClusterDistributed = services["configurations"]["ams-hbase-site"]["properties"]["hbase.cluster.distributed"].lower() == 'true'
       if "hbase.zookeeper.property.clientPort" in services["configurations"]["ams-hbase-site"]["properties"]:
         zk_port_default = services["configurations"]["ams-hbase-site"]["properties"]["hbase.zookeeper.property.clientPort"]
 
-    # Skip recommendation item if default value is present
-    if hbaseClusterDistributed and not "{{zookeeper_clientPort}}" in zk_port_default:
+      # Skip recommendation item if default value is present
+    if operatingMode == "distributed" and not "{{zookeeper_clientPort}}" in zk_port_default:
       zkPort = self.getZKPort(services)
       putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", zkPort)
+    elif operatingMode == "embedded" and not "{{zookeeper_clientPort}}" in zk_port_default:
+      putAmsHbaseSiteProperty("hbase.zookeeper.property.clientPort", "61181")
 
     mountpoints = ["/"]
     for collectorHostName in amsCollectorHosts:
@@ -519,8 +528,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       tmpDir = os.path.join(mountpoints[1], tmpDir)
     else:
       tmpDir = os.path.join(mountpoints[0], tmpDir)
-    putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
     putAmsHbaseSiteProperty("hbase.tmp.dir", tmpDir)
+
+    if operatingMode == "distributed":
+      putAmsHbaseSiteProperty("hbase.rootdir", defaultFs + "/user/ams/hbase")
+
+    if operatingMode == "embedded":
+      if isLocalRootDir:
+        putAmsHbaseSiteProperty("hbase.rootdir", rootDir)
+      else:
+        putAmsHbaseSiteProperty("hbase.rootdir", "file:///var/lib/ambari-metrics-collector/hbase")
 
     collector_heapsize, hbase_heapsize, total_sinks_count = self.getAmsMemoryRecommendation(services, hosts)
 
@@ -558,7 +575,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
 
     # Distributed mode heap size
-    if hbaseClusterDistributed:
+    if operatingMode == "distributed":
       putHbaseEnvProperty("hbase_master_heapsize", "512")
       putHbaseEnvProperty("hbase_master_xmn_size", "102") #20% of 512 heap size
       putHbaseEnvProperty("hbase_regionserver_heapsize", hbase_heapsize)
@@ -570,7 +587,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       putHbaseEnvProperty("hbase_master_xmn_size", round_to_n(0.15*(hbase_heapsize+hbase_rs_heapsize),64))
 
     # If no local DN in distributed mode
-    if rootDir.startswith("hdfs://") or (defaultFs.startswith("hdfs://") and rootDir.startswith("/")):
+    if operatingMode == "distributed":
       dn_hosts = self.getComponentHostNames(services, "HDFS", "DATANODE")
       if set(amsCollectorHosts).intersection(dn_hosts):
         collector_cohosted_with_dn = "true"
@@ -583,7 +600,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     metricsDir = os.path.join(scriptDir, '../../../../common-services/AMBARI_METRICS/0.1.0/package')
     serviceMetricsDir = os.path.join(metricsDir, 'files', 'service-metrics')
     sys.path.append(os.path.join(metricsDir, 'scripts'))
-    mode = 'distributed' if hbaseClusterDistributed else 'embedded'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
     from split_points import FindSplitPointsForAMSRegions
@@ -604,7 +620,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       ams_hbase_env = configurations["ams-hbase-env"]["properties"]
 
     split_point_finder = FindSplitPointsForAMSRegions(
-      ams_hbase_site, ams_hbase_env, serviceMetricsDir, mode, servicesList)
+      ams_hbase_site, ams_hbase_env, serviceMetricsDir, operatingMode, servicesList)
 
     result = split_point_finder.get_split_points()
     precision_splits = ' '
@@ -888,17 +904,23 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     default_fs = core_site.get("fs.defaultFS") if core_site else "file:///"
     hbase_rootdir = properties.get("hbase.rootdir")
     hbase_tmpdir = properties.get("hbase.tmp.dir")
+    distributed = properties.get("hbase.cluster.distributed")
     is_local_root_dir = hbase_rootdir.startswith("file://") or (default_fs.startswith("file://") and hbase_rootdir.startswith("/"))
+
     if op_mode == "distributed" and is_local_root_dir:
       rootdir_item = self.getWarnItem("In distributed mode hbase.rootdir should point to HDFS.")
-    elif op_mode == "embedded" and hbase_rootdir.startswith('/'):
-      rootdir_item = self.getWarnItem("In embedded mode schemaless values are not supported for hbase.rootdir")
+    elif op_mode == "embedded":
+      if distributed.lower() == "false" and hbase_rootdir.startswith('/') or hbase_rootdir.startswith("hdfs://"):
+        rootdir_item = self.getWarnItem("In embedded mode hbase.rootdir cannot point to schemaless values or HDFS, "
+                                        "Example - file:// for localFS")
       pass
 
     distributed_item = None
-    distributed = properties.get("hbase.cluster.distributed")
-    if hbase_rootdir and hbase_rootdir.startswith("hdfs://") and not distributed.lower() == "true":
-      distributed_item = self.getErrorItem("Distributed property should be set to true if hbase.rootdir points to HDFS.")
+    if op_mode == "distributed" and not distributed.lower() == "true":
+      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to true for "
+                                           "distributed mode")
+    if op_mode == "embedded" and distributed.lower() == "true":
+      distributed_item = self.getErrorItem("hbase.cluster.distributed property should be set to false for embedded mode")
 
     hbase_zk_client_port = properties.get("hbase.zookeeper.property.clientPort")
     zkPort = self.getZKPort(services)
