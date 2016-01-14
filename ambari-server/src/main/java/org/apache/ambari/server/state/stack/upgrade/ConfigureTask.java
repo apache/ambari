@@ -28,20 +28,20 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
-import org.apache.ambari.server.state.stack.ConfigUpgradePack;
-import org.apache.commons.lang.StringUtils;
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
-
-import com.google.gson.Gson;
+import org.apache.ambari.server.state.stack.ConfigUpgradePack;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Condition;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
+import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Transfer;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Replace;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.Condition;
-import static org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition.ConfigurationKeyValue;
+
+import com.google.gson.Gson;
 
 /**
  * The {@link ConfigureTask} represents a configuration change. This task
@@ -134,6 +134,22 @@ public class ConfigureTask extends ServerSideActionTask {
   }
 
   /**
+   * Gets the summary of the task or {@code null}.
+   *
+   * @return the task summary or {@code null}.
+   */
+  public String getSummary(ConfigUpgradePack configUpgradePack) {
+    if(StringUtils.isNotBlank(id) && null != configUpgradePack){
+      ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(id);
+      if (null != definition && StringUtils.isNotBlank(definition.summary)) {
+          return definition.summary;
+      }
+    }
+
+    return super.getSummary();
+  }
+
+  /**
    * Gets a map containing the following properties pertaining to the
    * configuration value to change:
    * <ul>
@@ -158,7 +174,7 @@ public class ConfigureTask extends ServerSideActionTask {
                                                      ConfigUpgradePack configUpgradePack) {
     Map<String, String> configParameters = new HashMap<>();
 
-    if (this.id == null || this.id.isEmpty()) {
+    if (id == null || id.isEmpty()) {
       LOG.warn("Config task id is not defined, skipping config change");
       return configParameters;
     }
@@ -169,10 +185,10 @@ public class ConfigureTask extends ServerSideActionTask {
     }
 
     // extract config change definition, referenced by current ConfigureTask
-    ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(this.id);
+    ConfigUpgradeChangeDefinition definition = configUpgradePack.enumerateConfigChangesByID().get(id);
     if (definition == null) {
       LOG.warn(String.format("Can not resolve config change definition by id %s, " +
-              "skipping config change", this.id));
+              "skipping config change", id));
       return configParameters;
     }
 
