@@ -54,15 +54,6 @@ public abstract class Task {
   }
 
   /**
-   * Gets the summary of the task or {@code null}.
-   *
-   * @return the task summary or {@code null}.
-   */
-  public String getSummary() {
-    return summary;
-  }
-
-  /**
    * Identifies the type of task.
    */
   public enum Type {
