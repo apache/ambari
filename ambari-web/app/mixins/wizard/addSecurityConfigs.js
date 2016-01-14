@@ -391,14 +391,30 @@ App.AddSecurityConfigs = Em.Mixin.create({
     this.loadStackDescriptorConfigs().then(function(data) {
       var stackArtifacts = data;
       self.loadClusterDescriptorConfigs().then(function(clusterArtifacts) {
+        self.storeClusterDescriptorStatus(true);
         dfd.resolve(self.createServicesStackDescriptorConfigs(objectUtils.deepMerge(data, clusterArtifacts)));
       }, function() {
+        self.storeClusterDescriptorStatus(false);
         dfd.resolve(self.createServicesStackDescriptorConfigs(stackArtifacts));
       });
     }, function() {
       dfd.reject();
     });
     return dfd.promise();
+  },
+
+
+  /**
+   * Store status of kerberos descriptor located in cluster artifacts.
+   * This status needed for Add Service Wizard to select appropriate method to create
+   * or update descriptor.
+   *
+   * @param  {Boolean} isExists <code>true</code> if cluster descriptor present
+   */
+  storeClusterDescriptorStatus: function(isExists) {
+    if (this.get('isWithinAddService')) {
+      this.get('wizardController').setDBProperty('isClusterDescriptorExists', isExists);
+    }
   },
 
   /**

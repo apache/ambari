@@ -842,8 +842,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   updateKerberosDescriptor: function(instant) {
     var kerberosDescriptor = App.db.get('KerberosWizard', 'kerberosDescriptorConfigs');
+    var descriptorExists = this.get('wizardController').getDBProperty('isClusterDescriptorExists') === true;
+
     var ajaxOpts = {
-      name: 'admin.kerberos.cluster.artifact.update',
+      name: descriptorExists ? 'admin.kerberos.cluster.artifact.update' : 'admin.kerberos.cluster.artifact.create',
       data: {
         artifactName: 'kerberos_descriptor',
         data: {

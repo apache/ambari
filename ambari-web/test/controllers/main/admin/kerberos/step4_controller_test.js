@@ -19,14 +19,14 @@
 var App = require('app');
 
 describe('App.KerberosWizardStep4Controller', function() {
-  
+
   describe('#isSubmitDisabled', function() {
     var controller = App.KerberosWizardStep4Controller.create({});
     var configs = Em.A([
       App.ServiceConfigProperty.create({ name: 'prop1', value: 'someVal1', identityType: 'user', category: 'Ambari Principals', serviceName: 'Cluster'})
     ]);
     controller.set('stepConfigs', controller.createServiceConfig(configs));
-    
+
     it('configuration errors are absent, submit should be not disabled', function() {
       expect(controller.get('stepConfigs')[0].get('errorCount')).to.be.eql(0);
       expect(controller.get('isSubmitDisabled')).to.be.false;
@@ -37,7 +37,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       serviceConfig.get('configs').findProperty('name', 'prop1').set('value', '');
       expect(serviceConfig.get('errorCount')).to.be.eql(1);
       expect(controller.get('isSubmitDisabled')).to.be.true;
-    });  
+    });
   });
 
   describe('#createServiceConfig', function() {
@@ -92,7 +92,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       Em.Object.create({ name: 'hdfs_principal', value: 'hdfs_principal_value', identityType: 'user', serviceName: 'HDFS' }),
       Em.Object.create({ name: 'hadoop.security.auth_to_local', serviceName: 'HDFS' })
     ]);
-    
+
     var propertyValidationCases = [
       {
         property: 'spnego_keytab',
@@ -123,9 +123,9 @@ describe('App.KerberosWizardStep4Controller', function() {
         ]
       }
     ];
-    
+
     var absentPropertiesTest = ['falcon_keytab', 'mapreduce_keytab'];
-    
+
     it('should contains properties only for installed services', function() {
       expect(this.result.mapProperty('serviceName').uniq()).to.be.eql(['Cluster', 'HDFS']);
     });
@@ -135,7 +135,7 @@ describe('App.KerberosWizardStep4Controller', function() {
         expect(this.result.findProperty('name', item)).to.be.undefined;
       });
     }, this);
-    
+
     propertyValidationCases.forEach(function(test) {
       it('property {0} should be created'.format(test.property), function() {
         expect(this.result.findProperty('name', test.property)).to.be.ok;
@@ -151,7 +151,7 @@ describe('App.KerberosWizardStep4Controller', function() {
       }, this);
     });
   });
-  
+
   describe('#setStepConfigs', function() {
     describe('Add Service Wizard', function() {
       var res;
@@ -214,7 +214,7 @@ describe('App.KerberosWizardStep4Controller', function() {
         { name: 'admin_principal', e: true },
         { name: 'admin_password', e: true }
       ];
-      
+
       propertiesEditableTests.forEach(function(test) {
         it('Add Service: property `{0}` should be {1} editable'.format(test.name, !!test.e ? '' : 'not '), function() {
           expect(res.findProperty('name', test.name).get('isEditable')).to.eql(test.e);
@@ -330,4 +330,71 @@ describe('App.KerberosWizardStep4Controller', function() {
     });
   });
 
+  describe('#getDescriptorConfigs', function() {
+    describe('Within Add Service', function () {
+      var controller;
+      beforeEach(function () {
+        controller = App.KerberosWizardStep4Controller.create({
+          wizardController: Em.Object.create({
+            name: 'addServiceController',
+            setDBProperty: sinon.spy()
+          })
+        });
+        this.loadStackDescriptorStub = sinon.stub(controller, 'loadStackDescriptorConfigs').returns($.Deferred().resolve().promise());
+        this.loadClusterDescriptorStub = sinon.stub(controller, 'loadClusterDescriptorConfigs');
+        sinon.stub(controller, 'createServicesStackDescriptorConfigs', Em.K);
+      });
+
+      afterEach(function() {
+        this.loadStackDescriptorStub.restore();
+        this.loadClusterDescriptorStub.restore();
+        controller.createServicesStackDescriptorConfigs.restore();
+        controller.destroy();
+        controller = null;
+      });
+
+      var cases = [
+        {
+          wizardController: 'addServiceController',
+          clusterDescriptorExists: false,
+          m: 'Within Add Service, Cluster Descriptor not exists. Should be reflected in wizard controller',
+          e: {
+            setDBPropertyCalled: true,
+            setDBPropertyCalledWith: ['isClusterDescriptorExists', false]
+          }
+        },
+        {
+          wizardController: 'addServiceController',
+          clusterDescriptorExists: true,
+          m: 'Within Add Service, Cluster Descriptor is present. Should be reflected in wizard controller',
+          e: {
+            setDBPropertyCalled: true,
+            setDBPropertyCalledWith: ['isClusterDescriptorExists', true]
+          }
+        },
+        {
+          wizardController: 'notAddService',
+          clusterDescriptorExists: true,
+          m: 'Within another controller, nothing to store',
+          e: {
+            setDBPropertyCalled: false,
+          }
+        }
+      ];
+
+      cases.forEach(function(test) {
+        it(test.m, function () {
+          controller.get('wizardController').set('name', test.wizardController);
+          this.loadClusterDescriptorStub.returns(test.clusterDescriptorExists ?
+             $.Deferred().resolve().promise() :
+             $.Deferred().reject().promise());
+          controller.getDescriptorConfigs();
+          expect(controller.get('wizardController').setDBProperty.called).to.be.eql(test.e.setDBPropertyCalled);
+          if (test.e.setDBPropertyCalled) {
+            expect(controller.get('wizardController').setDBProperty.args[0]).to.be.eql(test.e.setDBPropertyCalledWith);
+          }
+        })
+      })
+    });
+  });
 });
