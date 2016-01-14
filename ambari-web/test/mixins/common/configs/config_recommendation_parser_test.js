@@ -19,7 +19,7 @@
 var App = require('app');
 
 describe('App.ConfigRecommendationParser', function() {
-  var mixinObject =  Em.Controller.extend(App.ConfigRecommendationParser, {});
+  var mixinObject = Em.Controller.extend(App.ConfigRecommendationParser, {});
   var instanceObject = mixinObject.create({});
 
   var recommendationObject = {
@@ -97,12 +97,12 @@ describe('App.ConfigRecommendationParser', function() {
       });
 
       it('updateBoundariesCallback maximum', function() {
-        expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3',  filename: 'fileName1' },
+        expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
           'maximum', 100, null)).to.be.true;
       });
 
       it('updateBoundariesCallback minimum', function() {
-        expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3',  filename: 'fileName1' },
+        expect(instanceObject.updateBoundariesCallback.calledWith({ name: 'p3', filename: 'fileName1' },
           'minimum', 1, null)).to.be.true;
       });
     });
@@ -121,7 +121,7 @@ describe('App.ConfigRecommendationParser', function() {
   });
 
   describe('#addByRecommendations', function(){
-    var recommendationObject = {
+    var _recommendationObject = {
       'file-name': {
         'properties': {
           'p1': 'v1'
@@ -151,7 +151,7 @@ describe('App.ConfigRecommendationParser', function() {
             'name': 'p1',
             'filename': 'file-name'
           }));
-          instanceObject.addByRecommendations(recommendationObject, []);
+          instanceObject.addByRecommendations(_recommendationObject, []);
         });
 
         afterEach(function() {
@@ -316,7 +316,7 @@ describe('App.ConfigRecommendationParser', function() {
       expect(instanceObject._removeConfigByRecommendation.bind(instanceObject, null)).to.throw(App.ObjectTypeError);
     });
 
-    it('throws error', function() {
+    it('throws error (2)', function() {
       expect(instanceObject._removeConfigByRecommendation.bind(instanceObject, {}, null)).to.throw(App.ArrayTypeError);
     });
   });

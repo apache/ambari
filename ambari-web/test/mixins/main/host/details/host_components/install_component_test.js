@@ -56,7 +56,7 @@ describe('App.InstallComponent', function () {
           component: component,
           data: JSON.stringify({
             RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + " " + 'c1'
+              "context": Em.I18n.t('requestInfo.installHostComponent') + ' c1'
             },
             Body: {
               host_components: [
@@ -103,7 +103,7 @@ describe('App.InstallComponent', function () {
           componentName: 'C1',
           serviceName: 'S1',
           component: params.component,
-          "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + 'c1',
+          "context": Em.I18n.t('requestInfo.installNewHostComponent') + ' c1',
           HostRoles: {
             state: 'INSTALLED'
           },
