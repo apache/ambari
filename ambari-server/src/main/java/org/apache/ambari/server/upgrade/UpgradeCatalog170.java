@@ -18,9 +18,32 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.common.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -83,30 +106,9 @@ import org.apache.ambari.server.view.ViewRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.lang.reflect.Type;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import com.google.common.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 /**
  * Upgrade catalog for version 1.7.0.
@@ -715,7 +717,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       for (ClusterConfigMappingEntity configMapping : cluster.getConfigMappingEntities()) {
         if (configMapping.getType().equals(Configuration.MAPREDUCE2_LOG4J_CONFIG_TAG)) {
           configMapping.setSelected(0);
-          clusterDAO.mergeConfigMapping(configMapping);
+          configMapping = clusterDAO.mergeConfigMapping(configMapping);
         }
       }
       clusterDAO.merge(cluster);
