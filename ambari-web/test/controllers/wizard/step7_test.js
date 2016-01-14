@@ -2077,59 +2077,6 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
-
-  describe('#addHawqConfigsOnKerberizedCluster', function () {
-    var secureProperties = [
-      {
-        name: 'hadoop.security.authentication',
-        value: 'kerberos',
-        file: 'hdfs-client',
-        isOverridable: false,
-        isReconfigurable: false
-      }, {
-        name: 'enable_secure_filesystem',
-        value: 'ON',
-        file: 'hawq-site',
-        isOverridable: false,
-        isReconfigurable: false
-      }, {
-        name: 'krb_server_keyfile',
-        value: '/etc/security/keytabs/hawq.service.keytab',
-        file: 'hawq-site',
-        isOverridable: true,
-        isReconfigurable: true
-      }
-    ];
-
-    var configs = [
-        {
-          id: 'dummy__dummy-site',
-          description: 'dummy__dummy-site',
-          displayName: 'dummy',
-          displayType: 'string',
-          name: 'dummy',
-          value: 'dummy'
-        }
-      ];
-
-    it('should add three security related configs for HAWQ if Kerberos is enabled', function () {
-      var originalConfigsLength = configs.length;
-      installerStep7Controller.addHawqConfigsOnKerberizedCluster(configs);
-      // ensure 3 new configs are added
-      expect(configs.length - originalConfigsLength).to.be.eql(3);
-      // check if all three new properties were added
-      secureProperties.forEach(function (newProperty) {
-        var newPropertyAdded = configs.filterProperty('filename', newProperty.file + '.xml').findProperty('name', newProperty.name);
-        expect(newPropertyAdded.name).to.be.eql(newProperty.name);
-        expect(newPropertyAdded.displayName).to.be.eql(newProperty.name);
-        expect(newPropertyAdded.value).to.be.eql(newProperty.value);
-        expect(newPropertyAdded.recommendedValue).to.be.eql(newProperty.value);
-        expect(newPropertyAdded.isOverridable).to.be.eql(newProperty.isOverridable);
-        expect(newPropertyAdded.isReconfigurable).to.be.eql(newProperty.isReconfigurable);
-      });
-    });
-  });
-
   describe('#removeHawqStandbyAddressHostConfig', function() {
     var testHawqSiteConfigs = [
       {
