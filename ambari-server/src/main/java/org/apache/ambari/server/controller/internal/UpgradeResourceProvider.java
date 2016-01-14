@@ -769,9 +769,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // Resolve or build a proper config upgrade pack
     List<UpgradePack.IntermediateStack> intermediateStacks = pack.getIntermediateStacks();
     ConfigUpgradePack configUpgradePack;
-
-    // No intermediate stacks
-    if (intermediateStacks == null || intermediateStacks.isEmpty()) {
+    if (intermediateStacks == null || intermediateStacks.isEmpty()) { // No intermediate stacks
       configUpgradePack = s_metaProvider.get().getConfigUpgradePack(
               targetStackId.getStackName(), targetStackId.getStackVersion());
     } else {
@@ -1449,15 +1447,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         if (null != configType) {
           itemDetail = String.format("Updating configuration %s", configType);
         } else {
-          itemDetail = "Skipping Configuration Task "
-              + StringUtils.defaultString(ct.id, "(missing id)");
+          itemDetail = "Skipping Configuration Task";
         }
 
         entity.setText(itemDetail);
 
-        String configureTaskSummary = ct.getSummary(configUpgradePack);
-        if (null != configureTaskSummary) {
-          stageText = configureTaskSummary;
+        if (null != ct.summary) {
+          stageText = ct.summary;
         } else {
           stageText = itemDetail;
         }

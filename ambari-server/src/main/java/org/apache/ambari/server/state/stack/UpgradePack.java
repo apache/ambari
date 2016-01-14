@@ -34,7 +34,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlValue;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.state.stack.upgrade.ClusterGrouping;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.stack.upgrade.Grouping;
@@ -154,16 +153,7 @@ public class UpgradePack {
   }
 
   /**
-   * Gets a list of stacks which are between the current stack version and the
-   * target stack version inclusive. For example, if upgrading from HDP-2.2 to
-   * HDP-2.4, this should include HDP-2.3 and HDP-2.4.
-   * <p/>
-   * This method is used to combine the correct configuration packs for a
-   * specific upgrade from
-   * {@link AmbariMetaInfo#getConfigUpgradePack(String, String)}.
-   *
-   * @return a list of intermediate stacks (target stack inclusive) or
-   *         {@code null} if none.
+   * @return a list for intermediate stacks for cross-stack upgrade, or null if no any
    */
   public List<IntermediateStack> getIntermediateStacks() {
     return intermediateStacks;
@@ -198,7 +188,7 @@ public class UpgradePack {
   /**
    * Gets the groups defined for the upgrade pack. If a direction is defined for
    * a group, it must match the supplied direction to be returned
-   *
+   * 
    * @param direction
    *          the direction to return the ordered groups
    * @return the list of groups
