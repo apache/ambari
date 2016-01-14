@@ -45,8 +45,12 @@ def ams_service(name, action):
     #no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if params.is_hbase_distributed:
-      hbase_service('master', action=action)
-      hbase_service('regionserver', action=action)
+      if action == 'stop':
+        hbase_service('regionserver', action=action)
+        hbase_service('master', action=action)
+      else:
+        hbase_service('master', action=action)
+        hbase_service('regionserver', action=action)
       cmd = format("{cmd} --distributed")
 
     if action == 'start':
