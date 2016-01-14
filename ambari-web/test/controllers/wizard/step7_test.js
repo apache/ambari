@@ -1165,6 +1165,41 @@ describe('App.InstallerStep7Controller', function () {
         }
       });
     });
+
+  });
+
+  describe('#updateHawqConfigs', function() {
+    var testHawqSiteConfigs = [
+      {
+        name: 'hawq_standby_address_host',
+        value: 'h2'
+      },
+      {
+        name: 'hawq_master_address_host',
+        value: 'h1'
+      }
+    ];
+    var oldHawqSiteLength = testHawqSiteConfigs.length;
+    it('hawq_standby_address_host should be removed on single node cluster', function() {
+      sinon.stub(App, 'get').withArgs('isSingleNode').returns(true);
+      var hawqSiteConfigs = testHawqSiteConfigs.slice();
+      var updatedHawqSiteConfigs = installerStep7Controller.updateHawqConfigs(hawqSiteConfigs);
+      expect(updatedHawqSiteConfigs.length).to.be.eql(oldHawqSiteLength-1);
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_standby_address_host')).to.be.eql(undefined);
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_master_address_host').value).to.be.eql('h1');
+      App.get.restore()
+    });
+
+    it('hawq_standby_address_host should not be removed on multi node clusters', function() {
+      sinon.stub(App, 'get').withArgs('isSingleNode').returns(false);
+      var hawqSiteConfigs = testHawqSiteConfigs.slice();
+      var updatedHawqSiteConfigs = installerStep7Controller.updateHawqConfigs(hawqSiteConfigs);
+      expect(updatedHawqSiteConfigs.length).to.be.eql(oldHawqSiteLength);
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_standby_address_host').value).to.be.eql('h2');
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_master_address_host').value).to.be.eql('h1');
+      App.get.restore();
+    });
+
   });
 
   describe('#_updateIsEditableFlagForConfig', function () {

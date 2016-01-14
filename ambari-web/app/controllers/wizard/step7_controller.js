@@ -690,21 +690,36 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     });
   },
 
+  /**
+   * Update hawq configuration depending on the state of the cluster
+   * @param {Array} configs
+   */
+  updateHawqConfigs: function (configs) {
+    if (this.get('wizardController.name') == 'addServiceController') {
+      if (App.get('isHaEnabled')) this.addHawqConfigsOnNnHa(configs);
+      if (App.get('isRMHaEnabled')) this.addHawqConfigsOnRMHa(configs);
+      if (App.get('isKerberosEnabled')) this.addHawqConfigsOnKerberizedCluster(configs);
+    }
+    if (App.get('isSingleNode')) this.removeHawqStandbyHostAddressConfig(configs);
+    return configs
+  },
+
+  /**
+   * Remove hawq_standby_address_host config from HAWQ configs
+   * @param {Array} configs
+   */
+  removeHawqStandbyHostAddressConfig: function(configs) {
+    var hawqStandbyAddressHostIndex = configs.indexOf(configs.findProperty('name', 'hawq_standby_address_host'));
+    if (hawqStandbyAddressHostIndex > -1) configs.removeAt(hawqStandbyAddressHostIndex) ;
+    return configs
+  },
+
   applyServicesConfigs: function (configs) {
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
-    // If HAWQ service is being added, add NN-HA/RM-HA/Kerberos related parameters to hdfs-client/yarn-client if applicable
-    if (this.get('wizardController.name') == 'addServiceController' && !this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
-      if (App.get('isHaEnabled')) {
-        this.addHawqConfigsOnNnHa(configs);
-      }
-      if (App.get('isRMHaEnabled')) {
-        this.addHawqConfigsOnRMHa(configs);
-      }
-      if (App.get('isKerberosEnabled')) {
-        this.addHawqConfigsOnKerberizedCluster(configs);
-      }
+    if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
+      this.updateHawqConfigs(configs);
     }
     if (App.get('isKerberosEnabled') && this.get('wizardController.name') == 'addServiceController') {
       this.addKerberosDescriptorConfigs(configs, this.get('wizardController.kerberosDescriptorConfigs') || []);
