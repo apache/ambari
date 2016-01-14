@@ -699,22 +699,35 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     });
   },
 
+  /**
+   * Remove hawq_standby_address_host config from HAWQ configs
+   * @param {Array} configs
+   */
+  removeHawqStandbyHostAddressConfig: function(configs) {
+    var hawqStandbyAddressHostIndex = configs.indexOf(configs.findProperty('name', 'hawq_standby_address_host'));
+    if (hawqStandbyAddressHostIndex > -1) configs.removeAt(hawqStandbyAddressHostIndex) ;
+    return configs
+  },
+
   applyServicesConfigs: function (configs, storedConfigs) {
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
     // If HAWQ service is being added, add NN-HA/RM-HA/Kerberos related parameters to hdfs-client/yarn-client if applicable
-    if (this.get('wizardController.name') == 'addServiceController' && !this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
-      if (App.get('isHaEnabled')) {
-        this.addHawqConfigsOnNnHa(configs);
-      }
-      if (App.get('isRMHaEnabled')) {
-        this.addHawqConfigsOnRMHa(configs);
-      }
-      if (App.get('isKerberosEnabled')) {
-        this.addHawqConfigsOnKerberizedCluster(configs);
+    if (this.get('wizardController.name') == 'addServiceController') {
+      if (!this.get('installedServiceNames').contains('HAWQ') && this.get('allSelectedServiceNames').contains('HAWQ')) {
+	if (App.get('isHaEnabled')) {
+	  this.addHawqConfigsOnNnHa(configs);
+	}
+	if (App.get('isRMHaEnabled')) {
+	  this.addHawqConfigsOnRMHa(configs);
+        }
+	if (App.get('isKerberosEnabled')) {
+	  this.addHawqConfigsOnKerberizedCluster(configs);
+	}
       }
     }
+    if (App.get('isSingleNode')) this.removeHawqStandbyHostAddressConfig(configs);
     var dependedServices = ["STORM", "YARN"];
     dependedServices.forEach(function (serviceName) {
       if (this.get('allSelectedServiceNames').contains(serviceName)) {

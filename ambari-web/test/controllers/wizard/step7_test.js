@@ -2130,6 +2130,28 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#removeHawqStandbyAddressHostConfig', function() {
+    var testHawqSiteConfigs = [
+      {
+        name: 'hawq_standby_address_host',
+        value: 'h2'
+      },
+      {
+        name: 'hawq_master_address_host',
+        value: 'h1'
+      }
+    ];
+    var oldHawqSiteLength = testHawqSiteConfigs.length;
+    it('hawq_standby_address_host should be removed', function() {
+      var hawqSiteConfigs = testHawqSiteConfigs.slice();
+      var updatedHawqSiteConfigs = installerStep7Controller.removeHawqStandbyHostAddressConfig(hawqSiteConfigs);
+      expect(updatedHawqSiteConfigs.length).to.be.eql(oldHawqSiteLength-1);
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_standby_address_host')).to.be.eql(undefined);
+      expect(updatedHawqSiteConfigs.findProperty('name', 'hawq_master_address_host').value).to.be.eql('h1');
+    });
+
+  });
+
   describe('#errorsCount', function () {
 
     it('should ignore configs with widgets (enhanced configs)', function () {
