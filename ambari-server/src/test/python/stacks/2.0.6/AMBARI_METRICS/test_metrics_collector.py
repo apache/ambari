@@ -39,20 +39,20 @@ class TestMetricsCollector(RMFTestCase):
     self.assert_hbase_configure('master', distributed=True)
     self.assert_hbase_configure('regionserver', distributed=True)
     self.assert_ams('collector', distributed=True)
+    self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop regionserver',
+                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid` >/dev/null 2>&1 && ambari-sudo.sh -H -E kill -9 `ambari-sudo.sh cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid`',
+                              timeout = 30,
+                              user = 'ams'
+                              )
+    self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-regionserver.pid',
+                              action = ['delete']
+                              )
     self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop master',
-                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-master.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-master.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/ambari-metrics-collector//hbase-ams-master.pid`',
+                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-master.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-master.pid` >/dev/null 2>&1 && ambari-sudo.sh -H -E kill -9 `ambari-sudo.sh cat /var/run/ambari-metrics-collector//hbase-ams-master.pid`',
                               timeout = 30,
                               user = 'ams'
     )
     self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-master.pid',
-                              action = ['delete']
-    )
-    self.assertResourceCalled('Execute', '/usr/lib/ams-hbase/bin/hbase-daemon.sh --config /etc/ams-hbase/conf stop regionserver',
-                              on_timeout = 'ls /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid >/dev/null 2>&1 && ps `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid` >/dev/null 2>&1 && kill -9 `cat /var/run/ambari-metrics-collector//hbase-ams-regionserver.pid`',
-                              timeout = 30,
-                              user = 'ams'
-    )
-    self.assertResourceCalled('File', '/var/run/ambari-metrics-collector//hbase-ams-regionserver.pid',
                               action = ['delete']
     )
     self.assertResourceCalled('Execute', '/usr/sbin/ambari-metrics-collector --config /etc/ambari-metrics-collector/conf --distributed stop',
