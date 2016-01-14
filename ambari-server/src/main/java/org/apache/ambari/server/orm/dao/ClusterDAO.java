@@ -19,12 +19,10 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -204,6 +202,32 @@ public class ClusterDAO {
 
     return daoUtils.selectList(query);
   }
+  
+  /**
+   * Gets the latest configurations for a given stack for all of the
+   * configurations of the specified cluster.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param stackId
+   *          the stack to get the latest configurations for (not {@code null}).
+   * @return the latest configurations for the specified cluster and stack.
+   */
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> getClusterConfigMappingsByStack(long clusterId,
+      StackId stackId) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findClusterConfigMappingsByStack",
+        ClusterConfigMappingEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
+  }  
 
   @RequiresSession
   public List<ClusterConfigMappingEntity> getClusterConfigMappingEntitiesByCluster(long clusterId) {
@@ -255,8 +279,8 @@ public class ClusterDAO {
    * Update config mapping in DB
    */
   @Transactional
-  public void mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
-    entityManagerProvider.get().merge(mappingEntity);
+  public ClusterConfigMappingEntity mergeConfigMapping(ClusterConfigMappingEntity mappingEntity) {
+    return entityManagerProvider.get().merge(mappingEntity);
   }
 
   /**

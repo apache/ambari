@@ -641,7 +641,7 @@ public class ClusterImpl implements Cluster {
         clusterEntity.setClusterName(clusterName);
 
         // RollbackException possibility if UNIQUE constraint violated
-        clusterDAO.merge(clusterEntity);
+        clusterEntity = clusterDAO.merge(clusterEntity);
         clusters.updateClusterName(oldName, clusterName);
         this.clusterName = clusterName;
       }
@@ -976,7 +976,7 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
       if (clusterEntity != null) {
         clusterEntity.setDesiredStack(stackEntity);
-        clusterDAO.merge(clusterEntity);
+        clusterEntity = clusterDAO.merge(clusterEntity);
 
         if (cascade) {
           for (Service service : getServices().values()) {
@@ -1044,7 +1044,7 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
       if (clusterEntity != null) {
         clusterEntity.setProvisioningState(provisioningState);
-        clusterDAO.merge(clusterEntity);
+        clusterEntity = clusterDAO.merge(clusterEntity);
       }
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -1078,7 +1078,7 @@ public class ClusterImpl implements Cluster {
       ClusterEntity clusterEntity = getClusterEntity();
       if (clusterEntity != null) {
         clusterEntity.setSecurityType(securityType);
-        clusterDAO.merge(clusterEntity);
+        clusterEntity = clusterDAO.merge(clusterEntity);
       }
     } finally {
       clusterGlobalLock.writeLock().unlock();
@@ -1168,7 +1168,7 @@ public class ClusterImpl implements Cluster {
             HostVersionEntity hostVersionEntity = existingHostToHostVersionEntity.get(hostname);
             if (hostVersionEntity.getState() != desiredState) {
               hostVersionEntity.setState(desiredState);
-              hostVersionDAO.merge(hostVersionEntity);
+            hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
             }
 
           // Maintain the invariant that only one HostVersionEntity is allowed
@@ -1179,7 +1179,7 @@ public class ClusterImpl implements Cluster {
               && desiredState == RepositoryVersionState.CURRENT
               && currentHostVersionEntity.getState() == RepositoryVersionState.CURRENT) {
             currentHostVersionEntity.setState(RepositoryVersionState.INSTALLED);
-            hostVersionDAO.merge(currentHostVersionEntity);
+            currentHostVersionEntity = hostVersionDAO.merge(currentHostVersionEntity);
           }
         }
       }
@@ -1278,7 +1278,7 @@ public class ClusterImpl implements Cluster {
         // Update existing host stack version
         HostVersionEntity hostVersionEntity = existingHostStackVersions.get(hostname);
         hostVersionEntity.setState(repositoryVersionState);
-        hostVersionDAO.merge(hostVersionEntity);
+        hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
       }
     }
   }
@@ -1543,7 +1543,7 @@ public class ClusterImpl implements Cluster {
         // Alternatively, transition to CURRENT during initial bootstrap if at least one host component advertised a version
         if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING) || performingInitialBootstrap) {
           hostVersionEntity.setState(RepositoryVersionState.CURRENT);
-          hostVersionDAO.merge(hostVersionEntity);
+          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }
       } else {
         // Handle transitions during a Stack Upgrade
@@ -1552,12 +1552,12 @@ public class ClusterImpl implements Cluster {
         // INSTALLED->UPGRADING->UPGRADED in one shot.
         if (hostSummary.isUpgradeInProgress(currentVersionEntity.getRepositoryVersion().getVersion()) && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
           hostVersionEntity.setState(RepositoryVersionState.UPGRADING);
-          hostVersionDAO.merge(hostVersionEntity);
+          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }
 
         if (hostSummary.isUpgradeFinished() && hostVersionEntity.getState().equals(RepositoryVersionState.UPGRADING)) {
           hostVersionEntity.setState(RepositoryVersionState.UPGRADED);
-          hostVersionDAO.merge(hostVersionEntity);
+          hostVersionEntity = hostVersionDAO.merge(hostVersionEntity);
         }
       }
     } finally {
@@ -1639,7 +1639,7 @@ public class ClusterImpl implements Cluster {
       System.currentTimeMillis(), System.currentTimeMillis(), userName);
     clusterVersionDAO.create(clusterVersionEntity);
     clusterEntity.getClusterVersionEntities().add(clusterVersionEntity);
-    clusterDAO.merge(clusterEntity);
+    clusterEntity = clusterDAO.merge(clusterEntity);
   }
 
   /**
@@ -1735,13 +1735,13 @@ public class ClusterImpl implements Cluster {
           ClusterVersionEntity currentVersion = clusterVersionDAO.findByClusterAndStateCurrent(getClusterName());
           if (currentVersion != null) {
             currentVersion.setState(RepositoryVersionState.INSTALLED);
-            clusterVersionDAO.merge(currentVersion);
+            currentVersion = clusterVersionDAO.merge(currentVersion);
           }
         }
 
         existingClusterVersion.setState(state);
         existingClusterVersion.setEndTime(System.currentTimeMillis());
-        clusterVersionDAO.merge(existingClusterVersion);
+        existingClusterVersion = clusterVersionDAO.merge(existingClusterVersion);
 
         if (state == RepositoryVersionState.CURRENT) {
           for (HostEntity hostEntity : clusterEntity.getHostEntities()) {
@@ -1760,10 +1760,10 @@ public class ClusterImpl implements Cluster {
                   existingClusterVersion.getRepositoryVersion().getId())) {
                   target = entity;
                   target.setState(state);
-                  hostVersionDAO.merge(target);
+                  target = hostVersionDAO.merge(target);
                 } else if (entity.getState() == RepositoryVersionState.CURRENT) {
                   entity.setState(RepositoryVersionState.INSTALLED);
-                  hostVersionDAO.merge(entity);
+                  entity = hostVersionDAO.merge(entity);
                 }
               }
             }
@@ -1853,11 +1853,11 @@ public class ClusterImpl implements Cluster {
           clusterStateDAO.create(clusterStateEntity);
           clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
           clusterEntity.setClusterStateEntity(clusterStateEntity);
-          clusterDAO.merge(clusterEntity);
+          clusterEntity = clusterDAO.merge(clusterEntity);
         } else {
           clusterStateEntity.setCurrentStack(stackEntity);
-          clusterStateDAO.merge(clusterStateEntity);
-          clusterDAO.merge(clusterEntity);
+          clusterStateEntity = clusterStateDAO.merge(clusterStateEntity);
+          clusterEntity = clusterDAO.merge(clusterEntity);
         }
       }
     } catch (RollbackException e) {
@@ -2235,8 +2235,9 @@ public class ClusterImpl implements Cluster {
           c.setVersion(allConfigs.get(e.getType()).get(e.getTag()).getVersion());
 
           Set<DesiredConfig> configs = map.get(e.getType());
-          if (configs == null)
+          if (configs == null) {
             configs = new HashSet<>();
+          }
 
           configs.add(c);
 
@@ -2265,8 +2266,9 @@ public class ClusterImpl implements Cluster {
                 hostIdToName.get(mappingEntity.getHostId()), mappingEntity.getVersion()));
           }
 
-          for (DesiredConfig c: entry.getValue())
+          for (DesiredConfig c: entry.getValue()) {
             c.setHostOverrides(hostOverrides);
+          }
         }
       }
 
@@ -2317,7 +2319,7 @@ public class ClusterImpl implements Cluster {
         serviceConfigDAO.create(serviceConfigEntity);
         if (configGroup != null) {
           serviceConfigEntity.setHostIds(new ArrayList<Long>(configGroup.getHosts().keySet()));
-          serviceConfigDAO.merge(serviceConfigEntity);
+          serviceConfigEntity = serviceConfigDAO.merge(serviceConfigEntity);
         }
       }
     } finally {
@@ -2530,7 +2532,7 @@ public class ClusterImpl implements Cluster {
       for (ClusterConfigMappingEntity entity : mappingEntities) {
         if (configTypes.contains(entity.getType()) && entity.isSelected() > 0) {
           entity.setSelected(0);
-          clusterDAO.mergeConfigMapping(entity);
+          entity = clusterDAO.mergeConfigMapping(entity);
         }
       }
 
@@ -2597,7 +2599,7 @@ public class ClusterImpl implements Cluster {
     for (ClusterConfigMappingEntity e : entities) {
       if (e.isSelected() > 0 && e.getType().equals(type)) {
         e.setSelected(0);
-        clusterDAO.mergeConfigMapping(e);
+        e = clusterDAO.mergeConfigMapping(e);
       }
     }
 
@@ -3090,30 +3092,39 @@ public class ClusterImpl implements Cluster {
   public void applyLatestConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
+      ClusterEntity clusterEntity = getClusterEntity();
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
 
-      Collection<ClusterConfigMappingEntity> configMappingEntities =
-        clusterDAO.getClusterConfigMappingEntitiesByCluster(clusterId);
-
-      // disable previous config
+      // disable all configs
       for (ClusterConfigMappingEntity e : configMappingEntities) {
+        LOG.debug("{} with tag {} is unselected", e.getType(), e.getTag());
         e.setSelected(0);
       }
 
-      List<ClusterConfigEntity> clusterConfigsToMakeSelected =
-        clusterDAO.getLatestConfigurations(clusterId, stackId);
+      List<ClusterConfigMappingEntity> clusterConfigMappingsForStack = clusterDAO.getClusterConfigMappingsByStack(
+          clusterEntity.getClusterId(), stackId);
 
-      for( ClusterConfigEntity clusterConfigToMakeSelected : clusterConfigsToMakeSelected ){
-        for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
-          String tag = configMappingEntity.getTag();
-          String type = configMappingEntity.getType();
+      Collection<ClusterConfigMappingEntity> latestConfigMappingByStack = getLatestConfigMapping(
+          clusterConfigMappingsForStack);
 
-          if (clusterConfigToMakeSelected.getTag().equals(tag)
-              && clusterConfigToMakeSelected.getType().equals(type)) {
-            configMappingEntity.setSelected(1);
+      // loop through all configs and set the latest to enabled for the
+      // specified stack
+      for(ClusterConfigMappingEntity e: configMappingEntities){
+        String type = e.getType();
+        String tag =  e.getTag();
+
+        for (ClusterConfigMappingEntity latest : latestConfigMappingByStack) {
+          String t = latest.getType();
+          String tagLatest = latest.getTag();
+          if(type.equals(t) && tag.equals(tagLatest) ){//find the latest config of a given mapping entity
+            LOG.info("{} with version tag {} is selected for stack {}", type, tag, stackId.toString());
+            e.setSelected(1);
           }
         }
       }
 
+      clusterEntity.setConfigMappingEntities(configMappingEntities);
+      clusterEntity = clusterDAO.merge(clusterEntity);
       clusterDAO.mergeConfigMappings(configMappingEntities);
 
       cacheConfigurations();
@@ -3121,6 +3132,25 @@ public class ClusterImpl implements Cluster {
       clusterGlobalLock.writeLock().unlock();
     }
   }
+  
+  public Collection<ClusterConfigMappingEntity> getLatestConfigMapping(List<ClusterConfigMappingEntity> clusterConfigMappingEntities){
+    Map<String, ClusterConfigMappingEntity> temp = new HashMap<String, ClusterConfigMappingEntity>();
+    for (ClusterConfigMappingEntity e : clusterConfigMappingEntities) {
+      String type = e.getType();
+      if(temp.containsKey(type)){
+        ClusterConfigMappingEntity entityStored = temp.get(type);
+        Long timestampStored = entityStored.getCreateTimestamp();
+        Long timestamp = e.getCreateTimestamp();
+        if(timestamp > timestampStored){
+          temp.put(type, e); //find a newer config for the given type
+        }
+      } else {
+        temp.put(type, e); //first time encounter a type, add it
+      }
+    }
+
+    return temp.values();
+  }  
 
   /**
    * {@inheritDoc}
@@ -3137,10 +3167,21 @@ public class ClusterImpl implements Cluster {
     return new HashMap<>();
   }
 
-  // The caller should make sure global write lock is acquired.
+
+  /**
+   * Removes all configurations associated with the specified stack. The caller
+   * should make sure the cluster global write lock is acquired.
+   *
+   * @param stackId
+   * @see Cluster#getClusterGlobalLock()
+   */
   @Transactional
   void removeAllConfigsForStack(StackId stackId) {
     ClusterEntity clusterEntity = getClusterEntity();
+
+    // make sure the entity isn't stale in the current unit of work.
+    clusterDAO.refresh(clusterEntity);
+
     long clusterId = clusterEntity.getClusterId();
 
     // this will keep track of cluster config mappings that need removal
@@ -3161,12 +3202,13 @@ public class ClusterImpl implements Cluster {
         clusterDAO.removeConfig(configEntity);
         removedClusterConfigs.add(configEntity);
       }
+
       serviceConfig.getClusterConfigEntities().clear();
       serviceConfigDAO.remove(serviceConfig);
       serviceConfigEntities.remove(serviceConfig);
     }
 
-    // remove any lefover cluster configurations that don't have a service
+    // remove any leftover cluster configurations that don't have a service
     // configuration (like cluster-env)
     List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
       clusterId, stackId);
@@ -3177,7 +3219,8 @@ public class ClusterImpl implements Cluster {
       removedClusterConfigs.add(clusterConfig);
     }
 
-    clusterDAO.merge(clusterEntity);
+    clusterEntity.setClusterConfigEntities(clusterConfigEntities);
+    clusterEntity = clusterDAO.merge(clusterEntity);
 
     // remove config mappings
     Collection<ClusterConfigMappingEntity> configMappingEntities =
@@ -3201,8 +3244,10 @@ public class ClusterImpl implements Cluster {
       }
     }
 
-    clusterDAO.merge(clusterEntity);
+    clusterEntity.setConfigMappingEntities(configMappingEntities);
+    clusterEntity = clusterDAO.merge(clusterEntity);
   }
+
 
   /**
    * {@inheritDoc}
@@ -3211,10 +3256,6 @@ public class ClusterImpl implements Cluster {
   public void removeConfigurations(StackId stackId) {
     clusterGlobalLock.writeLock().lock();
     try {
-      // make sure the entity isn't stale in the current unit of work.
-      ClusterEntity clusterEntity = getClusterEntity();
-      clusterDAO.refresh(clusterEntity);
-
       removeAllConfigsForStack(stackId);
       cacheConfigurations();
     } finally {
@@ -3336,8 +3377,9 @@ public class ClusterImpl implements Cluster {
     // Iterate through the topology requests associated with this cluster and look for PROVISION request
     for (TopologyRequestEntity topologyRequest: topologyRequests) {
       TopologyRequest.Type requestAction = TopologyRequest.Type.valueOf(topologyRequest.getAction());
-      if (requestAction == TopologyRequest.Type.PROVISION)
+      if (requestAction == TopologyRequest.Type.PROVISION) {
         return true;
+      }
     }
 
     return false;

@@ -51,7 +51,12 @@ import javax.persistence.UniqueConstraint;
 @NamedQueries({
     @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId"),
     @NamedQuery(name = "ClusterConfigEntity.findAllConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.stack=:stack"),
-    @NamedQuery(name = "ClusterConfigEntity.findLatestConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.timestamp = (SELECT MAX(clusterConfig2.timestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)") })
+    @NamedQuery(name = "ClusterConfigEntity.findLatestConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.timestamp = (SELECT MAX(clusterConfig2.timestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)"),
+    @NamedQuery(name = "ClusterConfigEntity.findClusterConfigMappingsByStack",
+      query = "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
+        "JOIN ClusterConfigEntity config ON mapping.typeName = config.type AND mapping.tag = config.tag " +
+        "WHERE mapping.clusterId = :clusterId AND config.stack = :stack")
+})
 public class ClusterConfigEntity {
 
   @Id
