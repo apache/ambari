@@ -34,6 +34,10 @@
         <type>core-site</type>
         <name>fs.defaultFS</name>
       </property>
+      <property>
+        <type>ams-site</type>
+        <name>timeline.metrics.service.operation.mode</name>
+      </property>
     </depends-on>
   </property>
   <property>
@@ -63,6 +67,12 @@
       standalone mode and true for distributed mode. If false, startup will run
       all HBase and ZooKeeper daemons together in the one JVM.
     </description>
+    <depends-on>
+    <property>
+      <type>ams-site</type>
+      <name>timeline.metrics.service.operation.mode</name>
+    </property>
+    </depends-on>
   </property>
   <property>
     <name>hbase.master.wait.on.regionservers.mintostart</name>
