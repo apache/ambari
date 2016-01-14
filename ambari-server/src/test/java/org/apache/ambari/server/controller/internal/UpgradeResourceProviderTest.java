@@ -293,7 +293,7 @@ public class UpgradeResourceProviderTest {
     assertEquals("This is a manual task with a placeholder of placeholder-rendered-properly",
         zookeeperUpgradeItems.get(0).getText());
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(1).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(2).getText());
+    assertEquals("Skipping Configuration Task 2.2.0", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(3).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(4).getText());
 
@@ -341,7 +341,7 @@ public class UpgradeResourceProviderTest {
     List<UpgradeItemEntity> zookeeperUpgradeItems = zookeeperGroup.getItems();
     assertEquals(3, zookeeperUpgradeItems.size());
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Skipping Configuration Task 2.2.0", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
 
     UpgradeGroupEntity postClusterGroup = upgradeGroups.get(1);
@@ -386,7 +386,7 @@ public class UpgradeResourceProviderTest {
     assertEquals(4, zookeeperUpgradeItems.size());
 
     assertEquals("Restarting ZooKeeper Server on h1", zookeeperUpgradeItems.get(0).getText());
-    assertEquals("Skipping Configuration Task", zookeeperUpgradeItems.get(1).getText());
+    assertEquals("Skipping Configuration Task 2.2.0", zookeeperUpgradeItems.get(1).getText());
     assertEquals("Service Check ZooKeeper", zookeeperUpgradeItems.get(2).getText());
     assertEquals("Verifying Skipped Failures", zookeeperUpgradeItems.get(3).getText());
 
@@ -677,7 +677,7 @@ public class UpgradeResourceProviderTest {
 
   }
 
-  
+
 
   /**
    * Test Downgrade from the partially completed upgrade
