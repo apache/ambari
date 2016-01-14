@@ -29,6 +29,13 @@
       </check-properties>
     </configuration>
   </prerequisite-checks>
+
+  <!-- Instructs the upgrade pack how to build the configuration pack -->
+  <upgrade-path>
+    <intermediate-stack version="2.3"/>
+    <intermediate-stack version="2.4"/>
+  </upgrade-path>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
