@@ -2259,7 +2259,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   // occur (like distribute keytabs)
                   if((oldSchState == State.INIT || oldSchState == State.INSTALL_FAILED) && kerberosHelper.isClusterKerberosEnabled(cluster)) {
                     // check if host component already exists, if it exists no need to reset kerberos configs
-                    if (!hostComponentAlreadyExists(cluster, scHost)) {
+                    // check if it's blueprint install. If it is, then do not call kerberos.configureService
+                    if (!hostComponentAlreadyExists(cluster, scHost) && !("INITIAL_INSTALL".equals(requestProperties.get("phase")))) {
                       try {
                         kerberosHelper.configureService(cluster, scHost);
                       } catch (KerberosInvalidConfigurationException e) {
