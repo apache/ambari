@@ -1175,4 +1175,96 @@ describe('App.MainServiceItemController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.equal(true);
     });
   });
+
+  describe("#deleteService()", function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      this.mockStackService = sinon.stub(App.StackService, 'find');
+      sinon.stub(mainServiceItemController, 'dependentServicesWarning');
+      this.mockService = sinon.stub(App.Service, 'find');
+      sinon.stub(App, 'showConfirmationPopup');
+      sinon.stub(App.ModalPopup, 'show');
+      sinon.stub(App.format, 'role', function(name) {return name});
+    });
+    afterEach(function() {
+      this.mockStackService.restore();
+      this.mockService.restore();
+      mainServiceItemController.dependentServicesWarning.restore();
+      App.showConfirmationPopup.restore();
+      App.ModalPopup.show.restore();
+      App.format.role.restore();
+    });
+
+    it("service has installed dependent services", function() {
+      this.mockStackService.returns(Em.Object.create({requiredServices: ['S2']}));
+      this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED', isLoaded: true}));
+      mainServiceItemController.deleteService('S1');
+      expect(mainServiceItemController.dependentServicesWarning.calledWith('S1', ['S2'])).to.be.true;
+    });
+
+    it("service has not-installed dependent services, and stopped", function() {
+      this.mockStackService.returns(Em.Object.create({requiredServices: ['S2']}));
+      this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED', isLoaded: false}));
+      mainServiceItemController.deleteService('S1');
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+
+    it("service has not dependent services, and stopped", function() {
+      this.mockStackService.returns(Em.Object.create({requiredServices: []}));
+      this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED', isLoaded: true}));
+      mainServiceItemController.deleteService('S1');
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+    });
+
+    it("service has not dependent services, and not stopped", function() {
+      this.mockStackService.returns(Em.Object.create({requiredServices: []}));
+      this.mockService.returns(Em.Object.create({workStatus: 'STARTED', isLoaded: true}));
+      mainServiceItemController.deleteService('S1');
+      expect(App.ModalPopup.show.calledWith({
+        secondary: null,
+        header: Em.I18n.t('services.service.delete.popup.header'),
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.popup.mustBeStopped').format('S1')
+      })).to.be.true;
+    });
+  });
+
+  describe("#dependentServicesWarning()", function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(App.ModalPopup, 'show');
+      sinon.stub(App.format, 'role', function(name) {return name});
+    });
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+      App.format.role.restore();
+    });
+
+    it("App.ModalPopup.show should be called", function() {
+      mainServiceItemController.dependentServicesWarning('S1', ['S2']);
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#confirmDeleteService()", function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(App.ModalPopup, 'show');
+    });
+    afterEach(function() {
+      App.ModalPopup.show.restore();
+    });
+
+    it("App.ModalPopup.show should be called", function() {
+      mainServiceItemController.confirmDeleteService();
+      expect(App.ModalPopup.show.calledOnce).to.be.true;
+    });
+  });
+
 });

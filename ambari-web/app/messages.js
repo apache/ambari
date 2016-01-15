@@ -293,6 +293,7 @@ Em.I18n.translations = {
   'common.optional': 'Optional',
   'common.running': 'Running',
   'common.stopped': 'Stopped',
+  'common.enter': 'Enter',
   'common.timeout.warning.popup.header': 'Automatic Logout',
   'common.timeout.warning.popup.body.before': 'You will be automatically logged out in ',
   'common.timeout.warning.popup.body.after': ' seconds due to inactivity',
@@ -1675,6 +1676,16 @@ Em.I18n.translations = {
   'services.service.actions.run.immediateStopHawqCluster.error': 'Error during remote command: ',
   'services.service.actions.manage_configuration_groups.short':'Manage Config Groups',
   'services.service.actions.serviceActions':'Service Actions',
+
+  'services.service.delete.popup.header': 'Delete Service',
+  'services.service.delete.popup.dependentServices': 'Prior to deleting <b>{0}</b>, you must delete the following dependent services:',
+  'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service.',
+  'services.service.delete.popup.warning': 'The <b>{0} service will be removed from Ambari and all configurations' +
+  ' and configuration history will be lost</b>',
+  'services.service.confirmDelete.popup.header': 'Confirm Delete',
+  'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "yes"' +
+  ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',
+
   'services.service.summary.unknown':'unknown',
   'services.service.summary.notRunning':'Not Running',
   'services.service.summary.notAvailable':'n/a',

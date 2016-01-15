@@ -44,6 +44,16 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     }
   },
 
+  /**
+   * @type {boolean}
+   * @default true
+   */
+  isPending: true,
+
+  /**
+   * @type {boolean}
+   * @default false
+   */
   isServicesInfoLoaded: false,
 
   initHosts: function() {
@@ -938,5 +948,85 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
     App.showAlertPopup(Em.I18n.t('services.service.actions.run.executeCustomCommand.error'), error);
   },
 
-  isPending:true
+  /**
+   * delete service action
+   * @param {string} serviceName
+   */
+  deleteService: function(serviceName) {
+    var dependentServices = App.StackService.find(serviceName).get('requiredServices').filter(function(_serviceName) {
+      return App.Service.find(_serviceName).get('isLoaded');
+    });
+    var self = this;
+    var displayName = App.format.role(serviceName);
+
+    if (dependentServices.length > 0) {
+      this.dependentServicesWarning(serviceName, dependentServices);
+    } else if (App.Service.find(serviceName).get('workStatus') === 'INSTALLED') {
+      App.showConfirmationPopup(
+        function() {self.confirmDeleteService(serviceName)},
+        Em.I18n.t('services.service.delete.popup.warning').format(displayName),
+        null,
+        Em.I18n.t('services.service.delete.popup.header'),
+        Em.I18n.t('common.delete'),
+        true
+      );
+    } else {
+      App.ModalPopup.show({
+        secondary: null,
+        header: Em.I18n.t('services.service.delete.popup.header'),
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName)
+      });
+    }
+  },
+
+  /**
+   * warning that show dependent services which must be deleted prior to chosen service deletion
+   * @param {string} origin
+   * @param {string} dependent
+   * @returns {App.ModalPopup}
+   */
+  dependentServicesWarning: function(origin, dependent) {
+    var body = Em.I18n.t('services.service.delete.popup.dependentServices').format(App.format.role(origin));
+
+    body += '<ul>';
+    dependent.forEach(function(serviceName) {
+      body += '<li>' + App.format.role(serviceName) + '</li>';
+    });
+    body += '</ul>';
+
+    return App.ModalPopup.show({
+      secondary: null,
+      header: Em.I18n.t('services.service.delete.popup.header'),
+      bodyClass: Em.View.extend({
+        template: Em.Handlebars.compile(body)
+      })
+    });
+  },
+
+  /**
+   * Confirmation popup of service deletion
+   * @param {string} serviceName
+   */
+  confirmDeleteService: function (serviceName) {
+    var message = Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName));
+    var confirmKey = 'yes';
+
+    App.ModalPopup.show({
+      primary: Em.I18n.t('common.delete'),
+      primaryClass: 'btn-danger',
+      header: Em.I18n.t('services.service.confirmDelete.popup.header'),
+      confirmInput: '',
+      disablePrimary: Em.computed.notEqual('confirmInput', confirmKey),
+      bodyClass: Em.View.extend({
+        confirmKey: confirmKey,
+        template: Em.Handlebars.compile(message +
+        '<form class="form-inline align-center"></br>' +
+        '<label><b>{{t common.enter}}&nbsp;{{view.confirmKey}}</b></label>&nbsp;' +
+        '{{view Ember.TextField valueBinding="view.parentView.confirmInput" class="input-small"}}</br>' +
+        '</form>')
+      })
+    });
+  }
+
 });
