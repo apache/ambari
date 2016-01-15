@@ -566,6 +566,7 @@
 
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
 
+          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
