@@ -75,6 +75,8 @@ public class JMXHostProviderTest {
   private static final String RESOURCEMANAGER_HTTPS_PORT = "yarn.resourcemanager.webapp.https.address";
   private static final String YARN_HTTPS_POLICY = "yarn.http.policy";
   private static final String NODEMANAGER_PORT = "yarn.nodemanager.webapp.address";
+  private static final String JOURNALNODE_HTTPS_PORT = "dfs.journalnode.https-address";
+  private static final String HDFS_HTTPS_POLICY = "dfs.http.policy";
 
   @Before
   public void setup() throws Exception {
@@ -227,6 +229,7 @@ public class JMXHostProviderTest {
     String componentName2 = "DATANODE";
     String componentName3 = "HDFS_CLIENT";
     String componentName4 = "RESOURCEMANAGER";
+    String componentName5 = "JOURNALNODE";
 
     createServiceComponent(clusterName, serviceName, componentName1,
       State.INIT);
@@ -236,6 +239,8 @@ public class JMXHostProviderTest {
       State.INIT);
     createServiceComponent(clusterName, serviceName2, componentName4,
       State.INIT);
+    createServiceComponent(clusterName, serviceName, componentName5,
+        State.INIT);
 
     String host1 = "h1";
     clusters.addHost(host1);
@@ -262,6 +267,10 @@ public class JMXHostProviderTest {
       host2, null);
     createServiceComponentHost(clusterName, serviceName, componentName3,
       host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName5,
+      host1, null);
+    createServiceComponentHost(clusterName, serviceName, componentName5,
+      host2, null);
     createServiceComponentHost(clusterName, serviceName, componentName3,
       host2, null);
     createServiceComponentHost(clusterName, serviceName2, componentName4,
@@ -272,6 +281,8 @@ public class JMXHostProviderTest {
     configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
     configs.put(DATANODE_PORT, "localhost:70075");
     configs.put("ambari.dfs.datanode.http.port", "70070");
+    configs.put(JOURNALNODE_HTTPS_PORT, "localhost:8481");
+    configs.put(HDFS_HTTPS_POLICY, "HTTPS_ONLY");
 
     Map<String, String> yarnConfigs = new HashMap<String, String>();
     yarnConfigs.put(RESOURCEMANAGER_PORT, "8088");
@@ -402,6 +413,19 @@ public class JMXHostProviderTest {
     Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "RESOURCEMANAGER"));
     Assert.assertEquals("8090", providerModule.getPort("c1", "RESOURCEMANAGER", true));
 
+  }
+
+  @Test
+  public void testJMXJournalNodeHttpsPort() throws
+    NoSuchParentResourceException,
+    ResourceAlreadyExistsException, UnsupportedPropertyException,
+    SystemException, AmbariException, NoSuchResourceException {
+    createConfigs();
+    JMXHostProviderModule providerModule = new JMXHostProviderModule();
+    providerModule.registerResourceProvider(Resource.Type.Cluster);
+    providerModule.registerResourceProvider(Resource.Type.Configuration);
+    Assert.assertEquals("https", providerModule.getJMXProtocol("c1", "JOURNALNODE"));
+    Assert.assertEquals("8481", providerModule.getPort("c1", "JOURNALNODE", true));
   }
 
   @Test
