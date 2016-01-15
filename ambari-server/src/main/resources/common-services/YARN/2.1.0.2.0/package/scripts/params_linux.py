@@ -315,6 +315,23 @@ scheme = 'http' if not yarn_https_on else 'https'
 yarn_rm_address = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'] if not yarn_https_on else config['configurations']['yarn-site']['yarn.resourcemanager.webapp.https.address']
 rm_active_port = rm_https_port if yarn_https_on else rm_port
 
+rm_ha_enabled = False
+rm_ha_ids_list = []
+rm_webapp_addresses_list = [yarn_rm_address]
+rm_ha_ids = default("/configurations/yarn-site/yarn.resourcemanager.ha.rm-ids", None)
+
+if rm_ha_ids:
+  rm_ha_ids_list = rm_ha_ids.split(",")
+  if len(rm_ha_ids_list) > 1:
+    rm_ha_enabled = True
+
+if rm_ha_enabled:
+  rm_webapp_addresses_list = []
+  for rm_id in rm_ha_ids_list:
+    rm_webapp_address_property = format('yarn.resourcemanager.webapp.address.{rm_id}') if not yarn_https_on else format('yarn.resourcemanager.webapp.https.address.{rm_id}')
+    rm_webapp_address = config['configurations']['yarn-site'][rm_webapp_address_property]
+    rm_webapp_addresses_list.append(rm_webapp_address)
+
 #ranger yarn properties
 if has_ranger_admin:
   is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
