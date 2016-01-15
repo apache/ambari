@@ -115,6 +115,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
 
     componentServiceMap.put("NAMENODE", Service.Type.HDFS);
     componentServiceMap.put("DATANODE", Service.Type.HDFS);
+    componentServiceMap.put("JOURNALNODE", Service.Type.HDFS);
     componentServiceMap.put("JOBTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("TASKTRACKER", Service.Type.MAPREDUCE);
     componentServiceMap.put("HBASE_MASTER", Service.Type.HBASE);
@@ -126,6 +127,8 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap.put("NAMENODE", new String[]{"dfs.http.address", "dfs.namenode.http-address"});
     initPropMap.put("DATANODE", new String[]{"dfs.datanode.http.address"});
     initPropMap.put("NAMENODE-HTTPS", new String[]{"dfs.namenode.https-address", "dfs.https.port"});
+    initPropMap.put("JOURNALNODE-HTTPS", new String[]{"dfs.journalnode.https-address"});
+    initPropMap.put("JOURNALNODE", new String[]{"dfs.journalnode.http-address"});
     serviceDesiredProperties.put(Service.Type.HDFS, initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
@@ -150,6 +153,10 @@ public abstract class AbstractProviderModule implements ProviderModule,
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("NAMENODE", new String[]{"dfs.http.policy"});
     jmxDesiredProperties.put("NAMENODE", initPropMap);
+
+    initPropMap = new HashMap<String, String[]>();
+    initPropMap.put("JOURNALNODE", new String[]{"dfs.http.policy"});
+    jmxDesiredProperties.put("JOURNALNODE", initPropMap);
 
     initPropMap = new HashMap<String, String[]>();
     initPropMap.put("RESOURCEMANAGER", new String[]{"yarn.http.policy"});
@@ -1036,7 +1043,7 @@ public abstract class AbstractProviderModule implements ProviderModule,
     String jmxProtocolString = clusterJmxProtocolMap.get(clusterName);
 
     try {
-      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER")) {
+      if (componentName.equals("NAMENODE") || componentName.equals("RESOURCEMANAGER") || componentName.equals("JOURNALNODE")) {
         Service.Type service = componentServiceMap.get(componentName);
         String config = serviceConfigTypes.get(service);
         String newSiteConfigVersion = getDesiredConfigVersion(clusterName, config);
