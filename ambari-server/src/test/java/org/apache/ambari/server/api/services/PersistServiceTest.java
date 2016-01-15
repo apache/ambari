@@ -24,6 +24,7 @@ import java.util.Map;
 import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
+import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.utils.StageUtils;
@@ -47,7 +48,7 @@ import com.sun.jersey.spi.container.servlet.ServletContainer;
 import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 
-public class PersistServiceTest extends JerseyTest {
+public class PersistServiceTest extends RandomPortJerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.api.services";
   private static Log LOG = LogFactory.getLog(PersistServiceTest.class);
   Injector injector;
@@ -89,7 +90,7 @@ public class PersistServiceTest extends JerseyTest {
     ClientConfig clientConfig = new DefaultClientConfig();
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     client = Client.create(clientConfig);
-    WebResource webResource = client.resource("http://localhost:9998/persist");
+    WebResource webResource = client.resource(String.format("http://localhost:%d/persist", getTestPort()));
     
     webResource.post("{\"xyx\" : \"t\"}");
     LOG.info("Done posting to the server");
@@ -98,7 +99,7 @@ public class PersistServiceTest extends JerseyTest {
     Map<String, String> jsonOutput = StageUtils.fromJson(output, Map.class);
     String value = jsonOutput.get("xyx");
     Assert.assertEquals("t", value);
-    webResource = client.resource("http://localhost:9998/persist/xyx");
+    webResource = client.resource(String.format("http://localhost:%d/persist/xyx", getTestPort()));
     output = webResource.get(String.class);
     Assert.assertEquals("t", output);
     LOG.info("Value for xyx " + output);
