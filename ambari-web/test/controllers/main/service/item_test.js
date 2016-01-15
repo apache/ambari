@@ -1267,4 +1267,45 @@ describe('App.MainServiceItemController', function () {
     });
   });
 
+  describe("#deleteServiceCall()", function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(App.ajax, 'send');
+    });
+    afterEach(function() {
+      App.ajax.send.restore();
+    });
+
+    it("App.ajax.send should be called", function() {
+      mainServiceItemController.deleteServiceCall('S1');
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name : 'service.item.delete',
+        sender: mainServiceItemController,
+        data : {
+          serviceName : 'S1'
+        },
+        success : 'deleteServiceCallSuccessCallback'
+      })
+    });
+  });
+
+  describe("#deleteServiceCallSuccessCallback()", function() {
+    var mainServiceItemController;
+
+    beforeEach(function() {
+      mainServiceItemController = App.MainServiceItemController.create({});
+      sinon.stub(window.location, 'reload');
+    });
+    afterEach(function() {
+      window.location.reload.restore();
+    });
+
+    it("window.location.reload should be called", function() {
+      mainServiceItemController.deleteServiceCallSuccessCallback();
+      expect(window.location.reload.calledOnce).to.be.true;
+    });
+  });
+
 });
