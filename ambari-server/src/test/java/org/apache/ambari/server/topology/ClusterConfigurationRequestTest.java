@@ -116,6 +116,7 @@ public class ClusterConfigurationRequestTest {
     services.add("KERBEROS");
     services.add("ZOOKEPER");
     expect(blueprint.getServices()).andReturn(services).anyTimes();
+    expect(stack.getConfiguration(services)).andReturn(stackConfig).once();
 
     List<String> hdfsComponents = new ArrayList<>();
     hdfsComponents.add("NAMENODE");
