@@ -219,10 +219,17 @@ class HdfsResourceWebHDFS:
   We should still have the other implementations for such a cases.
   """
   
-  # if we have more than this count of files to recursively chmod/chown
-  # webhdfs won't be used, but 'hadoop fs -chmod (or chown) -R ..' As it can really slow.
-  # (in one second ~17 files can be chmoded)
-  MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS = 1000 
+  """
+  If we have more than this count of files to recursively chmod/chown
+  webhdfs won't be used, but 'hadoop fs -chmod (or chown) -R ..' As it can really slow.
+  (in one second ~17 files can be chmoded)
+  """
+  MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS = 1000
+  """
+  This is used to avoid a lot of liststatus commands, which can take some time if directory
+  contains a lot of files. LISTSTATUS of directory with 1000 files takes ~0.5 seconds.
+  """
+  MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS = 250
   
   def action_execute(self, main_resource):
     pass
@@ -349,12 +356,12 @@ class HdfsResourceWebHDFS:
     results = []
     
     if self.main_resource.resource.recursive_chown:
-      self._fill_directories_list(self.main_resource.resource.target, results)
+      content_summary = self.util.run_command(self.main_resource.resource.target, 'GETCONTENTSUMMARY', method='GET', assertable_result=False)
       
-      # if we don't do this, we can end up waiting real long, having a big result list.
-      if len(results) > HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+      if content_summary['ContentSummary']['fileCount'] <= HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS and content_summary['ContentSummary']['directoryCount'] <= HdfsResourceWebHDFS.MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+        self._fill_directories_list(self.main_resource.resource.target, results)
+      else: # avoid chmowning a lot of files and listing a lot dirs via webhdfs which can take a lot of time.
         shell.checked_call(["hadoop", "fs", "-chown", "-R", format("{owner}:{group}"), self.main_resource.resource.target], user=self.main_resource.resource.user)
-        results = []
 
     if self.main_resource.resource.change_permissions_for_parents:
       self._fill_in_parent_directories(self.main_resource.resource.target, results)
@@ -372,12 +379,12 @@ class HdfsResourceWebHDFS:
     results = []
     
     if self.main_resource.resource.recursive_chmod:
-      self._fill_directories_list(self.main_resource.resource.target, results)
+      content_summary = self.util.run_command(self.main_resource.resource.target, 'GETCONTENTSUMMARY', method='GET', assertable_result=False)
       
-      # if we don't do this, we can end up waiting real long, having a big result list.
-      if len(results) > HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+      if content_summary['ContentSummary']['fileCount'] <= HdfsResourceWebHDFS.MAX_FILES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS and content_summary['ContentSummary']['directoryCount'] <= HdfsResourceWebHDFS.MAX_DIRECTORIES_FOR_RECURSIVE_ACTION_VIA_WEBHDFS:
+        self._fill_directories_list(self.main_resource.resource.target, results)
+      else: # avoid chmoding a lot of files and listing a lot dirs via webhdfs which can take a lot of time.
         shell.checked_call(["hadoop", "fs", "-chmod", "-R", self.mode, self.main_resource.resource.target], user=self.main_resource.resource.user)
-        results = []
       
     if self.main_resource.resource.change_permissions_for_parents:
       self._fill_in_parent_directories(self.main_resource.resource.target, results)
