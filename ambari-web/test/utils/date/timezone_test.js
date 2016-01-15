@@ -48,10 +48,12 @@ describe('timezoneUtils', function () {
     });
 
     it('should map regions and cities correctly', function () {
-      var expected = ['(UTC+01:00) a / Aa, Bb',
-      '(UTC+01:00) b / Ee, Ff',
-      '(UTC+02:00) a / Cc, Dd',
-      '(UTC+02:00) b / Gg, Hh'];
+      var expected = [
+        '(UTC+01:00 UTC) a / Aa, Bb',
+        '(UTC+01:00 UTC) b / Ee, Ff',
+        '(UTC+02:00 UTC) a / Cc, Dd',
+        '(UTC+02:00 UTC) b / Gg, Hh'
+      ];
       var values = this.result.mapProperty('label');
       expect(values).to.eql(expected);
       expect(values.join('')).to.not.contain('II');
