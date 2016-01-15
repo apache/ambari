@@ -46,6 +46,9 @@ import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
@@ -57,6 +60,7 @@ import org.junit.Test;
 import javax.persistence.EntityManager;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,12 +153,14 @@ public class UpgradeCatalog221Test {
     Method addNewConfigurationsFromXml = AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
     Method updateAlerts = UpgradeCatalog221.class.getDeclaredMethod("updateAlerts");
     Method updateOozieConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateOozieConfigs");
+    Method updateTezConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateTezConfigs");
     Method updateRangerKmsDbksConfigs = UpgradeCatalog221.class.getDeclaredMethod("updateRangerKmsDbksConfigs");
 
     UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(updateAlerts)
       .addMockedMethod(updateOozieConfigs)
+      .addMockedMethod(updateTezConfigs)
       .addMockedMethod(updateRangerKmsDbksConfigs)
       .createMock();
 
@@ -163,6 +169,8 @@ public class UpgradeCatalog221Test {
     upgradeCatalog221.updateAlerts();
     expectLastCall().once();
     upgradeCatalog221.updateOozieConfigs();
+    expectLastCall().once();
+    upgradeCatalog221.updateTezConfigs();
     expectLastCall().once();
     upgradeCatalog221.updateRangerKmsDbksConfigs();
     expectLastCall().once();
@@ -254,6 +262,58 @@ public class UpgradeCatalog221Test {
     replay(upgradeCatalog221);
     upgradeCatalog221.updateOozieConfigs();
     easyMockSupport.verifyAll();
+  }
+
+  @Test
+  public void testUpdateTezConfigs() throws Exception {
+    EasyMockSupport easyMockSupport = new EasyMockSupport();
+    final AmbariManagementController mockAmbariManagementController = easyMockSupport.createNiceMock(AmbariManagementController.class);
+    final Clusters mockClusters = easyMockSupport.createStrictMock(Clusters.class);
+    final Cluster mockClusterExpected = easyMockSupport.createNiceMock(Cluster.class);
+
+    final Config tezSiteConf = easyMockSupport.createNiceMock(Config.class);
+    final Map<String, String> propertiesTezSite = new HashMap<String, String>() {{
+      put("tez.counters.max", "2000");
+      put("tez.counters.max.groups", "1000");
+    }};
+
+    StackId stackId = new StackId("HDP","2.3");
+
+    final Injector mockInjector = Guice.createInjector(new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(AmbariManagementController.class).toInstance(mockAmbariManagementController);
+        bind(Clusters.class).toInstance(mockClusters);
+        bind(EntityManager.class).toInstance(entityManager);
+
+        bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
+      }
+    });
+
+    expect(mockAmbariManagementController.getClusters()).andReturn(mockClusters).once();
+    expect(mockClusters.getClusters()).andReturn(new HashMap<String, Cluster>() {{
+      put("normal", mockClusterExpected);
+    }}).atLeastOnce();
+
+
+    expect(mockClusterExpected.getDesiredConfigByType("tez-site")).andReturn(tezSiteConf).atLeastOnce();
+    expect(tezSiteConf.getProperties()).andReturn(propertiesTezSite).once();
+    expect(mockClusterExpected.getCurrentStackVersion()).andReturn(stackId).once();
+
+    UpgradeCatalog221 upgradeCatalog221 = createMockBuilder(UpgradeCatalog221.class)
+        .withConstructor(Injector.class)
+        .withArgs(mockInjector)
+        .addMockedMethod("updateConfigurationPropertiesForCluster", Cluster.class, String.class,
+            Map.class, boolean.class, boolean.class)
+        .createMock();
+    Map<String, String> updates = new HashMap<String, String>();
+    updates.put("tez.counters.max", "10000");
+    updates.put("tez.counters.max.groups", "3000");
+    upgradeCatalog221.updateConfigurationPropertiesForCluster(mockClusterExpected, "tez-site",
+        updates, true, false);
+    expectLastCall().once();
+
   }
 
   @Test
