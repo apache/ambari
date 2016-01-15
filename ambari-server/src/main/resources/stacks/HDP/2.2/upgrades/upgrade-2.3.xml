@@ -626,6 +626,7 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
+          <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_tez_lib_uris_property"/>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_keep_ats_v1"/>
         </pre-upgrade>

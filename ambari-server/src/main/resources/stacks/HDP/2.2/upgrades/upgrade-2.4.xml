@@ -634,6 +634,8 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
 
+          <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties"/>
+
           <!-- Apply HDP 2.4 since same as that in HDP 2.3 -->
           <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>
 
