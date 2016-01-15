@@ -248,7 +248,7 @@ describe('App.clusterController', function () {
         key: 'pass',
         type: 'persistent'
       }, {});
-      expect(App.ajax.send.called).to.be.eql(false);
+      expect(App.ajax.send.called).to.be.false;
       expect(credentialUtils.createOrUpdateCredentials.getCall(0).args).to.eql([
         'test', 'kdc.admin.credential', {
           principal: 'admin',

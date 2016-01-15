@@ -34,6 +34,8 @@ import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +67,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String SECURITY_ENABLED = "security_enabled";
   private static final String TOPOLOGY_HOST_INFO_TABLE = "topology_host_info";
   private static final String TOPOLOGY_HOST_INFO_RACK_INFO_COLUMN = "rack_info";
+  private static final String TEZ_SITE = "tez-site";
 
   @Inject
   DaoUtils daoUtils;
@@ -90,6 +93,8 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
   private static final String RANGER_KMS_JDBC_DRIVER = "ranger.ks.jpa.jdbc.driver";
   private static final String RANGER_KMS_PROPERTIES = "kms-properties";
 
+  private static final String TEZ_COUNTERS_MAX = "tez.counters.max";
+  private static final String TEZ_COUNTERS_MAX_GROUPS = "tez.counters.max.groups";
 
   // ----- Constructors ------------------------------------------------------
 
@@ -155,6 +160,7 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
     addNewConfigurationsFromXml();
     updateAlerts();
     updateOozieConfigs();
+    updateTezConfigs();
     updateRangerKmsDbksConfigs();
   }
 
@@ -358,6 +364,36 @@ public class UpgradeCatalog221 extends AbstractUpgradeCatalog {
               OLD_DEFAULT_HADOOP_CONFIG_PATH, NEW_DEFAULT_HADOOP_CONFIG_PATH);
           updateProperties.put(OOZIE_SERVICE_HADOOP_CONFIGURATIONS_PROPERTY_NAME, updatedOozieHadoopConfigProperty);
           updateConfigurationPropertiesForCluster(cluster, OOZIE_SITE_CONFIG, updateProperties, true, false);
+        }
+      }
+    }
+  }
+
+  protected void updateTezConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    for (final Cluster cluster : getCheckedClusterMap(ambariManagementController.getClusters()).values()) {
+      Config tezSiteProps = cluster.getDesiredConfigByType(TEZ_SITE);
+      if (tezSiteProps != null) {
+
+        // Update tez.counters.max and tez.counters.max.groups configurations
+        String tezCountersMaxProperty = tezSiteProps.getProperties().get(TEZ_COUNTERS_MAX);
+        String tezCountersMaxGroupesProperty = tezSiteProps.getProperties().get(TEZ_COUNTERS_MAX_GROUPS);
+
+        StackId stackId = cluster.getCurrentStackVersion();
+        boolean isStackNotLess23 = (stackId != null && stackId.getStackName().equals("HDP") &&
+            VersionUtils.compareVersions(stackId.getStackVersion(), "2.3") >= 0);
+
+        if (isStackNotLess23) {
+          Map<String, String> updates = new HashMap<String, String>();
+          if (tezCountersMaxProperty != null && tezCountersMaxProperty.equals("2000")) {
+            updates.put(TEZ_COUNTERS_MAX, "10000");
+          }
+          if (tezCountersMaxGroupesProperty != null && tezCountersMaxGroupesProperty.equals("1000")) {
+            updates.put(TEZ_COUNTERS_MAX_GROUPS, "3000");
+          }
+          if (!updates.isEmpty()) {
+            updateConfigurationPropertiesForCluster(cluster, TEZ_SITE, updates, true, false);
+          }
         }
       }
     }

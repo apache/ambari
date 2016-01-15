@@ -1069,7 +1069,7 @@ describe('App.WizardStep8Controller', function () {
     it('should set [] to repoInfo', function() {
       installerStep8Controller.set('clusterInfo', Em.Object.create({repoInfo: [{}, {}]}));
       installerStep8Controller.loadRepoInfoErrorCallback({});
-      expect(installerStep8Controller.get('clusterInfo.repoInfo.length')).to.eql(0);
+      expect(installerStep8Controller.get('clusterInfo.repoInfo.length')).to.be.equal(0);
     });
   });
 
@@ -1340,6 +1340,7 @@ describe('App.WizardStep8Controller', function () {
     beforeEach(function() {
       sinon.stub($, 'ajax', function () {
         return {
+          then: Em.K,
           retry: function () {
             return {then: Em.K}
           }
@@ -1909,20 +1910,21 @@ describe('App.WizardStep8Controller', function () {
           {name: 'some_p', value: 'some_v', serviceName: 'MISC', filename: 'alert_notification'}
         ]);
         installerStep8Controller.get('ajaxRequestsQueue').clear();
-        sinon.stub($, 'ajax', function () {return {complete: Em.K}});
+        sinon.stub(App.ajax, 'send', function () {
+          return {complete: Em.K}
+        });
       });
 
       afterEach(function () {
         App.get.restore();
-        $.ajax.restore();
+        App.ajax.send.restore();
       });
 
       it('should add request to queue', function () {
         installerStep8Controller.createNotification();
         expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
         installerStep8Controller.get('ajaxRequestsQueue').runNextRequest();
-        expect($.ajax.calledOnce).to.be.true;
-        expect($.ajax.args[0][0].url.contains('overwrite_existing=true')).to.be.true;
+        expect(App.ajax.send.calledOnce).to.be.true;
       });
 
       describe('sent data should be valid', function () {

@@ -384,6 +384,12 @@ App.HostComponentActionMap = {
         cssClass: 'icon-play-circle',
         isHidden: false,
         disabled: false
+      },
+      DELETE_SERVICE: {
+        action: 'deleteService',
+        context: ctx.get('serviceName'),
+        label: Em.I18n.t('common.delete'),
+        cssClass: 'icon-remove'
       }
     };
   }

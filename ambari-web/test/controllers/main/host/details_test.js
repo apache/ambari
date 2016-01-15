@@ -2755,62 +2755,6 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#checkZkConfigs()', function () {
-    beforeEach(function () {
-      sinon.stub(controller, 'removeObserver');
-      sinon.stub(controller, 'loadConfigs');
-      sinon.stub(controller, 'isServiceMetricsLoaded', Em.clb);
-      this.stub = sinon.stub(App.router, 'get');
-    });
-    afterEach(function () {
-      controller.loadConfigs.restore();
-      controller.removeObserver.restore();
-      controller.isServiceMetricsLoaded.restore();
-      this.stub.restore();
-    });
-
-    it('No operations of ZOOKEEPER_SERVER', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([]);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    it('Operation of ZOOKEEPER_SERVER running', function () {
-      this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-        id: 1,
-        isRunning: true
-      })]);
-      controller.set('zkRequestId', 1);
-      controller.checkZkConfigs();
-      expect(controller.removeObserver.called).to.be.false;
-      expect(controller.loadConfigs.called).to.be.false;
-    });
-
-    describe('Operation of ZOOKEEPER_SERVER finished', function () {
-
-      beforeEach(function () {
-        this.stub.withArgs('backgroundOperationsController.services').returns([Em.Object.create({
-          id: 1
-        })]);
-        this.clock = sinon.useFakeTimers();
-        controller.set('zkRequestId', 1);
-        controller.checkZkConfigs();
-      });
-
-      afterEach(function () {
-        this.clock.restore();
-      });
-
-      it('loadConfigs is called after `componentsUpdateInterval`', function () {
-        expect(controller.removeObserver.calledWith('App.router.backgroundOperationsController.serviceTimestamp', controller, controller.checkZkConfigs)).to.be.true;
-        this.clock.tick(App.get('componentsUpdateInterval'));
-        expect(controller.loadConfigs.calledOnce).to.be.true;
-      });
-
-    });
-  });
-
   describe('#_doDeleteHostComponentErrorCallback()', function () {
     it('call showBackgroundOperationsPopup', function () {
       controller._doDeleteHostComponentErrorCallback({}, 'textStatus', {}, {url: 'url'});
@@ -3218,9 +3162,7 @@ describe('App.MainHostDetailsController', function () {
     var mock;
     beforeEach(function () {
       mock = {
-        updateHost: function (callback) {
-          callback();
-        },
+        updateHost: Em.clb,
         getAllHostNames: Em.K
       };
       sinon.stub(App.router, 'get').withArgs('updateController').returns(mock).withArgs('clusterController').returns(mock);

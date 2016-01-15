@@ -1740,7 +1740,7 @@ describe('App.InstallerStep7Controller', function () {
     it('should copy properties from hdfs-site to hdfs-client for HAWQ', function() {
       installerStep7Controller.addHawqConfigsOnNnHa(configs);
       // ensure 6 new configs were added
-      expect(configs.length - oldConfigs.length).to.be.eql(6);
+      expect(configs.length - oldConfigs.length).to.be.equal(6);
     });
 
     it('find the same property in hdfs-client for HAWQ and see if attribute value matches with the corresponding property\'s attribute value in hdfs-site', function () {
@@ -1789,49 +1789,7 @@ describe('App.InstallerStep7Controller', function () {
       expect(this.yarnRmDetails.description).to.be.equal('Comma separated yarn resourcemanager host addresses with port');
     });
 
-    it('yarn.resourcemanager.scheduler.ha__yarn-client', function() {
-      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
-      expect(this.yarnRmSchedulerDetails.value).to.be.equal(expectedYarnRmSchedulerValue);
-      expect(this.yarnRmSchedulerDetails.recommendedValue).to.be.equal(expectedYarnRmSchedulerValue);
-      expect(this.yarnRmSchedulerDetails.displayName).to.be.equal('yarn.resourcemanager.scheduler.ha');
-      expect(this.yarnRmSchedulerDetails.description).to.be.equal('Comma separated yarn resourcemanager scheduler addresses with port');
-    });
-  });
-
-  describe('#addHawqConfigsOnKerberizedCluster', function () {
-    var secureProperties = [
-      {
-        name: 'hadoop.security.authentication',
-        value: 'kerberos',
-        file: 'hdfs-client',
-        isOverridable: false,
-        isReconfigurable: false
-      }, {
-        name: 'enable_secure_filesystem',
-        value: 'ON',
-        file: 'hawq-site',
-        isOverridable: false,
-        isReconfigurable: false
-      }, {
-        name: 'krb_server_keyfile',
-        value: '/etc/security/keytabs/hawq.service.keytab',
-        file: 'hawq-site',
-        isOverridable: true,
-        isReconfigurable: true
-      }
-    ];
-
-    var configs = [
-        {
-          id: 'dummy__dummy-site',
-          description: 'dummy__dummy-site',
-          displayName: 'dummy',
-          displayType: 'string',
-          name: 'dummy',
-          value: 'dummy'
-        }
-      ];
-
+<<<<<<< HEAD
     beforeEach(function () {
       this.originalConfigsLength = configs.length;
       installerStep7Controller.addHawqConfigsOnKerberizedCluster(configs);
@@ -1870,6 +1828,14 @@ describe('App.InstallerStep7Controller', function () {
           expect(this.newPropertyAdded.isReconfigurable).to.be.equal(newProperty.isReconfigurable);
         });
       });
+=======
+    it('yarn.resourcemanager.scheduler.ha__yarn-client', function() {
+      var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
+      expect(this.yarnRmSchedulerDetails.value).to.be.equal(expectedYarnRmSchedulerValue);
+      expect(this.yarnRmSchedulerDetails.recommendedValue).to.be.equal(expectedYarnRmSchedulerValue);
+      expect(this.yarnRmSchedulerDetails.displayName).to.be.equal('yarn.resourcemanager.scheduler.ha');
+      expect(this.yarnRmSchedulerDetails.description).to.be.equal('Comma separated yarn resourcemanager scheduler addresses with port');
+>>>>>>> trunk
     });
   });
 

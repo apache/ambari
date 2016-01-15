@@ -29,6 +29,13 @@
       </check-properties>
     </configuration>
   </prerequisite-checks>
+
+  <!-- Instructs the upgrade pack how to build the configuration pack -->
+  <upgrade-path>
+    <intermediate-stack version="2.3"/>
+    <intermediate-stack version="2.4"/>
+  </upgrade-path>
+
   <order>
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Upgrade">
       <direction>UPGRADE</direction>
@@ -388,6 +395,10 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
       </execute-stage>
 
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
+        <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+      </execute-stage>
+
       <!--HBASE-->
       <execute-stage service="HBASE" component="HBASE_MASTER" title="Apply config changes for HBase Master">
         <task xsi:type="configure" id="hdp_2_3_0_0_hbase_master_adjust_phoenix_scheduler_factory"/>
@@ -432,6 +443,10 @@
       <!--TEZ-->
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
         <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
+      </execute-stage>
+
+      <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">
+        <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties"/>
       </execute-stage>
 
       <execute-stage service="TEZ" component="TEZ_CLIENT" title="Apply config changes for Tez">

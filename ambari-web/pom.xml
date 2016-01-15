@@ -196,23 +196,6 @@
               <commandlineArgs>${args.npm} test</commandlineArgs>
             </configuration>
           </execution>
-          <execution>
-            <id>gzip ambari-web content</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>${executable.gzip}</executable>
-              <workingDirectory>${basedir}</workingDirectory>
-              <arguments>
-                <argument>-f</argument>
-                <argument>public/javascripts/app.js</argument>
-                <argument>public/javascripts/vendor.js</argument>
-                <argument>public/stylesheets/app.css</argument>
-              </arguments>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>

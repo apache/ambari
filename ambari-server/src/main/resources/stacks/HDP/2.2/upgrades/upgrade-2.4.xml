@@ -43,6 +43,12 @@
     </configuration>
   </prerequisite-checks>
 
+  <!-- Instructs the upgrade pack how to build the configuration pack -->
+  <upgrade-path>
+    <intermediate-stack version="2.3"/>
+    <intermediate-stack version="2.4"/>
+  </upgrade-path>
+
   <skip-failures>false</skip-failures>
   <skip-service-check-failures>false</skip-service-check-failures>
 
@@ -560,6 +566,7 @@
 
           <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
 
+          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart-task"/>
@@ -626,6 +633,8 @@
       <component name="TEZ_CLIENT">
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_3_0_0_tez_client_adjust_properties"/>
+
+          <task xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties"/>
 
           <!-- Apply HDP 2.4 since same as that in HDP 2.3 -->
           <task xsi:type="configure" id="hdp_2_4_0_0_tez_client_adjust_tez_lib_uris_property"/>

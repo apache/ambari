@@ -64,7 +64,7 @@ describe('App.AlertConfigProperties', function () {
           showInputForText: false
         });
 
-        expect(model.get('displayValue')).to.eql('40');
+        expect(model.get('displayValue')).to.be.equal('40');
       });
 
       it('value change should not effect displayValue for not AGGREGATE type', function () {
@@ -77,7 +77,7 @@ describe('App.AlertConfigProperties', function () {
           showInputForText: false
         });
 
-        expect(model.get('displayValue')).to.eql('0.4');
+        expect(model.get('displayValue')).to.be.equal('0.4');
       });
 
     });

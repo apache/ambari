@@ -912,7 +912,7 @@ describe('App.WizardController', function () {
     });
     it('should load services from server', function () {
       wizardController.loadServicesFromServer();
-      expect(res).to.eql('services');
+      expect(res).to.be.equal('services');
     });
   });
 

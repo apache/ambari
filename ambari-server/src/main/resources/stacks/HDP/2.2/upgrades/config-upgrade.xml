@@ -107,6 +107,20 @@
             <type>tez-site</type>
             <set key="tez.lib.uris" value="/hdp/apps/${hdp.version}/tez/tez.tar.gz"/>
           </definition>
+
+          <definition xsi:type="configure" id="hdp_2_2_0_0_tez_client_adjust_tez_counters_properties">
+            <condition type="tez-site" key="tez.counters.max" value="2000">
+              <type>tez-site</type>
+              <key>tez.counters.max</key>
+              <value>10000</value>
+            </condition>
+            <condition type="tez-site" key="tez.counters.max.groups" value="1000">
+              <type>tez-site</type>
+              <key>tez.counters.max.groups</key>
+              <value>3000</value>
+            </condition>
+          </definition>
+
         </changes>
       </component>
     </service>

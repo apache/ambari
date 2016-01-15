@@ -193,19 +193,19 @@ describe.skip('App.stackConfigPropertiesMapper', function () {
       });
 
       it('name is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('name')).to.eql('p1');
+        expect(App.StackConfigProperty.find('p1__site1').get('name')).to.be.equal('p1');
       });
 
       it('displayName is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('displayName')).to.eql('P1');
+        expect(App.StackConfigProperty.find('p1__site1').get('displayName')).to.be.equal('P1');
       });
 
       it('description is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('description')).to.eql('desc1');
+        expect(App.StackConfigProperty.find('p1__site1').get('description')).to.be.equal('desc1');
       });
 
       it('recommendedValue is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('recommendedValue')).to.eql('v1');
+        expect(App.StackConfigProperty.find('p1__site1').get('recommendedValue')).to.be.equal('v1');
       });
 
       it('recommendedIsFinal is valid', function () {
@@ -213,15 +213,15 @@ describe.skip('App.stackConfigPropertiesMapper', function () {
       });
 
       it('serviceName is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('serviceName')).to.eql('s1');
+        expect(App.StackConfigProperty.find('p1__site1').get('serviceName')).to.be.equal('s1');
       });
 
       it('stackName is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('stackName')).to.eql('HDP');
+        expect(App.StackConfigProperty.find('p1__site1').get('stackName')).to.be.equal('HDP');
       });
 
       it('stackVersion is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('stackVersion')).to.eql('2.2');
+        expect(App.StackConfigProperty.find('p1__site1').get('stackVersion')).to.be.equal('2.2');
       });
 
       it('type is valid', function () {
@@ -229,7 +229,7 @@ describe.skip('App.stackConfigPropertiesMapper', function () {
       });
 
       it('fileName is valid', function () {
-        expect(App.StackConfigProperty.find('p1__site1').get('fileName')).to.eql('site1.xml');
+        expect(App.StackConfigProperty.find('p1__site1').get('fileName')).to.be.equal('site1.xml');
       });
 
       it('propertyDependedBy is valid', function () {
@@ -269,8 +269,8 @@ describe.skip('App.stackConfigPropertiesMapper', function () {
       var prop = App.StackConfigProperty.find().findProperty('name', 'p4');
       var prop2 = App.StackConfigProperty.find().findProperty('name', 'p5');
       expect(prop).to.be.ok;
-      expect(prop.get('displayType')).to.be.eql('password');
-      expect(prop2.get('displayType')).to.be.eql('user');
+      expect(prop.get('displayType')).to.be.equal('password');
+      expect(prop2.get('displayType')).to.be.equal('user');
     });
   });
 
