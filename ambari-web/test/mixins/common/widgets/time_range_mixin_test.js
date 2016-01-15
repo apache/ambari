@@ -62,17 +62,17 @@ describe('App.TimeRangeMixin', function () {
       ],
       rangeCases = [
         {
-          currentTimeRangeIndex: 1,
+          index: 1,
           customStartTime: null,
           customEndTime: null,
-          title: 'previous time range is preset',
+          title: 'time range is preset',
           testTitle: 'should reset time range boundaries'
         },
         {
-          currentTimeRangeIndex: 8,
+          index: 8,
           customStartTime: 1,
           customEndTime: 1,
-          title: 'previous time range is custom',
+          title: 'time range is custom',
           testTitle: 'should not reset time range boundaries'
         }
       ];
@@ -115,13 +115,12 @@ describe('App.TimeRangeMixin', function () {
 
         beforeEach(function () {
           obj.setProperties({
-            currentTimeRangeIndex: item.currentTimeRangeIndex,
             customStartTime: 1,
             customEndTime: 1
           });
           obj.setTimeRange({
             context: {
-              index: 0
+              index: item.index
             }
           });
         });

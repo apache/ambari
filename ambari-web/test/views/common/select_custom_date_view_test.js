@@ -193,7 +193,7 @@ describe('App.JobsCustomDatesSelectView', function () {
             value: 0
           }
         });
-        expect(Em.isNone(view.createCustomEndDate(new Date()))).to.equal(item.isInvalidDate);
+        expect(Em.isNone(view.createCustomEndDate(1000))).to.equal(item.isInvalidDate);
       });
     });
 
@@ -201,7 +201,7 @@ describe('App.JobsCustomDatesSelectView', function () {
       view.set('customDateFormFields.duration', {
         value: 900000
       });
-      expect(view.createCustomEndDate(new Date(1000)).getTime()).to.equal(901000);
+      expect(view.createCustomEndDate(1000)).to.equal(901000);
     });
 
   });

@@ -18,6 +18,8 @@
 
 var App = require('app');
 
+var stringUtils = require('utils/string_utils');
+
 App.JobsCustomDatesSelectView = Em.View.extend({
 
   name: 'jobsCustomDatesSelectView',
@@ -29,53 +31,6 @@ App.JobsCustomDatesSelectView = Em.View.extend({
   hourOptions: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
 
   minuteOptions: ['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'],
-
-  durationOptions: [
-    {
-      value: 900000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.15min')
-    },
-    {
-      value: 1800000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.30min')
-    },
-    {
-      value: 3600000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.1hr')
-    },
-    {
-      value: 7200000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.2hr')
-    },
-    {
-      value: 14400000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.4hr')
-    },
-    {
-      value: 43200000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.12hr')
-    },
-    {
-      value: 86400000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.24hr')
-    },
-    {
-      value: 604800000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.1w')
-    },
-    {
-      value: 2592000000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.1m')
-    },
-    {
-      value: 31536000000,
-      label: Em.I18n.t('jobs.customDateFilter.duration.1yr')
-    },
-    {
-      value: 0,
-      label: Em.I18n.t('common.custom')
-    }
-  ],
 
   customDateFormFields: Ember.Object.create({
     startDate: null,
@@ -99,6 +54,66 @@ App.JobsCustomDatesSelectView = Em.View.extend({
     endDate: ''
   }),
 
+  durationSelect: Em.Select.extend({
+    classNames: ['input-medium'],
+    content: [
+      {
+        value: 900000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.15min')
+      },
+      {
+        value: 1800000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.30min')
+      },
+      {
+        value: 3600000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.1hr')
+      },
+      {
+        value: 7200000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.2hr')
+      },
+      {
+        value: 14400000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.4hr')
+      },
+      {
+        value: 43200000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.12hr')
+      },
+      {
+        value: 86400000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.24hr')
+      },
+      {
+        value: 604800000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.1w')
+      },
+      {
+        value: 2592000000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.1m')
+      },
+      {
+        value: 31536000000,
+        label: Em.I18n.t('jobs.customDateFilter.duration.1yr')
+      },
+      {
+        value: 0,
+        label: Em.I18n.t('common.custom')
+      }
+    ],
+    optionValuePath: 'content.value',
+    optionLabelPath: 'content.label',
+    selectionBinding: 'parentView.customDateFormFields.duration',
+    willInsertElement: function () {
+      var duration = this.get('selection'),
+        initialOption = this.get('content').find(function (item) {
+          return duration === item.value || duration === item.label;
+        }, this);
+      this.set('selection', initialOption);
+    }
+  }),
+
   isCustomEndDate: function () {
     return this.get('customDateFormFields.duration.value') === 0;
   }.property('customDateFormFields.duration.value'),
@@ -112,18 +127,18 @@ App.JobsCustomDatesSelectView = Em.View.extend({
     });
   },
 
-  createCustomStartDate : function () {
+  createCustomStartDate: function () {
     var startDate = this.get('customDateFormFields.startDate');
     var hoursForStart = this.get('customDateFormFields.hoursForStart');
     var minutesForStart = this.get('customDateFormFields.minutesForStart');
     var middayPeriodForStart = this.get('customDateFormFields.middayPeriodForStart');
     if (startDate && hoursForStart && minutesForStart && middayPeriodForStart) {
-      return new Date(startDate + ' ' + hoursForStart + ':' + minutesForStart + ' ' + middayPeriodForStart);
+      return App.getTimeStampFromLocalTime(new Date(startDate + ' ' + hoursForStart + ':' + minutesForStart + ' ' + middayPeriodForStart));
     }
     return null;
   },
 
-  createCustomEndDate : function (startDate) {
+  createCustomEndDate: function (startDate) {
     var duration = this.get('customDateFormFields.duration.value'),
       date;
     if (duration === 0) {
@@ -132,15 +147,12 @@ App.JobsCustomDatesSelectView = Em.View.extend({
       var minutesForEnd = this.get('customDateFormFields.minutesForEnd');
       var middayPeriodForEnd = this.get('customDateFormFields.middayPeriodForEnd');
       if (endDate && hoursForEnd && minutesForEnd && middayPeriodForEnd) {
-        date = endDate + ' ' + hoursForEnd + ':' + minutesForEnd + ' ' + middayPeriodForEnd;
+        date = App.getTimeStampFromLocalTime(new Date(endDate + ' ' + hoursForEnd + ':' + minutesForEnd + ' ' + middayPeriodForEnd));
       }
     } else if (!Em.isNone(startDate)) {
-      date = startDate.getTime() + duration;
+      date = startDate + duration;
     }
-    if (!Em.isNone(date)) {
-      return new Date(date);
-    }
-    return null;
+    return date;
   },
 
   setErrorMessage: function (key, message) {
@@ -160,12 +172,13 @@ App.JobsCustomDatesSelectView = Em.View.extend({
 
     // Check if fields are empty or invalid
     Em.keys(errorMessages).forEach(function (key) {
-      var value = formFields.get(key);
+      var value = formFields.get(key),
+        timestamp = App.getTimeStampFromLocalTime(value);
       if (key !== 'endDate' || this.get('isCustomEndDate')) {
         if (!formFields.get(key)) {
           hasErrors = true;
           this.setErrorMessage(key);
-        } else if (isNaN(new Date(value).valueOf())) {
+        } else if (isNaN(timestamp)) {
           this.setErrorMessage(key, Em.I18n.t('jobs.customDateFilter.error.incorrect'));
           hasErrors = true;
         } else {
@@ -178,9 +191,15 @@ App.JobsCustomDatesSelectView = Em.View.extend({
     if (!hasErrors) {
       var startDate = this.createCustomStartDate(),
         endDate = this.createCustomEndDate(startDate);
-      if (startDate && endDate && (startDate > endDate)) {
-        hasErrors = true;
-        this.setErrorMessage('endDate', Em.I18n.t('jobs.customDateFilter.error.date.order'));
+      if (startDate && endDate) {
+        if (startDate > endDate) {
+          hasErrors = true;
+          this.setErrorMessage('endDate', Em.I18n.t('jobs.customDateFilter.error.date.order'));
+        }
+        if (startDate > new Date().getTime()) {
+          hasErrors = true;
+          this.setErrorMessage('startDate', Em.I18n.t('jobs.customDateFilter.error.laterThanNow'));
+        }
       }
     }
 
@@ -188,9 +207,50 @@ App.JobsCustomDatesSelectView = Em.View.extend({
 
     // Get customized time range if there are no errors
     if (!hasErrors) {
+      var duration;
+      if (this.get('isCustomEndDate')) {
+        var values = [
+            {
+              label: 'year',
+              max: Infinity
+            },
+            {
+              label: 'month',
+              max: 12
+            },
+            {
+              label: 'week',
+              max: 4
+            },
+            {
+              label: 'day',
+              max: 7
+            },
+            {
+              label: 'hour',
+              max: 24
+            },
+            {
+              label: 'minute',
+              max: 60
+            }
+          ],
+          start = moment(startDate),
+          end = moment(endDate);
+        values.forEach(function (item) {
+          var diff = end.diff(start, item.label);
+          item.value = diff >= item.max ? diff % item.max : diff;
+        });
+        duration = values.filterProperty('value').map(function (item) {
+          return item.value + ' ' + stringUtils.pluralize(item.value, item.label);
+        }).join(' ');
+      } else {
+        duration = this.get('customDateFormFields.duration.label');
+      }
       this.get('controller').setProperties({
-        startTime: App.getTimeStampFromLocalTime(startDate),
-        endTime: App.getTimeStampFromLocalTime(endDate)
+        startTime: startDate,
+        endTime: endDate,
+        customDuration: duration
       });
     }
 

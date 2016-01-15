@@ -635,6 +635,18 @@ App.dateTimeWithTimeZone = function (x) {
   return x || new Date().getTime();
 };
 
+App.formatDateTimeWithTimeZone = function (timeStamp, format) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone'),
+    time;
+  if (timezone) {
+    var tz = Em.getWithDefault(timezone, 'zones.0.value', '');
+    time = moment.tz(timeStamp, tz);
+  } else {
+    time = moment(timeStamp);
+  }
+  return moment(time).format(format);
+};
+
 App.getTimeStampFromLocalTime = function (time) {
   var timezone = App.router.get('userSettingsController.userSettings.timezone'),
     offsetString = '',

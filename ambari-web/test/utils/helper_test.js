@@ -484,4 +484,25 @@ describe('utils/helper', function() {
       });
     });
   });
+
+  describe('#App.formatDateTimeWithTimeZone()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router, 'get').withArgs('userSettingsController.userSettings.timezone').returns({
+        zones: [{
+          value: 'Europe/Amsterdam'
+        }]
+      });
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    it('should format date according to customized timezone', function () {
+      expect(App.formatDateTimeWithTimeZone(1000000, 'YYYY-MM-DD HH:mm:ss (hh:mm A)')).to.equal('1970-01-01 01:16:40 (01:16 AM)');
+    });
+
+  });
+
 });

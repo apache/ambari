@@ -25,9 +25,9 @@
     {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForStart" class="input-mini"}}
     <span class="help-inline">{{view.errorMessages.startDate}}</span>
   </div>
-  <div>
+  <div class="control-group">
     <label>{{t common.duration}}</label>
-    {{view Ember.Select contentBinding="view.durationOptions" optionValuePath="content.value" optionLabelPath="content.label" selectionBinding="view.customDateFormFields.duration" class="input-medium"}}
+    {{view view.durationSelect selectionBinding="view.customDateFormFields.duration"}}
   </div>
   <div {{bindAttr class=":control-group view.errors.isEndDateError:error view.isCustomEndDate::hidden"}}>
     <label>{{t jobs.customDateFilter.endTime}}</label>
@@ -36,5 +36,8 @@
     {{view Ember.Select contentBinding="view.minuteOptions" selectionBinding="view.customDateFormFields.minutesForEnd" class="input-mini"}}
     {{view Ember.Select contentBinding="view.middayPeriodOptions" selectionBinding="view.customDateFormFields.middayPeriodForEnd" class="input-mini"}}
     <span class="help-inline">{{view.errorMessages.endDate}}</span>
+  </div>
+  <div class="timezone">
+    <strong>{{t common.timezone}}</strong>: {{App.router.userSettingsController.userSettings.timezone.label}}
   </div>
 </div>

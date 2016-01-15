@@ -26,6 +26,7 @@ App.MainDashboardWidgetsView = Em.View.extend(App.UserPref, App.LocalStorage, Ap
   templateName: require('templates/main/dashboard/widgets'),
 
   didInsertElement: function () {
+    this._super();
     this.setWidgetsDataModel();
     this.setInitPrefObject();
     this.setOnLoadVisibleWidgets();

@@ -934,13 +934,14 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
           return this.get('parentView.graph.isPopupReady');
         }.property('parentView.graph.isPopupReady'),
 
+        currentTimeRangeIndex: self.get('currentTimeIndex'),
+        customStartTime: self.get('customStartTime'),
+        customEndTime: self.get('customEndTime'),
+        customDurationFormatted: self.get('customDurationFormatted'),
+
         didInsertElement: function () {
-          this.setTimeRange({
-            context: {
-              index: 0
-            }
-          });
           var popupBody = this;
+          this._super();
           App.tooltip(this.$('.corner-icon > .icon-save'), {
             title: Em.I18n.t('common.export')
           });
@@ -999,7 +1000,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         setTimeRange: function (event) {
           var index = event.context.index,
             callback = this.get('parentView').reloadGraphByTime.bind(this.get('parentView'), index);
-          this._super(event, callback, self);
+          this._super(event, callback);
 
           // Preset time range is specified by user
           if (index !== 8) {
@@ -1089,16 +1090,19 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
   currentTimeIndex: 0,
   customStartTime: null,
   customEndTime: null,
+  customDurationFormatted: null,
   setCurrentTimeIndexFromParent: function () {
     // 8 index corresponds to custom start and end time selection
     var targetView = !Em.isNone(this.get('parentView.currentTimeRangeIndex')) ? this.get('parentView') : this.get('parentView.parentView'),
       index = targetView.get('currentTimeRangeIndex'),
       customStartTime = (index === 8) ? targetView.get('customStartTime') : null,
-      customEndTime = (index === 8) ? targetView.get('customEndTime'): null;
+      customEndTime = (index === 8) ? targetView.get('customEndTime'): null,
+      customDurationFormatted = (index === 8) ? targetView.get('customDurationFormatted'): null;
     this.setProperties({
       currentTimeIndex: index,
       customStartTime: customStartTime,
-      customEndTime: customEndTime
+      customEndTime: customEndTime,
+      customDurationFormatted: customDurationFormatted
     });
   }.observes('parentView.parentView.currentTimeRangeIndex', 'parentView.currentTimeRangeIndex', 'parentView.parentView.customStartTime', 'parentView.customStartTime', 'parentView.parentView.customEndTime', 'parentView.customEndTime'),
   timeUnitSeconds: 3600,
