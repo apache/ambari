@@ -18,8 +18,7 @@
 
 var App = require('app');
 var filters = require('views/common/filter_view'),
-  sort = require('views/common/sort_view'),
-  date = require('utils/date/date');
+  sort = require('views/common/sort_view');
 
 App.MainAlertDefinitionsView = App.TableView.extend({
 
@@ -237,24 +236,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
   serviceFilterView: filters.createSelectView({
     column: 3,
     fieldType: 'filter-input-width',
-    content: function () {
-      return [
-        {
-          value: '',
-          label: Em.I18n.t('common.all')
-        }
-      ].concat(App.Service.find().map(function (service) {
-        return {
-          value: service.get('serviceName'),
-          label: service.get('displayName')
-        }
-      }).concat([
-        {
-          value: 'AMBARI',
-          label: Em.I18n.t('app.name')
-        }
-      ]));
-    }.property('App.router.clusterController.isLoaded'),
+    content: filters.getComputedServicesList(),
     onChangeValue: function () {
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
     }
@@ -447,7 +429,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
 
     onValueChange: function () {
       var value = this.get('value');
-      if (value != undefined) {
+      if (value !== undefined) {
         this.get('content').setEach('selected', false);
         this.set('selected', this.get('content').findProperty('value', value));
         var selectEntry = this.get('content').findProperty('value', value);
@@ -484,7 +466,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    * @type {string}
    */
   paginationRightClass: function () {
-    if ((this.get("endIndex")) < this.get("filteredCount")) {
+    if (this.get("endIndex") < this.get("filteredCount")) {
       return "paginate_next";
     }
     return "paginate_disabled_next";

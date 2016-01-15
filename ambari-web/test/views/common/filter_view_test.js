@@ -109,7 +109,7 @@ describe('filters.getFilterByType', function () {
     ];
 
     testData.forEach(function(item){
-      it('Condition: ' + item.condition + ' - match value: ' + item.value, function () {
+      it('Condition: {0} - match value: {1}'.format(JSON.stringify(item.condition), JSON.stringify(item.value)), function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
       })
     });
@@ -193,7 +193,7 @@ describe('filters.getFilterByType', function () {
     ];
 
     testData.forEach(function(item){
-      it('Condition: ' + item.condition + ' - match value: ' + item.value, function () {
+      it('Condition: {0} - match value: {1}'.format(JSON.stringify(item.condition), JSON.stringify(item.value)), function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
       })
     });
@@ -236,7 +236,7 @@ describe('filters.getFilterByType', function () {
     ];
 
     testData.forEach(function(item){
-      it('Condition: ' + item.condition + ' - match value: ' + item.value, function () {
+      it('Condition: {0} - match value: {1}'.format(JSON.stringify(item.condition), JSON.stringify(item.value)), function () {
         var currentTime = App.dateTime();
         item.value = currentTime - item.value;
         expect(filter(item.value, item.condition)).to.equal(item.result);
@@ -286,7 +286,7 @@ describe('filters.getFilterByType', function () {
     ];
 
     testData.forEach(function(item){
-      it('Condition: ' + item.condition + ' - match value: ' + item.value, function () {
+      it('Condition: {0} - match value: {1}'.format(JSON.stringify(item.condition), JSON.stringify(item.value)), function () {
         expect(filter(item.value, item.condition)).to.equal(item.result);
       })
     });
@@ -567,6 +567,82 @@ describe('filters.getFilterByType', function () {
           expect(filter(test.origin, test.compareValue)).to.equal(test.e);
         });
       });
+
+  });
+
+  describe('os', function () {
+
+    var filter = filters.getFilterByType('os');
+
+    [
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os1',
+        e: true
+      },
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os2',
+        e: true
+      },
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os3',
+        e: true
+      },
+      {
+        origin: [],
+        compareValue: 'os1',
+        e: false
+      },
+      {
+        origin: [{}, {}, {}],
+        compareValue: 'os1',
+        e: false
+      }
+    ].forEach(function (test, i) {
+      it('test #' + (i + 1), function () {
+        expect(filter(test.origin, test.compareValue)).to.be.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('range', function () {
+
+    var filter = filters.getFilterByType('range');
+
+    [
+      {
+        compareValue: [2],
+        origin: 1,
+        e: false
+      },
+      {
+        compareValue: [0, 1],
+        origin: 1,
+        e: true
+      },
+      {
+        compareValue: [1, 1],
+        origin: 1,
+        e: true
+      },
+      {
+        compareValue: [2, 2],
+        origin: 1,
+        e: false
+      },
+      {
+        compareValue: [4, 2],
+        origin: 1,
+        e: false
+      }
+    ].forEach(function (test, i) {
+      it('test #' + (i + 1), function () {
+        expect(filter(test.origin, test.compareValue)).to.be.equal(test.e);
+      });
+    });
 
   });
 

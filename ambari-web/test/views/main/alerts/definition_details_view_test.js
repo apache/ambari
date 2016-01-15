@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-var view, instanceTableRow;
+var view;
 
 function getView() {
   return App.MainAlertDefinitionDetailsView.create({
@@ -183,7 +183,7 @@ describe('App.MainAlertDefinitionDetailsView', function () {
         expect(lastDayCountView.get('count')).to.equal(0);
       });
 
-      it("lastDayAlertsCount is null", function () {
+      it("lastDayAlertsCount is {host1: 1}", function () {
         lastDayCountView.set('parentView.controller.lastDayAlertsCount', {host1: 1});
         expect(lastDayCountView.get('count')).to.equal(1);
       });
