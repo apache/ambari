@@ -24,15 +24,29 @@ module.exports = Em.Object.create({
 
   endTime: null,
 
-  showCustomDatePopup: function (context, primary, secondary) {
+  customDuration: null,
+
+  showCustomDatePopup: function (context, primary, secondary, defaults) {
     var self = this;
+    defaults = defaults || {
+      startDate: null,
+      hoursForStart: null,
+      minutesForStart: null,
+      middayPeriodForStart: null,
+      duration: null,
+      endDate: null,
+      hoursForEnd: null,
+      minutesForEnd: null,
+      middayPeriodForEnd: null
+    };
 
     return App.ModalPopup.show({
       header: Em.I18n.t('jobs.table.custom.date.header'),
       onPrimary: function () {
         context.setProperties({
           customEndTime: self.endTime,
-          customStartTime: self.startTime
+          customStartTime: self.startTime,
+          customDurationFormatted: self.customDuration
         });
         if (primary) {
           primary();
@@ -40,7 +54,6 @@ module.exports = Em.Object.create({
         this._super();
       },
       onSecondary: function () {
-        //context.cancel(); to check!
         if (secondary) {
           secondary();
         }
@@ -54,7 +67,8 @@ module.exports = Em.Object.create({
       },
       disablePrimary: false,
       bodyClass: App.JobsCustomDatesSelectView.extend({
-        controller: self
+        controller: self,
+        customDateFormFields: Em.Object.create(defaults)
       })
     });
   }

@@ -92,6 +92,7 @@ App.MainHostSummaryView = Em.View.extend(App.TimeRangeMixin, {
   },
 
   didInsertElement: function () {
+    this._super();
     this.addToolTip();
   },
 

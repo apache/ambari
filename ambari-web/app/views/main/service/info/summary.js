@@ -537,6 +537,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, App.TimeRangeMixin
   }.property('App.services.serviceMetrics'),
 
   didInsertElement: function () {
+    this._super();
     var svcName = this.get('controller.content.serviceName');
     this.set('service', this.getServiceModel(svcName));
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
