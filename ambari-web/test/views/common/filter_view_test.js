@@ -567,4 +567,80 @@ describe('filters.getFilterByType', function () {
 
   });
 
+  describe('os', function () {
+
+    var filter = filters.getFilterByType('os');
+
+    [
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os1',
+        e: true
+      },
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os2',
+        e: true
+      },
+      {
+        origin: [{osType: 'os1'}, {osType: 'os2'}, {osType: 'os3'}],
+        compareValue: 'os3',
+        e: true
+      },
+      {
+        origin: [],
+        compareValue: 'os1',
+        e: false
+      },
+      {
+        origin: [{}, {}, {}],
+        compareValue: 'os1',
+        e: false
+      }
+    ].forEach(function (test, i) {
+      it('test #' + (i + 1), function () {
+        expect(filter(test.origin, test.compareValue)).to.be.equal(test.e);
+      });
+    });
+
+  });
+
+  describe('range', function () {
+
+    var filter = filters.getFilterByType('range');
+
+    [
+      {
+        compareValue: [2],
+        origin: 1,
+        e: false
+      },
+      {
+        compareValue: [0, 1],
+        origin: 1,
+        e: true
+      },
+      {
+        compareValue: [1, 1],
+        origin: 1,
+        e: true
+      },
+      {
+        compareValue: [2, 2],
+        origin: 1,
+        e: false
+      },
+      {
+        compareValue: [4, 2],
+        origin: 1,
+        e: false
+      }
+    ].forEach(function (test, i) {
+      it('test #' + (i + 1), function () {
+        expect(filter(test.origin, test.compareValue)).to.be.equal(test.e);
+      });
+    });
+
+  });
+
 });

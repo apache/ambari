@@ -17,6 +17,8 @@
  */
 
 var App = require('app');
+var filters = require('views/common/filter_view');
+var sort = require('views/common/sort_view');
 
 App.MainAlertDefinitionDetailsView = App.TableView.extend({
 
@@ -37,6 +39,8 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    * @type {string}
    */
   disabledDisplay: Em.I18n.t('alerts.table.state.disabled'),
+
+  colPropAssoc: ['serviceName', 'hostName', 'state'],
 
   content: function () {
     return this.get('controller.alerts');
@@ -80,6 +84,101 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
       App.tooltip($(".enable-disable-button"));
     });
   }.observes('controller.content.enabled'),
+
+  sortView: sort.wrapperView.extend({}),
+
+  /**
+   * Sorting header for <label>alertDefinition.label</label>
+   * @type {Em.View}
+   */
+  serviceSort: sort.fieldView.extend({
+    column: 0,
+    name: 'serviceName',
+    displayName: Em.I18n.t('common.service')
+  }),
+
+  /**
+   * Sorting header for <label>alertDefinition.status</label>
+   * @type {Em.View}
+   */
+  hostNameSort: sort.fieldView.extend({
+    column: 1,
+    name: 'hostName',
+    displayName: Em.I18n.t('common.host')
+  }),
+
+  /**
+   * Sorting header for <label>alertDefinition.service.serviceName</label>
+   * @type {Em.View}
+   */
+  stateSort: sort.fieldView.extend({
+    column: 2,
+    name: 'state',
+    displayName: Em.I18n.t('common.status')
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.hostName</label>
+   * @type {Em.View}
+   */
+  hostNameFilterView: filters.createTextView({
+    column: 1,
+    fieldType: 'input-medium',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+    }
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.serviceName</label>
+   * @type {Em.View}
+   */
+  serviceFilterView: filters.createSelectView({
+    column: 0,
+    fieldType: 'input-small',
+    content: filters.getComputedServicesList(),
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
+  }),
+
+  /**
+   * Filtering header for <label>alertInstance.state</label>
+   * @type {Em.View}
+   */
+  stateFilterView: filters.createSelectView({
+    column: 2,
+    fieldType: 'filter-input-width',
+    content: [
+      {
+        value: '',
+        label: Em.I18n.t('common.all')
+      },
+      {
+        value: 'OK',
+        label: 'OK'
+      },
+      {
+        value: 'WARNING',
+        label: 'WARNING'
+      },
+      {
+        value: 'CRITICAL',
+        label: 'CRITICAL'
+      },
+      {
+        value: 'UNKNOWN',
+        label: 'UNKNOWN'
+      },
+      {
+        value: 'PENDING',
+        label: 'NONE'
+      }
+    ],
+    onChangeValue: function () {
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'select');
+    }
+  }),
 
   /**
    * View calculates and represents count of alerts on appropriate host during last day
@@ -160,7 +259,7 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    * @type {string}
    */
   paginationRightClass: function () {
-    if ((this.get("endIndex")) < this.get("filteredCount")) {
+    if (this.get("endIndex") < this.get("filteredCount")) {
       return "paginate_next";
     }
     return "paginate_disabled_next";

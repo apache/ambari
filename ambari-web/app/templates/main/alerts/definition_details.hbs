@@ -181,11 +181,19 @@
 
         <table class="table advanced-header-table table-bordered table-striped alerts-table" id="alert-instances-table">
           <thead>
-          <tr>
-            <th class="first">{{t alerts.definition.details.serviceHost}}</th>
-            <th>{{t common.status}}</th>
+          {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}
+            {{view view.parentView.serviceSort class="first service-sorting"}}
+            {{view view.parentView.hostNameSort class="host-sorting"}}
+            {{view view.parentView.stateSort class="state-sorting"}}
             <th>{{t alerts.definition.details.24-hour}}</th>
             <th>{{t alerts.table.header.check.response}}</th>
+          {{/view}}
+          <tr class="filter-row">
+            <th class="first">{{view view.serviceFilterView}}</th>
+            <th>{{view view.hostNameFilterView}}</th>
+            <th>{{view view.stateFilterView }}</th>
+            <th>{{!}}</th>
+            <th>{{!}}</th>
           </tr>
           </thead>
           <tbody>
@@ -193,7 +201,21 @@
             {{#each instance in view.pageContent}}
               {{#view view.instanceTableRow}}
                 <td class="first">
-                  {{view App.AlertInstanceServiceHostView instanceBinding="instance"}}
+                  {{#if instance.serviceDisplayName}}
+                    {{#if instance.service.isLoaded}}
+                      <a {{action goToService instance.service target="view"}}
+                        href="#">{{instance.serviceDisplayName}}</a>
+                    {{else}}
+                      {{instance.serviceDisplayName}}
+                    {{/if}}
+                  {{/if}}
+                </td>
+                <td>
+                  {{#if instance.hostName}}
+                    <a {{action goToHostAlerts instance.host target="view"}} href="#">
+                      {{instance.hostName}}
+                    </a>
+                  {{/if}}
                 </td>
                 <td>{{{instance.status}}}
                   <time class="timeago"
