@@ -356,7 +356,7 @@ public class HostUpdateHelper {
     for (Map.Entry<String, Map<String,String>> clusterHosts : hostChangesFileMap.entrySet()) {
       Map<String,String> newHostPairs = new HashMap<>();
       for (Map.Entry<String, String> hostPair : clusterHosts.getValue().entrySet()) {
-        newHostPairs.put(hostPair.getKey().toLowerCase(), hostPair.getValue());
+        newHostPairs.put(hostPair.getKey().toLowerCase(), hostPair.getValue().toLowerCase());
       }
       newHostChangesFileMap.put(clusterHosts.getKey(), newHostPairs);
     }
