@@ -23,11 +23,13 @@ import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
 import com.google.inject.util.Modules;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
 import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
@@ -97,6 +99,8 @@ public class StackDefinedPropertyProviderTest {
   public static void setupCache() {
     cacheEntryFactory = new TimelineMetricCacheEntryFactory(new Configuration());
     cacheProvider = new TimelineMetricCacheProvider(new Configuration(), cacheEntryFactory);
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
   }
 
   public class TestModuleWithCacheProvider implements Module {

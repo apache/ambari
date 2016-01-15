@@ -533,4 +533,19 @@ public class ConfigurationTest {
     Assert.assertEquals(1000, configuration.getAlertCacheSize());
   }
 
+  @Test
+  public void testPropertyProviderThreadPoolSizes() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertEquals(2 * Runtime.getRuntime().availableProcessors(), configuration.getPropertyProvidersThreadPoolCoreSize());
+    Assert.assertEquals(4 * Runtime.getRuntime().availableProcessors(), configuration.getPropertyProvidersThreadPoolMaxSize());
+
+    ambariProperties.setProperty(Configuration.PROPERTY_PROVIDER_THREADPOOL_MAX_SIZE_KEY, "44");
+    ambariProperties.setProperty(Configuration.PROPERTY_PROVIDER_THREADPOOL_CORE_SIZE_KEY, "22");
+
+    Assert.assertEquals(22, configuration.getPropertyProvidersThreadPoolCoreSize());
+    Assert.assertEquals(44, configuration.getPropertyProvidersThreadPoolMaxSize());
+  }
+
 }
