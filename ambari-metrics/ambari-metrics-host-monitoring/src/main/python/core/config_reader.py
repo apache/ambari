@@ -195,6 +195,9 @@ class Configuration:
   def get_server_address(self):
     return self.get("default", "metrics_server")
 
+  def get_hostname_config(self):
+    return self.get("default", "hostname", None)
+
   def get_hostname_script(self):
     if self.hostname_script:
       return self.hostname_script

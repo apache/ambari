@@ -289,16 +289,8 @@ class HostInfo():
       return cached_hostname
 
     try:
-      hostname_script = self.__config.get_hostname_script()
-      logger.info('hostname_script: %s' % hostname_script)
-      try:
-        osStat = subprocess.Popen([hostname_script], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = osStat.communicate()
-        if (0 == osStat.returncode and 0 != len(out.strip())):
-          cached_hostname = out.strip()
-        else:
-          cached_hostname = socket.getfqdn().lower()
-      except:
+      cached_hostname = self.__config.get_hostname_config()
+      if not cached_hostname:
         cached_hostname = socket.getfqdn().lower()
     except:
       cached_hostname = socket.getfqdn().lower()
