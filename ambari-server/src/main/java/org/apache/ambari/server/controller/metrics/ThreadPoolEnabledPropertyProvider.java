@@ -18,12 +18,15 @@
 
 package org.apache.ambari.server.controller.metrics;
 
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractPropertyProvider;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.ScalingThreadPoolExecutor;
+import org.apache.ambari.server.controller.utilities.BufferedThreadPoolExecutorCompletionService;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -32,12 +35,11 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import javax.inject.Inject;
 
 /**
  * Unites common functionality for multithreaded metrics providers
@@ -51,14 +53,21 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   public static final Set<String> healthyStates = Collections.singleton("STARTED");
   protected final String hostNamePropertyId;
   private final MetricHostProvider metricHostProvider;
-
+  
   /**
    * Executor service is shared between all childs of current class
    */
-  private static final ExecutorService EXECUTOR_SERVICE = initExecutorService();
-  private static final int THREAD_POOL_CORE_SIZE = 20;
-  private static final int THREAD_POOL_MAX_SIZE = 100;
+  private static ThreadPoolExecutor EXECUTOR_SERVICE;
+  private static int THREAD_POOL_CORE_SIZE;
+  private static int THREAD_POOL_MAX_SIZE;
   private static final long THREAD_POOL_TIMEOUT_MILLIS = 30000L;
+
+  @Inject
+  public static void init(Configuration configuration) {
+    THREAD_POOL_CORE_SIZE = configuration.getPropertyProvidersThreadPoolCoreSize();
+    THREAD_POOL_MAX_SIZE = configuration.getPropertyProvidersThreadPoolMaxSize();
+    EXECUTOR_SERVICE = initExecutorService();
+  }
 
   private static final long DEFAULT_POPULATE_TIMEOUT_MILLIS = 10000L;
   /**
@@ -89,26 +98,15 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
   /**
    * Generates thread pool with default parameters
    */
-
-
-  private static ExecutorService initExecutorService() {
-    LinkedBlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>(); // unlimited Queue
-
+  private static ThreadPoolExecutor initExecutorService() {
     ThreadPoolExecutor threadPoolExecutor =
-        new ThreadPoolExecutor(
+        new ScalingThreadPoolExecutor(
             THREAD_POOL_CORE_SIZE,
             THREAD_POOL_MAX_SIZE,
             THREAD_POOL_TIMEOUT_MILLIS,
-            TimeUnit.MILLISECONDS,
-            queue);
-
+            TimeUnit.MILLISECONDS);
     threadPoolExecutor.allowCoreThreadTimeOut(true);
-
     return threadPoolExecutor;
-  }
-
-  public static ExecutorService getExecutorService() {
-    return EXECUTOR_SERVICE;
   }
 
   // ----- Common PropertyProvider implementation details --------------------
@@ -121,7 +119,7 @@ public abstract class ThreadPoolEnabledPropertyProvider extends AbstractProperty
     Ticket ticket = new Ticket();
 
     CompletionService<Resource> completionService =
-        new ExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
+        new BufferedThreadPoolExecutorCompletionService<Resource>(EXECUTOR_SERVICE);
 
     // In a large cluster we could have thousands of resources to populate here.
     // Distribute the work across multiple threads.

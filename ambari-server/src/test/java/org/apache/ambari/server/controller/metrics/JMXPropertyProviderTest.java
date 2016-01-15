@@ -18,23 +18,31 @@
 
 package org.apache.ambari.server.controller.metrics;
 
-import org.apache.ambari.server.controller.internal.ResourceImpl;
-import org.apache.ambari.server.controller.jmx.JMXHostProvider;
-import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
-import org.apache.ambari.server.controller.jmx.TestStreamProvider;
-import org.apache.ambari.server.controller.spi.Request;
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.TemporalInfo;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.junit.Assert;
-import org.junit.Test;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.jmx.JMXHostProvider;
+import org.apache.ambari.server.controller.jmx.JMXPropertyProvider;
+import org.apache.ambari.server.controller.jmx.TestStreamProvider;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * JMX property provider tests.
@@ -45,6 +53,12 @@ public class JMXPropertyProviderTest {
   protected static final String HOST_COMPONENT_STATE_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "state");
 
   public static final int NUMBER_OF_RESOURCES = 400;
+
+  @BeforeClass
+  public static void setupClass() {
+    Injector injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    JMXPropertyProvider.init(injector.getInstance(Configuration.class));
+  }
 
   @Test
   public void testPopulateResources() throws Exception {
