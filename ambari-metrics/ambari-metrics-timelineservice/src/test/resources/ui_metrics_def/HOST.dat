@@ -75,5 +75,6 @@ mem_shared
 mem_free
 cpu_nice
 swap_free
+swap_total
 pkts_out
 |hostname|startTime|endTime|
