@@ -1789,53 +1789,12 @@ describe('App.InstallerStep7Controller', function () {
       expect(this.yarnRmDetails.description).to.be.equal('Comma separated yarn resourcemanager host addresses with port');
     });
 
-<<<<<<< HEAD
-    beforeEach(function () {
-      this.originalConfigsLength = configs.length;
-      installerStep7Controller.addHawqConfigsOnKerberizedCluster(configs);
-    });
-
-    it('should add three security related configs for HAWQ if Kerberos is enabled', function () {
-      // ensure 3 new configs are added
-      expect(configs.length - this.originalConfigsLength).to.be.eql(3);
-    });
-
-    // check if all three new properties were added
-    secureProperties.forEach(function (newProperty) {
-      var id = newProperty.name + '__' + newProperty.file;
-      describe(id, function () {
-
-        beforeEach(function () {
-          this.newPropertyAdded = configs.findProperty('id', id);
-        });
-
-        it('#name', function () {
-          expect(this.newPropertyAdded.name).to.be.equal(newProperty.name);
-        });
-        it('#displayName', function () {
-          expect(this.newPropertyAdded.displayName).to.be.equal(newProperty.name);
-        });
-        it('#value', function () {
-          expect(this.newPropertyAdded.value).to.be.equal(newProperty.value);
-        });
-        it('#recommendedValue', function () {
-          expect(this.newPropertyAdded.recommendedValue).to.be.equal(newProperty.value);
-        });
-        it('#isOverridable', function () {
-          expect(this.newPropertyAdded.isOverridable).to.be.equal(newProperty.isOverridable);
-        });
-        it('#isReconfigurable', function () {
-          expect(this.newPropertyAdded.isReconfigurable).to.be.equal(newProperty.isReconfigurable);
-        });
-      });
-=======
     it('yarn.resourcemanager.scheduler.ha__yarn-client', function() {
       var expectedYarnRmSchedulerValue = 'c6401.ambari.apache.org:8030,c6402.ambari.apache.org:8030';
       expect(this.yarnRmSchedulerDetails.value).to.be.equal(expectedYarnRmSchedulerValue);
       expect(this.yarnRmSchedulerDetails.recommendedValue).to.be.equal(expectedYarnRmSchedulerValue);
       expect(this.yarnRmSchedulerDetails.displayName).to.be.equal('yarn.resourcemanager.scheduler.ha');
       expect(this.yarnRmSchedulerDetails.description).to.be.equal('Comma separated yarn resourcemanager scheduler addresses with port');
->>>>>>> trunk
     });
   });
 

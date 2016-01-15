@@ -246,11 +246,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add tooltip', function() {
         App.tooltip($('#tooltip-test'));
-<<<<<<< HEAD
-        expect($('#tooltip-test').data('tooltip').enabled).to.eql(true);
-=======
         expect($('#tooltip-test').data('tooltip').enabled).to.be.true;
->>>>>>> trunk
       });
     });
     describe('#popover()', function() {
@@ -258,11 +254,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add popover', function() {
         App.popover($('#tooltip-test'));
-<<<<<<< HEAD
-        expect($('#tooltip-test').data('popover').enabled).to.eql(true);
-=======
         expect($('#tooltip-test').data('popover').enabled).to.be.true;
->>>>>>> trunk
       });
     });
     describe('#App.format', function(){

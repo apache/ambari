@@ -838,7 +838,6 @@
 			"America/Chicago|CST6CDT",
 			"America/Chicago|Canada/Central",
 			"America/Chicago|US/Central",
-			"America/Chicago|US/Indiana-Starke",
 			"America/Chihuahua|America/Mazatlan",
 			"America/Chihuahua|Mexico/BajaSur",
 			"America/Denver|America/Boise",
