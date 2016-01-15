@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 
 import junit.framework.Assert;
 
+import org.apache.ambari.server.RandomPortJerseyTest;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -87,10 +88,10 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.JerseyTest;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 
-public class AgentResourceTest extends JerseyTest {
+
+public class AgentResourceTest extends RandomPortJerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.agent.rest";
   private static Log LOG = LogFactory.getLog(AgentResourceTest.class);
   protected Client client;
@@ -156,7 +157,7 @@ public class AgentResourceTest extends JerseyTest {
     ClientConfig clientConfig = new DefaultClientConfig();
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     client = Client.create(clientConfig);
-    WebResource webResource = client.resource("http://localhost:9998/register/dummyhost");
+    WebResource webResource = client.resource(String.format("http://localhost:%d/register/dummyhost", getTestPort()));
     response = webResource.type(MediaType.APPLICATION_JSON)
         .post(RegistrationResponse.class, createDummyJSONRegister());
     LOG.info("Returned from Server responce=" + response);
@@ -169,7 +170,7 @@ public class AgentResourceTest extends JerseyTest {
     ClientConfig clientConfig = new DefaultClientConfig();
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     client = Client.create(clientConfig);
-    WebResource webResource = client.resource("http://localhost:9998/heartbeat/dummyhost");
+    WebResource webResource = client.resource(String.format("http://localhost:%d/heartbeat/dummyhost", getTestPort()));
     response = webResource.type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeat());
     LOG.info("Returned from Server: "
@@ -183,7 +184,7 @@ public class AgentResourceTest extends JerseyTest {
     ClientConfig clientConfig = new DefaultClientConfig();
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     client = Client.create(clientConfig);
-    WebResource webResource = client.resource("http://localhost:9998/heartbeat/dummyhost");
+    WebResource webResource = client.resource(String.format("http://localhost:%d/heartbeat/dummyhost", getTestPort()));
     response = webResource.type(MediaType.APPLICATION_JSON)
         .post(HeartBeatResponse.class, createDummyHeartBeatWithAgentEnv());
     LOG.info("Returned from Server: "
@@ -263,7 +264,7 @@ public class AgentResourceTest extends JerseyTest {
     ClientConfig clientConfig = new DefaultClientConfig();
     clientConfig.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
     client = Client.create(clientConfig);
-    WebResource webResource = client.resource("http://localhost:9998/components/dummycluster");
+    WebResource webResource = client.resource(String.format("http://localhost:%d/components/dummycluster", getTestPort()));
     response = webResource.get(ComponentsResponse.class);
     Assert.assertEquals(response.getClusterName(), "dummycluster");
   }
