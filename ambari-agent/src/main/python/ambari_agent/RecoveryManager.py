@@ -174,10 +174,13 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["current"] = state
           self.statuses[component] = component_status
+          logger.info("New status, current status is set to %s for %s", self.statuses[component]["current"], component)
       finally:
         self.__status_lock.release()
       pass
 
+    if self.statuses[component]["current"] != state:
+      logger.info("current status is set to %s for %s", state, component)
     self.statuses[component]["current"] = state
     if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
             self.statuses[component]["stale_config"] == False:
@@ -196,12 +199,14 @@ class RecoveryManager:
           component_status = copy.deepcopy(self.default_component_status)
           component_status["desired"] = state
           self.statuses[component] = component_status
+          logger.info("New status, desired status is set to %s for %s", self.statuses[component]["desired"], component)
       finally:
         self.__status_lock.release()
       pass
 
+    if self.statuses[component]["desired"] != state:
+      logger.info("desired status is set to %s for %s", state, component)
     self.statuses[component]["desired"] = state
-    logger.info("desired status is set to %s for %s", self.statuses[component]["desired"], component)
     if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
             self.statuses[component]["stale_config"] == False:
       self.remove_command(component)
