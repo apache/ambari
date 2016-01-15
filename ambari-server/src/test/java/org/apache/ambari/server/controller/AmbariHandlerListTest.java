@@ -140,10 +140,10 @@ public class AmbariHandlerListTest {
     expect(viewEntity.getClassLoader()).andReturn(classLoader).anyTimes();
 
     expect(handler.isStarted()).andReturn(true).anyTimes();
-    handler.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
-        baseRequest, request, response);
 
     replay(handler, viewRegistry, viewEntity);
+    handler.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
+        baseRequest, request, response);
 
     AmbariHandlerList handlerList = getAmbariHandlerList(handler);
     handlerList.viewRegistry = viewRegistry;
