@@ -24,28 +24,28 @@ describe('utils/helper', function() {
   describe('String helpers', function() {
     describe('#trim()', function(){
       it('should replace first space', function() {
-        expect(' as d f'.trim()).to.eql('as d f');
+        expect(' as d f'.trim()).to.be.equal('as d f');
       });
     });
     describe('#endsWith()', function() {
       it('`abcd` ends with `d`', function(){
-        expect('abcd'.endsWith('d')).to.eql(true);
+        expect('abcd'.endsWith('d')).to.be.true;
       });
       it('`abcd` doesn\'t end with `f`', function(){
-        expect('abcd'.endsWith('f')).to.eql(false);
+        expect('abcd'.endsWith('f')).to.be.false;
       });
     });
     describe('#contains()', function() {
       it('`abc` contains b', function(){
-        expect('abc'.contains('b')).to.eql(true);
+        expect('abc'.contains('b')).to.be.true;
       });
       it('`abc` doesn\'t contain d', function() {
-        expect('abc'.contains('d')).to.eql(false);
+        expect('abc'.contains('d')).to.be.false;
       });
     });
     describe('#capitalize()',function() {
       it('`abc d` should start with `A`', function() {
-        expect('abc d'.capitalize()).to.eql('Abc d');
+        expect('abc d'.capitalize()).to.be.equal('Abc d');
       });
     });
     describe('#findIn()', function(){
@@ -76,23 +76,23 @@ describe('utils/helper', function() {
     });
     describe('#format()', function(){
       it('should replace string correctly', function(){
-        expect("{0} world{1}".format("Hello","!")).to.eql("Hello world!");
+        expect("{0} world{1}".format("Hello","!")).to.be.equal("Hello world!");
       });
     });
     describe('#highlight()', function() {
       var str = "Hello world! I want to highlight this word!";
       it('should highlight `word` with default template', function() {
         var result = str.highlight(['word']);
-        expect(result).to.eql("Hello world! I want to highlight this <b>word</b>!");
+        expect(result).to.be.equal("Hello world! I want to highlight this <b>word</b>!");
       });
       it('should highlight `world` and `word` with template `<span class="yellow">{0}</span>`', function() {
         var result = str.highlight(["world", "word"], '<span class="yellow">{0}</span>');
-        expect(result).to.eql('Hello <span class="yellow">world</span>! I want to highlight this <span class="yellow">word</span>!')
+        expect(result).to.be.equal('Hello <span class="yellow">world</span>! I want to highlight this <span class="yellow">word</span>!')
       });
       var str2 = "First word, second word";
       it('should highlight `word` multiply times with default template', function() {
         var result = str2.highlight(["word"]);
-        expect(result).to.eql("First <b>word</b>, second <b>word</b>");
+        expect(result).to.be.equal("First <b>word</b>, second <b>word</b>");
       });
     });
   });
@@ -182,7 +182,7 @@ describe('utils/helper', function() {
       it('should sort array', function() {
         result.forEach(function(resultObj, index, resultArr) {
           if (index > resultArr.length - 1) {
-            expect(resultObj.a < resultArr[index + 1].a).to.eql(false);
+            expect(resultObj.a < resultArr[index + 1].a).to.be.equal(false);
           }
         });
       });
@@ -234,10 +234,10 @@ describe('utils/helper', function() {
     };
     describe('#isEmptyObject', function(){
       it('should return true on empty object', function() {
-        expect(App.isEmptyObject({})).to.eql(true);
+        expect(App.isEmptyObject({})).to.be.true;
       });
       it('should return false on non-empty object', function() {
-        expect(App.isEmptyObject({ a: 1 })).to.eql(false);
+        expect(App.isEmptyObject({ a: 1 })).to.be.false;
       });
     });
 
@@ -246,7 +246,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add tooltip', function() {
         App.tooltip($('#tooltip-test'));
-        expect($('#tooltip-test').data('tooltip').enabled).to.eql(true);
+        expect($('#tooltip-test').data('tooltip').enabled).to.be.true;
       });
     });
     describe('#popover()', function() {
@@ -254,7 +254,7 @@ describe('utils/helper', function() {
       afterEach(removeDiv);
       it('should add popover', function() {
         App.popover($('#tooltip-test'));
-        expect($('#tooltip-test').data('popover').enabled).to.eql(true);
+        expect($('#tooltip-test').data('popover').enabled).to.be.true;
       });
     });
     describe('#App.format', function(){
@@ -265,19 +265,19 @@ describe('utils/helper', function() {
         var nagiosState = "nagios_update_ignore ACTIONEXECUTE";
         var installRepo = "install_packages ACTIONEXECUTE";
         it('should convert command to readable info', function() {
-          expect(App.format.commandDetail(command)).to.eql(' Ganglia Monitor Stop');
+          expect(App.format.commandDetail(command)).to.be.equal(' Ganglia Monitor Stop');
         });
         it('should ignore decommission command', function(){
-          expect(App.format.commandDetail(ignored)).to.eql('  NameNode');
+          expect(App.format.commandDetail(ignored)).to.be.equal('  NameNode');
         });
         it('should remove SERVICE string from command', function(){
-          expect(App.format.commandDetail(removeString)).to.eql(' HDFS Stop');
+          expect(App.format.commandDetail(removeString)).to.be.equal(' HDFS Stop');
         });
         it('should return maintenance message', function() {
-          expect(App.format.commandDetail(nagiosState)).to.eql(' Toggle Maintenance Mode');
+          expect(App.format.commandDetail(nagiosState)).to.be.equal(' Toggle Maintenance Mode');
         });
         it('should return install repo message', function() {
-          expect(App.format.commandDetail(installRepo)).to.eql(Em.I18n.t('common.installRepo.task'));
+          expect(App.format.commandDetail(installRepo)).to.be.equal(Em.I18n.t('common.installRepo.task'));
         });
       });
       describe('#taskStatus()', function(){

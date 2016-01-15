@@ -34,14 +34,14 @@ describe('App.KerberosWizardStep4Controller', function() {
     controller.set('stepConfigs', controller.createServiceConfig(configs));
 
     it('configuration errors are absent, submit should be not disabled', function() {
-      expect(controller.get('stepConfigs')[0].get('errorCount')).to.be.eql(0);
+      expect(controller.get('stepConfigs')[0].get('errorCount')).to.be.equal(0);
       expect(controller.get('isSubmitDisabled')).to.be.false;
     });
 
     it('config has invalid value, submit should be disabled', function() {
       var serviceConfig = controller.get('stepConfigs')[0];
       serviceConfig.get('configs').findProperty('name', 'prop1').set('value', '');
-      expect(serviceConfig.get('errorCount')).to.be.eql(1);
+      expect(serviceConfig.get('errorCount')).to.be.equal(1);
       expect(controller.get('isSubmitDisabled')).to.be.true;
     });
   });
@@ -230,7 +230,7 @@ describe('App.KerberosWizardStep4Controller', function() {
 
       ['admin_principal', 'admin_password'].forEach(function(item) {
         it('property `{0}` should have empty value'.format(item), function() {
-          expect(res.findProperty('name', item).get('value')).to.be.eql('');
+          expect(res.findProperty('name', item).get('value')).to.be.equal('');
         });
       });
 
@@ -401,17 +401,27 @@ describe('App.KerberosWizardStep4Controller', function() {
       ];
 
       cases.forEach(function(test) {
-        it(test.m, function () {
-          controller.get('wizardController').set('name', test.wizardController);
-          this.loadClusterDescriptorStub.returns(test.clusterDescriptorExists ?
-             $.Deferred().resolve().promise() :
-             $.Deferred().reject().promise());
-          controller.getDescriptorConfigs();
-          expect(controller.get('wizardController').setDBProperty.called).to.be.eql(test.e.setDBPropertyCalled);
+        describe(test.m, function () {
+
+          beforeEach(function () {
+            controller.get('wizardController').set('name', test.wizardController);
+            this.loadClusterDescriptorStub.returns(test.clusterDescriptorExists ?
+              $.Deferred().resolve().promise() :
+              $.Deferred().reject().promise());
+            controller.getDescriptorConfigs();
+          });
+
           if (test.e.setDBPropertyCalled) {
-            expect(controller.get('wizardController').setDBProperty.args[0]).to.be.eql(test.e.setDBPropertyCalledWith);
+            it('setDBProperty is called with valid arguments', function () {
+              expect(controller.get('wizardController').setDBProperty.args[0]).to.be.eql(test.e.setDBPropertyCalledWith);
+            });
           }
-        })
+          else {
+            it('setDBProperty is not called', function () {
+              expect(controller.get('wizardController').setDBProperty.called).to.be.false;
+            });
+          }
+        });
       })
     });
   });

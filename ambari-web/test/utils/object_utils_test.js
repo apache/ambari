@@ -35,7 +35,7 @@ describe('utils/object_utils', function() {
     };
     it('should return correct tree of childs', function(){
       var result = objectUtils.recursiveTree(testObj);
-      expect(result).to.eql('a2 (/a1)<br/>a5 (/a1/a3/a4)<br/>');
+      expect(result).to.be.equal('a2 (/a1)<br/>a5 (/a1/a3/a4)<br/>');
     });
 
     it('should return `null` if type missed', function() {

@@ -96,13 +96,13 @@ describe('App.wizardProgressPageControllerMixin', function() {
         expect(this.args.data.hostName).to.be.eql(['host1', 'host2']);
       });
       it('RequestInfo.query is valid', function () {
-        expect(this.queryObject.RequestInfo.query).to.be.eql('Hosts/host_name=host1|Hosts/host_name=host2');
+        expect(this.queryObject.RequestInfo.query).to.be.equal('Hosts/host_name=host1|Hosts/host_name=host2');
       });
       it('affected component is valid', function () {
-        expect(this.queryObject.Body.host_components[0].HostRoles.component_name).to.be.eql('ZOOKEEPER_SERVER');
+        expect(this.queryObject.Body.host_components[0].HostRoles.component_name).to.be.equal('ZOOKEEPER_SERVER');
       });
       it('taskNum = 1', function () {
-        expect(this.args.data.taskNum).to.be.eql(1);
+        expect(this.args.data.taskNum).to.be.equal(1);
       });
       it('updateComponent is called', function () {
         // invoke callback
@@ -121,10 +121,10 @@ describe('App.wizardProgressPageControllerMixin', function() {
         expect(this.args.data.hostName).to.be.eql(['host1', 'host2']);
       });
       it('RequestInfo.query is valid', function () {
-        expect(this.queryObject.RequestInfo.query).to.be.eql('Hosts/host_name=host2');
+        expect(this.queryObject.RequestInfo.query).to.be.equal('Hosts/host_name=host2');
       });
       it('affected component is valid', function () {
-        expect(this.queryObject.Body.host_components[0].HostRoles.component_name).to.be.eql('ZOOKEEPER_CLIENT');
+        expect(this.queryObject.Body.host_components[0].HostRoles.component_name).to.be.equal('ZOOKEEPER_CLIENT');
       });
       it('onCreateComponent is not called', function () {
         expect(mixedObjectInstance.onCreateComponent.called).to.be.false;

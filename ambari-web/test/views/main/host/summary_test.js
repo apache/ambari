@@ -373,7 +373,7 @@ describe('App.MainHostSummaryView', function() {
 
     it("Clients with custom commands only", function() {
       mainHostSummaryView.set('content', content);
-      expect(mainHostSummaryView.get('clientsWithCustomCommands').length).to.eql(1);
+      expect(mainHostSummaryView.get('clientsWithCustomCommands').length).to.be.equal(1);
       expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.have.deep.property('[0].commands[0].command', 'CUSTOMCOMMAND');
     });
   });

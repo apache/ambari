@@ -35,7 +35,7 @@ describe('utils/ui_effects', function(){
       var domEl = $('#pulsate-test-dom');
       uiUtils.pulsate(domEl, 1000);
       this.clock.tick(300);
-      expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.eql('0.2');
+      expect(parseFloat(domEl.css('opacity')).toFixed(1)).to.be.equal('0.2');
     });
     it('should call callback at the end', function() {
       var domEl = $('#pulsate-test-dom');

@@ -1027,13 +1027,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       });
     });
     it('request-name is valid', function () {
-      expect(this.callArgs.name).to.eql('admin.downgrade.start');
+      expect(this.callArgs.name).to.be.equal('admin.downgrade.start');
     });
     it('request-sender is valid', function () {
-      expect(this.callArgs.sender).to.eql(controller);
+      expect(this.callArgs.sender).to.be.eql(controller);
     });
     it('callback is valid', function () {
-      expect(this.callArgs.success).to.eql('upgradeSuccessCallback');
+      expect(this.callArgs.success).to.be.equal('upgradeSuccessCallback');
     });
     it('callback is called', function () {
       expect(this.callArgs.callback).to.be.called;
@@ -1128,13 +1128,13 @@ describe('App.MainAdminStackAndUpgradeController', function() {
     });
 
     it('request-data is valid', function () {
-      expect(this.callArgs.data).to.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
+      expect(this.callArgs.data).to.be.eql({upgradeId: 1, itemId: 1, groupId: 1, status: 'PENDING'});
     });
     it('request-name is valid', function () {
-      expect(this.callArgs.name).to.eql('admin.upgrade.upgradeItem.setState');
+      expect(this.callArgs.name).to.be.equal('admin.upgrade.upgradeItem.setState');
     });
     it('request-sendeer is valid', function () {
-      expect(this.callArgs.sender).to.eql(controller);
+      expect(this.callArgs.sender).to.be.eql(controller);
     });
     it('callback is called', function () {
       expect(this.callArgs.callback).to.be.called;
@@ -1229,22 +1229,42 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.prepareRepoForSaving.restore();
       App.ajax.send.restore();
     });
-    it("validation errors present", function() {
-      this.mock.returns({
-        done: function(callback) {callback([1]);}
+    describe("validation errors present", function() {
+
+      beforeEach(function () {
+        this.mock.returns({
+          done: function(callback) {callback([1]);}
+        });
+        controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
       });
-      controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
-      expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
-      expect(controller.prepareRepoForSaving.called).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+
+      it('validateRepoVersions is called with valid arguments', function () {
+        expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
+      });
+
+      it('prepareRepoForSaving is not called', function () {
+        expect(controller.prepareRepoForSaving.called).to.be.false;
+      });
+
+      it('no requests are sent', function () {
+        expect(App.ajax.send.called).to.be.false;
+      });
     });
-    it("no validation errors", function() {
-      this.mock.returns({
-        done: function(callback) {callback([]);}
+
+    describe("no validation errors", function() {
+
+      beforeEach(function () {
+        this.mock.returns({
+          done: function(callback) {callback([]);}
+        });
+        controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
       });
-      controller.saveRepoOS(Em.Object.create({repoVersionId: 1}), true);
-      expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
-      expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
+      it('validateRepoVersions is called with valid arguments', function () {
+        expect(controller.validateRepoVersions.calledWith(Em.Object.create({repoVersionId: 1}), true)).to.be.true;
+      });
+      it('prepareRepoForSaving is called with valid arguments', function () {
+        expect(controller.prepareRepoForSaving.calledWith(Em.Object.create({repoVersionId: 1}))).to.be.true;
+      });
     });
   });
 
