@@ -47,19 +47,53 @@ App.TimeRangeMixin = Em.Mixin.create({
     return this.get('timeRangeOptions').objectAt(this.get('currentTimeRangeIndex'));
   }.property('currentTimeRangeIndex'),
 
+  isCustomTimeRange: function () {
+    return !(Em.isNone(this.get('customStartTime')) || Em.isNone(this.get('customEndTime')));
+  }.property('customStartTime', 'customEndTime'),
+
   customStartTime: null,
 
   customEndTime: null,
 
+  customDurationFormatted: null,
+
+  customStartTimeFormatted: function () {
+    var time = this.get('customStartTime');
+    return Em.isNone(time) ? '' : App.formatDateTimeWithTimeZone(time, 'M/D/YYYY hh:mmA');
+  }.property('customStartTime'),
+
+  customEndTimeFormatted: function () {
+    var time = this.get('customEndTime');
+    return Em.isNone(time) ? '' : App.formatDateTimeWithTimeZone(time, 'M/D/YYYY hh:mmA');
+  }.property('customEndTime'),
+
+  tooltipMessage: function () {
+    var message;
+    if (this.get('isCustomTimeRange')) {
+      message = Em.I18n.t('common.start') + ': ' + this.get('customStartTimeFormatted') + '<br>' + Em.I18n.t('common.duration') + ': ' + this.get('customDurationFormatted') + '<br>' + Em.I18n.t('common.end') + ': ' + this.get('customEndTimeFormatted');
+    } else {
+      message = '';
+    }
+    return message;
+  }.property('customStartTimeFormatted', 'customEndTimeFormatted', 'customDurationFormatted'),
+
+  didInsertElement: function () {
+    App.tooltip(this.$(), {
+      selector: '.dropdown-toggle[rel="tooltip"]'
+    });
+  },
+
   /**
    * onclick handler for a time range option
    * @param {object} event
+   * @param {function} callback
    */
-  setTimeRange: function (event, callback, context) {
+  setTimeRange: function (event, callback) {
     var prevIndex = this.get('currentTimeRangeIndex'),
       prevCustomTimeRange = {
         start: this.get('customStartTime'),
-        end: this.get('customEndTime')
+        end: this.get('customEndTime'),
+        duration: this.get('customDurationFormatted')
       },
       index = event.context.index,
       primary = function () {
@@ -71,22 +105,48 @@ App.TimeRangeMixin = Em.Mixin.create({
         this.setProperties({
           currentTimeRangeIndex: prevIndex,
           customStartTime: prevCustomTimeRange.start,
-          customEndTime: prevCustomTimeRange.end
+          customEndTime: prevCustomTimeRange.end,
+          customDurationFormatted: prevCustomTimeRange.duration
         });
       };
 
-    // Preset time range is active
-    if (prevIndex !== 8) {
+    if (index === 8) {
+      // Custom start and end time is specified by user
+      var defaultStartTime,
+        defaultEndTime,
+        duration;
+      if (prevIndex === 8) {
+        // Custom time range is active
+        defaultStartTime = new Date(this.get('customStartTime')).getTime();
+        defaultEndTime = new Date(this.get('customEndTime')).getTime();
+        duration = this.get('customDurationFormatted') || 0;
+      } else {
+        // Preset time range is active
+        var minutes;
+        duration = this.get('currentTimeRange.value') * 3600000;
+        defaultEndTime = new Date();
+        minutes = 5 * Math.ceil(defaultEndTime.getMinutes() / 5);
+        defaultEndTime.setMinutes(minutes);
+        defaultStartTime = defaultEndTime.getTime() - duration;
+      }
+      timeRangePopup.showCustomDatePopup(this, primary.bind(this), secondary.bind(this), {
+        startDate: App.formatDateTimeWithTimeZone(defaultStartTime, 'MM/DD/YYYY'),
+        hoursForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'hh'),
+        minutesForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'mm'),
+        middayPeriodForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'A'),
+        duration: duration,
+        endDate: App.formatDateTimeWithTimeZone(defaultEndTime, 'MM/DD/YYYY'),
+        hoursForEnd: App.formatDateTimeWithTimeZone(defaultEndTime, 'hh'),
+        minutesForEnd: App.formatDateTimeWithTimeZone(defaultEndTime, 'mm'),
+        middayPeriodForEnd: App.formatDateTimeWithTimeZone(defaultEndTime, 'A')
+      });
+    } else {
+      // Preset time range is specified by user
       this.setProperties({
         customStartTime: null,
-        customEndTime: null
+        customEndTime: null,
+        customDurationFormatted: null
       });
-    }
-
-    // Custom start and end time is specified by user
-    if (index === 8) {
-      context = context || this;
-      timeRangePopup.showCustomDatePopup(context, primary.bind(this), secondary.bind(this));
     }
 
     this.set('currentTimeRangeIndex', index);

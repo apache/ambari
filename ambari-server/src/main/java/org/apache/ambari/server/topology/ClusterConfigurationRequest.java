@@ -123,6 +123,8 @@ public class ClusterConfigurationRequest {
     Cluster cluster = getCluster();
     Blueprint blueprint = clusterTopology.getBlueprint();
 
+    Configuration stackDefaults = blueprint.getStack().getConfiguration(blueprint.getServices());
+    Map<String, Map<String, String>> stackDefaultProps = stackDefaults.getProperties();
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
     Map<String, Map<String, String>> existingConfigurations = clusterConfiguration.getFullProperties();
     // add clusterHostInfo containing components to hosts map, based on Topology, to use this one instead of
@@ -141,15 +143,22 @@ public class ClusterConfigurationRequest {
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
         new HashSet<String>(blueprint.getServices()), false);
 
-     for (String configType : updatedConfigs.keySet()) {
-       Map<String, String> propertyMap = updatedConfigs.get(configType);
-       for (String property : propertyMap.keySet()) {
-         LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
-           (property));
-          clusterConfiguration.setProperty(configType, property, propertyMap.get(property));
-       }
-     }
-      updatedConfigTypes.addAll(updatedConfigs.keySet());
+      for (String configType : updatedConfigs.keySet()) {
+        Map<String, String> propertyMap = updatedConfigs.get(configType);
+        Map<String, String> clusterConfigProperties = existingConfigurations.get(configType);
+        Map<String, String> stackDefaultConfigProperties = stackDefaultProps.get(configType);
+        for (String property : propertyMap.keySet()) {
+          if (clusterConfigProperties == null || !clusterConfigProperties.containsKey(property)
+                 || (clusterConfigProperties.get(property) == null && stackDefaultConfigProperties.get(property) == null)
+                 || (clusterConfigProperties.get(property) != null && clusterConfigProperties.get(property).equals(stackDefaultConfigProperties.get(property)))) {
+            LOG.debug("Update Kerberos related config property: {} {} {}", configType, property, propertyMap.get
+              (property));
+            clusterConfiguration.setProperty(configType, property, propertyMap.get(property));
+            updatedConfigTypes.add(configType);
+          }
+        }
+      }
+
     } catch (KerberosInvalidConfigurationException e) {
       LOG.error("An exception occurred while doing Kerberos related configuration update: " + e, e);
     }

@@ -171,18 +171,19 @@ class Controller(threading.Thread):
         logger.info("Registration Successful (response id = %s)", self.responseId)
 
         self.isRegistered = True
+
+        # always update cached cluster configurations on registration
+        # must be prior to any other operation
+        self.cluster_configuration.update_configurations_from_heartbeat(ret)
+        self.recovery_manager.update_configuration_from_registration(ret)
+        self.config.update_configuration_from_registration(ret)
+        logger.debug("Updated config:" + str(self.config))
+
         if 'statusCommands' in ret.keys():
           logger.debug("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
         else:
           self.hasMappedComponents = False
-
-        # always update cached cluster configurations on registration
-        self.cluster_configuration.update_configurations_from_heartbeat(ret)
-
-        self.recovery_manager.update_configuration_from_registration(ret)
-        self.config.update_configuration_from_registration(ret)
-        logger.debug("Updated config:" + str(self.config))
 
         # always update alert definitions on registration
         self.alert_scheduler_handler.update_definitions(ret)
@@ -224,7 +225,9 @@ class Controller(threading.Thread):
     else:
       if not LiveStatus.SERVICES:
         self.updateComponents(commands[0]['clusterName'])
+      self.recovery_manager.process_status_commands(commands)
       self.actionQueue.put_status(commands)
+    pass
 
   # For testing purposes
   DEBUG_HEARTBEAT_RETRIES = 0
@@ -300,7 +303,6 @@ class Controller(threading.Thread):
 
         if 'statusCommands' in response_keys:
           # try storing execution command details and desired state
-          self.recovery_manager.process_status_commands(response['statusCommands'])
           self.addToStatusQueue(response['statusCommands'])
 
         if not self.actionQueue.tasks_in_progress_or_pending():

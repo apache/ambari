@@ -165,6 +165,9 @@ class TestController(unittest.TestCase):
     commands = ambari_simplejson.loads('[{"clusterName":"dummy_cluster"}]')
     actionQueue = MagicMock()
     self.controller.actionQueue = actionQueue
+    process_status_commands = MagicMock(name="process_status_commands")
+    self.controller.recovery_manager.process_status_commands = process_status_commands
+
     updateComponents = Mock()
     self.controller.updateComponents = updateComponents
     self.controller.addToStatusQueue(None)
@@ -179,6 +182,7 @@ class TestController(unittest.TestCase):
     self.controller.addToStatusQueue(commands)
     self.assertTrue(updateComponents.called)
     self.assertTrue(actionQueue.put_status.called)
+    self.assertTrue(process_status_commands.called)
 
 
   @patch("subprocess.Popen")
@@ -726,9 +730,8 @@ class TestController(unittest.TestCase):
     self.controller.heartbeatWithServer()
     self.assertTrue(sendRequest.called)
     self.assertTrue(process_execution_commands.called)
-    self.assertTrue(process_status_commands.called)
+    self.assertFalse(process_status_commands.called)
     process_execution_commands.assert_called_with("commands1")
-    process_status_commands.assert_called_with("commands2")
     set_paused.assert_called_with(True)
 
     self.controller.heartbeatWithServer()

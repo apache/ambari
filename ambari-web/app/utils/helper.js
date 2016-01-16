@@ -557,7 +557,7 @@ App.format = {
    *
    * @method normalizeNameBySeparator
    * @param name {String} - name to format
-   * @param separator {String} - token use to split the string
+   * @param separators {String} - token use to split the string
    * @return {String}
    */
   normalizeNameBySeparators: function(name, separators) {
@@ -768,6 +768,18 @@ App.dateTimeWithTimeZone = function (x) {
     return moment(moment.tz(x ? new Date(x) : new Date(), tz).toArray()).toDate().getTime();
   }
   return x || new Date().getTime();
+};
+
+App.formatDateTimeWithTimeZone = function (timeStamp, format) {
+  var timezone = App.router.get('userSettingsController.userSettings.timezone'),
+    time;
+  if (timezone) {
+    var tz = Em.getWithDefault(timezone, 'zones.0.value', '');
+    time = moment.tz(timeStamp, tz);
+  } else {
+    time = moment(timeStamp);
+  }
+  return moment(time).format(format);
 };
 
 App.getTimeStampFromLocalTime = function (time) {

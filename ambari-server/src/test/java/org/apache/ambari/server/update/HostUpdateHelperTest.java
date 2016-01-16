@@ -513,8 +513,8 @@ public class HostUpdateHelperTest {
     final Configuration mockConfiguration = easyMockSupport.createNiceMock(Configuration.class);
     JsonObject cluster = new JsonObject();
     JsonObject hostPairs = new JsonObject();
-    hostPairs.add("Host1", new JsonPrimitive("hos11"));
-    hostPairs.add("Host2", new JsonPrimitive("hos22"));
+    hostPairs.add("Host1", new JsonPrimitive("Host11"));
+    hostPairs.add("Host2", new JsonPrimitive("Host22"));
     cluster.add("cl1", hostPairs);
 
     expect(mockConfiguration.getHostChangesJson(null)).andReturn(cluster).once();
@@ -528,7 +528,8 @@ public class HostUpdateHelperTest {
     Map<String, Map<String,String>> hostChangesFileMap = hostUpdateHelper.getHostChangesFileMap();
     Assert.assertTrue(hostChangesFileMap.get("cl1").containsKey("host1"));
     Assert.assertTrue(hostChangesFileMap.get("cl1").containsKey("host2"));
-
+    Assert.assertTrue(hostChangesFileMap.get("cl1").get("host1").equals("host11"));
+    Assert.assertTrue(hostChangesFileMap.get("cl1").get("host2").equals("host22"));
   }
 
 
