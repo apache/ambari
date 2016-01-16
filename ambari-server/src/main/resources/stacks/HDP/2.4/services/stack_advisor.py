@@ -49,7 +49,8 @@ class HDP24StackAdvisor(HDP23StackAdvisor):
     if 'SPARK' in services_list:
       if "yarn.nodemanager.aux-services" in yarn_site_properties:
         aux_services = yarn_site_properties["yarn.nodemanager.aux-services"].split(",")
-        aux_services.append("spark_shuffle")
+        if "spark_shuffle" not in aux_services:
+          aux_services.append("spark_shuffle")
         put_yarn_site_property("yarn.nodemanager.aux-services", ",".join(aux_services))
       else:
         put_yarn_site_property("yarn.nodemanager.aux-services", "spark_shuffle")
