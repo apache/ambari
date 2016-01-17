@@ -49,6 +49,20 @@ class TestStormUiServer(TestStormBase):
 
     self.assert_configure_default()
 
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar '
+                                         '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
+                              only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
+                              )
+
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
         wait_for_finish = False,
         path = ['/usr/bin'],
@@ -108,6 +122,21 @@ class TestStormUiServer(TestStormBase):
     )
 
     self.assert_configure_secured()
+
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Link', '/usr/lib/storm/lib/ambari-metrics-storm-sink.jar',
+                              action=['delete'],
+                              )
+
+    self.assertResourceCalled('Execute', 'ambari-sudo.sh ln -s /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar '
+                                         '/usr/lib/storm/lib//ambari-metrics-storm-sink.jar',
+                              not_if=format("ls /usr/lib/storm/lib//ambari-metrics-storm-sink.jar"),
+                              only_if=format("ls /usr/lib/storm/lib/ambari-metrics-storm-sink*.jar")
+                              )
 
     self.assertResourceCalled('Execute', 'source /etc/storm/conf/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH ; storm ui > /var/log/storm/ui.out 2>&1',
         wait_for_finish = False,
