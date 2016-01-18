@@ -183,13 +183,11 @@ class RangeradminV2:
       return response_code
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
-        Logger.error("Connection failed to Ranger Admin. Http status code - {0}. \n {1}".format(e.code, e.read()))
+        raise Fail("Connection failed to Ranger Admin. Http status code - {0}. \n {1}".format(e.code, e.read()))
       else:
-        Logger.error("Connection failed to Ranger Admin. Reason - {0}.".format(e.reason))
-      return None
+        raise Fail("Connection failed to Ranger Admin. Reason - {0}.".format(e.reason))
     except httplib.BadStatusLine, e:
-      Logger.error("Ranger Admin service is not reachable, please restart the service and then try again")
-      return None
+      raise Fail("Ranger Admin service is not reachable, please restart the service and then try again")
     except TimeoutError:
       raise Fail("Connection failed to Ranger Admin. Reason - timeout")
 
