@@ -474,31 +474,6 @@
       </service>
     </group>
 
-    <!-- Upgrade Oozie DB only on Upgrade direction, and always create a new ShareLib. -->
-    <group name="UPGRADE_OOZIE" title="Upgrade Oozie Database">
-      <direction>UPGRADE</direction>
-      <skippable>true</skippable>
-      <supports-auto-skip-failure>false</supports-auto-skip-failure>
-      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Upgrade Oozie Database">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
-          <script>scripts/oozie_server_upgrade.py</script>
-          <function>upgrade_oozie_database_and_sharelib</function>
-        </task>
-      </execute-stage>
-    </group>
-
-    <!-- Only create the ShareLib folder during a Downgrade. -->
-    <group name="DOWNGRADE_OOZIE" title="Downgrade Oozie ShareLib">
-      <direction>DOWNGRADE</direction>
-      <skippable>true</skippable>
-      <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Downgrade Oozie ShareLib">
-        <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
-          <script>scripts/oozie_server_upgrade.py</script>
-          <function>create_sharelib</function>
-        </task>
-      </execute-stage>
-    </group>
-
     <group xsi:type="restart" name="OOZIE" title="Oozie">
       <service-check>false</service-check>
       <skippable>true</skippable>
@@ -880,14 +855,14 @@
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
         <pre-upgrade>
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>
