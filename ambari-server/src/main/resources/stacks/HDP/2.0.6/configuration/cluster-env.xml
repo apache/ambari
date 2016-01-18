@@ -95,5 +95,18 @@ gpgcheck=0</value>
             <type>boolean</type>
         </value-attributes>
     </property>
+    
+    <property>
+        <name>fetch_nonlocal_groups</name>
+        <value>true</value>
+        <display-name>Ambari fetch nonlocal groups</display-name>
+        <description>Ambari requires fetching all the groups. This can be slow
+        on envs with enabled ldap. Setting this option to false will enable Ambari,
+        to skip user/group management connected with ldap groups.</description>
+        <value-attributes>
+            <overridable>false</overridable>
+            <type>boolean</type>
+        </value-attributes>
+    </property>
 
 </configuration>
