@@ -163,7 +163,7 @@ App.QuickViewLinks = Em.View.extend({
       var sites = ['core-site', 'hdfs-site'];
       if(checks){
         checks.forEach(function(check){
-          var protocolConfigSiteProp = Em.get(check, 'site')
+          var protocolConfigSiteProp = Em.get(check, 'site');
           if (sites.indexOf(protocolConfigSiteProp) < 0){
             sites.push(protocolConfigSiteProp);
           }
@@ -181,8 +181,7 @@ App.QuickViewLinks = Em.View.extend({
             }
           }
         }, this);
-
-        this.set('requiredSiteNames', sites);
+        this.set('requiredSiteNames', this.get('requiredSiteNames').pushObjects(sites).uniq());
         this.setQuickLinks();
       }
     }
