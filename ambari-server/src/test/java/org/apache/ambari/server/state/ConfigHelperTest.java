@@ -61,6 +61,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -72,6 +74,7 @@ import com.google.inject.persist.Transactional;
 @RunWith(Enclosed.class)
 public class ConfigHelperTest {
   public static class RunWithInMemoryDefaultTestModule {
+    private final static Logger LOG = LoggerFactory.getLogger(ConfigHelperTest.class);
     private Clusters clusters;
     private Injector injector;
     private String clusterName;
@@ -211,6 +214,8 @@ public class ConfigHelperTest {
 
       ConfigGroup configGroup = configGroupFactory.createNew(cluster, name,
           tag, "", configMap, hostMap);
+      LOG.info("Config group created with tag " + tag);
+      configGroup.setTag(tag);
 
       configGroup.persist();
       cluster.addConfigGroup(configGroup);
@@ -651,17 +656,19 @@ public class ConfigHelperTest {
       // Put a different version to check for change
       hc.setDefaultVersionTag("version2");
       schReturn.put("flume-conf", hc);
+
       // set up mocks
       ServiceComponentHost sch = createNiceMock(ServiceComponentHost.class);
       // set up expectations
-      expect(sch.getActualConfigs()).andReturn(schReturn).times(3);
-      expect(sch.getHostName()).andReturn("h1").times(6);
-      expect(sch.getClusterId()).andReturn(1l).times(3);
-      expect(sch.getServiceName()).andReturn("FLUME").times(3);
-      expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").times(3);
+      expect(sch.getActualConfigs()).andReturn(schReturn).times(6);
+      expect(sch.getHostName()).andReturn("h1").anyTimes();
+      expect(sch.getClusterId()).andReturn(1l).anyTimes();
+      expect(sch.getServiceName()).andReturn("FLUME").anyTimes();
+      expect(sch.getServiceComponentName()).andReturn("FLUME_HANDLER").anyTimes();
       replay(sch);
       // Cluster level config changes
       Assert.assertTrue(configHelper.isStaleConfigs(sch));
+
       HostConfig hc2 = new HostConfig();
       hc2.setDefaultVersionTag("version1");
       schReturn.put("flume-conf", hc2);
@@ -669,13 +676,46 @@ public class ConfigHelperTest {
       configHelper.invalidateStaleConfigsCache();
       // Cluster level same configs
       Assert.assertFalse(configHelper.isStaleConfigs(sch));
+
       // Cluster level same configs but group specific configs for host have been updated
       List<String> hosts = new ArrayList<String>();
       hosts.add("h1");
       List<Config> configs = new ArrayList<Config>();
-      configs.add(new ConfigImpl("flume-conf"));
+      ConfigImpl configImpl = new ConfigImpl("flume-conf");
+      configImpl.setTag("FLUME1");
+      configs.add(configImpl);
       addConfigGroup("configGroup1", "FLUME", hosts, configs);
+
+      // config group added for host - expect staleness
       Assert.assertTrue(configHelper.isStaleConfigs(sch));
+
+      HostConfig hc3 = new HostConfig();
+      hc3.setDefaultVersionTag("version1");
+      hc3.getConfigGroupOverrides().put(1l, "FLUME1");
+      schReturn.put("flume-conf", hc3);
+      configHelper.invalidateStaleConfigsCache();
+
+      // version1 and FLUME1 - stale=false
+      Assert.assertFalse(configHelper.isStaleConfigs(sch));
+
+      HostConfig hc4 = new HostConfig();
+      hc4.setDefaultVersionTag("version1");
+      hc4.getConfigGroupOverrides().put(1l, "FLUME2");
+      schReturn.put("flume-conf", hc4);
+      configHelper.invalidateStaleConfigsCache();
+
+      // version1 and FLUME2 - stale=true
+      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+
+      HostConfig hc5 = new HostConfig();
+      hc5.setDefaultVersionTag("version3");
+      hc5.getConfigGroupOverrides().put(1l, "FLUME1");
+      schReturn.put("flume-conf", hc5);
+      configHelper.invalidateStaleConfigsCache();
+
+      // version3 and FLUME1 - stale=true
+      Assert.assertTrue(configHelper.isStaleConfigs(sch));
+
       verify(sch);
     }
   }
