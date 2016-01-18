@@ -193,6 +193,7 @@ ranger_group = config['configurations']['ranger-env']['ranger_group']
 dfs_cluster_administrators_group = config['configurations']['hdfs-site']["dfs.cluster.administrators"]
 
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
+fetch_nonlocal_groups = config['configurations']['cluster-env']["fetch_nonlocal_groups"]
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:

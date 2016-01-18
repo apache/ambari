@@ -40,6 +40,7 @@ def setup_users():
       User(user,
           gid = params.user_to_gid_dict[user],
           groups = params.user_to_groups_dict[user],
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
       )
 
     if params.override_uid == "true":
@@ -84,7 +85,7 @@ def create_dfs_cluster_admins():
 
   User(params.hdfs_user,
     groups = params.user_to_groups_dict[params.hdfs_user] + groups_list,
-    ignore_failures = params.ignore_groupsusers_create
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
   )
 
 def create_tez_am_view_acls():
@@ -110,12 +111,11 @@ def create_users_and_groups(user_and_groups):
 
   if users_list:
     User(users_list,
-         ignore_failures = params.ignore_groupsusers_create
+          fetch_nonlocal_groups = params.fetch_nonlocal_groups
     )
 
   if groups_list:
     Group(copy(groups_list),
-          ignore_failures = params.ignore_groupsusers_create
     )
   return groups_list
     

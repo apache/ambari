@@ -26,24 +26,9 @@ import os
 import sys
 import platform
 from resource_management.core import shell
+from resource_management.core.utils import lazy_property
 from resource_management.core.exceptions import Fail
-from functools import wraps
 from ambari_commons import OSCheck
-
-def lazy_property(undecorated):
-  name = '_' + undecorated.__name__
-
-  @property
-  @wraps(undecorated)
-  def decorated(self):
-    try:
-      return getattr(self, name)
-    except AttributeError:
-      v = undecorated(self)
-      setattr(self, name, v)
-      return v
-
-  return decorated
 
 class System(object):
   @lazy_property
