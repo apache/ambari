@@ -1009,15 +1009,48 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {string} serviceName
    */
   confirmDeleteService: function (serviceName) {
-    var message = Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName));
-    var confirmKey = 'yes';
+    var message = Em.I18n.t('services.service.confirmDelete.popup.body').format(App.format.role(serviceName)),
+        confirmKey = 'yes',
+        self = this;
 
     App.ModalPopup.show({
+
+      /**
+       * @function onPrimary
+       */
+      onPrimary: function() {
+        self.deleteServiceCall(serviceName);
+        this._super();
+      },
+
+      /**
+       * @type {string}
+       */
       primary: Em.I18n.t('common.delete'),
+
+      /**
+       * @type {string}
+       */
       primaryClass: 'btn-danger',
+
+      /**
+       * @type {string}
+       */
       header: Em.I18n.t('services.service.confirmDelete.popup.header'),
+
+      /**
+       * @type {string}
+       */
       confirmInput: '',
+
+      /**
+       * @type {boolean}
+       */
       disablePrimary: Em.computed.notEqual('confirmInput', confirmKey),
+
+      /**
+       * @type {Em.View}
+       */
       bodyClass: Em.View.extend({
         confirmKey: confirmKey,
         template: Em.Handlebars.compile(message +
@@ -1027,6 +1060,26 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
         '</form>')
       })
     });
+  },
+
+  /**
+   * Ajax call to delete service
+   * @param {string} serviceName
+   * @returns {$.ajax}
+   */
+  deleteServiceCall: function(serviceName) {
+    return App.ajax.send({
+      name : 'service.item.delete',
+      sender: this,
+      data : {
+        serviceName : serviceName
+      },
+      success : 'deleteServiceCallSuccessCallback'
+    });
+  },
+
+  deleteServiceCallSuccessCallback: function(data, ajaxOptions, params) {
+    window.location.reload();
   }
 
 });

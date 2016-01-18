@@ -27,7 +27,7 @@ import pwd
 from resource_management.core import shell
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
-
+from resource_management.core.utils import lazy_property
 
 class UserProvider(Provider):
   options = dict(
@@ -94,9 +94,23 @@ class UserProvider(Provider):
     except KeyError:
       return None
     
-  @property
+  @lazy_property
   def user_groups(self):
-    return [g.gr_name for g in grp.getgrall() if self.resource.username in g.gr_mem]
+    if self.resource.fetch_nonlocal_groups:
+      return [g.gr_name for g in grp.getgrall() if self.resource.username in g.gr_mem]
+    else:
+      with open('/etc/group', 'rb') as fp:
+        content = fp.read()
+      
+      groups = []
+      for line in content.splitlines():
+        entries = line.split(':')
+        group_name = entries[0]
+        group_users = entries[3].split(',')
+        if self.user in group_users:
+          groups.append(group_name)
+          
+      return groups
 
 class GroupProvider(Provider):
   options = dict(

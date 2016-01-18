@@ -56,62 +56,77 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('User', 'hive',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'oozie',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'nobody',
         gid = 'hadoop',
         groups = [u'nobody'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'ambari-qa',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'flume',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hdfs',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'storm',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'mapred',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hbase',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'tez',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'zookeeper',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'falcon',
         gid = 'hadoop',
         groups = [u'users'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'sqoop',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'yarn',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'hcat',
         gid = 'hadoop',
         groups = [u'hadoop'],
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('File', '/tmp/changeUid.sh',
         content = StaticFile('changeToSecureUid.sh'),
@@ -134,20 +149,18 @@ class TestHookBeforeInstall(RMFTestCase):
         not_if = '(test $(id -u hbase) -gt 1000) || (false)',
     )
     self.assertResourceCalled('User', 'test_user1',
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('User', 'test_user2',
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('Group', 'hdfs',
-        ignore_failures = False,
     )
     self.assertResourceCalled('Group', 'test_group',
-        ignore_failures = False,
     )
     self.assertResourceCalled('User', 'hdfs',
         groups = [u'hadoop', u'hdfs', u'test_group'],
-        ignore_failures = False
+        fetch_nonlocal_groups = True,
     )
     self.assertResourceCalled('Directory', '/etc/hadoop',
         mode = 0755
