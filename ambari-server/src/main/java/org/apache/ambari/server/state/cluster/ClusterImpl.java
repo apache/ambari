@@ -487,9 +487,18 @@ public class ClusterImpl implements Cluster {
     loadConfigGroups();
     clusterGlobalLock.writeLock().lock();
     try {
+      String hostList = "";
+      if(LOG.isDebugEnabled()) {
+        if (configGroup.getHosts() != null) {
+          for (Host host : configGroup.getHosts().values()) {
+            hostList += host.getHostName() + ", ";
+          }
+        }
+      }
+
       LOG.debug("Adding a new Config group" + ", clusterName = "
         + getClusterName() + ", groupName = " + configGroup.getName()
-        + ", tag = " + configGroup.getTag());
+        + ", tag = " + configGroup.getTag() + " with hosts " + hostList);
 
       if (clusterConfigGroups.containsKey(configGroup.getId())) {
         // The loadConfigGroups will load all groups to memory

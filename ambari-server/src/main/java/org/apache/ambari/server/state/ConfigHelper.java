@@ -379,6 +379,10 @@ public class ConfigHelper {
     if (stale == null) {
       stale = calculateIsStaleConfigs(sch);
       staleConfigsCache.put(sch, stale);
+      if(LOG.isDebugEnabled()) {
+        LOG.debug("Config staleness for " +
+                  sch.getServiceComponentName() + " on host " + sch.getHostName() + " - " + stale);
+      }
     }
     return stale;
   }
@@ -1134,10 +1138,11 @@ public class ConfigHelper {
    * @return true if the tags are different in any way, even if not-specified
    */
   private boolean isTagChanged(Map<String, String> desiredTags, Map<String, String> actualTags, boolean groupSpecificConfigs) {
-    if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG)) && !groupSpecificConfigs) {
+    if (!actualTags.get(CLUSTER_DEFAULT_TAG).equals(desiredTags.get(CLUSTER_DEFAULT_TAG))) {
       return true;
     }
 
+    // cluster level configs are already compared for staleness, now they match
     // if the host has group specific configs for type we should ignore the cluster level configs and compare specifics
     if (groupSpecificConfigs) {
       actualTags.remove(CLUSTER_DEFAULT_TAG);
