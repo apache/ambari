@@ -146,7 +146,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
   /**
    * sends request to get values for dependent configs
    * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
-   * @param {Function} onComplete
+   * @param {Function} [onComplete]
    * @returns {$.ajax|null}
    */
   loadConfigRecommendations: function(changedConfigs, onComplete) {
@@ -379,15 +379,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create(App.ConfigWithOverrideRecommendationP
    */
   removeCurrentFromDependentList: function (config, saveRecommended) {
     var recommendation = this.getRecommendation(config.get('name'), config.get('filename'), config.get('group.name'));
-    if (recommendation) {
-      try {
-        if (this.saveRecommendation(recommendation)) {
-          this.undoRedoRecommended([recommendation], saveRecommended);
-          this.set('recommendationTimeStamp', (new Date).getTime());
-        }
-      } catch(e) {
-        console.warn(e.message);
-      }
-    }
+    if (recommendation) this.saveRecommendation(recommendation, saveRecommended);
   }
 });

@@ -141,7 +141,7 @@ def _call_wrapper(command, **kwargs):
         break
       except ExecuteTimeoutException as ex:     
         if on_timeout:
-          Logger.info("Executing '%s'. Reason: %s" % (on_timeout, str(ex)))
+          Logger.info("Executing '{0}'. Reason: {1}".format(on_timeout, str(ex)))
           result = checked_call(on_timeout)
         else:
           raise
@@ -149,7 +149,7 @@ def _call_wrapper(command, **kwargs):
       if is_last_try: # last try
         raise
       else:
-        Logger.info("Retrying after %d seconds. Reason: %s" % (try_sleep, str(ex)))
+        Logger.info("Retrying after {0} seconds. Reason: {1}".format(try_sleep, str(ex)))
         time.sleep(try_sleep)
       
   return result
@@ -283,13 +283,13 @@ def _call(command, logoutput=None, throw_on_failure=True, stdout=subprocess.PIPE
       t.cancel()
     # timeout occurred
     else:
-      err_msg = Logger.filter_text(("Execution of '%s' was killed due timeout after %d seconds") % (command_alias, timeout))
+      err_msg = "Execution of '{0}' was killed due timeout after {1} seconds".format(command, timeout)
       raise ExecuteTimeoutException(err_msg)
    
   code = proc.returncode
   
   if throw_on_failure and code:
-    err_msg = Logger.filter_text(("Execution of '%s' returned %d. %s") % (command_alias, code, all_output))
+    err_msg = Logger.filter_text("Execution of '{0}' returned {1}. {2}".format(command_alias, code, all_output))
     raise Fail(err_msg)
   
   # if separate stderr is enabled (by default it's redirected to out)
@@ -313,7 +313,7 @@ def as_sudo(command, env=None, auto_escape=True):
     #   
     # In that case while passing string,
     # any bash symbols eventually added to command like && || ; < > | << >> would cause problems.
-    err_msg = Logger.filter_text(("String command '%s' cannot be run as sudo. Please supply the command as a tuple of arguments") % (command))
+    err_msg = Logger.filter_text("String command '{0}' cannot be run as sudo. Please supply the command as a tuple of arguments".format(command))
     raise Fail(err_msg)
 
   env = _get_environment_str(_add_current_path_to_env(env)) if env else ENV_PLACEHOLDER

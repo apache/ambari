@@ -290,9 +290,14 @@ App.ConfigRecommendationParser = Em.Mixin.create(App.ConfigRecommendations, {
 	 * @param parentProperties
 	 * @param name
 	 * @param fileName
+	 * @param [configGroup]
 	 * @returns {boolean}
 	 */
-	allowUpdateProperty: function (parentProperties, name, fileName) {
-		return true;
+	allowUpdateProperty: function (parentProperties, name, fileName, configGroup) {
+		try {
+			return Em.get(this.getRecommendation(name, fileName, configGroup), 'saveRecommended');
+		} catch (e) {
+			return true;
+		}
 	}
 });

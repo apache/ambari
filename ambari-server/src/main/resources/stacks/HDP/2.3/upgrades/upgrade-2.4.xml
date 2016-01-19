@@ -164,6 +164,7 @@
 
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="YARN">
@@ -282,6 +283,10 @@
 
       <service name="SQOOP">
         <component>SQOOP</component>
+      </service>
+
+      <service name="MAHOUT">
+        <component>MAHOUT</component>
       </service>
 
       <service name="HIVE">
@@ -488,7 +493,7 @@
 
       <component name="RESOURCEMANAGER">
         <pre-upgrade>
-          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
+          <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark Shuffle" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
         </pre-upgrade>
         <pre-downgrade /> <!--  no-op to prevent config changes on downgrade -->
 
@@ -530,6 +535,12 @@
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
+      
+      <component name="PHOENIX_QUERY_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
     </service>
 
     <service name="TEZ">
@@ -545,6 +556,14 @@
 
     <service name="PIG">
       <component name="PIG">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="MAHOUT">
+      <component name="MAHOUT">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
@@ -644,24 +663,24 @@
         <pre-upgrade>
           <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
         
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Upgrading the database and creating a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Upgrading the Oozie database and creating a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>upgrade_oozie_database_and_sharelib</function>
           </task>
         </pre-upgrade>
 
         <pre-downgrade>
-          <task xsi:type="execute" hosts="all" summary="Shut down all Oozie servers">
+          <task xsi:type="execute" hosts="all" sequential="true" summary="Shut down all Oozie servers">
             <script>scripts/oozie_server.py</script>
             <function>stop</function>
           </task>
 
-          <task xsi:type="execute" hosts="any" summary="Create a new sharelib">
+          <task xsi:type="execute" hosts="any" sequential="true" summary="Create a new sharelib">
             <script>scripts/oozie_server_upgrade.py</script>
             <function>create_sharelib</function>
           </task>

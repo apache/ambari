@@ -180,6 +180,57 @@ describe('App.QuickViewLinks', function () {
     });
   });
 
+  describe("#loadQuickLinksConfigSuccessCallback()", function () {
+    var mock;
+
+    beforeEach(function () {
+      sinon.stub(App.store, 'commit', Em.K);
+      mock = sinon.stub(quickViewLinks, 'getQuickLinksConfiguration');
+    });
+    afterEach(function () {
+      App.store.commit.restore();
+      mock.restore();
+    });
+    it("requiredSites consistent", function () {
+      var quickLinksConfigHBASE = {
+        protocol: {
+          type: "http"
+        },
+        links: [
+          {
+            port: {
+              site: "hbase-site"
+            }
+          }
+        ]
+      };
+      var quickLinksConfigYARN = {
+        protocol: {
+          checks: [
+            {
+              site: "yarn-site"
+            }
+          ],
+          type: "https"
+        },
+        links: [
+          {
+            port: {
+              site: "yarn-site"
+            }
+          }
+        ]
+      };
+      quickViewLinks.set('content.serviceName', 'HBASE');
+      mock.returns(quickLinksConfigHBASE);
+      quickViewLinks.loadQuickLinksConfigSuccessCallback({items: []});
+      quickViewLinks.set('content.serviceName', 'YARN');
+      mock.returns(quickLinksConfigYARN);
+      quickViewLinks.loadQuickLinksConfigSuccessCallback({items: []});
+      expect(quickViewLinks.get('requiredSiteNames')).to.be.eql(["core-site", "hdfs-site", "hbase-site", "yarn-site"]);
+    });
+  });
+
   describe("#getQuickLinksHosts()", function () {
     beforeEach(function () {
       sinon.stub(App.ajax, 'send');

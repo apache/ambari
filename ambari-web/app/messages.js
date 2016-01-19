@@ -1679,10 +1679,11 @@ Em.I18n.translations = {
   'services.service.actions.serviceActions':'Service Actions',
 
   'services.service.delete.popup.header': 'Delete Service',
+  'services.service.delete.lastService.popup.body': 'The <b>{0}</b> service can\'t be deleted, at least one service must be installed.',
   'services.service.delete.popup.dependentServices': 'Prior to deleting <b>{0}</b>, you must delete the following dependent services:',
   'services.service.delete.popup.mustBeStopped': 'Prior to deleting <b>{0}</b>, you must stop the service.',
   'services.service.delete.popup.warning': 'The <b>{0} service will be removed from Ambari and all configurations' +
-  ' and configuration history will be lost</b>',
+  ' and configuration history will be lost.</b>',
   'services.service.confirmDelete.popup.header': 'Confirm Delete',
   'services.service.confirmDelete.popup.body': 'You must confirm delete of <b>{0}</b> by typing "yes"' +
   ' in the confirmation box. <b>This operation is not reversible and all configuration history will be lost.</b>',

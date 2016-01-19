@@ -71,6 +71,7 @@ describe('App.ConfigRecommendationParser', function() {
         sinon.stub(App.configsCollection, 'getConfigByName', function(name, fileName) {
           return { name: name, filename: fileName };
         });
+        sinon.stub(instanceObject, 'allowUpdateProperty').returns(true);
 
         sinon.spy(instanceObject, 'updateCallback');
         sinon.spy(instanceObject, 'removeCallback');
@@ -83,6 +84,7 @@ describe('App.ConfigRecommendationParser', function() {
       afterEach(function() {
         App.configsCollection.getConfigByName.restore();
 
+        instanceObject.allowUpdateProperty.restore();
         instanceObject.updateCallback.restore();
         instanceObject.removeCallback.restore();
         instanceObject.updateBoundariesCallback.restore();
@@ -449,9 +451,32 @@ describe('App.ConfigRecommendationParser', function() {
   });
 
   describe('#allowUpdateProperty', function() {
+
+
+
+    var cases = [{
+      saveRecommended: true
+    },{
+      saveRecommended: false
+    }];
+
+    cases.forEach(function(c) {
+      describe('allowUpdateProperty based on saveRecommended:' + c.saveRecommended, function() {
+        beforeEach(function() {
+          sinon.stub(instanceObject, 'getRecommendation').returns({saveRecommended: c.saveRecommended});
+        });
+        afterEach(function() {
+          instanceObject.getRecommendation.restore();
+        });
+        it('default value for allowUpdateProperty is true', function() {
+          expect(instanceObject.allowUpdateProperty()).to.equal(c.saveRecommended);
+        });
+      });
+    });
+
     it('default value for allowUpdateProperty is true', function() {
       expect(instanceObject.allowUpdateProperty()).to.be.true;
-    })
+    });
   });
 });
 

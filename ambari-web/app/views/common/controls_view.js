@@ -103,6 +103,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.configsCollection.getConfig(App.config.configId(name, type));
+      controller.removeCurrentFromDependentList(config, saveRecommended);
        if ((p && Em.get(p, 'propertyDependedBy.length') > 0 || Em.get(p, 'displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
@@ -110,11 +111,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
            "type": type,
            "name": name,
            "old_value": Em.isNone(old) ? config.get('initialValue') : old
-         }], function() {
-           controller.removeCurrentFromDependentList(config, saveRecommended);
-         });
-      } else {
-        controller.removeCurrentFromDependentList(config, saveRecommended);
+         }]);
       }
     }
 
