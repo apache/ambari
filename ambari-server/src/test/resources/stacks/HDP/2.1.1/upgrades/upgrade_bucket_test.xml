@@ -46,36 +46,34 @@
       <component name="ZOOKEEPER_SERVER">
         <pre-upgrade>
           <task xsi:type="manual">
-            <message>this is pre</message>
+            <message>pre-manual 1 task to run on all hosts</message>
           </task>
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>pre-ls 1 to run on all hosts</command>
           </task>
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>pre-ls 2 to run on all hosts</command>
           </task>
-          
         </pre-upgrade>
         
         <post-upgrade>
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>post-ls 1 to run on all hosts</command>
           </task>
           <task xsi:type="manual">
-            <message>this is pre</message>
+            <message>post-manual 1 task to run on all hosts</message>
           </task>
           <task xsi:type="manual">
-            <message>this is pre</message>
+            <message>post-manual 2 task to run on all hosts</message>
           </task>
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>post-ls 2 to run on all hosts</command>
           </task>
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>post-ls 3 to run on all hosts</command>
           </task>
-
           <task xsi:type="execute">
-            <command>ls</command>
+            <command>post-ls 4 to run on all hosts</command>
           </task>
           
         </post-upgrade>
