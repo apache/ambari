@@ -84,24 +84,28 @@ describe('App.MainServiceItemView', function () {
       {
         isMaintenanceSet: true,
         isServicesInfoLoaded: true,
+        isServiceConfigsLoaded: true,
         observeMaintenanceOnceCallCount: 0,
         title: 'actions array set, services info loaded'
       },
       {
         isMaintenanceSet: true,
         isServicesInfoLoaded: false,
+        isServiceConfigsLoaded: true,
         observeMaintenanceOnceCallCount: 0,
         title: 'actions array set, services info not loaded'
       },
       {
         isMaintenanceSet: false,
         isServicesInfoLoaded: true,
+        isServiceConfigsLoaded: true,
         observeMaintenanceOnceCallCount: 1,
         title: 'actions array not set, services info loaded'
       },
       {
         isMaintenanceSet: false,
         isServicesInfoLoaded: false,
+        isServiceConfigsLoaded: true,
         observeMaintenanceOnceCallCount: 0,
         title: 'actions array not set, services info not loaded'
       }
@@ -119,7 +123,8 @@ describe('App.MainServiceItemView', function () {
       it(item.title, function () {
         view.setProperties({
           'isMaintenanceSet': item.isMaintenanceSet,
-          'controller.isServicesInfoLoaded': item.isServicesInfoLoaded
+          'controller.isServicesInfoLoaded': item.isServicesInfoLoaded,
+          'controller.isServiceConfigsLoaded': item.isServiceConfigsLoaded
         });
         view.observeMaintenance();
         expect(view.observeMaintenanceOnce.callCount).to.equal(item.observeMaintenanceOnceCallCount);
@@ -206,7 +211,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "restartAllHostComponents", "context": "ZOOKEEPER", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for ZooKeeper", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"cssClass": "icon-plus", "label": "Add ZooKeeper Server", "service": "ZOOKEEPER", "component": "ZOOKEEPER_SERVER", "action": "addZOOKEEPER_SERVER", "disabled": "disabled", tooltip: ''},
+            {"cssClass": "icon-plus", "label": "Add ZooKeeper Server", "service": "ZOOKEEPER", "component": "ZOOKEEPER_SERVER", "action": "addComponent", "disabled": "", tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
         },
@@ -319,7 +324,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "rollingRestart", "label": "Restart Flumes", "cssClass": "icon-time", "disabled": false, "context": "FLUME_HANDLER"},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Flume", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"cssClass": "icon-plus", "label": "Add Flume Component", "service": "FLUME", "component": "FLUME_HANDLER", "action": "addFLUME_HANDLER", "disabled": '', tooltip: ''},
+            {"cssClass": "icon-plus", "label": "Add Flume Component", "service": "FLUME", "component": "FLUME_HANDLER", "action": "addComponent", "disabled": '', tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
         },
@@ -355,7 +360,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "rollingRestart", "label": "Restart RegionServers", "cssClass": "icon-time", "disabled": false, "context": "HBASE_REGIONSERVER"},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HBase", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
-            {"cssClass": "icon-plus", "label": "Add HBase Master", "service": "HBASE", "component": "HBASE_MASTER", "action": "addHBASE_MASTER", "disabled": '', tooltip: ''},
+            {"cssClass": "icon-plus", "label": "Add HBase Master", "service": "HBASE", "component": "HBASE_MASTER", "action": "addComponent", "disabled": '', tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
         },
@@ -382,6 +387,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "reassignMaster", "context": "OOZIE_SERVER", "label": "Move Oozie Server", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Oozie", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
+            {"cssClass": "icon-plus", "label": "Add Oozie Server", "service": "OOZIE", "component": "OOZIE_SERVER", "action": "addComponent", "disabled": "disabled", tooltip: Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format('OOZIE_SERVER')},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
         },
@@ -449,6 +455,8 @@ describe('App.MainServiceItemView', function () {
             return ["HDFS", "MAPREDUCE2", "YARN", "HIVE", "HBASE", "PIG", "SQOOP", "OOZIE", "ZOOKEEPER", "FALCON", "STORM", "FLUME", "SLIDER", "KNOX", "KAFKA"];
           case 'components.addableToHost':
             return ["DATANODE", "HDFS_CLIENT", "MAPREDUCE2_CLIENT", "NODEMANAGER", "YARN_CLIENT", "TEZ_CLIENT", "GANGLIA_MONITOR", "HCAT", "HIVE_CLIENT", "HIVE_METASTORE", "HIVE_SERVER", "WEBHCAT_SERVER", "HBASE_CLIENT", "HBASE_MASTER", "HBASE_REGIONSERVER", "PIG", "SQOOP", "OOZIE_CLIENT", "OOZIE_SERVER", "ZOOKEEPER_CLIENT", "ZOOKEEPER_SERVER", "FALCON_CLIENT", "SUPERVISOR", "FLUME_HANDLER", "METRICS_MONITOR", "KAFKA_BROKER", "KERBEROS_CLIENT", "KNOX_GATEWAY", "SLIDER", "SPARK_CLIENT"];
+          case 'allHostNames.length':
+            return 2;
           default:
             return Em.get(App, k);
         }

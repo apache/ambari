@@ -41,52 +41,58 @@ App.MainServiceItemView = Em.View.extend({
 
    addActionMap: function() {
      return [
-      {
-        cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hbase.masterServer')),
-        service: 'HBASE',
-        component: 'HBASE_MASTER'
-      },
-      {
-       cssClass: 'icon-plus',
-       'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.metastore')),
-       service: 'HIVE',
-       component: 'HIVE_METASTORE',
-       isHidden: !App.get('isHadoop22Stack')
-      },
-      {
-       cssClass: 'icon-plus',
-       'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2')),
-       service: 'HIVE',
-       component: 'HIVE_SERVER',
-       isHidden: !App.get('isHadoop22Stack')
-      },
-      {
-        cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
-        service: 'ZOOKEEPER',
-        component: 'ZOOKEEPER_SERVER'
-      },
-      {
-        cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.flume.agentLabel')),
-        service: 'FLUME',
-        component: 'FLUME_HANDLER'
-      },
-      {
-        cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER')),
-        service: 'RANGER_KMS',
-        component: 'RANGER_KMS_SERVER'
-      },
-      {
-        cssClass: 'icon-plus',
-        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS')),
-        service: 'STORM',
-        component: 'NIMBUS'
-      }
-    ]
-  },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hbase.masterServer')),
+         service: 'HBASE',
+         component: 'HBASE_MASTER'
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.metastore')),
+         service: 'HIVE',
+         component: 'HIVE_METASTORE',
+         isHidden: !App.get('isHadoop22Stack')
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.hive.server2')),
+         service: 'HIVE',
+         component: 'HIVE_SERVER',
+         isHidden: !App.get('isHadoop22Stack')
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.zookeeper.server')),
+         service: 'ZOOKEEPER',
+         component: 'ZOOKEEPER_SERVER'
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.flume.agentLabel')),
+         service: 'FLUME',
+         component: 'FLUME_HANDLER'
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER')),
+         service: 'RANGER_KMS',
+         component: 'RANGER_KMS_SERVER'
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('NIMBUS')),
+         service: 'STORM',
+         component: 'NIMBUS'
+       },
+       {
+         cssClass: 'icon-plus',
+         'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('OOZIE_SERVER')),
+         service: 'OOZIE',
+         component: 'OOZIE_SERVER'
+       }
+     ]
+   },
   /**
    * Create option for MOVE_COMPONENT or ROLLING_RESTART task.
    *
@@ -103,7 +109,7 @@ App.MainServiceItemView = Em.View.extend({
   isMaintenanceSet: false,
 
   observeMaintenance: function() {
-    if (!this.get('isMaintenanceSet') && this.get('controller.isServicesInfoLoaded')) {
+    if (!this.get('isMaintenanceSet') && this.get('controller.isServicesInfoLoaded') && this.get('controller.isServiceConfigsLoaded')) {
       this.observeMaintenanceOnce();
     }
     Em.run.once(this, 'clearIsMaintenanceSet');
@@ -200,15 +206,24 @@ App.MainServiceItemView = Em.View.extend({
               component: hawqMasterComponent.get('componentName'),
               command: customCommandToStopCluster
             }
-          }))
+          }));
         }
       }
 
       self.addActionMap().filterProperty('service', serviceName).forEach(function(item) {
         if (App.get('components.addableToHost').contains(item.component)) {
-          item.action = 'add' + item.component;
-          item.disabled = self.get('controller.isAddDisabled-' + item.component);
-          item.tooltip = self.get('controller.addDisabledTooltip' + item.component);
+
+          var isEnabled = App.HostComponent.find().filterProperty('componentName', item.component).length < App.get('allHostNames.length');
+
+          if (item.component === 'OOZIE_SERVER') {
+            isEnabled = isEnabled && !(Em.isEmpty(self.get('controller.configs.oozie-env.oozie_database')) || self.get('controller.configs.oozie-env.oozie_database') === 'New Derby Database');
+          }
+
+          item.action = 'addComponent';
+          item.disabled = isEnabled ? '' : 'disabled';
+          item.tooltip = isEnabled ? '' : Em.I18n.t('services.summary.allHostsAlreadyRunComponent').format(item.component);
+          item.context = item.component;
+
           options.push(item);
         }
       });
@@ -282,10 +297,11 @@ App.MainServiceItemView = Em.View.extend({
     this.get('controller').setStartStopState();
   },
 
-  maintenanceObsFields: ['isStopDisabled', 'isClientsOnlyService', 'content.isRestartRequired', 'isServicesInfoLoaded'],
+  maintenanceObsFields: ['isStopDisabled', 'isClientsOnlyService', 'content.isRestartRequired', 'isServicesInfoLoaded', 'isServiceConfigsLoaded'],
 
   willInsertElement: function () {
     var self = this;
+    this.get('controller').loadConfigs();
     this.get('maintenanceObsFields').forEach(function (field) {
       self.addObserver('controller.' + field, self, 'observeMaintenance');
     });
