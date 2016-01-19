@@ -736,6 +736,17 @@ CREATE TABLE ambari.topology_logical_task (
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_task TO :username;
 
+CREATE TABLE ambari.adminsetting (
+  id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  setting_type VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  updated_by VARCHAR(255) NOT NULL DEFAULT '_db',
+  update_timestamp BIGINT NOT NULL,
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.adminsetting TO :username;
+
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON ambari.stage (request_id);
 CREATE INDEX idx_hrc_request_id ON ambari.host_role_command (request_id);
@@ -1120,6 +1131,8 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   select 'topology_request_id_seq', 0
   union all
   select 'topology_host_group_id_seq', 0
+  union all
+  select 'admin_setting_id_seq', 0
   union all
   select 'hostcomponentstate_id_seq', 0;
 

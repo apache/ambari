@@ -655,6 +655,16 @@ CREATE TABLE topology_logical_task (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE adminsetting (
+  id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL UNIQUE,
+  setting_type VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  updated_by VARCHAR(255) NOT NULL DEFAULT '_db',
+  update_timestamp BIGINT NOT NULL,
+  PRIMARY KEY (id)
+);
+
 -- tasks indices --
 CREATE INDEX idx_stage_request_id ON stage (request_id);
 CREATE INDEX idx_hrc_request_id ON host_role_command (request_id);
@@ -1022,6 +1032,8 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   select 'topology_request_id_seq', 0
   union all
   select 'topology_host_group_id_seq', 0
+  union all
+  select 'admin_setting_id_seq', 0
   union all
   select 'hostcomponentstate_id_seq', 0;
 
