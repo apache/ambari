@@ -177,10 +177,20 @@ SETUP_OR_UPGRADE_MSG = "- If this is a new setup, then run the \"ambari-server s
 
 DEFAULT_DB_NAME = "ambari"
 
+SECURITY_KEYS_DIR = "security.server.keys_dir"
 COMMON_SERVICES_PATH_PROPERTY = 'common.services.path'
 WEBAPP_DIR_PROPERTY = 'webapp.dir'
-REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH, \
-                       WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY]
+SHARED_RESOURCES_DIR = 'shared.resources.dir'
+BOOTSTRAP_SCRIPT = 'bootstrap.script'
+CUSTOM_ACTION_DEFINITIONS = 'custom.action.definitions'
+BOOTSTRAP_SETUP_AGENT_SCRIPT = 'bootstrap.setup_agent.script'
+STACKADVISOR_SCRIPT = 'stackadvisor.script'
+REQUIRED_PROPERTIES = [OS_FAMILY_PROPERTY, OS_TYPE_PROPERTY, COMMON_SERVICES_PATH_PROPERTY, SERVER_VERSION_FILE_PATH,
+                       WEBAPP_DIR_PROPERTY, STACK_LOCATION_KEY, SECURITY_KEYS_DIR, JDBC_DATABASE_NAME_PROPERTY,
+                       NR_USER_PROPERTY, JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY,
+                       JDBC_PASSWORD_PROPERTY, SHARED_RESOURCES_DIR, JDBC_USER_NAME_PROPERTY, BOOTSTRAP_SCRIPT,
+                       RESOURCES_DIR_PROPERTY, CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT,
+                       STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY]
 
 class ServerDatabaseType(object):
   internal = 0
@@ -457,7 +467,6 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
 configDefaults = ServerConfigDefaults()
 
 # Security
-SECURITY_KEYS_DIR = "security.server.keys_dir"
 SECURITY_MASTER_KEY_LOCATION = "security.master.key.location"
 SECURITY_KEY_IS_PERSISTED = "security.master.key.ispersisted"
 SECURITY_KEY_ENV_VAR_NAME = "AMBARI_SECURITY_MASTER_KEY"

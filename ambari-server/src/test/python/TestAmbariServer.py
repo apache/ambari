@@ -76,7 +76,9 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
           SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
           get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
-          JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY
+          JAVA_HOME_PROPERTY, JDK_NAME_PROPERTY, JCE_NAME_PROPERTY, STACK_LOCATION_KEY, SERVER_VERSION_FILE_PATH, \
+          COMMON_SERVICES_PATH_PROPERTY, WEBAPP_DIR_PROPERTY, SHARED_RESOURCES_DIR, BOOTSTRAP_SCRIPT, \
+          CUSTOM_ACTION_DEFINITIONS, BOOTSTRAP_SETUP_AGENT_SCRIPT, STACKADVISOR_SCRIPT, BOOTSTRAP_DIR_PROPERTY
         from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
         from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
           download_and_install_jdk, prompt_db_properties, setup, \
@@ -4348,6 +4350,7 @@ class TestAmbariServer(TestCase):
       del args.jdbc_url
       del args.debug
       del args.suspend_start
+      args.skip_properties_validation = False
 
       return args
 
@@ -4368,6 +4371,27 @@ class TestAmbariServer(TestCase):
 
     p = Properties()
     p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'False')
+    p.process_pair(JDBC_DATABASE_NAME_PROPERTY, 'some_value')
+    p.process_pair(NR_USER_PROPERTY, 'some_value')
+    p.process_pair(STACK_LOCATION_KEY, 'some_value')
+    p.process_pair(SERVER_VERSION_FILE_PATH, 'some_value')
+    p.process_pair(OS_TYPE_PROPERTY, 'some_value')
+    p.process_pair(JAVA_HOME_PROPERTY, 'some_value')
+    p.process_pair(JDK_NAME_PROPERTY, 'some_value')
+    p.process_pair(JCE_NAME_PROPERTY, 'some_value')
+    p.process_pair(COMMON_SERVICES_PATH_PROPERTY, 'some_value')
+    p.process_pair(JDBC_PASSWORD_PROPERTY, 'some_value')
+    p.process_pair(WEBAPP_DIR_PROPERTY, 'some_value')
+    p.process_pair(SHARED_RESOURCES_DIR, 'some_value')
+    p.process_pair(SECURITY_KEYS_DIR, 'some_value')
+    p.process_pair(JDBC_USER_NAME_PROPERTY, 'some_value')
+    p.process_pair(BOOTSTRAP_SCRIPT, 'some_value')
+    p.process_pair(OS_FAMILY_PROPERTY, 'some_value')
+    p.process_pair(RESOURCES_DIR_PROPERTY, 'some_value')
+    p.process_pair(CUSTOM_ACTION_DEFINITIONS, 'some_value')
+    p.process_pair(BOOTSTRAP_SETUP_AGENT_SCRIPT, 'some_value')
+    p.process_pair(STACKADVISOR_SCRIPT, 'some_value')
+    p.process_pair(BOOTSTRAP_DIR_PROPERTY, 'some_value')
 
     get_ambari_properties_5_mock.return_value = get_ambari_properties_4_mock.return_value = \
       get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
@@ -4682,7 +4706,17 @@ class TestAmbariServer(TestCase):
     self.assertTrue(save_master_key_method.called)
     popen_arg = popenMock.call_args[1]['env']
     self.assertEquals(os_environ_mock.copy.return_value, popen_arg)
-    pass
+
+    # Checking situation when required properties not set up
+    args = reset_mocks()
+    p.removeProp(JAVA_HOME_PROPERTY)
+    get_ambari_properties_mock.return_value = p
+    try:
+      _ambari_server_.start(args)
+      self.fail("Should fail with 'Required properties are not found:'")
+    except FatalException as e:
+      # Expected
+      self.assertTrue('Required properties are not found:' in e.reason)
 
 
   @not_for_platform(PLATFORM_WINDOWS)
