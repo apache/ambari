@@ -136,8 +136,6 @@ class TestHbaseRegionServer(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       recursive = True,
       mode = 0777
     )
@@ -234,8 +232,6 @@ class TestHbaseRegionServer(RMFTestCase):
       recursive = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       recursive = True,
       mode = 0777
     )
@@ -342,8 +338,6 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       recursive = True)
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       recursive = True,
       mode = 0777
     )
@@ -460,8 +454,6 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       recursive = True)
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       recursive = True,
       mode = 0777
     )

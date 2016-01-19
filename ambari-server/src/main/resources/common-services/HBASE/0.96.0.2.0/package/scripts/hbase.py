@@ -22,6 +22,7 @@ from resource_management import *
 import sys
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from resource_management.core.source import InlineTemplate
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -56,11 +57,9 @@ def hbase(name=None):
       recursive = True
   )
 
-  Directory(params.java_io_tmpdir,
-      owner = params.hbase_user,
-      group = params.user_group,
+  Directory(InlineTemplate(params.java_io_tmpdir).get_content(),
       recursive = True,
-      mode=0777
+      mode=0777,
   )
 
   parent_dir = os.path.dirname(params.tmp_dir)
