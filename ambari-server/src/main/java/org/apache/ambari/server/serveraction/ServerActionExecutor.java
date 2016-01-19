@@ -36,12 +36,14 @@ import org.apache.ambari.server.actionmanager.Request;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
+import org.apache.ambari.server.security.authorization.internal.InternalAuthenticationToken;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Server Action Executor used to execute server-side actions (or tasks)
@@ -470,6 +472,12 @@ public class ServerActionExecutor {
     public void run() {
       try {
         LOG.debug("Executing task #{}", taskId);
+
+        // Set an internal administrator user to be the authenticated user in the event an
+        // authorization check is needed while performing a server-side action.
+        InternalAuthenticationToken authentication = new InternalAuthenticationToken("server_action_executor");
+        authentication.setAuthenticated(true);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         commandReport = execute(hostRoleCommand, executionCommand);
 

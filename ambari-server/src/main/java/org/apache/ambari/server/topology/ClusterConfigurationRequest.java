@@ -141,7 +141,20 @@ public class ClusterConfigurationRequest {
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-        new HashSet<String>(blueprint.getServices()), false);
+        new HashSet<String>(blueprint.getServices()), false, true, false);
+
+      // ******************************************************************************************
+      // Since Kerberos is being enabled, make sure the cluster-env/security_enabled property is
+      // set to "true"
+      Map<String, String> clusterEnv = updatedConfigs.get("cluster-env");
+
+      if(clusterEnv == null) {
+        clusterEnv = new HashMap<String,String>();
+        updatedConfigs.put("cluster-env", clusterEnv);
+      }
+
+      clusterEnv.put("security_enabled", "true");
+      // ******************************************************************************************
 
       for (String configType : updatedConfigs.keySet()) {
         Map<String, String> propertyMap = updatedConfigs.get(configType);
@@ -197,7 +210,7 @@ public class ClusterConfigurationRequest {
       // apply Kerberos specific configurations
       Map<String, Map<String, String>> updatedConfigs = AmbariContext.getController().getKerberosHelper()
         .getServiceConfigurationUpdates(cluster, existingConfigurations,
-          new HashSet<String>(blueprint.getServices()), false);
+          new HashSet<String>(blueprint.getServices()), false, true, false);
 
       // retrieve hostgroup for component names extracted from variables like "{clusterHostInfo.(component_name)
       // _host}"
