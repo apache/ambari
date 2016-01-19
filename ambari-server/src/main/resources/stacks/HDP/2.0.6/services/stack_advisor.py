@@ -320,7 +320,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         ranger_admin_host = ranger_admin_hosts[0]
         policymgr_external_url = "%s://%s:%s" % (protocol, ranger_admin_host, port)
 
-    putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
+      putRangerAdminProperty('policymgr_external_url', policymgr_external_url)
 
     rangerServiceVersion = [service['StackServices']['service_version'] for service in services["services"] if service['StackServices']['service_name'] == 'RANGER'][0]
     if rangerServiceVersion == '0.4.0':

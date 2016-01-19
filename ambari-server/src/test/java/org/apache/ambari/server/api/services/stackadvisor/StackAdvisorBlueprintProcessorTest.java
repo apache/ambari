@@ -76,6 +76,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
@@ -104,6 +105,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();
@@ -131,6 +133,7 @@ public class StackAdvisorBlueprintProcessorTest {
     expect(clusterTopology.getHostGroupInfo()).andReturn(createHostGroupInfo()).anyTimes();
     expect(clusterTopology.getAdvisedConfigurations()).andReturn(advisedConfigurations).anyTimes();
     expect(clusterTopology.getConfiguration()).andReturn(configuration).anyTimes();
+    expect(clusterTopology.isClusterKerberosEnabled()).andReturn(false).anyTimes();
     expect(blueprint.getStack()).andReturn(stack).anyTimes();
     expect(stack.getVersion()).andReturn("2.3").anyTimes();
     expect(stack.getName()).andReturn("HDP").anyTimes();

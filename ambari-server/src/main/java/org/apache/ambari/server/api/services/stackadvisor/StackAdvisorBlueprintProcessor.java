@@ -118,6 +118,25 @@ public class StackAdvisorBlueprintProcessor {
       propsMap.put("properties", siteEntry.getValue());
       result.put(siteEntry.getKey(), propsMap);
     }
+
+    if(clusterTopology.isClusterKerberosEnabled()) {
+      // If Kerberos is to be enabled, make sure the stack advisor thinks cluster-env/security_enabled is "true"
+      Map<String, Map<String, String>> clusterEnv = result.get("cluster-env");
+
+      if(clusterEnv == null) {
+        clusterEnv = Maps.newHashMap();
+        result.put("cluster-env", clusterEnv);
+      }
+
+      Map<String, String> properties = clusterEnv.get("properties");
+      if(properties == null) {
+        properties = Maps.newHashMap();
+        clusterEnv.put("properties", properties);
+      }
+
+      properties.put("security_enabled", "true");
+    }
+
     return result;
   }
 

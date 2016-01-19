@@ -145,7 +145,7 @@ public class ClusterConfigurationRequestTest {
     expect(kerberosHelper.ensureHeadlessIdentities(anyObject(Cluster.class), anyObject(Map.class), anyObject
       (Set.class))).andReturn(true).once();
     expect(kerberosHelper.getServiceConfigurationUpdates(anyObject(Cluster.class), anyObject(Map.class), anyObject
-      (Set.class), anyBoolean())).andReturn(kerberosConfig).once();
+      (Set.class), anyBoolean(), anyBoolean())).andReturn(kerberosConfig).once();
 
 
     PowerMock.replay(stack, blueprint, topology, controller, clusters, kerberosHelper, ambariContext,

@@ -224,6 +224,7 @@ public interface KerberosHelper {
    * @param cluster                the cluster
    * @param existingConfigurations the cluster's existing configurations
    * @param services               the set of services to process
+   * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
    * @return a map of configuration updates
    * @throws AmbariException
    * @throws KerberosInvalidConfigurationException if an issue occurs trying to get the
@@ -231,13 +232,35 @@ public interface KerberosHelper {
    */
   Map<String, Map<String, String>> getServiceConfigurationUpdates(Cluster cluster,
                                                                   Map<String, Map<String, String>> existingConfigurations,
-                                                                  Set<String> services, boolean serviceAlreadyExists)
+                                                                  Set<String> services,
+                                                                  boolean serviceAlreadyExists, boolean kerberosEnabled)
       throws KerberosInvalidConfigurationException, AmbariException;
 
   /**
-   * Ensures that the relevant headless (or user) Kerberos identities are created and cached.
+   * Invokes the Stack Advisor to help determine relevant configuration changes when enabling or
+   * disabling Kerberos
    *
+   * @param cluster                a cluster
+   * @param services               a set of services that are being configured to enabled or disable Kerberos
+   * @param existingConfigurations the cluster's existing configurations
+   * @param kerberosConfigurations the configuration updates to make (must not be mutable)
+   * @param propertiesToIgnore     the configuration properties that should be ignored when applying recommendations
+   * @param kerberosEnabled        true if kerberos is (to be) enabled; otherwise false
+   * @return the configuration updates
+   * @throws AmbariException
+   */
+  Map<String, Map<String, String>> applyStackAdvisorUpdates(Cluster cluster, Set<String> services,
+                                                            Map<String, Map<String, String>> existingConfigurations,
+                                                            Map<String, Map<String, String>> kerberosConfigurations,
+                                                            Map<String, Set<String>> propertiesToIgnore,
+                                                            boolean kerberosEnabled)
+      throws AmbariException;
+
+  /**
+   * Ensures that the relevant headless (or user) Kerberos identities are created and cached.
+   * <p/>
    * This can be called any number of times and only the missing identities will be created.
+   *
    * @param cluster                the cluster
    * @param existingConfigurations the cluster's existing configurations
    * @param services               the set of services to process
@@ -451,6 +474,17 @@ public interface KerberosHelper {
    * otherwise false
    */
   Boolean getManageIdentitiesDirective(Map<String, String> requestProperties);
+
+  /**
+   * Given a list of KerberosIdentityDescriptors, returns a Map fo configuration types to property
+   * names and values.
+   * <p/>
+   * The property names and values are not expected to have any variable replacements done.
+   *
+   * @param identityDescriptors a List of KerberosIdentityDescriptor from which to retrieve configurations
+   * @return a Map of configuration types to property name/value pairs (as a Map)
+   */
+  Map<String, Map<String, String>> getIdentityConfigurations(List<KerberosIdentityDescriptor> identityDescriptors);
 
   /**
    * Returns the active identities for the named cluster.  Results are filtered by host, service,
