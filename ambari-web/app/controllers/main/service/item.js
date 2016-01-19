@@ -954,26 +954,35 @@ App.MainServiceItemController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   deleteService: function(serviceName) {
     var dependentServices = App.StackService.find(serviceName).get('requiredServices').filter(function(_serviceName) {
-      return App.Service.find(_serviceName).get('isLoaded');
-    });
-    var self = this;
-    var displayName = App.format.role(serviceName);
+          return App.Service.find(_serviceName).get('isLoaded');
+        }),
+        self = this,
+        displayName = App.format.role(serviceName),
+        popupHeader = Em.I18n.t('services.service.delete.popup.header');
 
-    if (dependentServices.length > 0) {
+    if (App.Service.find().get('length') === 1) {
+      //at least one service should be installed
+      App.ModalPopup.show({
+        secondary: null,
+        header: popupHeader,
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.lastService.popup.body').format(displayName)
+      });
+    } else if (dependentServices.length > 0) {
       this.dependentServicesWarning(serviceName, dependentServices);
     } else if (App.Service.find(serviceName).get('workStatus') === 'INSTALLED') {
       App.showConfirmationPopup(
         function() {self.confirmDeleteService(serviceName)},
         Em.I18n.t('services.service.delete.popup.warning').format(displayName),
         null,
-        Em.I18n.t('services.service.delete.popup.header'),
+        popupHeader,
         Em.I18n.t('common.delete'),
         true
       );
     } else {
       App.ModalPopup.show({
         secondary: null,
-        header: Em.I18n.t('services.service.delete.popup.header'),
+        header: popupHeader,
         encodeBody: false,
         body: Em.I18n.t('services.service.delete.popup.mustBeStopped').format(displayName)
       });

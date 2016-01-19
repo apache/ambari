@@ -1197,6 +1197,18 @@ describe('App.MainServiceItemController', function () {
       App.format.role.restore();
     });
 
+    it("only one service installed", function() {
+      this.mockStackService.returns(Em.Object.create({requiredServices: ['S2']}));
+      this.mockService.returns(Em.Object.create({length: 1}));
+      mainServiceItemController.deleteService('S1');
+      expect(App.ModalPopup.show.calledWith({
+        secondary: null,
+        header: Em.I18n.t('services.service.delete.popup.header'),
+        encodeBody: false,
+        body: Em.I18n.t('services.service.delete.lastService.popup.body').format('S1')
+      })).to.be.true;
+    });
+
     it("service has installed dependent services", function() {
       this.mockStackService.returns(Em.Object.create({requiredServices: ['S2']}));
       this.mockService.returns(Em.Object.create({workStatus: 'INSTALLED', isLoaded: true}));
