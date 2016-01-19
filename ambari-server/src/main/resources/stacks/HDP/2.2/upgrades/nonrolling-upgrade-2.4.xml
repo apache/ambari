@@ -395,7 +395,7 @@
         <task xsi:type="configure" id="hdp_2_3_0_0_yarn_rm_check_cs_root_max_capacity"/>
       </execute-stage>
 
-      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark">
+      <execute-stage service="YARN" component="RESOURCEMANAGER" title="Calculating Yarn Properties for Spark Shuffle">
         <task xsi:type="server_action" summary="Calculating Yarn Properties for Spark" class="org.apache.ambari.server.serveraction.upgrades.SparkShufflePropertyConfig" />
       </execute-stage>
 

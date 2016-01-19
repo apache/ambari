@@ -68,9 +68,6 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
       return  createCommandReport(0, HostRoleStatus.FAILED,"{}",
               String.format("Source type %s not found", YARN_SITE_CONFIG_TYPE), "");
     }
-
-    try {
-      cluster.getService("SPARK");  // check if SPARK service present
       Map<String, String> yarnSiteProperties = yarnSiteConfig.getProperties();
 
       final List<String> auxSevices;
@@ -82,7 +79,11 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
       } else {
         auxSevices = new ArrayList<>();
       }
-      auxSevices.add(SPARK_SHUFFLE_AUX_STR);
+
+      // check if spark is not already in the list
+      if (!auxSevices.contains(SPARK_SHUFFLE_AUX_STR)) {
+        auxSevices.add(SPARK_SHUFFLE_AUX_STR);
+      }
       newAuxServices = StringUtils.join(auxSevices, ",");
 
       yarnSiteProperties.put(YARN_NODEMANAGER_AUX_SERVICES, newAuxServices);
@@ -94,10 +95,5 @@ public class SparkShufflePropertyConfig extends AbstractServerAction {
         String.format("%s was set from %s to %s. %s was set to %s",
                 YARN_NODEMANAGER_AUX_SERVICES, oldAuxServices, newAuxServices,
                 YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS_VALUE, YARN_NODEMANAGER_AUX_SERVICES_SPARK_SHUFFLE_CLASS_VALUE), "");
-
-    } catch (ServiceNotFoundException e) {
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          String.format("%s not updated as no SPARK service present on the cluster", YARN_NODEMANAGER_AUX_SERVICES), "");
-    }
   }
 }

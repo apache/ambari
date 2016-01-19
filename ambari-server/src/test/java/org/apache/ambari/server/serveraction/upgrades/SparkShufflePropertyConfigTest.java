@@ -22,7 +22,6 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -30,7 +29,6 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.agent.CommandReport;
@@ -39,7 +37,6 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigImpl;
-import org.apache.ambari.server.state.Service;
 import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,19 +91,15 @@ public class SparkShufflePropertyConfigTest {
   }
 
   @Test
-  public void testSparkPresent() throws Exception {
+  public void testAction() throws Exception {
     ExecutionCommand executionCommand = new ExecutionCommand();
     Map<String, String> commandParams = new HashMap<>();
     HostRoleCommand hrc = EasyMock.createMock(HostRoleCommand.class);
-    Service sparkService = EasyMock.createMock(Service.class);
     SparkShufflePropertyConfig action = new SparkShufflePropertyConfig();
 
     commandParams.put("clusterName", "c1");
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
-
-    // test calculations when spark service present
-    expect(cluster.getService("SPARK")).andReturn(sparkService).atLeastOnce();
 
     expect(hrc.getRequestId()).andReturn(1L).anyTimes();
     expect(hrc.getStageId()).andReturn(2L).anyTimes();
@@ -131,39 +124,5 @@ public class SparkShufflePropertyConfigTest {
     assertEquals("org.apache.spark.network.yarn.YarnShuffleService", map.get("yarn.nodemanager.aux-services.spark_shuffle.class"));
   }
 
-  @Test
-  public void testSparkNotPresent() throws Exception{
-    SparkShufflePropertyConfig action = new SparkShufflePropertyConfig();
-    Map<String, String> commandParams = new HashMap<>();
-    ExecutionCommand executionCommand = new ExecutionCommand();
-    HostRoleCommand hrc = EasyMock.createMock(HostRoleCommand.class);
-    ServiceNotFoundException notFoundException = new ServiceNotFoundException("c1", "SPARK");
 
-    commandParams.put("clusterName", "c1");
-    executionCommand.setCommandParams(commandParams);
-    executionCommand.setClusterName("c1");
-
-    //no spark service present
-    expect(cluster.getService("SPARK")).andThrow(notFoundException).atLeastOnce();
-
-    expect(hrc.getRequestId()).andReturn(1L).anyTimes();
-    expect(hrc.getStageId()).andReturn(2L).anyTimes();
-    expect(hrc.getExecutionCommandWrapper()).andReturn(new ExecutionCommandWrapper(executionCommand)).anyTimes();
-    replay(cluster, hrc);
-
-    clusterField.set(action, m_clusters);
-    action.setExecutionCommand(executionCommand);
-    action.setHostRoleCommand(hrc);
-
-    CommandReport report = action.execute(null);
-    assertNotNull(report);
-
-    Cluster c = m_clusters.getCluster("c1");
-    Config config = c.getDesiredConfigByType("yarn-site");
-    Map<String, String> map = config.getProperties();
-
-    assertTrue(map.containsKey("yarn.nodemanager.aux-services"));
-    assertFalse(map.containsKey("yarn.nodemanager.aux-services.spark_shuffle.class"));
-    assertEquals("some_service", map.get("yarn.nodemanager.aux-services"));
-  }
 }
