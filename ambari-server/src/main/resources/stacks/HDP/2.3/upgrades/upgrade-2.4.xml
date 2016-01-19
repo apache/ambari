@@ -164,6 +164,7 @@
 
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
+        <component>PHOENIX_QUERY_SERVER</component>
       </service>
 
       <service name="YARN">
@@ -282,6 +283,10 @@
 
       <service name="SQOOP">
         <component>SQOOP</component>
+      </service>
+
+      <service name="MAHOUT">
+        <component>MAHOUT</component>
       </service>
 
       <service name="HIVE">
@@ -530,6 +535,12 @@
           <task xsi:type="restart-task" />
         </upgrade>
       </component>
+      
+      <component name="PHOENIX_QUERY_SERVER">
+        <upgrade>
+          <task xsi:type="restart-task"/>
+        </upgrade>
+      </component>
     </service>
 
     <service name="TEZ">
@@ -545,6 +556,14 @@
 
     <service name="PIG">
       <component name="PIG">
+        <upgrade>
+          <task xsi:type="restart-task" />
+        </upgrade>
+      </component>
+    </service>
+
+    <service name="MAHOUT">
+      <component name="MAHOUT">
         <upgrade>
           <task xsi:type="restart-task" />
         </upgrade>
