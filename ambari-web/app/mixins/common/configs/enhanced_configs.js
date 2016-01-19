@@ -788,9 +788,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         if (propertyToUpdate) {
           var valueToSave = propertyToUpdate.saveRecommended ? propertyToUpdate.recommendedValue : propertyToUpdate.value;
           if (!selectedGroup || selectedGroup.get('isDefault')) {
-            if (propertyToUpdate.saveRecommended || cp.get('value') == propertyToUpdate.recommendedValue) {
+            if (propertyToUpdate.saveRecommended || Em.get(propertyToUpdate, 'forceUpdate')) {
               cp.set('value', valueToSave);
             }
+            Em.set(propertyToUpdate, 'forceUpdate', false);
             cp.set('recommendedValue', propertyToUpdate.recommendedValue);
           } else {
             var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));

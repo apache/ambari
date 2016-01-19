@@ -57,8 +57,12 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
     }),
     onPrimary: function () {
       this._super();
-      this.get('configs').forEach(function (c) {
+      var changedConfigs = this.get('configs').filter(function(c) {
+        return Em.get(c, 'saveRecommendedDefault') != Em.get(c, 'saveRecommended');
+      });
+      changedConfigs.forEach(function (c) {
         Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
+        Em.set(c,'forceUpdate', true);
       });
       if (primary) {
         primary();
@@ -66,8 +70,12 @@ App.showDependentConfigsPopup = function (configs, primary, secondary) {
     },
     onSecondary: function() {
       this._super();
-      this.get('configs').forEach(function(c) {
+      var changedConfigs = this.get('configs').filter(function(c) {
+        return Em.get(c, 'saveRecommendedDefault') != Em.get(c, 'saveRecommended');
+      });
+      changedConfigs.forEach(function(c) {
         Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
+        Em.set(c, 'forceUpdate', true);
       });
       if (secondary) {
         secondary();

@@ -83,10 +83,10 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
     if (!config || !config.get('isValid')) return $.Deferred().resolve().promise();
     if (['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
-      var saveRecommended = (config.get('value') === config.get('recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(App.config.configId(name, type));
+      controller.removeCurrentFromDependentList(config, config.get('value') === config.get('recommendedValue'));
        if ((p && p.get('propertyDependedBy.length') > 0 || p.get('displayType') === 'user') && config.get('oldValue') !== config.get('value')) {
          var old = config.get('oldValue');
          config.set('oldValue', config.get('value'));
@@ -94,11 +94,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
            "type": type,
            "name": name,
            "old_value": Em.isNone(old) ? config.get('initialValue') : old
-         }], false, function() {
-           controller.removeCurrentFromDependentList(config, saveRecommended);
-         });
-      } else {
-        controller.removeCurrentFromDependentList(config, saveRecommended);
+         }], false);
       }
     }
 
