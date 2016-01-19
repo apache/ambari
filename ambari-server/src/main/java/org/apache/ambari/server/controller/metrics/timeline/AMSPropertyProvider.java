@@ -51,6 +51,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +68,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private final TimelineMetricCache metricCache;
   private static AtomicInteger printSkipPopulateMsgHostCounter = new AtomicInteger(0);
   private static AtomicInteger printSkipPopulateMsgHostCompCounter = new AtomicInteger(0);
+  private static final Map<String, String> timelineAppIdCache = new ConcurrentHashMap<>(10);
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
                              URLStreamProvider streamProvider,
@@ -175,7 +177,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       Long startTime = (metricCacheKey.getTemporalInfo() != null) ? metricCacheKey.getTemporalInfo().getStartTimeMillis():null;
       Long endTime = (metricCacheKey.getTemporalInfo() != null) ? metricCacheKey.getTemporalInfo().getEndTimeMillis():null;
 
-      return requestHelper.fetchTimelineMetrics(uriBuilder,startTime, endTime);
+      return requestHelper.fetchTimelineMetrics(uriBuilder, startTime, endTime);
     }
 
 
@@ -214,7 +216,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
           try {
             metricsResponse = getTimelineMetricsFromCache(
               getTimelineAppMetricCacheKey(hostComponentHostMetrics,
-                componentName, uriBuilder.toString()), componentName);
+                componentName, hostnames, uriBuilder.toString()), componentName);
           } catch (IOException e) {
             if (LOG.isDebugEnabled()) {
               LOG.debug("Caught exception fetching metric data.", e);
@@ -236,7 +238,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
           try {
             metricsResponse = getTimelineMetricsFromCache(
               getTimelineAppMetricCacheKey(nonHostComponentMetrics,
-                componentName, uriBuilder.toString()), componentName);
+                componentName, hostnames, uriBuilder.toString()), componentName);
           } catch (IOException e) {
             if (LOG.isDebugEnabled()) {
               LOG.debug("Caught exception fetching metric data.", e);
@@ -284,6 +286,33 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       return Collections.emptySet();
     }
 
+    private String getTimelineAppId(String componentName) {
+      if (timelineAppIdCache.containsKey(componentName)) {
+        return timelineAppIdCache.get(componentName);
+      } else {
+        StackId stackId;
+        try {
+          AmbariManagementController managementController = AmbariServer.getController();
+          stackId = managementController.getClusters().getCluster(clusterName).getCurrentStackVersion();
+          if (stackId != null) {
+            String stackName = stackId.getStackName();
+            String version = stackId.getStackVersion();
+            AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
+            String serviceName = ambariMetaInfo.getComponentToService(stackName, version, componentName);
+            String timeLineAppId = ambariMetaInfo.getComponent(stackName, version, serviceName, componentName).getTimelineAppid();
+            if (timeLineAppId != null){
+              timelineAppIdCache.put(componentName, timeLineAppId);
+              return timeLineAppId;
+            }
+          }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
+      }
+
+      return componentName;
+    }
+
     private void setQueryParams(String metricsParam, String hostname,
                                 boolean isHostMetric, String componentName) {
       // Reuse uriBuilder
@@ -303,23 +332,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       } else {
         if (componentName != null && !componentName.isEmpty()
             && !componentName.equalsIgnoreCase("HOST")) {
-          StackId stackId;
-          try {
-            AmbariManagementController managementController = AmbariServer.getController();
-            stackId = managementController.getClusters().getCluster(clusterName).getCurrentStackVersion();
-            if (stackId != null) {
-              String stackName = stackId.getStackName();
-              String version = stackId.getStackVersion();
-              AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
-              String serviceName = ambariMetaInfo.getComponentToService(stackName,version,componentName);
-              String timeLineAppId = ambariMetaInfo.getComponent(stackName, version, serviceName, componentName).getTimelineAppid();
-              if (timeLineAppId != null){
-                componentName = timeLineAppId;
-              }
-            }
-          } catch (Exception e) {
-            e.printStackTrace();
-          }
+          componentName = getTimelineAppId(componentName);
         }
         uriBuilder.setParameter("appId", componentName);
       }
@@ -426,10 +439,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
 
     // Called when host component metrics are present
     private TimelineAppMetricCacheKey getTimelineAppMetricCacheKey(Set<String> metrics,
-        String componentName, String spec) {
+        String hostnames, String componentName, String spec) {
 
       TimelineAppMetricCacheKey metricCacheKey =
-        new TimelineAppMetricCacheKey(metrics, componentName, temporalInfo);
+        new TimelineAppMetricCacheKey(metrics, componentName, hostnames, temporalInfo);
 
       // Set Uri on the cache key so the only job of the cache update is
       // tweaking the params. Note: Passing UriBuilder reference is unsafe
