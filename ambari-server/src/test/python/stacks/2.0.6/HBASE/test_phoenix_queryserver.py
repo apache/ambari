@@ -238,8 +238,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -351,8 +349,6 @@ class TestPhoenixQueryServer(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )

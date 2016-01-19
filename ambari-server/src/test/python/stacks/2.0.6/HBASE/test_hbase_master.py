@@ -243,8 +243,6 @@ class TestHBaseMaster(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -380,8 +378,6 @@ class TestHBaseMaster(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -526,8 +522,6 @@ class TestHBaseMaster(RMFTestCase):
       group = 'hadoop',
       create_parents = True)
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
