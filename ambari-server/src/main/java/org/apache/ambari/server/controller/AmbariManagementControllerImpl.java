@@ -1434,6 +1434,15 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             isConfigurationCreationNeeded = true;
             break;
           } else {
+            if (clusterConfig.getServiceConfigVersions().isEmpty()) {
+              //If there's no service config versions containing this config, recreate it even if exactly equal
+              LOG.warn("Existing desired config doesn't belong to any service config version, " +
+                  "forcing config recreation, " +
+                  "clusterName={}, type = {}, tag={}", cluster.getClusterName(), clusterConfig.getType(),
+                  clusterConfig.getTag());
+              isConfigurationCreationNeeded = true;
+              break;
+            }
             for (Entry<String, String> property : requestConfigProperties.entrySet()) {
               if (!StringUtils.equals(property.getValue(), clusterConfigProperties.get(property.getKey()))) {
                 isConfigurationCreationNeeded = true;

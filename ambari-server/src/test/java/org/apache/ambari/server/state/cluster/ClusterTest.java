@@ -102,6 +102,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
+import org.apache.commons.lang.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -1067,8 +1068,22 @@ public class ClusterTest {
     Assert.assertEquals(2,
       em.createQuery("SELECT config from ClusterConfigEntity config").getResultList().size());
     // ClusterConfigMapping
-    Assert.assertEquals(2,
-      em.createQuery("SELECT configmapping from ClusterConfigMappingEntity configmapping").getResultList().size());
+    List<ClusterConfigMappingEntity> configMappingEntities =
+        em.createQuery("SELECT configmapping from ClusterConfigMappingEntity configmapping",
+        ClusterConfigMappingEntity.class).getResultList();
+
+    Assert.assertEquals(2, configMappingEntities.size());
+
+    for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
+      if (StringUtils.equals(configMappingEntity.getType(), "core-site")) {
+        assertEquals("core-site is not part of HDFS in test stack, should remain mapped to cluster",
+            1, configMappingEntity.isSelected());
+      }
+      if (StringUtils.equals(configMappingEntity.getType(), "hdfs-site")) {
+        assertEquals("hdfs-site should be unmapped from cluster when HDFS service is removed",
+            0, configMappingEntity.isSelected());
+      }
+    }
 
     // ServiceConfigMapping
     Assert.assertEquals(0,
