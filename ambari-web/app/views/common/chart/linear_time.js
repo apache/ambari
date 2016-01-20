@@ -930,9 +930,9 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         isReady: Em.computed.alias('parentView.graph.isPopupReady'),
 
         currentTimeRangeIndex: self.get('currentTimeIndex'),
-        customStartTime: self.get('customStartTime'),
-        customEndTime: self.get('customEndTime'),
-        customDurationFormatted: self.get('customDurationFormatted'),
+        customStartTime: self.get('currentTimeIndex') === 8 ? self.get('customStartTime') : null,
+        customEndTime: self.get('currentTimeIndex') === 8 ? self.get('customEndTime') : null,
+        customDurationFormatted: self.get('currentTimeIndex') === 8 ? self.get('customDurationFormatted') : null,
 
         didInsertElement: function () {
           var popupBody = this;
@@ -995,7 +995,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
         setTimeRange: function (event) {
           var index = event.context.index,
             callback = this.get('parentView').reloadGraphByTime.bind(this.get('parentView'), index);
-          this._super(event, callback);
+          this._super(event, callback, self);
 
           // Preset time range is specified by user
           if (index !== 8) {
@@ -1012,8 +1012,12 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       secondary: null,
 
       onPrimary: function () {
+        var targetView = Em.isNone(self.get('parentView.currentTimeRangeIndex')) ? self.get('parentView.parentView') : self.get('parentView');
         self.setProperties({
-          currentTimeIndex: !Em.isNone(self.get('parentView.currentTimeRangeIndex')) ? self.get('parentView.currentTimeRangeIndex') : self.get('parentView.parentView.currentTimeRangeIndex'),
+          currentTimeIndex: targetView.get('currentTimeRangeIndex'),
+          customStartTime: targetView.get('customStartTime'),
+          customEndTime: targetView.get('customEndTime'),
+          customDurationFormatted: targetView.get('customDurationFormatted'),
           isPopup: false
         });
         this._super();
@@ -1068,7 +1072,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
     Em.run.once(this, function () {
       this.loadData();
     });
-  }.observes('timeUnitSeconds', 'customStartTime', 'customStartTime'),
+  }.observes('timeUnitSeconds', 'customStartTime', 'customEndTime'),
 
   timeStates: [
     {name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
@@ -1111,7 +1115,7 @@ App.ChartLinearTimeView = Ember.View.extend(App.ExportMetricsMixin, {
       // Custom start and end time is specified by user
       this.propertyDidChange('timeUnitSeconds');
     }
-  }.observes('currentTimeIndex')
+  }.observes('currentTimeIndex', 'parentView.childViews.lastObject.customStartTime', 'parentView.childViews.lastObject.customEndTime')
 
 });
 
