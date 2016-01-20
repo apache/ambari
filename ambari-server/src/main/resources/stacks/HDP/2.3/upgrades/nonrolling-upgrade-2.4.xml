@@ -280,6 +280,7 @@
         <task xsi:type="configure" id="hdp_2_4_0_0_webhcat_server_update_configuration_paths"/>
       </execute-stage>
 
+      <!-- OOZIE -->
       <execute-stage service="OOZIE" component="OOZIE_SERVER" title="Apply config changes for Oozie Server">
         <task xsi:type="configure" id="hdp_2_4_0_0_oozie_remove_service_classes" />
       </execute-stage>

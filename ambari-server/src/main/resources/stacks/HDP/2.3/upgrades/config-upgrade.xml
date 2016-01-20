@@ -505,6 +505,23 @@
             <transfer operation="delete" delete-key="XAAUDIT.DB.DATABASE_NAME"/>
             <transfer operation="delete" delete-key="XAAUDIT.DB.HOSTNAME"/>
           </definition>
+
+          <!-- These HBASE configs changed in HDP 2.3.4.0, so upgrades like HDP 2.2 to 2.3.4.0+ still need them. -->
+          <definition xsi:type="configure" id="hdp_2_3_4_0_hbase_remove_local_indexing">
+            <type>hbase-site</type>
+            <set key="phoenix.functions.allowUserDefinedFunctions" value="true"/>
+            <transfer operation="delete" delete-key="hbase.master.loadbalancer.class"
+                      if-key="hbase.master.loadbalancer.class"
+                      if-type="hbase-site"
+                      if-value="org.apache.phoenix.hbase.index.balancer.IndexLoadBalancer"/>
+            <replace key="hbase.coprocessor.master.classes"
+                     find="org.apache.phoenix.hbase.index.master.IndexMasterObserver"
+                     replace-with="" />
+            <replace key="hbase.coprocessor.regionserver.classes"
+                     find="org.apache.hadoop.hbase.regionserver.LocalIndexMerger"
+                     replace-with="" />
+
+          </definition>
         </changes>
       </component>
     </service>
