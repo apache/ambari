@@ -52,6 +52,8 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.ConfigUpgradeChangeDefinition;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.state.stack.upgrade.ExecuteTask;
+import org.apache.ambari.server.state.stack.upgrade.Grouping;
 import org.apache.ambari.server.state.stack.upgrade.ManualTask;
 import org.apache.ambari.server.state.stack.upgrade.StageWrapper;
 import org.apache.ambari.server.state.stack.upgrade.Task;
@@ -192,13 +194,14 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     assertEquals("PRE_CLUSTER", groups.get(0).name);
     assertEquals("ZOOKEEPER", groups.get(1).name);
     assertEquals("CORE_MASTER", groups.get(2).name);
     assertEquals("CORE_SLAVES", groups.get(3).name);
     assertEquals("HIVE", groups.get(4).name);
+    assertEquals("OOZIE", groups.get(5).name);
 
     UpgradeGroupHolder holder = groups.get(2);
     boolean found = false;
@@ -228,7 +231,7 @@ public class UpgradeHelperTest {
     assertTrue(mt.structuredOut.contains("DATANODE"));
     assertTrue(mt.structuredOut.contains("NODEMANAGER"));
 
-    UpgradeGroupHolder postGroup = groups.get(5);
+    UpgradeGroupHolder postGroup = groups.get(6);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Upgrade", postGroup.title);
     assertEquals(3, postGroup.items.size());
@@ -239,7 +242,7 @@ public class UpgradeHelperTest {
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(6, groups.get(1).items.size());
-    assertEquals(8, groups.get(2).items.size());
+    assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
   }
 
@@ -295,7 +298,7 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     UpgradeGroupHolder mastersGroup = groups.get(2);
     assertEquals("CORE_MASTER", mastersGroup.name);
@@ -344,14 +347,16 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     assertEquals("PRE_CLUSTER", groups.get(0).name);
     assertEquals("ZOOKEEPER", groups.get(1).name);
     assertEquals("CORE_MASTER", groups.get(2).name);
     assertEquals("CORE_SLAVES", groups.get(3).name);
+    assertEquals("HIVE", groups.get(4).name);
+    assertEquals("OOZIE", groups.get(5).name);
 
-    UpgradeGroupHolder postGroup = groups.get(5);
+    UpgradeGroupHolder postGroup = groups.get(6);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Upgrade", postGroup.title);
     assertEquals(3, postGroup.items.size());
@@ -361,7 +366,7 @@ public class UpgradeHelperTest {
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(6, groups.get(1).items.size());
-    assertEquals(8, groups.get(2).items.size());
+    assertEquals(9, groups.get(2).items.size());
     assertEquals(7, groups.get(3).items.size());
   }
 
@@ -379,17 +384,17 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
-    UpgradeGroupHolder preGroup = groups.get(0);
-    assertEquals("PRE_CLUSTER", preGroup.name);
-    assertEquals("HIVE", groups.get(1).name);
-    assertEquals("CORE_SLAVES", groups.get(2).name);
-    assertEquals("CORE_MASTER", groups.get(3).name);
-    assertEquals("ZOOKEEPER", groups.get(4).name);
+    assertEquals("PRE_CLUSTER", groups.get(0).name);
+    assertEquals("OOZIE", groups.get(1).name);
+    assertEquals("HIVE", groups.get(2).name);
+    assertEquals("CORE_SLAVES", groups.get(3).name);
+    assertEquals("CORE_MASTER", groups.get(4).name);
+    assertEquals("ZOOKEEPER", groups.get(5).name);
 
 
-    UpgradeGroupHolder postGroup = groups.get(5);
+    UpgradeGroupHolder postGroup = groups.get(6);
     assertEquals("POST_CLUSTER", postGroup.name);
     assertEquals("Finalize Downgrade", postGroup.title);
     assertEquals(3, postGroup.items.size());
@@ -399,10 +404,10 @@ public class UpgradeHelperTest {
     assertEquals(StageWrapper.Type.SERVER_SIDE_ACTION, postGroup.items.get(2).getType());
 
     assertEquals(4, groups.get(0).items.size());
-    assertEquals(2, groups.get(1).items.size());
-    assertEquals(8, groups.get(2).items.size());
-    assertEquals(7, groups.get(3).items.size());
-    assertEquals(5, groups.get(4).items.size());
+    assertEquals(8, groups.get(1).items.size());
+    assertEquals(3, groups.get(2).items.size());
+    assertEquals(8, groups.get(3).items.size());
+    assertEquals(8, groups.get(4).items.size());
   }
 
   @Test
@@ -422,7 +427,17 @@ public class UpgradeHelperTest {
     assertEquals(1, groups.size());
     UpgradeGroupHolder group = groups.iterator().next();
 
-    assertEquals(6, group.items.size());
+    // Pre:
+    //   Manual task = 1
+    //   2x - Execute task on all 3 = 6
+
+    // Post:
+    //   Execute task on all 3 = 3
+    //   2x - Manual task = 2
+    //   3x - Execute task on all 3 = 9
+
+    // Service Check = 1
+    assertEquals(22, group.items.size());
   }
 
   @Test
@@ -439,7 +454,7 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     // grab the manual task out of ZK which has placeholder text
     UpgradeGroupHolder zookeeperGroup = groups.get(1);
@@ -467,13 +482,12 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     // grab the configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
     assertEquals("HIVE", hiveGroup.name);
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(
-        1).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(2).getTasks().get(0).getTasks().get(0);
 
     // now change the thrift port to http to have the 2nd condition invoked
     Map<String, String> hiveConfigs = new HashMap<String, String>();
@@ -525,9 +539,7 @@ public class UpgradeHelperTest {
 
     assertEquals("delete-if-key-present", transfers.get(8).deleteKey);
     assertEquals("delete-if-key-absent", transfers.get(9).deleteKey);
-
   }
-
 
   @Test
   public void testConfigureTask() throws Exception {
@@ -545,7 +557,7 @@ public class UpgradeHelperTest {
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     // grab the configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
@@ -620,12 +632,12 @@ public class UpgradeHelperTest {
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
-    assertEquals(6, groups.size());
+    assertEquals(7, groups.size());
 
     // grab the configure task out of Hive
     UpgradeGroupHolder hiveGroup = groups.get(4);
     assertEquals("HIVE", hiveGroup.name);
-    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(1).getTasks().get(0);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(2).getTasks().get(0).getTasks().get(0);
 
     Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster, cup);
     assertFalse(configProperties.isEmpty());
@@ -700,7 +712,7 @@ public class UpgradeHelperTest {
 
     UpgradeGroupHolder holder = groups.get(3);
     assertEquals(holder.name, "SERVICE_CHECK_1");
-    assertEquals(6, holder.items.size());
+    assertEquals(7, holder.items.size());
     int numServiceChecksActual = 0;
     for (StageWrapper sw : holder.items) {
       for(Service service : services) {
@@ -827,7 +839,7 @@ public class UpgradeHelperTest {
 
     assertEquals(4, groups.get(0).items.size());
     assertEquals(5, groups.get(1).items.size());
-    assertEquals(8, groups.get(2).items.size());
+    assertEquals(9, groups.get(2).items.size());
     assertEquals(8, groups.get(3).items.size());
   }
 
@@ -880,6 +892,7 @@ public class UpgradeHelperTest {
     c.addService(serviceFactory.createNew(c, "YARN"));
     c.addService(serviceFactory.createNew(c, "ZOOKEEPER"));
     c.addService(serviceFactory.createNew(c, "HIVE"));
+    c.addService(serviceFactory.createNew(c, "OOZIE"));
 
     Service s = c.getService("HDFS");
     ServiceComponent sc = s.addServiceComponent("NAMENODE");
@@ -907,6 +920,16 @@ public class UpgradeHelperTest {
     s = c.getService("HIVE");
     sc = s.addServiceComponent("HIVE_SERVER");
     sc.addServiceComponentHost("h2");
+
+    s = c.getService("OOZIE");
+    // Oozie Server HA
+    sc = s.addServiceComponent("OOZIE_SERVER");
+    sc.addServiceComponentHost("h2");
+    sc.addServiceComponentHost("h3");
+    sc = s.addServiceComponent("OOZIE_CLIENT");
+    sc.addServiceComponentHost("h1");
+    sc.addServiceComponentHost("h2");
+    sc.addServiceComponentHost("h3");
 
     // set some desired configs
     Map<String, String> hiveConfigs = new HashMap<String, String>();
@@ -953,17 +976,98 @@ public class UpgradeHelperTest {
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "RESOURCEMANAGER")).andReturn(type).anyTimes();
 
     type = new HostsType();
+    expect(m_masterHostResolver.getMasterAndHosts("YARN", "APP_TIMELINE_SERVER")).andReturn(type).anyTimes();
+
+    type = new HostsType();
     type.hosts.addAll(Arrays.asList("h1", "h3"));
     expect(m_masterHostResolver.getMasterAndHosts("YARN", "NODEMANAGER")).andReturn(type).anyTimes();
 
     expect(m_masterHostResolver.getMasterAndHosts("HIVE", "HIVE_SERVER")).andReturn(
         type).anyTimes();
 
+    type = new HostsType();
+    type.hosts.addAll(Arrays.asList("h2", "h3"));
+    expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_SERVER")).andReturn(type).anyTimes();
+
+    type = new HostsType();
+    type.hosts.addAll(Arrays.asList("h1", "h2", "h3"));
+    expect(m_masterHostResolver.getMasterAndHosts("OOZIE", "OOZIE_CLIENT")).andReturn(type).anyTimes();
+
     expect(m_masterHostResolver.getCluster()).andReturn(c).anyTimes();
 
     replay(m_masterHostResolver);
 
     return c;
+  }
+
+  /**
+   * Test that multiple execute tasks with an annotation of synchronized="true" each run in their own stage.
+   */
+  @Test
+  public void testUpgradeWithMultipleTasksInOwnStage() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+    assertTrue(upgrade.getType() == UpgradeType.ROLLING);
+
+    List<Grouping> upgradePackGroups = upgrade.getGroups(Direction.UPGRADE);
+
+    boolean foundService = false;
+    for (Grouping group : upgradePackGroups) {
+      if (group.title.equals("Oozie")) {
+        foundService = true;
+      }
+    }
+    assertTrue(foundService);
+
+    makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE, UpgradeType.ROLLING);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    // The upgrade pack has 2 tasks for Oozie in the pre-upgrade group.
+    // The first task runs on "all", i.e., both Oozie Servers, whereas the
+    // second task runs on "any", i.e., exactly one.
+    int numPrepareStages = 0;
+    for (UpgradeGroupHolder group : groups) {
+      if (group.name.equals("OOZIE")) {
+        assertTrue(group.items.size() > 0);
+        for (StageWrapper sw : group.items) {
+
+          if (sw.getText().equalsIgnoreCase("Preparing Oozie Server on h2 (Batch 1 of 2)") ||
+              sw.getText().equalsIgnoreCase("Preparing Oozie Server on h3 (Batch 2 of 2)")) {
+            numPrepareStages++;
+            List<TaskWrapper> taskWrappers = sw.getTasks();
+            assertEquals(1, taskWrappers.size());
+            List<Task> tasks = taskWrappers.get(0).getTasks();
+            assertEquals(1, taskWrappers.get(0).getHosts().size());
+            assertEquals(1, tasks.size());
+
+            ExecuteTask task = (ExecuteTask) tasks.get(0);
+            assertTrue("scripts/oozie_server.py".equalsIgnoreCase(task.script));
+            assertTrue("stop".equalsIgnoreCase(task.function));
+          }
+
+          if (sw.getText().equalsIgnoreCase("Preparing Oozie Server on h2")) {
+            numPrepareStages++;
+            List<TaskWrapper> taskWrappers = sw.getTasks();
+            assertEquals(1, taskWrappers.size());
+            List<Task> tasks = taskWrappers.get(0).getTasks();
+            assertEquals(1, taskWrappers.get(0).getHosts().size());
+            assertEquals(1, tasks.size());
+
+            ExecuteTask task = (ExecuteTask) tasks.get(0);
+            assertTrue("scripts/oozie_server_upgrade.py".equalsIgnoreCase(task.script));
+            assertTrue("upgrade_oozie_database_and_sharelib".equalsIgnoreCase(task.function));
+          }
+        }
+      }
+    }
+    assertEquals(3, numPrepareStages);
   }
 
   @Test
