@@ -112,17 +112,4 @@ public class TaskWrapper {
     return component;
   }
 
-  /**
-   * @return true if any task is sequential, otherwise, return false.
-   */
-  public boolean isAnyTaskSequential() {
-    for (Task t : getTasks()) {
-      if (t.isSequential) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
 }

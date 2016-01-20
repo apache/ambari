@@ -169,7 +169,7 @@ public abstract class StageWrapperBuilder {
    */
   protected String getStageText(String prefix, String component, Set<String> hosts, int batchNum, int totalBatches) {
     String stageText = getStageText(prefix, component, hosts);
-    String batchText = 1 == totalBatches? "" : String.format(" (Batch %s of %s)", batchNum, totalBatches);
+    String batchText = 1 == totalBatches? "" : String.format(" ( Batch %s of %s )", batchNum, totalBatches);
     return stageText + batchText;
   }
 
