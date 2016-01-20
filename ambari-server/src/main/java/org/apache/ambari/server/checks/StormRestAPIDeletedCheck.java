@@ -40,7 +40,7 @@ import java.util.Set;
  * checks that STORM_REST_API Component is deleted when upgrading from HDP 2.1 to 2.2 or higher.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.TOPOLOGY, order = 1.0f, required= false)
+@UpgradeCheck(group = UpgradeCheckGroup.TOPOLOGY, order = 15.0f, required= false)
 public class StormRestAPIDeletedCheck extends AbstractCheckDescriptor {
 
   @Inject

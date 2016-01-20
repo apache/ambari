@@ -42,7 +42,7 @@ import com.google.inject.Singleton;
  * Checks if Install Packages needs to be re-run
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 2.0f, required = true)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 3.0f, required = true)
 public class InstallPackagesCheck extends AbstractCheckDescriptor {
 
   /**

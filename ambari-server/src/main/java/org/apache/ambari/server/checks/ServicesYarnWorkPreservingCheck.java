@@ -33,7 +33,7 @@ import java.util.Arrays;
  * Checks that YARN has work-preserving restart enabled.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 17.1f)
 public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
 
   /**

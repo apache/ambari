@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -128,6 +129,7 @@ public class CheckHelperTest {
         bind(Clusters.class).toInstance(clusters);
         bind(ClusterVersionDAO.class).toProvider(Providers.<ClusterVersionDAO>of(null));
         bind(HostVersionDAO.class).toProvider(Providers.<HostVersionDAO>of(null));
+        bind(UpgradeDAO.class).toProvider(Providers.<UpgradeDAO>of(null));
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));
         bind(RepositoryVersionHelper.class).toProvider(Providers.<RepositoryVersionHelper>of(null));
         bind(AmbariMetaInfo.class).toProvider(Providers.<AmbariMetaInfo>of(null));

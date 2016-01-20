@@ -152,6 +152,13 @@ public enum CheckDescription {
             "The following Services must be reinstalled: {{fails}}. Try to reinstall the service components in INSTALL_FAILED state.");
       }}),
 
+  PREVIOUS_UPGRADE_COMPLETED(PrereqCheckType.CLUSTER,
+      "A previous upgrade did not complete.",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+            "The last upgrade attempt did not complete. {{fails}}");
+      }}),
+
   INSTALL_PACKAGES_CHECK(PrereqCheckType.CLUSTER,
       "Install packages must be re-run",
       new HashMap<String, String>() {{
