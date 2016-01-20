@@ -78,6 +78,7 @@ public class AMSPropertyProviderTest {
   private static final String PROPERTY_ID1 = PropertyHelper.getPropertyId("metrics/cpu", "cpu_user");
   private static final String PROPERTY_ID2 = PropertyHelper.getPropertyId("metrics/memory", "mem_free");
   private static final String PROPERTY_ID3 = PropertyHelper.getPropertyId("metrics/dfs/datanode", "blocks_replicated");
+  private static final String PROPERTY_ID4 = PropertyHelper.getPropertyId("metrics/dfs/datanode", "blocks_removed");
   private static final String CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "cluster_name");
   private static final String HOST_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "host_name");
   private static final String COMPONENT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("HostRoles", "component_name");
@@ -682,7 +683,150 @@ public class AMSPropertyProviderTest {
     Assert.assertEquals(8, val.length);
   }
 
+  static class TestStreamProviderForHostComponentMultipleHostsMetricsTest extends TestStreamProvider {
+    String hostComponentMetricFilePath_h1 = FILE_PATH_PREFIX + "single_host_component_metrics_h1.json";
+    String hostComponentMetricFilePath_h2 = FILE_PATH_PREFIX + "single_host_component_metrics_h2.json";
+
+    public TestStreamProviderForHostComponentMultipleHostsMetricsTest(String fileName) {
+      super(fileName);
+    }
+
+    @Override
+    public InputStream readFrom(String spec) throws IOException {
+      if (spec.contains("h1")) {
+        this.fileName = hostComponentMetricFilePath_h1;
+      } else {
+        this.fileName = hostComponentMetricFilePath_h2;
+      }
+
+      specs.add(spec);
+
+      return super.readFrom(spec);
+    }
+  }
+
+  @Test
+  public void testPopulateResourcesForHostComponentMetricsForMultipleHosts() throws Exception {
+    setUpCommonMocks();
+    TestStreamProviderForHostComponentMultipleHostsMetricsTest streamProvider =
+      new TestStreamProviderForHostComponentMultipleHostsMetricsTest(null);
+    injectCacheEntryFactoryWithStreamProvider(streamProvider);
+    TestMetricHostProvider metricHostProvider = new TestMetricHostProvider("h1");
+    ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
+
+    Map<String, Map<String, PropertyInfo>> propertyIds = PropertyHelper.getMetricPropertyIds(Resource.Type.HostComponent);
+
+    Resource resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h1");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+
+    temporalInfoMap.put(PROPERTY_ID4, new TemporalInfoImpl(1416445244801L, 1416448936464L, 1L));
+    Request request = PropertyHelper.getReadRequest(
+      new HashSet<String>() {{
+        add(PROPERTY_ID4);
+        add("params/padding/NONE"); // Ignore padding to match result size
+      }},
+      temporalInfoMap);
+
+    AMSPropertyProvider propertyProvider = new AMSHostComponentPropertyProvider(
+      propertyIds,
+      streamProvider,
+      sslConfiguration,
+      cacheProvider,
+      metricHostProvider,
+      CLUSTER_NAME_PROPERTY_ID,
+      HOST_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID
+    );
+
+    Set<Resource> resources1 =
+      propertyProvider.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, resources1.size());
+    Resource res1 = resources1.iterator().next();
+    Map<String, Object> properties = PropertyHelper.getProperties(resources1.iterator().next());
+    Assert.assertNotNull(properties);
+
+    /////////////////////////////////////
+    metricHostProvider = new TestMetricHostProvider("h2");
+
+    resource = new ResourceImpl(Resource.Type.Host);
+    resource.setProperty(CLUSTER_NAME_PROPERTY_ID, "c1");
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h2");
+    resource.setProperty(COMPONENT_NAME_PROPERTY_ID, "DATANODE");
+    temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(PROPERTY_ID4, new TemporalInfoImpl(1416445244801L, 1416448936464L, 1L));
+    request = PropertyHelper.getReadRequest(
+      new HashSet<String>() {{
+        add(PROPERTY_ID4);
+        add("params/padding/NONE"); // Ignore padding to match result size
+      }},
+      temporalInfoMap);
+
+    propertyProvider = new AMSHostComponentPropertyProvider(
+      propertyIds,
+      streamProvider,
+      sslConfiguration,
+      cacheProvider,
+      metricHostProvider,
+      CLUSTER_NAME_PROPERTY_ID,
+      HOST_NAME_PROPERTY_ID,
+      COMPONENT_NAME_PROPERTY_ID
+    );
+
+    resource.setProperty(HOST_NAME_PROPERTY_ID, "h2");
+
+    Set<Resource> resources2 =
+      propertyProvider.populateResources(Collections.singleton(resource), request, null);
+    Assert.assertEquals(1, resources2.size());
+    Resource res2 = resources2.iterator().next();
+    properties = PropertyHelper.getProperties(resources2.iterator().next());
+    Assert.assertNotNull(properties);
+
+    Set<String> specs = streamProvider.getAllSpecs();
+    Assert.assertEquals(2, specs.size());
+
+    URIBuilder uriBuilder1 = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
+    Number[][] val;
+
+    for (String spec : specs) {
+      Assert.assertNotNull(spec);
+
+      if (spec.contains("h2")) {
+        uriBuilder1.setParameter("metricNames", "dfs.datanode.blocks_removed");
+        uriBuilder1.setParameter("hostname", "h2");
+        uriBuilder1.setParameter("appId", "DATANODE");
+        uriBuilder1.setParameter("startTime", "1416445244801");
+        uriBuilder1.setParameter("endTime", "1416448936464");
+        Assert.assertEquals(uriBuilder1.toString(), spec);
+        val = (Number[][]) res2.getPropertyValue(PROPERTY_ID4);
+        Assert.assertNotNull("No value for property " + PROPERTY_ID4, val);
+        Assert.assertEquals(9, val.length);
+      } else {
+        uriBuilder1.setParameter("metricNames", "dfs.datanode.blocks_removed");
+        uriBuilder1.setParameter("hostname", "h1");
+        uriBuilder1.setParameter("appId", "DATANODE");
+        uriBuilder1.setParameter("startTime", "1416445244801");
+        uriBuilder1.setParameter("endTime", "1416448936464");
+        Assert.assertEquals(uriBuilder1.toString(), spec);
+        val = (Number[][]) res1.getPropertyValue(PROPERTY_ID4);
+        Assert.assertNotNull("No value for property " + PROPERTY_ID4, val);
+        Assert.assertEquals(8, val.length);
+      }
+    }
+  }
+
   public static class TestMetricHostProvider implements MetricHostProvider {
+
+    private String hostName;
+
+    public TestMetricHostProvider() {
+    }
+
+    public TestMetricHostProvider(String hostName) {
+      this.hostName = hostName;
+    }
 
     @Override
     public String getCollectorHostName(String clusterName, MetricsService service)
@@ -692,7 +836,7 @@ public class AMSPropertyProviderTest {
 
     @Override
     public String getHostName(String clusterName, String componentName) throws SystemException {
-      return "h1";
+      return (hostName != null) ? hostName : "h1";
     }
 
     @Override
@@ -714,7 +858,7 @@ public class AMSPropertyProviderTest {
   private void setUpCommonMocks() throws AmbariException {
     AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
     PowerMock.mockStatic(AmbariServer.class);
-    expect(AmbariServer.getController()).andReturn(ams);
+    expect(AmbariServer.getController()).andReturn(ams).anyTimes();
     AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
@@ -733,8 +877,9 @@ public class AMSPropertyProviderTest {
     expect(ambariMetaInfo.getComponent(anyObject(String.class),anyObject(String.class),
             anyObject(String.class), anyObject(String.class)))
             .andReturn(componentInfo).anyTimes();
+    expect(componentInfo.getTimelineAppid()).andReturn(null).anyTimes();
 
-    replay(ams, clusters, cluster, ambariMetaInfo);
+    replay(ams, clusters, cluster, ambariMetaInfo, componentInfo);
     PowerMock.replayAll();
   }
 
