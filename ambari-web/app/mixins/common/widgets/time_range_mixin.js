@@ -87,35 +87,33 @@ App.TimeRangeMixin = Em.Mixin.create({
    * onclick handler for a time range option
    * @param {object} event
    * @param {function} callback
+   * @param {object} context
    */
-  setTimeRange: function (event, callback) {
-    var prevIndex = this.get('currentTimeRangeIndex'),
-      prevCustomTimeRange = {
-        start: this.get('customStartTime'),
-        end: this.get('customEndTime'),
-        duration: this.get('customDurationFormatted')
-      },
+  setTimeRange: function (event, callback, context) {
+    var prevCustomTimeRange = this.getProperties(['currentTimeRangeIndex', 'customStartTime', 'customEndTime', 'customDurationFormatted']),
       index = event.context.index,
       primary = function () {
+        var timeRange = {
+          customEndTime: timeRangePopup.endTime,
+          customStartTime: timeRangePopup.startTime,
+          customDurationFormatted: timeRangePopup.customDuration
+        };
         if (callback) {
           callback();
         }
+        this.setProperties(timeRange);
+        if (context) {
+          context.setProperties(timeRange);
+        }
       },
-      secondary = function () {
-        this.setProperties({
-          currentTimeRangeIndex: prevIndex,
-          customStartTime: prevCustomTimeRange.start,
-          customEndTime: prevCustomTimeRange.end,
-          customDurationFormatted: prevCustomTimeRange.duration
-        });
-      };
+      secondary = this.setProperties.bind(this, prevCustomTimeRange);
 
     if (index === 8) {
       // Custom start and end time is specified by user
       var defaultStartTime,
         defaultEndTime,
         duration;
-      if (prevIndex === 8) {
+      if (prevCustomTimeRange.currentTimeRangeIndex === 8) {
         // Custom time range is active
         defaultStartTime = new Date(this.get('customStartTime')).getTime();
         defaultEndTime = new Date(this.get('customEndTime')).getTime();
@@ -129,7 +127,7 @@ App.TimeRangeMixin = Em.Mixin.create({
         defaultEndTime.setMinutes(minutes);
         defaultStartTime = defaultEndTime.getTime() - duration;
       }
-      timeRangePopup.showCustomDatePopup(this, primary.bind(this), secondary.bind(this), {
+      timeRangePopup.showCustomDatePopup(primary.bind(this), secondary.bind(this), {
         startDate: App.formatDateTimeWithTimeZone(defaultStartTime, 'MM/DD/YYYY'),
         hoursForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'hh'),
         minutesForStart: App.formatDateTimeWithTimeZone(defaultStartTime, 'mm'),

@@ -110,6 +110,9 @@ App.JobsCustomDatesSelectView = Em.View.extend({
         initialOption = this.get('content').find(function (item) {
           return duration === item.value || duration === item.label;
         }, this);
+      if (!initialOption) {
+        initialOption = this.get('content').findProperty('value', 0);
+      }
       this.set('selection', initialOption);
     }
   }),
@@ -119,7 +122,6 @@ App.JobsCustomDatesSelectView = Em.View.extend({
   }.property('customDateFormFields.duration.value'),
 
   didInsertElement: function () {
-    this.validate();
     $('.datepicker').datepicker({
       format: 'mm/dd/yyyy'
     }).on('changeDate', function() {

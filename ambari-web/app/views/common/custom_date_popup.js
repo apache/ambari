@@ -26,7 +26,7 @@ module.exports = Em.Object.create({
 
   customDuration: null,
 
-  showCustomDatePopup: function (context, primary, secondary, defaults) {
+  showCustomDatePopup: function (primary, secondary, defaults) {
     var self = this;
     defaults = defaults || {
       startDate: null,
@@ -43,11 +43,6 @@ module.exports = Em.Object.create({
     return App.ModalPopup.show({
       header: Em.I18n.t('jobs.table.custom.date.header'),
       onPrimary: function () {
-        context.setProperties({
-          customEndTime: self.endTime,
-          customStartTime: self.startTime,
-          customDurationFormatted: self.customDuration
-        });
         if (primary) {
           primary();
         }
