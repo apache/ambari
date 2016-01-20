@@ -112,7 +112,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
 
   <property>
     <name>hbase_java_io_tmpdir</name>
-    <value>{{exec_tmp_dir}}/hbase_java_io_tmpdir</value>
+    <value>/tmp</value>
     <description>Used in hbase-env.sh as HBASE_OPTS=-Djava.io.tmpdir=java_io_tmpdir</description>
   </property>
 
