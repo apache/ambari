@@ -82,8 +82,8 @@ class NameNode(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env)
     #TODO we need this for HA because of manual steps
     self.configure(env)
 
@@ -347,7 +347,7 @@ class NameNodeDefault(NameNode):
 class NameNodeWindows(NameNode):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
     #TODO we need this for HA because of manual steps
     self.configure(env)
 

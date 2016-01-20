@@ -33,7 +33,7 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 class WebHCatServer(Script):
   def install(self, env):
     import params
-    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    self.install_packages(env)
 
   def start(self, env, upgrade_type=None):
     import params

@@ -28,7 +28,8 @@ class PhoenixQueryServer(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
+    env.set_params(params)
+    self.install_packages(env)
 
 
   def get_stack_to_component(self):

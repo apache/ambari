@@ -384,19 +384,6 @@ hive_authorization_enabled = config['configurations']['hive-site']['hive.securit
 
 mysql_jdbc_driver_jar = "/usr/share/java/mysql-connector-java.jar"
 hive_use_existing_db = hive_database.startswith('Existing')
-hive_exclude_packages = []
-
-# There are other packages that contain /usr/share/java/mysql-connector-java.jar (like libmysql-java),
-# trying to install mysql-connector-java upon them can cause packages to conflict.
-if hive_use_existing_db:
-  hive_exclude_packages = ['mysql-connector-java', 'mysql', 'mysql-server',
-                           'mysql-community-release', 'mysql-community-server']
-else:
-  if 'role' in config and config['role'] != "MYSQL_SERVER":
-    hive_exclude_packages = ['mysql', 'mysql-server', 'mysql-community-release',
-                             'mysql-community-server']
-  if os.path.exists(mysql_jdbc_driver_jar):
-    hive_exclude_packages.append('mysql-connector-java')
 
 
 hive_site_config = dict(config['configurations']['hive-site'])
@@ -410,10 +397,7 @@ classpath_addition = ""
 atlas_plugin_package = "atlas-metadata*-hive-plugin"
 atlas_ubuntu_plugin_package = "atlas-metadata.*-hive-plugin"
 
-if not has_atlas:
-  hive_exclude_packages.append(atlas_plugin_package)
-  hive_exclude_packages.append(atlas_ubuntu_plugin_package)
-else:
+if has_atlas:
   # client.properties
   atlas_client_props = {}
   auth_enabled = config['configurations']['application-properties'].get(

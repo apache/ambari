@@ -24,7 +24,7 @@ class KerberosClient(KerberosScript):
   def install(self, env):
     install_packages = default('/configurations/kerberos-env/install_packages', "true")
     if install_packages:
-      self.install_packages(env, ['krb5-server', 'krb5-libs', 'krb5-auth-dialog', 'krb5', 'krb5-kdc', 'krb5-admin-server'])
+      self.install_packages(env)
     else:
       print "Kerberos client packages are not being installed, manual installation is required."
 

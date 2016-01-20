@@ -59,8 +59,8 @@ class TestScript(TestCase):
     }
     dummy_config = {
       'hostLevelParams' : {
-        'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\"},"
-                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\"}]",
+        'package_list' : "[{\"type\":\"rpm\",\"name\":\"hbase\", \"condition\": \"\"},"
+                         "{\"type\":\"rpm\",\"name\":\"yet-another-package\", \"condition\": \"\"}]",
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]",
         'service_repo_info' : "[{\"mirrorsList\":\"abc\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
       }

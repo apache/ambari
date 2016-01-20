@@ -31,8 +31,8 @@ class HdfsClient(Script):
 
   def install(self, env):
     import params
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env)
     self.configure(env)
 
   def configure(self, env):
@@ -113,7 +113,7 @@ class HdfsClientDefault(HdfsClient):
 class HdfsClientWindows(HdfsClient):
   def install(self, env):
     import install_params
-    self.install_packages(env, install_params.exclude_packages)
+    self.install_packages(env)
     self.configure(env)
 
 if __name__ == "__main__":

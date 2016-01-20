@@ -14,7 +14,7 @@
         "ambari_db_rca_username": "mapred",
         "java_home": "/usr/jdk64/jdk1.7.0_45",
         "db_name": "ambari",
-        "package_list": "[{\"name\":\"pxf-service\",\"skipUpgrade\":false},{\"name\":\"apache-tomcat\",\"skipUpgrade\":false},{\"name\":\"pxf-hive\",\"skipUpgrade\":false},{\"name\":\"pxf-hdfs\",\"skipUpgrade\":false},{\"name\":\"pxf-hbase\",\"skipUpgrade\":false}]"
+        "package_list": "[{\"name\":\"pxf-service\",\"skipUpgrade\":false, \"condition\": \"\"},{\"name\":\"apache-tomcat\",\"skipUpgrade\":false, \"condition\": \"\"},{\"name\":\"pxf-hive\",\"skipUpgrade\":false, \"condition\": \"\"},{\"name\":\"pxf-hdfs\",\"skipUpgrade\":false, \"condition\": \"\"},{\"name\":\"pxf-hbase\",\"skipUpgrade\":false, \"condition\": \"\"}]"
     },
     "commandType": "EXECUTION_COMMAND",
     "roleParams": {},

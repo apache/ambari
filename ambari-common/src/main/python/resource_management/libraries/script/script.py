@@ -28,6 +28,7 @@ import logging
 import platform
 import inspect
 import tarfile
+import resource_management
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import UPGRADE_TYPE_NON_ROLLING, UPGRADE_TYPE_ROLLING
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -420,7 +421,7 @@ class Script(object):
     """
     self.install_packages(env)
 
-  def install_packages(self, env, exclude_packages=[]):
+  def install_packages(self, env):
     """
     List of packages that are required< by service is received from the server
     as a command parameter. The method installs all packages
@@ -442,7 +443,7 @@ class Script(object):
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:
         package_list = json.loads(package_list_str)
         for package in package_list:
-          if not Script.matches_any_regexp(package['name'], exclude_packages):
+          if Script.check_package_condition(package):
             name = self.format_package_name(package['name'])
             # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
             # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
@@ -463,6 +464,22 @@ class Script(object):
                           hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
+      
+  @staticmethod
+  def check_package_condition(package):
+    from resource_management.libraries.functions import package_conditions
+    condition = package['condition']
+    name = package['name']
+    
+    if not condition:
+      return True
+    
+    try:
+      chooser_method = getattr(package_conditions, condition)
+    except AttributeError:
+      raise Fail("Condition with name '{0}', when installing package {1}. Please check package_conditions.py.".format(condition, name))
+
+    return chooser_method()
       
   @staticmethod
   def matches_any_regexp(string, regexp_list):

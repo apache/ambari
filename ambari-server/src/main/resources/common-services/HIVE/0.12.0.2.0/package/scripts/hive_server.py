@@ -47,7 +47,7 @@ from hive_service import hive_service
 class HiveServer(Script):
   def install(self, env):
     import params
-    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    self.install_packages(env)
 
   def configure(self, env):
     import params

@@ -32,6 +32,7 @@
             </package>
             <package>
               <name>phoenix_${stack_version}</name>
+              <condition>should_install_phoenix</condition>
             </package>
           </packages>
         </osSpecific>
@@ -43,6 +44,7 @@
             </package>
             <package>
               <name>phoenix-${stack_version}</name>
+              <condition>should_install_phoenix</condition>
             </package>
           </packages>
         </osSpecific>
