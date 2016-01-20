@@ -1296,6 +1296,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (services.someProperty('serviceName', 'ACCUMULO')) {
       urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
     }
+    if (services.someProperty('serviceName', 'KAFKA')) {
+      urlParams.push('(type=kafka-broker&tag=' + data.Clusters.desired_configs['kafka-broker'].tag + ')');
+    }
     return urlParams;
   },
 
@@ -1358,6 +1361,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           properties_attributes: {
             'accumulo-site': attributes['accumulo-site']
+          }
+        }
+      );
+    }
+    if (installedServiceNames.contains('KAFKA')) {
+      groups.push(
+        {
+          properties: {
+            'kafka-broker': configs['kafka-broker']
+          },
+          properties_attributes: {
+            'kafka-broker': attributes['kafka-broker']
           }
         }
       );

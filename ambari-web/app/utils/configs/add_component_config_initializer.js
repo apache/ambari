@@ -47,6 +47,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
    */
   __defaultInitializers: function() {
     return {
+      'zookeeper.connect': this.getHDPStackOnlyHostsPortConfig('2.2', 'ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
       'ha.zookeeper.quorum': this.getNameNodeHAOnlyHostsPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
       'hbase.zookeeper.quorum': this.getHostsListComponentConfig('ZOOKEEPER_SERVER', true),
       'instance.zookeeper.host': this.getHostsWithPortConfig('ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
@@ -56,7 +57,6 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
       'hive.zookeeper.quorum': this.getHDPStackOnlyHostsPortConfig('2.2', 'ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
       'hadoop.registry.zk.quorum': this.getHDPStackOnlyHostsPortConfig('2.2', 'ZOOKEEPER_SERVER', '', '', ',', 'zkClientPort', true),
       'nimbus.seeds': this.getHostsListComponentJSONStringifiedConfig('NIMBUS', true),
-      'hadoop.proxyuser.{{hiveUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false),
       'hadoop.proxyuser.{{webhcatUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
       'hadoop.proxyuser.{{hiveUser}}.hosts': this.getComponentsHostsConfig(['HIVE_SERVER', 'WEBHCAT_SERVER', 'HIVE_METASTORE'], false, true),
       'hive.metastore.uris': this.getHostsWithPortConfig(['WEBHCAT_SERVER', 'HIVE_METASTORE'], 'thrift://', '', ',thrift://', 'hiveMetastorePort', true)
@@ -277,6 +277,7 @@ App.AddComponentConfigInitializer = App.HaConfigInitializerClass.extend(App.Host
  */
 App.AddZooKeeperComponentsInitializer = App.AddComponentConfigInitializer.create({
   initializeForProperties: [
+    'zookeeper.connect',
     'ha.zookeeper.quorum',
     'hbase.zookeeper.quorum',
     'instance.zookeeper.host',
