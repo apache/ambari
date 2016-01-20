@@ -98,6 +98,49 @@
         </changes>
       </component>
     </service>
+
+    <service name="SPARK">
+      <component name="SPARK_JOBHISTORYSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_jobhistoryserver">
+            <type>spark-defaults</type>
+            <transfer operation="delete" delete-key="spark.yarn.services" />
+            <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
+            <set key="spark.history.fs.logDirectory" value="{{spark_history_dir}}"/>
+            <set key="spark.eventLog.enabled" value="true"/>
+            <set key="spark.eventLog.dir" value="{{spark_history_dir}}"/>
+          </definition>
+        </changes>
+      </component>
+      <component name="SPARK_THRIFTSERVER">
+        <changes>
+          <definition xsi:type="configure" id="hdp_2_4_0_0_spark_thriftserver">
+            <type>spark-thrift-sparkconf</type>
+            <transfer operation="delete" delete-key="spark.yarn.executor.memoryOverhead" />
+            <transfer operation="delete" delete-key="spark.yarn.driver.memoryOverhead" />
+            <transfer operation="delete" delete-key="spark.yarn.scheduler.heartbeat.interval-ms" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+            <transfer operation="delete" delete-key="spark.yarn.containerLauncherMaxThreads" />
+            <transfer operation="delete" delete-key="spark.yarn.submit.file.replication" />
+            <transfer operation="delete" delete-key="spark.yarn.preserve.staging.files" />
+            <transfer operation="delete" delete-key="spark.yarn.max.executor.failures" />
+            <set key="spark.history.provider" value="org.apache.spark.deploy.history.FsHistoryProvider"/>
+            <set key="spark.history.fs.logDirectory" value="{{spark_history_dir}}"/>
+            <set key="spark.eventLog.enabled" value="true"/>
+            <set key="spark.eventLog.dir" value="{{spark_history_dir}}"/>
+            <set key="spark.master" value="{{spark_thrift_master}}"/>
+            <set key="spark.scheduler.allocation.file" value="{{spark_conf}}/spark-thrift-fairscheduler.xml"/>
+            <set key="spark.scheduler.mode" value="FAIR"/>
+            <set key="spark.shuffle.service.enabled" value="true"/>
+            <set key="spark.dynamicAllocation.enabled" value="true"/>
+            <set key="spark.executor.instances" value="2"/>
+            <set key="spark.yarn.am.memory" value="512m"/>
+            <set key="spark.executor.memory" value="1g"/>
+          </definition>
+        </changes>
+      </component>
+    </service>
   </services>
+
 
 </upgrade-config-changes>

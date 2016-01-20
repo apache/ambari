@@ -79,12 +79,15 @@ java_home = config['hostLevelParams']['java_home']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
+user_group = config['configurations']['cluster-env']['user_group']
 
 spark_user = status_params.spark_user
 hive_user = status_params.hive_user
 spark_group = status_params.spark_group
 user_group = status_params.user_group
 spark_hdfs_user_dir = format("/user/{spark_user}")
+spark_history_dir = 'hdfs:///spark-history'
+
 spark_history_server_pid_file = status_params.spark_history_server_pid_file
 spark_thrift_server_pid_file = status_params.spark_thrift_server_pid_file
 
@@ -153,6 +156,12 @@ if security_enabled:
 # thrift server support - available on HDP 2.3 or higher
 spark_thrift_sparkconf = None
 spark_thrift_cmd_opts_properties = ''
+spark_thrift_fairscheduler_content = None
+spark_thrift_master = "yarn-client"
+if 'nm_hosts' in config['clusterHostInfo'] and len(config['clusterHostInfo']['nm_hosts']) == 1:
+  # use local mode when there's only one nodemanager
+  spark_thrift_master = "local[4]"
+
 if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations']:
   spark_thrift_sparkconf = config['configurations']['spark-thrift-sparkconf']
   spark_thrift_cmd_opts_properties = config['configurations']['spark-env']['spark_thrift_cmd_opts']
@@ -163,6 +172,9 @@ if has_spark_thriftserver and 'spark-thrift-sparkconf' in config['configurations
       'hive.metastore.client.socket.timeout' : config['configurations']['hive-site']['hive.metastore.client.socket.timeout']
     })
     spark_hive_properties.update(config['configurations']['spark-hive-site-override'])
+
+  if 'spark-thrift-fairscheduler' in config['configurations'] and 'fairscheduler_content' in config['configurations']['spark-thrift-fairscheduler']:
+    spark_thrift_fairscheduler_content = config['configurations']['spark-thrift-fairscheduler']['fairscheduler_content']
 
 default_fs = config['configurations']['core-site']['fs.defaultFS']
 hdfs_site = config['configurations']['hdfs-site']
