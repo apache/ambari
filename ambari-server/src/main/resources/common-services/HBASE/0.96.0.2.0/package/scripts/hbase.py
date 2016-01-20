@@ -57,8 +57,6 @@ def hbase(name=None):
   )
    
   Directory(params.java_io_tmpdir,
-      owner = params.hbase_user,
-      group = params.user_group,
       create_parents = True,
       mode=0777
   )

@@ -136,8 +136,6 @@ class TestHbaseRegionServer(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -234,8 +232,6 @@ class TestHbaseRegionServer(RMFTestCase):
       create_parents = True,
     )
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -342,8 +338,6 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       create_parents = True)
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
@@ -458,8 +452,6 @@ class TestHbaseRegionServer(RMFTestCase):
       group = 'hadoop',
       create_parents = True)
     self.assertResourceCalled('Directory', '/tmp',
-      owner = 'hbase',
-      group = 'hadoop',
       create_parents = True,
       mode = 0777
     )
