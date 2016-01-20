@@ -20,6 +20,7 @@ var App = require('app');
 require('controllers/main/service/info/configs');
 var batchUtils = require('utils/batch_scheduled_requests');
 var mainServiceInfoConfigsController = null;
+var testHelpers = require('test/helpers');
 
 function getController() {
   return App.MainServiceInfoConfigsController.create({
@@ -471,16 +472,15 @@ describe("App.MainServiceInfoConfigsController", function () {
       sinon.stub(App.router, 'getClusterName', function() {
         return 'clName';
       });
-      sinon.stub(App.ajax, "send", Em.K);
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.router.getClusterName.restore();
     });
     it("ajax request to put cluster cfg", function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
       expect(mainServiceInfoConfigsController.putChangedConfigurations([]));
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.across.services.configurations');
+      expect(args[0]).exists;
     });
     it('values should be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
@@ -624,16 +624,12 @@ describe("App.MainServiceInfoConfigsController", function () {
       }]
     };
 
-    beforeEach(function() {
-      sinon.spy($,"ajax");
-    });
-    afterEach(function() {
-      $.ajax.restore();
-    });
-
     it("updates configs groups", function() {
       mainServiceInfoConfigsController.putConfigGroupChanges(t.data);
-      expect(JSON.parse($.ajax.args[0][0].data)).to.deep.equal(t.request);
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args[0]).exists;
+      var data = JSON.parse(App.ajax.fakeGetUrl('config_groups.update_config_group').format(args[0].data).data);
+      expect(data).to.deep.equal(t.request);
     });
   });
 
@@ -770,7 +766,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     describe('#bodyClass', function () {
       beforeEach(function() {
         sinon.stub(App.StackService, 'find').returns([{dependentServiceNames: []}]);
-        sinon.stub(App.ajax, 'send', Em.K);
         // default implementation
         bodyView = mainServiceInfoConfigsController.showSaveConfigsPopup().get('bodyClass').create({
           parentView: Em.View.create()
@@ -778,13 +773,13 @@ describe("App.MainServiceInfoConfigsController", function () {
       });
 
       afterEach(function() {
-        App.ajax.send.restore();
         App.StackService.find.restore();
       });
 
       describe('#componentsFilterSuccessCallback', function () {
         it('check components with unknown state', function () {
           bodyView = mainServiceInfoConfigsController.showSaveConfigsPopup('', true, '', {}, '', 'unknown', '').get('bodyClass').create({
+            didInsertElement: Em.K,
             parentView: Em.View.create()
           });
           bodyView.componentsFilterSuccessCallback({

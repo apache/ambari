@@ -19,6 +19,7 @@
 
 var App = require('app');
 var credentialUtils = require('utils/credentials');
+var testHelpers = require('test/helpers');
 require('controllers/global/cluster_controller');
 require('models/host_component');
 require('utils/http_client');
@@ -74,6 +75,7 @@ describe('App.clusterController', function () {
 
     beforeEach(function () {
       modelSetup.setupStackVersion(this, 'HDP-2.0.5');
+      App.ajax.send.restore(); // default ajax-mock can't be used here
       sinon.stub(App.ajax, 'send', function () {
         return {
           then: function (successCallback) {
@@ -83,22 +85,22 @@ describe('App.clusterController', function () {
           }
         }
       });
+      this.args = testHelpers.findAjaxRequest('name', 'cluster.load_cluster_name');
     });
     afterEach(function () {
       modelSetup.restoreStackVersion(this);
-      App.ajax.send.restore();
     });
 
     it('if clusterName is "mycluster" and reload is false then clusterName stays the same', function () {
       App.set('clusterName', 'mycluster');
       controller.loadClusterName(false);
-      expect(App.ajax.send.called).to.be.false;
+      expect(this.args).to.not.exists;
       expect(App.get('clusterName')).to.equal('mycluster');
     });
 
     it('reload is true and clusterName is not empty', function () {
       controller.loadClusterName(true);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(this.args).to.exists;
       expect(App.get('clusterName')).to.equal('clusterNameFromServer');
       expect(App.get('currentStackVersion')).to.equal('HDP-2.0.5');
     });
@@ -106,7 +108,7 @@ describe('App.clusterController', function () {
     it('reload is false and clusterName is empty', function () {
       App.set('clusterName', '');
       controller.loadClusterName(false);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(this.args).to.exists;
       expect(App.get('clusterName')).to.equal('clusterNameFromServer');
       expect(App.get('currentStackVersion')).to.equal('HDP-2.0.5');
     });
@@ -187,14 +189,8 @@ describe('App.clusterController', function () {
   describe('#getUrl', function () {
     controller.set('clusterName', 'tdk');
     var tests = ['test1', 'test2', 'test3'];
-    it('testMode = true', function () {
-      App.testMode = true;
-      tests.forEach(function (test) {
-        expect(controller.getUrl(test, test)).to.equal(test);
-      });
-    });
+
     it('testMode = false', function () {
-      App.testMode = false;
       tests.forEach(function (test) {
         expect(controller.getUrl(test, test)).to.equal(App.apiPrefix + '/clusters/' + controller.get('clusterName') + test);
       });
@@ -204,9 +200,6 @@ describe('App.clusterController', function () {
   describe("#createKerberosAdminSession()", function() {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function() {
-        return {success: Em.K}
-      });
       sinon.stub(credentialUtils, 'createOrUpdateCredentials', function() {
         return $.Deferred().resolve().promise();
       });
@@ -215,7 +208,6 @@ describe('App.clusterController', function () {
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       credentialUtils.createOrUpdateCredentials.restore();
       App.get.restore();
     });
@@ -227,18 +219,16 @@ describe('App.clusterController', function () {
         key: 'pass',
         type: 'persistent'
       }, {});
-
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'common.cluster.update',
-        sender: controller,
-        data: {
-          clusterName: 'test',
-          data: [{
-            session_attributes: {
-              kerberos_admin: {principal: "admin", password: "pass"}
-            }
-          }]
-        }
+      var args = testHelpers.findAjaxRequest('name', 'common.cluster.update');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        clusterName: 'test',
+        data: [{
+          session_attributes: {
+            kerberos_admin: {principal: "admin", password: "pass"}
+          }
+        }]
       });
     });
     it("KDC Store supports enabled, credentials updated via credentials storage call", function() {
@@ -248,7 +238,8 @@ describe('App.clusterController', function () {
         key: 'pass',
         type: 'persistent'
       }, {});
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.cluster.update');
+      expect(args).to.not.exists;
       expect(credentialUtils.createOrUpdateCredentials.getCall(0).args).to.eql([
         'test', 'kdc.admin.credential', {
           principal: 'admin',
@@ -282,14 +273,7 @@ describe('App.clusterController', function () {
       }
     ];
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send').returns({
-        promise: Em.K
-      });
-    });
-
     afterEach(function () {
-      App.ajax.send.restore();
       App.get.restore();
     });
 
@@ -301,7 +285,8 @@ describe('App.clusterController', function () {
 
       it('request is sent', function () {
         controller.checkDetailedRepoVersion();
-        expect(App.ajax.send.calledOnce).to.be.true;
+        var args = testHelpers.findAjaxRequest('name', 'cluster.load_detailed_repo_version');
+        expect(args).to.exists;
       });
     });
 
@@ -316,7 +301,8 @@ describe('App.clusterController', function () {
         });
 
         it('request is not sent', function () {
-          expect(App.ajax.send.called).to.be.false;
+          var args = testHelpers.findAjaxRequest('name', 'cluster.load_detailed_repo_version');
+          expect(args).to.not.exists;
         });
 
         it('App.isStormMetricsSupported is ' + item.isStormMetricsSupported, function () {
@@ -438,17 +424,10 @@ describe('App.clusterController', function () {
 
   describe('#getAllUpgrades()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should send request to get upgrades data', function () {
       controller.getAllUpgrades();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'cluster.load_last_upgrade');
+      expect(args).to.exists;
     });
 
   });

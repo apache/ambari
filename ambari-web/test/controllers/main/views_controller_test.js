@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('controllers/main/views_controller');
+var testHelpers = require('test/helpers');
 
 var mainViewsController;
 describe('MainViewsController', function () {
@@ -28,24 +29,24 @@ describe('MainViewsController', function () {
 
   describe('#loadAmbariViews()', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       this.stub = sinon.stub(App.router, 'get');
     });
     afterEach(function () {
       App.router.get.restore();
-      App.ajax.send.restore();
     });
 
     it('should load views if the user is logged in', function () {
       this.stub.withArgs('loggedIn').returns(true);
       mainViewsController.loadAmbariViews();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'views.info');
+      expect(args).to.exists;
     });
 
     it('should not load views if the user is not logged in', function () {
       this.stub.withArgs('loggedIn').returns(false);
       mainViewsController.loadAmbariViews();
-      expect(App.ajax.send.notCalled).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'views.info');
+      expect(args).to.not.exists;
     })
   });
 

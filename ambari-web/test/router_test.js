@@ -17,33 +17,12 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 require('router');
 
 describe('App.Router', function () {
   var router = App.Router.create();
-
-  describe.skip('#loginSuccessCallback()', function() {
-
-    beforeEach(function () {
-      sinon.stub(App.usersMapper, 'map');
-      sinon.stub(router, 'setUserLoggedIn');
-      sinon.stub(App.ajax, 'send');
-    });
-
-    afterEach(function() {
-      App.usersMapper.map.restore();
-      router.setUserLoggedIn.restore();
-      App.ajax.send.restore();
-    });
-
-    it('should log in user and load views', function () {
-      var userName = 'test';
-      router.loginSuccessCallback({},{},{loginName: userName});
-      expect(router.setUserLoggedIn.calledOnce).to.be.true;
-      expect(router.setUserLoggedIn.calledWith(userName)).to.be.true;
-    })
-  });
 
   describe('#initAdmin()', function () {
 
@@ -373,20 +352,11 @@ describe('App.Router', function () {
   });
 
   describe("#transitionToAdminView()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it("valid request is sent", function () {
       router.transitionToAdminView();
-      expect(App.ajax.send.calledWith({
-        name: 'ambari.service.load_server_version',
-        sender: router,
-        success: 'adminViewInfoSuccessCallback',
-        error: 'adminViewInfoErrorCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
+      expect(args[0]).to.exists;
     });
   });
 
@@ -457,7 +427,6 @@ describe('App.Router', function () {
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       router.getCurrentLocationUrl.restore();
       router.redirectByURL.restore();
       this.mockGetCurrentLocationUrl.restore();
@@ -500,6 +469,7 @@ describe('App.Router', function () {
         beforeEach(function () {
           mockCurrentUrl = 'http://localhost:3333/#/some/hash';
           router.set('location.lastSetURL', test.lastSetURL);
+          App.ajax.send.restore(); // default ajax-mock can't be used here
           sinon.stub(App.ajax, 'send', function() {
             if (!test.isResolved) {
               router.onAuthenticationError(test.responseData);

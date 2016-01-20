@@ -20,6 +20,7 @@ var App = require('app');
 
 require('controllers/main/service/reassign/step1_controller');
 require('models/host_component');
+var testHelpers = require('test/helpers');
 
 describe('App.ReassignMasterWizardStep1Controller', function () {
 
@@ -34,19 +35,17 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
 
   describe('#loadConfigTags', function() {
     beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
       this.stub = sinon.stub(App.router, 'get');
     });
 
     afterEach(function() {
-      App.ajax.send.restore();
       this.stub.restore();
     });
 
     it('tests loadConfigTags', function() {
       controller.loadConfigsTags();
-
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args).exists;
     });
 
     it('tests saveDatabaseType with type', function() {
@@ -203,29 +202,25 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
   describe("#onLoadConfigsTags()", function () {
     beforeEach(function () {
       this.mock = sinon.stub(controller, 'getConfigUrlParams');
-      sinon.stub(App.ajax, 'send');
     });
     afterEach(function () {
       this.mock.restore();
-      App.ajax.send.restore();
     });
     it("empty params", function () {
       this.mock.returns([]);
       controller.onLoadConfigsTags();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args).not.exists;
     });
     it("correct params", function () {
       this.mock.returns(['p1', 'p2']);
       controller.onLoadConfigsTags();
-      expect(App.ajax.send.calledWith({
-        name: 'reassign.load_configs',
-        sender: controller,
-        data: {
-          urlParams: 'p1|p2'
-        },
-        success: 'onLoadConfigs',
-        error: ''
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'reassign.load_configs');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: 'p1|p2'
+      });
     });
   });
 });

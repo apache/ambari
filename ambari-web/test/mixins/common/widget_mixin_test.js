@@ -17,12 +17,22 @@
  */
 
 var App = require('app');
+var testHelpers = require('test/helpers');
 
 describe('App.WidgetMixin', function () {
   var mixinClass = Em.Object.extend(App.WidgetMixin, {metrics: [], content: {}});
+  var mixinObject;
+
+  beforeEach(function () {
+    mixinObject = mixinClass.create();
+  });
+
+  afterEach(function () {
+    clearTimeout(mixinObject.get('timeoutId'));
+    mixinObject.destroy();
+  });
 
   describe('#loadMetrics()', function () {
-    var mixinObject = mixinClass.create();
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
       sinon.stub(App.WidgetLoadAggregator, 'add');
@@ -48,7 +58,6 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#extractExpressions()", function () {
-    var mixinObject = mixinClass.create();
     var testCases = [
       {
         data: '',
@@ -179,13 +188,7 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#getServiceComponentMetrics()", function () {
-    var mixinObject = mixinClass.create();
-    before(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
+
     it("valid request is sent", function () {
       var request = {
         service_name: 'S1',
@@ -206,20 +209,18 @@ describe('App.WidgetMixin', function () {
         ]
       };
       mixinObject.getServiceComponentMetrics(request);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'widgets.serviceComponent.metrics.get',
-        sender: mixinObject,
-        data: {
-          serviceName: 'S1',
-          componentName: 'C1',
-          metricPaths: 'w1,w2'
-        }
-      })
+      var args = testHelpers.findAjaxRequest('name', 'widgets.serviceComponent.metrics.get');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(mixinObject);
+      expect(args[0].data).to.be.eql({
+        serviceName: 'S1',
+        componentName: 'C1',
+        metricPaths: 'w1,w2'
+      });
     });
   });
 
   describe("#getMetricsSuccessCallback()", function () {
-    var mixinObject = mixinClass.create();
     it("metric is mapped from provided path", function () {
       var data = {
         metrics: {
@@ -243,13 +244,10 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#getHostComponentMetrics()", function () {
-    var mixinObject = mixinClass.create();
-    before(function () {
-      sinon.stub(App.ajax, 'send');
+    beforeEach(function () {
       sinon.stub(mixinObject, 'computeHostComponentCriteria').returns('criteria')
     });
-    after(function () {
-      App.ajax.send.restore();
+    afterEach(function () {
       mixinObject.computeHostComponentCriteria.restore();
     });
     it("valid request is sent", function () {
@@ -272,20 +270,18 @@ describe('App.WidgetMixin', function () {
         host_component_criteria: 'c1'
       };
       mixinObject.getHostComponentMetrics(request);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'widgets.hostComponent.metrics.get',
-        sender: mixinObject,
-        data: {
-          componentName: 'C1',
-          metricPaths: 'w1,w2',
-          hostComponentCriteria: 'criteria'
-        }
-      })
+      var args = testHelpers.findAjaxRequest('name', 'widgets.hostComponent.metrics.get');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(mixinObject);
+      expect(args[0].data).to.be.eql({
+        componentName: 'C1',
+        metricPaths: 'w1,w2',
+        hostComponentCriteria: 'criteria'
+      });
     });
   });
 
   describe("#calculateValues()", function () {
-    var mixinObject = mixinClass.create();
 
     beforeEach(function () {
       sinon.stub(mixinObject, 'extractExpressions');
@@ -322,8 +318,6 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#computeExpression()", function () {
-    var mixinObject = mixinClass.create();
-
     it("expression missing metrics", function () {
       var expressions = ['e.m1'];
       var metrics = [];
@@ -354,14 +348,13 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#cloneWidget()", function () {
-    var mixinObject = mixinClass.create();
     var popup;
-    before(function () {
+    beforeEach(function () {
       sinon.spy(App, 'showConfirmationPopup');
       sinon.stub(mixinObject, 'postWidgetDefinition', Em.K);
       popup = mixinObject.cloneWidget();
     });
-    after(function () {
+    afterEach(function () {
       App.showConfirmationPopup.restore();
       mixinObject.postWidgetDefinition.restore();
     });
@@ -375,25 +368,19 @@ describe('App.WidgetMixin', function () {
   });
 
   describe("#postWidgetDefinition()", function () {
-    var mixinObject = mixinClass.create();
-
-    before(function () {
-      sinon.spy(App.ajax, 'send');
+    beforeEach(function () {
       sinon.stub(mixinObject, 'collectWidgetData').returns({});
     });
-    after(function () {
-      App.ajax.send.restore();
+    afterEach(function () {
       mixinObject.collectWidgetData.restore();
     });
     it("valid request is sent", function () {
       mixinObject.postWidgetDefinition();
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'widgets.wizard.add',
-        sender: mixinObject,
-        data: {
-          data: {}
-        },
-        success: 'postWidgetDefinitionSuccessCallback'
+      var args = testHelpers.findAjaxRequest('name', 'widgets.wizard.add');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(mixinObject);
+      expect(args[0].data).to.be.eql({
+        data: {}
       });
     });
   });

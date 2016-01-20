@@ -232,20 +232,13 @@ describe('App.MainDashboardWidgetsView', function () {
         });
         sinon.stub(view, 'widgetsMapper').returns(widget);
       });
+
       afterEach(function () {
         view.getUserPref.restore();
         view.widgetsMapper.restore();
       });
-      it("testMode is on", function () {
-        App.set('testMode', true);
-        plusButtonFilterView.set('hiddenWidgets', [widget]);
-        plusButtonFilterView.applyFilter();
-        expect(view.getUserPref.called).to.be.false;
-        expect(plusButtonFilterView.get('visibleWidgets')).not.to.be.empty;
-        expect(plusButtonFilterView.get('hiddenWidgets')).to.be.empty;
-      });
+
       it("testMode is off", function () {
-        App.set('testMode', false);
         plusButtonFilterView.applyFilter();
         expect(view.getUserPref.calledOnce).to.be.true;
       });
@@ -350,18 +343,13 @@ describe('App.MainDashboardWidgetsView', function () {
       sinon.stub(view, 'translateToReal', Em.K);
       sinon.stub(view, 'getUserPref').returns({complete: Em.K});
     });
+
     afterEach(function () {
       view.translateToReal.restore();
       view.getUserPref.restore();
     });
 
-    it("testMode is true", function () {
-      App.set('testMode', true);
-      view.setOnLoadVisibleWidgets();
-      expect(view.translateToReal.calledOnce).to.be.true;
-    });
     it("testMode is false", function () {
-      App.set('testMode', false);
       view.setOnLoadVisibleWidgets();
       expect(view.getUserPref.calledOnce).to.be.true;
     });

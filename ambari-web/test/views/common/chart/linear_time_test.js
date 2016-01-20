@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/common/chart/linear_time');
+var testHelpers = require('test/helpers');
 
 describe('App.ChartLinearTimeView', function () {
 
@@ -464,6 +465,7 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
       sinon.stub(aggregator, 'formatRequestData', function(_request){
         return _request.fields;
       });
+      App.ajax.send.restore();
       sinon.stub(App.ajax, 'send', function(){
         return {
           done: Em.K,
@@ -473,7 +475,6 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
     });
     afterEach(function () {
       aggregator.groupRequests.restore();
-      App.ajax.send.restore();
       aggregator.formatRequestData.restore();
     });
     it("valid request is sent", function () {
@@ -486,13 +487,12 @@ describe('App.ChartLinearTimeView.LoadAggregator', function () {
         }
       };
       aggregator.runRequests(requests);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'r1',
-        sender: context,
-        data: {
-          fields: ['f3', 'f4'],
-          hostName: 'host1'
-        }
+      var args = testHelpers.findAjaxRequest('name', 'r1');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(context);
+      expect(args[0].data).to.be.eql({
+        fields: ['f3', 'f4'],
+        hostName: 'host1'
       });
     });
   });

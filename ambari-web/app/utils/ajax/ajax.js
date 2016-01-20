@@ -2808,7 +2808,6 @@ var formatRequest = function (data) {
     type: this.type || 'GET',
     timeout: App.timeout,
     dataType: 'json',
-    statusCode: require('data/statusCodes'),
     headers: {}
   };
   if (App.get('testMode')) {
@@ -2823,6 +2822,11 @@ var formatRequest = function (data) {
   if (this.format) {
     jQuery.extend(opt, this.format(data, opt));
   }
+  var statusCode = jQuery.extend({}, require('data/statusCodes'));
+  statusCode['404'] = function () {
+    console.log("Error code 404: URI not found. -> " + opt.url);
+  };
+  opt.statusCode = statusCode;
   return opt;
 };
 

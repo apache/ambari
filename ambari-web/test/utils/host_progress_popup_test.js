@@ -302,11 +302,9 @@ describe('App.HostPopup', function () {
 
   describe('#abortRequest', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.spy(App, 'showConfirmationPopup');
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.showConfirmationPopup.restore();
     });
     it('should show confirmation popup', function () {

@@ -22,14 +22,10 @@ var userSettingsController;
 describe('App.UserSettingsController', function () {
 
   beforeEach(function () {
-    sinon.stub(App.ajax, 'send', function () {
-      return {complete: Em.K}
-    });
     userSettingsController = App.UserSettingsController.create();
   });
 
   afterEach(function () {
-    App.ajax.send.restore();
     userSettingsController.destroy();
   });
 

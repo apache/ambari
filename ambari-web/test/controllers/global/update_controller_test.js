@@ -20,6 +20,7 @@
 var App = require('app');
 require('utils/updater');
 require('controllers/global/update_controller');
+var testHelpers = require('test/helpers');
 
 describe('App.UpdateController', function () {
   var controller = App.UpdateController.create({
@@ -34,14 +35,6 @@ describe('App.UpdateController', function () {
 
   describe('#getUrl()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App, 'get').withArgs('testMode').returns(false);
-    });
-
-    afterEach(function () {
-      App.get.restore();
-    });
-
     it('testMode = false', function () {
       expect(controller.getUrl('test', '/real')).to.equal('/api/v1/clusters//real');
     });
@@ -54,12 +47,6 @@ describe('App.UpdateController', function () {
 
   describe('#updateAll()', function () {
 
-    beforeEach(function () {
-      sinon.stub(App.updater, 'run', Em.K);
-    });
-    afterEach(function () {
-      App.updater.run.restore();
-    });
     it('isWorking = false', function () {
       controller.set('isWorking', false);
       expect(App.updater.run.called).to.equal(false);
@@ -266,23 +253,23 @@ describe('App.UpdateController', function () {
       this.mock = sinon.stub(App.Service, 'find');
       sinon.stub(controller, 'computeParameters');
       sinon.stub(controller, 'addParamsToHostsUrl');
-      sinon.stub(App.ajax, 'send');
     });
     afterEach(function () {
       App.Service.find.restore();
       controller.computeParameters.restore();
       controller.addParamsToHostsUrl.restore();
-      App.ajax.send.restore();
     });
     it("AMBARI_METRICS is not started", function () {
       this.mock.returns(Em.Object.create({isStarted: false}));
       expect(controller.loadHostsMetric([])).to.be.null;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
+      expect(args).to.not.exists;
     });
     it("AMBARI_METRICS is started", function () {
       this.mock.returns(Em.Object.create({isStarted: true}));
       expect(controller.loadHostsMetric([])).to.be.object;
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.metrics.lazy_load');
+      expect(args).to.exists;
     });
   });
 

@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/main/host/details/host_component_views/datanode_view');
+var testHelpers = require('test/helpers');
 
 describe('App.DataNodeComponentView', function () {
   var view = App.DataNodeComponentView.create({
@@ -30,11 +31,9 @@ describe('App.DataNodeComponentView', function () {
 
     beforeEach(function () {
       this.stub = sinon.stub(App.HDFSService, 'find');
-      sinon.stub(App.ajax, 'send');
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       this.stub.restore();
     });
 
@@ -47,7 +46,9 @@ describe('App.DataNodeComponentView', function () {
         })
       ]);
       view.getDNDecommissionStatus();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         "hostName": "host1",
         "componentName": "NAMENODE"
       });
@@ -62,7 +63,9 @@ describe('App.DataNodeComponentView', function () {
         })
       ]);
       view.getDNDecommissionStatus();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         "hostName": "host1",
         "componentName": "NAMENODE"
       });
@@ -77,7 +80,9 @@ describe('App.DataNodeComponentView', function () {
         })
       ]);
       view.getDNDecommissionStatus();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status_datanode');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
         "hostName": "host2",
         "componentName": "NAMENODE"
       });

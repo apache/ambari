@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('mixins/main/host/details/host_components/install_component');
-
+var testHelpers = require('test/helpers');
 var installComponent;
 
 describe('App.InstallComponent', function () {
@@ -35,12 +35,11 @@ describe('App.InstallComponent', function () {
 
     beforeEach(function() {
       sinon.stub(installComponent, 'updateAndCreateServiceComponent').returns({done: Em.clb});
-      sinon.stub(App.ajax, 'send');
       installComponent.installHostComponentCall('host1', component);
+      this.args = testHelpers.findAjaxRequest('name', 'host.host_component.add_new_component');
     });
     afterEach(function() {
       installComponent.updateAndCreateServiceComponent.restore();
-      App.ajax.send.restore();
     });
 
     it("updateAndCreateServiceComponent should be called", function() {
@@ -48,29 +47,25 @@ describe('App.InstallComponent', function () {
     });
 
     it("App.ajax.send should be called", function() {
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'host.host_component.add_new_component',
-        sender: installComponent,
-        data: {
-          hostName: 'host1',
-          component: component,
-          data: JSON.stringify({
-            RequestInfo: {
-              "context": Em.I18n.t('requestInfo.installHostComponent') + ' c1'
-            },
-            Body: {
-              host_components: [
-                {
-                  HostRoles: {
-                    component_name: 'C1'
-                  }
+      expect(this.args[0]).exists;
+      expect(this.args[0].sender).to.be.eql(installComponent);
+      expect(this.args[0].data).to.be.eql({
+        hostName: 'host1',
+        component: component,
+        data: JSON.stringify({
+          RequestInfo: {
+            "context": Em.I18n.t('requestInfo.installHostComponent') + ' c1'
+          },
+          Body: {
+            host_components: [
+              {
+                HostRoles: {
+                  component_name: 'C1'
                 }
-              ]
-            }
-          })
-        },
-        success: 'addNewComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
+              }
+            ]
+          }
+        })
       });
     });
   });
@@ -85,32 +80,20 @@ describe('App.InstallComponent', function () {
       })
     };
 
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
-
     it("App.ajax.send should be called", function() {
       installComponent.addNewComponentSuccessCallback({}, {}, params);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'common.host.host_component.update',
-        sender: App.router.get('mainHostDetailsController'),
-        data: {
-          hostName: 'host1',
-          componentName: 'C1',
-          serviceName: 'S1',
-          component: params.component,
-          "context": Em.I18n.t('requestInfo.installNewHostComponent') + ' c1',
-          HostRoles: {
-            state: 'INSTALLED'
-          },
-          urlParams: "HostRoles/state=INIT"
+      var args = testHelpers.findAjaxRequest('name', 'common.host.host_component.update');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql({
+        hostName: 'host1',
+        componentName: 'C1',
+        serviceName: 'S1',
+        component: params.component,
+        "context": Em.I18n.t('requestInfo.installNewHostComponent') + ' c1',
+        HostRoles: {
+          state: 'INSTALLED'
         },
-        success: 'installNewComponentSuccessCallback',
-        error: 'ajaxErrorCallback'
+        urlParams: "HostRoles/state=INIT"
       });
     });
   });
@@ -118,7 +101,7 @@ describe('App.InstallComponent', function () {
   describe("#ajaxErrorCallback()", function() {
 
     beforeEach(function() {
-      sinon.stub(App.ajax, 'defaultErrorHandler');
+      sinon.stub(App.ajax, 'defaultErrorHandler', Em.K);
     });
     afterEach(function() {
       App.ajax.defaultErrorHandler.restore();
@@ -173,6 +156,8 @@ describe('App.InstallComponent', function () {
         serviceName: 'S1'
       })]);
       sinon.spy(dfd, 'resolve');
+
+      App.ajax.send.restore();
       sinon.stub(App.ajax, 'send').returns({complete: Em.clb});
       this.mock = sinon.stub(App.Service, 'find');
       this.mock.returns([{serviceName: "S1"}]);
@@ -183,7 +168,6 @@ describe('App.InstallComponent', function () {
       App.StackServiceComponent.find.restore();
       dfd.resolve.restore();
       this.mock.restore();
-      App.ajax.send.restore();
     });
 
     it("component already created", function() {
@@ -193,13 +177,12 @@ describe('App.InstallComponent', function () {
 
     it("component not created", function() {
       installComponent.createServiceComponent('C2', dfd);
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'common.create_component',
-        sender: installComponent,
-        data: {
-          componentName: 'C2',
-          serviceName: 'S1'
-        }
+      var args = testHelpers.findAjaxRequest('name', 'common.create_component');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(installComponent);
+      expect(args[0].data).to.be.eql({
+        componentName: 'C2',
+        serviceName: 'S1'
       });
       expect(dfd.resolve.calledOnce).to.be.true;
     });

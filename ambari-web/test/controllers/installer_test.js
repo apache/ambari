@@ -30,16 +30,6 @@ describe('App.InstallerController', function () {
     installerController.destroy();
   });
 
-  beforeEach(function () {
-    sinon.stub(App.ajax, 'send', function () {
-      return {complete: Em.K};
-    });
-  });
-
-  afterEach(function () {
-    App.ajax.send.restore();
-  });
-
   describe('#init', function () {
     var c;
     beforeEach(function () {

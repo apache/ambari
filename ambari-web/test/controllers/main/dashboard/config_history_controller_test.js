@@ -18,12 +18,21 @@
 
 
 var App = require('app');
-
+var testHelpers = require('test/helpers');
 require('controllers/main/dashboard/config_history_controller');
 
 describe('MainConfigHistoryController', function () {
 
-  var controller = App.MainConfigHistoryController.create();
+  var controller;
+
+  beforeEach(function () {
+    controller = App.MainConfigHistoryController.create();
+  });
+
+  afterEach(function () {
+    clearTimeout(controller.get('timeoutRef'));
+    controller.destroy();
+  });
 
   describe('#realUrl', function () {
     it('cluster name is empty', function () {
@@ -85,16 +94,12 @@ describe('MainConfigHistoryController', function () {
   describe('#updateTotalCounter()', function () {
 
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
       controller.updateTotalCounter();
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('ajax-request is sent', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'service.serviceConfigVersions.get.total');
+      expect(args).to.exists;
     });
   });
 
@@ -113,14 +118,9 @@ describe('MainConfigHistoryController', function () {
           }
         }
       });
-      sinon.stub(App, 'get', function(k) {
-        if ('testMode' === k) return false;
-        return Em.get(App, k);
-      });
     });
     afterEach(function () {
       App.router.get.restore();
-      App.get.restore();
     });
     it('query params is empty', function () {
 

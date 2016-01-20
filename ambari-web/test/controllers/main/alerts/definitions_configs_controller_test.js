@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-
+var testHelpers = require('test/helpers');
 var controller;
 
 function getController() {
@@ -362,7 +362,6 @@ describe('App.MainAlertDefinitionConfigsController', function () {
   describe('#saveConfigs()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.ajax, 'send');
       controller.set('configs', [
         Em.Object.create({isDisabled: true}),
         Em.Object.create({isDisabled: true}),
@@ -372,10 +371,6 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       controller.saveConfigs();
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should set isDisabled for each config', function () {
       expect(controller.get('configs').someProperty('isDisabled', false)).to.be.false;
     });
@@ -383,7 +378,8 @@ describe('App.MainAlertDefinitionConfigsController', function () {
       expect(controller.get('canEdit')).to.be.false;
     });
     it('should sent 1 request', function () {
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'alerts.update_alert_definition');
+      expect(args[0]).to.exists;
     });
 
   });

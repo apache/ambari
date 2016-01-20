@@ -341,8 +341,51 @@ var files = [
   'test/views/main/service/menu_test'
 ];
 
+var ajaxSendMock = {
+  complete: Em.K,
+  success: Em.K,
+  then: Em.K,
+  promise: Em.K,
+  done: Em.clb,
+  error: Em.K,
+  retry: function () {
+    return {
+      then: Em.K,
+      complete: Em.K
+    }
+  },
+  fail: Em.K,
+  always: Em.clb
+};
+
+// don't poll anything while test are running
+App.bgOperationsUpdateInterval = 3600000;
+App.componentsUpdateInterval = 3600000;
+App.contentUpdateInterval = 3600000;
+App.hostStatusCountersUpdateInterval = 3600000;
+App.alertDefinitionsUpdateInterval = 3600000;
+App.alertInstancesUpdateInterval = 3600000;
+App.alertGroupsUpdateInterval = 3600000;
+
 App.initialize();
 describe('Ambari Web Unit tests', function() {
+
+  beforeEach(function () {
+    App.set('testMode', false); // don't even try to write tests for testMode = true
+    sinon.stub($, 'ajax', Em.K);
+    sinon.stub(App.ajax, 'send', function () {
+      return ajaxSendMock;
+    });
+    sinon.stub(App.updater, 'run', Em.K);
+    sinon.stub(App.updater, 'immediateRun', Em.K);
+  });
+
+  afterEach(function () {
+    App.ajax.send.restore();
+    $.ajax.restore();
+    App.updater.run.restore();
+    App.updater.immediateRun.restore();
+  });
 
   files.forEach(function (file) {
     describe(file, function() {

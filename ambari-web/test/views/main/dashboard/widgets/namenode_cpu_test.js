@@ -26,19 +26,28 @@ require('views/main/dashboard/widgets/namenode_cpu');
 
 describe('App.NameNodeCpuPieChartView', function() {
 
-  var model = Em.Object.create({
-    used: null,
-    max: null
-  });
-  var nameNodeCpuPieChartView = App.NameNodeCpuPieChartView.create({
-    model_type: null,
-    model: model,
-    modelFieldUsed: 'used',
-    modelFieldMax: 'max',
-    widgetHtmlId: 'fake'
+  var model;
+  var nameNodeCpuPieChartView;
+
+  beforeEach(function () {
+    model = Em.Object.create({
+      used: null,
+      max: null
+    });
+    nameNodeCpuPieChartView = App.NameNodeCpuPieChartView.create({
+      model_type: null,
+      model: model,
+      modelFieldUsed: 'used',
+      modelFieldMax: 'max',
+      widgetHtmlId: 'fake'
+    });
+    nameNodeCpuPieChartView.calc();
   });
 
-  nameNodeCpuPieChartView.calc();
+  afterEach(function () {
+    nameNodeCpuPieChartView.destroy();
+    clearTimeout(nameNodeCpuPieChartView.get('intervalId'));
+  });
 
   describe('#calcIsPieExists', function() {
     var tests = [

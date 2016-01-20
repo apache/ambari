@@ -21,6 +21,7 @@ var App = require('app');
 var controller;
 require('models/rack');
 require('controllers/main/charts/heatmap');
+var testHelpers = require('test/helpers');
 
 function getController() {
   return App.MainChartsHeatmapController.create();
@@ -65,13 +66,6 @@ describe('MainChartsHeatmapController', function () {
 
   describe('#showHeatMapMetric()', function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send', function () {
-        return {
-          done: function (callback) {
-            callback();
-          }
-        }
-      });
       controller.setProperties({
         activeWidgetLayout: Em.Object.create({
           displayName: 'widget',
@@ -83,13 +77,10 @@ describe('MainChartsHeatmapController', function () {
       });
     });
 
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should call App.ajax', function () {
       controller.showHeatMapMetric({context:{id: 2}});
-      expect(App.ajax.send.called).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'widget.layout.edit');
+      expect(args).to.exists;
     });
   });
 
@@ -248,55 +239,35 @@ describe('MainChartsHeatmapController', function () {
 
   describe("#getAllHeatMaps()", function() {
 
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send');
-    });
-
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
     it("should call App.ajax.send", function() {
       controller.reopen({
         loadHeatmapsUrlParams: 'url',
         sectionName: 's1'
       });
       controller.getAllHeatMaps();
-      expect(App.ajax.send.calledWith({
-        name: 'widgets.get',
-        sender: controller,
-        data: {
-          urlParams: 'url',
-          sectionName: 's1'
-        }
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'widgets.get');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: 'url',
+        sectionName: 's1'
+      });
     });
   });
 
   describe("#loadRacks()", function() {
-
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send');
-    });
-
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
 
     it("should call App.ajax.send", function() {
       controller.reopen({
         loadRacksUrlParams: 'url'
       });
       controller.loadRacks();
-      expect(App.ajax.send.calledWith({
-        name: 'hosts.heatmaps',
-        sender: controller,
-        data: {
-          urlParams: 'url'
-        },
-        success: 'loadRacksSuccessCallback'
-      })).to.be.true;
-
+      var args = testHelpers.findAjaxRequest('name', 'hosts.heatmaps');
+      expect(args[0]).to.exists;
+      expect(args[0].sender).to.be.eql(controller);
+      expect(args[0].data).to.be.eql({
+        urlParams: 'url'
+      });
     });
   });
 

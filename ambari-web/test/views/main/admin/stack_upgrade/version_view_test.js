@@ -19,16 +19,26 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
+var testHelpers = require('test/helpers');
 
 describe('App.mainAdminStackVersionsView', function () {
-  var view = App.MainAdminStackVersionsView.create({
-    controller: {
-      currentVersion: {
-        repository_version: "2.2.1.0",
-        runningCheckRequests: []
-      },
-      load: Em.K
-    }
+  var view;
+
+  beforeEach(function () {
+    view = App.MainAdminStackVersionsView.create({
+      controller: {
+        currentVersion: {
+          repository_version: "2.2.1.0",
+          runningCheckRequests: []
+        },
+        load: Em.K
+      }
+    });
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('updateTimer'));
+    view.destroy();
   });
 
   describe("#filterBy()", function () {
@@ -226,10 +236,10 @@ describe('App.mainAdminStackVersionsView', function () {
   });
 
   describe("#didInsertElement()", function() {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'observesCategories', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.observesCategories.restore();
     });
     it("observesCategories is called once", function() {
@@ -300,11 +310,11 @@ describe('App.mainAdminStackVersionsView', function () {
   });
 
   describe("#filterVersions()", function() {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'filterBy').returns([{id: 1}]);
       sinon.stub(view, 'observesCategories', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.filterBy.restore();
       view.observesCategories.restore();
     });
@@ -316,49 +326,54 @@ describe('App.mainAdminStackVersionsView', function () {
   });
 
   describe("#goToVersions()", function() {
+    var data = {
+      components: [{
+        'RootServiceComponents': {
+          'component_version': '1.9.0'
+        }
+      }, {
+        'RootServiceComponents': {
+          'component_version': '2.1.0'
+        }
+      }, {
+        'RootServiceComponents': {
+          'component_version': '2.0.0'
+        }
+      }]
+    };
     before(function () {
       sinon.spy(App, 'showConfirmationPopup');
       sinon.stub(window.location, 'replace', Em.K);
-      var data = {
-        components: [{
-          'RootServiceComponents': {
-            'component_version': '1.9.0'
-          }
-        }, {
-          'RootServiceComponents': {
-            'component_version': '2.1.0'
-          }
-        }, {
-          'RootServiceComponents': {
-            'component_version': '2.0.0'
-          }
-        }]
-      };
+    });
+    after(function () {
+      App.showConfirmationPopup.restore();
+      window.location.replace.restore();
+    });
+
+    beforeEach(function () {
+      App.ajax.send.restore();
       sinon.stub(App.ajax, 'send').returns({
         then: function(callback) {
           callback(data);
         }
       });
     });
-    after(function () {
-      App.showConfirmationPopup.restore();
-      window.location.replace.restore();
-      App.ajax.send.restore();
-    });
+
     it("should go to link using the version retrieved by query", function() {
       var popup = view.goToVersions();
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service.load_server_version');
+      expect(args[0]).exists;
       expect(window.location.replace.calledWith('/views/ADMIN_VIEW/2.1.0/INSTANCE/#/stackVersions')).to.be.true;
     });
   });
 
   describe("#willInsertElement()", function() {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'poll', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.poll.restore();
     });
     it("poll is called once", function() {

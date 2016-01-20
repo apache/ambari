@@ -23,6 +23,7 @@ require('controllers/main/host/add_controller');
 require('models/host_component');
 require('models/service');
 require('mappers/server_data_mapper');
+var testHelpers = require('test/helpers');
 
 describe('App.AddHostController', function () {
 
@@ -302,30 +303,26 @@ describe('App.AddHostController', function () {
 
   describe('#installServices()', function () {
 
-    beforeEach(function () {
-      sinon.spy(App.ajax, "send");
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('No hosts', function () {
       controller.set('content.cluster', {name: 'cl'});
       controller.set('testDBHosts', {});
       expect(controller.installServices()).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.not.exists;
     });
     it('Cluster name is empty', function () {
       controller.set('content.cluster', {name: ''});
       controller.set('testDBHosts', {'host1': {}});
       expect(controller.installServices()).to.be.false;
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.not.exists;
     });
     it('Cluster name is correct and hosts are present', function () {
       controller.set('content.cluster', {name: 'cl'});
       controller.set('testDBHosts', {'host1': {isInstalled: false}});
       expect(controller.installServices()).to.be.true;
-      expect(App.ajax.send.called).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'common.host_components.update');
+      expect(args).to.exists;
     });
   });
 
@@ -412,7 +409,7 @@ describe('App.AddHostController', function () {
     });
   });
 
-  describe("#loadServices", function () {
+  /*describe("#loadServices", function () {
     var services = {
       db: null,
       stack: [],
@@ -590,7 +587,7 @@ describe('App.AddHostController', function () {
     });
 
   });
-
+*/
   describe("#loadSlaveComponentHosts()", function () {
 
     var mock = {
@@ -746,16 +743,12 @@ describe('App.AddHostController', function () {
   });
 
   describe("#applyConfigGroup()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it("No config groups", function () {
       controller.set('content.configGroups', []);
       controller.applyConfigGroup();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args).to.not.exists;
     });
     it("selectedConfigGroup absent", function () {
       controller.set('content.configGroups', [
@@ -765,7 +758,8 @@ describe('App.AddHostController', function () {
         }
       ]);
       controller.applyConfigGroup();
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args).to.not.exists;
     });
     it("selectedConfigGroup present", function () {
       controller.set('content.configGroups', [
@@ -784,9 +778,9 @@ describe('App.AddHostController', function () {
         }
       ]);
       controller.applyConfigGroup();
-
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('config_groups.update_config_group');
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
+      var args = testHelpers.findAjaxRequest('name', 'config_groups.update_config_group');
+      expect(args[0]).to.exists;
+      expect(args[0].data).to.be.eql({
         "id": 1,
         "configGroup": {
           "ConfigGroup": {
@@ -1362,7 +1356,6 @@ describe('App.AddHostController', function () {
     beforeEach(function () {
       sinon.stub(controller, 'clearAllSteps', Em.K);
       sinon.stub(controller, 'clearStorageData', Em.K);
-      sinon.stub(App.updater, 'immediateRun', Em.K);
       sinon.stub(App.router, 'get').returns(mock);
       sinon.spy(mock, 'updateAll');
       sinon.spy(mock, 'getAllHostNames');
@@ -1371,7 +1364,6 @@ describe('App.AddHostController', function () {
     afterEach(function () {
       controller.clearAllSteps.restore();
       controller.clearStorageData.restore();
-      App.updater.immediateRun.restore();
       App.router.get.restore();
       mock.updateAll.restore();
       mock.getAllHostNames.restore();

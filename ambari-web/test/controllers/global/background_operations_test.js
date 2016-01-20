@@ -41,7 +41,6 @@ describe('App.BackgroundOperationsController', function () {
      *
      */
     App.set('clusterName', 'testName');
-    App.bgOperationsUpdateInterval = 100;
 
     var tests = Em.A([
       {
@@ -112,13 +111,6 @@ describe('App.BackgroundOperationsController', function () {
       }
     ]);
 
-    beforeEach(function () {
-      App.testMode = false;
-    });
-    afterEach(function () {
-      App.testMode = true;
-    });
-
     tests.forEach(function (test) {
       it(test.m, function () {
         controller.set('levelInfo', test.levelInfo);
@@ -133,11 +125,9 @@ describe('App.BackgroundOperationsController', function () {
   describe('#startPolling()', function () {
 
     beforeEach(function () {
-      sinon.spy(App.updater, 'run');
       sinon.spy(controller, 'requestMostRecent');
     });
     afterEach(function () {
-      App.updater.run.restore();
       controller.requestMostRecent.restore();
     });
 
@@ -177,6 +167,15 @@ describe('App.BackgroundOperationsController', function () {
   });
 
   describe('#callBackForMostRecent()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.router.get('clusterController'), 'restoreUpgradeState', Em.K);
+    });
+
+    afterEach(function () {
+      App.router.get('clusterController').restoreUpgradeState.restore();
+    });
+
     it('No requests exists', function () {
       var data = {
         items: []

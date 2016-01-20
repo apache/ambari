@@ -19,6 +19,7 @@
 var App = require('app');
 require('mixins/common/localStorage');
 require('controllers/wizard/step7_controller');
+var testHelpers = require('test/helpers');
 
 var installerStep7Controller,
   issuesFilterCases = [
@@ -108,17 +109,11 @@ function getController() {
 describe('App.InstallerStep7Controller', function () {
 
   beforeEach(function () {
-    sinon.stub(App.ajax, 'send', function () {
-      return {
-        then: Em.K
-      }
-    });
     sinon.stub(App.config, 'setPreDefinedServiceConfigs', Em.K);
     installerStep7Controller = getController();
   });
 
   afterEach(function() {
-    App.ajax.send.restore();
     App.config.setPreDefinedServiceConfigs.restore();
     installerStep7Controller.destroy();
   });
@@ -434,14 +429,16 @@ describe('App.InstallerStep7Controller', function () {
     it('should do ajax request for each received service name', function () {
       var serviceNames = ['s1', 's2', 's3'];
       installerStep7Controller.loadInstalledServicesConfigGroups(serviceNames);
-      expect(App.ajax.send.callCount).to.equal(serviceNames.length);
+      var args = testHelpers.filterAjaxRequests('name', 'config.tags_and_groups');
+      expect(args).to.have.property('length').equal(serviceNames.length);
     });
   });
 
   describe('#getConfigTags', function () {
     it('should do ajax-request', function () {
       installerStep7Controller.getConfigTags();
-      expect(App.ajax.send.calledOnce).to.equal(true);
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args).exists;
     });
   });
 
@@ -475,7 +472,8 @@ describe('App.InstallerStep7Controller', function () {
   describe('#checkMySQLHost', function () {
     it('should send query', function () {
       installerStep7Controller.checkMySQLHost();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
+      expect(args).exists;
     });
   });
 
@@ -2179,7 +2177,7 @@ describe('App.InstallerStep7Controller', function () {
 
     beforeEach(function () {
       installerStep7Controller.loadServiceConfigGroupOverrides(serviceConfigs, loadedGroupToOverrideSiteToTagMap, configGroups);
-      this.args = App.ajax.send.args[0][0].data;
+      this.args = testHelpers.findAjaxRequest('name', 'config.host_overrides')[0].data;
     });
 
     it('url params are valid', function () {

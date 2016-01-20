@@ -21,6 +21,7 @@ require('controllers/wizard/step2_controller');
 require('models/host');
 require('models/host_component');
 require('messages');
+var testHelpers = require('test/helpers');
 var c;
 
 function getController() {
@@ -582,16 +583,12 @@ describe('App.WizardStep2Controller', function () {
   });
 
   describe('#setAmbariJavaHome', function() {
-    beforeEach(function() {
-      sinon.stub($, 'ajax', Em.K);
-    });
-    afterEach(function() {
-      $.ajax.restore();
-    });
+
     it('should do ajax-request', function() {
       var controller = App.WizardStep2Controller.create({onGetAmbariJavaHomeSuccess: Em.K, onGetAmbariJavaHomeError: Em.K});
       controller.setAmbariJavaHome();
-      expect($.ajax.calledOnce).to.equal(true);
+      var args = testHelpers.findAjaxRequest('name', 'ambari.service');
+      expect(args).exists;
     });
   });
 

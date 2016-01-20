@@ -19,12 +19,13 @@
 
 var App = require('app');
 require('views/main/admin/stack_upgrade/upgrade_wizard_view');
+var testHelpers = require('test/helpers');
 
-describe('App.upgradeWizardView', function () {
-  var view = App.upgradeWizardView.create({
+function getView() {
+  var v = App.upgradeWizardView.create({
     failedStatuses: ['FAILED']
   });
-  view.reopen({
+  v.reopen({
     controller: Em.Object.create({
       finalizeContext: 'Confirm Finalize',
       upgradeData: Em.Object.create(),
@@ -35,21 +36,29 @@ describe('App.upgradeWizardView', function () {
       }
     })
   });
-  view.removeObserver('App.clusterName', view, 'startPolling');
+  v.removeObserver('App.clusterName', v, 'startPolling');
+  return v;
+}
+
+describe('App.upgradeWizardView', function () {
+  var view;
 
   beforeEach(function () {
+    App.ajax.send.restore();
     sinon.stub(App.ajax, 'send').returns({
       complete: Em.clb
     });
+    view = getView();
   });
 
   afterEach(function () {
-    App.ajax.send.restore();
+    clearTimeout(view.get('upgradeItemTimer'));
+    view.destroy();
   });
 
-  App.TestAliases.testAsComputedOr(view, 'isManualProceedDisabled', ['!isManualDone', 'controller.requestInProgress']);
+  App.TestAliases.testAsComputedOr(getView(), 'isManualProceedDisabled', ['!isManualDone', 'controller.requestInProgress']);
 
-  App.TestAliases.testAsComputedEqualProperties(view, 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
+  App.TestAliases.testAsComputedEqualProperties(getView(), 'isFinalizeItem', 'manualItem.context', 'controller.finalizeContext');
 
   describe("#upgradeGroups", function () {
     it("upgradeGroups is null", function () {
@@ -107,9 +116,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.stub(view, 'doPolling', Em.K);
@@ -135,10 +142,10 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#willInsertElement()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'startPolling', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.startPolling.restore();
     });
     it("call startPolling()", function () {
@@ -159,9 +166,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'loadUpgradeData', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.spy(view, 'doPolling');
@@ -231,6 +236,13 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#manualItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('manualItem');
@@ -252,6 +264,13 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#failedItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('failedItem');
@@ -265,6 +284,13 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#runningItem", function () {
+
+    beforeEach(function () {
+      view.reopen({
+        activeGroup: Em.Object.create()
+      });
+    });
+
     it("no running item", function () {
       view.set('activeGroup.upgradeItems', []);
       view.propertyDidChange('runningItem');
@@ -395,7 +421,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  App.TestAliases.testAsComputedAnd(view, 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed']);
+  App.TestAliases.testAsComputedAnd(getView(), 'isDowngradeAvailable', ['!controller.isDowngrade', 'controller.downgradeAllowed']);
 
   describe("#taskDetails", function () {
     it("runningItem present", function () {
@@ -429,10 +455,10 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#toggleDetails()", function () {
-    before(function () {
+    beforeEach(function () {
       sinon.stub(view, 'toggleProperty', Em.K);
     });
-    after(function () {
+    afterEach(function () {
       view.toggleProperty.restore();
     });
     it("isDetailsOpened is toggled", function () {
@@ -442,6 +468,11 @@ describe('App.upgradeWizardView', function () {
   });
 
   describe("#upgradeStatusLabel", function () {
+
+    beforeEach(function () {
+      Em.setFullPath(view, 'controller.upgradeData.Upgrade', {});
+    });
+
     [
       {
         data: {
@@ -604,19 +635,19 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       sinon.spy(view, 'doUpgradeItemPolling');
       this.clock = sinon.useFakeTimers();
     });
+
     afterEach(function () {
       view.get('controller').getUpgradeItem.restore();
       view.doUpgradeItemPolling.restore();
       this.clock.restore();
     });
+
     it("running item details", function () {
       view.reopen({
         runningItem: {},
@@ -628,24 +659,24 @@ describe('App.upgradeWizardView', function () {
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
     });
+
     it("failed item details", function () {
       view.reopen({
         failedItem: {},
         runningItem: null
       });
       view.set('isDetailsOpened', true);
-      view.doUpgradeItemPolling();
       expect(view.get('controller').getUpgradeItem.calledOnce).to.be.true;
       this.clock.tick(App.bgOperationsUpdateInterval);
       expect(view.doUpgradeItemPolling.calledTwice).to.be.true;
     });
+
     it("details not opened", function () {
       view.set('isDetailsOpened', false);
       //doUpgradeItemPolling triggered by observer
-      expect(view.get('controller').getUpgradeItem.calledOnce).to.be.false;
-      this.clock.tick(App.bgOperationsUpdateInterval);
-      expect(view.doUpgradeItemPolling.calledOnce).to.be.true;
+      expect(view.get('controller').getUpgradeItem.called).to.be.false;
     });
+
   });
 
   describe('#getSkippedServiceChecks()', function () {
@@ -689,17 +720,25 @@ describe('App.upgradeWizardView', function () {
           view.propertyDidChange('isFinalizeItem');
         });
 
-        it('request is sent ' + item.ajaxSendCallCount + ' times', function (){
-          expect(App.ajax.send.callCount).to.equal(item.ajaxSendCallCount);
-        });
-
         it('areSkippedServiceChecksLoaded is ' + item.areSkippedServiceChecksLoaded, function () {
           expect(view.get('controller.areSkippedServiceChecksLoaded')).to.equal(item.areSkippedServiceChecksLoadedResult);
         });
 
         if (item.ajaxSendCallCount) {
+          it('request is sent ' + item.ajaxSendCallCount + ' times', function (){
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args).to.have.property('length').equal(item.ajaxSendCallCount);
+          });
+
           it('upgradeId is 1', function () {
-            expect(App.ajax.send.firstCall.args[0].data.upgradeId).to.equal(1);
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args[0].data.upgradeId).to.equal(1);
+          });
+        }
+        else {
+          it('request is not sent times', function () {
+            var args = testHelpers.findAjaxRequest('name', 'admin.upgrade.service_checks');
+            expect(args).not.exists;
           });
         }
       });
@@ -809,9 +848,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       view.set('controller.areSlaveComponentFailuresHostsLoaded', false);
@@ -841,9 +878,7 @@ describe('App.upgradeWizardView', function () {
     beforeEach(function () {
       sinon.stub(view.get('controller'), 'getUpgradeItem', function () {
         return {
-          complete: function (callback) {
-            callback();
-          }
+          complete: Em.clb
         }
       });
       view.set('controller.areServiceCheckFailuresServicenamesLoaded', false);

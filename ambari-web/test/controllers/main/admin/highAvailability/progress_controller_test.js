@@ -123,12 +123,15 @@ describe('App.HighAvailabilityProgressPageController', function () {
           }
         ]
       }];
-    beforeEach(function() {
-      App.set('testMode', true);
+
+    beforeEach(function () {
+      sinon.stub(Date.prototype, 'getTime').returns(1);
     });
-    afterEach(function() {
-      App.set('testMode', false);
+
+    afterEach(function () {
+      Date.prototype.getTime.restore();
     });
+
     it("reconfigures configs after HA", function() {
       tests.forEach(function(t) {
         controller.set('content', t.content);

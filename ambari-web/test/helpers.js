@@ -47,6 +47,83 @@ module.exports = {
         }
       });
     });
+  },
+
+  /**
+   * Get arguments for one <code>App.ajax.send</code> call according to the criteria
+   * Example:
+   * <pre>
+   *  sinon.stub(App.ajax, 'send', Em.K);
+   *  App.ajax.send({
+   *    name: 'n1',
+   *    sender: {},
+   *    data: {
+   *      f1: 'v1',
+   *      f2: 'v2'
+   *    }
+   *  });
+   *  App.ajax.send({
+   *    name: 'n2',
+   *    sender: {}
+   *  });
+   *  var args = findAjaxRequest('name', 'n1');
+   *  console.log(args); // [{name: 'n1', sender: {}, data: {f1: 'v1', f2: 'v2'}}]
+   *  App.ajax.send.restore();
+   * </pre>
+   *
+   * @param {string} property field to find
+   * @param {*} value value to find
+   * @returns {array|null}
+   */
+  findAjaxRequest: function(property, value) {
+    if (Em.typeOf(App.ajax.send.args) !== 'array') {
+      return null;
+    }
+    return App.ajax.send.args.find(function (request) {
+      return Em.get(request[0], property) === value;
+    });
+  },
+
+  /**
+   * Get arguments for several <code>App.ajax.send</code> calls according to the criteria
+   * Example:
+   * <pre>
+   *  sinon.stub(App.ajax, 'send', Em.K);
+   *  App.ajax.send({
+   *    name: 'n1',
+   *    sender: {},
+   *    data: {
+   *      f1: 'v1',
+   *      f2: 'v2'
+   *    }
+   *  });
+   *  App.ajax.send({
+   *    name: 'n2',
+   *    sender: {}
+   *  });
+   *  App.ajax.send({
+   *    name: 'n2',
+   *    sender: {},
+   *    data: {
+   *      d1: 1234
+   *    }
+   *  });
+   *  var args = filterAjaxRequests('name', 'n2');
+   *  console.log(args); // [[{name: 'n1', sender: {}}], [{name: 'n2', sender: {}, data: {d1: 1234}}]]
+   *  App.ajax.send.restore();
+   * </pre>
+   *
+   * @param {string} property field to filter
+   * @param {*} value value to filter
+   * @returns {array}
+   */
+  filterAjaxRequests: function (property, value) {
+    if (Em.typeOf(App.ajax.send.args) !== 'array') {
+      return [];
+    }
+    return App.ajax.send.args.filter(function (request) {
+      return Em.get(request[0], property) === value;
+    });
   }
 
 };

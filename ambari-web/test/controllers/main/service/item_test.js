@@ -27,6 +27,7 @@ require('controllers/global/cluster_controller');
 require('controllers/main/service/reassign_controller');
 require('controllers/main/service/item');
 var batchUtils = require('utils/batch_scheduled_requests');
+var testHelpers = require('test/helpers');
 
 describe('App.MainServiceItemController', function () {
 
@@ -977,12 +978,10 @@ describe('App.MainServiceItemController', function () {
   describe("#runSmokeTestPrimary", function () {
     beforeEach(function () {
       sinon.stub(App, 'get').withArgs('clusterName').returns('myCluster');
-      sinon.spy($, 'ajax');
     });
 
     afterEach(function () {
       App.get.restore();
-      $.ajax.restore();
     });
 
     var tests = [
@@ -1026,11 +1025,13 @@ describe('App.MainServiceItemController', function () {
           mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
           mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
           mainServiceItemController.runSmokeTestPrimary(test.data.query);
-          this.data = JSON.parse($.ajax.args[0][0].data);
+          this.args = testHelpers.findAjaxRequest('name', 'service.item.smoke')[0];
+          this.data = this.args.data;
+          this.data = JSON.parse(App.ajax.fakeGetUrl('service.item.smoke').format(this.data).data);
         });
 
         it('ajax request is sent', function () {
-          expect($.ajax.calledOnce).to.equal(true);
+          expect(this.args).exists;
         });
 
         it('RequestInfo.context is valid', function () {
@@ -1284,22 +1285,16 @@ describe('App.MainServiceItemController', function () {
 
     beforeEach(function() {
       mainServiceItemController = App.MainServiceItemController.create({});
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function() {
-      App.ajax.send.restore();
     });
 
     it("App.ajax.send should be called", function() {
       mainServiceItemController.deleteServiceCall('S1');
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name : 'service.item.delete',
-        sender: mainServiceItemController,
-        data : {
-          serviceName : 'S1'
-        },
-        success : 'deleteServiceCallSuccessCallback'
-      })
+      var args = testHelpers.findAjaxRequest('name', 'service.item.delete');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(mainServiceItemController);
+      expect(args[0].data).to.be.eql({
+        serviceName : 'S1'
+      });
     });
   });
 

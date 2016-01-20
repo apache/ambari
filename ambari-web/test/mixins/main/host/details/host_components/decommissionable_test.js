@@ -18,6 +18,7 @@
 
 var App = require('app');
 var uiEffects = require('utils/ui_effects');
+var testHelpers = require('test/helpers');
 
 require('mixins/main/host/details/host_components/decommissionable');
 
@@ -259,13 +260,6 @@ describe('App.Decommissionable', function () {
 
   describe("#getDecommissionStatus()", function() {
 
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
     it("App.ajax.send should be called", function() {
       decommissionable.setProperties({
         componentForCheckDecommission: 'C1',
@@ -277,16 +271,13 @@ describe('App.Decommissionable', function () {
         })
       });
       decommissionable.getDecommissionStatus();
-      expect(App.ajax.send.getCall(0).args[0]).to.eql({
-        name: 'host.host_component.decommission_status',
-        sender: decommissionable,
-        data: {
-          hostName: 'host1',
-          componentName: 'C1',
-          serviceName: 'S1'
-        },
-        success: 'getDecommissionStatusSuccessCallback',
-        error: 'getDecommissionStatusErrorCallback'
+      var args = testHelpers.findAjaxRequest('name', 'host.host_component.decommission_status');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(decommissionable);
+      expect(args[0].data).to.be.eql({
+        hostName: 'host1',
+        componentName: 'C1',
+        serviceName: 'S1'
       });
     });
   });

@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
+var testHelpers = require('test/helpers');
 
 describe('App.RMHighAvailabilityWizardStep3Controller', function () {
 
@@ -54,14 +55,6 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       content: Em.Object.create({})
     });
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should send proper ajax request', function () {
       controller.loadConfigTagsSuccessCallback({
         'Clusters': {
@@ -80,7 +73,7 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
       }, {}, {
         'serviceConfig': {}
       });
-      var data = App.ajax.send.args[0][0].data;
+      var data = testHelpers.findAjaxRequest('name', 'reassign.load_configs')[0].data;
       expect(data.urlParams).to.equal('(type=zoo.cfg&tag=1)|(type=yarn-site&tag=1)|(type=yarn-env&tag=1)');
       expect(data.serviceConfig).to.eql({});
     });

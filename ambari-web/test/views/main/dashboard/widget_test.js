@@ -72,20 +72,13 @@ describe('App.DashboardWidgetView', function () {
         complete: Em.K
       });
     });
+
     afterEach(function () {
       dashboardWidgetView.get('parentView').widgetsMapper.restore();
       dashboardWidgetView.get('parentView').getUserPref.restore();
     });
-    it("testMode is on", function () {
-      App.set('testMode', true);
-      dashboardWidgetView.set('id', '1');
-      dashboardWidgetView.deleteWidget();
-      expect(dashboardWidgetView.get('parentView').widgetsMapper.calledWith('1')).to.be.true;
-      expect(dashboardWidgetView.get('parentView.visibleWidgets')).to.be.empty;
-      expect(dashboardWidgetView.get('parentView.hiddenWidgets')).to.not.be.empty;
-    });
+
     it("testMode is off", function () {
-      App.set('testMode', false);
       dashboardWidgetView.set('parentView.persistKey', 'key');
       dashboardWidgetView.deleteWidget();
       expect(dashboardWidgetView.get('parentView').getUserPref.calledWith('key')).to.be.true;

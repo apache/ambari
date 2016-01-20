@@ -21,7 +21,17 @@ require('views/common/widget/graph_widget_view');
 var fileUtils = require('utils/file_utils');
 
 describe('App.GraphWidgetView', function () {
-  var view = App.GraphWidgetView.create();
+
+  var view;
+
+  beforeEach(function () {
+    view = App.GraphWidgetView.create();
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timeoutId'));
+    view.destroy();
+  });
 
   describe("#adjustData()", function() {
     var testCases = [

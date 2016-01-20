@@ -18,6 +18,7 @@
 
 var App = require('app');
 require('views/common/quick_view_link_view');
+var testHelpers = require('test/helpers');
 
 describe('App.QuickViewLinks', function () {
 
@@ -111,20 +112,12 @@ describe('App.QuickViewLinks', function () {
   });
 
   describe("#loadTags()", function () {
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
-    });
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
+
     it("call $.ajax", function () {
       quickViewLinks.loadTags();
-      expect(App.ajax.send.calledWith({
-        name: 'config.tags',
-        sender: quickViewLinks,
-        success: 'loadTagsSuccess',
-        error: 'loadTagsError'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'config.tags');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
     });
   });
 
@@ -132,9 +125,7 @@ describe('App.QuickViewLinks', function () {
     beforeEach(function () {
       sinon.stub(quickViewLinks, 'setConfigProperties', function () {
         return {
-          done: function (callback) {
-            callback();
-          }
+          done: Em.clb
         }
       });
       sinon.stub(quickViewLinks, 'getQuickLinksHosts');
@@ -233,7 +224,6 @@ describe('App.QuickViewLinks', function () {
 
   describe("#getQuickLinksHosts()", function () {
     beforeEach(function () {
-      sinon.stub(App.ajax, 'send');
       sinon.stub(App.HostComponent, 'find').returns([
         Em.Object.create({
           isMaster: true,
@@ -242,35 +232,30 @@ describe('App.QuickViewLinks', function () {
       ]);
     });
     afterEach(function () {
-      App.ajax.send.restore();
       App.HostComponent.find.restore();
     });
     it("call $.ajax", function () {
       quickViewLinks.getQuickLinksHosts();
-      expect(App.ajax.send.calledWith({
-        name: 'hosts.for_quick_links',
-        sender: quickViewLinks,
-        data: {
-          clusterName: App.get('clusterName'),
-          masterHosts: 'host1',
-          urlParams: ''
-        },
-        success: 'setQuickLinksSuccessCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.for_quick_links');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
+      expect(args[0].data).to.be.eql({
+        clusterName: App.get('clusterName'),
+        masterHosts: 'host1',
+        urlParams: ''
+      });
     });
     it("call $.ajax, HBASE service", function () {
       quickViewLinks.set('content.serviceName', 'HBASE');
       quickViewLinks.getQuickLinksHosts();
-      expect(App.ajax.send.calledWith({
-        name: 'hosts.for_quick_links',
-        sender: quickViewLinks,
-        data: {
-          clusterName: App.get('clusterName'),
-          masterHosts: 'host1',
-          urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
-        },
-        success: 'setQuickLinksSuccessCallback'
-      })).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'hosts.for_quick_links');
+      expect(args[0]).exists;
+      expect(args[0].sender).to.be.eql(quickViewLinks);
+      expect(args[0].data).to.be.eql({
+        clusterName: App.get('clusterName'),
+        masterHosts: 'host1',
+        urlParams: ',host_components/metrics/hbase/master/IsActiveMaster'
+      });
     });
   });
 

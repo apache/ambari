@@ -20,14 +20,24 @@ var App = require('app');
 require('views/common/widget/gauge_widget_view');
 
 describe('App.GaugeWidgetView', function () {
-  var view = App.GaugeWidgetView.create({
-    value: 0,
-    content: {
-      properties: {
-        warning_threshold: 0,
-        critical_threshold: 0
+
+  var view;
+
+  beforeEach(function () {
+    view = App.GaugeWidgetView.create({
+      value: 0,
+      content: {
+        properties: {
+          warning_threshold: 0,
+          critical_threshold: 0
+        }
       }
-    }
+    });
+  });
+
+  afterEach(function () {
+    clearTimeout(view.get('timeoutId'));
+    view.destroy();
   });
 
   describe("#chartView.contentColor()", function() {

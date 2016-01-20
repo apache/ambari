@@ -21,6 +21,7 @@ require('utils/ajax/ajax_queue');
 require('controllers/main/service/info/configs');
 require('controllers/wizard/step8_controller');
 var installerStep8Controller, configurationController;
+var testHelpers = require('test/helpers');
 
 var configs = Em.A([
   Em.Object.create({filename: 'hdfs-site.xml', name: 'p1', value: 'v1'}),
@@ -867,7 +868,6 @@ describe('App.WizardStep8Controller', function () {
 
     beforeEach(function () {
       sinon.stub(App, 'get').withArgs('currentStackName').returns('HDP');
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.stub(App.StackVersion, 'find', function() {
         return [
           Em.Object.create({state: 'CURRENT', repositoryVersion: {repositoryVersion: '2.3.0.0-2208'}})
@@ -876,14 +876,13 @@ describe('App.WizardStep8Controller', function () {
     });
 
     afterEach(function () {
-      App.ajax.send.restore();
       App.get.restore();
       App.StackVersion.find.restore();
     });
     it('should use current StackVersion', function() {
       installerStep8Controller.loadRepoInfo();
-      var data = App.ajax.send.args[0][0].data;
-      expect(data).to.eql({stackName: 'HDP', repositoryVersion: '2.3.0.0-2208'});
+      var args = testHelpers.findAjaxRequest('name', 'cluster.load_repo_version');
+      expect(args[0].data).to.eql({stackName: 'HDP', repositoryVersion: '2.3.0.0-2208'});
     });
   });
 
@@ -1172,20 +1171,13 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#deleteClusters', function() {
 
-    beforeEach(function () {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function () {
-      App.ajax.send.restore();
-    });
-
     it('should call App.ajax.send for each provided clusterName', function() {
       var clusterNames = ['h1', 'h2', 'h3'];
       installerStep8Controller.deleteClusters(clusterNames);
-      expect(App.ajax.send.callCount).to.equal(clusterNames.length);
+      var args = testHelpers.filterAjaxRequests('name', 'common.delete.cluster');
+      expect(args).to.have.property('length').equal(clusterNames.length);
       clusterNames.forEach(function(n, i) {
-        expect(App.ajax.send.getCall(i).args[0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
+        expect(args[i][0].data).to.eql({name: n, isLast: i === clusterNames.length - 1});
       });
     });
 
@@ -1249,24 +1241,8 @@ describe('App.WizardStep8Controller', function () {
   });
 
   describe('#addRequestToAjaxQueue', function() {
-    describe('testMode = true', function() {
-      before(function() {
-        App.set('testMode', true);
-      });
-      after(function() {
-        App.set('testMode', false);
-      });
-      it('shouldn\'t do nothing', function() {
-        installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
-        installerStep8Controller.get('ajaxRequestsQueue').clear();
-        installerStep8Controller.addRequestToAjaxQueue({});
-        expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(0);
-      });
-    });
-    describe('testMode = true', function() {
-      before(function() {
-        App.set('testMode', false);
-      });
+
+    describe('testMode = false', function() {
       it('should add request', function() {
         var clusterName = 'c1';
         installerStep8Controller.reopen({clusterName: clusterName});
@@ -1338,39 +1314,27 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#applyInstalledServicesConfigurationGroup', function() {
     beforeEach(function() {
-      sinon.stub($, 'ajax', function () {
-        return {
-          then: Em.K,
-          retry: function () {
-            return {then: Em.K}
-          }
-        }
-      });
       sinon.stub(App.router, 'get', function() {
         return configurationController;
       });
     });
     afterEach(function() {
-      $.ajax.restore();
       App.router.get.restore();
     });
     it('should do ajax request for each config group', function() {
       var configGroups = [{ConfigGroup: {id:''}}, {ConfigGroup: {id:''}}];
       installerStep8Controller.applyInstalledServicesConfigurationGroup(configGroups);
-      expect($.ajax.callCount).to.equal(configGroups.length);
+      var args = testHelpers.filterAjaxRequests('name', 'config_groups.update_config_group');
+      expect(args).to.have.property('length').equal(configGroups.length);
     });
   });
 
   describe('#getExistingClusterNames', function() {
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
+
     it('should do ajax request', function() {
       installerStep8Controller.getExistingClusterNames();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'wizard.step8.existing_cluster_names');
+      expect(args).exists;
     });
   });
 
@@ -1892,8 +1856,6 @@ describe('App.WizardStep8Controller', function () {
     describe('#createNotification', function () {
 
       beforeEach(function () {
-        var stub = sinon.stub(App, 'get');
-        stub.withArgs('testMode').returns(false);
         installerStep8Controller.clearStep();
         installerStep8Controller.set('content', {controllerName: 'installerController'});
         installerStep8Controller.set('configs', [
@@ -1910,21 +1872,14 @@ describe('App.WizardStep8Controller', function () {
           {name: 'some_p', value: 'some_v', serviceName: 'MISC', filename: 'alert_notification'}
         ]);
         installerStep8Controller.get('ajaxRequestsQueue').clear();
-        sinon.stub(App.ajax, 'send', function () {
-          return {complete: Em.K}
-        });
-      });
-
-      afterEach(function () {
-        App.get.restore();
-        App.ajax.send.restore();
       });
 
       it('should add request to queue', function () {
         installerStep8Controller.createNotification();
         expect(installerStep8Controller.get('ajaxRequestsQueue.queue.length')).to.equal(1);
         installerStep8Controller.get('ajaxRequestsQueue').runNextRequest();
-        expect(App.ajax.send.calledOnce).to.be.true;
+        var args = testHelpers.findAjaxRequest('name', 'alerts.create_alert_notification');
+        expect(args).exists;
       });
 
       describe('sent data should be valid', function () {
@@ -2443,7 +2398,6 @@ describe('App.WizardStep8Controller', function () {
 
     beforeEach(function () {
       sinon.stub(App.db, 'get').withArgs('KerberosWizard', 'kerberosDescriptorConfigs').returns(1234);
-      sinon.stub(App.ajax, 'send', Em.K);
       sinon.stub(installerStep8Controller, 'addRequestToAjaxQueue', Em.K);
       sinon.stub(installerStep8Controller, 'get').withArgs('wizardController').returns(Em.Object.create({
         getDBProperty: function() { return true; }
@@ -2452,21 +2406,22 @@ describe('App.WizardStep8Controller', function () {
 
     afterEach(function () {
       App.db.get.restore();
-      App.ajax.send.restore();
       installerStep8Controller.addRequestToAjaxQueue.restore();
       installerStep8Controller.get.restore();
     });
 
     it('should send request instantly', function () {
       installerStep8Controller.updateKerberosDescriptor(true);
-      expect(App.ajax.send.calledOnce).to.be.true;
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.update');
+      expect(args[0]).exists;
+      expect(args[0].data).to.be.eql(requestData);
       expect(installerStep8Controller.addRequestToAjaxQueue.called).to.be.false;
-      expect(App.ajax.send.args[0][0].data).to.be.eql(requestData);
     });
 
     it('should add request to the queue', function () {
       installerStep8Controller.updateKerberosDescriptor(false);
-      expect(App.ajax.send.called).to.be.false;
+      var args = testHelpers.findAjaxRequest('name', 'admin.kerberos.cluster.artifact.update');
+      expect(args).not.exists;
       expect(installerStep8Controller.addRequestToAjaxQueue.calledOnce).to.be.true;
       expect(installerStep8Controller.addRequestToAjaxQueue.args[0][0].data).to.be.eql(requestData);
     });

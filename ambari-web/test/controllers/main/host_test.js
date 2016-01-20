@@ -25,11 +25,15 @@ describe('MainHostController', function () {
 
   var hostController, db;
 
-  describe('#getRegExp()', function() {
-    before(function() {
-      hostController = App.MainHostController.create({});
-    });
+  beforeEach(function () {
+    hostController = App.MainHostController.create({});
+  });
 
+  afterEach(function () {
+    hostController.destroy();
+  });
+
+  describe('#getRegExp()', function() {
     var message = '`{0}` should convert to `{1}`',
       tests = [
         { value: '.*', expected: '.*' },
@@ -55,7 +59,6 @@ describe('MainHostController', function () {
 
   describe('#getQueryParameters', function() {
     beforeEach(function() {
-      hostController = App.MainHostController.create({});
       sinon.spy(hostController, 'getRegExp');
       sinon.stub(App.db, 'getFilterConditions', function() {
         return [{
@@ -88,7 +91,6 @@ describe('MainHostController', function () {
       db = {mainHostController: [
         {name: 'hostName', status: 'sorting'}
       ]};
-      hostController = App.MainHostController.create({});
       sinon.stub(App.db, 'getSortingStatuses', function (k) {
         return db[k];
       });
