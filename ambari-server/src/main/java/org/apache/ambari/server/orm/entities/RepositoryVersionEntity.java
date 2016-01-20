@@ -44,6 +44,7 @@ import javax.persistence.UniqueConstraint;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.state.RepositoryType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.repository.VersionDefinitionXml;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -320,6 +321,20 @@ public class RepositoryVersionEntity {
    */
   public void setVersionXsd(String xsdLocation) {
     versionXsd = xsdLocation;
+  }
+
+  /**
+   * Parse the version XML into its object representation.  This causes the XML to be lazy-loaded
+   * from storage.
+   * @return {@code null} if the XSD is not available.
+   * @throws Exception
+   */
+  public VersionDefinitionXml getRepositoryXml() throws Exception {
+    if (null == versionXsd) {
+      return null;
+    }
+
+    return VersionDefinitionXml.load(getVersionXml());
   }
 
   @Override

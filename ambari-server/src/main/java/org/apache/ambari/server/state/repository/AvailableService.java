@@ -45,6 +45,13 @@ public class AvailableService {
   }
 
   /**
+   * @return the service name
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
    * @return the list of versions to append additional versions.
    */
   public List<AvailableVersion> getVersions() {

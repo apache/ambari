@@ -263,15 +263,16 @@ public class RepositoryVersionResourceProvider extends AbstractAuthorizedResourc
       setResourceProperty(resource, REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID, entity.getVersion(), requestedIds);
       setResourceProperty(resource, REPOSITORY_VERSION_TYPE_PROPERTY_ID, entity.getType(), requestedIds);
 
-      if (null != entity.getVersionXsd()) {
-        final VersionDefinitionXml xml;
-        final StackInfo stack;
+      final VersionDefinitionXml xml;
 
-        try {
-          xml = VersionDefinitionXml.load(entity.getVersionXml());
-        } catch (Exception e) {
-          throw new SystemException(String.format("Could not load xml for Repository %s", entity.getId()), e);
-        }
+      try {
+        xml = entity.getRepositoryXml();
+      } catch (Exception e) {
+        throw new SystemException(String.format("Could not load xml for Repository %s", entity.getId()), e);
+      }
+
+      if (null != xml) {
+        final StackInfo stack;
 
         try {
           stack = ambariMetaInfo.getStack(entity.getStackName(), entity.getStackVersion());
