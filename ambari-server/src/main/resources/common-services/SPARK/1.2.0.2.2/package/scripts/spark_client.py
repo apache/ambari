@@ -34,11 +34,11 @@ class SparkClient(Script):
     self.install_packages(env)
     self.configure(env)
 
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
-    setup_spark(env, 'client', action = 'config')
+    setup_spark(env, 'client', upgrade_type=upgrade_type, action = 'config')
 
   def status(self, env):
     raise ClientComponentHasNoStatus()

@@ -26,9 +26,10 @@ from resource_management import *
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.libraries.functions.version import format_hdp_stack_version
 
-
-def setup_spark(env, type, action = None):
+def setup_spark(env, type, upgrade_type = None, action = None):
   import params
 
   Directory([params.spark_pid_dir, params.spark_log_dir],
@@ -88,4 +89,17 @@ def setup_spark(env, type, action = None):
       owner = params.hive_user,
       group = params.user_group,
       key_value_delimiter = " ",
+    )
+
+  effective_version = params.version if upgrade_type is not None else params.hdp_stack_version
+  if effective_version:
+    effective_version = format_hdp_stack_version(effective_version)
+
+  if params.spark_thrift_fairscheduler_content and effective_version and compare_versions(effective_version, '2.4.0.0') >= 0:
+    # create spark-thrift-fairscheduler.xml
+    File(os.path.join(params.spark_conf,"spark-thrift-fairscheduler.xml"),
+      owner=params.spark_user,
+      group=params.spark_group,
+      mode=0755,
+      content=InlineTemplate(params.spark_thrift_fairscheduler_content)
     )
