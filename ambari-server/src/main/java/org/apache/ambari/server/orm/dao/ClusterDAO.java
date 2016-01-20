@@ -241,6 +241,25 @@ public class ClusterDAO {
   }
 
   /**
+   * Gets selected mappings for provided config types
+   * @param clusterId cluster id
+   * @param types config types for mappings
+   * @return
+   */
+  @RequiresSession
+  public List<ClusterConfigMappingEntity> getSelectedConfigMappingByTypes(long clusterId, List<String> types) {
+    TypedQuery<ClusterConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+        "SELECT mapping FROM ClusterConfigMappingEntity mapping " +
+            "WHERE mapping.clusterId = :clusterId AND mapping.typeName IN :type " +
+            "AND mapping.selectedInd > 0", ClusterConfigMappingEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("type", types);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
    */
