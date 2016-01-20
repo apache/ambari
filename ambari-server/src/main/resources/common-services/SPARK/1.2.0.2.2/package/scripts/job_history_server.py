@@ -41,24 +41,24 @@ class JobHistoryServer(Script):
     
     self.install_packages(env)
     
-  def configure(self, env):
+  def configure(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
-    setup_spark(env, 'server', action = 'config')
+    setup_spark(env, 'server', upgrade_type=upgrade_type, action = 'config')
     
   def start(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
     self.configure(env)
-    spark_service('jobhistoryserver', action='start')
+    spark_service('jobhistoryserver', upgrade_type=upgrade_type, action='start')
 
   def stop(self, env, upgrade_type=None):
     import params
     env.set_params(params)
     
-    spark_service('jobhistoryserver', action='stop')
+    spark_service('jobhistoryserver', upgrade_type=upgrade_type, action='stop')
 
   def status(self, env):
     import status_params

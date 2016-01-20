@@ -350,8 +350,10 @@ App.ConfigHistoryFlowView = Em.View.extend({
     this.get('controller').loadSelectedVersion(displayedVersion);
   },
   clearCompareVersionBar: function () {
-    this.set('compareServiceVersion', null);
-  }.observes('controller.selectedConfigGroup'),
+    if (this.get('controller.isCompareMode') === false) {
+      this.set('compareServiceVersion', null);
+    }
+  }.observes('controller.isCompareMode'),
   /**
    * revert config values to chosen version and apply reverted configs to server
    */

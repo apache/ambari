@@ -25,11 +25,31 @@ from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import File, Execute
+from resource_management.libraries.functions.version import format_hdp_stack_version
 
-def spark_service(name, action):
+def spark_service(name, upgrade_type=None, action=None):
   import params
 
   if action == 'start':
+
+    effective_version = params.version if upgrade_type is not None else params.hdp_stack_version
+    if effective_version:
+      effective_version = format_hdp_stack_version(effective_version)
+
+    if effective_version and compare_versions(effective_version, '2.4.0.0') >= 0:
+      # copy spark-hdp-assembly.jar to hdfs
+      copy_to_hdfs("spark", params.user_group, params.hdfs_user, host_sys_prepped=params.host_sys_prepped)
+      # create spark history directory
+      params.HdfsResource(params.spark_history_dir,
+                          type="directory",
+                          action="create_on_execute",
+                          owner=params.spark_user,
+                          group=params.user_group,
+                          mode=0777,
+                          recursive_chmod=True
+                          )
+      params.HdfsResource(None, action="execute")
+
     if params.security_enabled:
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)

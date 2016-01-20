@@ -110,7 +110,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   stopComponent: function (event) {
     var self = this;
-    if (event.context.get('componentName') === 'NAMENODE' ) {
+    if (event.context.get('componentName') == 'NAMENODE' ) {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationPopup(function () {
           var component = event.context;
@@ -150,7 +150,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       data.serviceName = component.get('service.serviceName');
     }
     App.ajax.send({
-      name: Array.isArray(component) ? 'common.host.host_components.update' : 'common.host.host_component.update',
+      name: (Array.isArray(component)) ? 'common.host.host_components.update' : 'common.host.host_component.update',
       sender: this,
       data: data,
       success: 'sendComponentCommandSuccessCallback',
@@ -166,7 +166,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method stopComponentSuccessCallback
    */
   sendComponentCommandSuccessCallback: function (data, opt, params) {
-    var running = params.HostRoles.state === App.HostComponentStatus.stopped ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
+    var running = (params.HostRoles.state === App.HostComponentStatus.stopped) ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
     params.component.set('workStatus', running);
     if (App.get('testMode')) {
       this.mimicWorkStatusChange(params.component, running, params.HostRoles.state);
@@ -212,7 +212,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           });
           return App.showConfirmationFeedBackPopup(callback, msg);
         });
-      } else if (Em.isNone(isNNCheckpointTooOld)) {
+      } else if (isNNCheckpointTooOld == null) {
         // not available
         return App.showConfirmationPopup(
           callback, Em.I18n.t('services.service.stop.HDFS.warningMsg.checkPointNA'), null,
@@ -240,13 +240,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var lastCheckpointTime = Em.get(data, 'metrics.dfs.FSNamesystem.LastCheckpointTime');
     var hostName = Em.get(data, 'HostRoles.host_name');
 
-    if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') === 'active') {
+    if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'active') {
       if (!lastCheckpointTime) {
         this.set("isNNCheckpointTooOld", null);
       } else {
-        var timeCriteria = App.nnCheckpointAgeAlertThreshold; // time in hours to define how many hours ago is too old
-        var timeAgo = (Math.round(App.dateTime() / 1000) - timeCriteria * 3600) *1000;
-        if (lastCheckpointTime <= timeAgo) {
+        var time_criteria = App.nnCheckpointAgeAlertThreshold; // time in hours to define how many hours ago is too old
+        var time_ago = (Math.round(App.dateTime() / 1000) - (time_criteria * 3600)) *1000;
+        if (lastCheckpointTime <= time_ago) {
           // too old, set the effected hostName
           this.set("isNNCheckpointTooOld", hostName);
         } else {
@@ -254,7 +254,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           this.set("isNNCheckpointTooOld", false);
         }
       }
-    } else if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') === 'standby') {
+    } else if (Em.get(data, 'metrics.dfs.FSNamesystem.HAState') == 'standby') {
       this.set("isNNCheckpointTooOld", false);
     }
   },
@@ -309,18 +309,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var component = event.context;
     var componentName = component.get('componentName');
     var displayName = component.get('displayName');
-    var isLastComponent = this.getTotalComponent(component) === 1;
+    var isLastComponent = (this.getTotalComponent(component) === 1);
     return App.ModalPopup.show({
       header: Em.I18n.t('popup.confirmation.commonHeader'),
       primary: Em.I18n.t('hosts.host.deleteComponent.popup.confirm'),
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/deleteComponentPopup')
       }),
-      isHiveMetastore: componentName === 'HIVE_METASTORE',
-      isWebHCatServer: componentName === 'WEBHCAT_SERVER',
-      isNimbus: componentName === 'NIMBUS',
-      isRangerKMSServer: componentName === 'RANGER_KMS_SERVER',
-      isZkServer: componentName === 'ZOOKEEPER_SERVER',
+      isHiveMetastore: componentName == 'HIVE_METASTORE',
+      isWebHCatServer: componentName == 'WEBHCAT_SERVER',
+      isNimbus: componentName == 'NIMBUS',
+      isRangerKMSServer: componentName == 'RANGER_KMS_SERVER',
+      isZkServer: componentName == 'ZOOKEEPER_SERVER',
 
       deleteHiveMetastoreMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'),
       deleteWebHCatServerMsg: Em.I18n.t('hosts.host.deleteComponent.popup.deleteWebHCatServer'),
@@ -354,13 +354,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @return {Number}
    */
   getTotalComponent: function (component) {
+    var count;
     if (component.get('isSlave')) {
-      return App.SlaveComponent.find(component.get('componentName')).get('totalCount');
+      count = App.SlaveComponent.find(component.get('componentName')).get('totalCount');
+    } else if (component.get('isClient')) {
+      count = App.ClientComponent.find(component.get('componentName')).get('totalCount');
+    } else {
+      count = App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length');
     }
-    if (component.get('isClient')) {
-      return App.ClientComponent.find(component.get('componentName')).get('totalCount');
-    }
-    return App.HostComponent.find().filterProperty('componentName', component.get('componentName')).get('length');
+    return count || 0;
   },
 
   /**
@@ -379,17 +381,17 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method _doDeleteHostComponent
    */
   _doDeleteHostComponent: function (component, callback) {
-    var clb = callback || Em.K;
+    callback = callback || Em.K;
     App.ajax.send({
-      name: Em.isNone(component) ? 'common.delete.host' : 'common.delete.host_component',
+      name: (Em.isNone(component)) ? 'common.delete.host' : 'common.delete.host_component',
       sender: this,
       data: {
-        componentName: component ? component.get('componentName') : '',
+        componentName: (component) ? component.get('componentName') : '',
         hostName: this.get('content.hostName')
       },
       success: '_doDeleteHostComponentSuccessCallback',
       error: '_doDeleteHostComponentErrorCallback'
-    }).then(clb, clb);
+    }).then(callback, callback);
   },
 
   /**
@@ -406,25 +408,25 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var self = this;
     this.set('_deletedHostComponentResult', null);
     this.removeHostComponentModel(data.componentName, data.hostName);
-    if (data.componentName === 'ZOOKEEPER_SERVER') {
+    if (data.componentName == 'ZOOKEEPER_SERVER') {
       this.set('fromDeleteZkServer', true);
       this.updateStormConfigs();
       self.isServiceMetricsLoaded(function () {
         self.loadConfigs();
       });
-    } else if (data.componentName === 'HIVE_METASTORE') {
+    } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');
-    } else if (data.componentName === 'WEBHCAT_SERVER') {
+    } else if (data.componentName == 'WEBHCAT_SERVER') {
       this.set('deleteWebHCatServer', true);
       this.loadConfigs('loadHiveConfigs');
-    } else if (data.componentName === 'HIVE_SERVER') {
+    } else if (data.componentName == 'HIVE_SERVER') {
       this.set('deleteHiveServer', true);
       this.loadConfigs('loadHiveConfigs');
-    } else if (data.componentName === 'NIMBUS') {
+    } else if (data.componentName == 'NIMBUS') {
       this.set('deleteNimbusHost', true);
       this.loadConfigs('loadStormConfigs');
-    } else if (data.componentName === 'RANGER_KMS_SERVER') {
+    } else if (data.componentName == 'RANGER_KMS_SERVER') {
       this.set('deleteRangerKMSServer', true);
       this.loadConfigs('loadRangerConfigs');
     }
@@ -449,7 +451,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   removeHostComponentModel: function (componentName, hostName) {
     var component = App.HostComponent.find().filterProperty('componentName', componentName).findProperty('hostName', hostName);
-    var serviceInCache = App.cache.services.findProperty('ServiceInfo.service_name', component.get('service.serviceName'));
+    var serviceInCache = App.cache['services'].findProperty('ServiceInfo.service_name', component.get('service.serviceName'));
     serviceInCache.host_components = serviceInCache.host_components.without(component.get('id'));
     App.serviceMapper.deleteRecord(component);
   },
@@ -509,7 +511,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   restartComponent: function (event) {
     var component = event.context;
-    if (event.context.get('componentName') === 'NAMENODE') {
+    if (event.context.get('componentName') == 'NAMENODE') {
       this.checkNnLastCheckpointTime(function () {
         return App.showConfirmationPopup(function () {
           batchUtils.restartHostComponents([component], Em.I18n.t('rollingrestart.context.selectedComponentOnSelectedHost').format(component.get('displayName')), "HOST_COMPONENT");
@@ -529,7 +531,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   addComponentWithCheck: function (event) {
     var componentName = event.context ? event.context.get('componentName') : "";
-    event.hiveMetastoreHost = componentName === "HIVE_METASTORE" && !!this.get('content.hostName') ? this.get('content.hostName') : null;
+    event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
     App.get('router.mainAdminKerberosController').getSecurityType(function (event) {
       App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
     }.bind(this, event));
@@ -610,13 +612,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   },
 
   showAddComponentPopup: function (message, isManualKerberos, primary) {
+    isManualKerberos = isManualKerberos || false;
+
     return App.ModalPopup.show({
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
       addComponentMsg: Em.I18n.t('hosts.host.addComponent.msg').format(message),
 
-      manualKerberosWarning: !!isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
+      manualKerberosWarning: isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '',
 
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/details/addComponentPopup')
@@ -666,12 +670,12 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     this.showBackgroundOperationsPopup(function () {
       if (params.componentName === 'ZOOKEEPER_SERVER' || params.componentName === 'HIVE_SERVER') {
         self.set(params.componentName === 'ZOOKEEPER_SERVER' ? 'zkRequestId' : 'hiveRequestId', data.Requests.id);
-        if (params.componentName === 'ZOOKEEPER_SERVER') {
-          self.checkZkConfigs();
-        }
-        else {
-          self.checkHiveDone();
-        }
+        self.addObserver(
+          'App.router.backgroundOperationsController.serviceTimestamp',
+          self,
+          (params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs : self.checkHiveDone)
+        );
+        params.componentName === 'ZOOKEEPER_SERVER' ? self.checkZkConfigs() : self.checkHiveDone();
       }
     });
     return true;
@@ -693,8 +697,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method checkHiveDone
    */
   checkHiveDone: function () {
-    this.set('addHiveServer', true);
-    this.loadConfigs("loadHiveConfigs");
+    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('hiveRequestId'));
+    if (bg && !bg.get('isRunning')) {
+      var self = this;
+      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkHiveDone);
+      setTimeout(function () {
+        self.set('addHiveServer', true);
+        self.loadConfigs("loadHiveConfigs");
+      }, App.get('componentsUpdateInterval'));
+    }
   },
 
   /**
@@ -724,7 +735,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     data.items.forEach(function (item) {
       $.extend(configs, item.properties);
     });
-    this.set('isOozieServerAddable', !(Em.isEmpty(configs.oozie_database) || configs.oozie_database === 'New Derby Database'));
+    this.set('isOozieServerAddable', !(Em.isEmpty(configs["oozie_database"]) || configs["oozie_database"] === 'New Derby Database'));
     this.get('isOozieConfigLoaded').resolve();
   },
 
@@ -864,23 +875,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   onLoadHiveConfigs: function (data) {
     var hiveMetastoreHost = this.get('hiveMetastoreHost');
     var webhcatServerHost = this.get('webhcatServerHost');
-    var addHiveServer = this.get('addHiveServer');
     var port = "";
     var configs = {};
     var attributes = {};
-    var componentName;
-    var deleteHiveMetaStore = this.get('deleteHiveMetaStore');
-    var deleteHiveServer = this.get('deleteHiveServer');
-    var deleteWebHCatServer = this.get('deleteWebHCatServer');
-    if (addHiveServer || deleteHiveServer) {
-      componentName = 'HIVE_SERVER';
-    }
-    if (hiveMetastoreHost || deleteHiveMetaStore) {
-      componentName = 'HIVE_METASTORE';
-    }
-    if (webhcatServerHost || deleteWebHCatServer) {
-      componentName = 'WEBHCAT_SERVER';
-    }
     var localDB = {
       masterComponentHosts: this.getHiveHosts()
     };
@@ -900,8 +897,8 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     dependencies.hiveMetastorePort = port;
 
     initializer.setup({
-      hiveUser: configs['hive-env'].hive_user,
-      webhcatUser: configs['hive-env'].webhcat_user
+      hiveUser: configs['hive-env']['hive_user'],
+      webhcatUser: configs['hive-env']['webhcat_user']
     });
 
     ['hive-site', 'webhcat-site', 'hive-env', 'core-site'].forEach(function(fileName) {
@@ -942,6 +939,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       }
     ];
     var params = [groups];
+    var componentName = this.get('addHiveServer') ? 'HIVE_SERVER' : (hiveMetastoreHost ? 'HIVE_METASTORE' : 'WEBHCAT_SERVER');
     var host = webhcatServerHost || hiveMetastoreHost;
     params.pushObjects([componentName, host]);
     this.saveConfigsBatch.apply(this, params);
@@ -1082,7 +1080,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   onLoadRangerConfigs: function (data) {
     var hostToInstall = this.get('rangerKMSServerHost');
     var rkmsHosts = this.getRangerKMSServerHosts();
-    var rkmsPort = data.items.findProperty('type', 'kms-env').properties.kms_port;
+    var rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'];
     var coreSiteConfigs = data.items.findProperty('type', 'core-site');
     var hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site');
     var groups = [
@@ -1171,7 +1169,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method sendRefreshComponentConfigsCommand
    */
   sendRefreshComponentConfigsCommand: function (component, context) {
-    var resourceFilters = [
+    var resource_filters = [
       {
         service_name: component.get('service.serviceName'),
         component_name: component.get('componentName'),
@@ -1182,7 +1180,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       name: 'host.host_component.refresh_configs',
       sender: this,
       data: {
-        resource_filters: resourceFilters,
+        resource_filters: resource_filters,
         context: context
       },
       success: 'refreshComponentConfigsSuccessCallback'
@@ -1212,12 +1210,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method checkZkConfigs
    */
   checkZkConfigs: function () {
-    var self = this;
-    this.updateStormConfigs();
-    var callback = function () {
-      self.loadConfigs();
-    };
-    this.isServiceMetricsLoaded(callback);
+    var bg = App.router.get('backgroundOperationsController.services').findProperty('id', this.get('zkRequestId'));
+    if (bg && !bg.get('isRunning')) {
+      var self = this;
+      this.removeObserver('App.router.backgroundOperationsController.serviceTimestamp', this, this.checkZkConfigs);
+      setTimeout(function () {
+        self.updateStormConfigs();
+        var callback =   function () {
+          self.loadConfigs();
+        };
+        self.isServiceMetricsLoaded(callback);
+      }, App.get('componentsUpdateInterval'));
+    }
   },
 
   /**
@@ -1285,12 +1289,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (services.someProperty('serviceName', 'STORM')) {
       urlParams.push('(type=storm-site&tag=' + data.Clusters.desired_configs['storm-site'].tag + ')');
     }
-    if (services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack') || App.get('isRMHaEnabled')) {
+    if ((services.someProperty('serviceName', 'YARN') && App.get('isHadoop22Stack')) || App.get('isRMHaEnabled')) {
       urlParams.push('(type=yarn-site&tag=' + data.Clusters.desired_configs['yarn-site'].tag + ')');
       urlParams.push('(type=zoo.cfg&tag=' + data.Clusters.desired_configs['zoo.cfg'].tag + ')');
     }
     if (services.someProperty('serviceName', 'ACCUMULO')) {
       urlParams.push('(type=accumulo-site&tag=' + data.Clusters.desired_configs['accumulo-site'].tag + ')');
+    }
+    if (services.someProperty('serviceName', 'KAFKA')) {
+      urlParams.push('(type=kafka-broker&tag=' + data.Clusters.desired_configs['kafka-broker'].tag + ')');
     }
     return urlParams;
   },
@@ -1354,6 +1361,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
           },
           properties_attributes: {
             'accumulo-site': attributes['accumulo-site']
+          }
+        }
+      );
+    }
+    if (installedServiceNames.contains('KAFKA')) {
+      groups.push(
+        {
+          properties: {
+            'kafka-broker': configs['kafka-broker']
+          },
+          properties_attributes: {
+            'kafka-broker': attributes['kafka-broker']
           }
         }
       );
@@ -1523,7 +1542,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @param {string} hostNames - list of host when run from bulk operations or current host
    */
   warnBeforeDecommission: function (hostNames) {
-    if (this.get('content.hostComponents').findProperty('componentName', 'HBASE_REGIONSERVER').get('passiveState') === "OFF") {
+    if (this.get('content.hostComponents').findProperty('componentName', 'HBASE_REGIONSERVER').get('passiveState') == "OFF") {
       this.showHbaseActiveWarning();
     } else {
       this.checkRegionServerState(hostNames);
@@ -1555,9 +1574,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    */
   checkRegionServerStateSuccessCallback: function (data, opt, params) {
     var hostArray = params.hostNames.split(",");
-    var decommissionPossible = data.items.mapProperty('HostRoles.host_name').filter(function (hostName) {
+    var decommissionPossible = (data.items.mapProperty('HostRoles.host_name').filter(function (hostName) {
       return !hostArray.contains(hostName);
-    }, this).length >= 1;
+    }, this).length >= 1);
     if (decommissionPossible) {
       this.doDecommissionRegionServer(params.hostNames, "HBASE", "HBASE_MASTER", "HBASE_REGIONSERVER");
     } else {
@@ -1589,7 +1608,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   showHbaseActiveWarning: function () {
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
-      message: Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components.HBASE_REGIONSERVER),
+      message: Em.I18n.t('hostPopup.recommendation.beforeDecommission').format(App.format.components["HBASE_REGIONSERVER"]),
       bodyClass: Ember.View.extend({
         template: Em.Handlebars.compile('<div class="alert alert-warning">{{message}}</div>')
       }),
@@ -1719,8 +1738,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     if (data && (data.Requests || data.resources[0].RequestSchedule)) {
       this.showBackgroundOperationsPopup();
       return true;
+    } else {
+      return false;
     }
-    return false;
   },
 
   /**
@@ -1732,15 +1752,15 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
    * @method doRecommissionAndStart
    */
   doRecommissionAndStart: function (hostNames, serviceName, componentName, slaveType) {
-    var contextNameString1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
-    var context1 = Em.I18n.t(contextNameString1);
-    var contextNameString2 = 'requestInfo.startHostComponent.' + slaveType.toLowerCase();
-    var startContext = Em.I18n.t(contextNameString2);
+    var contextNameString_1 = 'hosts.host.' + slaveType.toLowerCase() + '.recommission';
+    var context_1 = Em.I18n.t(contextNameString_1);
+    var contextNameString_2 = 'requestInfo.startHostComponent.' + slaveType.toLowerCase();
+    var startContext = Em.I18n.t(contextNameString_2);
     var params = {
       "slave_type": slaveType,
       "included_hosts": hostNames
     };
-    if (serviceName === "HBASE") {
+    if (serviceName == "HBASE") {
       params.mark_draining_only = true;
     }
     var batches = [
@@ -1750,7 +1770,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         "uri": App.apiPrefix + "/clusters/" + App.get('clusterName') + "/requests",
         "RequestBodyInfo": {
           "RequestInfo": {
-            "context": context1,
+            "context": context_1,
             "command": "DECOMMISSION",
             "exclusive": "true",
             "parameters": params,
@@ -2019,6 +2039,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       unknownComponents: [],
       toDecommissionComponents: []
     };
+    var self = this;
     if (componentsOnHost && componentsOnHost.get('length') > 0) {
       componentsOnHost.forEach(function (cInstance) {
         if (cInstance.get('componentName') === 'ZOOKEEPER_SERVER') {
@@ -2055,15 +2076,13 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
   validateAndDeleteHost: function () {
     var container = this.getHostComponentsInfo();
 
-    if (container.masterComponents.length) {
+    if (container.masterComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'masterList');
       return;
-    }
-    if (container.nonDeletableComponents.length) {
+    } else if (container.nonDeletableComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'nonDeletableList');
       return;
-    }
-    if (container.runningComponents.length) {
+    } else if (container.runningComponents.length > 0) {
       this.raiseDeleteComponentsError(container, 'runningList');
       return;
     }
@@ -2072,8 +2091,9 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       return App.showConfirmationPopup(function () {
         self.confirmDeleteHost(container);
       }, Em.I18n.t('hosts.host.addComponent.deleteHostWithZooKeeper'));
+    } else {
+      this.confirmDeleteHost(container);
     }
-    this.confirmDeleteHost(container);
   },
 
   /**
@@ -2089,14 +2109,14 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
       showBodyEnd: Em.computed.existsIn('type', ['runningList', 'masterList']),
       container: container,
       components: function(){
-        var _container = this.get('container');
+        var container = this.get('container');
         switch (this.get('type')) {
           case 'masterList':
-            return _container.masterComponents;
+            return container.masterComponents;
           case 'nonDeletableList':
-            return _container.nonDeletableComponents;
+            return container.nonDeletableComponents;
           case 'runningList':
-            return _container.runningComponents;
+            return container.runningComponents;
         }
       }.property('type'),
       componentsStr: function () {
@@ -2130,9 +2150,10 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         if (container.lastComponents && container.lastComponents.length) {
           this.set('isChecked', false);
           return true;
+        } else {
+          this.set('isChecked', true);
+          return false;
         }
-        this.set('isChecked', true);
-        return false;
       }.property(),
       disablePrimary: Em.computed.not('isChecked'),
       isChecked: false,
@@ -2182,7 +2203,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
         if (!deleteError) {
           this._doDeleteHostComponent(component, function () {
             deleteError = self.get('_deletedHostComponentResult');
-            if (index === length - 1) {
+            if (index == length - 1) {
               dfd.resolve();
             }
           });
@@ -2212,18 +2233,18 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     });
   },
   deleteHostSuccessCallback: function (data, rq, requestBody) {
+    var self = this;
     App.router.get('updateController').updateHost(function () {
       App.router.transitionTo('hosts.index');
     });
-    if (!!(requestBody && requestBody.hostName)) {
+    if (!!(requestBody && requestBody.hostName))
       App.hostsMapper.deleteRecord(App.Host.find().findProperty('hostName', requestBody.hostName));
-    }
     App.router.get('clusterController').getAllHostNames();
   },
   deleteHostErrorCallback: function (xhr, textStatus, errorThrown, opt) {
     xhr.responseText = "{\"message\": \"" + xhr.statusText + "\"}";
     var self = this;
-    var callback = function () {
+    var callback =   function () {
       self.loadConfigs();
     };
     self.isServiceMetricsLoaded(callback);
@@ -2311,7 +2332,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     event.context.forEach(function (component) {
       if (['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'))) {
         clientsToInstall.push(component);
-      } else if (typeof component.get('workStatus') === 'undefined') {
+      } else if (typeof component.get('workStatus') == 'undefined') {
         clientsToAdd.push(component);
       }
     });
@@ -2379,9 +2400,7 @@ App.MainHostDetailsController = Em.Controller.extend(App.SupportClientConfigsDow
     var installedComponents;
     var dependencies = App.StackServiceComponent.find(componentName).get('dependencies');
     dependencies = opt.scope === '*' ? dependencies : dependencies.filterProperty('scope', opt.scope);
-    if (!dependencies.length) {
-      return [];
-    }
+    if (dependencies.length == 0) return [];
     switch (opt.scope) {
       case 'host':
         Em.assert("You should pass at least `hostName` or `installedComponents` to options.", opt.hostName || opt.installedComponents);

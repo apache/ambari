@@ -53,7 +53,10 @@ TARBALL_MAP = {
                   "/hdp/apps/{0}/sqoop/sqoop.tar.gz".format(STACK_VERSION_PATTERN)),
 
     "mapreduce": ("/usr/hdp/{0}/hadoop/mapreduce.tar.gz".format(STACK_VERSION_PATTERN),
-                  "/hdp/apps/{0}/mapreduce/mapreduce.tar.gz".format(STACK_VERSION_PATTERN))
+                  "/hdp/apps/{0}/mapreduce/mapreduce.tar.gz".format(STACK_VERSION_PATTERN)),
+
+    "spark": ("/usr/hdp/{0}/spark/lib/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN),
+                  "/hdp/apps/{0}/spark/spark-hdp-assembly.jar".format(STACK_VERSION_PATTERN))
   }
 }
 
