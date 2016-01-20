@@ -37,8 +37,6 @@ from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.script.script import Script
 
 
-from resource_management.libraries.functions.substitute_vars import substitute_vars
-
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()

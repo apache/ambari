@@ -57,10 +57,8 @@ def hbase(name=None):
   )
 
   Directory(params.java_io_tmpdir,
-      owner = params.hbase_user,
-      group = params.user_group,
       recursive = True,
-      mode=0777
+      mode=0777,
   )
 
   parent_dir = os.path.dirname(params.tmp_dir)
