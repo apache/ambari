@@ -29,62 +29,6 @@ describe('App.ServiceConfigRadioButtons', function () {
     view = App.ServiceConfigRadioButtons.create();
   });
 
-  describe('#setConnectionUrl', function () {
-    beforeEach(function () {
-      sinon.stub(view, 'getPropertyByType', function (name) {
-        return App.ServiceConfigProperty.create({'name': name});
-      });
-      sinon.stub(view, 'getDefaultPropertyValue', function () {
-        return 'host:{0},db:{1}';
-      });
-    });
-
-    afterEach(function () {
-      view.getPropertyByType.restore();
-      view.getDefaultPropertyValue.restore();
-    });
-
-    it('updates value for connection url', function () {
-      expect(view.setConnectionUrl('hostName', 'dbName').get('value')).to.equal('host:hostName,db:dbName');
-    });
-  });
-
-  describe('#setRequiredProperties', function () {
-
-    beforeEach(function () {
-      view.reopen({
-        serviceConfig: Em.Object.create(),
-        categoryConfigsAll: [
-          App.ServiceConfigProperty.create({
-            name: 'p1',
-            value: 'v1'
-          }),
-          App.ServiceConfigProperty.create({
-            name: 'p2',
-            value: 'v2'
-          })
-        ]
-      });
-      sinon.stub(view, 'getPropertyByType', function (name) {
-        return view.get('categoryConfigsAll').findProperty('name', name);
-      });
-      sinon.stub(view, 'getDefaultPropertyValue', function (name) {
-        return name + '_v';
-      });
-    });
-
-    afterEach(function () {
-      view.getPropertyByType.restore();
-      view.getDefaultPropertyValue.restore();
-    });
-
-    it('updates value for connection url', function () {
-      view.setRequiredProperties(['p2', 'p1']);
-      expect(view.get('categoryConfigsAll').findProperty('name', 'p1').get('value')).to.equal('p1_v');
-      expect(view.get('categoryConfigsAll').findProperty('name', 'p2').get('value')).to.equal('p2_v');
-    });
-  });
-
   describe('#handleDBConnectionProperty', function () {
 
     var cases = [

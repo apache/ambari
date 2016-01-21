@@ -247,22 +247,6 @@ describe('App.ConfigInitializer', function () {
         value: 'h0:2182,h1:2182',
         title: 'should add ZK host and port dynamically'
       },
-      'oozie_hostname': {
-        localDB: {
-          masterComponentHosts: [
-            {
-              component: 'OOZIE_SERVER',
-              hostName: 'h0'
-            },
-            {
-              component: 'OOZIE_SERVER',
-              hostName: 'h1'
-            }
-          ]
-        },
-        value: ['h0', 'h1'],
-        title: 'array that contains names of hosts with Oozie Server'
-      },
       'knox_gateway_host': {
         localDB: {
           masterComponentHosts: [
@@ -585,18 +569,6 @@ describe('App.ConfigInitializer', function () {
         localDB: getLocalDBForSingleComponent('HISTORYSERVER'),
         rValue: 'c6407.ambari.apache.org:555',
         expectedValue: 'h1:555'
-      },
-      {
-        config: 'hive_hostname',
-        localDB: getLocalDBForSingleComponent('HIVE_SERVER'),
-        rValue: 'c6407.ambari.apache.org',
-        expectedValue: 'h1'
-      },
-      {
-        config: 'oozie_hostname',
-        localDB: getLocalDBForSingleComponent('OOZIE_SERVER'),
-        rValue: 'c6407.ambari.apache.org',
-        expectedValue: 'h1'
       },
       {
         config: 'oozie.base.url',

@@ -1419,8 +1419,9 @@ describe('App.InstallerStep7Controller', function () {
             serviceName: 'HIVE',
             configs: [
               {
-                name: 'hive_hostname',
-                value: 'h0'
+                name: 'javax.jdo.option.ConnectionURL',
+                value: 'jdbc:mysql://h0/db_name?createDatabaseIfNotExist=true',
+                filename: 'hive-site.xml'
               }
             ]
           }
@@ -1439,8 +1440,25 @@ describe('App.InstallerStep7Controller', function () {
             hostComponents: [
               {
                 RootServiceHostComponents: {
+                  host_name: 'h0',
                   properties: {
-                    'server.jdbc.url': 'jdbc:mysql://h0/db0?createDatabaseIfNotExist=true'
+                    'server.jdbc.database': 'postgres'
+                  }
+                }
+              }
+            ]
+          },
+          mySQLServerConflict: false,
+          title: 'Ambari MySQL Server and Hive Server are on the same host but different database types'
+        },
+        {
+          data: {
+            hostComponents: [
+              {
+                RootServiceHostComponents: {
+                  host_name: 'h0',
+                  properties: {
+                    'server.jdbc.database': 'mysql'
                   }
                 }
               }
@@ -1454,8 +1472,9 @@ describe('App.InstallerStep7Controller', function () {
             hostComponents: [
               {
                 RootServiceHostComponents: {
+                  host_name: 'h1',
                   properties: {
-                    'server.jdbc.url': 'jdbc:mysql://h1/db1?createDatabaseIfNotExist=true'
+                    'server.jdbc.database': 'mysql'
                   }
                 }
               }

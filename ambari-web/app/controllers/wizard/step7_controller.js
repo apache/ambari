@@ -1420,7 +1420,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     return App.ajax.send({
       name: 'ambari.service',
       data: {
-        fields : "?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url"
+        fields : "?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url,hostComponents/RootServiceHostComponents/properties/server.jdbc.database"
       },
       sender: this,
       success: 'getAmbariDatabaseSuccess'
@@ -1434,11 +1434,11 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method getAmbariDatabaseSuccess
    */
   getAmbariDatabaseSuccess: function (data) {
-    var hiveDBHostname = this.get('stepConfigs').findProperty('serviceName', 'HIVE').configs.findProperty('name', 'hive_hostname').value;
-    var ambariServiceHostComponents = data.hostComponents;
-    if (ambariServiceHostComponents.length) {
-      var ambariDBInfo = JSON.stringify(ambariServiceHostComponents[0].RootServiceHostComponents.properties);
-      this.set('mySQLServerConflict', ambariDBInfo.contains('mysql') && ambariDBInfo.indexOf(hiveDBHostname) > 0);
+    var ambariServerDBType = Em.getWithDefault(data.hostComponents, '0.RootServiceHostComponents.properties', {})['server.jdbc.database'],
+        ambariServerHostName = Em.getWithDefault(data.hostComponents, '0.RootServiceHostComponents.host_name', false),
+        hiveConnectionURL = Em.getWithDefault(App.config.findConfigProperty(this.get('stepConfigs'), 'javax.jdo.option.ConnectionURL', 'hive-site.xml') || {}, 'value', '');
+    if (ambariServerHostName) {
+      this.set('mySQLServerConflict', ambariServerDBType.contains('mysql') && hiveConnectionURL.contains(ambariServerHostName));
     } else {
       this.set('mySQLServerConflict', false);
     }
@@ -1574,7 +1574,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       onPrimary: function () {
         if (goToNextStep) {
           goToNextStep();
-          this.hide(); 
+          this.hide();
         }
       },
       onSecondary: function () {

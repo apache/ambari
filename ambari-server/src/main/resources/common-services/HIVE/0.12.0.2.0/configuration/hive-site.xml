@@ -51,6 +51,16 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+      <property>
+        <name>ambari.hive.db.schema.name</name>
+        <type>hive-site</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -61,6 +71,12 @@ limitations under the License.
     <value-attributes>
       <overridable>false</overridable>
     </value-attributes>
+    <depends-on>
+      <property>
+        <name>hive_database</name>
+        <type>hive-env</type>
+      </property>
+    </depends-on>
   </property>
 
   <property>

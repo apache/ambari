@@ -396,25 +396,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ConfigsLoader, A
     }
 
     this.set('allConfigs', configs);
-    //add configs as names of host components
-    this.addDBProperties(configs);
   },
 
-  /**
-   * This method should add UI properties that are market as <code>'isRequiredByAgent': false<code>
-   * @param configs
-   */
-  addDBProperties: function(configs) {
-    if (this.get('content.serviceName') === 'HIVE') {
-      var propertyToAdd = App.configsCollection.getConfigByName('hive_hostname','hive-env'),
-        cfg = App.config.createDefaultConfig(propertyToAdd.name, propertyToAdd.serviceName, propertyToAdd.filename, true, propertyToAdd),
-        connectionUrl = configs.findProperty('name', 'javax.jdo.option.ConnectionURL');
-      if (cfg && connectionUrl) {
-        cfg.savedValue = cfg.value = databaseUtils.getDBLocationFromJDBC(connectionUrl.get('value'));
-        configs.pushObject(App.ServiceConfigProperty.create(cfg));
-      }
-    }
-  },
   /**
    * adds properties form stack that doesn't belong to cluster
    * to step configs
