@@ -1880,11 +1880,11 @@ class TestAmbariServer(TestCase):
     get_os_family_mock.return_value = OSConst.SUSE_FAMILY
 
     firewall_obj = Firewall().getFirewallObject()
-    p.communicate.return_value = ("### iptables", "err")
+    p.communicate.return_value = ("running", "err")
     p.returncode = 0
     self.assertEqual("SuseFirewallChecks", firewall_obj.__class__.__name__)
     self.assertTrue(firewall_obj.check_firewall())
-    p.communicate.return_value = ("SuSEfirewall2 not active", "err")
+    p.communicate.return_value = ("unused", "err")
     p.returncode = 0
     self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)

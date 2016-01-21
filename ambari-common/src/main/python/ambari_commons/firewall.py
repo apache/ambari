@@ -129,7 +129,7 @@ class Fedora18FirewallChecks(FirewallChecks):
 class SuseFirewallChecks(FirewallChecks):
   def __init__(self):
     super(SuseFirewallChecks, self).__init__()
-    self.FIREWALL_SERVICE_NAME = "SuSEfirewall2"
+    self.FIREWALL_SERVICE_NAME = "rcSuSEfirewall2"
 
   def get_command(self):
     return "%s %s" % (self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
@@ -137,9 +137,9 @@ class SuseFirewallChecks(FirewallChecks):
   def check_result(self):
     result = False
     if self.returncode == 0:
-      if "SuSEfirewall2 not active" in self.stdoutdata:
+      if "unused" in self.stdoutdata:
         result = False
-      elif "### iptables" in self.stdoutdata:
+      elif "running" in self.stdoutdata:
         result = True
     return result
 
