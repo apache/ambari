@@ -54,7 +54,7 @@
       {{/view}}
     </div>
   </div>
-  {{view App.MainHostComboSearchBoxView}}
+  {{outlet}}
   <table class="table advanced-header-table table-bordered table-striped" id="hosts-table">
     <thead>
       {{#view view.sortView classNames="label-row" contentBinding="view.filteredContent"}}

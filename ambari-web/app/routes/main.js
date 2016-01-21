@@ -193,6 +193,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       connectOutlets: function (router, context) {
         App.loadTimer.start('Hosts Page');
         router.get('mainController').connectOutlet('mainHost');
+        router.get('mainHostController').connectOutlet('mainHostComboSearchBox');
       }
     }),
 
